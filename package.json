@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/package",
   "name": "ruoyi-vue-plus",
   "version": "5.5.0-2.5.0",
-  "description": "RuoYi-Vue-Plus多租户管理系统",
-  "author": "LionLi",
+  "description": "平台名称全国种子销售服务平台",
+  "author": "烁烁",
   "license": "MIT",
   "type": "module",
   "scripts": {
