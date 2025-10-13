@@ -1,28 +1,28 @@
 <template>
   <div class="forgot-password">
-    <form @submit.prevent="handleSubmit">
-      <div>
-        <label for="phone">*手机号</label>
-        <input id="phone" v-model="phone" type="text" placeholder="请输入手机号" />
-        <p v-if="phoneError" class="error">{{ phoneError }}</p>
-      </div>
-      <div>
-        <label for="code">*短信验证</label>
-        <input id="code" v-model="code" type="text" placeholder="六位短信验证码" />
-        <button type="button" @click="sendCode">获取短信验证码</button>
-      </div>
-      <div>
-        <label for="password">*设置密码</label>
-        <input id="password" v-model="password" type="password" placeholder="输入密码" />
-        <p v-if="passwordError" class="error">{{ passwordError }}</p>
-      </div>
-      <div>
-        <label for="confirmPassword">*确认密码</label>
-        <input id="confirmPassword" v-model="confirmPassword" type="password" placeholder="请再次输入密码" />
-        <p v-if="confirmPasswordError" class="error">{{ confirmPasswordError }}</p>
-      </div>
-      <button type="submit">提交</button>
-    </form>
+    <el-form @submit.prevent="handleSubmit" label-width="70px">
+      <el-form-item label="手机号" :error="phoneError">
+        <el-input v-model="phone" placeholder="请输入手机号" size="large" />
+      </el-form-item>
+      <el-form-item label="短信验证" :error="codeError">
+        <el-input v-model="code" placeholder="六位短信验证码" maxlength="6" size="large">
+          <template #append>
+            <el-button type="primary" :disabled="countdown > 0" @click="sendCode">
+              {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
+            </el-button>
+          </template>
+        </el-input>
+      </el-form-item>
+      <el-form-item label="设置密码" :error="passwordError">
+        <el-input v-model="password" type="password" placeholder="输入密码" size="large" />
+      </el-form-item>
+      <el-form-item label="确认密码" :error="confirmPasswordError">
+        <el-input v-model="confirmPassword" type="password" placeholder="请再次输入密码" size="large" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSubmit" class="w-100">提交</el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
@@ -34,28 +34,51 @@ const code = ref('');
 const password = ref('');
 const confirmPassword = ref('');
 const phoneError = ref('');
+const codeError = ref(''); // 短信验证码错误提示
 const passwordError = ref('');
 const confirmPasswordError = ref('');
+const countdown = ref(0); // 倒计时状态
 
 const handleSubmit = () => {
   phoneError.value = validatePhone(phone.value);
+  codeError.value = validateCode(code.value);
   passwordError.value = validatePassword(password.value);
   confirmPasswordError.value = validateConfirmPassword(password.value, confirmPassword.value);
 
-  if (!phoneError.value && !passwordError.value && !confirmPasswordError.value) {
+  if (!phoneError.value && !codeError.value && !passwordError.value && !confirmPasswordError.value) {
     // 提交逻辑
     console.log('提交成功');
   }
 };
 
 const sendCode = () => {
+  if (countdown.value > 0) return;
+
   // 短信验证码发送逻辑
   console.log('发送验证码');
+  startCountdown();
+};
+
+const startCountdown = () => {
+  countdown.value = 60; // 设置倒计时为60秒
+  const timer = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(timer);
+    }
+  }, 1000);
 };
 
 const validatePhone = (phone: string): string => {
   if (!phone) return '请输入手机号';
   if (!/^1[3-9]\d{9}$/.test(phone)) return '手机号格式不正确';
+  return '';
+};
+
+const validateCode = (code: string): string => {
+  if (!code) return '请输入短信验证码';
+  if (code.length !== 6) return '短信验证码长度为6位';
   return '';
 };
 
@@ -79,12 +102,19 @@ const validateConfirmPassword = (password: string, confirmPassword: string): str
 
 <style scoped lang="scss">
 .forgot-password {
-  max-width: 400px;
+  max-width: 460px;
   margin: 0 auto;
+  margin-top: 20%;
+  background-color: #f0f8ff;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 .error {
   color: red;
   font-size: 12px;
+}
+.el-form-item {
+  margin-bottom: 28px;
 }
 </style>

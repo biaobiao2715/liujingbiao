@@ -7,18 +7,18 @@
     <el-tabs v-model="activeTab" class="login-tabs">
       <el-tab-pane label="账号密码登录" name="account">
         <div class="form-item">
-          <el-input v-model="accountForm.username" placeholder="账号" />
+          <el-input v-model="accountForm.username" placeholder="账号" size="large" />
         </div>
         <div class="form-item">
-          <el-input v-model="accountForm.password" type="password" placeholder="密码" />
+          <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" />
         </div>
       </el-tab-pane>
       <el-tab-pane label="手机号登录" name="phone">
         <div class="form-item">
-          <el-input v-model="phoneForm.phone" placeholder="手机号" />
+          <el-input v-model="phoneForm.phone" placeholder="手机号" size="large" />
         </div>
         <div class="form-item">
-          <el-input v-model="phoneForm.code" placeholder="验证码">
+          <el-input v-model="phoneForm.code" placeholder="验证码" size="large">
             <template #append>
               <el-button @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
                 {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
