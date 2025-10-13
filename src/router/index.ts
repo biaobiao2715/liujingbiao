@@ -49,7 +49,7 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/register',
-    component: () => import('@/views/register/register.vue'),
+    component: () => import('@/views/register/index.vue'),
     hidden: true
   },
   {
