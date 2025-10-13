@@ -1,5 +1,5 @@
 <template>
-    <div>采购商</div>
+  <div>采购商</div>
 </template>
 
 <script setup lang="ts">

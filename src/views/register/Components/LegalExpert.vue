@@ -1,5 +1,5 @@
 <template>
-    <div>法务专家</div>
+  <div>法务专家</div>
 </template>
 
 <script setup lang="ts">
