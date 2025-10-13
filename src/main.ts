@@ -3,6 +3,8 @@ import { createApp } from 'vue';
 import 'virtual:uno.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import '@/assets/styles/index.scss';
+import '@/assets/styles/commonClass.scss';
+import '@/assets/styles/commonCss.scss';
 
 // App、router、store
 import App from './App.vue';
