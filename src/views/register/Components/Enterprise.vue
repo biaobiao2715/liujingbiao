@@ -1,4 +1,6 @@
-<template></template>
+<template>
+  <div>企业</div>
+</template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
