@@ -3,6 +3,7 @@
   <el-steps :active="activeStep" align-center>
     <el-step title="选择身份信息"></el-step>
     <el-step title="填写基础信息"></el-step>
+    <el-step title="账号注册"></el-step>
     <el-step title="申请注册成功"></el-step>
   </el-steps>
 
@@ -13,13 +14,13 @@
   <div v-else-if="activeStep === 2">
     <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
     <SupplierForm v-if="selectedIdentity === 'supplier'" />
-    <EnterpriseForm v-if="selectedIdentity === 'enterprise'" />
+    <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
     <TechnicalExpertForm v-if="selectedIdentity === 'expert'" />
     <LegalExpertForm v-if="selectedIdentity === 'legal'" />
   </div>
 
   <!-- 下一步按钮 -->
-  <el-button type="primary" @click="nextStep" :disabled="!selectedIdentity || activeStep === 3">下一步</el-button>
+  <el-button type="primary" @click="nextStep" :disabled="!selectedIdentity" v-if="activeStep === 1">下一步</el-button>
 </template>
 
 <script setup lang="ts">
