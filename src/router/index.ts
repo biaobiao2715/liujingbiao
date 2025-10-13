@@ -53,6 +53,11 @@ export const constantRoutes: RouteRecordRaw[] = [
     hidden: true
   },
   {
+    path: '/forgot-password',
+    component: () => import('@/views/forgotPassword.vue'),
+    hidden: true
+  },
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/error/404.vue'),
     hidden: true
@@ -106,6 +111,20 @@ const router = createRouter({
       return savedPosition;
     }
     return { top: 0 };
+  }
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = false; // 实际逻辑替换
+  const whiteList = ['/login', '/register', '/forgot-password', '/social-callback'];
+
+  if (!isAuthenticated && !whiteList.includes(to.path)) {
+    debugger;
+    next(`/login?redirect=${to.path}`);
+  } else {
+    console.log('isAuthenticated', isAuthenticated);
+    
+    next();
   }
 });
 

@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <!--
     标题：			Supplier.vue
     功能：			企业注册-填写信息
@@ -376,6 +377,24 @@ const removeFile = (file: any) => {
 // 备注变更处理
 const handleRemarkChange = (file: any) => {
   console.log('备注更新:', file.remark);
+=======
+  <div>企业</div>
+  <!-- 提交按钮 -->
+  <el-button type="primary" @click="submitForm">提交</el-button>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { defineEmits } from 'vue';
+
+const emit = defineEmits(['nextStep']); // 定义事件
+
+// 提交表单
+const submitForm = () => {
+  console.log('表单已提交');
+  // 表单验证通过后，触发事件通知父组件
+  emit('nextStep');
+>>>>>>> ea2cc329f5514b5f795756e75135932cb413b012
 };
 </script>
 
