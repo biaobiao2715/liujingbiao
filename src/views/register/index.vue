@@ -15,7 +15,7 @@
     <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
     <SupplierForm v-if="selectedIdentity === 'supplier'" />
     <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
-    <TechnicalExpertForm v-if="selectedIdentity === 'expert'" />
+    <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
     <LegalExpertForm v-if="selectedIdentity === 'legal'" />
   </div>
 

@@ -18,7 +18,15 @@
         <el-col :span="12">
           <el-form-item label="毕业证书:" prop="diploma" required>
             <div class="upload-container">
-              <el-upload class="upload-box" action="#" :auto-upload="false" :show-file-list="false" :on-change="handleDiplomaChange">
+              <el-upload
+                class="upload-box"
+                accept=".jpg,.jpeg,.gif,.png,.pdf"
+                action="#"
+                drag
+                :auto-upload="false"
+                :show-file-list="false"
+                :on-change="handleDiplomaChange"
+              >
                 <div class="upload-content">
                   <el-icon><Plus /></el-icon>
                   <!-- <img v-else :src="diplomaUrl" class="preview-image" /> -->
@@ -82,7 +90,7 @@
                 :show-file-list="false"
                 :on-change="handlePhotoChange"
               >
-                <div class="upload-content">
+                <div class="upload-content" style="padding: 20px">
                   <el-icon><Plus /></el-icon>
                   <!-- <img v-else :src="photoUrl" class="preview-image" /> -->
                   <div class="upload-text">
@@ -165,8 +173,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, defineEmits } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
+
+const emit = defineEmits(['nextStep']); // 定义事件
 
 // 表单数据
 const formData = reactive({
@@ -289,9 +299,11 @@ const handleNextStep = () => {
     if (valid) {
       console.log('表单验证通过，提交数据', formData);
       // 这里可以添加提交逻辑
+      emit('nextStep');
     } else {
       console.log('表单验证失败');
       ElMessage.error('请完善必填信息');
+      emit('nextStep');
       return false;
     }
   });
@@ -326,18 +338,17 @@ const handleNextStep = () => {
   }
   .upload-container {
     width: 100%;
-
     .upload-box {
       width: 100%;
+      --el-fill-color-blank: #f5f7fa;
       .upload-content {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background-color: #f5f7fa;
         width: 100%;
         border-radius: 6px;
-        padding: 20px;
+        background-color: #f5f7fa;
         cursor: pointer;
         .preview-image {
           width: 100%;
