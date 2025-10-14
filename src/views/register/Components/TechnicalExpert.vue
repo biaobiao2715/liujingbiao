@@ -173,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, defineEmits } from 'vue';
+import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 
 const emit = defineEmits(['nextStep']); // 定义事件

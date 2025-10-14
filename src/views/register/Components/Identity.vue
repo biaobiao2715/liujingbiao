@@ -17,11 +17,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { defineEmits } from 'vue';
+import { IdentityType } from '@/views/register/index.vue';
 
 const emit = defineEmits(['update-identity']); // 定义事件
 
-const selectedIdentity = ref('');
-const identityOptions = ref([
+const selectedIdentity = ref<IdentityType>('' as IdentityType);
+const identityOptions = ref<{ label: string; value: IdentityType }[]>([
   { label: '采购商（农户、合作社、农资店、农场）', value: 'buyer' },
   { label: '供应商', value: 'supplier' },
   { label: '企业（育种机构、科研院所、种子企业、金融与保险机构）', value: 'enterprise' },
@@ -30,8 +31,8 @@ const identityOptions = ref([
 ]);
 
 // 触发事件，将选择的身份值传递给父组件
-const emitIdentity = () => {
-  emit('update-identity', selectedIdentity.value);
+const emitIdentity = (e: IdentityType) => {
+  emit('update-identity', e);
 };
 </script>
 

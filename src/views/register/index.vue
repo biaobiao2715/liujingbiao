@@ -9,7 +9,15 @@
   <div class="register-container">
     <!-- 步骤条，动态展示不同身份的注册流程 -->
     <el-steps :active="activeStep" align-center>
-      <el-step v-for="(step, index) in selectedIdentity === 'supplier' ? supplierSteps : steps" :key="index" :title="step"></el-step>
+      <el-step
+        v-for="(step, index) in selectedIdentity === 'buyer'
+          ? buyerSteps
+          : selectedIdentity === 'enterprise' || selectedIdentity === 'supplier'
+            ? enterpriseSteps
+            : steps"
+        :key="index"
+        :title="step"
+      ></el-step>
     </el-steps>
 
     <!-- 根据当前步骤动态展示对应的组件 -->
@@ -20,10 +28,18 @@
     <div v-else-if="activeStep === 2">
       <!-- 根据选择的身份展示对应的表单组件 -->
       <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
+      <!-- 供应商注册流程 -->
       <SupplierForm v-if="selectedIdentity === 'supplier'" />
+      <!-- 企业注册流程 -->
       <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
+      <!-- 技术专家注册流程 -->
       <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
+      <!-- 法务专家注册流程 -->
       <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
+    </div>
+    <div v-else-if="activeStep === 3">
+      <!-- 账号注册组件 -->
+      <AccountRegister :identity="selectedIdentity" />
     </div>
 
     <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
@@ -44,17 +60,25 @@ import SupplierForm from './Components/Supplier.vue';
 import EnterpriseForm from './Components/Enterprise.vue';
 import TechnicalExpertForm from './Components/TechnicalExpert.vue';
 import LegalExpertForm from './Components/LegalExpert.vue';
+// 账号注册组件
+import AccountRegister from './Components/AccountRegister/index.vue';
+
+// 定义身份类型
+export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'legal';
 
 // 定义当前步骤的状态
 const activeStep = ref(1); // 当前步骤
-const selectedIdentity = ref(''); // 当前选择的身份
+const selectedIdentity = ref<IdentityType>('' as IdentityType); // 当前选择的身份
 
 // 定义步骤标题数组
-const steps = ref(['选择身份信息', '填写基础信息', '创建账号', '申请注册成功']);
-const supplierSteps = ref(['选择身份信息', '创建账号', '申请注册成功']);
+const steps = ref(['选择身份信息', '填写专家信息', '创建账号', '申请注册成功']);
+// 采购商注册流程
+const buyerSteps = ref(['选择身份信息', '创建账号', '申请注册成功']);
+// 企业注册流程
+const enterpriseSteps = ref(['选择身份信息', '填写企业信息', '创建账号', '申请注册成功']);
 
 // 更新身份选择
-const handleIdentityUpdate = (identity: string) => {
+const handleIdentityUpdate = (identity: IdentityType) => {
   selectedIdentity.value = identity;
 };
 
