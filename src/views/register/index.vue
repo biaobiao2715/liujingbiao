@@ -95,7 +95,7 @@ const handleIdentityUpdate = (identity: IdentityType) => {
 
 // 下一步逻辑
 const nextStep = () => {
-  if (activeStep.value < 3) {
+  if (activeStep.value < (selectedIdentity.value === 'buyer' ? 3 : 4)) {
     activeStep.value++;
   }
 };
