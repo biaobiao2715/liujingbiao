@@ -22,8 +22,8 @@
       <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
       <SupplierForm v-if="selectedIdentity === 'supplier'" />
       <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
-      <TechnicalExpertForm v-if="selectedIdentity === 'expert'" />
-      <LegalExpertForm v-if="selectedIdentity === 'legal'" />
+      <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
+      <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
     </div>
 
     <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
