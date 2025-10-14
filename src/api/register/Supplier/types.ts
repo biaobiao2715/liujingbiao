@@ -22,4 +22,9 @@ export interface TableItem {
   attrDescribeOne: string;
   attrNameTwo: string;
   attrDescribeTwo: string;
+  errors?: {
+    name?: string;
+    idCard?: string;
+    phone?: string;
+  };
 }
