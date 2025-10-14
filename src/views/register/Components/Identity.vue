@@ -1,17 +1,15 @@
+<!--
+  标题: Identity.vue
+  功能: 身份选择组件
+  说明: 用于用户在注册时选择其身份类型（采购商、供应商、企业、技术专家、法务专家）。
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-10-14
+-->
 <template>
-  <div>
+  <div class="identity-container flex-center-center">
     <label for="identity-select" class="identity-label">您的身份是：</label>
-    <el-select 
-      v-model="selectedIdentity" 
-      placeholder="请选择" 
-      class="identity-select" 
-      @change="emitIdentity">
-      <el-option 
-        v-for="option in identityOptions" 
-        :key="option.value" 
-        :label="option.label" 
-        :value="option.value">
-      </el-option>
+    <el-select v-model="selectedIdentity" placeholder="请选择" class="identity-select" @change="emitIdentity">
+      <el-option v-for="option in identityOptions" :key="option.value" :label="option.label" :value="option.value"> </el-option>
     </el-select>
   </div>
 </template>
@@ -39,6 +37,7 @@ const emitIdentity = () => {
 
 <style scoped lang="scss">
 .identity-label {
+  width: 160px;
   font-size: 16px;
   color: #007bff;
   margin-bottom: 8px;
