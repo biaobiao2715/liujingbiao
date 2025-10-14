@@ -223,7 +223,7 @@ import { ElMessage } from 'element-plus';
 import { DataFormTs, DictDataQuery, TableItem } from '@/api/register/Supplier/types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
+const emit = defineEmits(['nextStep']); // 定义事件
 const initFormData: DataFormTs = {
   dictCode: undefined,
   dictLabel: '',
@@ -367,10 +367,16 @@ const reset = () => {
 
 /** 提交按钮 */
 const submitForm = () => {
-  dataFormRef.value?.validate(async (valid: boolean) => {
+  dataFormRef.value.validate((valid: boolean) => {
     if (valid) {
       //   form.value.dictCode
       proxy?.$modal.msgSuccess('操作成功');
+      emit('nextStep');
+    } else {
+      emit('nextStep');
+      console.log('表单验证失败');
+      ElMessage.error('请完善必填信息');
+      // 删除 return false，避免隐式返回 boolean 值
     }
   });
 };
