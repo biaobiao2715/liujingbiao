@@ -6,44 +6,47 @@
       开发信息: Created by 李春雷 2025-10-14
     -->
 <template>
-  <div class="register-container">
-    <!-- 步骤条，动态展示不同身份的注册流程 -->
-    <el-steps :active="activeStep" align-center>
-      <el-step v-for="(step, index) in selectedIdentity === 'buyer' ? buyerSteps : steps" :key="index" :title="step"></el-step>
-    </el-steps>
+  <Layout :large="large">
+    <div class="register-container">
+      <!-- 步骤条，动态展示不同身份的注册流程 -->
+      <el-steps :active="activeStep" align-center>
+        <el-step v-for="(step, index) in selectedIdentity === 'buyer' ? buyerSteps : steps" :key="index" :title="step"></el-step>
+      </el-steps>
 
-    <!-- 根据当前步骤动态展示对应的组件 -->
-    <div v-if="activeStep === 1">
-      <!-- 身份选择组件 -->
-      <Identity @update-identity="handleIdentityUpdate" />
-    </div>
-    <div v-else-if="activeStep === 2">
-      <!-- 根据选择的身份展示对应的表单组件 -->
-      <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
-      <!-- 供应商注册流程 -->
-      <SupplierForm v-if="selectedIdentity === 'supplier'" />
-      <!-- 企业注册流程 -->
-      <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
-      <!-- 技术专家注册流程 -->
-      <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
-      <!-- 法务专家注册流程 -->
-      <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
-    </div>
-    <div v-else-if="activeStep === 3">
-      <!-- 账号注册组件 -->
-      <AccountRegister :identity="selectedIdentity" />
-    </div>
+      <!-- 根据当前步骤动态展示对应的组件 -->
+      <div v-if="activeStep === 1">
+        <!-- 身份选择组件 -->
+        <Identity @update-identity="handleIdentityUpdate" />
+      </div>
+      <div v-else-if="activeStep === 2">
+        <!-- 根据选择的身份展示对应的表单组件 -->
+        <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
+        <!-- 供应商注册流程 -->
+        <SupplierForm v-if="selectedIdentity === 'supplier'" />
+        <!-- 企业注册流程 -->
+        <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
+        <!-- 技术专家注册流程 -->
+        <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
+        <!-- 法务专家注册流程 -->
+        <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
+      </div>
+      <div v-else-if="activeStep === 3">
+        <!-- 账号注册组件 -->
+        <AccountRegister :identity="selectedIdentity" />
+      </div>
 
-    <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
-    <div class="flex-center-center mt-24">
-      <el-button type="primary" class="next-step-button" @click="nextStep" :disabled="!selectedIdentity" v-if="activeStep === 1">下一步</el-button>
+      <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
+      <div class="flex-center-center mt-24">
+        <el-button type="primary" class="next-step-button" @click="nextStep" :disabled="!selectedIdentity" v-if="activeStep === 1">下一步</el-button>
+      </div>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <script setup lang="ts">
 // 引入 Vue 的 ref 函数
 import { ref } from 'vue';
+import Layout from './Components/Layout/index.vue';
 
 // 引入各个子组件
 import Identity from './Components/Identity.vue';
@@ -92,6 +95,8 @@ const handleIdentityUpdate = (identity: IdentityType) => {
       break;
   }
 };
+// 是否展示大标题
+const large = computed(() => [1, 2].includes(activeStep.value));
 
 // 下一步逻辑
 const nextStep = () => {
@@ -104,7 +109,8 @@ const nextStep = () => {
 <style scoped lang="scss">
 .register-container {
   width: 100%;
-  padding: 12px;
+  //   padding: 12px;
+  margin-top: 50px;
   flex-direction: column;
 }
 
