@@ -9,15 +9,7 @@
   <div class="register-container">
     <!-- 步骤条，动态展示不同身份的注册流程 -->
     <el-steps :active="activeStep" align-center>
-      <el-step
-        v-for="(step, index) in selectedIdentity === 'buyer'
-          ? buyerSteps
-          : selectedIdentity === 'enterprise' || selectedIdentity === 'supplier'
-            ? enterpriseSteps
-            : steps"
-        :key="index"
-        :title="step"
-      ></el-step>
+      <el-step v-for="(step, index) in selectedIdentity === 'buyer' ? buyerSteps : steps" :key="index" :title="step"></el-step>
     </el-steps>
 
     <!-- 根据当前步骤动态展示对应的组件 -->
@@ -71,15 +63,34 @@ const activeStep = ref(1); // 当前步骤
 const selectedIdentity = ref<IdentityType>('' as IdentityType); // 当前选择的身份
 
 // 定义步骤标题数组
-const steps = ref(['选择身份信息', '填写专家信息', '创建账号', '申请注册成功']);
+const steps = ref(['选择身份信息', '填写信息', '创建账号', '申请注册成功']);
 // 采购商注册流程
 const buyerSteps = ref(['选择身份信息', '创建账号', '申请注册成功']);
-// 企业注册流程
-const enterpriseSteps = ref(['选择身份信息', '填写企业信息', '创建账号', '申请注册成功']);
 
 // 更新身份选择
 const handleIdentityUpdate = (identity: IdentityType) => {
   selectedIdentity.value = identity;
+
+  // 根据选择的身份动态调整步骤条第二步的文字提示
+  switch (identity) {
+    case 'buyer':
+      steps.value[1] = '填写采购商信息';
+      break;
+    case 'supplier':
+      steps.value[1] = '填写供应商信息';
+      break;
+    case 'enterprise':
+      steps.value[1] = '填写企业信息';
+      break;
+    case 'expert':
+      steps.value[1] = '填写技术专家信息';
+      break;
+    case 'legal':
+      steps.value[1] = '填写法务专家信息';
+      break;
+    default:
+      break;
+  }
 };
 
 // 下一步逻辑
