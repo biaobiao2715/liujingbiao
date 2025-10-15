@@ -115,15 +115,13 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = false; // 实际逻辑替换
+  const isAuthenticated = localStorage.getItem('token') !== null; // 实际逻辑替换
   const whiteList = ['/login', '/register', '/forgot-password', '/social-callback'];
+  console.log('isAuthenticated', isAuthenticated);
 
   if (!isAuthenticated && !whiteList.includes(to.path)) {
-    debugger;
     next(`/login?redirect=${to.path}`);
   } else {
-    console.log('isAuthenticated', isAuthenticated);
-    
     next();
   }
 });
