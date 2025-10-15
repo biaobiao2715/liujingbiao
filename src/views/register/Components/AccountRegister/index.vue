@@ -85,6 +85,8 @@ const isSendingSms = ref(false);
 const smsCountdown = ref(0);
 const smsButtonText = ref('获取验证码');
 
+let smsTimer: NodeJS.Timeout | null = null;
+
 // 发送短信验证码
 const sendSmsCode = async () => {
   if (isSendingSms.value) return;
@@ -98,12 +100,12 @@ const sendSmsCode = async () => {
     smsCountdown.value = 60;
 
     // 倒计时
-    const timer = setInterval(() => {
+    smsTimer = setInterval(() => {
       smsCountdown.value--;
       smsButtonText.value = `${smsCountdown.value}秒后重新获取`;
 
       if (smsCountdown.value <= 0) {
-        clearInterval(timer);
+        clearInterval(smsTimer);
         isSendingSms.value = false;
         smsButtonText.value = '获取验证码';
       }
@@ -192,6 +194,10 @@ const submitForm = async () => {
     console.error('表单验证失败', error);
   }
 };
+// 清除定时器（如果组件销毁）
+onUnmounted(() => {
+  if (smsTimer) clearInterval(smsTimer);
+});
 </script>
 
 <style lang="scss" scoped>
