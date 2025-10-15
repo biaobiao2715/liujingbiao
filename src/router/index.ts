@@ -1,4 +1,5 @@
 import { createWebHistory, createRouter, RouteRecordRaw } from 'vue-router';
+import { getToken } from '@/utils/auth';
 /* Layout */
 import Layout from '@/layout/index.vue';
 
@@ -115,7 +116,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('token') !== null; // 实际逻辑替换
+  const isAuthenticated = getToken(); // 实际逻辑替换
   const whiteList = ['/login', '/register', '/forgot-password', '/social-callback'];
   console.log('isAuthenticated', isAuthenticated);
 
