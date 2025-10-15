@@ -35,7 +35,7 @@
 
     <!-- 记住密码选项 -->
     <div class="form-item align-left">
-      <el-checkbox v-model="phoneForm.remember">记住密码</el-checkbox>
+      <el-checkbox v-model="phoneForm.rememberMe">记住密码</el-checkbox>
     </div>
 
     <!-- 登录按钮 -->
@@ -53,6 +53,10 @@
 // 引入 Vue 的 ref 函数和 Element Plus 的组件
 import { ref, onUnmounted } from 'vue';
 import { ElInput, ElCheckbox, ElButton } from 'element-plus';
+import { login } from '@/api/login';
+import { setToken } from '@/utils/auth';
+
+import router from '@/router';
 
 // 当前激活的登录方式
 const activeTab = ref('account');
@@ -61,14 +65,14 @@ const activeTab = ref('account');
 const accountForm = ref({
   username: '', // 用户名
   password: '', // 密码
-  remember: false // 是否记住密码
+  rememberMe: false // 是否记住密码
 });
 
 // 手机号登录表单数据
 const phoneForm = ref({
   phone: '', // 手机号
   code: '', // 验证码
-  remember: false // 是否记住密码
+  rememberMe: false // 是否记住密码
 });
 
 // 登录按钮加载状态
@@ -81,17 +85,28 @@ let timer: NodeJS.Timeout | null = null;
 // 登录逻辑
 const handleLogin = () => {
   loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-    ElMessage.success('登录成功');
-  }, 2000);
+  loading.value = false;
+  // clientId: string;
+  // grantType: string;
+  // 调用登录 API
+  login({ ...accountForm.value, tenantId: '000000', grantType: 'password' })
+    .then((res: any) => {
+      ElMessage.success('登录成功');
+      // 存储 token
+      setToken(res.data.access_token);
+      // 登录成功后，跳转到首页
+      router.push('/');
+    })
+    .catch((err) => {
+      console.error('登录失败', err);
+      ElMessage.error('登录失败');
+    });
 };
 
 // 发送验证码
 const sendCode = () => {
   if (countdown.value > 0) return;
 
-  console.log('发送验证码到', phoneForm.value.phone);
   // 模拟发送验证码请求
   countdown.value = 60;
   timer = setInterval(() => {

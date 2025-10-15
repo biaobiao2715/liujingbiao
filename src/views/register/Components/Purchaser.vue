@@ -34,11 +34,24 @@
       </el-form-item>
       <!-- 设置密码 -->
       <el-form-item label="设置密码" prop="password">
-        <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+        <el-input v-model="form.password" :type="passwordVisible ? 'text' : 'password'" placeholder="请输入密码">
+          <template #append>
+            <el-icon @click="togglePasswordVisibility">
+                <i :class="passwordVisible ? 'EyeOutlined' : 'EyeInvisibleOutlined'"></i>
+            </el-icon>
+          </template>
+        </el-input>
       </el-form-item>
       <!-- 确认密码 -->
       <el-form-item label="确认密码" prop="confirmPassword">
-        <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" />
+        <el-input v-model="form.confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'" placeholder="请再次输入密码">
+          <template #append>
+            <StepForwardOutlined />
+            <el-icon @click="toggleConfirmPasswordVisibility">
+              <i :class="confirmPasswordVisible ? 'el-icon-view' : 'el-icon-view-off'"></i>
+            </el-icon>
+          </template>
+        </el-input>
       </el-form-item>
       <!-- 下一步按钮 -->
       <el-form-item>
@@ -52,7 +65,7 @@
 // 引入 Vue 的 ref 函数和 Element Plus 的消息提示
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
-
+import { EyeOutlined,EyeInvisibleOutlined } from '@element-plus/icons-vue';
 // 表单数据
 const form = ref({
   type: '', // 采购类型
@@ -83,7 +96,16 @@ const rules = {
   smsCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' }
+    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
+          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+        }
+        return true;
+      },
+      trigger: 'blur'
+    }
   ],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
@@ -101,6 +123,17 @@ const rules = {
 
 // 表单引用
 const formRef = ref();
+
+const passwordVisible = ref(false);
+const confirmPasswordVisible = ref(false);
+
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value;
+};
+
+const toggleConfirmPasswordVisibility = () => {
+  confirmPasswordVisible.value = !confirmPasswordVisible.value;
+};
 
 // 发送短信验证码
 const sendSmsCode = () => {
