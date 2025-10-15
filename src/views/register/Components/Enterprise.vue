@@ -11,7 +11,7 @@
       <div class="section-title">
         <span class="title-text">基础信息</span>
       </div>
-      <el-row :gutter="20">
+      <el-row>
         <el-col :span="12">
           <el-form-item label="营业执照：">
             <div class="upload-container">
@@ -56,7 +56,7 @@
 
         <el-col :span="12">
           <el-form-item label="统一社会信用代码：">
-            <el-input v-model="form.dictLabel" />
+            <el-input v-model="form.dictLabel" :disabled="true" />
           </el-form-item>
         </el-col>
 
@@ -95,7 +95,7 @@
       <div class="section-title">
         <span class="title-text">企业联系人</span>
       </div>
-      <el-row :gutter="20">
+      <el-row>
         <el-table :data="tableList" border>
           <el-table-column type="index" width="100" label="序号" />
 
@@ -521,6 +521,7 @@ const handleRemarkChange = (file: any) => {
   border-width: 0 1px 1px 1px;
   border-style: solid;
   border-color: #e4e4e4;
+  margin-bottom: 20px;
 }
 
 .upload-container {
