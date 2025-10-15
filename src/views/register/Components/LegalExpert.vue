@@ -160,6 +160,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
+import { isIdCard } from '@/utils/validate';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 
@@ -232,7 +233,15 @@ const deleteQualification = (index: number) => {
   //     item.index = i + 1;
   //   });
 };
-
+const validateIdCard = (rule: any, value: any, callback: any) => {
+  if (!value) {
+    callback();
+  } else if (!isIdCard(value)) {
+    callback(new Error('请输入正确的身份证号'));
+  } else {
+    callback();
+  }
+};
 // 表单验证规则
 const rules = {
   name: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
@@ -267,7 +276,7 @@ const rules = {
       trigger: 'change'
     }
   ],
-  idNumber: [{ required: true, message: '请输入身份证号', trigger: 'blur' }],
+  idNumber: [{ trigger: 'blur', validator: validateIdCard }],
   licenseType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }]
 };
 
