@@ -11,7 +11,7 @@
       <div class="section-title">
         <span class="title-text">基础信息</span>
       </div>
-      <el-row :gutter="20">
+      <el-row>
         <el-col :span="12">
           <el-form-item label="营业执照：">
             <div class="upload-container">
@@ -56,7 +56,7 @@
 
         <el-col :span="12">
           <el-form-item label="统一社会信用代码：">
-            <el-input v-model="form.dictLabel" />
+            <el-input v-model="form.dictLabel" :disabled="true" />
           </el-form-item>
         </el-col>
 
@@ -95,7 +95,7 @@
       <div class="section-title">
         <span class="title-text">供应商联系人</span>
       </div>
-      <el-row :gutter="20">
+      <el-row>
         <el-table :data="tableList" border>
           <el-table-column type="index" width="100" label="序号" />
 
@@ -161,10 +161,6 @@
           </el-table-column>
         </el-table>
         <div class="addsuppliercss flex-center-center" @click="addTableCell">+ 新增属性</div>
-
-        <!-- <div class="table-footer">
-          <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增属性</el-button>
-        </div> -->
       </el-row>
 
       <div class="section-title">
@@ -355,8 +351,10 @@ const validateAndSubmit = () => {
     proxy?.$modal.msgSuccess('所有联系人信息验证通过！');
     // 这里可以添加提交数据的逻辑
     console.log('提交的数据：', tableList.value);
+    return true;
   } else {
     proxy?.$modal.msgError('请检查并修正表单中的错误');
+    return false;
   }
 };
 
@@ -370,6 +368,9 @@ const reset = () => {
 const submitForm = () => {
   dataFormRef.value.validate((valid: boolean) => {
     if (valid) {
+      // 供应商校验
+      const arr = validateAndSubmit();
+      if (!arr) return;
       //   form.value.dictCode
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
@@ -523,6 +524,7 @@ const handleRemarkChange = (file: any) => {
   border-width: 0 1px 1px 1px;
   border-style: solid;
   border-color: #e4e4e4;
+  margin-bottom: 20px;
 }
 
 .upload-container {
