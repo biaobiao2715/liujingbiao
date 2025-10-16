@@ -89,6 +89,7 @@ const countdown = ref(0);
 let timer: NodeJS.Timeout | null = null;
 
 const tenants = ref([
+  { id: '000000', name: '管理员' },
   { id: '495799', name: '采购商' },
   { id: '906636', name: '技术专家' },
   { id: '494455', name: '法务专家' }
@@ -105,7 +106,7 @@ const handleLogin = () => {
         // 存储 token
         setToken(res.data.access_token);
         // 登录成功后，跳转到首页
-        router.push('/');
+        router.push('/index');
       })
       .catch((err) => {
         console.error('登录失败', err);
