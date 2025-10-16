@@ -58,10 +58,10 @@
           <el-form-item label="学位:" prop="degree" required>
             <!-- <el-input v-model="formData.degree" placeholder="50个字符，仅限中文" /> -->
             <el-select v-model="formData.degree" placeholder="请选择" style="width: 100%">
-              <el-option label="学士" value="bachelor" />
-              <el-option label="硕士" value="master" />
-              <el-option label="博士" value="doctor" />
-              <el-option label="其他" value="other" />
+              <el-option label="学士" value="学士" />
+              <el-option label="硕士" value="硕士" />
+              <el-option label="博士" value="博士" />
+              <el-option label="其他" value="其他" />
             </el-select>
           </el-form-item>
 
@@ -110,8 +110,8 @@
 
           <el-form-item label="性别:" prop="sex" required>
             <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
-              <el-option label="男" value="male" />
-              <el-option label="女" value="female" />
+              <el-option label="男" value="0" />
+              <el-option label="女" value="1" />
             </el-select>
           </el-form-item>
 
@@ -125,10 +125,10 @@
 
           <el-form-item label="学历:" prop="education" required>
             <el-select v-model="formData.education" placeholder="请选择" style="width: 100%">
-              <el-option label="本科" value="bachelor" />
-              <el-option label="硕士" value="master" />
-              <el-option label="博士" value="doctor" />
-              <el-option label="其他" value="other" />
+              <el-option label="本科" value="本科" />
+              <el-option label="硕士" value="硕士" />
+              <el-option label="博士" value="博士" />
+              <el-option label="其他" value="其他" />
             </el-select>
           </el-form-item>
 
@@ -194,34 +194,35 @@ const { setRegisterData } = useRegisterDataStore();
 // 表单数据
 const formData = reactive<TechnicalExpert>({
   // 专家姓名
-  expertName: '张三',
-  sex: 'male',
-  birthDate: '2000-01-01',
+  expertName: '',
+  sex: '',
+  birthDate: '',
   // 毕业院校
-  graduationSchool: '清华大学',
+  graduationSchool: '',
   // 专业
-  major: '计算机科学与技术',
+  major: '',
   // 入学日期
-  enrollmentDate: '2018-09-01',
+  enrollmentDate: '',
   // 毕业日期
-  graduationDate: '2022-06-01',
+  graduationDate: '',
   // 学历
-  education: 'bachelor',
+  education: '',
   // 学位
-  degree: 'other',
-  graduationCertNo: 'z123456789',
+  degree: '',
+  graduationCertNo: '',
   // 技术资质
-  technicalQualification: '已获得相关技术资质',
+  technicalQualification: '',
   // 身份证号
-  idCard: '44030419900101001X',
+  idCard: '',
   // 专家简介
-  expertInfo: '简介简介',
+  expertInfo: '',
   // 联系电话
-  contactPhone: '13800000000'
+  contactPhone: ''
 } as TechnicalExpert);
 
-// 上传图片相关
+// 上传毕业证url
 const diplomaUrl = ref('');
+// 照片url
 const photoUrl = ref('');
 // 资质清单相关
 const qualificationList = ref<
