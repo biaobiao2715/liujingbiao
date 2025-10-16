@@ -1,165 +1,135 @@
 <template>
-  <div class="app-container home">
-    <el-row :gutter="20">
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>平台名称全国种子销售服务平台</h2>
-        <p>
-          RuoYi-Vue-Plus 是基于 RuoYi-Vue 针对 分布式集群 场景升级(不兼容原框架)
-          <br />
-          * 前端开发框架 Vue3、TS、Element Plus<br />
-          * 后端开发框架 Spring Boot<br />
-          * 容器框架 Undertow 基于 Netty 的高性能容器<br />
-          * 权限认证框架 Sa-Token 支持多终端认证系统<br />
-          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
-          * 缓存数据库 Redis 适配 6.X 最低 4.X<br />
-          * 数据库框架 Mybatis-Plus 快速 CRUD 增加开发效率<br />
-          * 数据库框架 p6spy 更强劲的 SQL 分析<br />
-          * 多数据源框架 dynamic-datasource 支持主从与多种类数据库异构<br />
-          * 序列化框架 Jackson 统一使用 jackson 高效可靠<br />
-          * Redis客户端 Redisson 性能强劲、API丰富<br />
-          * 分布式限流 Redisson 全局、请求IP、集群ID 多种限流<br />
-          * 分布式锁 Lock4j 注解锁、工具锁 多种多样<br />
-          * 分布式幂等 Lock4j 基于分布式锁实现<br />
-          * 分布式链路追踪 SkyWalking 支持链路追踪、网格分析、度量聚合、可视化<br />
-          * 分布式任务调度 SnailJob 高性能 高可靠 易扩展<br />
-          * 文件存储 Minio 本地存储<br />
-          * 文件存储 七牛、阿里、腾讯 云存储<br />
-          * 监控框架 SpringBoot-Admin 全方位服务监控<br />
-          * 校验框架 Validation 增强接口安全性 严谨性<br />
-          * Excel框架 FastExcel(原Alibaba EasyExcel) 性能优异 扩展性强<br />
-          * 文档框架 SpringDoc、javadoc 无注解零入侵基于java注释<br />
-          * 工具类框架 Hutool、Lombok 减少代码冗余 增加安全性<br />
-          * 代码生成器 适配MP、SpringDoc规范化代码 一键生成前后端代码<br />
-          * 部署方式 Docker 容器编排 一键部署业务集群<br />
-          * 国际化 SpringMessage Spring标准国际化方案<br />
-        </p>
-        <p><b>当前版本:</b> <span>v5.5.0</span></p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
-        <p>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Vue-Plus')">访问码云</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Vue-Plus')">访问GitHub</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://plus-doc.dromara.org/#/ruoyi-vue-plus/changlog')"
-            >更新日志</el-button
-          >
-        </p>
-      </el-col>
+  <div class="application-container">
+    <!-- 页面标题 -->
+    <div class="header flex-center">
+      <div>全部应用</div>
+    </div>
 
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>RuoYi-Cloud-Plus多租户微服务管理系统</h2>
-        <p>
-          RuoYi-Cloud-Plus 微服务通用权限管理系统 重写 RuoYi-Cloud 全方位升级(不兼容原框架)
-          <br />
-          * 前端开发框架 Vue3、TS、Element UI<br />
-          * 后端开发框架 Spring Boot<br />
-          * 微服务开发框架 Spring Cloud、Spring Cloud Alibaba<br />
-          * 容器框架 Undertow 基于 XNIO 的高性能容器<br />
-          * 权限认证框架 Sa-Token、Jwt 支持多终端认证系统<br />
-          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
-          * 关系数据库 Oracle 适配 11g 12c<br />
-          * 关系数据库 PostgreSQL 适配 13 14<br />
-          * 关系数据库 SQLServer 适配 2017 2019<br />
-          * 缓存数据库 Redis 适配 6.X 最低 5.X<br />
-          * 分布式注册中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
-          * 分布式配置中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
-          * 服务网关 Spring Cloud Gateway 响应式高性能网关<br />
-          * 负载均衡 Spring Cloud Loadbalancer 负载均衡处理<br />
-          * RPC远程调用 Apache Dubbo 原生态使用体验、高性能<br />
-          * 分布式限流熔断 Alibaba Sentinel 无侵入、高扩展<br />
-          * 分布式事务 Alibaba Seata 无侵入、高扩展 支持 四种模式<br />
-          * 分布式消息队列 Apache Kafka 高性能高速度<br />
-          * 分布式消息队列 Apache RocketMQ 高可用功能多样<br />
-          * 分布式消息队列 RabbitMQ 支持各种扩展插件功能多样性<br />
-          * 分布式搜索引擎 ElasticSearch 业界知名<br />
-          * 分布式链路追踪 Apache SkyWalking 链路追踪、网格分析、度量聚合、可视化<br />
-          * 分布式日志中心 ELK 业界成熟解决方案<br />
-          * 分布式监控 Prometheus、Grafana 全方位性能监控<br />
-          * 其余与 Vue 版本一致<br />
-        </p>
-        <p><b>当前版本:</b> <span>v2.5.0</span></p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
-        <p>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Cloud-Plus')">访问码云</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Cloud-Plus')">访问GitHub</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://plus-doc.dromara.org/#/ruoyi-cloud-plus/changlog')"
-            >更新日志</el-button
-          >
-        </p>
-      </el-col>
-    </el-row>
-    <el-divider />
+    <!-- 应用卡片列表 -->
+    <div class="flex-center gap-12 application-list">
+      <div
+        class="application-card flex"
+        v-for="(app, index) in applications"
+        :key="index"
+        style="background: url('../assets/images/application-bg-1.png') no-repeat center center; background-size: cover"
+      >
+        <!-- 应用图标和标题 -->
+        <div class="icon">
+          <img :src="getIcon(app.icon)" width="64" />
+          <div class="title">{{ app.title }}</div>
+        </div>
+        <el-tooltip :content="app.description" placement="bottom">
+          <div class="description">{{ app.description }}</div>
+        </el-tooltip>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup name="Index" lang="ts">
-const goTarget = (url: string) => {
-  window.open(url, '__blank');
+<script setup lang="ts">
+import { ref } from 'vue';
+
+// 应用数据
+const applications = ref([
+  {
+    title: '供应商管理后台',
+    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-1.svg',
+    bg: 'application-bg-1.svg'
+  },
+  {
+    title: '供应商系统',
+    description: '供应商系统负责供应商自主供应商进行工作及信息管理',
+    icon: 'application-icon-2.svg',
+    bg: 'application-bg-2.svg'
+  },
+  {
+    title: '农资农具销售服务平台',
+    description: '农资农具销售服务平台主要用于针对农户、合作社、农资店、农场等不同客户进行农资农具购买',
+    icon: 'application-icon-3.svg',
+    bg: 'application-bg-3.svg'
+  },
+  {
+    title: '种业数据服务平台',
+    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg'
+  },
+  {
+    title: '种子经纪服务平台',
+    description: '该应用为内部人员对供应商进行管理；如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-5.svg',
+    bg: 'application-bg-5.svg'
+  },
+  {
+    title: '种子维权服务平台',
+    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-6.svg',
+    bg: 'application-bg-6.svg'
+  },
+  {
+    title: '种子金融服务平台',
+    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-7.svg',
+    bg: 'application-bg-7.svg'
+  }
+]);
+
+const getIcon = (svgName: string) => {
+  return new URL(`../assets/images/${svgName}`, import.meta.url).href;
 };
 </script>
 
-<style lang="scss" scoped>
-.home {
-  blockquote {
-    padding: 10px 20px;
-    margin: 0 0 20px;
-    font-size: 17.5px;
-    border-left: 5px solid #eee;
+<style scoped lang="scss">
+.header {
+  height: 100px;
+  background: url('../assets/images/home-header-bg.png') no-repeat center center;
+  background-size: cover;
+  padding-left: 12px;
+  div {
+    font-weight: bold;
+    font-size: 32px;
+    color: #000000;
   }
-  hr {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border: 0;
-    border-top: 1px solid #eee;
+}
+
+.application-list {
+  flex-wrap: wrap;
+  margin-top: 40px;
+  padding: 0 12px;
+}
+.application-card {
+  width: calc(20% - 12px);
+  height: 246px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  .title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000;
+    // 超出部分省略号
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .col-item {
-    margin-bottom: 20px;
-  }
-
-  ul {
-    padding: 0;
-    margin: 0;
-  }
-
-  font-family: 'open sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  color: #676a6c;
-  overflow-x: hidden;
-
-  ul {
-    list-style-type: none;
-  }
-
-  h4 {
-    margin-top: 0px;
-  }
-
-  h2 {
-    margin-top: 10px;
-    font-size: 26px;
-    font-weight: 100;
-  }
-
-  p {
-    margin-top: 10px;
-
-    b {
-      font-weight: 700;
-    }
-  }
-
-  .update-log {
-    ol {
-      display: block;
-      list-style-type: decimal;
-      margin-block-start: 1em;
-      margin-block-end: 1em;
-      margin-inline-start: 0;
-      margin-inline-end: 0;
-      padding-inline-start: 40px;
-    }
+  .description {
+    width: 100%;
+    height: 98px;
+    font-size: 14px;
+    color: #999;
+    // 超出部分省略号
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 4; /* 限制显示行数，可自行调 */
+    word-break: break-word; /* 超长单词自动换行 */
+    white-space: normal; /* 允许换行 */
   }
 }
 </style>

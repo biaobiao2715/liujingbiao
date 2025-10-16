@@ -54,7 +54,7 @@
         </el-col>
         <el-col :span="12" v-else>
           <el-form-item label="营业执照">
-            <fileUpload v-model="formData.supplierInfo.license" :file-type="['png', 'jpg', 'jpeg', 'pdf']" :file-size="20" />
+            <imageUpload v-model="formData.supplierInfo.license" />
           </el-form-item>
         </el-col>
 
@@ -169,7 +169,7 @@
     </el-form>
 
     <!-- 操作按钮 -->
-    <div style="margin-top: 20px" v-if="isEditMode">
+    <div style="margin-top: 20px; text-align: center" v-if="isEditMode">
       <el-button type="danger" @click="saveChanges">审核退回</el-button>
       <el-button type="success" @click="cancelEdit">审核通过</el-button>
     </div>

@@ -9,8 +9,8 @@
   <div class="register-container">
     <!-- 大标题 -->
     <div class="title">
-      <div class="flex-center">
-        <img src="../../assets/images/logo.svg" width="32" />
+      <div class="flex-center gap-8">
+        <img src="../../assets/images/logo-white.svg" width="32" />
         <div>全国种子销售服务平台</div>
       </div>
     </div>
@@ -145,7 +145,7 @@ const nextStep = () => {
     background-color: var(--el-color-primary);
   }
   .content {
-    padding: 0 12% 12px 12%;
+    padding: 12px 12%;
     flex-direction: column;
     height: calc(100% - 68px);
     .steps-container {
