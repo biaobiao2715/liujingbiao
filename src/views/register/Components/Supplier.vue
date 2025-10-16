@@ -7,30 +7,26 @@
     开发信息：	Created by 刘景彪  
  -->
   <div class="app-container">
-    <el-form ref="dataFormRef" :model="form" :rules="rules" label-width="150px">
-      <div class="section-title">
-        <span class="title-text">基础信息</span>
-      </div>
+    <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="130px">
+      <div class="title-text">基础信息</div>
       <el-row>
         <el-col :span="12">
           <el-form-item label="营业执照：" prop="businessLicense">
             <div class="upload-container">
               <el-upload
                 class="upload-box"
-                ref="uploadRef"
-                :limit="1"
-                accept=".jpg,.jpeg,.png,.pdf"
-                :headers="upload.headers"
-                :disabled="upload.isUploading"
-                :on-success="handleFileSuccess"
+                accept=".jpg,.jpeg,.gif,.png,.pdf"
+                action="#"
                 :auto-upload="false"
                 :show-file-list="false"
+                :on-change="handleDiplomaChange"
               >
                 <div class="upload-content">
                   <el-icon><Plus /></el-icon>
+                  <!-- <img v-else :src="diplomaUrl" class="preview-image" /> -->
                   <div class="upload-text">
-                    <div>点击或将文件拖拽到这里上传</div>
-                    <div class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</div>
+                    <p>{{ diplomaUrl ? diplomaUrl.fileName : '点击或将文件拖拽到这里上传' }}</p>
+                    <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
                   </div>
                 </div>
               </el-upload>
@@ -168,18 +164,12 @@
 
       <div>
         <el-upload
-          :action="uploadAction"
+          action="#"
           :auto-upload="false"
-          :file-list="fileListtable"
-          :limit="10"
           accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-          multiple
-          list-type="text"
           :show-file-list="false"
           :on-change="handleChange"
-          :on-remove="handleRemove"
           :before-upload="beforeUpload"
-          :on-exceed-limit="handleExceed"
         >
           <div class="upload-btn">
             <el-button type="primary" size="small">附件上传</el-button>
@@ -198,7 +188,7 @@
           <el-table-column label="操作" width="150">
             <template #default="scope">
               <el-button type="primary" link @click="previewFile(scope.row)">预览</el-button>
-              <el-button type="primary" v-if="scope.row.name !== '毕业证'" link @click="removeFile(scope.row)">删除</el-button>
+              <el-button type="primary" v-if="scope.row.fileType !== '1'" link @click="removeFile(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -213,7 +203,7 @@
 
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
-import { globalHeaders } from '@/utils/request';
+import { uploadImage } from '@/api/register';
 import { getPurchaserTypeDict } from '@/api/register/Supplier';
 import { FormData, Contact } from '@/api/register/Supplier/types';
 import { ElMessage, FormRules } from 'element-plus';
@@ -453,13 +443,6 @@ const data = reactive({
 const { form, rules } = toRefs(data);
 const dataFormRef = ref<ElFormInstance>();
 
-/*** 上传 */
-const upload = reactive({
-  isUploading: false,
-  headers: globalHeaders(),
-  url: import.meta.env.VITE_APP_BASE_API + '/system/user/importData'
-});
-
 // 供应商联系人
 const tableList = ref<Contact[]>([
   {
@@ -469,6 +452,10 @@ const tableList = ref<Contact[]>([
     phone: ''
   }
 ]);
+
+// 文件列表
+const fileListtable = ref<any[]>([]);
+const diplomaUrl = ref<{ fileName?: string; url?: string; ossId: string } | null>(null);
 
 // 添加新行-供应商联系人
 const addTableCell = () => {
@@ -582,39 +569,40 @@ const submitForm = () => {
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
     } else {
-      emit('nextStep');
       ElMessage.error('请完善必填信息');
     }
   });
 };
 
 /** 文件上传成功处理 */
-const handleFileSuccess = (response: any, file: UploadFile) => {
-  upload.isUploading = false;
+const handleDiplomaChange = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      diplomaUrl.value = res.data;
+      fileListtable.value.push({
+        name: '营业执照',
+        remark: res?.data?.fileName || '营业执照',
+        url: res.data.url,
+        fileType: '1',
+        ossId: res.data.ossId
+      });
+    }
+  });
 };
-
-// 上传地址（替换为实际接口）
-const uploadAction = '/api/upload';
-
-// 文件列表
-const fileListtable = ref<any[]>([]);
 
 // 处理文件选择
-const handleChange = (file: any, fileList: any[]) => {
-  if (!fileListtable.value.some((f) => f.uid === file.uid)) {
-    fileListtable.value.push({
-      ...file,
-      remark: ''
-    });
-  }
-};
-
-// 删除文件
-const handleRemove = (file: any, fileList: any[]) => {
-  const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
-  if (index !== -1) {
-    fileListtable.value.splice(index, 1);
-  }
+const handleChange = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      fileListtable.value.push({
+        name: file.name,
+        remark: '附件上传',
+        url: res.data.url,
+        fileType: '99',
+        ossId: res.data.ossId
+      });
+    }
+  });
 };
 
 // 文件上传前校验
@@ -642,11 +630,6 @@ const beforeUpload = (file: any) => {
   return true;
 };
 
-// 超出数量限制
-const handleExceed = () => {
-  ElMessage.warning('最多只能上传10个文件');
-};
-
 // 预览文件
 const previewFile = (file: any) => {
   console.log('预览文件:', file);
@@ -662,20 +645,20 @@ const removeFile = (file: any) => {
 </script>
 
 <style scoped lang="scss">
-.section-title {
-  position: relative;
-  padding: 10px 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e5e5e5;
-}
-
 .title-text {
+  height: 54px;
+  font-family:
+    PingFang SC,
+    PingFang SC;
+  font-weight: bold;
   font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  display: inline-block;
-  padding-left: 10px;
+  color: #000000;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  padding: 16px;
   position: relative;
+  border-bottom: 1px solid #e5e6eb;
 }
 
 .title-text::before {
@@ -684,9 +667,10 @@ const removeFile = (file: any) => {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 100%;
-  background-color: #409eff;
+  width: 3px;
+  height: 14px;
+  background: #108c58;
+  border-radius: 2px 2px 2px 2px;
 }
 
 .addsuppliercss {
