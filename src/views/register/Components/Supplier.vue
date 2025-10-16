@@ -7,12 +7,12 @@
     开发信息：	Created by 刘景彪  
  -->
   <div>
-    <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="130px">
+    <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="140px">
       <div class="title-text">基础信息</div>
       <div class="pading16">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="营业执照：" prop="businessLicense">
+            <el-form-item label="营业执照" prop="businessLicense">
               <div class="upload-container">
                 <el-upload
                   class="upload-box"
@@ -37,31 +37,31 @@
           <el-col :span="12"></el-col>
 
           <el-col :span="12">
-            <el-form-item label="供应商名称：" prop="companyName">
+            <el-form-item label="供应商名称" prop="companyName">
               <el-input v-model="form.companyName" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="注册资本：" prop="signUpCapital">
+            <el-form-item label="注册资本" prop="signUpCapital">
               <el-input v-model="form.signUpCapital" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="统一社会信用代码：" prop="licenseNumber">
+            <el-form-item label="统一社会信用代码" prop="licenseNumber">
               <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="注册地址：" prop="signUpAddress">
+            <el-form-item label="注册地址" prop="signUpAddress">
               <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="注册日期：" prop="signUpTime">
+            <el-form-item label="注册日期" prop="signUpTime">
               <el-date-picker
                 v-model="form.signUpTime"
                 value-format="YYYY-MM-DD"
@@ -73,13 +73,13 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="经营范围：" prop="businessScope">
+            <el-form-item label="经营范围" prop="businessScope">
               <el-input v-model="form.businessScope" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="法定代表人：" prop="legalPerson">
+            <el-form-item label="法定代表人" prop="legalPerson">
               <el-input v-model="form.legalPerson" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
@@ -87,7 +87,7 @@
           <el-col :span="12"></el-col>
 
           <el-col :span="12">
-            <el-form-item label="办公地址：" prop="officeAddress">
+            <el-form-item label="办公地址" prop="officeAddress">
               <el-input v-model="form.officeAddress" placeholder="请输入详细地址" />
             </el-form-item>
           </el-col>
@@ -160,7 +160,7 @@
           </el-table-column>
         </el-table>
         <div class="flex-center-center">
-          <el-button type="primary" @click="addTableCell" icon="Plus" color="#108C58" plain style="margin-top: 10px">新增</el-button>
+          <el-button @click="addTableCell" icon="Plus" color="#108C58" plain style="margin-top: 10px">新增</el-button>
         </div>
       </div>
 
@@ -177,9 +177,13 @@
           :before-upload="beforeUpload"
         >
           <div class="upload-btn">
-            <el-button type="primary" size="small">附件上传</el-button>
+            <el-button plain style="color: #108c58; border-color: #108c58">
+              <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
+            >
           </div>
         </el-upload>
+
+        <div class="h20"></div>
 
         <el-table :data="fileListtable" stripe>
           <el-table-column type="index" label="序号" width="55" align="center" />
@@ -191,18 +195,12 @@
           </el-table-column>
           <el-table-column label="操作" width="200">
             <template #default="scope">
-              <el-button type="primary" text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+              <el-button text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
                 预览
               </el-button>
 
-              <el-button
-                type="primary"
-                text
-                v-if="scope.row.fileType !== '1'"
-                @click="removeFile(scope.row)"
-                style="color: #ff3131; border-color: #ff3131"
-              >
+              <el-button text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
                 <img src="@/assets/images/register4.svg" class="el-icon-view" /> 删除
               </el-button>
             </template>
@@ -672,9 +670,7 @@ const removeFile = (file: any) => {
 
 .title-text {
   height: 54px;
-  font-family:
-    PingFang SC,
-    PingFang SC;
+  font-family: PingFang SC;
   font-weight: bold;
   font-size: 16px;
   color: #000000;
@@ -684,20 +680,19 @@ const removeFile = (file: any) => {
   padding: 16px;
   position: relative;
   border-bottom: 1px solid #e5e6eb;
-}
 
-.title-text::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 14px;
-  background: #108c58;
-  border-radius: 2px 2px 2px 2px;
+  ::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 14px;
+    background: #108c58;
+    border-radius: 2px 2px 2px 2px;
+  }
 }
-
 /* 优化上传区域样式 */
 .upload-container {
   width: 100%;
@@ -773,4 +768,23 @@ const removeFile = (file: any) => {
   color: #f56c6c;
   margin-right: 4px;
 }
+
+/* 全局表单项样式 */
+.el-form-item {
+  margin-bottom: 16px;
+}
+
+// .el-form-item__label {
+//   width: 130px;
+//   text-align: right;
+//   padding: 0;
+// }
+
+// /* 输入框统一宽度 */
+// .el-input,
+// .el-date-picker,
+// .el-select {
+//   width: 100%;
+//   max-width: 320px;
+// }
 </style>
