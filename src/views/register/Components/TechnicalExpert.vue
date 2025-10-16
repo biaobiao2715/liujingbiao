@@ -10,7 +10,7 @@
   <div class="wrapper">
     <div class="title">
       <div class="block"></div>
-      <span class="text"> <span class="bold">专家</span>基础信息</span>
+      <span class="text">基础信息</span>
     </div>
 
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="expert-form">
@@ -383,24 +383,21 @@ const handleNextStep = () => {
 <style scoped lang="scss">
 .wrapper {
   .title {
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e6eb;
+    height: 54px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 5px;
     margin-bottom: 20px;
     .block {
-      width: 8px;
-      height: 20px;
-      background-color: #409eff;
+      width: 3px;
+      height: 14px;
+      background-color: var(--el-color-primary);
     }
     .text {
-      font-weight: 500;
-      font-size: 20px;
-      color: #333;
-      .bold {
-        font-weight: 700;
-      }
+      font-weight: bold;
+      font-size: 16px;
+      color: #000;
     }
   }
   .expert-form {

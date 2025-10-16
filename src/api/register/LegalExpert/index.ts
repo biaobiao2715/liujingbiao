@@ -8,7 +8,6 @@
 
 import request from '@/utils/request';
 import { LegalExpert, LegalExpertRegisterResult } from './types';
-import { UplodaImageResult } from '@/api/register/types';
 import { AxiosPromise } from 'axios';
 
 // 法务专家注册信息

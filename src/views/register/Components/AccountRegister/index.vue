@@ -63,8 +63,10 @@ const { registerData } = storeToRefs(useRegisterDataStore());
 import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
 import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
 import router from '@/router';
+import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser';
 
 const loading = ref(false);
+const emit = defineEmits(['nextStep']);
 
 // 计算属性：是否显示身份证号输入框
 const isShowIdCard = computed(() => identity !== 'enterprise' && identity !== 'supplier');
@@ -80,12 +82,12 @@ const registerFormRef = ref<FormInstance>();
 
 // 表单数据
 const registerForm = reactive({
-  userName: '李四',
+  userName: '',
   idCard: '',
-  phoneNumber: '13000000000',
-  smsCode: '123456',
-  password: '12345678L',
-  confirmPassword: '12345678L'
+  phoneNumber: '',
+  smsCode: '',
+  password: '',
+  confirmPassword: ''
 });
 
 // 短信验证码相关
@@ -102,25 +104,23 @@ const sendSmsCode = async () => {
   // 验证手机号
   try {
     await registerFormRef.value?.validateField('phoneNumber');
-
     // 发送验证码逻辑
     isSendingSms.value = true;
     smsCountdown.value = 60;
-
     // 倒计时
     smsTimer = setInterval(() => {
       smsCountdown.value--;
       smsButtonText.value = `${smsCountdown.value}秒后重新获取`;
-
       if (smsCountdown.value <= 0) {
         clearInterval(smsTimer);
         isSendingSms.value = false;
         smsButtonText.value = '获取验证码';
       }
     }, 1000);
-
-    // TODO: 调用发送验证码API
-    // await sendSmsApi(registerForm.phone)
+    const res = await sendSmsCodeApi(registerForm.phoneNumber);
+    if (res.code === 200) {
+      ElMessage.success('短信验证码发送成功');
+    }
   } catch (error) {
     // 手机号验证失败
     console.error('手机号验证失败', error);
@@ -198,24 +198,17 @@ const submitForm = async () => {
       ...registerData.value,
       ...registerForm
     };
-    delete temp.smsCode;
-    const fun = () => {
-      ElMessage.success('注册成功');
-      setTimeout(() => {
-        router.push('/login?redirect=/index');
-      }, 500);
-    };
     // 技术专家
     if (identity === 'expert') {
       const res = await technicalExpertInfoRegister(temp);
       if (res.code === 200) {
-        fun();
+        emit('nextStep');
       }
     } else if (identity === 'legal') {
       // 法务专家
       const res = await legalExpertInfoRegister(temp);
       if (res.code === 200) {
-        fun();
+        emit('nextStep');
       }
     } else if (identity === 'enterprise') {
       console.log('提交');
