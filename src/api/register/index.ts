@@ -18,10 +18,29 @@ import { UplodaImageResult } from './types';
  * @returns 图片上传结果的 Promise
  */
 export function uploadImage(data: { file: File }): AxiosPromise<UplodaImageResult> {
-  let formData = new FormData();
+  const formData = new FormData();
   formData.append('file', data.file);
   return request({
     url: '/resource/oss/registerUpload',
+    method: 'post',
+    data: formData,
+    headers: {
+      isToken: false,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+}
+
+/**
+ * ocr图片上传方法
+ * @param data - 包含文件的对象
+ * @returns 图片上传结果的 Promise
+ */
+export function ocrUploadImage(data: { file: File }): AxiosPromise<UplodaImageResult> {
+  const formData = new FormData();
+  formData.append('file', data.file);
+  return request({
+    url: '/system/api/ocr/biz-license',
     method: 'post',
     data: formData,
     headers: {
