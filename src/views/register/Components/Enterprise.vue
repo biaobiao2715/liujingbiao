@@ -6,102 +6,99 @@
     当前版本：	1.0
     开发信息：	Created by 刘景彪  
  -->
-  <div class="app-container">
-    <el-form ref="dataFormRef" :model="form" :rules="rules" label-width="150px">
-      <div class="section-title">
-        <span class="title-text">基础信息</span>
-      </div>
-      <el-row>
-        <el-col :span="12">
-          <el-form-item label="营业执照：" prop="businessLicense">
-            <div class="upload-container">
-              <el-upload
-                class="upload-box"
-                ref="uploadRef"
-                :limit="1"
-                accept=".jpg,.jpeg,.png,.pdf"
-                :headers="upload.headers"
-                :disabled="upload.isUploading"
-                :on-success="handleFileSuccess"
-                :auto-upload="false"
-                :show-file-list="false"
-              >
-                <div class="upload-content">
-                  <el-icon><Plus /></el-icon>
-                  <div class="upload-text">
-                    <div>点击或将文件拖拽到这里上传</div>
+  <div>
+    <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="130px">
+      <div class="title-text">基础信息</div>
+      <div class="pading16">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="营业执照：" prop="businessLicense">
+              <div class="upload-container">
+                <el-upload
+                  class="upload-box"
+                  accept=".jpg,.jpeg,.gif,.png,.pdf"
+                  action="#"
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  :on-change="handleDiplomaChange"
+                >
+                  <div class="upload-content">
+                    <img src="@/assets/images/register3.svg" class="step-icon" />
+                    <!-- <img v-else :src="diplomaUrl" class="preview-image" /> -->
+                    <div class="upload-text">
+                      {{ diplomaUrl?.fileName ? diplomaUrl.fileName : '点击或将文件拖拽到这里上传' }}
+                    </div>
                     <div class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</div>
                   </div>
-                </div>
-              </el-upload>
-            </div>
-          </el-form-item>
-        </el-col>
+                </el-upload>
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
 
-        <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="企业名称：" prop="companyName">
+              <el-input v-model="form.companyName" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="企业名称：" prop="companyName">
-            <el-input v-model="form.companyName" placeholder="OCR识别,可修改" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册资本：" prop="signUpCapital">
+              <el-input v-model="form.signUpCapital" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="注册资本：" prop="signUpCapital">
-            <el-input v-model="form.signUpCapital" placeholder="OCR识别,可修改" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="统一社会信用代码：" prop="licenseNumber">
+              <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="统一社会信用代码：" prop="licenseNumber">
-            <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册地址：" prop="signUpAddress">
+              <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="注册地址：" prop="signUpAddress">
-            <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册日期：" prop="signUpTime">
+              <el-date-picker
+                v-model="form.signUpTime"
+                value-format="YYYY-MM-DD"
+                type="date"
+                style="width: 100%"
+                placeholder="OCR识别,可修改"
+              ></el-date-picker>
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="注册日期：" prop="signUpTime">
-            <el-date-picker
-              v-model="form.signUpTime"
-              value-format="YYYY-MM-DD"
-              type="date"
-              style="width: 100%"
-              placeholder="OCR识别,可修改"
-            ></el-date-picker>
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="经营范围：" prop="businessScope">
+              <el-input v-model="form.businessScope" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="经营范围：" prop="businessScope">
-            <el-input v-model="form.businessScope" placeholder="OCR识别,可修改" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12">
+            <el-form-item label="法定代表人：" prop="legalPerson">
+              <el-input v-model="form.legalPerson" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="法定代表人：" prop="legalPerson">
-            <el-input v-model="form.legalPerson" placeholder="OCR识别,可修改" />
-          </el-form-item>
-        </el-col>
+          <el-col :span="12"></el-col>
 
-        <el-col :span="12"></el-col>
-
-        <el-col :span="12">
-          <el-form-item label="办公地址：" prop="officeAddress">
-            <el-input v-model="form.officeAddress" placeholder="请输入详细地址" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <div class="section-title">
-        <span class="title-text">企业联系人</span>
+          <el-col :span="12">
+            <el-form-item label="办公地址：" prop="officeAddress">
+              <el-input v-model="form.officeAddress" placeholder="请输入详细地址" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </div>
-      <el-row>
-        <el-table :data="tableList" border>
+
+      <div class="h20"></div>
+
+      <div class="title-text">企业联系人</div>
+      <div class="pading16">
+        <el-table :data="tableList" stripe>
           <el-table-column type="index" width="100" label="序号" />
           <el-table-column prop="contactType" label="联系人类型">
             <template #default="scope">
@@ -155,50 +152,59 @@
           </el-table-column>
           <el-table-column label="操作" align="center">
             <template #default="scope">
-              <el-button type="text" @click="removeTableCell(scope.$index, scope.row)">删除</el-button>
+              <el-button type="text" text @click="removeTableCell(scope.$index, scope.row)" style="color: #ff3131; border-color: #ff3131">
+                <img src="@/assets/images/register4.svg" class="el-icon-view" />
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
-        <div class="addsuppliercss flex-center-center" @click="addTableCell">+ 新增联系人</div>
-      </el-row>
-
-      <div class="section-title">
-        <span class="title-text">资料清单</span>
+        <div class="flex-center-center">
+          <el-button type="primary" @click="addTableCell" icon="Plus" color="#108C58" plain style="margin-top: 10px">新增</el-button>
+        </div>
       </div>
 
-      <div>
+      <div class="h20"></div>
+
+      <div class="title-text">资料清单</div>
+      <div class="pading16">
         <el-upload
-          :action="uploadAction"
+          action="#"
           :auto-upload="false"
-          :file-list="fileListtable"
-          :limit="10"
           accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-          multiple
-          list-type="text"
           :show-file-list="false"
           :on-change="handleChange"
-          :on-remove="handleRemove"
           :before-upload="beforeUpload"
-          :on-exceed-limit="handleExceed"
         >
           <div class="upload-btn">
             <el-button type="primary" size="small">附件上传</el-button>
           </div>
         </el-upload>
 
-        <el-table :data="fileListtable" style="width: 100%" :cell-style="{ textAlign: 'center' }" :header-cell-style="{ textAlign: 'center' }" border>
+        <el-table :data="fileListtable" stripe>
           <el-table-column type="index" label="序号" width="55" align="center" />
-
-          <el-table-column prop="name" label="附件名" />
-          <el-table-column prop="remark" label="备注">
+          <el-table-column prop="name" label="附件名" align="center" />
+          <el-table-column prop="remark" label="备注" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.remark" placeholder="请输入"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150">
+          <el-table-column label="操作" width="200">
             <template #default="scope">
-              <el-button type="primary" link @click="previewFile(scope.row)">预览</el-button>
-              <el-button type="primary" v-if="scope.row.name !== '毕业证'" link @click="removeFile(scope.row)">删除</el-button>
+              <el-button type="primary" text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+                <img src="@/assets/images/register1.svg" class="el-icon-view" />
+                预览
+              </el-button>
+
+              <el-button
+                type="primary"
+                text
+                v-if="scope.row.fileType !== '1'"
+                @click="removeFile(scope.row)"
+                style="color: #ff3131; border-color: #ff3131"
+              >
+                <img src="@/assets/images/register4.svg" class="el-icon-view" /> 删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -213,11 +219,10 @@
 
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
-import { globalHeaders } from '@/utils/request';
+import { uploadImage, ocrUploadImage } from '@/api/register';
 import { getPurchaserTypeDict } from '@/api/register/Supplier';
 import { FormData, Contact } from '@/api/register/Supplier/types';
 import { ElMessage, FormRules } from 'element-plus';
-
 // 直接使用异步调用结果赋值
 const contact_user_type = ref([]);
 
@@ -453,13 +458,6 @@ const data = reactive({
 const { form, rules } = toRefs(data);
 const dataFormRef = ref<ElFormInstance>();
 
-/*** 上传 */
-const upload = reactive({
-  isUploading: false,
-  headers: globalHeaders(),
-  url: import.meta.env.VITE_APP_BASE_API + '/system/user/importData'
-});
-
 // 企业联系人
 const tableList = ref<Contact[]>([
   {
@@ -469,6 +467,10 @@ const tableList = ref<Contact[]>([
     phone: ''
   }
 ]);
+
+// 文件列表
+const fileListtable = ref<any[]>([]);
+const diplomaUrl = ref<{ fileName?: string; url?: string; ossId: string } | null>(null);
 
 // 添加新行-企业联系人
 const addTableCell = () => {
@@ -582,39 +584,40 @@ const submitForm = () => {
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
     } else {
-      emit('nextStep');
       ElMessage.error('请完善必填信息');
     }
   });
 };
 
 /** 文件上传成功处理 */
-const handleFileSuccess = (response: any, file: UploadFile) => {
-  upload.isUploading = false;
+const handleDiplomaChange = (file: any) => {
+  ocrUploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      diplomaUrl.value = res.data;
+      fileListtable.value.push({
+        name: '营业执照',
+        remark: res?.data?.fileName || '营业执照',
+        url: res.data.url,
+        fileType: '1',
+        ossId: res.data.ossId
+      });
+    }
+  });
 };
-
-// 上传地址（替换为实际接口）
-const uploadAction = '/api/upload';
-
-// 文件列表
-const fileListtable = ref<any[]>([]);
 
 // 处理文件选择
-const handleChange = (file: any, fileList: any[]) => {
-  if (!fileListtable.value.some((f) => f.uid === file.uid)) {
-    fileListtable.value.push({
-      ...file,
-      remark: ''
-    });
-  }
-};
-
-// 删除文件
-const handleRemove = (file: any, fileList: any[]) => {
-  const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
-  if (index !== -1) {
-    fileListtable.value.splice(index, 1);
-  }
+const handleChange = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      fileListtable.value.push({
+        name: file.name,
+        remark: '附件上传',
+        url: res.data.url,
+        fileType: '99',
+        ossId: res.data.ossId
+      });
+    }
+  });
 };
 
 // 文件上传前校验
@@ -642,11 +645,6 @@ const beforeUpload = (file: any) => {
   return true;
 };
 
-// 超出数量限制
-const handleExceed = () => {
-  ElMessage.warning('最多只能上传10个文件');
-};
-
 // 预览文件
 const previewFile = (file: any) => {
   console.log('预览文件:', file);
@@ -662,20 +660,30 @@ const removeFile = (file: any) => {
 </script>
 
 <style scoped lang="scss">
-.section-title {
-  position: relative;
-  padding: 10px 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e5e5e5;
+.pading16 {
+  height: 100%;
+  padding: 16px;
+}
+
+.h20 {
+  height: 20px;
+  background: #f7f8fb;
 }
 
 .title-text {
+  height: 54px;
+  font-family:
+    PingFang SC,
+    PingFang SC;
+  font-weight: bold;
   font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  display: inline-block;
-  padding-left: 10px;
+  color: #000000;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  padding: 16px;
   position: relative;
+  border-bottom: 1px solid #e5e6eb;
 }
 
 .title-text::before {
@@ -684,48 +692,53 @@ const removeFile = (file: any) => {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 8px;
-  height: 100%;
-  background-color: #409eff;
+  width: 3px;
+  height: 14px;
+  background: #108c58;
+  border-radius: 2px 2px 2px 2px;
 }
 
-.addsuppliercss {
-  width: 100%;
-  height: 40px;
-  color: #0079fe;
-  border-width: 0 1px 1px 1px;
-  border-style: solid;
-  border-color: #e4e4e4;
-  margin-bottom: 20px;
-}
-
+/* 优化上传区域样式 */
 .upload-container {
   width: 100%;
-
   .upload-box {
     width: 100%;
     .upload-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #f5f7fa;
       width: 100%;
-      border-radius: 6px;
-      padding: 20px;
-      cursor: pointer;
-      .preview-image {
-        width: 100%;
-        max-height: 200px;
-        object-fit: contain;
+      text-align: center;
+      background: #fafdfc;
+      border-radius: 4px 4px 4px 4px;
+      border: 1px solid #108c58;
+      padding: 29px 0;
+
+      .el-icon {
+        font-size: 32px;
+        margin-bottom: 16px;
       }
+
       .upload-text {
-        margin-top: 10px;
-        text-align: center;
+        height: 20px;
+        font-family:
+          PingFang SC,
+          PingFang SC;
+        font-weight: bold;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.9);
+        font-style: normal;
+        text-transform: none;
+        margin-bottom: 8px;
+
         .upload-tip {
+          height: 17px;
+          font-family:
+            PingFang SC,
+            PingFang SC;
+          font-weight: 500;
           font-size: 12px;
-          color: #999;
-          margin-top: 5px;
+          color: #999999;
+          text-align: left;
+          font-style: normal;
+          text-transform: none;
         }
       }
     }
@@ -747,6 +760,12 @@ const removeFile = (file: any) => {
     font-size: 16px;
     border-radius: 10px;
   }
+}
+
+.el-icon-view {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
 }
 
 .required::before {
