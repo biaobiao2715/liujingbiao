@@ -1,7 +1,249 @@
-<template></template>
+<template>
+  <div class="supplier-edit-details">
+    <el-form :model="formData" label-width="140px" :disabled="!isEditMode">
+      <!-- 基础信息 -->
+      <FormHeader title="企业基础信息" />
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="企业编码">
+            <el-input v-model="formData.supplierInfo.code" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="审核状态">
+            <el-input v-model="formData.supplierInfo.auditStatus" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="企业名称">
+            <el-input v-model="formData.supplierInfo.name" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="社会统一信用代码">
+            <el-input v-model="formData.supplierInfo.creditCode" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="注册资本">
+            <el-input v-model="formData.supplierInfo.registeredCapital"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="注册日期">
+            <el-input v-model="formData.supplierInfo.registrationDate" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="注册地址">
+            <el-input v-model="formData.supplierInfo.registrationAddress"></el-input>
+          </el-form-item>
+        </el-col>
+        <!-- 根据isEditMode判断是展示营业执照还是上传营业执照 -->
+        <el-col :span="12" v-if="!isEditMode">
+          <el-form-item label="营业执照">
+            <el-input v-model="formData.supplierInfo.license" disabled></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12" v-else>
+          <el-form-item label="营业执照">
+            <fileUpload v-model="formData.supplierInfo.license" :file-type="['png', 'jpg', 'jpeg', 'pdf']" :file-size="20" />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="办公地址">
+            <el-input v-model="formData.supplierInfo.officeAddress"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
+          <el-form-item label="企业经营范围">
+            <el-input v-model="formData.supplierInfo.businessScope" type="textarea"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 法人信息 -->
+      <FormHeader title="法人信息" />
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="法人姓名">
+            <el-input v-model="formData.legalPerson.name"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="证件号码">
+            <el-input v-model="formData.legalPerson.idNumber"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="证件类型">
+            <el-input v-model="formData.legalPerson.idType"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="联系电话">
+            <el-input v-model="formData.legalPerson.phone"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 联系人信息 -->
+      <FormHeader title="联系人信息" />
+      <el-row :gutter="20" v-for="(contact, index) in formData.contacts" :key="index">
+        <el-col :span="12">
+          <el-form-item :label="'联系人' + (index + 1)">
+            <el-input v-model="contact.name"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="联系电话">
+            <el-input v-model="contact.phone"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 账户信息 -->
+      <FormHeader title="账户信息" />
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="账户名">
+            <el-input v-model="formData.accountInfo.accountName"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="注册手机号">
+            <el-input v-model="formData.accountInfo.phoneNumber"></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 企业信息 -->
+      <FormHeader title="企业信息" />
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="资质等级">
+            <el-select v-model="formData.supplierRating.qualificationLevel">
+              <el-option label="一级认证" value="一级认证"></el-option>
+              <el-option label="二级认证" value="二级认证"></el-option>
+              <el-option label="三级认证" value="三级认证"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="信用等级">
+            <el-select v-model="formData.supplierRating.creditLevel">
+              <el-option label="优秀" value="优秀"></el-option>
+              <el-option label="良好" value="良好"></el-option>
+              <el-option label="差" value="差"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 资料清单 -->
+      <FormHeader title="资料清单" />
+      <el-table :data="formData.attachments" border>
+        <el-table-column prop="index" label="序号" width="100"></el-table-column>
+        <el-table-column prop="name" label="附件名"></el-table-column>
+        <el-table-column prop="remark" label="备注"></el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+            <el-button type="text" @click="previewAttachment(scope.row)">预览</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 审核意见 -->
+      <FormHeader title="审核意见" />
+      <el-form-item label="审核意见">
+        <el-input v-model="formData.auditOpinion.content" type="textarea" maxlength="200" :rows="6"></el-input>
+      </el-form-item>
+    </el-form>
+
+    <!-- 操作按钮 -->
+    <div style="margin-top: 20px">
+      <el-button v-if="isEditMode" type="primary" @click="saveChanges">保存</el-button>
+      <el-button v-if="isEditMode" @click="cancelEdit">取消</el-button>
+      <el-button v-else type="primary" @click="enterEditMode">编辑</el-button>
+    </div>
+  </div>
+</template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import FormHeader from '@/components/FormHeader/index.vue';
+
+// 获取router路由参数
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const { id, type } = route.query;
+
+const isEditMode = ref(type === 'edit');
+
+const formData = ref({
+  supplierInfo: {
+    code: 'GYS202509300001',
+    auditStatus: '待审核',
+    name: '史丹利复合肥有限公司',
+    creditCode: 'B1440300C604861117',
+    registeredCapital: '100000万',
+    registrationDate: '2025年9月30日',
+    registrationAddress: '浙江省台州市玉环市',
+    officeAddress: '浙江省台州市玉环市',
+    license: 'xxxxxx',
+    businessScope: '农资店的经营范围包括农药原药、化肥、种子等'
+  },
+  legalPerson: {
+    name: '胡杰',
+    idNumber: '04010419900311375X',
+    idType: '身份证',
+    phone: '16274728649'
+  },
+  contacts: [
+    { name: '张三', phone: '15629657690' },
+    { name: '张三', phone: '15629657691' }
+  ],
+  accountInfo: {
+    accountName: 'xxxxxxxxxx',
+    phoneNumber: 'xxxxxxxxxx'
+  },
+  supplierRating: {
+    qualificationLevel: '一级认证',
+    creditLevel: '优秀'
+  },
+  attachments: [
+    { index: 1, name: 'xxx', remark: '许可证' },
+    { index: 2, name: 'xxx', remark: '许可证' }
+  ],
+  auditOpinion: {
+    content: ''
+  }
+});
+
+const enterEditMode = () => {
+  isEditMode.value = true;
+};
+
+const saveChanges = () => {
+  console.log('保存修改', formData.value);
+  isEditMode.value = false;
+};
+
+const cancelEdit = () => {
+  console.log('取消编辑');
+  isEditMode.value = false;
+};
+
+const previewAttachment = (attachment) => {
+  console.log('预览附件', attachment);
+};
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+/* 样式可根据需求调整 */
+.supplier-edit-details {
+  padding: 24px;
+}
+</style>

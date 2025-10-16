@@ -41,6 +41,7 @@ export interface LegalExpert {
   issuingAuthority: string;
   issueDate: string;
   idCard: string;
+  contactPhone: string;
   phoneNumber: string;
   technicalQualification: string;
   professionalSummary: string;

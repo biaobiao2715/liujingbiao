@@ -134,7 +134,7 @@ const nextStep = () => {
 <style scoped lang="scss">
 .register-container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   flex-direction: column;
   background: #f7f8fb;
   .title {
@@ -155,7 +155,7 @@ const nextStep = () => {
     }
     .form-container {
       flex: 1;
-      overflow: auto;
+
       background-color: #ffffff;
       .form-content {
         height: 100%;
