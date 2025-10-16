@@ -100,7 +100,7 @@
 
 <script setup name="Dict" lang="ts">
 import router from '@/router';
-import { listType, getType, delType, addType, updateType, refreshCache } from '@/api/system/dict/type';
+import { queryPageListByNoTenant } from '@/api/platform/enterprise/index';
 // 假设这些变量已在 script setup 中定义
 import editDetails from '@/views/platformManage/enterprise/editDetails.vue';
 
@@ -150,24 +150,16 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询字典类型列表 */
+/** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  listType(proxy?.addDateRange(queryParams.value, dateRange.value)).then((res) => {
+  queryPageListByNoTenant(queryParams.value).then((res) => {
     typeList.value = res.rows;
     total.value = res.total;
     loading.value = false;
   });
 };
-/** 取消按钮 */
-const cancel = () => {
-  reset();
-  dialog.visible = false;
-};
-/** 表单重置 */
-const reset = () => {
-  form.value = { ...initFormData };
-};
+
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -179,11 +171,15 @@ const resetQuery = () => {
   queryFormRef.value?.resetFields();
   handleQuery();
 };
+
+// 审核按钮
 const handleRevise = (row: any) => {
   dialog.title = '审核';
   dialog.visible = true;
   dialog.id = row.dictId;
 };
+
+// 详情
 const handleDetail = (row: any) => {
   //   dialog.title = '详情';
   //   dialog.visible = true;
@@ -197,7 +193,7 @@ const handleDetail = (row: any) => {
     }
   });
 };
-
+// 修改
 const handupdate = (row: any) => {
   //   dialog.title = '修改';
   //   dialog.visible = true;

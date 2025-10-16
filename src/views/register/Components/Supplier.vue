@@ -41,33 +41,33 @@
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="供应商名称：" prop="supplierName">
-            <el-input v-model="form.supplierName" placeholder="OCR识别,可修改" />
+          <el-form-item label="供应商名称：" prop="companyName">
+            <el-input v-model="form.companyName" placeholder="OCR识别,可修改" />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="注册资本：" prop="registeredCapital">
-            <el-input v-model="form.registeredCapital" placeholder="OCR识别,可修改" />
+          <el-form-item label="注册资本：" prop="signUpCapital">
+            <el-input v-model="form.signUpCapital" placeholder="OCR识别,可修改" />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="统一社会信用代码：" prop="unifiedCreditCode">
-            <el-input v-model="form.unifiedCreditCode" :disabled="true" placeholder="OCR识别" />
+          <el-form-item label="统一社会信用代码：" prop="licenseNumber">
+            <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="注册地址：" prop="registrationAddress">
-            <el-input v-model="form.registrationAddress" placeholder="OCR识别,可修改" />
+          <el-form-item label="注册地址：" prop="signUpAddress">
+            <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
           </el-form-item>
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="注册日期：" prop="registrationDate">
+          <el-form-item label="注册日期：" prop="signUpTime">
             <el-date-picker
-              v-model="form.registrationDate"
+              v-model="form.signUpTime"
               value-format="YYYY-MM-DD"
               type="date"
               style="width: 100%"
@@ -83,8 +83,8 @@
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="法定代表人：" prop="legalRepresentative">
-            <el-input v-model="form.legalRepresentative" placeholder="OCR识别,可修改" />
+          <el-form-item label="法定代表人：" prop="legalPerson">
+            <el-input v-model="form.legalPerson" placeholder="OCR识别,可修改" />
           </el-form-item>
         </el-col>
 
@@ -106,7 +106,7 @@
           <el-table-column prop="contactType" label="联系人类型">
             <template #default="scope">
               <el-select v-model="scope.row.contactType" placeholder="请选择" filterable clearable>
-                <el-option v-for="(item, index) in secondCategoryOptions" :key="index" :label="item.name" :value="item.id"></el-option>
+                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -214,56 +214,37 @@
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { globalHeaders } from '@/utils/request';
-import { ElMessage } from 'element-plus';
+import { getPurchaserTypeDict } from '@/api/register/Supplier';
+import { FormData, Contact } from '@/api/register/Supplier/types';
+import { ElMessage, FormRules } from 'element-plus';
 
-import { FormRules } from 'element-plus';
+// 直接使用异步调用结果赋值
+const contact_user_type = ref([]);
+
+getPurchaserTypeDict('contact_user_type').then((res) => {
+  if (res.code === 200) {
+    contact_user_type.value = res.data || [];
+  }
+});
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const emit = defineEmits(['nextStep']); // 定义事件
 
-// 定义联系人接口，包含可选的errors属性
-interface Contact {
-  contactType: string | number;
-  name: string;
-  idCard: string;
-  phone: string;
-  errors?: {
-    name?: string;
-    idCard?: string;
-    phone?: string;
-  };
-}
-
-// 定义表单数据类型
-interface FormData {
-  supplierName: string;
-  registeredCapital: string;
-  unifiedCreditCode: string;
-  registrationAddress: string;
-  registrationDate: string;
-  businessScope: string;
-  legalRepresentative: string;
-  officeAddress: string;
-  tableList?: any[]; // 添加这一行
-  fileList?: any[]; // 添加这一行
-}
-
 const initFormData: FormData = {
-  supplierName: '',
-  registeredCapital: '',
-  unifiedCreditCode: '',
-  registrationAddress: '',
-  registrationDate: '',
+  companyName: '',
+  signUpCapital: '',
+  licenseNumber: '',
+  signUpAddress: '',
+  signUpTime: '',
   businessScope: '',
-  legalRepresentative: '',
+  legalPerson: '',
   officeAddress: '',
   tableList: [], // 添加这一行
   fileList: [] // 添加这一行
 };
-
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
-  supplierName: [
+  companyName: [
     { required: true, message: '供应商名称不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -290,7 +271,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  registeredCapital: [
+  signUpCapital: [
     { required: true, message: '注册资本不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -318,7 +299,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  unifiedCreditCode: [
+  licenseNumber: [
     { required: true, message: '统一社会信用代码不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -345,7 +326,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  registrationAddress: [
+  signUpAddress: [
     { required: true, message: '注册地址不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -365,7 +346,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  registrationDate: [
+  signUpTime: [
     { required: true, message: '注册日期不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -414,7 +395,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  legalRepresentative: [
+  legalPerson: [
     { required: true, message: '法定代表人不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -471,12 +452,6 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 const dataFormRef = ref<ElFormInstance>();
-
-// 联系人类型
-const secondCategoryOptions = ref<Array<{ id: number; name: string; disabled?: boolean }>>([
-  { id: 1, name: '法人', disabled: true },
-  { id: 2, name: '自然人' }
-]);
 
 /*** 上传 */
 const upload = reactive({
