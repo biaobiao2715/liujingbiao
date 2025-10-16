@@ -31,33 +31,33 @@
             </div>
           </el-form-item>
 
-          <el-form-item label="专家姓名:" prop="name" required>
-            <el-input v-model="formData.name" placeholder="50个字符，仅限中文" />
+          <el-form-item label="专家姓名:" prop="expertName" required>
+            <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
           </el-form-item>
 
-          <el-form-item label="执业机构:" prop="name" required>
-            <el-input v-model="formData.birthDate" placeholder="50个字符，仅限中文" />
+          <el-form-item label="执业机构:" prop="practiceInstitution" required>
+            <el-input v-model="formData.practiceInstitution" placeholder="50个字符，仅限中文" />
           </el-form-item>
 
-          <el-form-item label="执业证号:" prop="major" required>
-            <el-input v-model="formData.major" placeholder="50个字符，仅限中文" />
+          <el-form-item label="执业证号:" prop="practiceCertificateNumber" required>
+            <el-input v-model="formData.practiceCertificateNumber" placeholder="50个字符，仅限中文" />
           </el-form-item>
 
-          <el-form-item label="发证机关:" prop="graduationDate" required>
-            <el-date-picker v-model="formData.graduationDate" type="date" placeholder="选择日期" style="width: 100%" />
+          <el-form-item label="发证机关:" prop="issuingAuthority" required>
+            <el-input v-model="formData.issuingAuthority" placeholder="请输入发证机关" />
           </el-form-item>
 
-          <el-form-item label="身份证号:" prop="idNumber" required>
-            <el-input v-model="formData.idNumber" placeholder="请输入身份证号" />
+          <el-form-item label="身份证号:" prop="idCard" required>
+            <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
           </el-form-item>
 
-          <el-form-item label="专业技术资格名称:" style="white-space: nowrap">
+          <el-form-item label="专业技术资格名称:" prop="technicalQualification" style="white-space: nowrap">
             <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
           </el-form-item>
 
-          <el-form-item label="专家简介:" prop="introduction" required>
+          <el-form-item label="专家简介:" prop="professionalSummary" required>
             <el-input
-              v-model="formData.introduction"
+              v-model="formData.professionalSummary"
               type="textarea"
               :maxlength="150"
               show-word-limit
@@ -90,27 +90,27 @@
             </div>
           </el-form-item>
 
-          <el-form-item label="性别:" prop="gender" required>
-            <el-select v-model="formData.gender" placeholder="请选择" style="width: 100%">
-              <el-option label="男" value="male" />
-              <el-option label="女" value="female" />
+          <el-form-item label="性别:" prop="sex" required>
+            <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
+              <el-option label="男" :value="0" />
+              <el-option label="女" :value="1" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="执业证类型:" prop="licenseType" required>
-            <el-input v-model="formData.licenseType" placeholder="请输入执业证类型" />
+          <el-form-item label="执业证类型:" prop="practiceCertificateType" required>
+            <el-input v-model="formData.practiceCertificateType" placeholder="请输入执业证类型" />
           </el-form-item>
 
-          <el-form-item label="法律执业资格或律师资格证号:" style="white-space: nowrap" required>
-            <el-input v-model="formData.diplomaNumber" placeholder="请输入法律执业资格或律师资格证号" />
+          <el-form-item label="法律执业资格或律师资格证号:" prop="legalPracticeQualification" style="white-space: nowrap" required>
+            <el-input v-model="formData.legalPracticeQualification" placeholder="请输入法律执业资格或律师资格证号" />
           </el-form-item>
 
-          <el-form-item label="发证日期:" required>
-            <el-date-picker v-model="formData.enrollmentDate" type="date" placeholder="选择日期" style="width: 100%" />
+          <el-form-item label="发证日期:" prop="issueDate" required>
+            <el-date-picker v-model="formData.issueDate" type="date" placeholder="选择日期" style="width: 100%" />
           </el-form-item>
 
-          <el-form-item label="联系电话:" required>
-            <el-input v-model="formData.phone" placeholder="请输入联系电话" />
+          <el-form-item label="联系电话:" prop="phoneNumber" required>
+            <el-input v-model="formData.phoneNumber" placeholder="请输入联系电话" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -161,40 +161,59 @@
 import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
+import { legalExpertInfoRegister, uploadImage } from '@/api/register/LegalExpert';
+import { LegalExpert } from '@/api/register/LegalExpert/types';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 
 // 表单数据
-const formData = reactive({
-  name: '',
-  gender: '',
-  birthDate: '',
-  school: '',
-  major: '',
-  enrollmentDate: '',
-  graduationDate: '',
-  education: '',
-  degree: '',
-  diplomaNumber: '',
-  technicalQualification: '',
-  phone: '',
-  idNumber: '',
-  introduction: '',
-  licenseType: ''
-});
+// 可选 字段
+const formData = reactive<LegalExpert>({
+  // 专家名称
+  expertName: '张三',
+  // 性别
+  sex: '男',
+  // 执业机构
+  practiceInstitution: '中国法律学会',
+  // 执业证号
+  practiceCertificateNumber: '123456789012345678',
+  // 发证日期
+  issueDate: '2025-10-15',
+  // 法律执业资格或律师资格证号
+  legalPracticeQualification: '123456789012345678',
+  // 技术资格证号
+  technicalQualification: '123456789012345678',
+  // 联系电话
+  phoneNumber: '13800000000',
+  // 身份证号
+  idCard: '44030419900101001X',
+  // 专家简介
+  professionalSummary: '专家简介简介',
+  // 执业证类型
+  practiceCertificateType: '法律执业证',
+  // 发证机关
+  issuingAuthority: '中国法律学会'
+} as LegalExpert);
 
 // 上传图片相关
 const diplomaUrl = ref('');
 const photoUrl = ref('');
 
 const handleDiplomaChange = (file: any) => {
-  diplomaUrl.value = URL.createObjectURL(file.raw);
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: '毕业证',
-    remark: '上传毕业证',
-    url: diplomaUrl.value
+  console.log(URL.createObjectURL(file.raw), 'asafile');
+  uploadImage({
+    file: URL.createObjectURL(file.raw)
+  }).then((res) => {
+    // console.log(res);
+    // formData.diplomaOssId = res.ossId;
   });
+  //   diplomaUrl.value = URL.createObjectURL(file.raw);
+  //   qualificationList.value.push({
+  //     index: qualificationList.value.length + 1,
+  //     name: '毕业证',
+  //     remark: '上传毕业证',
+  //     url: diplomaUrl.value
+  //   });
 };
 
 // 资质清单相关
@@ -235,7 +254,7 @@ const deleteQualification = (index: number) => {
 };
 const validateIdCard = (rule: any, value: any, callback: any) => {
   if (!value) {
-    callback();
+    callback(new Error('请输入身份证号'));
   } else if (!isIdCard(value)) {
     callback(new Error('请输入正确的身份证号'));
   } else {
@@ -244,12 +263,12 @@ const validateIdCard = (rule: any, value: any, callback: any) => {
 };
 // 表单验证规则
 const rules = {
-  name: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  expertName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
+  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
   birthDate: [{ required: true, message: '请选择出生年月', trigger: 'change' }],
   major: [{ required: true, message: '请输入专业', trigger: 'blur' }],
   graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
-  introduction: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
+  professionalSummary: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
   diploma: [
     {
       required: true,
@@ -276,8 +295,8 @@ const rules = {
       trigger: 'change'
     }
   ],
-  idNumber: [{ trigger: 'blur', validator: validateIdCard }],
-  licenseType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }]
+  idCard: [{ trigger: 'blur', validator: validateIdCard }],
+  practiceCertificateType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }]
 };
 
 // 表单引用
@@ -295,12 +314,17 @@ const handleNextStep = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
       console.log('表单验证通过，提交数据', formData);
-      // 这里可以添加提交逻辑
-      emit('nextStep');
+      const params = { ...formData } as LegalExpert;
+
+      legalExpertInfoRegister(params).then((res) => {
+        console.log(res.data);
+        // 这里可以添加提交逻辑
+        emit('nextStep');
+      });
     } else {
       console.log('表单验证失败');
       ElMessage.error('请完善必填信息');
-      emit('nextStep');
+      //   emit('nextStep');
       return false;
     }
   });

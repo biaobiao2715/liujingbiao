@@ -39,8 +39,8 @@
             </div>
           </el-form-item>
 
-          <el-form-item label="专家姓名:" prop="name" required>
-            <el-input v-model="formData.name" placeholder="50个字符，仅限中文" />
+          <el-form-item label="专家姓名:" prop="expertName" required>
+            <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
           </el-form-item>
 
           <el-form-item label="出生年月:" prop="birthDate" required>
@@ -55,21 +55,21 @@
             <el-date-picker v-model="formData.graduationDate" type="date" placeholder="选择日期" style="width: 100%" />
           </el-form-item>
 
-          <el-form-item label="学位:">
+          <el-form-item label="学位:" prop="degree" required>
             <el-input v-model="formData.degree" placeholder="50个字符，仅限中文" />
           </el-form-item>
 
-          <el-form-item label="专业技术资格名称:" style="white-space: nowrap">
+          <el-form-item label="专业技术资格名称:" prop="technicalQualification" required style="white-space: nowrap">
             <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
           </el-form-item>
 
-          <el-form-item label="身份证号:">
-            <el-input v-model="formData.idNumber" placeholder="请输入身份证号" />
+          <el-form-item label="身份证号:" prop="idCard">
+            <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
           </el-form-item>
 
-          <el-form-item label="专家简介:" prop="introduction" required>
+          <el-form-item label="专家简介:" prop="expertInfo" required>
             <el-input
-              v-model="formData.introduction"
+              v-model="formData.expertInfo"
               type="textarea"
               :maxlength="300"
               show-word-limit
@@ -102,22 +102,22 @@
             </div>
           </el-form-item>
 
-          <el-form-item label="性别:" prop="gender" required>
-            <el-select v-model="formData.gender" placeholder="请选择" style="width: 100%">
+          <el-form-item label="性别:" prop="sex" required>
+            <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
               <el-option label="男" value="male" />
               <el-option label="女" value="female" />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="毕业院校:" required>
-            <el-input v-model="formData.school" placeholder="请输入毕业院校" />
+          <el-form-item label="毕业院校:" prop="graduationSchool" required>
+            <el-input v-model="formData.graduationSchool" placeholder="请输入毕业院校" />
           </el-form-item>
 
-          <el-form-item label="入学日期:" required>
+          <el-form-item label="入学日期:" prop="enrollmentDate" required>
             <el-date-picker v-model="formData.enrollmentDate" type="date" placeholder="选择日期" style="width: 100%" />
           </el-form-item>
 
-          <el-form-item label="学历:" required>
+          <el-form-item label="学历:" prop="education" required>
             <el-select v-model="formData.education" placeholder="请选择" style="width: 100%">
               <el-option label="本科" value="bachelor" />
               <el-option label="硕士" value="master" />
@@ -126,12 +126,12 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="毕业证编号:" required>
-            <el-input v-model="formData.diplomaNumber" placeholder="请输入毕业证编号" />
+          <el-form-item label="毕业证编号:" required prop="graduationCertNo">
+            <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" />
           </el-form-item>
 
-          <el-form-item label="联系电话:" required>
-            <el-input v-model="formData.phone" placeholder="请输入联系电话" />
+          <el-form-item label="联系电话:" prop="contactPhone" required>
+            <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -176,26 +176,27 @@
 import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
+import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 
 // 表单数据
-const formData = reactive({
-  name: '',
-  gender: '',
+const formData = reactive<TechnicalExpert>({
+  expertName: '',
+  sex: '',
   birthDate: '',
-  school: '',
+  graduationSchool: '',
   major: '',
   enrollmentDate: '',
   graduationDate: '',
   education: '',
   degree: '',
-  diplomaNumber: '',
+  graduationCertNo: '',
   technicalQualification: '',
-  phone: '',
-  idNumber: '',
-  introduction: ''
-});
+  idCard: '',
+  expertInfo: '',
+  contactPhone: ''
+} as TechnicalExpert);
 
 // 上传图片相关
 const diplomaUrl = ref('');
@@ -259,12 +260,16 @@ const validateIdCard = (rule: any, value: any, callback: any) => {
 
 // 表单验证规则
 const rules = {
-  name: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  expertName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
+  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
   birthDate: [{ required: true, message: '请选择出生年月', trigger: 'change' }],
   major: [{ required: true, message: '请输入专业', trigger: 'blur' }],
   graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
-  introduction: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
+  expertInfo: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
+  degree: [{ required: true, message: '请选择学位', trigger: 'change' }],
+  graduationCertNo: [{ required: true, message: '请输入毕业证书编号', trigger: 'blur' }],
+  technicalQualification: [{ required: true, message: '请输入专业技术资格名称', trigger: 'blur' }],
+  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
   diploma: [
     {
       required: true,
@@ -291,7 +296,10 @@ const rules = {
       trigger: 'change'
     }
   ],
-  idNumber: [{ trigger: 'blur', validator: validateIdCard }]
+  idCard: [{ trigger: 'blur', validator: validateIdCard }],
+  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: 'change' }],
+  education: [{ required: true, message: '请选择学历', trigger: 'change' }],
+  graduationSchool: [{ required: true, message: '请输入毕业学校', trigger: 'blur' }]
 };
 
 // 表单引用
@@ -314,7 +322,6 @@ const handleNextStep = () => {
     } else {
       console.log('表单验证失败');
       ElMessage.error('请完善必填信息');
-      emit('nextStep');
       return false;
     }
   });

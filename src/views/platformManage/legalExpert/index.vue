@@ -1,8 +1,8 @@
 <template>
   <div class="p-2 legal-expert-page">
-    <!-- 查询区域 -->
-    <div class="mb-[10px]">
-      <el-card shadow="hover">
+    <el-card shadow="hover">
+      <!-- 查询区域 -->
+      <div class="mb-[10px]">
         <el-form ref="queryFormRef" :model="queryParams" :inline="true">
           <el-form-item label="专家姓名" prop="name">
             <el-input v-model="queryParams.name" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
@@ -26,17 +26,8 @@
             <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
-      </el-card>
-    </div>
-
-    <!-- 列表区域 -->
-    <el-card shadow="hover">
-      <template #header>
-        <div class="table-header">
-          <span>已选择 {{ ids.length }} 项</span>
-          <el-link type="primary" @click="clearSelection">清空</el-link>
-        </div>
-      </template>
+      </div>
+      <!-- 列表区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -45,40 +36,29 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="45" align="center" />
+        <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
           <template #default="scope">
             <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="专家姓名" min-width="100" align="center" />
-        <el-table-column label="专家编号" min-width="140" align="center">
+        <el-table-column prop="name" label="专家名称" min-width="100" align="center" />
+        <el-table-column label="专家编码" min-width="140" align="center">
           <template #default="scope">
             <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.code }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="专家类型" min-width="100" align="center" />
         <el-table-column prop="phone" label="联系电话" min-width="130" align="center" />
         <el-table-column prop="joinTime" label="入驻时间" min-width="160" align="center" />
-        <el-table-column label="审核状态" min-width="120" align="center">
-          <template #default="scope">
-            <el-tag :type="auditTagType(scope.row.auditStatus)" disable-transitions>{{ scope.row.auditStatus }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="入库状态" min-width="100" align="center">
-          <template #default="scope">
-            <el-tag :type="scope.row.storageStatus === '已入库' ? 'success' : 'info'" disable-transitions>
-              {{ scope.row.storageStatus }}
-            </el-tag>
-          </template>
-        </el-table-column>
+        <el-table-column label="审核状态" min-width="120" align="center" prop="auditStatus"> </el-table-column>
+        <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus"> </el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
             <el-link type="primary" @click="toggleEnabled(scope.row)">{{ scope.row.enabled ? '停用' : '启用' }}</el-link>
             <el-divider direction="vertical" />
             <el-link type="primary" @click="handleView(scope.row)">查看</el-link>
             <el-divider direction="vertical" />
-            <el-link type="primary" @click="handleReupload(scope.row)">重传</el-link>
+            <el-link type="primary" @click="handleAudit(scope.row)">审核</el-link>
           </template>
         </el-table-column>
       </el-table>
@@ -131,118 +111,7 @@ interface Expert {
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 占位数据（可与后端接口对接替换）
-const sourceData = ref<Expert[]>([
-  {
-    id: 1,
-    name: '张三',
-    code: 'ZS202509300001',
-    type: '法务',
-    phone: '15620657660',
-    joinTime: '2025-06-17 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '未入库',
-    enabled: true
-  },
-  {
-    id: 2,
-    name: '李四',
-    code: 'ZS202509300002',
-    type: '技术',
-    phone: '15620657691',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核驳回',
-    storageStatus: '已入库',
-    enabled: false
-  },
-  {
-    id: 3,
-    name: '王二',
-    code: 'ZS202509300003',
-    type: '法务',
-    phone: '15620657692',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核驳回',
-    storageStatus: '未入库',
-    enabled: true
-  },
-  {
-    id: 4,
-    name: '王五',
-    code: 'ZS202509300004',
-    type: '法务',
-    phone: '15620657691',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核已驳回' as any,
-    storageStatus: '未入库',
-    enabled: true
-  },
-  {
-    id: 5,
-    name: '陈强',
-    code: 'ZS202509300005',
-    type: '法务',
-    phone: '13484546765',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '已入库',
-    enabled: true
-  },
-  {
-    id: 6,
-    name: '洪杰',
-    code: 'ZS202509300006',
-    type: '技术',
-    phone: '13794565340',
-    joinTime: '2025-06-17 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '已入库',
-    enabled: false
-  },
-  {
-    id: 7,
-    name: '李明',
-    code: 'ZS202509300007',
-    type: '法务',
-    phone: '13484546760',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '未入库',
-    enabled: true
-  },
-  {
-    id: 8,
-    name: '陈阳',
-    code: 'ZS202509300008',
-    type: '法务',
-    phone: '13943246660',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核驳回',
-    storageStatus: '未入库',
-    enabled: true
-  },
-  {
-    id: 9,
-    name: '祝娟',
-    code: 'ZS202509300009',
-    type: '技术',
-    phone: '13209674545',
-    joinTime: '2025-06-16 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '未入库',
-    enabled: false
-  },
-  {
-    id: 10,
-    name: '王明',
-    code: 'ZS202509300010',
-    type: '法务',
-    phone: '13987433460',
-    joinTime: '2025-06-17 16:10:56',
-    auditStatus: '审核通过',
-    storageStatus: '已入库',
-    enabled: true
-  }
-]);
+const sourceData = ref<Expert[]>([]);
 
 const expertList = ref<Expert[]>([]);
 const loading = ref(true);
@@ -332,7 +201,7 @@ const handleView = (row: Expert) => {
   detailVisible.value = true;
 };
 
-const handleReupload = (row: Expert) => {
+const handleAudit = (row: Expert) => {
   proxy?.$modal.msgSuccess(`已触发重传`);
 };
 
