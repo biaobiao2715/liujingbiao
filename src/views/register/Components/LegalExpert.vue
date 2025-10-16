@@ -12,7 +12,6 @@
       <div class="block"></div>
       <span class="text">基础信息</span>
     </div>
-    <FormHeader title="专家基础信息" type="primary" />
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="200px" class="expert-form">
       <el-row :gutter="20">
         <el-col :span="12">
@@ -343,7 +342,7 @@ const handleNextStep = () => {
     border-bottom: 1px solid #e5e6eb;
     height: 54px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 5px;
     margin-bottom: 20px;
     .block {
