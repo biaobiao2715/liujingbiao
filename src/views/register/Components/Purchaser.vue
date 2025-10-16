@@ -10,9 +10,9 @@
     <!-- 表单，用于填写采购商的注册信息 -->
     <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
       <!-- 采购类型选择 -->
-      <el-form-item label="采购类型" prop="type">
-        <el-select v-model="form.type" placeholder="请选择">
-          <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
+      <el-form-item label="采购类型" prop="purchaseType">
+        <el-select v-model="form.purchaseType" placeholder="请选择">
+          <el-option v-for="item in typeOptions" :key="item.dictCode" :label="item.dictLabel" :value="item.dictCode" />
         </el-select>
       </el-form-item>
       <!-- 姓名输入 -->
@@ -20,8 +20,8 @@
         <el-input v-model="form.name" placeholder="请输入姓名" />
       </el-form-item>
       <!-- 手机号输入 -->
-      <el-form-item label="手机号" prop="phone">
-        <el-input v-model="form.phone" placeholder="请输入手机号" />
+      <el-form-item label="手机号" prop="phoneNumber">
+        <el-input v-model="form.phoneNumber" placeholder="请输入手机号" />
       </el-form-item>
       <!-- 短信验证码输入 -->
       <el-form-item label="短信验证码" prop="smsCode">
@@ -36,9 +36,12 @@
       <el-form-item label="设置密码" prop="password">
         <el-input v-model="form.password" :type="passwordVisible ? 'text' : 'password'" placeholder="请输入密码">
           <template #append>
-            <el-icon @click="togglePasswordVisibility">
-                <i :class="passwordVisible ? 'EyeOutlined' : 'EyeInvisibleOutlined'"></i>
-            </el-icon>
+            <div @click="togglePasswordVisibility">
+              <el-icon>
+                <View v-if="passwordVisible" />
+                <Hide v-else />
+              </el-icon>
+            </div>
           </template>
         </el-input>
       </el-form-item>
@@ -46,10 +49,12 @@
       <el-form-item label="确认密码" prop="confirmPassword">
         <el-input v-model="form.confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'" placeholder="请再次输入密码">
           <template #append>
-            <StepForwardOutlined />
-            <el-icon @click="toggleConfirmPasswordVisibility">
-              <i :class="confirmPasswordVisible ? 'el-icon-view' : 'el-icon-view-off'"></i>
-            </el-icon>
+            <div @click="toggleConfirmPasswordVisibility">
+              <el-icon>
+                <View v-if="confirmPasswordVisible" />
+                <Hide v-else />
+              </el-icon>
+            </div>
           </template>
         </el-input>
       </el-form-item>
@@ -65,35 +70,32 @@
 // 引入 Vue 的 ref 函数和 Element Plus 的消息提示
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { EyeOutlined,EyeInvisibleOutlined } from '@element-plus/icons-vue';
+import { View, Hide } from '@element-plus/icons-vue';
+import router from '@/router';
+import { getPurchaserTypeDict, registerPurchaser } from '@/api/register/purchaser';
+
 // 表单数据
 const form = ref({
-  type: '', // 采购类型
+  purchaseType: '', // 采购类型
   name: '', // 姓名
-  phone: '', // 手机号
+  phoneNumber: '', // 手机号
   smsCode: '', // 短信验证码
   password: '', // 密码
   confirmPassword: '' // 确认密码
 });
 
 // 采购类型选项
-const typeOptions = [
-  { label: '农户', value: 'farmer' },
-  { label: '农场', value: 'farm' },
-  { label: '农村合作社', value: 'cooperative' },
-  { label: '农资店', value: 'store' },
-  { label: '其他', value: 'other' }
-];
+const typeOptions = ref([]);
 
 // 表单验证规则
 const rules = {
-  type: [{ required: true, message: '请选择采购类型', trigger: 'change' }],
+  purchaseType: [{ required: true, message: '请选择采购类型', trigger: 'change' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  phone: [
+  phoneNumber: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
   ],
-  smsCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+  smsCode: [{ required: false, message: '请输入验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
@@ -135,9 +137,17 @@ const toggleConfirmPasswordVisibility = () => {
   confirmPasswordVisible.value = !confirmPasswordVisible.value;
 };
 
+onMounted(() => {
+  getPurchaserTypeDict('purchaser_type').then((res) => {
+    if (res.code === 200) {
+      typeOptions.value = res.data || [];
+    }
+  });
+});
+
 // 发送短信验证码
 const sendSmsCode = () => {
-  if (!form.value.phone || !/^1[3-9]\d{9}$/.test(form.value.phone)) {
+  if (!form.value.phoneNumber || !/^1[3-9]\d{9}$/.test(form.value.phoneNumber)) {
     ElMessage.error('请输入正确的手机号');
     return;
   }
@@ -149,10 +159,17 @@ const sendSmsCode = () => {
 const submitForm = () => {
   formRef.value.validate((valid) => {
     if (valid) {
-      ElMessage.success('表单验证通过');
       // 提交表单逻辑
+      registerPurchaser(form.value).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('注册成功');
+          // 跳转登录页
+          router.push({ name: 'login' });
+        } else {
+          ElMessage.error(res.msg || '注册失败');
+        }
+      });
     } else {
-      ElMessage.error('表单验证失败');
     }
   });
 };

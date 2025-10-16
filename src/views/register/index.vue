@@ -109,7 +109,7 @@ const nextStep = () => {
 <style scoped lang="scss">
 .register-container {
   width: 100%;
-  //   padding: 12px;
+  padding: 24px;
   margin-top: 50px;
   flex-direction: column;
 }

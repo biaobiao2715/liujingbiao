@@ -1,3 +1,10 @@
+<!--
+  标题: supplier/index.vue
+  功能: 供应商管理首页
+  说明: 用于供应商管理，包括查询、添加、编辑、删除等操作
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-10-15
+-->
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
@@ -26,7 +33,6 @@
 
     <!-- 表格展示 -->
     <el-table :data="tableData" border style="width: 100%">
-      <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="index" label="序号" width="60"></el-table-column>
       <el-table-column prop="supplierName" label="供应商名称"></el-table-column>
       <el-table-column prop="supplierCode" label="供应商编号"></el-table-column>
@@ -49,13 +55,12 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <el-pagination
-        background
-        layout="prev, pager, next, jumper"
-        :total="pagination.total"
-        :page-size="pagination.pageSize"
-        :current-page="pagination.currentPage"
-        @current-change="handlePageChange"
+      <pagination
+        v-show="queryParams.total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :total="queryParams.total"
+        @pagination="handlePageChange"
       />
     </div>
   </div>
@@ -91,10 +96,10 @@ const tableData = ref([
 ]);
 
 // 分页数据
-const pagination = ref({
-  total: 922,
+const queryParams = ref({
+  total: 100,
   pageSize: 10,
-  currentPage: 1
+  pageNum: 1
 });
 
 // 查询按钮事件
@@ -115,8 +120,7 @@ const handleReset = () => {
 
 // 分页切换事件
 const handlePageChange = (page: number) => {
-  pagination.value.currentPage = page;
-  console.log('当前页:', page);
+  queryParams.value.pageNum = page;
   // TODO: 调用接口获取数据
 };
 
