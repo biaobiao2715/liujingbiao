@@ -47,7 +47,7 @@
           <div class="flex-center-center operation-btns">
             <el-button type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
             <el-button type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-            <el-button type="primary" @click="handleAudit(scope.row)">审核</el-button>
+            <el-button type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
           </div>
         </template>
       </el-table-column>
@@ -124,14 +124,8 @@ const handlePageChange = (page: number) => {
   // TODO: 调用接口获取数据
 };
 
-// 审核按钮事件
-const handleAudit = (row: any) => {
-  console.log('审核:', row);
-  // TODO: 跳转审核页面或弹出审核弹窗
-};
-
 // 编辑按钮事件
-const handleEdit = (row: any, type: 'view' | 'edit') => {
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   console.log('编辑:', row, type);
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({

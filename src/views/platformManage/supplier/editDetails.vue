@@ -6,8 +6,8 @@
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
-  <div :class="['supplier-edit-details', !isEditMode ? 'detail-form' : '']">
-    <el-form :model="formData" label-width="140px" :disabled="!isEditMode">
+  <div :class="['supplier-edit-details', operateMode === 'view' ? 'detail-form' : '']">
+    <el-form :model="formData" label-width="140px" :disabled="operateMode === 'view'">
       <!-- 基础信息 -->
       <FormHeader title="供应商基础信息" />
       <el-row :gutter="20">
@@ -46,8 +46,8 @@
             <el-input v-model="formData.supplierInfo.registrationAddress"></el-input>
           </el-form-item>
         </el-col>
-        <!-- 根据isEditMode判断是展示营业执照还是上传营业执照 -->
-        <el-col :span="12" v-if="!isEditMode">
+        <!-- 根据operateMode判断是展示营业执照还是上传营业执照 -->
+        <el-col :span="12" v-if="!operateMode">
           <el-form-item label="营业执照">
             <el-input v-model="formData.supplierInfo.license" disabled></el-input>
           </el-form-item>
@@ -169,9 +169,12 @@
     </el-form>
 
     <!-- 操作按钮 -->
-    <div style="margin-top: 20px; text-align: center" v-if="isEditMode">
+    <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
       <el-button type="danger" @click="saveChanges">审核退回</el-button>
       <el-button type="success" @click="cancelEdit">审核通过</el-button>
+    </div>
+    <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
+      <el-button type="primary" @click="enterEditMode">保存</el-button>
     </div>
   </div>
 </template>
@@ -186,7 +189,7 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const { id, type } = route.query;
 
-const isEditMode = ref(type === 'edit');
+const operateMode = ref(type);
 
 const formData = ref({
   supplierInfo: {
@@ -228,18 +231,14 @@ const formData = ref({
   }
 });
 
-const enterEditMode = () => {
-  isEditMode.value = true;
-};
+const enterEditMode = () => {};
 
 const saveChanges = () => {
   console.log('保存修改', formData.value);
-  isEditMode.value = false;
 };
 
 const cancelEdit = () => {
   console.log('取消编辑');
-  isEditMode.value = false;
 };
 
 const previewAttachment = (attachment) => {
