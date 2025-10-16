@@ -4,6 +4,10 @@
       <!-- 登录页面标题 -->
       <h1>全国种子销售服务平台</h1>
     </div>
+    <!-- 添加租户选择 -->
+    <el-select v-model="accountForm.tenantId" placeholder="选择租户" size="large">
+      <el-option v-for="tenant in tenants" :key="tenant.id" :label="tenant.name" :value="tenant.id" />
+    </el-select>
     <!-- 登录方式切换 -->
     <el-tabs v-model="activeTab" class="login-tabs">
       <!-- 账号密码登录 -->
@@ -14,6 +18,7 @@
         <div class="form-item">
           <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" />
         </div>
+        <div class="form-item"></div>
       </el-tab-pane>
       <!-- 手机号登录 -->
       <el-tab-pane label="手机号登录" name="phone">
@@ -65,6 +70,7 @@ const activeTab = ref('account');
 const accountForm = ref({
   username: '', // 用户名
   password: '', // 密码
+  tenantId: '', // 租户ID
   rememberMe: false // 是否记住密码
 });
 
@@ -82,25 +88,34 @@ const loading = ref(false);
 const countdown = ref(0);
 let timer: NodeJS.Timeout | null = null;
 
+const tenants = ref([
+  { id: '495799', name: '采购商' },
+  { id: '906636', name: '技术专家' },
+  { id: '494455', name: '法务专家' }
+]);
+
 // 登录逻辑
 const handleLogin = () => {
   loading.value = true;
-  loading.value = false;
-  // clientId: string;
-  // grantType: string;
-  // 调用登录 API
-  login({ ...accountForm.value, tenantId: '000000', grantType: 'password' })
-    .then((res: any) => {
-      ElMessage.success('登录成功');
-      // 存储 token
-      setToken(res.data.access_token);
-      // 登录成功后，跳转到首页
-      router.push('/');
-    })
-    .catch((err) => {
-      console.error('登录失败', err);
-      ElMessage.error('登录失败');
-    });
+  try {
+    // 调用登录 API
+    login({ ...accountForm.value, grantType: 'password', clientId: import.meta.env.VITE_APP_CLIENT_ID })
+      .then((res: any) => {
+        ElMessage.success('登录成功');
+        // 存储 token
+        setToken(res.data.access_token);
+        // 登录成功后，跳转到首页
+        router.push('/');
+      })
+      .catch((err) => {
+        console.error('登录失败', err);
+        ElMessage.error('登录失败');
+      });
+  } catch (err) {
+    console.error('登录失败', err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 发送验证码

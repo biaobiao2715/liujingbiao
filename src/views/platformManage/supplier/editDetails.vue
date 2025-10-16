@@ -1,3 +1,10 @@
+<!--
+  标题: EditDetails.vue
+  功能: 供应商编辑详情页
+  说明: 用于供应商编辑自己的详细信息
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-10-15
+-->
 <template>
   <div class="supplier-edit-details">
     <el-form :model="formData" label-width="140px" :disabled="!isEditMode">
