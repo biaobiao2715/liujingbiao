@@ -161,7 +161,8 @@
 import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
-import { legalExpertInfoRegister, uploadImage } from '@/api/register/LegalExpert';
+import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
+import { uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/LegalExpert/types';
 
 const emit = defineEmits(['nextStep']); // 定义事件
@@ -200,9 +201,8 @@ const diplomaUrl = ref('');
 const photoUrl = ref('');
 
 const handleDiplomaChange = (file: any) => {
-  console.log(URL.createObjectURL(file.raw), 'asafile');
   uploadImage({
-    file: URL.createObjectURL(file.raw)
+    file: file.raw
   }).then((res) => {
     // console.log(res);
     // formData.diplomaOssId = res.ossId;

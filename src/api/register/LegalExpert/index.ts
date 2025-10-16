@@ -7,7 +7,8 @@
  */
 
 import request from '@/utils/request';
-import { LegalExpert, LegalExpertRegisterResult, UolodaImageResult } from './types';
+import { LegalExpert, LegalExpertRegisterResult } from './types';
+import { UplodaImageResult } from '@/api/register/types';
 import { AxiosPromise } from 'axios';
 
 // 法务专家注册信息
@@ -22,19 +23,6 @@ export function legalExpertInfoRegister(data: LegalExpert): AxiosPromise<LegalEx
     data: params,
     headers: {
       'Content-Type': 'application/json'
-    }
-  });
-}
-
-// 图片上传
-export function uploadImage(data: { file: string }): AxiosPromise<UolodaImageResult> {
-  return request({
-    url: '/oss/upload',
-    method: 'post',
-    data,
-    headers: {
-      isToken: false,
-      'Content-Type': 'multipart/form-data'
     }
   });
 }

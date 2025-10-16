@@ -56,7 +56,13 @@
           </el-form-item>
 
           <el-form-item label="学位:" prop="degree" required>
-            <el-input v-model="formData.degree" placeholder="50个字符，仅限中文" />
+            <!-- <el-input v-model="formData.degree" placeholder="50个字符，仅限中文" /> -->
+            <el-select v-model="formData.degree" placeholder="请选择" style="width: 100%">
+              <el-option label="学士" value="bachelor" />
+              <el-option label="硕士" value="master" />
+              <el-option label="博士" value="doctor" />
+              <el-option label="其他" value="other" />
+            </el-select>
           </el-form-item>
 
           <el-form-item label="专业技术资格名称:" prop="technicalQualification" required style="white-space: nowrap">
@@ -177,41 +183,44 @@ import { ref, reactive } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
+import { uploadImage } from '@/api/register';
+import { FileType } from '@/api/register/types';
+import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 
 // 表单数据
 const formData = reactive<TechnicalExpert>({
-  expertName: '',
-  sex: '',
-  birthDate: '',
-  graduationSchool: '',
-  major: '',
-  enrollmentDate: '',
-  graduationDate: '',
-  education: '',
-  degree: '',
-  graduationCertNo: '',
-  technicalQualification: '',
-  idCard: '',
-  expertInfo: '',
-  contactPhone: ''
+  // 专家姓名
+  expertName: '张三',
+  sex: 'male',
+  birthDate: '2000-01-01',
+  // 毕业院校
+  graduationSchool: '清华大学',
+  // 专业
+  major: '计算机科学与技术',
+  // 入学日期
+  enrollmentDate: '2018-09-01',
+  // 毕业日期
+  graduationDate: '2022-06-01',
+  // 学历
+  education: 'bachelor',
+  // 学位
+  degree: 'other',
+  graduationCertNo: 'z123456789',
+  // 技术资质
+  technicalQualification: '已获得相关技术资质',
+  // 身份证号
+  idCard: '44030419900101001X',
+  // 专家简介
+  expertInfo: '简介简介',
+  // 联系电话
+  contactPhone: '13800000000'
 } as TechnicalExpert);
 
 // 上传图片相关
 const diplomaUrl = ref('');
 const photoUrl = ref('');
-
-const handleDiplomaChange = (file: any) => {
-  diplomaUrl.value = URL.createObjectURL(file.raw);
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: '毕业证',
-    remark: '上传毕业证',
-    url: diplomaUrl.value
-  });
-};
-
 // 资质清单相关
 const qualificationList = ref<
   {
@@ -219,25 +228,56 @@ const qualificationList = ref<
     name: string;
     remark: string;
     url: string;
+    fileType: FileType;
+    ossId: string;
   }[]
 >([]);
 
+const handleDiplomaChange = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      diplomaUrl.value = res.data.ossId;
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: '毕业证',
+        remark: res?.data?.fileName || '上传毕业证',
+        url: res.data.url,
+        fileType: '2',
+        ossId: res.data.ossId
+      });
+    }
+  });
+};
+
 const handlePhotoChange = (file: any) => {
-  photoUrl.value = URL.createObjectURL(file.raw);
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: '照片',
-    remark: '上传照片',
-    url: photoUrl.value
+  const tempUrl = URL.createObjectURL(file.raw);
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      photoUrl.value = res.data.ossId;
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: '照片',
+        remark: res?.data?.fileName || '上传照片',
+        url: res.data.url,
+        fileType: '0',
+        ossId: res.data.ossId
+      });
+    }
   });
 };
 
 const addQualification = (file: any) => {
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: file.name,
-    remark: '附件上传',
-    url: URL.createObjectURL(file.raw)
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: file.name,
+        remark: '附件上传',
+        url: res.data.url,
+        fileType: '99',
+        ossId: res.data.ossId
+      });
+    }
   });
 };
 
@@ -314,13 +354,30 @@ const previewQualification = (row: any) => {
 
 // 下一步按钮处理函数
 const handleNextStep = () => {
+  const temp = { ...formData };
+  const list = qualificationList.value.map((item) => ({
+    fileType: item.fileType,
+    ossId: item.ossId,
+    remark: item.remark
+  }));
+  if (list.length) {
+    //@ts-ignore
+    temp['folder'] = list;
+  }
+  console.log('temp', temp);
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      console.log('表单验证通过，提交数据', formData);
+      console.log('表单验证通过，提交数据', temp);
+      technicalExpertInfoRegister(temp)
+        .then((res) => {
+          console.log('注册成功', res);
+        })
+        .catch((err) => {
+          console.log('注册失败', err);
+        });
       // 这里可以添加提交逻辑
-      emit('nextStep');
+      //   emit('nextStep');
     } else {
-      console.log('表单验证失败');
       ElMessage.error('请完善必填信息');
       return false;
     }
