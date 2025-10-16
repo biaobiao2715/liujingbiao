@@ -199,7 +199,7 @@ const formData = reactive<LegalExpert>({
 // 上传图片相关
 const diplomaUrl = ref('');
 const photoUrl = ref('');
-
+// 上传毕业证
 const handleDiplomaChange = (file: any) => {
   uploadImage({
     file: file.raw
@@ -225,7 +225,7 @@ const qualificationList = ref<
     url: string;
   }[]
 >([]);
-
+// 上传照片
 const handlePhotoChange = (file: any) => {
   photoUrl.value = URL.createObjectURL(file.raw);
   qualificationList.value.push({
@@ -235,7 +235,7 @@ const handlePhotoChange = (file: any) => {
     url: photoUrl.value
   });
 };
-
+// 上传其他附件
 const addQualification = (file: any) => {
   qualificationList.value.push({
     index: qualificationList.value.length + 1,

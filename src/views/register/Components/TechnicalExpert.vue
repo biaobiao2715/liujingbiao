@@ -186,8 +186,10 @@ import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
 import { uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
 import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
+import { useRegisterDataStore } from '@/store/modules/registerData';
 
 const emit = defineEmits(['nextStep']); // 定义事件
+const { setRegisterData } = useRegisterDataStore();
 
 // 表单数据
 const formData = reactive<TechnicalExpert>({
@@ -232,7 +234,7 @@ const qualificationList = ref<
     ossId: string;
   }[]
 >([]);
-
+// 上传毕业证
 const handleDiplomaChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
@@ -248,7 +250,7 @@ const handleDiplomaChange = (file: any) => {
     }
   });
 };
-
+// 上传照片
 const handlePhotoChange = (file: any) => {
   const tempUrl = URL.createObjectURL(file.raw);
   uploadImage({ file: file.raw }).then((res) => {
@@ -265,7 +267,7 @@ const handlePhotoChange = (file: any) => {
     }
   });
 };
-
+// 上传其他附件
 const addQualification = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
@@ -354,29 +356,21 @@ const previewQualification = (row: any) => {
 
 // 下一步按钮处理函数
 const handleNextStep = () => {
-  const temp = { ...formData };
-  const list = qualificationList.value.map((item) => ({
-    fileType: item.fileType,
-    ossId: item.ossId,
-    remark: item.remark
-  }));
-  if (list.length) {
-    //@ts-ignore
-    temp['folder'] = list;
-  }
-  console.log('temp', temp);
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      console.log('表单验证通过，提交数据', temp);
-      technicalExpertInfoRegister(temp)
-        .then((res) => {
-          console.log('注册成功', res);
-        })
-        .catch((err) => {
-          console.log('注册失败', err);
-        });
+      const temp = { ...formData };
+      const list = qualificationList.value.map((item) => ({
+        fileType: item.fileType,
+        ossId: item.ossId,
+        remark: item.remark
+      }));
+      if (list.length) {
+        //@ts-ignore
+        temp['folder'] = list;
+      }
+      setRegisterData?.(temp);
+      emit('nextStep');
       // 这里可以添加提交逻辑
-      //   emit('nextStep');
     } else {
       ElMessage.error('请完善必填信息');
       return false;
