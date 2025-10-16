@@ -92,8 +92,8 @@
 
           <el-form-item label="性别:" prop="sex" required>
             <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
-              <el-option label="男" :value="0" />
-              <el-option label="女" :value="1" />
+              <el-option label="男" value="0" />
+              <el-option label="女" value="1" />
             </el-select>
           </el-form-item>
 
@@ -109,8 +109,8 @@
             <el-date-picker v-model="formData.issueDate" type="date" placeholder="选择日期" style="width: 100%" />
           </el-form-item>
 
-          <el-form-item label="联系电话:" prop="phoneNumber" required>
-            <el-input v-model="formData.phoneNumber" placeholder="请输入联系电话" />
+          <el-form-item label="联系电话:" prop="contactPhone" required>
+            <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -164,36 +164,38 @@ import { isIdCard } from '@/utils/validate';
 import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
 import { uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/LegalExpert/types';
-
+import { FileType } from '@/api/register/types';
+import { useRegisterDataStore } from '@/store/modules/registerData';
 const emit = defineEmits(['nextStep']); // 定义事件
+const { setRegisterData } = useRegisterDataStore();
 
 // 表单数据
 // 可选 字段
 const formData = reactive<LegalExpert>({
   // 专家名称
-  expertName: '张三',
+  expertName: '',
   // 性别
-  sex: '男',
+  sex: '',
   // 执业机构
-  practiceInstitution: '中国法律学会',
+  practiceInstitution: '',
   // 执业证号
-  practiceCertificateNumber: '123456789012345678',
+  practiceCertificateNumber: '',
   // 发证日期
-  issueDate: '2025-10-15',
+  issueDate: '',
   // 法律执业资格或律师资格证号
-  legalPracticeQualification: '123456789012345678',
+  legalPracticeQualification: '',
   // 技术资格证号
-  technicalQualification: '123456789012345678',
+  technicalQualification: '',
   // 联系电话
-  phoneNumber: '13800000000',
+  contactPhone: '',
   // 身份证号
-  idCard: '44030419900101001X',
+  idCard: '',
   // 专家简介
-  professionalSummary: '专家简介简介',
+  professionalSummary: '',
   // 执业证类型
-  practiceCertificateType: '法律执业证',
+  practiceCertificateType: '',
   // 发证机关
-  issuingAuthority: '中国法律学会'
+  issuingAuthority: ''
 } as LegalExpert);
 
 // 上传图片相关
@@ -223,6 +225,8 @@ const qualificationList = ref<
     name: string;
     remark: string;
     url: string;
+    fileType: FileType;
+    ossId: string;
   }[]
 >([]);
 // 上传照片
@@ -232,7 +236,9 @@ const handlePhotoChange = (file: any) => {
     index: qualificationList.value.length + 1,
     name: '照片',
     remark: '上传照片',
-    url: photoUrl.value
+    url: photoUrl.value,
+    fileType: '0',
+    ossId: ''
   });
 };
 // 上传其他附件
@@ -241,7 +247,9 @@ const addQualification = (file: any) => {
     index: qualificationList.value.length + 1,
     name: file.name,
     remark: '附件上传',
-    url: URL.createObjectURL(file.raw)
+    url: URL.createObjectURL(file.raw),
+    fileType: '1',
+    ossId: ''
   });
 };
 
@@ -296,7 +304,13 @@ const rules = {
     }
   ],
   idCard: [{ trigger: 'blur', validator: validateIdCard }],
-  practiceCertificateType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }]
+  practiceCertificateType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }],
+  legalPracticeQualification: [{ required: true, message: '请输入法律执业资格或律师资格证号', trigger: 'blur' }],
+  issueDate: [{ required: true, message: '请选择发证日期', trigger: 'change' }],
+  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  practiceInstitution: [{ required: true, message: '请输入执业机构', trigger: 'blur' }],
+  practiceCertificateNumber: [{ required: true, message: '请输入执业证号', trigger: 'blur' }],
+  issuingAuthority: [{ required: true, message: '请输入发证机关', trigger: 'blur' }]
 };
 
 // 表单引用
@@ -311,20 +325,12 @@ const previewQualification = (row: any) => {
 
 // 下一步按钮处理函数
 const handleNextStep = () => {
-  formRef.value.validate((valid: boolean) => {
+  formRef.value?.validate((valid: boolean) => {
     if (valid) {
-      console.log('表单验证通过，提交数据', formData);
       const params = { ...formData } as LegalExpert;
-
-      legalExpertInfoRegister(params).then((res) => {
-        console.log(res.data);
-        // 这里可以添加提交逻辑
-        emit('nextStep');
-      });
+      setRegisterData?.(params);
+      emit('nextStep');
     } else {
-      console.log('表单验证失败');
-      ElMessage.error('请完善必填信息');
-      //   emit('nextStep');
       return false;
     }
   });

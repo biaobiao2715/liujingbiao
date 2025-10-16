@@ -18,10 +18,11 @@ export function legalExpertInfoRegister(data: LegalExpert): AxiosPromise<LegalEx
     ...data
   };
   return request({
-    url: '/baseLegalExpertInfo/register',
+    url: '/system/baseLegalExpertInfo/register',
     method: 'post',
     data: params,
     headers: {
+      isToken: false,
       'Content-Type': 'application/json'
     }
   });

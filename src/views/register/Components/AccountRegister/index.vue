@@ -17,16 +17,16 @@
         label-position="right"
         label-width="200px"
       >
-        <el-form-item :label="nameLabel" prop="name" required>
-          <el-input v-model="registerForm.name" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
+        <el-form-item :label="nameLabel" prop="userName" required>
+          <el-input v-model="registerForm.userName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
         </el-form-item>
 
         <el-form-item v-if="isShowIdCard" label="身份证号" prop="idCard">
           <el-input v-model="registerForm.idCard" placeholder="请输入身份证号" />
         </el-form-item>
 
-        <el-form-item label="手机号" prop="phone" required>
-          <el-input v-model="registerForm.phone" placeholder="请输入手机号" />
+        <el-form-item label="手机号" prop="phoneNumber" required>
+          <el-input v-model="registerForm.phoneNumber" placeholder="请输入手机号" />
         </el-form-item>
 
         <el-form-item label="短信验证码" prop="smsCode" required>
@@ -47,7 +47,7 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" class="submit-btn" @click="submitForm">提交</el-button>
+          <el-button type="primary" :loading="loading" class="submit-btn" @click="submitForm">提交</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -55,12 +55,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { type IdentityType } from '@/views/register/index.vue';
 import { storeToRefs } from 'pinia';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 const { registerData } = storeToRefs(useRegisterDataStore());
+import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
+import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
+import router from '@/router';
+
+const loading = ref(false);
 
 // 计算属性：是否显示身份证号输入框
 const isShowIdCard = computed(() => identity !== 'enterprise' && identity !== 'supplier');
@@ -76,12 +80,12 @@ const registerFormRef = ref<FormInstance>();
 
 // 表单数据
 const registerForm = reactive({
-  name: '',
+  userName: '李四',
   idCard: '',
-  phone: '',
-  smsCode: '',
-  password: '',
-  confirmPassword: ''
+  phoneNumber: '13000000000',
+  smsCode: '123456',
+  password: '12345678L',
+  confirmPassword: '12345678L'
 });
 
 // 短信验证码相关
@@ -97,7 +101,7 @@ const sendSmsCode = async () => {
 
   // 验证手机号
   try {
-    await registerFormRef.value?.validateField('phone');
+    await registerFormRef.value?.validateField('phoneNumber');
 
     // 发送验证码逻辑
     isSendingSms.value = true;
@@ -177,25 +181,53 @@ const validateIdCard = (rule: any, value: string, callback: any) => {
 };
 
 const registerRules = reactive<FormRules>({
-  name: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  phone: [{ validator: validatePhone, trigger: 'blur' }],
+  userName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
+  phoneNumber: [{ validator: validatePhone, trigger: 'blur' }],
   smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
   password: [{ validator: validatePass, trigger: 'blur' }],
   confirmPassword: [{ validator: validateConfirmPass, trigger: 'blur' }],
   idCard: [{ validator: validateIdCard, trigger: 'blur', required: false }]
 });
-
 // 提交表单
 const submitForm = async () => {
   if (!registerFormRef.value) return;
+  loading.value = true;
   try {
     await registerFormRef.value.validate();
-    // TODO: 调用注册API
-    console.log('表单提交', registerForm);
+    const temp = {
+      ...registerData.value,
+      ...registerForm
+    };
+    delete temp.smsCode;
+    const fun = () => {
+      ElMessage.success('注册成功');
+      setTimeout(() => {
+        router.push('/login?redirect=/index');
+      }, 500);
+    };
+    // 技术专家
+    if (identity === 'expert') {
+      const res = await technicalExpertInfoRegister(temp);
+      if (res.code === 200) {
+        fun();
+      }
+    } else if (identity === 'legal') {
+      // 法务专家
+      const res = await legalExpertInfoRegister(temp);
+      if (res.code === 200) {
+        fun();
+      }
+    } else if (identity === 'enterprise') {
+      console.log('提交');
+    } else if (identity === 'supplier') {
+      console.log('提交');
+    }
 
     // 注册成功后的处理
   } catch (error) {
     console.error('表单验证失败', error);
+  } finally {
+    loading.value = false;
   }
 };
 // 清除定时器（如果组件销毁）
