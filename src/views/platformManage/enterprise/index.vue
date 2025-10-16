@@ -1,4 +1,11 @@
 <template>
+  <!--
+    标题：			enterprise.vue
+    功能：			企业审核
+    说明:
+    当前版本：	1.0
+    开发信息：	Created by 刘景彪  
+ -->
   <div class="p-2">
     <el-form ref="queryFormRef" :model="queryParams" :inline="true" v-if="showSearch">
       <el-form-item label="企业编码" prop="dictName">
@@ -39,17 +46,21 @@
     <el-table v-loading="loading" border :data="typeList">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="企业名称" align="center" prop="dictId" />
-      <el-table-column label="企业编码" align="center" prop="dictName" />
+      <el-table-column label="企业编码" align="center" prop="dictName" style="color: #0000ff">
+        <template #default="scope">
+          <span @click="handleDetail(scope.row)">{{ scope.row.dictName }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="统一社会信用代码" align="center" prop="dictName"> </el-table-column>
 
       <el-table-column label="资质等级" align="center" prop="auditStatus">
         <template v-slot="scope">
-          <dict-tag :options="plat_enterprise_status" :value="scope.row.auditStatus" />
+          <dict-tag :options="plat_qualification_grade" :value="scope.row.auditStatus" />
         </template>
       </el-table-column>
       <el-table-column label="信用等级" align="center" prop="auditStatus">
         <template v-slot="scope">
-          <dict-tag :options="plat_enterprise_status" :value="scope.row.auditStatus" />
+          <dict-tag :options="plat_credit_rating" :value="scope.row.auditStatus" />
         </template>
       </el-table-column>
       <el-table-column label="审核状态" align="center" prop="auditStatus">
@@ -72,15 +83,9 @@
 
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-tooltip v-if="scope.row.auditStatus == 1" content="审核" placement="top">
-            <el-button link type="primary" @click="handleRevise(scope.row)"></el-button>
-          </el-tooltip>
-          <el-tooltip v-if="scope.row.auditStatus !== 1" content="查看" placement="top">
-            <el-button link type="primary" @click="handleDetail(scope.row)"></el-button>
-          </el-tooltip>
-          <el-tooltip v-if="scope.row.auditStatus !== 1" content="编辑" placement="top">
-            <el-button link type="primary" @click="handupdate(scope.row)"></el-button>
-          </el-tooltip>
+          <el-button v-if="scope.row.auditStatus == 1" type="primary" @click="handleRevise(scope.row)">审核</el-button>
+          <el-button type="primary" @click="handleDetail(scope.row)">查看</el-button>
+          <el-button v-if="scope.row.auditStatus == !1" type="primary" @click="handupdate(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -94,12 +99,15 @@
 </template>
 
 <script setup name="Dict" lang="ts">
+import router from '@/router';
 import { listType, getType, delType, addType, updateType, refreshCache } from '@/api/system/dict/type';
 // 假设这些变量已在 script setup 中定义
 import editDetails from '@/views/platformManage/enterprise/editDetails.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { plat_enterprise_status } = toRefs<any>(proxy?.useDict('plat_enterprise_status'));
+const { plat_enterprise_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('plat_enterprise_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
 
 const typeList = ref([]);
 const loading = ref(true);
@@ -177,14 +185,30 @@ const handleRevise = (row: any) => {
   dialog.id = row.dictId;
 };
 const handleDetail = (row: any) => {
-  dialog.title = '详情';
-  dialog.visible = true;
-  dialog.id = row.dictId;
+  //   dialog.title = '详情';
+  //   dialog.visible = true;
+  //   dialog.id = row.dictId;
+
+  router.push({
+    path: '/platform/enterprise/details',
+    query: {
+      //   id: row.id,
+      type: 'view'
+    }
+  });
 };
+
 const handupdate = (row: any) => {
-  dialog.title = '修改';
-  dialog.visible = true;
-  dialog.id = row.dictId;
+  //   dialog.title = '修改';
+  //   dialog.visible = true;
+  //   dialog.id = row.dictId;
+  router.push({
+    path: '/platform/enterprise/details',
+    query: {
+      //   id: row.id,
+      type: 'edit'
+    }
+  });
 };
 
 // 弹框关闭并重新获取列表数据

@@ -2,10 +2,10 @@
   <div class="supplier-edit-details">
     <el-form :model="formData" label-width="140px" :disabled="!isEditMode">
       <!-- 基础信息 -->
-      <FormHeader title="供应商基础信息" />
+      <FormHeader title="企业基础信息" />
       <el-row :gutter="20">
         <el-col :span="12">
-          <el-form-item label="供应商编码">
+          <el-form-item label="企业编码">
             <el-input v-model="formData.supplierInfo.code" disabled></el-input>
           </el-form-item>
         </el-col>
@@ -15,7 +15,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="供应商名称">
+          <el-form-item label="企业名称">
             <el-input v-model="formData.supplierInfo.name" disabled></el-input>
           </el-form-item>
         </el-col>
@@ -118,8 +118,8 @@
         </el-col>
       </el-row>
 
-      <!-- 供应商信息 -->
-      <FormHeader title="供应商信息" />
+      <!-- 企业信息 -->
+      <FormHeader title="企业信息" />
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="资质等级">
