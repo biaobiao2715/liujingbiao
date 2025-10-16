@@ -6,7 +6,7 @@
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
-  <div class="supplier-edit-details">
+  <div :class="['supplier-edit-details', !isEditMode ? 'detail-form' : '']">
     <el-form :model="formData" label-width="140px" :disabled="!isEditMode">
       <!-- 基础信息 -->
       <FormHeader title="供应商基础信息" />
@@ -169,10 +169,9 @@
     </el-form>
 
     <!-- 操作按钮 -->
-    <div style="margin-top: 20px">
-      <el-button v-if="isEditMode" type="primary" @click="saveChanges">保存</el-button>
-      <el-button v-if="isEditMode" @click="cancelEdit">取消</el-button>
-      <el-button v-else type="primary" @click="enterEditMode">编辑</el-button>
+    <div style="margin-top: 20px" v-if="isEditMode">
+      <el-button type="danger" @click="saveChanges">审核退回</el-button>
+      <el-button type="success" @click="cancelEdit">审核通过</el-button>
     </div>
   </div>
 </template>

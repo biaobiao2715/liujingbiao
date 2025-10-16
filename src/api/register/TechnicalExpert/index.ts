@@ -7,7 +7,7 @@
  */
 
 import request from '@/utils/request';
-import { UolodaImageResult } from '@/api/register/LegalExpert/types';
+
 import { TechnicalExpert, TechnicalExpertRegisterResult } from './types';
 import { AxiosPromise } from 'axios';
 

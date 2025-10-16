@@ -70,3 +70,46 @@
 .p-12 {
   padding: 12px;
 }
+
+// 覆盖详情的form表单样式（去除input等组件的边框）
+.detail-form {
+  .el-input__wrapper,
+  .el-textarea__inner,
+  .el-select__wrapper {
+    box-shadow: none !important;
+    background-color: transparent !important;
+    cursor: default !important;
+    resize: none !important;
+  }
+  .el-select__suffix {
+    display: none !important;
+  }
+
+  .el-input__inner {
+    cursor: default !important;
+  }
+
+  // 去除 el-checkbox 的样式
+  .el-checkbox {
+    pointer-events: none; // 禁止用户交互
+    .el-checkbox__label {
+      color: #333;
+    }
+  }
+
+  // 去除 el-radio 的样式
+  .el-radio {
+    pointer-events: none; // 禁止用户交互
+    .el-radio__label {
+      color: #333;
+    }
+  }
+
+  // 去除 el-date-picker 的样式
+  .el-date-editor {
+    border: none;
+    background-color: transparent;
+    pointer-events: none;
+    color: #333;
+  }
+}
