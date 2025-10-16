@@ -71,6 +71,20 @@
   padding: 12px;
 }
 
+.gap-8 {
+  gap: 8px;
+}
+
+// 间距12px
+.gap-12 {
+  gap: 12px;
+}
+
+// 间距24px
+.gap-24 {
+  gap: 24px;
+}
+
 // 覆盖详情的form表单样式（去除input等组件的边框）
 .detail-form {
   .el-input__wrapper,

@@ -6,11 +6,17 @@
   开发信息: Created by 李春雷 2025-10-14
 -->
 <template>
-  <div class="identity-container flex-center-center">
-    <label for="identity-select" class="identity-label">您的身份是：</label>
-    <el-select v-model="selectedIdentity" placeholder="请选择" class="identity-select" @change="emitIdentity">
-      <el-option v-for="option in identityOptions" :key="option.value" :label="option.label" :value="option.value"> </el-option>
-    </el-select>
+  <div class="identity-container flex-center-between">
+    <div class="flex-center-center gap-12">
+      <label class="identity-label">您的身份是</label>
+      <el-select v-model="selectedIdentity" placeholder="请选择" class="identity-select" @change="emitIdentity">
+        <el-option v-for="option in identityOptions" :key="option.value" :label="option.label" :value="option.value"> </el-option>
+      </el-select>
+    </div>
+    <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
+    <div class="flex-center-center mt-24">
+      <el-button type="primary" class="next-step-button" @click="emitIdentity(false)" :disabled="!selectedIdentity">下一步</el-button>
+    </div>
   </div>
 </template>
 
@@ -31,20 +37,27 @@ const identityOptions = ref<{ label: string; value: IdentityType }[]>([
 ]);
 
 // 触发事件，将选择的身份值传递给父组件
-const emitIdentity = (e: IdentityType) => {
+const emitIdentity = (e: IdentityType | boolean) => {
   emit('update-identity', e);
 };
 </script>
 
 <style scoped lang="scss">
+.identity-container {
+  height: 100%;
+  padding: 12% 0;
+  flex-direction: column;
+}
 .identity-label {
-  width: 160px;
-  font-size: 16px;
-  color: #007bff;
-  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666666;
 }
 
 .identity-select {
-  width: 100%;
+  width: 300px;
+}
+
+.next-step-button {
+  width: 300px;
 }
 </style>

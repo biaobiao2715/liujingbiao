@@ -1,1 +1,11 @@
-$yc-color-main: #108c58;
+:root {
+  --color-main: #108c58;
+  --el-color-primary: var(--color-main) !important; /* 设置为你需要的主题色 */
+  --el-button-hover-bg-color: #0f7a4f !important;
+  .el-button:hover {
+    background-color: #0f7a4f !important;
+  }
+  .el-button--primary {
+    --el-button-disabled-bg-color: #25b67c !important;
+  }
+}

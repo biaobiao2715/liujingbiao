@@ -58,6 +58,10 @@
 import { ref, reactive } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { type IdentityType } from '@/views/register/index.vue';
+import { storeToRefs } from 'pinia';
+import { useRegisterDataStore } from '@/store/modules/registerData';
+const { registerData } = storeToRefs(useRegisterDataStore());
+
 // 计算属性：是否显示身份证号输入框
 const isShowIdCard = computed(() => identity !== 'enterprise' && identity !== 'supplier');
 // 计算属性：姓名标签
