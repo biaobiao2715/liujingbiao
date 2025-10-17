@@ -44,7 +44,7 @@
         </div>
         <div v-else-if="activeStep === 3">
           <!-- 账号注册组件 -->
-          <AccountRegister :identity="selectedIdentity" />
+          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" />
         </div>
       </div>
     </div>
@@ -134,7 +134,7 @@ const nextStep = () => {
 <style scoped lang="scss">
 .register-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   flex-direction: column;
   background: #f7f8fb;
   .title {
@@ -155,7 +155,7 @@ const nextStep = () => {
     }
     .form-container {
       flex: 1;
-
+      overflow: auto;
       background-color: #ffffff;
       .form-content {
         height: 100%;
