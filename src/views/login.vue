@@ -11,6 +11,7 @@
       <el-select v-model="accountForm.tenantId" placeholder="选择租户" size="large">
         <el-option v-for="tenant in tenants" :key="tenant.id" :label="tenant.name" :value="tenant.id" />
       </el-select>
+
       <!-- 登录方式切换 -->
       <el-tabs v-model="activeTab" class="login-tabs">
         <!-- 账号密码登录 -->
@@ -26,10 +27,10 @@
         <!-- 手机号登录 -->
         <el-tab-pane label="手机号登录" name="phone">
           <div class="form-item">
-            <el-input v-model="phoneForm.phone" placeholder="手机号" size="large" />
+            <el-input v-model="accountForm.phone" placeholder="手机号" size="large" />
           </div>
           <div class="form-item">
-            <el-input v-model="phoneForm.code" placeholder="验证码" size="large">
+            <el-input v-model="accountForm.smsCode" placeholder="验证码" size="large">
               <template #append>
                 <!-- 获取验证码按钮 -->
                 <el-button @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
@@ -43,7 +44,7 @@
 
       <!-- 记住密码选项 -->
       <div class="form-item align-left">
-        <el-checkbox v-model="phoneForm.rememberMe">记住密码</el-checkbox>
+        <el-checkbox v-model="accountForm.rememberMe">记住密码</el-checkbox>
       </div>
 
       <!-- 登录按钮 -->
@@ -59,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-// 引入 Vue 的 ref 函数和 Element Plus 的组件
 import { ref, onUnmounted } from 'vue';
 import { ElInput, ElCheckbox, ElButton } from 'element-plus';
 import { login } from '@/api/login';
@@ -77,13 +77,8 @@ const accountForm = ref({
   username: '', // 用户名
   password: '', // 密码
   tenantId: '', // 租户ID
-  rememberMe: false // 是否记住密码
-});
-
-// 手机号登录表单数据
-const phoneForm = ref({
   phone: '', // 手机号
-  code: '', // 验证码
+  smsCode: '', // 短信验证码
   rememberMe: false // 是否记住密码
 });
 
@@ -106,7 +101,7 @@ const handleLogin = () => {
   loading.value = true;
   try {
     // 调用登录 API
-    login({ ...accountForm.value, grantType: 'password', clientId: import.meta.env.VITE_APP_CLIENT_ID })
+    login({ ...accountForm.value, grantType: activeTab.value === 'account' ? 'password' : 'sms', clientId: import.meta.env.VITE_APP_CLIENT_ID })
       .then((res: any) => {
         ElMessage.success('登录成功');
         // 存储 token
@@ -115,7 +110,6 @@ const handleLogin = () => {
         router.push('/index');
       })
       .catch((err) => {
-        console.error('登录失败', err);
         ElMessage.error('登录失败');
       });
   } catch (err) {
@@ -128,17 +122,18 @@ const handleLogin = () => {
 // 发送验证码
 const sendCode = () => {
   if (countdown.value > 0) return;
-  if (!phoneForm.value.phone) {
+  if (!accountForm.value.phone) {
     ElMessage.warning('请输入手机号');
     return;
   }
   // 正则表达式验证手机号格式
   const phoneRegex = /^1[3-9]\d{9}$/;
-  if (!phoneRegex.test(phoneForm.value.phone)) {
+  if (!phoneRegex.test(accountForm.value.phone)) {
     ElMessage.warning('请输入正确的手机号');
     return;
   }
-  sendSmsCode(phoneForm.value.phone).then((res) => {
+
+  sendSmsCode(accountForm.value.phone).then((res) => {
     ElMessage.success('验证码已发送');
     console.log(res);
     // 模拟发送验证码请求
