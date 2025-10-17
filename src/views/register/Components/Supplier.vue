@@ -226,7 +226,7 @@
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { uploadImage, ocrUploadImage } from '@/api/register';
-import { getPurchaserTypeDict, enterpriseRegister } from '@/api/register/Supplier';
+import { getPurchaserTypeDict, supplierRegister } from '@/api/register/Supplier';
 import { FormData, Contact } from '@/api/register/Supplier/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { ElMessage, FormRules } from 'element-plus';
@@ -237,12 +237,12 @@ const emit = defineEmits(['nextStep']); // 定义事件
 
 const initFormData: FormData = {
   companyName: '武汉中兴悦达财务有限公司',
-  signUpCapital: '壹佰万元整',
+  signUpCapital: '1111',
   licenseNumber: '91420105066800342M',
   signUpAddress: '南京市浦口区星火路地铁站',
   signUpTime: '',
   businessScope: '会计咨询：代理记账：企业事务代理：文化艺术交流活动组织、策\n划：企业管理咨询：教育咨询',
-  legalPerson: '',
+  legalPerson: '刘义刀',
   officeAddress: '南京市浦口区星火路地铁站动漫大厦'
 };
 // 更新表单验证规则
@@ -468,10 +468,16 @@ getPurchaserTypeDict('contact_user_type').then((res) => {
 // 供应商联系人
 const tableList = ref<Contact[]>([
   {
-    contactUserType: '',
-    contactUserName: '',
+    contactUserType: '1',
+    contactUserName: '刘义刀',
     contactIdCard: '',
-    contactPhone: ''
+    contactPhone: '17839305536'
+  },
+  {
+    contactUserType: '0',
+    contactUserName: '刘义手',
+    contactIdCard: '',
+    contactPhone: '17839305536'
   }
 ]);
 
@@ -564,8 +570,6 @@ const validateAndSubmit = () => {
   });
 
   if (isValid) {
-    proxy?.$modal.msgSuccess('所有联系人信息验证通过！');
-    console.log('提交的数据：', tableList.value);
     return true;
   } else {
     proxy?.$modal.msgError('请检查并修正供应商联系人中的错误');
@@ -575,10 +579,10 @@ const validateAndSubmit = () => {
 
 /** 提交按钮 */
 const submitForm = () => {
-  const arr = validateAndSubmit();
-  if (!arr) return;
   dataFormRef.value.validate((valid: boolean) => {
     if (valid) {
+      const arr = validateAndSubmit();
+      if (!arr) return;
       const params = {
         enterpriseInfo: form,
         contacts: tableList.value,
@@ -588,7 +592,7 @@ const submitForm = () => {
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
     } else {
-      ElMessage.error('请完善必填信息');
+      ElMessage.error('请完善基础信息必填信息');
     }
   });
 };
@@ -700,14 +704,14 @@ const previewFile = (file: any) => {
           <head>
             <title>图片预览</title>
             <style>
-              body { 
-                margin: 0; 
-                padding: 20px; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-                min-height: 100vh; 
-                background: #f5f5f5; 
+              body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: #f5f5f5;
               }
               img { max-width: 95vw; max-height: 95vh; }
             </style>

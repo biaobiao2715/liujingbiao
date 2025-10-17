@@ -12,12 +12,12 @@ export function getPurchaserTypeDict(dictType?: string) {
 }
 
 /**
- * 供应商信息注册
+ * 企业信息注册
  * @param data
  */
 export const enterpriseRegister = (data: any) => {
   return request({
-    url: '/baseEnterpriseInfo/enterpriseRegister',
+    url: '/system/baseEnterpriseInfo/enterpriseRegister',
     method: 'put',
     data: data
   });

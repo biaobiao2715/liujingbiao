@@ -34,7 +34,7 @@
           <!-- 根据选择的身份展示对应的表单组件 -->
           <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
           <!-- 供应商注册流程 -->
-          <SupplierForm v-if="selectedIdentity === 'supplier'" />
+          <SupplierForm v-if="selectedIdentity === 'supplier'" @nextStep="nextStep" />
           <!-- 企业注册流程 -->
           <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
           <!-- 技术专家注册流程 -->
