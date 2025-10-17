@@ -1,3 +1,11 @@
+<!-- 
+标题: legalExpertIndex.vue
+功能: 法务专家审核
+说明: 用于展示法务专家的列表和查询功能。
+开发信息: Create by 李刘超 2025-10-17 16:59:29
+当前版本: 1.0
+-->
+
 <template>
   <div class="p-2 legal-expert-page">
     <el-card shadow="hover">
