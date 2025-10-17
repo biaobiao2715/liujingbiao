@@ -3,11 +3,113 @@
  */
 
 import request from '@/utils/request';
-// 企业列表
-export function queryPageListByNoTenant(query?: any) {
+// 查询企业信息列表(关联租户)
+export function baseEnterpriseInfoList(query?: any) {
+  return request({
+    url: '/baseEnterpriseInfo/list',
+    method: 'get',
+    params: query
+  });
+}
+
+// 查询企业信息列表(无租户)
+export function baseEnterpriseInfoNoTenantList(query?: any) {
   return request({
     url: '/baseEnterpriseInfo/queryPageListByNoTenant',
     method: 'get',
     params: query
   });
 }
+// 获取企业信息详细信息
+export function baseEnterpriseInfoId(query?: any) {
+  return request({
+    url: '/baseEnterpriseInfo/{id}',
+    method: 'get',
+    params: query
+  });
+}
+// 获取企业信息详细信息(无租户)
+export function baseEnterpriseInfoNoTenantListId(query?: any) {
+  return request({
+    url: '/baseEnterpriseInfo/getInfoByNoTenant/{id}',
+    method: 'get',
+    params: query
+  });
+}
+
+// 导出企业信息列表
+export function baseEnterpriseInfoExport(data?: any) {
+  return request({
+    url: '/baseEnterpriseInfo/export',
+    method: 'post',
+    data: data
+  });
+}
+
+// 新增企业信息
+export function baseEnterpriseInfoAdd(data?: any) {
+  return request({
+    url: '/baseEnterpriseInfo',
+    method: 'post',
+    data: data
+  });
+}
+
+/**
+ * 修改企业信息
+ * @param data
+ */
+export const baseEnterpriseInfoUpdate = (data: any) => {
+  return request({
+    url: '/baseEnterpriseInfo',
+    method: 'put',
+    data: data
+  });
+};
+
+/**
+ * 企业信息注册
+ * @param data
+ */
+export const enterpriseRegister = (data: any) => {
+  return request({
+    url: '/baseEnterpriseInfo/enterpriseRegister',
+    method: 'put',
+    data: data
+  });
+};
+
+/**
+ * 企业信息修改（平台）
+ * @param data
+ */
+export const enterpriseEdit = (data: any) => {
+  return request({
+    url: '/baseEnterpriseInfo/enterpriseEdit',
+    method: 'put',
+    data: data
+  });
+};
+
+/**
+ * 企业信息审核（平台）
+ * @param data
+ */
+export const enterpriseReview = (data: any) => {
+  return request({
+    url: '/baseEnterpriseInfo/enterpriseReview',
+    method: 'put',
+    data: data
+  });
+};
+
+/**
+ * 删除企业信息
+ * @param data
+ */
+export const baseEnterpriseInfoDelete = (id: any) => {
+  return request({
+    url: '/baseEnterpriseInfo/' + id,
+    method: 'delete'
+  });
+};

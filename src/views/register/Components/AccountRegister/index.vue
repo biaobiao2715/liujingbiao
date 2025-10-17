@@ -62,7 +62,8 @@ import { useRegisterDataStore } from '@/store/modules/registerData';
 const { registerData } = storeToRefs(useRegisterDataStore());
 import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
 import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
-import router from '@/router';
+import { supplierRegister } from '@/api/register/Supplier';
+import { enterpriseRegister } from '@/api/register/Enterprise';
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser';
 
 const loading = ref(false);
@@ -211,9 +212,24 @@ const submitForm = async () => {
         emit('nextStep');
       }
     } else if (identity === 'enterprise') {
-      console.log('提交');
+      // 企业
+      registerData.value.enterpriseInfo = { ...registerData.value.enterpriseInfo, ...registerForm };
+      console.log('提交', registerData.value);
+      registerData.value.code = registerForm.smsCode;
+      const res = await enterpriseRegister(registerData.value);
+      if (res.code === 200) {
+        emit('nextStep');
+      }
     } else if (identity === 'supplier') {
-      console.log('提交');
+      // 供应商
+      registerData.value.code = registerForm.smsCode;
+      registerData.value.enterpriseInfo = { ...registerData.value.enterpriseInfo, ...registerForm };
+      console.log('提交', registerData.value);
+
+      const res = await supplierRegister(registerData.value);
+      if (res.code === 200) {
+        emit('nextStep');
+      }
     }
 
     // 注册成功后的处理

@@ -34,7 +34,7 @@
           <!-- 根据选择的身份展示对应的表单组件 -->
           <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
           <!-- 供应商注册流程 -->
-          <SupplierForm v-if="selectedIdentity === 'supplier'" />
+          <SupplierForm v-if="selectedIdentity === 'supplier'" @nextStep="nextStep" />
           <!-- 企业注册流程 -->
           <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
           <!-- 技术专家注册流程 -->
@@ -44,7 +44,7 @@
         </div>
         <div v-else-if="activeStep === 3">
           <!-- 账号注册组件 -->
-          <AccountRegister :identity="selectedIdentity" />
+          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" />
         </div>
         <!-- 注册成功组件 -->
         <Success :username="username" :account="account" v-if="activeStep === (selectedIdentity === 'buyer' ? 3 : 4)" />

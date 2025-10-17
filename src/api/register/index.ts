@@ -40,7 +40,7 @@ export function ocrUploadImage(data: { file: File }): AxiosPromise<UplodaImageRe
   const formData = new FormData();
   formData.append('file', data.file);
   return request({
-    url: '/system/api/ocr/biz-license',
+    url: '/resource/ocr/biz-license',
     method: 'post',
     data: formData,
     headers: {
