@@ -57,3 +57,35 @@ export interface TenantInfo {
   tenantEnabled: boolean;
   voList: TenantVO[];
 }
+
+/**
+ * es列表公共返回结果
+ */
+export interface IPublicResult<T> {
+  code: number;
+  msg: string;
+  rows: T[];
+  total: number;
+}
+
+/**
+ * es列表公共请求参数
+ */
+export interface IPublicRequest {
+  /**
+   * 页码
+   */
+  pageNum?: number;
+  /**
+   * 每页数量
+   */
+  pageSize?: number;
+  /**
+   * 是否升序
+   */
+  isAsc?: boolean;
+  /**
+   * 排序字段
+   */
+  orderByColumn?: string;
+}
