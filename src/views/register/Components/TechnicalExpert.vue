@@ -8,147 +8,153 @@
 
 <template>
   <div class="wrapper">
-    <div class="title">
-      <div class="block"></div>
-      <span class="text">基础信息</span>
+    <div class="content">
+      <div class="title">
+        <div class="block"></div>
+        <span class="text">基础信息</span>
+      </div>
+      <el-form :model="formData" :rules="rules" ref="formRef" label-width="140px" label-position="left" class="expert-form">
+        <div style="padding: 0 16px">
+          <el-row :gutter="50">
+            <el-col :span="12">
+              <el-form-item label="毕业证书" prop="diploma" required>
+                <div class="upload-container">
+                  <el-upload
+                    class="upload-box"
+                    accept=".jpg,.jpeg,.gif,.png,.pdf"
+                    action="#"
+                    drag
+                    :auto-upload="false"
+                    :show-file-list="false"
+                    :on-change="handleDiplomaChange"
+                  >
+                    <div class="upload-content">
+                      <img src="@/assets/images/register3.svg" class="step-icon" />
+                      <div class="upload-text">
+                        <span>点击或将文件拖拽到这里上传</span>
+                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                      </div>
+                    </div>
+                  </el-upload>
+                </div>
+              </el-form-item>
+
+              <el-form-item label="专家姓名" prop="expertName" required>
+                <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
+              </el-form-item>
+
+              <el-form-item label="出生年月" prop="birthDate" required>
+                <el-date-picker v-model="formData.birthDate" type="date" placeholder="选择日期" style="width: 100%" />
+              </el-form-item>
+
+              <el-form-item label="专业" prop="major" required>
+                <el-input v-model="formData.major" placeholder="50个字符，仅限中文" />
+              </el-form-item>
+
+              <el-form-item label="毕业日期" prop="graduationDate" required>
+                <el-date-picker v-model="formData.graduationDate" type="date" placeholder="选择日期" style="width: 100%" />
+              </el-form-item>
+
+              <el-form-item label="学位" prop="degree" required>
+                <el-select v-model="formData.degree" placeholder="请选择" style="width: 100%">
+                  <el-option label="学士" value="学士" />
+                  <el-option label="硕士" value="硕士" />
+                  <el-option label="博士" value="博士" />
+                  <el-option label="其他" value="其他" />
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="专业技术资格名称" prop="technicalQualification" required style="white-space: nowrap">
+                <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
+              </el-form-item>
+
+              <el-form-item label="身份证号" prop="idCard">
+                <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
+              </el-form-item>
+
+              <el-form-item label="专家简介" prop="expertInfo" required>
+                <el-input
+                  v-model="formData.expertInfo"
+                  type="textarea"
+                  :maxlength="300"
+                  show-word-limit
+                  input-style="height: 188px"
+                  placeholder="请输入专家简介"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+              <el-form-item label="照片" prop="photo" required>
+                <div class="upload-container">
+                  <el-upload
+                    class="upload-box"
+                    action="#"
+                    :auto-upload="false"
+                    style="width: 150px"
+                    :show-file-list="false"
+                    :on-change="handlePhotoChange"
+                  >
+                    <div class="upload-content" style="padding: 20px">
+                      <img src="@/assets/images/register3.svg" class="step-icon" />
+                      <div class="upload-text">
+                        <p>上传照片</p>
+                      </div>
+                    </div>
+                  </el-upload>
+                  <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</p>
+                </div>
+              </el-form-item>
+
+              <el-form-item label="性别" prop="sex" required>
+                <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
+                  <el-option label="男" value="0" />
+                  <el-option label="女" value="1" />
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="毕业院校" prop="graduationSchool" required>
+                <el-input v-model="formData.graduationSchool" placeholder="请输入毕业院校" />
+              </el-form-item>
+
+              <el-form-item label="入学日期" prop="enrollmentDate" required>
+                <el-date-picker v-model="formData.enrollmentDate" type="date" placeholder="选择日期" style="width: 100%" />
+              </el-form-item>
+
+              <el-form-item label="学历" prop="education" required>
+                <el-select v-model="formData.education" placeholder="请选择" style="width: 100%">
+                  <el-option label="本科" value="本科" />
+                  <el-option label="硕士" value="硕士" />
+                  <el-option label="博士" value="博士" />
+                  <el-option label="其他" value="其他" />
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="毕业证编号" prop="graduationCertNo" required>
+                <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" />
+              </el-form-item>
+
+              <el-form-item label="联系电话" prop="contactPhone" required>
+                <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+      </el-form>
     </div>
-
-    <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="expert-form">
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="毕业证书:" prop="diploma" required>
-            <div class="upload-container">
-              <el-upload
-                class="upload-box"
-                accept=".jpg,.jpeg,.gif,.png,.pdf"
-                action="#"
-                drag
-                :auto-upload="false"
-                :show-file-list="false"
-                :on-change="handleDiplomaChange"
-              >
-                <div class="upload-content">
-                  <el-icon><Plus /></el-icon>
-                  <!-- <img v-else :src="diplomaUrl" class="preview-image" /> -->
-                  <div class="upload-text">
-                    <p>点击或将文件拖拽到这里上传</p>
-                    <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
-                  </div>
-                </div>
-              </el-upload>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="专家姓名:" prop="expertName" required>
-            <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
-          </el-form-item>
-
-          <el-form-item label="出生年月:" prop="birthDate" required>
-            <el-date-picker v-model="formData.birthDate" type="date" placeholder="选择日期" style="width: 100%" />
-          </el-form-item>
-
-          <el-form-item label="专业:" prop="major" required>
-            <el-input v-model="formData.major" placeholder="50个字符，仅限中文" />
-          </el-form-item>
-
-          <el-form-item label="毕业日期:" prop="graduationDate" required>
-            <el-date-picker v-model="formData.graduationDate" type="date" placeholder="选择日期" style="width: 100%" />
-          </el-form-item>
-
-          <el-form-item label="学位:" prop="degree" required>
-            <!-- <el-input v-model="formData.degree" placeholder="50个字符，仅限中文" /> -->
-            <el-select v-model="formData.degree" placeholder="请选择" style="width: 100%">
-              <el-option label="学士" value="学士" />
-              <el-option label="硕士" value="硕士" />
-              <el-option label="博士" value="博士" />
-              <el-option label="其他" value="其他" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="专业技术资格名称:" prop="technicalQualification" required style="white-space: nowrap">
-            <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
-          </el-form-item>
-
-          <el-form-item label="身份证号:" prop="idCard">
-            <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
-          </el-form-item>
-
-          <el-form-item label="专家简介:" prop="expertInfo" required>
-            <el-input
-              v-model="formData.expertInfo"
-              type="textarea"
-              :maxlength="300"
-              show-word-limit
-              input-style="height: 188px"
-              placeholder="请输入专家简介"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="照片:" prop="photo" required>
-            <div class="upload-container">
-              <el-upload
-                class="upload-box"
-                action="#"
-                :auto-upload="false"
-                style="width: 150px"
-                :show-file-list="false"
-                :on-change="handlePhotoChange"
-              >
-                <div class="upload-content" style="padding: 20px">
-                  <el-icon><Plus /></el-icon>
-                  <!-- <img v-else :src="photoUrl" class="preview-image" /> -->
-                  <div class="upload-text">
-                    <p>上传照片</p>
-                  </div>
-                </div>
-              </el-upload>
-              <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</p>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="性别:" prop="sex" required>
-            <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
-              <el-option label="男" value="0" />
-              <el-option label="女" value="1" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="毕业院校:" prop="graduationSchool" required>
-            <el-input v-model="formData.graduationSchool" placeholder="请输入毕业院校" />
-          </el-form-item>
-
-          <el-form-item label="入学日期:" prop="enrollmentDate" required>
-            <el-date-picker v-model="formData.enrollmentDate" type="date" placeholder="选择日期" style="width: 100%" />
-          </el-form-item>
-
-          <el-form-item label="学历:" prop="education" required>
-            <el-select v-model="formData.education" placeholder="请选择" style="width: 100%">
-              <el-option label="本科" value="本科" />
-              <el-option label="硕士" value="硕士" />
-              <el-option label="博士" value="博士" />
-              <el-option label="其他" value="其他" />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="毕业证编号:" required prop="graduationCertNo">
-            <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" />
-          </el-form-item>
-
-          <el-form-item label="联系电话:" prop="contactPhone" required>
-            <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <div class="title" style="border-bottom: none; margin-bottom: 0">
+    <div class="content" style="margin-top: 20px">
+      <div class="title">
         <div class="block"></div>
         <span class="text"> <span class="bold">资料清单</span></span>
       </div>
       <div class="qualification-list">
         <div class="qualification-header">
           <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
-            <el-button type="primary" size="small">附件上传</el-button>
+            <div class="upload-btn">
+              <el-button plain style="color: #108c58; border-color: #108c58">
+                <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
+              >
+            </div>
           </el-upload>
         </div>
         <el-table
@@ -170,22 +176,19 @@
           </el-table-column>
         </el-table>
       </div>
-
-      <div class="next-step-container">
-        <el-button type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
-      </div>
-    </el-form>
+    </div>
+    <div class="next-step-container">
+      <el-button type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { Plus } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
 import { uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
-import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 
 const emit = defineEmits(['nextStep']); // 定义事件
@@ -382,82 +385,90 @@ const handleNextStep = () => {
 
 <style scoped lang="scss">
 .wrapper {
-  .title {
-    border-bottom: 1px solid #e5e6eb;
-    height: 54px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 20px;
-    .block {
-      width: 3px;
-      height: 14px;
-      background-color: var(--el-color-primary);
+  background-color: #f7f8fb;
+  .content {
+    background-color: #fff;
+    .title {
+      border-bottom: 1px solid #e5e6eb;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 20px;
+      .block {
+        width: 3px;
+        height: 14px;
+        background-color: var(--el-color-primary);
+      }
+      .text {
+        font-weight: bold;
+        font-size: 16px;
+        color: #000;
+      }
     }
-    .text {
-      font-weight: bold;
-      font-size: 16px;
-      color: #000;
+    .expert-form {
+      padding: 16px;
     }
-  }
-  .expert-form {
-    padding: 20px;
-  }
-  .upload-container {
-    width: 100%;
-    .upload-box {
+    .upload-container {
       width: 100%;
-      --el-fill-color-blank: #f5f7fa;
-      .upload-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+      .upload-box {
+        --bg-color: #fafdfc;
         width: 100%;
+        --el-fill-color-blank: var(--bg-color);
+        --el-border-color: #108c58;
+        border: 1px dashed var(--el-border-color);
         border-radius: 6px;
-        background-color: #f5f7fa;
-        cursor: pointer;
-        .preview-image {
-          width: 100%;
-          max-height: 200px;
-          object-fit: contain;
+        :deep(.el-upload-dragger) {
+          height: 150px;
         }
-        .upload-text {
-          margin-top: 10px;
-          text-align: center;
-          .upload-tip {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
+        .upload-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          border-radius: 6px;
+          background-color: var(--bg-color);
+          cursor: pointer;
+          .upload-text {
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+            .upload-tip {
+              font-size: 12px;
+              color: #000;
+              margin-top: 5px;
+              margin: 0;
+            }
           }
         }
       }
+      .upload-tip {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+      }
     }
-    .upload-tip {
-      font-size: 12px;
-      color: #999;
-      margin-top: 5px;
-    }
-  }
 
-  .qualification-list {
-    .qualification-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      span {
-        font-size: 16px;
-        font-weight: 600;
+    .qualification-list {
+      padding: 0 16px 10px;
+      .qualification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        .upload-btn {
+          font-size: 16px;
+          font-weight: 600;
+        }
       }
     }
   }
-
   .next-step-container {
     display: flex;
     justify-content: center;
-    margin-top: 130px;
-    margin-bottom: 20px;
+    margin-top: 24px;
+    padding-bottom: 100px;
     .next-step-button {
       width: 180px;
       height: 40px;

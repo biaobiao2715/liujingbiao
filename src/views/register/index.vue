@@ -44,7 +44,7 @@
         </div>
         <div v-else-if="activeStep === 3">
           <!-- 账号注册组件 -->
-          <AccountRegister :identity="selectedIdentity" />
+          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" />
         </div>
       </div>
     </div>
