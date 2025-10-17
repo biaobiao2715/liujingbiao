@@ -1,5 +1,5 @@
 /**
- * 注册企业
+ * 注册供应商
  */
 import request from '@/utils/request';
 
@@ -11,11 +11,14 @@ export function getPurchaserTypeDict(dictType?: string) {
   });
 }
 
-// 采购商注册
-export function registerPurchaser(data?: any) {
+/**
+ * 供应商信息注册
+ * @param data
+ */
+export const enterpriseRegister = (data: any) => {
   return request({
-    url: '/system/basePurchaser/register',
-    method: 'post',
+    url: '/baseEnterpriseInfo/enterpriseRegister',
+    method: 'put',
     data: data
   });
-}
+};

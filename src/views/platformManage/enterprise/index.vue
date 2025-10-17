@@ -100,7 +100,7 @@
 
 <script setup name="Dict" lang="ts">
 import router from '@/router';
-import { queryPageListByNoTenant } from '@/api/platform/enterprise/index';
+import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
 // 假设这些变量已在 script setup 中定义
 import editDetails from '@/views/platformManage/enterprise/editDetails.vue';
 
@@ -153,7 +153,7 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  queryPageListByNoTenant(queryParams.value).then((res) => {
+  baseEnterpriseInfoList(queryParams.value).then((res) => {
     typeList.value = res.rows;
     total.value = res.total;
     loading.value = false;

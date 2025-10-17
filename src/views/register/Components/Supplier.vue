@@ -10,14 +10,15 @@
     <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="140px">
       <div class="title-text">基础信息</div>
       <div class="pading16">
-        <el-row>
+        <el-row :gutter="50">
           <el-col :span="12">
             <el-form-item label="营业执照" prop="businessLicense">
-              <div class="upload-container">
+              <div class="upload-businessLicense">
                 <el-upload
                   class="upload-box"
                   accept=".jpg,.jpeg,.gif,.png,.pdf"
                   action="#"
+                  drag
                   :auto-upload="false"
                   :show-file-list="false"
                   :on-change="handleDiplomaChange"
@@ -100,61 +101,67 @@
       <div class="pading16">
         <el-table :data="tableList" stripe>
           <el-table-column type="index" width="100" label="序号" />
-          <el-table-column prop="contactType" label="联系人类型">
+          <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
-              <el-select v-model="scope.row.contactType" placeholder="请选择" filterable clearable>
+              <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
                 <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column prop="name" label="姓名">
+          <el-table-column prop="contactUserName" label="姓名">
             <template #header>
               <span class="required">姓名</span>
             </template>
             <template #default="scope">
               <el-input
-                v-model="scope.row.name"
+                v-model="scope.row.contactUserName"
                 placeholder="请输入姓名"
-                :class="{ 'is-error': scope.row.errors && scope.row.errors.name }"
+                :class="{ 'is-error': scope.row.errors && scope.row.errors.contactUserName }"
               ></el-input>
-              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.name">
-                {{ scope.row.errors.name }}
+              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.contactUserName">
+                {{ scope.row.errors.contactUserName }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="idCard" label="身份证号码">
+          <el-table-column prop="contactIdCard" label="身份证号码">
             <template #default="scope">
               <el-input
-                v-model="scope.row.idCard"
+                v-model="scope.row.contactIdCard"
                 placeholder="请输入身份证号码"
                 maxlength="18"
-                :class="{ 'is-error': scope.row.errors && scope.row.errors.idCard }"
+                :class="{ 'is-error': scope.row.errors && scope.row.errors.contactIdCard }"
               ></el-input>
-              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.idCard">
-                {{ scope.row.errors.idCard }}
+              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.contactIdCard">
+                {{ scope.row.errors.contactIdCard }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="phone" label="联系电话">
+          <el-table-column prop="contactPhone" label="联系电话">
             <template #header>
               <span class="required">联系电话</span>
             </template>
             <template #default="scope">
               <el-input
-                v-model="scope.row.phone"
+                v-model="scope.row.contactPhone"
                 placeholder="请输入联系电话"
-                :class="{ 'is-error': scope.row.errors && scope.row.errors.phone }"
+                :class="{ 'is-error': scope.row.errors && scope.row.errors.contactPhone }"
               ></el-input>
-              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.phone">
-                {{ scope.row.errors.phone }}
+              <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.contactPhone">
+                {{ scope.row.errors.contactPhone }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center">
+
+          <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button type="text" text @click="removeTableCell(scope.$index, scope.row)" style="color: #ff3131; border-color: #ff3131">
+              <el-button
+                v-if="scope.row.contactUserType !== '1'"
+                text
+                @click="removeTableCell(scope.$index, scope.row)"
+                style="color: #ff3131; border-color: #ff3131"
+              >
                 <img src="@/assets/images/register4.svg" class="el-icon-view" />
-                删除
+                <span style="height: 16px; line-height: 16px"> 删除</span>
               </el-button>
             </template>
           </el-table-column>
@@ -193,15 +200,16 @@
               <el-input v-model="scope.row.remark" placeholder="请输入"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200">
+          <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
               <el-button text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
-                预览
+                <span style="height: 16px; line-height: 16px">预览</span>
               </el-button>
 
               <el-button text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
-                <img src="@/assets/images/register4.svg" class="el-icon-view" /> 删除
+                <img src="@/assets/images/register4.svg" class="el-icon-view" />
+                <span style="height: 16px; line-height: 16px">删除</span>
               </el-button>
             </template>
           </el-table-column>
@@ -218,32 +226,24 @@
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { uploadImage, ocrUploadImage } from '@/api/register';
-import { getPurchaserTypeDict } from '@/api/register/Supplier';
+import { getPurchaserTypeDict, enterpriseRegister } from '@/api/register/Supplier';
 import { FormData, Contact } from '@/api/register/Supplier/types';
+import { useRegisterDataStore } from '@/store/modules/registerData';
 import { ElMessage, FormRules } from 'element-plus';
-// 直接使用异步调用结果赋值
-const contact_user_type = ref([]);
-
-getPurchaserTypeDict('contact_user_type').then((res) => {
-  if (res.code === 200) {
-    contact_user_type.value = res.data || [];
-  }
-});
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { setRegisterData } = useRegisterDataStore();
 const emit = defineEmits(['nextStep']); // 定义事件
 
 const initFormData: FormData = {
-  companyName: '',
-  signUpCapital: '',
-  licenseNumber: '',
-  signUpAddress: '',
+  companyName: '武汉中兴悦达财务有限公司',
+  signUpCapital: '壹佰万元整',
+  licenseNumber: '91420105066800342M',
+  signUpAddress: '南京市浦口区星火路地铁站',
   signUpTime: '',
-  businessScope: '',
+  businessScope: '会计咨询：代理记账：企业事务代理：文化艺术交流活动组织、策\n划：企业管理咨询：教育咨询',
   legalPerson: '',
-  officeAddress: '',
-  tableList: [], // 添加这一行
-  fileList: [] // 添加这一行
+  officeAddress: '南京市浦口区星火路地铁站动漫大厦'
 };
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
@@ -456,13 +456,22 @@ const data = reactive({
 const { form, rules } = toRefs(data);
 const dataFormRef = ref<ElFormInstance>();
 
+// 直接使用异步调用结果赋值
+const contact_user_type = ref([]);
+
+getPurchaserTypeDict('contact_user_type').then((res) => {
+  if (res.code === 200) {
+    contact_user_type.value = res.data || [];
+  }
+});
+
 // 供应商联系人
 const tableList = ref<Contact[]>([
   {
-    contactType: '',
-    name: '',
-    idCard: '',
-    phone: ''
+    contactUserType: '',
+    contactUserName: '',
+    contactIdCard: '',
+    contactPhone: ''
   }
 ]);
 
@@ -473,23 +482,16 @@ const diplomaUrl = ref<{ fileName?: string; url?: string; ossId: string } | null
 // 添加新行-供应商联系人
 const addTableCell = () => {
   tableList.value.push({
-    contactType: '',
-    name: '',
-    idCard: '',
-    phone: ''
+    contactUserType: '',
+    contactUserName: '',
+    contactIdCard: '',
+    contactPhone: ''
   });
 };
 
 // 删除行 -供应商联系人
 const removeTableCell = (index: number, row: Contact) => {
-  if (tableList.value.length > 1) {
-    tableList.value.splice(index, 1);
-  } else {
-    row.contactType = '';
-    row.name = '';
-    row.idCard = '';
-    row.phone = '';
-  }
+  tableList.value.splice(index, 1);
 };
 
 /**
@@ -498,45 +500,45 @@ const removeTableCell = (index: number, row: Contact) => {
  * @returns 包含验证错误信息的对象，如果没有错误则返回空对象
  */
 const validateContact = (contact: Contact) => {
-  const errorsValue: { name?: string; idCard?: string; phone?: string } = {};
+  const errorsValue: { contactUserName?: string; contactIdCard?: string; contactPhone?: string } = {};
 
   // 验证姓名（必填）
-  if (!contact.name || contact.name.trim() === '') {
-    errorsValue.name = '请输入姓名';
+  if (!contact.contactUserName || contact.contactUserName.trim() === '') {
+    errorsValue.contactUserName = '请输入姓名';
   } else {
     // 验证长度（50字节）
-    if (new Blob([contact.name]).size > 50) {
-      errorsValue.name = '姓名最长不超过50字节';
+    if (new Blob([contact.contactUserName]).size > 50) {
+      errorsValue.contactUserName = '姓名最长不超过50字节';
     }
 
     // 验证格式（只能包含汉字、字母和部分符号）
     const nameRegex = /^[\u4e00-\u9fa5a-zA-Z\-\'\s]+$/;
-    if (!nameRegex.test(contact.name)) {
-      errorsValue.name = '姓名只能包含汉字、字母，且最长不超过50字节';
+    if (!nameRegex.test(contact.contactUserName)) {
+      errorsValue.contactUserName = '姓名只能包含汉字、字母，且最长不超过50字节';
     }
   }
 
   // 验证身份证号码（格式验证）
-  if (contact.idCard && contact.idCard.trim() !== '') {
+  if (contact.contactIdCard && contact.contactIdCard.trim() !== '') {
     const idCardPattern = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
-    if (!idCardPattern.test(contact.idCard)) {
-      errorsValue.idCard = '身份证号码格式不正确';
+    if (!idCardPattern.test(contact.contactIdCard)) {
+      errorsValue.contactIdCard = '身份证号码格式不正确';
     }
   }
 
   // 验证联系电话（必填且格式验证）
-  if (!contact.phone || contact.phone.trim() === '') {
-    errorsValue.phone = '联系电话不能为空';
+  if (!contact.contactPhone || contact.contactPhone.trim() === '') {
+    errorsValue.contactPhone = '联系电话不能为空';
   } else {
     // 验证手机号格式
     const mobileRegex = /^1[3-9]\d{9}$/;
-    if (mobileRegex.test(contact.phone)) {
+    if (mobileRegex.test(contact.contactPhone)) {
       // 是手机号，无需进一步验证
     } else {
       // 验证座机号格式
       const landlineRegex = /^(\d{1,4})-(\d{7,8})$/;
-      if (!landlineRegex.test(contact.phone)) {
-        errorsValue.phone = '请输入有效的手机号码或座机号码';
+      if (!landlineRegex.test(contact.contactPhone)) {
+        errorsValue.contactPhone = '请输入有效的手机号码或座机号码';
       }
     }
   }
@@ -566,19 +568,23 @@ const validateAndSubmit = () => {
     console.log('提交的数据：', tableList.value);
     return true;
   } else {
-    proxy?.$modal.msgError('请检查并修正表单中的错误');
+    proxy?.$modal.msgError('请检查并修正供应商联系人中的错误');
     return false;
   }
 };
 
 /** 提交按钮 */
 const submitForm = () => {
+  const arr = validateAndSubmit();
+  if (!arr) return;
   dataFormRef.value.validate((valid: boolean) => {
     if (valid) {
-      const arr = validateAndSubmit();
-      if (!arr) return;
-      form.value.tableList = tableList.value;
-      form.value.fileList = fileListtable.value;
+      const params = {
+        enterpriseInfo: form,
+        contacts: tableList.value,
+        folder: fileListtable.value
+      };
+      setRegisterData?.(params);
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
     } else {
@@ -586,23 +592,52 @@ const submitForm = () => {
     }
   });
 };
-
 /** 文件上传成功处理 */
-const handleDiplomaChange = (file: any) => {
-  ocrUploadImage({ file: file.raw }).then((res) => {
-    if (res.code === 200 && res.data?.ossId) {
-      diplomaUrl.value = res.data;
-      fileListtable.value.push({
-        name: '营业执照',
-        remark: res?.data?.fileName || '营业执照',
-        url: res.data.url,
-        fileType: '1',
-        ossId: res.data.ossId
-      });
-    }
-  });
-};
+const handleDiplomaChange = (file: UploadFile) => {
+  proxy?.$modal.loading('正在上传营业执照，请稍候...');
+  // 文件上传
+  uploadImage({ file: file.raw })
+    .then((res) => {
+      if (res.data?.ossId) {
+        const newFile = {
+          name: file.name || '营业执照',
+          remark: '营业执照',
+          url: res.data.url,
+          fileType: '1',
+          ossId: res.data.ossId
+        };
+        fileListtable.value.push(newFile);
 
+        return ocrUploadImage({ file: file.raw })
+          .then((res) => {
+            // console.log('上传成功：', res);
+            Object.keys(res).forEach((key) => {
+              if (key in form.value) {
+                form.value[key] = res[key];
+              }
+            });
+          })
+          .catch((error) => {
+            // 如果OCR识别失败，则移除之前添加的文件
+            fileListtable.value.pop();
+            ElMessage.error('OCR识别失败，请重试');
+            console.error('上传失败：', error);
+            throw error; // 继续抛出错误以便在最后统一处理
+          });
+      } else {
+        ElMessage.error('营业执照上传失败，请重试');
+        throw new Error('营业执照上传失败');
+      }
+    })
+    .catch((error) => {
+      console.error('上传过程出错：', error);
+      ElMessage.error('上传失败，请重试');
+    })
+    .finally(() => {
+      // 关闭加载状态
+      proxy?.$modal.closeLoading();
+    });
+};
 // 处理文件选择
 const handleChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
@@ -646,6 +681,70 @@ const beforeUpload = (file: any) => {
 // 预览文件
 const previewFile = (file: any) => {
   console.log('预览文件:', file);
+  if (!file.url) {
+    ElMessage.warning('无法预览该文件');
+    return;
+  }
+
+  // 根据文件类型进行不同方式的预览
+  const fileExtension = file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase();
+
+  // 图片文件预览
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+    const img = new Image();
+    img.src = file.url;
+    const imageWindow = window.open('');
+    if (imageWindow) {
+      imageWindow.document.write(`
+        <html>
+          <head>
+            <title>图片预览</title>
+            <style>
+              body { 
+                margin: 0; 
+                padding: 20px; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                min-height: 100vh; 
+                background: #f5f5f5; 
+              }
+              img { max-width: 95vw; max-height: 95vh; }
+            </style>
+          </head>
+          <body>
+            <img src="${file.url}" alt="${file.name}" />
+          </body>
+        </html>
+      `);
+      imageWindow.document.close();
+    } else {
+      ElMessage.error('弹窗被阻止，请允许弹窗后重试');
+    }
+    return;
+  }
+
+  // PDF文件预览
+  if (fileExtension === 'pdf') {
+    window.open(file.url, '_blank');
+    return;
+  }
+
+  // 文档文件预览（使用浏览器内置功能或提示下载）
+  if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExtension)) {
+    const newWindow = window.open(file.url, '_blank');
+    if (!newWindow) {
+      ElMessage.error('弹窗被阻止，请允许弹窗或直接下载文件');
+    }
+    return;
+  }
+
+  // 其他文件类型提供下载
+  const link = document.createElement('a');
+  link.href = file.url;
+  link.download = file.name;
+  link.click();
+  ElMessage.info('不支持在线预览，已尝试下载文件');
 };
 
 // 删除文件
@@ -694,7 +793,7 @@ const removeFile = (file: any) => {
   }
 }
 /* 优化上传区域样式 */
-.upload-container {
+.upload-businessLicense {
   width: 100%;
   .upload-box {
     width: 100%;
@@ -740,10 +839,27 @@ const removeFile = (file: any) => {
   }
 }
 
+// 使用深度选择器确保样式能够穿透到Element UI组件内部
+.upload-businessLicense ::v-deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
+}
+
 .upload-btn {
   padding: 10px;
 }
 
+.validation-errors {
+  color: #f56c6c;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+  min-height: 18px;
+  text-align: left;
+}
 .next-step-container {
   display: flex;
   justify-content: center;
@@ -768,23 +884,4 @@ const removeFile = (file: any) => {
   color: #f56c6c;
   margin-right: 4px;
 }
-
-/* 全局表单项样式 */
-.el-form-item {
-  margin-bottom: 16px;
-}
-
-// .el-form-item__label {
-//   width: 130px;
-//   text-align: right;
-//   padding: 0;
-// }
-
-// /* 输入框统一宽度 */
-// .el-input,
-// .el-date-picker,
-// .el-select {
-//   width: 100%;
-//   max-width: 320px;
-// }
 </style>
