@@ -6,9 +6,9 @@
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
-  <div :class="['supplier-edit-details', operateMode === 'view' ? 'detail-form' : '']">
-    <el-form :model="formData" label-width="140px" :disabled="operateMode === 'view'">
-      <!-- 基础信息 -->
+  <div :class="['supplier-edit-details', 'detail-form']">
+    <!-- 基础信息 -->
+    <el-form :model="formData.supplierInfo" label-width="140px" :disabled="true">
       <FormHeader title="供应商基础信息" />
       <el-row :gutter="20">
         <el-col :span="12">
@@ -46,15 +46,10 @@
             <el-input v-model="formData.supplierInfo.registrationAddress"></el-input>
           </el-form-item>
         </el-col>
-        <!-- 根据operateMode判断是展示营业执照还是上传营业执照 -->
-        <el-col :span="12" v-if="!operateMode">
+        <el-col :span="12">
           <el-form-item label="营业执照">
-            <el-input v-model="formData.supplierInfo.license" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12" v-else>
-          <el-form-item label="营业执照">
-            <imageUpload v-model="formData.supplierInfo.license" />
+            <img :src="formData.supplierInfo.license" width="200" />
+            <!-- <imageUpload v-model="formData.supplierInfo.license" /> -->
           </el-form-item>
         </el-col>
 
@@ -124,8 +119,12 @@
           </el-form-item>
         </el-col>
       </el-row>
+    </el-form>
+  </div>
 
-      <!-- 供应商信息 -->
+  <div :class="['supplier-edit-details', operateMode === 'view' ? 'detail-form' : '']">
+    <!-- 供应商信息 -->
+    <el-form :model="formData.supplierRating" label-width="140px" :disabled="operateMode === 'view'">
       <FormHeader title="供应商信息" />
       <el-row :gutter="20">
         <el-col :span="12">
@@ -147,8 +146,10 @@
           </el-form-item>
         </el-col>
       </el-row>
+    </el-form>
 
-      <!-- 资料清单 -->
+    <!-- 资料清单 -->
+    <el-form :model="formData.attachments" label-width="140px">
       <FormHeader title="资料清单" />
       <el-table :data="formData.attachments" border>
         <el-table-column prop="index" label="序号" width="100"></el-table-column>
@@ -156,16 +157,29 @@
         <el-table-column prop="remark" label="备注"></el-table-column>
         <el-table-column label="操作">
           <template #default="scope">
-            <el-button type="text" @click="previewAttachment(scope.row)">预览</el-button>
+            <el-button type="primary" @click="previewAttachment(scope.row)">预览</el-button>
           </template>
         </el-table-column>
       </el-table>
+    </el-form>
 
-      <!-- 审核意见 -->
+    <!-- 审核意见 -->
+    <el-form :model="formData.auditOpinion" label-width="140px" :disabled="operateMode === 'view'" v-if="operateMode !== 'edit'">
       <FormHeader title="审核意见" />
       <el-form-item label="审核意见">
-        <el-input v-model="formData.auditOpinion.content" type="textarea" maxlength="200" :rows="6"></el-input>
+        <el-input v-model="formData.auditOpinion.content" type="textarea" maxlength="200" :rows="3"></el-input>
       </el-form-item>
+    </el-form>
+
+    <!-- 操作日志 -->
+    <el-form label-width="140px" v-if="operateMode === 'view'">
+      <FormHeader title="操作日志" />
+      <el-table :data="formData.operationLogs" border>
+        <el-table-column prop="operation" label="操作" width="200"></el-table-column>
+        <el-table-column prop="operator" label="操作人" width="200"></el-table-column>
+        <el-table-column prop="operationTime" label="操作时间" width="200"></el-table-column>
+        <el-table-column prop="description" label="操作说明"></el-table-column>
+      </el-table>
     </el-form>
 
     <!-- 操作按钮 -->
@@ -212,7 +226,7 @@ const formData = ref({
   },
   contacts: [
     { name: '张三', phone: '15629657690' },
-    { name: '张三', phone: '15629657691' }
+    { name: '李四', phone: '15629657691' }
   ],
   accountInfo: {
     accountName: 'xxxxxxxxxx',
@@ -228,10 +242,16 @@ const formData = ref({
   ],
   auditOpinion: {
     content: ''
-  }
+  },
+  operationLogs: [
+    { operation: '创建', operator: '张三', operationTime: '2025-10-01 10:00:00', description: '创建供应商' },
+    { operation: '修改', operator: '李四', operationTime: '2025-10-02 12:00:00', description: '修改供应商信息' }
+  ]
 });
 
-const enterEditMode = () => {};
+const enterEditMode = () => {
+  console.log('进入编辑模式');
+};
 
 const saveChanges = () => {
   console.log('保存修改', formData.value);
@@ -247,7 +267,6 @@ const previewAttachment = (attachment) => {
 </script>
 
 <style scoped lang="scss">
-/* 样式可根据需求调整 */
 .supplier-edit-details {
   padding: 24px;
 }

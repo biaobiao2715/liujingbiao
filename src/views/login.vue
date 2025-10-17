@@ -65,6 +65,7 @@ import { ElInput, ElCheckbox, ElButton } from 'element-plus';
 import { login } from '@/api/login';
 import { setToken } from '@/utils/auth';
 import { UserFilled, Lock } from '@element-plus/icons-vue';
+import { sendSmsCode } from '@/api/register/accountRegiser';
 
 import router from '@/router';
 
@@ -127,17 +128,30 @@ const handleLogin = () => {
 // 发送验证码
 const sendCode = () => {
   if (countdown.value > 0) return;
-
-  // 模拟发送验证码请求
-  countdown.value = 60;
-  timer = setInterval(() => {
-    if (countdown.value > 0) {
-      countdown.value--;
-    } else {
-      clearInterval(timer!);
-      timer = null;
-    }
-  }, 1000);
+  if (!phoneForm.value.phone) {
+    ElMessage.warning('请输入手机号');
+    return;
+  }
+  // 正则表达式验证手机号格式
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  if (!phoneRegex.test(phoneForm.value.phone)) {
+    ElMessage.warning('请输入正确的手机号');
+    return;
+  }
+  sendSmsCode(phoneForm.value.phone).then((res) => {
+    ElMessage.success('验证码已发送');
+    console.log(res);
+    // 模拟发送验证码请求
+    countdown.value = 60;
+    timer = setInterval(() => {
+      if (countdown.value > 0) {
+        countdown.value--;
+      } else {
+        clearInterval(timer!);
+        timer = null;
+      }
+    }, 1000);
+  });
 };
 
 // 清除定时器（如果组件销毁）
