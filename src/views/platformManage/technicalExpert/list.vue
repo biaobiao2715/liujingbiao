@@ -70,8 +70,12 @@
                 scope.row.startStopStatus === '0' ? '停用' : '启用'
               }}</el-link>
 
-              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleView(scope.row)">查看</el-link>
-              <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handelCheck(scope.row)">审核</el-link>
+              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')"
+                >查看</el-link
+              >
+              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')"
+                >审核</el-link
+              >
             </template>
           </el-table-column>
         </el-table>
@@ -85,29 +89,20 @@
         />
       </el-card>
     </div>
-
-    <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="专家详情" width="500px">
+    <el-dialog v-model="dialogVisible" width="30%">
       <div>
-        <p><b>姓名：</b>{{ detailData?.expertName }}</p>
-        <p><b>专家编号：</b>{{ detailData?.expertNumber }}</p>
-        <p><b>联系电话：</b>{{ detailData?.contactPhone }}</p>
-        <p><b>入驻时间：</b>{{ detailData?.contactPhone }}</p>
-        <p><b>审核状态：</b>{{ reviewStatusMap[detailData?.reviewStatus] || '未知' }}</p>
-        <p><b>入库状态：</b>{{ detailData?.storageStatus === '0' ? '未入库' : '已入库' }}</p>
+        <p>启用</p>
       </div>
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="detailVisible = false">确 定</el-button>
-          <el-button @click="detailVisible = false">取 消</el-button>
-        </div>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="dialogVisible = false"> 确定 </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup name="TechnicalExpert" lang="ts">
-import { getTechnicalExpertList } from '@/api/platform/technicalExpert';
+import { getTechnicalExpertList, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertListRequest, TechnicalExpertList } from '@/api/platform/technicalExpert/types';
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
 
@@ -121,16 +116,13 @@ const queryParams = reactive<TechnicalExpertListRequest>({
   pageNum: 1,
   pageSize: 10
 });
+const dialogVisible = ref(false);
 
 // 列表与分页
 const list = ref<TechnicalExpertList[]>([]);
 const total = ref(0);
 const tableRef = ref();
 const queryFormRef = ref();
-
-// 详情弹窗
-const detailVisible = ref(false);
-const detailData = ref<TechnicalExpertList | null>(null);
 
 const reviewStatusMap = {
   '0': '待审核',
@@ -162,24 +154,45 @@ const resetQuery = () => {
   queryParams.pageNum = 1;
   handleQuery();
 };
-
+const dialogMessage = ref('');
+const loadingStatus = ref(false);
 // 操作
-const toggleEnabled = (row: TechnicalExpertList) => {
-  row.startStopStatus = row.startStopStatus === '0' ? '1' : '0';
-  proxy?.$modal.msgSuccess(row.startStopStatus === '0' ? '已启用' : '已停用');
+const toggleEnabled = async (row: TechnicalExpertList) => {
+  if (loadingStatus.value || !row.id) return;
+  loadingStatus.value = true;
+  // 停用：0 -> 1
+  // 启用：1 -> 0
+  // 是否启用
+  const isEnabled = row.startStopStatus === '1';
+  const res = await techUpdateOrSaveData({
+    optType: isEnabled ? '5' : '4',
+    hnBaseTechExpertInfoBo: {
+      id: row.id
+    }
+  }).finally(() => {
+    loadingStatus.value = false;
+  });
+  if (res.data) {
+    row.startStopStatus = isEnabled ? '0' : '1';
+    proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
+  }
+};
+const open = () => {
+  dialogVisible.value = true;
+};
+const close = () => {
+  dialogVisible.value = false;
 };
 
-const handleView = (row: TechnicalExpertList) => {
-  detailData.value = row;
-  detailVisible.value = true;
-};
-
-const handleEdit = (row: TechnicalExpertList) => {
-  proxy?.$modal.msgSuccess(`进入编辑：${row.expertName}`);
-};
-// 审核
-const handelCheck = (row: TechnicalExpertList) => {
-  proxy?.$modal.msgSuccess(`审核：${row.expertName}`);
+const router = useRouter();
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  router.push({
+    path: '/platform/technical/audit/details',
+    query: {
+      id: row.id,
+      type
+    }
+  });
 };
 // 初始化
 handleQuery();

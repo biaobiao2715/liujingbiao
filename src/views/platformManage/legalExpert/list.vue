@@ -84,8 +84,12 @@
               scope.row.startStopStatus === '0' ? '停用' : '启用'
             }}</el-link>
 
-            <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleView(scope.row)">查看</el-link>
-            <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handelCheck(scope.row)">审核</el-link>
+            <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')"
+              >查看</el-link
+            >
+            <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')"
+              >审核</el-link
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -120,7 +124,8 @@
 <script setup name="LegalExpert" lang="ts">
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
-import { getLegalExpertList } from '@/api/platform/legalExpert';
+import { getLegalExpertList, legalUpdateOrSaveData } from '@/api/platform/legalExpert';
+import router from '@/router';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -176,15 +181,36 @@ const handleSelectionChange = (selection: any[]) => {
   ids.value = selection.map((item) => item.id);
 };
 
-const clearSelection = () => {
-  tableRef.value?.clearSelection();
-  ids.value = [];
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  router.push({
+    path: '/platform/legal/audit/details',
+    query: {
+      id: row.id,
+      type
+    }
+  });
 };
-
+const loadingStatus = ref(false);
 // 操作占位
-const toggleEnabled = (row: LegalExpertList) => {
-  row.startStopStatus = row.startStopStatus === '0' ? '1' : '0';
-  proxy?.$modal.msgSuccess(row.startStopStatus === '0' ? '已停用' : '已启用');
+const toggleEnabled = async (row: LegalExpertList) => {
+  if (loadingStatus.value || !row.id) return;
+  loadingStatus.value = true;
+  // 停用：0 -> 1
+  // 启用：1 -> 0
+  // 是否启用
+  const isEnabled = row.startStopStatus === '1';
+  const res = await legalUpdateOrSaveData({
+    optType: isEnabled ? '5' : '4',
+    hnBaseTechExpertInfoBo: {
+      id: row.id
+    }
+  }).finally(() => {
+    loadingStatus.value = false;
+  });
+  if (res.data) {
+    row.startStopStatus = isEnabled ? '0' : '1';
+    proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
+  }
 };
 
 const handleView = (row: LegalExpertList) => {

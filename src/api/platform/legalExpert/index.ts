@@ -9,11 +9,52 @@
 import request from '@/utils/request';
 import { LegalExpertList, LegalExpertListRequest } from './types';
 import { IPublicResult } from '@/api/types';
+import { AxiosPromise } from 'axios';
 
 export const getLegalExpertList = (query?: LegalExpertListRequest): Promise<IPublicResult<LegalExpertList>> => {
   return request({
     url: '/system/baseLegalExpertInfo/list',
     method: 'get',
     params: query
+  });
+};
+
+interface TechUpdateOrSaveDataRequest {
+  /**
+   * 操作类型
+   * 1：注册
+   * 2：修改
+   * 3：审核
+   * 4：启用
+   * 5：停用
+   */
+  optType: '1' | '2' | '3' | '4' | '5';
+  hnBaseTechExpertInfoBo?: {
+    expertName?: string;
+    sex?: '0' | '1';
+    birthDate?: string;
+    graduationSchool?: string;
+    major?: string;
+    startStopStatus?: '0' | '1';
+    id?: number;
+  };
+}
+// 法务专家注册、审核、修改、启停
+export const legalUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosPromise<boolean> => {
+  return request({
+    url: '/system/baseLegalExpertInfo/legalUpdateOrSaveData',
+    method: 'post',
+    data
+  });
+};
+
+// 查询法务专家详细信息
+export const getLegalExpertDetail = (id: number): Promise<LegalExpertList> => {
+  return request({
+    url: `/system/baseLegalExpertInfo`,
+    method: 'get',
+    params: {
+      id
+    }
   });
 };

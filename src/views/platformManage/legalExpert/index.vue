@@ -80,12 +80,11 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="toggleEnabled(scope.row)">{{
-              scope.row.startStopStatus === '0' ? '停用' : '启用'
-            }}</el-link>
-
-            <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleView(scope.row)">查看</el-link>
-            <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handelCheck(scope.row)">审核</el-link>
+            <div style="display: flex; justify-content: space-evenly; align-items: center">
+              <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')">查看</el-link>
+              <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
+              <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -121,6 +120,7 @@
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
 import { getLegalExpertList } from '@/api/platform/legalExpert';
+import router from '@/router';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -176,24 +176,21 @@ const handleSelectionChange = (selection: any[]) => {
   ids.value = selection.map((item) => item.id);
 };
 
-const clearSelection = () => {
-  tableRef.value?.clearSelection();
-  ids.value = [];
-};
-
-// 操作占位
-const toggleEnabled = (row: LegalExpertList) => {
-  row.startStopStatus = row.startStopStatus === '0' ? '1' : '0';
-  proxy?.$modal.msgSuccess(row.startStopStatus === '0' ? '已停用' : '已启用');
+// 操作
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
+  router.push({
+    path: '/platform/legal/audit/details',
+    query: {
+      id: row.id,
+      type
+    }
+  });
 };
 
 const handleView = (row: LegalExpertList) => {
   detailData.value = row;
   detailVisible.value = true;
-};
-
-const handelCheck = (row: LegalExpertList) => {
-  proxy?.$modal.msgSuccess(`已触发审核`);
 };
 
 // 初始化
