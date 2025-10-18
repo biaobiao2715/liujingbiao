@@ -134,7 +134,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="信用等级">
-            <el-select v-model="formData.reviewStatus" placeholder="请选择信用等级" clearable :disabled="!disabledIf">
+            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" clearable :disabled="!disabledIf">
               <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
@@ -166,11 +166,11 @@
 
       <!-- 操作按钮 -->
       <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
-        <el-button type="danger" @click="cancelAuditNo">审核退回</el-button>
-        <el-button type="success" @click="cancelAudit">审核通过</el-button>
+        <el-button type="danger" @click="cancelAudit(99)">审核退回</el-button>
+        <el-button type="success" @click="cancelAudit(1)">审核通过</el-button>
       </div>
       <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-        <el-button type="primary" @click="enterEditMode">保存</el-button>
+        <el-button type="primary" @click="handleSave">保存</el-button>
       </div>
 
       <div style="height: 20px"></div>
@@ -182,6 +182,8 @@
 import { ref } from 'vue';
 import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview } from '@/api/platform/enterprise/index';
 import FormHeader from '@/components/FormHeader/index.vue';
+import { useRoute } from 'vue-router';
+import router from '@/router';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
@@ -189,7 +191,6 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
 );
 
 // 获取router路由参数
-import { useRoute } from 'vue-router';
 const route = useRoute();
 const { id, type } = route.query;
 const operateMode = ref(type);
@@ -198,13 +199,61 @@ const disabledIf = ref(true);
 // type = 'view' | 'edit' | 'audit'; 详情模式 编辑模式 审核模式
 disabledIf.value = type !== 'view';
 
-const formData = ref({
+// 定义接口返回数据的类型
+interface SupplierDetails {
+  id?: number;
+  enterpriseNumber?: string;
+  enterpriseType?: string;
+  companyName?: string;
+  licenseNumber?: string;
+  signUpTime?: string;
+  legalPerson?: string;
+  officeAddress?: string;
+  signUpAddress?: string;
+  signUpCapital?: string;
+  businessScope?: string;
+  companyIntro?: string;
+  companyDomain?: string;
+  loginUserName?: string;
+  phoneNumber?: string;
+  password?: string;
+  credentialLevel?: string;
+  creditLevel?: string;
+  userId?: number;
+  remark?: string;
+  reviewStatus?: string;
+  reviewRemark?: string;
+  reviewTime?: string;
+  reviewBy?: number;
+  accountName?: string;
+  contacts: Array<{
+    contactUserType?: string;
+    contactUserName?: string;
+    contactPhone?: string;
+    contactIdCard?: string;
+  }>;
+  folders?: Array<{
+    id?: number;
+    name?: string;
+    fileType?: string;
+    ossId?: number;
+    remark?: string;
+    ossInfo?: {
+      ossId?: number;
+      fileName?: string;
+      originalName?: string;
+      url?: string;
+    };
+  }>;
+}
+
+const formData = ref<SupplierDetails>({
+  id: undefined,
   enterpriseNumber: '',
   enterpriseType: '',
   companyName: '',
   licenseNumber: '',
   signUpTime: '',
-  legalPerson: '',
   officeAddress: '',
   signUpAddress: '',
   signUpCapital: '',
@@ -216,11 +265,14 @@ const formData = ref({
   password: '',
   credentialLevel: '',
   creditLevel: '',
+  userId: undefined,
   remark: '',
   reviewStatus: '',
   reviewRemark: '',
   reviewTime: '',
-  reviewBy: 0,
+  reviewBy: undefined,
+  accountName: '',
+  contacts: [],
   folders: []
 });
 const idType = ref('身份认证');
@@ -235,7 +287,7 @@ const contactF = ref({
 const urlImage = ref(); // 营业执照
 
 // id获取详情信息
-baseEnterpriseInfoId(id)
+baseEnterpriseInfoId(id as string)
   .then((res) => {
     formData.value = res.data;
     if (res.data?.contacts?.length > 0) {
@@ -261,29 +313,65 @@ baseEnterpriseInfoId(id)
     console.error('获取企业基本信息失败:', error);
   });
 
-// 审核成功
-const cancelAudit = () => {
-  enterpriseReview(formData.value).then((res) => {
-    console.log('审核成功:', res);
-  });
-  console.log('取消编辑');
-};
-// 审核退回
-const cancelAuditNo = () => {
-  enterpriseReview(formData.value).then((res) => {
-    console.log('审核退回:', res);
-  });
+// 审核
+const cancelAudit = (type: number) => {
+  try {
+    proxy?.$modal.loading('正在审核，请稍候...');
+    enterpriseReview({
+      enterpriseInfo: {
+        ...formData.value,
+        contacts: undefined,
+        folders: undefined,
+        reviewStatus: type
+      },
+      contacts: formData.value.contacts,
+      folder: formData.value.folders
+    }).then(() => {
+      ElMessage.success('审核成功');
+      router.push({
+        query: {
+          ...route.query,
+          type: 'view'
+        }
+      });
+      operateMode.value = 'view';
+      disabledIf.value = operateMode.value !== 'view';
+    });
+  } catch (error) {
+    ElMessage.error('审核失败');
+  } finally {
+    proxy?.$modal.closeLoading();
+  }
 };
 // 编辑保存
-const enterEditMode = () => {
-  console.log('进入编辑模式');
-  enterpriseEdit(formData.value)
-    .then((res) => {
-      console.log('修改成功:', res);
-    })
-    .catch((error) => {
-      console.error('修改失败:', error);
+// 保存按钮事件 和详情接口返回的的数据结构略有区别
+const handleSave = () => {
+  try {
+    proxy?.$modal.loading('正在保存，请稍候...');
+    enterpriseEdit({
+      enterpriseInfo: {
+        ...formData.value,
+        contacts: undefined,
+        folders: undefined
+      },
+      contacts: formData.value.contacts,
+      folder: formData.value.folders
+    }).then(() => {
+      ElMessage.success('保存成功');
+      router.push({
+        query: {
+          ...route.query,
+          type: 'view'
+        }
+      });
+      operateMode.value = 'view';
+      disabledIf.value = operateMode.value !== 'view';
     });
+  } catch (error) {
+    console.error('保存失败', error);
+  } finally {
+    proxy?.$modal.closeLoading();
+  }
 };
 
 const previewAttachment = (attachment) => {

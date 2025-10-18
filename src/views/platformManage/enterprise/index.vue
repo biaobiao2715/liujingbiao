@@ -9,20 +9,22 @@
   <div class="supplier-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="入驻时间">
-        <el-date-picker
-          v-model="queryParams.reviewTime"
-          value-format="YYYY-MM-DD"
-          type="date"
-          style="width: 100%"
-          placeholder="请选择日期"
-        ></el-date-picker>
+      <el-form-item label="企业编码" prop="enterpriseNumber">
+        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="企业名称">
-        <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" />
+      <el-form-item label="企业名称" prop="companyName">
+        <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="统一社会信用代码">
-        <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" />
+      <el-form-item label="统一社会信用代码" prop="licenseNumber" label-width="140px">
+        <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="审核状态" prop="reviewStatus">
+        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
+          <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="入驻时间" prop="reviewTime">
+        <el-date-picker v-model="queryParams.reviewTime" value-format="YYYY-MM-DD" type="date" placeholder="请选择日期"></el-date-picker>
       </el-form-item>
 
       <el-form-item>
@@ -34,20 +36,47 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="企业名称" align="center" prop="companyName" />
-      <el-table-column label="企业编码" align="center" prop="enterpriseNumber">
+      <el-table-column label="企业名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
+      <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
-          <span @click="handleEdit(scope.row)" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span>
+          <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber"> </el-table-column>
+      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
 
-      <el-table-column label="联系人" align="center" prop="loginUserName"> </el-table-column>
-      <el-table-column label="联系电话" align="center" prop="phoneNumber"> </el-table-column>
+      <el-table-column label="资质等级" align="center" prop="credentialLevel">
+        <template v-slot="scope">
+          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
+        </template>
+      </el-table-column>
+      <el-table-column label="信用等级" align="center" prop="creditLevel">
+        <template v-slot="scope">
+          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
+        </template>
+      </el-table-column>
+      <el-table-column label="审核状态" align="center" prop="reviewStatus">
+        <template v-slot="scope">
+          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+        </template>
+      </el-table-column>
 
-      <el-table-column label="入驻时间" align="center" prop="reviewTime" min-width="160">
+      <el-table-column label="申请时间" align="center" prop="createTime" min-width="160">
+        <template #default="scope">
+          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button v-if="isPendingReview(scope.row)" type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+          <el-button v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
+          <el-button v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -65,15 +94,20 @@ import { ref } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
+const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  status: '',
+  reviewTime: '',
+  reviewStatus: '',
   licenseNumber: '',
   companyName: '',
-  reviewTime: '',
-  enterpriseType: '1' //企业类型
+  enterpriseNumber: '',
+  enterpriseType: '1'
 });
 
 // 表格数据
@@ -96,7 +130,7 @@ const getList = () => {
 // 查询按钮事件
 const handleSearch = () => {
   console.log('查询表单数据:', queryParams.value);
-  // TODO: 调用接口获取数据
+  getList();
 };
 
 /** 搜索按钮操作 */
@@ -111,14 +145,24 @@ const handleReset = () => {
 };
 
 // 编辑按钮事件
-const handleEdit = (row: any) => {
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  console.log('编辑:', row, type);
+  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({
     path: '/platform/enterprise/editDetails',
     query: {
       id: row.id,
-      type: 'view'
+      type
     }
   });
+};
+
+const isPendingReview = (row) => {
+  return row.reviewStatus == 0;
+};
+
+const isReviewProcessed = (row) => {
+  return !(row.reviewStatus == 0);
 };
 
 onMounted(() => {
