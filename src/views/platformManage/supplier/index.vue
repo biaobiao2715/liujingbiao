@@ -35,7 +35,13 @@
     <el-table :data="tableData" border style="width: 100%">
       <el-table-column prop="index" label="序号" width="60"></el-table-column>
       <el-table-column prop="supplierName" label="供应商名称"></el-table-column>
-      <el-table-column prop="supplierCode" label="供应商编号"></el-table-column>
+      <el-table-column prop="supplierCode" label="供应商编号">
+        <template #default="scope">
+          <router-link :to="`/platform/supplier/audit/details?id=${scope.row.id}&type=view`" style="color: var(--el-color-primary)">{{
+            scope.row.supplierCode
+          }}</router-link>
+        </template>
+      </el-table-column>
       <el-table-column prop="creditCode" label="统一社会信用代码"></el-table-column>
       <el-table-column prop="resourceLevel" label="资质等级"></el-table-column>
       <el-table-column prop="creditLevel" label="信用等级"></el-table-column>
@@ -129,7 +135,7 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   console.log('编辑:', row, type);
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({
-    path: '/platform/supplier/details',
+    path: '/platform/supplier/audit/details',
     query: {
       id: row.id,
       type

@@ -111,3 +111,17 @@ export function getTenantList(isToken: boolean): AxiosPromise<TenantInfo> {
     method: 'get'
   });
 }
+
+// 忘记密码
+export function forgotPwd(data: any) {
+  return request({
+    url: '/user/forgotPwd',
+    // headers: {
+    //   isToken: false,
+    //   isEncrypt: true,
+    //   repeatSubmit: false
+    // },
+    method: 'put',
+    data: data
+  });
+}

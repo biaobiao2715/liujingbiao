@@ -106,8 +106,10 @@ export interface TechnicalExpertList {
   storageStatus: '0' | '1';
   /**
    * 启停状态
+   * 0：停用
+   * 1：启用
    */
-  startStopStatus: string;
+  startStopStatus: '0' | '1';
   /**
    * 审核时间
    */

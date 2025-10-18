@@ -46,6 +46,8 @@
           <!-- 账号注册组件 -->
           <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" />
         </div>
+        <!-- 注册成功组件 -->
+        <Success :username="username" :account="account" v-if="activeStep === (selectedIdentity === 'buyer' ? 3 : 4)" />
       </div>
     </div>
   </div>
@@ -64,6 +66,8 @@ import TechnicalExpertForm from './Components/TechnicalExpert.vue';
 import LegalExpertForm from './Components/LegalExpert.vue';
 // 账号注册组件
 import AccountRegister from './Components/AccountRegister/index.vue';
+// 引入成功组件
+import Success from './Components/Success.vue';
 
 // 定义身份类型
 export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'legal';
@@ -71,6 +75,9 @@ export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'leg
 // 定义当前步骤的状态
 const activeStep = ref(1); // 当前步骤
 const selectedIdentity = ref<IdentityType>('' as IdentityType); // 当前选择的身份
+// 定义用户名和账号
+const username = ref('');
+const account = ref('');
 
 // 定义步骤标题数组
 const steps = ref([

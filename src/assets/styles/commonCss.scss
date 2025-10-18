@@ -1,9 +1,15 @@
 :root {
   --color-main: #108c58;
-  --el-color-primary: var(--color-main) !important; /* 设置为你需要的主题色 */
-  --el-button-hover-bg-color: #0f7a4f !important;
+  --el-color-primary: var(--color-main) !important;
+
   .el-button:hover {
+    background-color: #b8d6cb5e !important;
+    border-color: var(--color-main) !important;
+  }
+
+  .el-button--primary:hover {
     background-color: #0f7a4f !important;
+    border-color: var(--color-main) !important;
   }
   .el-button--primary {
     --el-button-disabled-bg-color: #25b67c !important;

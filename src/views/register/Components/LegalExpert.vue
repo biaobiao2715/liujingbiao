@@ -104,7 +104,7 @@
             </el-form-item>
 
             <el-form-item label="发证日期:" prop="issueDate" required>
-              <el-date-picker v-model="formData.issueDate" type="date" placeholder="选择日期" style="width: 100%" />
+              <el-date-picker v-model="formData.issueDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
             </el-form-item>
 
             <el-form-item label="联系电话:" prop="contactPhone" required>
@@ -168,12 +168,13 @@ import { uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/LegalExpert/types';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
+import { FormRules } from 'element-plus';
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
 
 // 表单数据
 // 可选 字段
-const formData = reactive<LegalExpert>({
+const form: LegalExpert = {
   // 专家名称
   expertName: '',
   // 性别
@@ -198,100 +199,46 @@ const formData = reactive<LegalExpert>({
   practiceCertificateType: '',
   // 发证机关
   issuingAuthority: ''
-} as LegalExpert);
+} as LegalExpert;
 
-// 上传图片相关
-const diplomaUrl = ref('');
-const photoUrl = ref('');
-// 上传毕业证
-const handleDiplomaChange = (file: any) => {
-  uploadImage({
-    file: file.raw
-  }).then((res) => {
-    // console.log(res);
-    // formData.diplomaOssId = res.ossId;
-  });
-  //   diplomaUrl.value = URL.createObjectURL(file.raw);
-  //   qualificationList.value.push({
-  //     index: qualificationList.value.length + 1,
-  //     name: '毕业证',
-  //     remark: '上传毕业证',
-  //     url: diplomaUrl.value
-  //   });
-};
-
-// 资质清单相关
-const qualificationList = ref<
-  {
-    index: number;
-    name: string;
-    remark: string;
-    url: string;
-    fileType: FileType;
-    ossId: string;
-  }[]
->([]);
-// 上传照片
-const handlePhotoChange = (file: any) => {
-  photoUrl.value = URL.createObjectURL(file.raw);
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: '照片',
-    remark: '上传照片',
-    url: photoUrl.value,
-    fileType: '0',
-    ossId: ''
-  });
-};
-// 上传其他附件
-const addQualification = (file: any) => {
-  qualificationList.value.push({
-    index: qualificationList.value.length + 1,
-    name: file.name,
-    remark: '附件上传',
-    url: URL.createObjectURL(file.raw),
-    fileType: '1',
-    ossId: ''
-  });
-};
-
-const deleteQualification = (index: number) => {
-  //   qualificationList.value.splice(index, 1);
-  //   // 重新计算序号
-  //   qualificationList.value.forEach((item, i) => {
-  //     item.index = i + 1;
-  //   });
-};
-const validateIdCard = (rule: any, value: any, callback: any) => {
-  if (!value) {
-    callback(new Error('请输入身份证号'));
-  } else if (!isIdCard(value)) {
-    callback(new Error('请输入正确的身份证号'));
-  } else {
-    callback();
-  }
-};
 // 表单验证规则
-const rules = {
-  expertName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
-  birthDate: [{ required: true, message: '请选择出生年月', trigger: 'change' }],
-  major: [{ required: true, message: '请输入专业', trigger: 'blur' }],
-  graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
-  professionalSummary: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
-  diploma: [
+const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> = {
+  // 专家姓名
+  expertName: [
     {
       required: true,
+      trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
-        if (!diplomaUrl.value) {
-          callback(new Error('请上传毕业证书'));
+        if (!value) {
+          callback(new Error('请输入专家姓名'));
+        } else if (value.length > 20 || !/^[一-龥A-Za-z]+$/.test(value)) {
+          callback(new Error('姓名只能包含汉字或字母，最长不超过50字节。'));
         } else {
           callback();
         }
-      },
-      trigger: 'change'
+      }
     }
   ],
+  // 性别
+  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  // 专家简介
+  professionalSummary: [
+    {
+      required: true,
+      message: '请输入专家简介',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入专家简介'));
+        } else if (value.length > 150 || !/^[一-龥A-Za-z0-9\s]+$/.test(value)) {
+          callback(new Error('简介只能包含汉字、字母、数字和空格，最长不超过150字节。'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 照片
   photo: [
     {
       required: true,
@@ -305,14 +252,170 @@ const rules = {
       trigger: 'change'
     }
   ],
-  idCard: [{ trigger: 'blur', validator: validateIdCard }],
-  practiceCertificateType: [{ required: true, message: '请选择执业资格类型', trigger: 'change' }],
+  // 身份证号
+  idCard: [
+    {
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+        } else if (!isIdCard(value)) {
+          callback(new Error('请输入正确的身份证号'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 执业资格类型
+  practiceCertificateType: [
+    {
+      required: true,
+      trigger: 'change',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('执业证类别选择无效，请重新选择。'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 法律执业资格或律师资格证号
   legalPracticeQualification: [{ required: true, message: '请输入法律执业资格或律师资格证号', trigger: 'blur' }],
+  // 发证日期
   issueDate: [{ required: true, message: '请选择发证日期', trigger: 'change' }],
-  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  // 技术资格证号
+  technicalQualification: [{ required: true, message: '请输入技术资格证号', trigger: 'blur' }],
+  // 联系电话
+  contactPhone: [
+    {
+      required: true,
+      message: '请输入联系电话',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入联系电话'));
+        } else if (!/^1[3456789]\d{9}$/.test(value)) {
+          callback(new Error('请输入正确的联系电话'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 执业机构
   practiceInstitution: [{ required: true, message: '请输入执业机构', trigger: 'blur' }],
+  // 执业证号
   practiceCertificateNumber: [{ required: true, message: '请输入执业证号', trigger: 'blur' }],
-  issuingAuthority: [{ required: true, message: '请输入发证机关', trigger: 'blur' }]
+  // 发证机关
+  issuingAuthority: [
+    {
+      required: true,
+      message: '请输入发证机关',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入发证机关'));
+        } else if (value.length > 100 || !/^[一-龥A-Za-z0-9\s]+$/.test(value)) {
+          callback(new Error('发证机关名称最长不超过100字节，且仅支持汉字、字母、数字和常见符号。'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 毕业证书
+  diploma: [
+    {
+      required: true,
+      validator: (rule: any, value: any, callback: any) => {
+        if (!diplomaUrl.value) {
+          callback(new Error('请上传毕业证书'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
+  ]
+};
+const data = reactive({
+  form: { ...form },
+  rules: FormRulesarr
+});
+
+const { form: formData, rules } = toRefs(data);
+
+// 上传图片相关
+const diplomaUrl = ref('');
+const photoUrl = ref('');
+// 资质清单相关
+const qualificationList = ref<
+  {
+    index: number;
+    name: string;
+    remark: string;
+    url: string;
+    fileType: FileType;
+    ossId: string;
+  }[]
+>([]);
+// 上传毕业证
+const handleDiplomaChange = (file: any) => {
+  uploadImage({
+    file: file.raw
+  }).then((res) => {
+    diplomaUrl.value = res.data.ossId;
+    qualificationList.value.push({
+      index: qualificationList.value.length + 1,
+      name: '毕业证',
+      remark: res?.data?.fileName || '上传毕业证',
+      url: res.data.url,
+      fileType: '2',
+      ossId: res.data.ossId
+    });
+  });
+};
+
+// 上传照片
+const handlePhotoChange = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      photoUrl.value = res.data.ossId;
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: '照片',
+        remark: res?.data?.fileName || '上传照片',
+        url: res.data.url,
+        fileType: '0',
+        ossId: res.data.ossId
+      });
+    }
+  });
+};
+// 上传其他附件
+const addQualification = (file: any) => {
+  uploadImage({ file: file.raw }).then((res) => {
+    if (res.code === 200 && res.data?.ossId) {
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: file.name,
+        remark: '附件上传',
+        url: res.data.url,
+        fileType: '99',
+        ossId: res.data.ossId
+      });
+    }
+  });
+};
+
+const deleteQualification = (index: number) => {
+  //   qualificationList.value.splice(index, 1);
+  //   // 重新计算序号
+  //   qualificationList.value.forEach((item, i) => {
+  //     item.index = i + 1;
+  //   });
 };
 
 // 表单引用
@@ -329,8 +432,17 @@ const previewQualification = (row: any) => {
 const handleNextStep = () => {
   formRef.value?.validate((valid: boolean) => {
     if (valid) {
-      const params = { ...formData } as LegalExpert;
-      setRegisterData?.(params);
+      const temp = { ...formData.value };
+      const list = qualificationList.value.map((item) => ({
+        fileType: item.fileType,
+        ossId: item.ossId,
+        remark: item.remark
+      }));
+      if (list.length) {
+        //@ts-ignore
+        temp['folder'] = list;
+      }
+      setRegisterData?.(temp);
       emit('nextStep');
     } else {
       return false;

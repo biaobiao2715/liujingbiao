@@ -44,15 +44,15 @@
               </el-form-item>
 
               <el-form-item label="出生年月" prop="birthDate" required>
-                <el-date-picker v-model="formData.birthDate" type="date" placeholder="选择日期" style="width: 100%" />
+                <el-date-picker v-model="formData.birthDate" type="date" value-format="YYYY-MM" placeholder="选择日期" style="width: 100%" />
               </el-form-item>
 
               <el-form-item label="专业" prop="major" required>
-                <el-input v-model="formData.major" placeholder="50个字符，仅限中文" />
+                <el-input v-model="formData.major" maxlength="99" placeholder="50个字符，仅限中文" />
               </el-form-item>
 
               <el-form-item label="毕业日期" prop="graduationDate" required>
-                <el-date-picker v-model="formData.graduationDate" type="date" placeholder="选择日期" style="width: 100%" />
+                <el-date-picker v-model="formData.graduationDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
               </el-form-item>
 
               <el-form-item label="学位" prop="degree" required>
@@ -118,7 +118,7 @@
               </el-form-item>
 
               <el-form-item label="入学日期" prop="enrollmentDate" required>
-                <el-date-picker v-model="formData.enrollmentDate" type="date" placeholder="选择日期" style="width: 100%" />
+                <el-date-picker v-model="formData.enrollmentDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
               </el-form-item>
 
               <el-form-item label="学历" prop="education" required>
@@ -190,12 +190,12 @@ import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
 import { uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
+import { FormRules } from 'element-plus';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
-
 // 表单数据
-const formData = reactive<TechnicalExpert>({
+const form: TechnicalExpert = {
   // 专家姓名
   expertName: '',
   sex: '',
@@ -221,7 +221,173 @@ const formData = reactive<TechnicalExpert>({
   expertInfo: '',
   // 联系电话
   contactPhone: ''
-} as TechnicalExpert);
+} as TechnicalExpert;
+
+const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string }> = {
+  // 专家姓名
+  expertName: [
+    {
+      required: true,
+      message: '请输入专家姓名',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入专家姓名'));
+        } else if (value.length > 50) {
+          callback(new Error('专家姓名最多50个字符'));
+        } else if (!/^[\u4e00-\u9fa5a-zA-Z\s]+$/.test(value)) {
+          callback(new Error('专家姓名只能包含中文、英文'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 性别
+  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  // 出生年月
+  birthDate: [
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请选择出生年月'));
+          //   格式 YYYY-MM
+        } else if (!/^\d{4}-\d{2}$/.test(value)) {
+          callback(new Error('请输入有效的出生年月，格式为YYYY-MM'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 专业
+  major: [{ required: true, message: '请输入专业名称', trigger: 'blur' }],
+  // 毕业日期
+  graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
+  // 专家简介
+  expertInfo: [
+    {
+      required: true,
+      message: '请输入专家简介',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入专家简介'));
+        } else if (value.length > 150) {
+          callback(new Error('专家简介最多150个字符'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 学位
+  degree: [{ required: true, message: '请选择学位', trigger: 'change' }],
+  // 毕业证书编号
+  graduationCertNo: [
+    {
+      required: true,
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入毕业证书编号'));
+        } else if (value.length > 20) {
+          callback(new Error('毕业证书编号最多20个字符'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 专业技术资格名称
+  technicalQualification: [{ required: true, message: '请输入专业技术资格名称', trigger: 'blur' }],
+  // 联系电话
+  contactPhone: [
+    {
+      required: true,
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入联系电话'));
+        } else if (!/^1[3456789]\d{9}$/.test(value)) {
+          callback(new Error('请输入正确的联系电话'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 毕业证书
+  diploma: [
+    {
+      required: true,
+      validator: (rule: any, value: any, callback: any) => {
+        if (!diplomaUrl.value) {
+          callback(new Error('请上传毕业证书'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
+  ],
+  // 照片
+  photo: [
+    {
+      required: true,
+      validator: (rule: any, value: any, callback: any) => {
+        if (!photoUrl.value) {
+          callback(new Error('请上传照片'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
+  ],
+  // 身份证号
+  idCard: [
+    {
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+        } else if (!isIdCard(value)) {
+          callback(new Error('请输入正确的身份证号'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 入学日期
+  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: 'change' }],
+  // 学历
+  education: [{ required: true, message: '请选择学历', trigger: 'change' }],
+  // 毕业学校
+  graduationSchool: [
+    {
+      required: true,
+      message: '请输入毕业学校',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入毕业学校'));
+        } else if (value.length > 100) {
+          callback(new Error('毕业校院名称最长不超过100字节，且仅支持汉字、字母、数字和常见符号。'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ]
+};
+
+const data = reactive({
+  form: { ...form },
+  rules: FormRulesarr
+});
+const { form: formData, rules } = toRefs(data);
 
 // 上传毕业证url
 const diplomaUrl = ref('');
@@ -256,7 +422,6 @@ const handleDiplomaChange = (file: any) => {
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {
-  const tempUrl = URL.createObjectURL(file.raw);
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       photoUrl.value = res.data.ossId;
@@ -294,59 +459,6 @@ const deleteQualification = (index: number) => {
   //     item.index = i + 1;
   //   });
 };
-const validateIdCard = (rule: any, value: any, callback: any) => {
-  if (!value) {
-    callback();
-  } else if (!isIdCard(value)) {
-    callback(new Error('请输入正确的身份证号'));
-  } else {
-    callback();
-  }
-};
-
-// 表单验证规则
-const rules = {
-  expertName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
-  birthDate: [{ required: true, message: '请选择出生年月', trigger: 'change' }],
-  major: [{ required: true, message: '请输入专业', trigger: 'blur' }],
-  graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
-  expertInfo: [{ required: true, message: '请输入专家简介', trigger: 'blur' }],
-  degree: [{ required: true, message: '请选择学位', trigger: 'change' }],
-  graduationCertNo: [{ required: true, message: '请输入毕业证书编号', trigger: 'blur' }],
-  technicalQualification: [{ required: true, message: '请输入专业技术资格名称', trigger: 'blur' }],
-  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
-  diploma: [
-    {
-      required: true,
-      validator: (rule: any, value: any, callback: any) => {
-        if (!diplomaUrl.value) {
-          callback(new Error('请上传毕业证书'));
-        } else {
-          callback();
-        }
-      },
-      trigger: 'change'
-    }
-  ],
-  photo: [
-    {
-      required: true,
-      validator: (rule: any, value: any, callback: any) => {
-        if (!photoUrl.value) {
-          callback(new Error('请上传照片'));
-        } else {
-          callback();
-        }
-      },
-      trigger: 'change'
-    }
-  ],
-  idCard: [{ trigger: 'blur', validator: validateIdCard }],
-  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: 'change' }],
-  education: [{ required: true, message: '请选择学历', trigger: 'change' }],
-  graduationSchool: [{ required: true, message: '请输入毕业学校', trigger: 'blur' }]
-};
 
 // 表单引用
 const formRef = ref();
@@ -362,7 +474,7 @@ const previewQualification = (row: any) => {
 const handleNextStep = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      const temp = { ...formData };
+      const temp = { ...formData.value };
       const list = qualificationList.value.map((item) => ({
         fileType: item.fileType,
         ossId: item.ossId,

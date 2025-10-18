@@ -6,13 +6,11 @@
     </div>
 
     <!-- 应用卡片列表 -->
-    <div class="flex-center gap-12 application-list">
-      <div
-        class="application-card flex"
-        v-for="(app, index) in applications"
-        :key="index"
-        style="background: url('../assets/images/application-bg-1.png') no-repeat center center; background-size: cover"
-      >
+    <div
+      class="flex-center gap-12 application-list"
+      style="background: url('../assets/images/application-bg-1.png') no-repeat center center; background-size: cover"
+    >
+      <div class="application-card flex" v-for="(app, index) in applications" :key="index">
         <!-- 应用图标和标题 -->
         <div class="icon">
           <img :src="getIcon(app.icon)" width="64" />
@@ -99,6 +97,9 @@ const getIcon = (svgName: string) => {
   padding: 0 12px;
 }
 .application-card {
+  background: url('../assets/images/application-bg-1.png') no-repeat center center;
+  background-size: cover;
+
   width: calc(20% - 12px);
   height: 246px;
   padding: 20px;

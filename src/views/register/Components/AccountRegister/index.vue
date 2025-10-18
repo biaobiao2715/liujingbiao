@@ -196,8 +196,8 @@ const submitForm = async () => {
   try {
     await registerFormRef.value.validate();
     const temp = {
-      ...registerData.value,
-      ...registerForm
+      ...registerForm,
+      ...registerData.value
     };
     // 技术专家
     if (identity === 'expert') {

@@ -1,3 +1,11 @@
+<!-- 
+标题: legalExpertIndex.vue
+功能: 法务专家审核
+说明: 用于展示法务专家的列表和查询功能。
+开发信息: Create by 李刘超 2025-10-17 16:59:29
+当前版本: 1.0
+-->
+
 <template>
   <div class="p-2 legal-expert-page">
     <el-card shadow="hover">
@@ -37,7 +45,6 @@
         border
         :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
         style="width: 100%"
-        @selection-change="handleSelectionChange"
       >
         <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
@@ -48,7 +55,7 @@
         <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
         <el-table-column label="专家编码" min-width="140" align="center">
           <template #default="scope">
-            <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.expertNumber || '--' }}</el-link>
+            <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="contactPhone" label="联系电话" min-width="130" align="center" />
@@ -72,12 +79,11 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="toggleEnabled(scope.row)">{{
-              scope.row.startStopStatus === '0' ? '停用' : '启用'
-            }}</el-link>
-
-            <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleView(scope.row)">查看</el-link>
-            <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handelCheck(scope.row)">审核</el-link>
+            <div style="display: flex; justify-content: space-evenly; align-items: center">
+              <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')">查看</el-link>
+              <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
+              <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -90,34 +96,17 @@
         @pagination="handleQuery"
       />
     </el-card>
-
-    <!-- 详情占位弹窗 -->
-    <el-dialog v-model="detailVisible" title="专家详情" width="500px">
-      <div>
-        <p><b>姓名：</b>{{ detailData?.expertName }}</p>
-        <p><b>编号：</b>{{ detailData?.expertNumber }}</p>
-        <p><b>审核状态：</b>{{ detailData?.reviewStatus }}</p>
-        <p><b>入库状态：</b>{{ detailData?.storageStatus }}</p>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="detailVisible = false">确 定</el-button>
-          <el-button @click="detailVisible = false">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
-import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
 import { getLegalExpertList } from '@/api/platform/legalExpert';
-
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+import router from '@/router';
 
 const expertList = ref<LegalExpertList[]>([]);
-const loading = ref(true);
+const loading = ref(false);
 const total = ref(0);
 
 const queryFormRef = ref<ElFormInstance>();
@@ -132,17 +121,16 @@ const queryParams = ref<LegalExpertListRequest>({
   reviewStatus: ''
 });
 
-const ids = ref<Array<number | string>>([]);
-const detailVisible = ref(false);
-const detailData = ref<LegalExpertList | null>(null);
-
 const getList = () => {
   loading.value = true;
-  getLegalExpertList(queryParams.value).then((res) => {
-    expertList.value = res?.rows || [];
-    total.value = res.total || 0;
-    loading.value = false;
-  });
+  getLegalExpertList(queryParams.value)
+    .then((res) => {
+      expertList.value = res?.rows || [];
+      total.value = res.total || 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 // 搜索
@@ -163,29 +151,16 @@ const resetQuery = () => {
   handleQuery();
 };
 
-// 选择变化
-const handleSelectionChange = (selection: any[]) => {
-  ids.value = selection.map((item) => item.id);
-};
-
-const clearSelection = () => {
-  tableRef.value?.clearSelection();
-  ids.value = [];
-};
-
-// 操作占位
-const toggleEnabled = (row: LegalExpertList) => {
-  row.startStopStatus = row.startStopStatus === '0' ? '1' : '0';
-  proxy?.$modal.msgSuccess(row.startStopStatus === '0' ? '已停用' : '已启用');
-};
-
-const handleView = (row: LegalExpertList) => {
-  detailData.value = row;
-  detailVisible.value = true;
-};
-
-const handelCheck = (row: LegalExpertList) => {
-  proxy?.$modal.msgSuccess(`已触发审核`);
+// 操作
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
+  router.push({
+    path: '/platform/legal/audit/details',
+    query: {
+      id: row.id,
+      type
+    }
+  });
 };
 
 // 初始化
