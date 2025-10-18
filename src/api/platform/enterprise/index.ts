@@ -5,33 +5,25 @@
 import request from '@/utils/request';
 // 查询企业信息列表(关联租户)
 export function baseEnterpriseInfoList(query?: any) {
+  console.log(query);
   return request({
-    url: '/baseEnterpriseInfo/list',
+    url: '/system/baseEnterpriseInfo/list',
     method: 'get',
     params: query
   });
 }
 
-// 查询企业信息列表(无租户)
-export function baseEnterpriseInfoNoTenantList(query?: any) {
-  return request({
-    url: '/baseEnterpriseInfo/queryPageListByNoTenant',
-    method: 'get',
-    params: query
-  });
-}
 // 获取企业信息详细信息
-export function baseEnterpriseInfoId(query?: any) {
+export function baseEnterpriseInfoId(id?: string) {
   return request({
-    url: '/baseEnterpriseInfo/{id}',
-    method: 'get',
-    params: query
+    url: `/system/baseEnterpriseInfo/${id}`,
+    method: 'get'
   });
 }
 // 获取企业信息详细信息(无租户)
 export function baseEnterpriseInfoNoTenantListId(query?: any) {
   return request({
-    url: '/baseEnterpriseInfo/getInfoByNoTenant/{id}',
+    url: '/system/baseEnterpriseInfo/getInfoByNoTenant/{id}',
     method: 'get',
     params: query
   });
@@ -40,7 +32,7 @@ export function baseEnterpriseInfoNoTenantListId(query?: any) {
 // 导出企业信息列表
 export function baseEnterpriseInfoExport(data?: any) {
   return request({
-    url: '/baseEnterpriseInfo/export',
+    url: '/system/baseEnterpriseInfo/export',
     method: 'post',
     data: data
   });
@@ -49,7 +41,7 @@ export function baseEnterpriseInfoExport(data?: any) {
 // 新增企业信息
 export function baseEnterpriseInfoAdd(data?: any) {
   return request({
-    url: '/baseEnterpriseInfo',
+    url: '/system/baseEnterpriseInfo',
     method: 'post',
     data: data
   });
@@ -61,7 +53,7 @@ export function baseEnterpriseInfoAdd(data?: any) {
  */
 export const baseEnterpriseInfoUpdate = (data: any) => {
   return request({
-    url: '/baseEnterpriseInfo',
+    url: '/system/baseEnterpriseInfo',
     method: 'put',
     data: data
   });
@@ -73,7 +65,7 @@ export const baseEnterpriseInfoUpdate = (data: any) => {
  */
 export const enterpriseRegister = (data: any) => {
   return request({
-    url: '/baseEnterpriseInfo/enterpriseRegister',
+    url: '/system/baseEnterpriseInfo/enterpriseRegister',
     method: 'put',
     data: data
   });
@@ -85,7 +77,7 @@ export const enterpriseRegister = (data: any) => {
  */
 export const enterpriseEdit = (data: any) => {
   return request({
-    url: '/baseEnterpriseInfo/enterpriseEdit',
+    url: '/system/baseEnterpriseInfo/enterpriseEdit',
     method: 'put',
     data: data
   });
@@ -97,7 +89,7 @@ export const enterpriseEdit = (data: any) => {
  */
 export const enterpriseReview = (data: any) => {
   return request({
-    url: '/baseEnterpriseInfo/enterpriseReview',
+    url: '/system/baseEnterpriseInfo/enterpriseReview',
     method: 'put',
     data: data
   });
@@ -109,7 +101,7 @@ export const enterpriseReview = (data: any) => {
  */
 export const baseEnterpriseInfoDelete = (id: any) => {
   return request({
-    url: '/baseEnterpriseInfo/' + id,
+    url: '/system/baseEnterpriseInfo/' + id,
     method: 'delete'
   });
 };

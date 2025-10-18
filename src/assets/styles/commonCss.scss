@@ -1,12 +1,6 @@
 :root {
   --color-main: #108c58;
   --el-color-primary: var(--color-main) !important;
-
-  .el-button:hover {
-    background-color: #b8d6cb5e !important;
-    border-color: var(--color-main) !important;
-  }
-
   .el-button--primary:hover {
     background-color: #0f7a4f !important;
     border-color: var(--color-main) !important;

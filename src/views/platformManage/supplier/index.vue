@@ -10,20 +10,31 @@
     <!-- 搜索条件 -->
     <el-form :model="searchForm" inline :label-width="130">
       <el-form-item label="供应商编号">
-        <el-input v-model="searchForm.supplierCode" placeholder="请输入供应商编号" />
+        <el-input v-model="searchForm.enterpriseNumber" placeholder="请输入供应商编号" clearable />
       </el-form-item>
       <el-form-item label="供应商名称">
-        <el-input v-model="searchForm.supplierName" placeholder="请输入供应商名称" />
+        <el-input v-model="searchForm.companyName" placeholder="请输入供应商名称" clearable />
       </el-form-item>
       <el-form-item label="统一社会信用代码">
-        <el-input v-model="searchForm.creditCode" placeholder="请输入统一社会信用代码" />
+        <el-input v-model="searchForm.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">
-        <el-select v-model="searchForm.auditStatus" placeholder="请选择">
-          <el-option label="待审核" value="待审核" />
-          <el-option label="审核通过" value="审核通过" />
-          <el-option label="审核退回" value="审核退回" />
+        <el-select v-model="searchForm.reviewStatus" placeholder="请选择" clearable>
+          <el-option label="待审核" value="0" />
+          <el-option label="审核通过" value="1" />
+          <el-option label="审核退回" value="99" />
         </el-select>
+      </el-form-item>
+      <!-- 审核通过时间 -->
+      <el-form-item label="审核通过时间">
+        <el-date-picker
+          v-model="searchForm.reviewTime"
+          type="daterange"
+          value-format="yyyy-MM-dd"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -32,28 +43,50 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border style="width: 100%">
+    <el-table :data="tableData" border style="width: 100%" v-loading="loading">
       <el-table-column prop="index" label="序号" width="60"></el-table-column>
-      <el-table-column prop="supplierName" label="供应商名称"></el-table-column>
-      <el-table-column prop="supplierCode" label="供应商编号">
+      <el-table-column prop="companyName" label="供应商名称"></el-table-column>
+      <el-table-column prop="enterpriseNumber" label="供应商编号">
         <template #default="scope">
-          <router-link :to="`/platform/supplier/audit/details?id=${scope.row.id}&type=view`" style="color: var(--el-color-primary)">{{
-            scope.row.supplierCode
+          <router-link :to="`/platform/supplier/details?id=${scope.row.id}&type=view`" style="color: var(--el-color-primary)">{{
+            scope.row.enterpriseNumber
           }}</router-link>
         </template>
       </el-table-column>
-      <el-table-column prop="creditCode" label="统一社会信用代码"></el-table-column>
-      <el-table-column prop="resourceLevel" label="资质等级"></el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级"></el-table-column>
-      <el-table-column prop="auditStatus" label="审核状态"></el-table-column>
-      <el-table-column prop="applyTime" label="申请时间"></el-table-column>
-      <el-table-column prop="auditor" label="审核人"></el-table-column>
+      <el-table-column prop="licenseNumber" label="统一社会信用代码"></el-table-column>
+      <el-table-column prop="credentialLevel" label="资质等级">
+        <template #default="scope">
+          {{ scope.row.credentialLevel === '0' ? '一级认证' : scope.row.credentialLevel === '1' ? '二级认证' : '三级认证' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="creditLevel" label="信用等级">
+        <template #default="scope">
+          {{
+            scope.row.creditLevel === '0'
+              ? '优秀'
+              : scope.row.creditLevel === '1'
+                ? '良好'
+                : scope.row.creditLevel === '2'
+                  ? '一般'
+                  : scope.row.creditLevel === '3'
+                    ? '一般以下'
+                    : '较差'
+          }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="reviewStatus" label="审核状态">
+        <template #default="scope">
+          {{ scope.row.reviewStatus === '0' ? '待审核' : scope.row.reviewStatus === '1' ? '审核通过' : '审核退回' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="signUpTime" label="申请时间"></el-table-column>
+      <el-table-column prop="reviewBy" label="审核人"></el-table-column>
       <el-table-column label="操作" width="260">
         <template #default="scope">
           <div class="flex-center-center operation-btns">
             <el-button type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
             <el-button type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-            <el-button type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+            <el-button type="primary" @click="handleEdit(scope.row, 'audit')" v-if="scope.row.reviewStatus === '0'">审核</el-button>
           </div>
         </template>
       </el-table-column>
@@ -75,67 +108,82 @@
 <script setup lang="ts">
 import router from '@/router';
 import { ref } from 'vue';
+import { baseEnterpriseInfoList } from '@/api/platform/enterprise';
 
 // 搜索表单数据
 const searchForm = ref({
-  supplierCode: '',
-  supplierName: '',
-  creditCode: '',
-  auditStatus: ''
+  enterpriseNumber: '',
+  companyName: '',
+  licenseNumber: '',
+  reviewStatus: '',
+  reviewTime: []
 });
 
 // 表格数据
-const tableData = ref([
-  // 示例数据
-  {
-    index: 1,
-    supplierName: 'XXXX有限公司',
-    supplierCode: 'GYS20250930001',
-    creditCode: 'A13205830518507857',
-    resourceLevel: '一级认证',
-    creditLevel: '极佳',
-    auditStatus: '待审核',
-    applyTime: '2025-06-17 16:10:56',
-    auditor: '张三'
-  }
-  // ...更多数据...
-]);
+const tableData = ref([]);
 
 // 分页数据
 const queryParams = ref({
-  total: 100,
+  total: 0,
   pageSize: 10,
   pageNum: 1
+});
+
+// 表格加载状态
+const loading = ref(false);
+
+onMounted(() => {
+  getListData();
 });
 
 // 查询按钮事件
 const handleSearch = () => {
   console.log('查询表单数据:', searchForm.value);
-  // TODO: 调用接口获取数据
+  queryParams.value.pageNum = 1;
+  getListData();
 };
 
 // 重置按钮事件
 const handleReset = () => {
   searchForm.value = {
-    supplierCode: '',
-    supplierName: '',
-    creditCode: '',
-    auditStatus: ''
+    enterpriseNumber: '',
+    companyName: '',
+    licenseNumber: '',
+    reviewStatus: '',
+    reviewTime: []
   };
+  getListData();
 };
 
 // 分页切换事件
-const handlePageChange = (page: number) => {
+const handlePageChange = async (page: number) => {
   queryParams.value.pageNum = page;
-  // TODO: 调用接口获取数据
+  getListData();
+};
+
+// 获取列表数据
+const getListData = async () => {
+  loading.value = true; // 开始加载
+  try {
+    const res = await baseEnterpriseInfoList({
+      ...searchForm.value,
+      enterpriseType: 1,
+      pageNum: queryParams.value.pageNum,
+      pageSize: queryParams.value.pageSize
+    });
+    tableData.value = res.rows || [];
+    queryParams.value.total = res.total || 0;
+  } catch (error) {
+    console.error('获取列表数据失败:', error);
+  } finally {
+    loading.value = false; // 加载结束
+  }
 };
 
 // 编辑按钮事件
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  console.log('编辑:', row, type);
-  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({
-    path: '/platform/supplier/audit/details',
+    path: '/platform/supplier/details',
     query: {
       id: row.id,
       type

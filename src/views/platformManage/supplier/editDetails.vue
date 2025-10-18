@@ -6,263 +6,366 @@
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
-  <div :class="['supplier-edit-details', 'detail-form']">
-    <!-- 基础信息 -->
-    <el-form :model="formData.supplierInfo" label-width="140px" :disabled="true">
-      <FormHeader title="供应商基础信息" />
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="供应商编码">
-            <el-input v-model="formData.supplierInfo.code" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="审核状态">
-            <el-input v-model="formData.supplierInfo.auditStatus" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="供应商名称">
-            <el-input v-model="formData.supplierInfo.name" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="社会统一信用代码">
-            <el-input v-model="formData.supplierInfo.creditCode" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册资本">
-            <el-input v-model="formData.supplierInfo.registeredCapital"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册日期">
-            <el-input v-model="formData.supplierInfo.registrationDate" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册地址">
-            <el-input v-model="formData.supplierInfo.registrationAddress"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="营业执照">
-            <img :src="formData.supplierInfo.license" width="200" />
-            <!-- <imageUpload v-model="formData.supplierInfo.license" /> -->
-          </el-form-item>
-        </el-col>
+  <div v-loading="loading">
+    <div :class="['supplier-edit-details', 'detail-form']">
+      <!-- 基础信息 -->
+      <el-form :model="formData" label-width="140px" :disabled="true">
+        <FormHeader title="供应商基础信息" />
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="企业编号">
+              <el-input v-model="formData.enterpriseNumber" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="企业类型">
+              <el-input v-model="formData.enterpriseType" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="企业名称">
+              <el-input v-model="formData.companyName" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="统一社会信用代码">
+              <el-input v-model="formData.licenseNumber" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册资本">
+              <el-input v-model="formData.signUpCapital"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册日期">
+              <el-input v-model="formData.signUpTime" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册地址">
+              <el-input v-model="formData.signUpAddress"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="办公地址">
+              <el-input v-model="formData.officeAddress"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="经营范围">
+              <el-input v-model="formData.businessScope" type="textarea"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-col :span="12">
-          <el-form-item label="办公地址">
-            <el-input v-model="formData.supplierInfo.officeAddress"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="企业经营范围">
-            <el-input v-model="formData.supplierInfo.businessScope" type="textarea"></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
+        <!-- 法人信息 -->
+        <FormHeader title="法人信息" />
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="法人姓名">
+              <el-input v-model="formData.legalPerson.contactUserName"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="证件号码">
+              <el-input v-model="formData.legalPerson.contactIdCard"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="证件类型">
+              <el-input v-model="formData.legalPerson.contactUserType"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话">
+              <el-input v-model="formData.legalPerson.contactPhone"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-      <!-- 法人信息 -->
-      <FormHeader title="法人信息" />
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="法人姓名">
-            <el-input v-model="formData.legalPerson.name"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="证件号码">
-            <el-input v-model="formData.legalPerson.idNumber"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="证件类型">
-            <el-input v-model="formData.legalPerson.idType"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="联系电话">
-            <el-input v-model="formData.legalPerson.phone"></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
+        <!-- 联系人信息 -->
+        <FormHeader title="联系人信息" />
+        <el-row :gutter="20" v-for="(contact, index) in formData.contacts || []" :key="index">
+          <el-col :span="12">
+            <el-form-item :label="'联系人' + (index + 1)">
+              <el-input v-model="contact.contactUserName"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话">
+              <el-input v-model="contact.contactPhone"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-      <!-- 联系人信息 -->
-      <FormHeader title="联系人信息" />
-      <el-row :gutter="20" v-for="(contact, index) in formData.contacts" :key="index">
-        <el-col :span="12">
-          <el-form-item :label="'联系人' + (index + 1)">
-            <el-input v-model="contact.name"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="联系电话">
-            <el-input v-model="contact.phone"></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <!-- 账户信息 -->
-      <FormHeader title="账户信息" />
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="账户名">
-            <el-input v-model="formData.accountInfo.accountName"></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册手机号">
-            <el-input v-model="formData.accountInfo.phoneNumber"></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-form>
-  </div>
-
-  <div :class="['supplier-edit-details', operateMode === 'view' ? 'detail-form' : '']">
-    <!-- 供应商信息 -->
-    <el-form :model="formData.supplierRating" label-width="140px" :disabled="operateMode === 'view'">
-      <FormHeader title="供应商信息" />
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="资质等级">
-            <el-select v-model="formData.supplierRating.qualificationLevel">
-              <el-option label="一级认证" value="一级认证"></el-option>
-              <el-option label="二级认证" value="二级认证"></el-option>
-              <el-option label="三级认证" value="三级认证"></el-option>
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="信用等级">
-            <el-select v-model="formData.supplierRating.creditLevel">
-              <el-option label="优秀" value="优秀"></el-option>
-              <el-option label="良好" value="良好"></el-option>
-              <el-option label="差" value="差"></el-option>
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-form>
-
-    <!-- 资料清单 -->
-    <el-form :model="formData.attachments" label-width="140px">
-      <FormHeader title="资料清单" />
-      <el-table :data="formData.attachments" border>
-        <el-table-column prop="index" label="序号" width="100"></el-table-column>
-        <el-table-column prop="name" label="附件名"></el-table-column>
-        <el-table-column prop="remark" label="备注"></el-table-column>
-        <el-table-column label="操作">
-          <template #default="scope">
-            <el-button type="primary" @click="previewAttachment(scope.row)">预览</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-form>
-
-    <!-- 审核意见 -->
-    <el-form :model="formData.auditOpinion" label-width="140px" :disabled="operateMode === 'view'" v-if="operateMode !== 'edit'">
-      <FormHeader title="审核意见" />
-      <el-form-item label="审核意见">
-        <el-input v-model="formData.auditOpinion.content" type="textarea" maxlength="200" :rows="3"></el-input>
-      </el-form-item>
-    </el-form>
-
-    <!-- 操作日志 -->
-    <el-form label-width="140px" v-if="operateMode === 'view'">
-      <FormHeader title="操作日志" />
-      <el-table :data="formData.operationLogs" border>
-        <el-table-column prop="operation" label="操作" width="200"></el-table-column>
-        <el-table-column prop="operator" label="操作人" width="200"></el-table-column>
-        <el-table-column prop="operationTime" label="操作时间" width="200"></el-table-column>
-        <el-table-column prop="description" label="操作说明"></el-table-column>
-      </el-table>
-    </el-form>
-
-    <!-- 操作按钮 -->
-    <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
-      <el-button type="danger" @click="saveChanges">审核退回</el-button>
-      <el-button type="success" @click="cancelEdit">审核通过</el-button>
+        <!-- 账户信息 -->
+        <FormHeader title="账户信息" />
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="账户名">
+              <el-input v-model="formData.accountName"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="注册手机号">
+              <el-input v-model="formData.phoneNumber"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
     </div>
-    <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-      <el-button type="primary" @click="enterEditMode">保存</el-button>
+
+    <div :class="['supplier-edit-details', operateMode === 'view' ? 'detail-form' : '']">
+      <!-- 供应商信息 -->
+      <el-form :model="formData" label-width="140px" :disabled="operateMode === 'view'">
+        <FormHeader title="供应商信息" />
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="资质等级">
+              <el-select v-model="formData.credentialLevel">
+                <el-option label="一级认证" value="0"></el-option>
+                <el-option label="二级认证" value="1"></el-option>
+                <el-option label="三级认证" value="2"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="信用等级">
+              <el-select v-model="formData.creditLevel">
+                <el-option label="优秀" value="0"></el-option>
+                <el-option label="良好" value="1"></el-option>
+                <el-option label="一般" value="2"></el-option>
+                <el-option label="一般一下" value="3"></el-option>
+                <el-option label="差" value="99"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+
+      <!-- 资料清单 -->
+      <el-form :model="formData" label-width="140px">
+        <FormHeader title="资料清单" />
+        <el-table :data="formData.folders" border>
+          <el-table-column prop="index" label="序号" width="100"></el-table-column>
+          <el-table-column prop="originalName" label="附件名">
+            <template #default="scope">
+              {{ scope.row.ossInfo?.originalName }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="remark" label="备注"></el-table-column>
+          <el-table-column label="操作">
+            <template #default="scope">
+              <el-button type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">预览</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-form>
+
+      <!-- 审核意见 -->
+      <el-form :model="formData" label-width="140px" :disabled="operateMode === 'view'" v-if="operateMode !== 'edit'">
+        <FormHeader title="审核意见" />
+        <el-form-item label="审核意见">
+          <el-input v-model="formData.reviewRemark" type="textarea" maxlength="200" :rows="3"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <!-- 操作按钮 -->
+      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
+        <el-button type="danger" @click="handleAudit(99)">审核退回</el-button>
+        <el-button type="success" @click="handleAudit(1)">审核通过</el-button>
+      </div>
+      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
+        <el-button type="primary" @click="handleSave">保存</el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import FormHeader from '@/components/FormHeader/index.vue';
-
-// 获取router路由参数
 import { useRoute } from 'vue-router';
+import { enterpriseEdit, enterpriseReview, baseEnterpriseInfoId } from '@/api/platform/enterprise';
+
+// 定义接口返回数据的类型
+interface SupplierDetails {
+  id?: number;
+  enterpriseNumber?: string;
+  enterpriseType?: string;
+  companyName?: string;
+  licenseNumber?: string;
+  signUpTime?: string;
+  officeAddress?: string;
+  signUpAddress?: string;
+  signUpCapital?: string;
+  businessScope?: string;
+  companyIntro?: string;
+  companyDomain?: string;
+  loginUserName?: string;
+  phoneNumber?: string;
+  password?: string;
+  credentialLevel?: string;
+  creditLevel?: string;
+  userId?: number;
+  remark?: string;
+  reviewStatus?: string;
+  reviewRemark?: string;
+  reviewTime?: string;
+  reviewBy?: number;
+  accountName?: string;
+  contacts: Array<{
+    contactUserType?: string;
+    contactUserName?: string;
+    contactPhone?: string;
+    contactIdCard?: string;
+  }>;
+  folders?: Array<{
+    id?: number;
+    name?: string;
+    fileType?: string;
+    ossId?: number;
+    remark?: string;
+    ossInfo?: {
+      ossId?: number;
+      fileName?: string;
+      originalName?: string;
+      url?: string;
+    };
+  }>;
+  legalPerson?: {
+    contactUserType?: string;
+    contactUserName?: string;
+    contactPhone?: string;
+    contactIdCard?: string;
+  };
+}
 
 const route = useRoute();
 const { id, type } = route.query;
 
 const operateMode = ref(type);
+const loading = ref(false);
 
-const formData = ref({
-  supplierInfo: {
-    code: 'GYS202509300001',
-    auditStatus: '待审核',
-    name: '史丹利复合肥有限公司',
-    creditCode: 'B1440300C604861117',
-    registeredCapital: '100000万',
-    registrationDate: '2025年9月30日',
-    registrationAddress: '浙江省台州市玉环市',
-    officeAddress: '浙江省台州市玉环市',
-    license: 'xxxxxx',
-    businessScope: '农资店的经营范围包括农药原药、化肥、种子等'
-  },
+const formData = ref<SupplierDetails>({
+  id: undefined,
+  enterpriseNumber: '',
+  enterpriseType: '',
+  companyName: '',
+  licenseNumber: '',
+  signUpTime: '',
+  officeAddress: '',
+  signUpAddress: '',
+  signUpCapital: '',
+  businessScope: '',
+  companyIntro: '',
+  companyDomain: '',
+  loginUserName: '',
+  phoneNumber: '',
+  password: '',
+  credentialLevel: '',
+  creditLevel: '',
+  userId: undefined,
+  remark: '',
+  reviewStatus: '',
+  reviewRemark: '',
+  reviewTime: '',
+  reviewBy: undefined,
+  accountName: '',
+  contacts: [],
+  folders: [],
   legalPerson: {
-    name: '胡杰',
-    idNumber: '04010419900311375X',
-    idType: '身份证',
-    phone: '16274728649'
-  },
-  contacts: [
-    { name: '张三', phone: '15629657690' },
-    { name: '李四', phone: '15629657691' }
-  ],
-  accountInfo: {
-    accountName: 'xxxxxxxxxx',
-    phoneNumber: 'xxxxxxxxxx'
-  },
-  supplierRating: {
-    qualificationLevel: '一级认证',
-    creditLevel: '优秀'
-  },
-  attachments: [
-    { index: 1, name: 'xxx', remark: '许可证' },
-    { index: 2, name: 'xxx', remark: '许可证' }
-  ],
-  auditOpinion: {
-    content: ''
-  },
-  operationLogs: [
-    { operation: '创建', operator: '张三', operationTime: '2025-10-01 10:00:00', description: '创建供应商' },
-    { operation: '修改', operator: '李四', operationTime: '2025-10-02 12:00:00', description: '修改供应商信息' }
-  ]
+    contactUserType: '',
+    contactUserName: '',
+    contactPhone: '',
+    contactIdCard: ''
+  }
 });
 
-const enterEditMode = () => {
-  console.log('进入编辑模式');
+onMounted(() => {
+  getSupplierDetails();
+});
+
+const getSupplierDetails = async () => {
+  if (id) {
+    loading.value = true;
+    try {
+      const response = await baseEnterpriseInfoId(id as string);
+      formData.value = response.data;
+      // 法人信息 只用来回显
+      formData.value.legalPerson = { ...response.data.contacts.find((contact) => contact.contactUserType === '1') };
+      formData.value.legalPerson.contactUserType = '身份证';
+
+      // 防止为null的报错
+      formData.value.credentialLevel = formData.value.credentialLevel || '';
+      formData.value.creditLevel = formData.value.creditLevel || '';
+    } catch (error) {
+      console.error('获取供应商详情失败', error);
+    } finally {
+      loading.value = false;
+    }
+  }
 };
 
-const saveChanges = () => {
-  console.log('保存修改', formData.value);
+// 保存按钮事件 和详情接口返回的的数据结构略有区别
+const handleSave = async () => {
+  try {
+    loading.value = true;
+    const response = await enterpriseEdit({
+      enterpriseInfo: {
+        ...formData.value,
+        contacts: undefined,
+        folders: undefined,
+        legalPerson: formData.value.legalPerson?.contactUserName || ''
+      },
+      contacts: formData.value.contacts,
+      folder: formData.value.folders
+    });
+    if (response.code === 200) {
+      ElMessage.success('保存成功');
+    }
+  } catch (error) {
+    console.error('保存失败', error);
+  } finally {
+    loading.value = false;
+  }
 };
 
-const cancelEdit = () => {
-  console.log('取消编辑');
+const handleAudit = async (status: number) => {
+  try {
+    loading.value = true;
+    const res = await enterpriseReview({
+      enterpriseInfo: {
+        ...formData.value,
+        contacts: undefined,
+        folders: undefined,
+        reviewStatus: status,
+        legalPerson: formData.value.legalPerson?.contactUserName || ''
+      },
+      contacts: formData.value.contacts,
+      folder: formData.value.folders
+    });
+    if (res.code === 200) {
+      ElMessage.success('审核成功');
+      operateMode.value = 'view';
+    }
+  } catch (error) {
+    ElMessage.error('审核失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const previewAttachment = (attachment) => {
+const previewAttachment = (attachment: any) => {
   console.log('预览附件', attachment);
+  // 用element组件预览图片
+  if (attachment) {
+    // ElImagePreview({
+    //   urls: [attachment],
+    //   visible: true
+    // });
+  }
 };
 </script>
 
