@@ -44,7 +44,7 @@
 
     <!-- 表格展示 -->
     <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
-      <el-table-column prop="index" label="序号" width="60"></el-table-column>
+      <el-table-column type="index" label="序号" width="60"></el-table-column>
       <el-table-column prop="companyName" label="供应商名称"></el-table-column>
       <el-table-column prop="enterpriseNumber" label="供应商编号">
         <template #default="scope">
@@ -74,6 +74,7 @@
           {{ scope.row.formattedSignUpTime }}
         </template>
       </el-table-column>
+      <el-table-column prop="reviewTime" label="审核时间" width="120"> </el-table-column>
       <el-table-column prop="reviewBy" label="审核人"></el-table-column>
       <el-table-column label="操作" width="260">
         <template #default="scope">
