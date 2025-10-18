@@ -17,7 +17,7 @@
         <!-- 账号密码登录 -->
         <el-tab-pane label="账号密码登录" name="account">
           <div class="form-item">
-            <el-input v-model="accountForm.username" placeholder="账号" size="large" :prefix-icon="UserFilled" />
+            <el-input v-model="accountForm.username" type="text" placeholder="账号" size="large" :prefix-icon="UserFilled" />
           </div>
           <div class="form-item">
             <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" :prefix-icon="Lock" />
