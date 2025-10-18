@@ -45,7 +45,6 @@
         border
         :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
         style="width: 100%"
-        @selection-change="handleSelectionChange"
       >
         <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
@@ -56,7 +55,7 @@
         <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
         <el-table-column label="专家编码" min-width="140" align="center">
           <template #default="scope">
-            <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.expertNumber || '--' }}</el-link>
+            <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="contactPhone" label="联系电话" min-width="130" align="center" />
@@ -97,35 +96,17 @@
         @pagination="handleQuery"
       />
     </el-card>
-
-    <!-- 详情占位弹窗 -->
-    <el-dialog v-model="detailVisible" title="专家详情" width="500px">
-      <div>
-        <p><b>姓名：</b>{{ detailData?.expertName }}</p>
-        <p><b>编号：</b>{{ detailData?.expertNumber }}</p>
-        <p><b>审核状态：</b>{{ detailData?.reviewStatus }}</p>
-        <p><b>入库状态：</b>{{ detailData?.storageStatus }}</p>
-      </div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="detailVisible = false">确 定</el-button>
-          <el-button @click="detailVisible = false">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
-import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
 import { getLegalExpertList } from '@/api/platform/legalExpert';
 import router from '@/router';
 
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
 const expertList = ref<LegalExpertList[]>([]);
-const loading = ref(true);
+const loading = ref(false);
 const total = ref(0);
 
 const queryFormRef = ref<ElFormInstance>();
@@ -140,17 +121,16 @@ const queryParams = ref<LegalExpertListRequest>({
   reviewStatus: ''
 });
 
-const ids = ref<Array<number | string>>([]);
-const detailVisible = ref(false);
-const detailData = ref<LegalExpertList | null>(null);
-
 const getList = () => {
   loading.value = true;
-  getLegalExpertList(queryParams.value).then((res) => {
-    expertList.value = res?.rows || [];
-    total.value = res.total || 0;
-    loading.value = false;
-  });
+  getLegalExpertList(queryParams.value)
+    .then((res) => {
+      expertList.value = res?.rows || [];
+      total.value = res.total || 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 // 搜索
@@ -171,11 +151,6 @@ const resetQuery = () => {
   handleQuery();
 };
 
-// 选择变化
-const handleSelectionChange = (selection: any[]) => {
-  ids.value = selection.map((item) => item.id);
-};
-
 // 操作
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
@@ -186,11 +161,6 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
       type
     }
   });
-};
-
-const handleView = (row: LegalExpertList) => {
-  detailData.value = row;
-  detailVisible.value = true;
 };
 
 // 初始化

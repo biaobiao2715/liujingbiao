@@ -23,13 +23,7 @@
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
-              <el-option label="全部" :value="''" />
-              <el-option label="待审核" value="0" />
-              <el-option label="审核通过" value="1" />
-              <el-option label="分配账号" value="2" />
-              <el-option label="分配权限" value="3" />
-              <el-option label="入驻成功" value="4" />
-              <el-option label="入驻失败" value="99" />
+              <el-option v-for="(label, value) in reviewStatusMap" :key="value" :label="label" :value="value" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -45,9 +39,7 @@
         border
         :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
         style="width: 100%"
-        @selection-change="handleSelectionChange"
       >
-        <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
           <template #default="scope">
             <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
@@ -56,19 +48,14 @@
         <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
         <el-table-column label="专家编码" min-width="140" align="center">
           <template #default="scope">
-            <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.expertNumber || '--' }}</el-link>
+            <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="contactPhone" label="联系电话" min-width="130" align="center" />
         <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
-        <el-table-column label="审核状态" min-width="120" align="center" prop="auditStatus">
+        <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
           <template #default="scope">
-            <span v-if="scope.row.auditStatus === '0'">待审核</span>
-            <span v-else-if="scope.row.auditStatus === '1'">审核通过</span>
-            <span v-else-if="scope.row.auditStatus === '2'">分配账号</span>
-            <span v-else-if="scope.row.auditStatus === '3'">分配权限</span>
-            <span v-else-if="scope.row.auditStatus === '4'">入驻成功</span>
-            <span v-else>入驻失败</span>
+            {{ reviewStatusMap[scope.row.reviewStatus] || '未知' }}
           </template>
         </el-table-column>
         <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
@@ -80,10 +67,9 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="toggleEnabled(scope.row)">{{
-              scope.row.startStopStatus === '0' ? '停用' : '启用'
+            <el-link type="primary" v-if="scope.row.reviewStatus === '1'" @click="open(scope.row)">{{
+              scope.row.startStopStatus === '1' ? '停用' : '启用'
             }}</el-link>
-
             <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')"
               >查看</el-link
             >
@@ -104,33 +90,35 @@
     </el-card>
 
     <!-- 详情占位弹窗 -->
-    <el-dialog v-model="detailVisible" title="专家详情" width="500px">
-      <div>
-        <p><b>姓名：</b>{{ detailData?.expertName }}</p>
-        <p><b>编号：</b>{{ detailData?.expertNumber }}</p>
-        <p><b>审核状态：</b>{{ detailData?.reviewStatus }}</p>
-        <p><b>入库状态：</b>{{ detailData?.storageStatus }}</p>
-      </div>
+    <el-dialog v-model="dialogVisible" width="30%">
+      <template #header>
+        <span>{{ startStopStatusMessage }}</span>
+      </template>
+      <div>{{ dialogMessage.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="detailVisible = false">确 定</el-button>
-          <el-button @click="detailVisible = false">取 消</el-button>
-        </div>
+        <el-button @click="close">取消</el-button>
+        <el-button type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定 </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
-import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
+import { ComponentInternalInstance, getCurrentInstance, ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
 import { getLegalExpertList, legalUpdateOrSaveData } from '@/api/platform/legalExpert';
 import router from '@/router';
+import { reviewStatusMap } from '@/api/platform/legalExpert';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
+// 弹窗相关
+const dialogVisible = ref(false);
+const dialogMessage = ref<LegalExpertList>({} as LegalExpertList);
+const startStopStatusMessage = computed(() => (dialogMessage.value.startStopStatus === '1' ? '停用' : '启用'));
+
 const expertList = ref<LegalExpertList[]>([]);
-const loading = ref(true);
+const loading = ref(false);
 const total = ref(0);
 
 const queryFormRef = ref<ElFormInstance>();
@@ -145,17 +133,16 @@ const queryParams = ref<LegalExpertListRequest>({
   reviewStatus: ''
 });
 
-const ids = ref<Array<number | string>>([]);
-const detailVisible = ref(false);
-const detailData = ref<LegalExpertList | null>(null);
-
 const getList = () => {
   loading.value = true;
-  getLegalExpertList(queryParams.value).then((res) => {
-    expertList.value = res?.rows || [];
-    total.value = res.total || 0;
-    loading.value = false;
-  });
+  getLegalExpertList(queryParams.value)
+    .then((res) => {
+      expertList.value = res?.rows || [];
+      total.value = res.total || 0;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 // 搜索
@@ -176,11 +163,6 @@ const resetQuery = () => {
   handleQuery();
 };
 
-// 选择变化
-const handleSelectionChange = (selection: any[]) => {
-  ids.value = selection.map((item) => item.id);
-};
-
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   router.push({
     path: '/platform/legal/audit/details',
@@ -191,35 +173,34 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   });
 };
 const loadingStatus = ref(false);
-// 操作占位
-const toggleEnabled = async (row: LegalExpertList) => {
-  if (loadingStatus.value || !row.id) return;
+// 弹窗点击确定
+const toggleEnabled = async (message: LegalExpertList) => {
+  if (loadingStatus.value || !message.id) return;
   loadingStatus.value = true;
   // 停用：0 -> 1
   // 启用：1 -> 0
   // 是否启用
-  const isEnabled = row.startStopStatus === '1';
+  const isEnabled = message.startStopStatus === '1';
   const res = await legalUpdateOrSaveData({
     optType: isEnabled ? '5' : '4',
-    hnBaseTechExpertInfoBo: {
-      id: row.id
+    hnBaseLegalExpertInfoBo: {
+      id: message.id
     }
   }).finally(() => {
     loadingStatus.value = false;
+    close();
   });
-  if (res.data) {
-    row.startStopStatus = isEnabled ? '0' : '1';
+  if (res.code === 200) {
+    message.startStopStatus = isEnabled ? '0' : '1';
     proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
   }
 };
-
-const handleView = (row: LegalExpertList) => {
-  detailData.value = row;
-  detailVisible.value = true;
+const open = (row: LegalExpertList) => {
+  dialogMessage.value = row;
+  dialogVisible.value = true;
 };
-
-const handelCheck = (row: LegalExpertList) => {
-  proxy?.$modal.msgSuccess(`已触发审核`);
+const close = () => {
+  dialogVisible.value = false;
 };
 
 // 初始化

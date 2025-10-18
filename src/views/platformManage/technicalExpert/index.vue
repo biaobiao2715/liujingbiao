@@ -108,10 +108,7 @@ const list = ref<TechnicalExpertList[]>([]);
 const total = ref(0);
 const tableRef = ref();
 const queryFormRef = ref();
-
-// 详情弹窗
-const detailVisible = ref(false);
-const detailData = ref<TechnicalExpertList | null>(null);
+const loading = ref(false);
 
 const reviewStatusMap = {
   '0': '待审核',
@@ -122,12 +119,17 @@ const reviewStatusMap = {
   '99': '入驻失败'
 };
 const getList = () => {
-  getTechnicalExpertList(queryParams).then((res) => {
-    if (res.code === 200) {
-      list.value = res.rows || [];
-      total.value = res.total || 0;
-    }
-  });
+  loading.value = true;
+  getTechnicalExpertList(queryParams)
+    .then((res) => {
+      if (res.code === 200) {
+        list.value = res.rows || [];
+        total.value = res.total || 0;
+      }
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 // 查询

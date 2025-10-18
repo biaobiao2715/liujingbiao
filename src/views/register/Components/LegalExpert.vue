@@ -104,7 +104,7 @@
             </el-form-item>
 
             <el-form-item label="发证日期:" prop="issueDate" required>
-              <el-date-picker v-model="formData.issueDate" type="date" value-format="yyyy-MM-DD" placeholder="选择日期" style="width: 100%" />
+              <el-date-picker v-model="formData.issueDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
             </el-form-item>
 
             <el-form-item label="联系电话:" prop="contactPhone" required>
@@ -288,7 +288,22 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   // 技术资格证号
   technicalQualification: [{ required: true, message: '请输入技术资格证号', trigger: 'blur' }],
   // 联系电话
-  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  contactPhone: [
+    {
+      required: true,
+      message: '请输入联系电话',
+      trigger: 'blur',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请输入联系电话'));
+        } else if (!/^1[3456789]\d{9}$/.test(value)) {
+          callback(new Error('请输入正确的联系电话'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
   // 执业机构
   practiceInstitution: [{ required: true, message: '请输入执业机构', trigger: 'blur' }],
   // 执业证号

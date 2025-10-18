@@ -11,6 +11,15 @@ import { LegalExpertList, LegalExpertListRequest } from './types';
 import { IPublicResult } from '@/api/types';
 import { AxiosPromise } from 'axios';
 
+export const reviewStatusMap = {
+  '0': '待审核',
+  '1': '审核通过',
+  '2': '分配账号',
+  '3': '分配权限',
+  '4': '入驻成功',
+  '99': '入驻失败'
+};
+
 export const getLegalExpertList = (query?: LegalExpertListRequest): Promise<IPublicResult<LegalExpertList>> => {
   return request({
     url: '/system/baseLegalExpertInfo/list',
@@ -29,7 +38,7 @@ interface TechUpdateOrSaveDataRequest {
    * 5：停用
    */
   optType: '1' | '2' | '3' | '4' | '5';
-  hnBaseTechExpertInfoBo?: {
+  hnBaseLegalExpertInfoBo?: {
     expertName?: string;
     sex?: '0' | '1';
     birthDate?: string;
