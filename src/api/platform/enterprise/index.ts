@@ -5,6 +5,7 @@
 import request from '@/utils/request';
 // 查询企业信息列表(关联租户)
 export function baseEnterpriseInfoList(query?: any) {
+  console.log(query);
   return request({
     url: '/system/baseEnterpriseInfo/list',
     method: 'get',
@@ -13,11 +14,18 @@ export function baseEnterpriseInfoList(query?: any) {
 }
 
 // 获取企业信息详细信息
-export function baseEnterpriseInfoId(query?: any) {
+export function baseEnterpriseInfoId(id?: string) {
   return request({
-    url: '/system/baseEnterpriseInfo/' + query,
+    url: `/system/baseEnterpriseInfo/${id}`,
     method: 'get'
-    // params: query
+  });
+}
+// 获取企业信息详细信息(无租户)
+export function baseEnterpriseInfoNoTenantListId(query?: any) {
+  return request({
+    url: '/system/baseEnterpriseInfo/getInfoByNoTenant/{id}',
+    method: 'get',
+    params: query
   });
 }
 

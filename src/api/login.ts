@@ -115,7 +115,7 @@ export function getTenantList(isToken: boolean): AxiosPromise<TenantInfo> {
 // 忘记密码
 export function forgotPwd(data: any) {
   return request({
-    url: '/user/forgotPwd',
+    url: '/system/user/forgotPwd',
     // headers: {
     //   isToken: false,
     //   isEncrypt: true,
