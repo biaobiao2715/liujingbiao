@@ -41,7 +41,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { forgotPwd } from '@/api/login';
+import { ElMessage } from 'element-plus';
+import { sendSmsCode } from '@/api/register/accountRegiser';
 
+import router from '@/router';
 // 定义表单字段及其错误提示
 const phone = ref('');
 const code = ref('');
@@ -52,6 +56,7 @@ const codeError = ref(''); // 短信验证码错误提示
 const passwordError = ref('');
 const confirmPasswordError = ref('');
 const countdown = ref(0); // 倒计时状态
+let timer: NodeJS.Timeout | null = null;
 
 // 表单提交处理逻辑
 const handleSubmit = () => {
@@ -63,29 +68,62 @@ const handleSubmit = () => {
 
   // 如果没有错误，执行提交逻辑
   if (!phoneError.value && !codeError.value && !passwordError.value && !confirmPasswordError.value) {
-    console.log('提交成功');
+    forgotPwd({
+      tenantId: '495799',
+      phone: phone.value,
+      code: code.value,
+      password: password.value
+    }).then((res) => {
+      if (res.code === 200) {
+        ElMessage.success('密码重置成功');
+        router.push({ name: 'login' }); // 重置成功后跳转到登录页
+      } else {
+        ElMessage.error(res.msg || '密码重置失败');
+      }
+    });
   }
 };
 
-// 发送验证码逻辑
+// 发送验证码
 const sendCode = () => {
-  if (countdown.value > 0) return; // 倒计时未结束时禁止重复发送
+  if (countdown.value > 0) return;
+  if (!phone.value) {
+    ElMessage.error('请输入手机号');
+    return;
+  }
+  // 正则表达式验证手机号格式
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  if (!phoneRegex.test(phone.value)) {
+    ElMessage.error('请输入正确的手机号');
+    return;
+  }
 
-  console.log('发送验证码'); // 模拟发送验证码
-  startCountdown(); // 开始倒计时
+  sendSmsCode(phone.value).then((res) => {
+    ElMessage.success('验证码已发送');
+    // 模拟发送验证码请求
+    countdown.value = 60;
+    timer = setInterval(() => {
+      if (countdown.value > 0) {
+        countdown.value--;
+      } else {
+        clearInterval(timer!);
+        timer = null;
+      }
+    }, 1000);
+  });
 };
 
-// 倒计时逻辑
-const startCountdown = () => {
-  countdown.value = 60; // 设置倒计时为60秒
-  const timer = setInterval(() => {
-    if (countdown.value > 0) {
-      countdown.value--; // 每秒减少1
-    } else {
-      clearInterval(timer); // 倒计时结束时清除定时器
-    }
-  }, 1000);
-};
+// // 倒计时逻辑
+// const startCountdown = () => {
+//   countdown.value = 60; // 设置倒计时为60秒
+//   const timer = setInterval(() => {
+//     if (countdown.value > 0) {
+//       countdown.value--; // 每秒减少1
+//     } else {
+//       clearInterval(timer); // 倒计时结束时清除定时器
+//     }
+//   }, 1000);
+// };
 
 // 验证手机号格式
 const validatePhone = (phone: string): string => {
