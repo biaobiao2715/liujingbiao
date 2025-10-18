@@ -51,7 +51,7 @@
 
           <el-col :span="12">
             <el-form-item label="统一社会信用代码" prop="licenseNumber">
-              <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
+              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别" />
             </el-form-item>
           </el-col>
 
@@ -104,7 +104,13 @@
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
               <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
-                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
+                <el-option
+                  v-for="(item, index) in contact_user_type"
+                  :disabled="item.dictValue == 1"
+                  :key="index"
+                  :label="item.dictLabel"
+                  :value="item.dictValue"
+                ></el-option>
               </el-select>
             </template>
           </el-table-column>

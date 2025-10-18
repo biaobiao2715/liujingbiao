@@ -314,10 +314,10 @@ baseEnterpriseInfoId(id as string)
   });
 
 // 审核
-const cancelAudit = (type: number) => {
+const cancelAudit = async (type: number) => {
   try {
     proxy?.$modal.loading('正在审核，请稍候...');
-    enterpriseReview({
+    await enterpriseReview({
       enterpriseInfo: {
         ...formData.value,
         contacts: undefined,
@@ -345,10 +345,10 @@ const cancelAudit = (type: number) => {
 };
 // 编辑保存
 // 保存按钮事件 和详情接口返回的的数据结构略有区别
-const handleSave = () => {
+const handleSave = async () => {
   try {
     proxy?.$modal.loading('正在保存，请稍候...');
-    enterpriseEdit({
+    await enterpriseEdit({
       enterpriseInfo: {
         ...formData.value,
         contacts: undefined,

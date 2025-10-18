@@ -43,7 +43,11 @@
         </template>
       </el-table-column>
       <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
-
+      <el-table-column label="审核状态" align="center" prop="reviewStatus">
+        <template v-slot="scope">
+          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+        </template>
+      </el-table-column>
       <el-table-column label="资质等级" align="center" prop="credentialLevel">
         <template v-slot="scope">
           <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
@@ -52,11 +56,6 @@
       <el-table-column label="信用等级" align="center" prop="creditLevel">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
-        </template>
-      </el-table-column>
-      <el-table-column label="审核状态" align="center" prop="reviewStatus">
-        <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
         </template>
       </el-table-column>
 
@@ -71,6 +70,7 @@
           <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="审核人" align="center" prop="reviewBy"> </el-table-column>
 
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">

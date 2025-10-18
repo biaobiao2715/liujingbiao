@@ -228,7 +228,7 @@ const contactF = ref({
 const contactZ = ref([]);
 const urlImage = ref();
 // id获取详情信息
-baseEnterpriseInfoId(id)
+baseEnterpriseInfoId(id as string)
   .then((res) => {
     formData.value = res.data;
     if (res.data?.contacts?.length > 0) {
