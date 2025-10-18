@@ -8,6 +8,17 @@
 
 import { IPublicRequest } from '@/api/types';
 
+export interface HnBaseRegisterFolderVoList {
+  /**
+   * 文件夹ID
+   */
+  folderId: number;
+  /**
+   * 文件夹名称
+   */
+  folderName: string;
+}
+
 // 技术专家列表
 export interface TechnicalExpertList {
   /**
@@ -18,6 +29,10 @@ export interface TechnicalExpertList {
    * 技术专家姓名
    */
   expertName: string;
+  /**
+   * 账户名
+   */
+  userName: string;
   /**
    * 性别
    */
@@ -118,6 +133,10 @@ export interface TechnicalExpertList {
    * 入驻时间
    */
   registrationTime: string;
+  /**
+   * 资料清单
+   */
+  hnBaseRegisterFolderVoList: HnBaseRegisterFolderVoList[];
 }
 
 export interface TechnicalExpertListRequest extends IPublicRequest {

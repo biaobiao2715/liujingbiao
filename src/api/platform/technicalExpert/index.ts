@@ -38,6 +38,7 @@ interface TechUpdateOrSaveDataRequest {
     major?: string;
     startStopStatus?: '0' | '1';
     id?: number;
+    reviewStatus?: '99' | '1' | '2' | '3' | '4';
   };
 }
 // 技术专家注册、审核、修改、启停
@@ -50,12 +51,10 @@ export const techUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosPr
 };
 
 // 查询技术专家详细信息
-export const getTechnicalExpertDetail = (id: number): Promise<TechnicalExpertList> => {
+export const getTechnicalExpertDetail = (id: string): AxiosPromise<TechnicalExpertList> => {
+  console.log(id, '1111');
   return request({
-    url: `/system/baseTechExpertInfo`,
-    method: 'get',
-    params: {
-      id
-    }
+    url: `/system/baseTechExpertInfo/${id}`,
+    method: 'get'
   });
 };

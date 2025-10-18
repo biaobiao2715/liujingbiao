@@ -60,14 +60,9 @@
         </el-table-column>
         <el-table-column prop="contactPhone" label="联系电话" min-width="130" align="center" />
         <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
-        <el-table-column label="审核状态" min-width="120" align="center" prop="auditStatus">
+        <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
           <template #default="scope">
-            <span v-if="scope.row.auditStatus === '0'">待审核</span>
-            <span v-else-if="scope.row.auditStatus === '1'">审核通过</span>
-            <span v-else-if="scope.row.auditStatus === '2'">分配账号</span>
-            <span v-else-if="scope.row.auditStatus === '3'">分配权限</span>
-            <span v-else-if="scope.row.auditStatus === '4'">入驻成功</span>
-            <span v-else>入驻失败</span>
+            {{ reviewStatusMap[scope.row.reviewStatus] || '--' }}
           </template>
         </el-table-column>
         <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
@@ -102,7 +97,7 @@
 <script setup name="LegalExpert" lang="ts">
 import { ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
-import { getLegalExpertList } from '@/api/platform/legalExpert';
+import { getLegalExpertList, reviewStatusMap } from '@/api/platform/legalExpert';
 import router from '@/router';
 
 const expertList = ref<LegalExpertList[]>([]);

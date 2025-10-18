@@ -40,12 +40,13 @@ interface TechUpdateOrSaveDataRequest {
   optType: '1' | '2' | '3' | '4' | '5';
   hnBaseLegalExpertInfoBo?: {
     expertName?: string;
-    sex?: '0' | '1';
+    sex?: string;
     birthDate?: string;
     graduationSchool?: string;
     major?: string;
     startStopStatus?: '0' | '1';
     id?: number;
+    reviewStatus?: '99' | '1' | '2' | '3' | '4';
   };
 }
 // 法务专家注册、审核、修改、启停
@@ -58,12 +59,9 @@ export const legalUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosP
 };
 
 // 查询法务专家详细信息
-export const getLegalExpertDetail = (id: number): Promise<LegalExpertList> => {
+export const getLegalExpertDetail = (id: string): AxiosPromise<LegalExpertList> => {
   return request({
-    url: `/system/baseLegalExpertInfo`,
-    method: 'get',
-    params: {
-      id
-    }
+    url: `/system/baseLegalExpertInfo/${id}`,
+    method: 'get'
   });
 };

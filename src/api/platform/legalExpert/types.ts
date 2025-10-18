@@ -8,6 +8,17 @@
  */
 import { IPublicRequest } from '@/api/types';
 
+interface HnBaseRegisterFolderVoList {
+  /**
+   * 文件夹ID
+   */
+  folderId: number;
+  /**
+   * 文件夹名称
+   */
+  folderName: string;
+}
+
 export interface LegalExpertList {
   /**
    * 法务专家ID
@@ -123,6 +134,11 @@ export interface LegalExpertList {
    * 入驻时间
    */
   registrationTime: string;
+  /**
+   * 资料清单
+   */
+
+  hnBaseRegisterFolderVoList: HnBaseRegisterFolderVoList[];
 }
 
 export interface LegalExpertListRequest extends IPublicRequest {
