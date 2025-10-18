@@ -213,8 +213,14 @@ const submitForm = async () => {
       }
     } else if (identity === 'enterprise') {
       // 企业
-      registerData.value.enterpriseInfo = { ...registerData.value.enterpriseInfo, ...registerForm };
-      console.log('提交', registerData.value);
+      registerData.value.enterpriseInfo = {
+        ...registerData.value.enterpriseInfo,
+        enterpriseType: '1', //注册类型
+        reviewStatus: '0', //状态
+        loginUserName: registerForm.userName,
+        phoneNumber: registerForm.phoneNumber,
+        password: registerForm.password
+      };
       registerData.value.code = registerForm.smsCode;
       const res = await enterpriseRegister(registerData.value);
       if (res.code === 200) {
@@ -222,16 +228,20 @@ const submitForm = async () => {
       }
     } else if (identity === 'supplier') {
       // 供应商
+      registerData.value.enterpriseInfo = {
+        ...registerData.value.enterpriseInfo,
+        enterpriseType: '0', //注册类型
+        reviewStatus: '0', //状态
+        loginUserName: registerForm.userName,
+        phoneNumber: registerForm.phoneNumber,
+        password: registerForm.password
+      };
       registerData.value.code = registerForm.smsCode;
-      registerData.value.enterpriseInfo = { ...registerData.value.enterpriseInfo, ...registerForm };
-      console.log('提交', registerData.value);
-
       const res = await supplierRegister(registerData.value);
       if (res.code === 200) {
         emit('nextStep');
       }
     }
-
     // 注册成功后的处理
   } catch (error) {
     console.error('表单验证失败', error);

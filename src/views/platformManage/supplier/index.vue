@@ -26,11 +26,11 @@
         </el-select>
       </el-form-item>
       <!-- 审核通过时间 -->
-      <el-form-item label="审核通过时间">
+      <el-form-item label="审核时间">
         <el-date-picker
           v-model="searchForm.reviewTime"
           type="daterange"
-          value-format="yyyy-MM-dd"
+          value-format="YYYY-MM-DD"
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
@@ -43,8 +43,8 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border style="width: 100%" v-loading="loading">
-      <el-table-column prop="index" label="序号" width="60"></el-table-column>
+    <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
+      <el-table-column type="index" label="序号" width="60"></el-table-column>
       <el-table-column prop="companyName" label="供应商名称"></el-table-column>
       <el-table-column prop="enterpriseNumber" label="供应商编号">
         <template #default="scope">
@@ -56,30 +56,25 @@
       <el-table-column prop="licenseNumber" label="统一社会信用代码"></el-table-column>
       <el-table-column prop="credentialLevel" label="资质等级">
         <template #default="scope">
-          {{ scope.row.credentialLevel === '0' ? '一级认证' : scope.row.credentialLevel === '1' ? '二级认证' : '三级认证' }}
+          {{ scope.row.credentialLevelText }}
         </template>
       </el-table-column>
       <el-table-column prop="creditLevel" label="信用等级">
         <template #default="scope">
-          {{
-            scope.row.creditLevel === '0'
-              ? '优秀'
-              : scope.row.creditLevel === '1'
-                ? '良好'
-                : scope.row.creditLevel === '2'
-                  ? '一般'
-                  : scope.row.creditLevel === '3'
-                    ? '一般以下'
-                    : '较差'
-          }}
+          {{ scope.row.creditLevelText }}
         </template>
       </el-table-column>
       <el-table-column prop="reviewStatus" label="审核状态">
         <template #default="scope">
-          {{ scope.row.reviewStatus === '0' ? '待审核' : scope.row.reviewStatus === '1' ? '审核通过' : '审核退回' }}
+          {{ scope.row.reviewStatusText }}
         </template>
       </el-table-column>
-      <el-table-column prop="signUpTime" label="申请时间"></el-table-column>
+      <el-table-column prop="signUpTime" label="申请时间" width="120">
+        <template #default="scope">
+          {{ scope.row.formattedSignUpTime }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="reviewTime" label="审核时间" width="120"> </el-table-column>
       <el-table-column prop="reviewBy" label="审核人"></el-table-column>
       <el-table-column label="操作" width="260">
         <template #default="scope">
@@ -107,7 +102,7 @@
 
 <script setup lang="ts">
 import router from '@/router';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise';
 
 // 搜索表单数据
@@ -136,9 +131,28 @@ onMounted(() => {
   getListData();
 });
 
+// 计算属性，用于处理表格中复杂的显示逻辑
+const computedTableData = computed(() =>
+  tableData.value.map((row) => ({
+    ...row,
+    credentialLevelText: row.credentialLevel === '0' ? '一级认证' : row.credentialLevel === '1' ? '二级认证' : '三级认证',
+    creditLevelText:
+      row.creditLevel === '0'
+        ? '优秀'
+        : row.creditLevel === '1'
+          ? '良好'
+          : row.creditLevel === '2'
+            ? '一般'
+            : row.creditLevel === '3'
+              ? '一般以下'
+              : '较差',
+    reviewStatusText: row.reviewStatus === '0' ? '待审核' : row.reviewStatus === '1' ? '审核通过' : '审核退回',
+    formattedSignUpTime: row.signUpTime ? row.signUpTime.substring(0, 10) : ''
+  }))
+);
+
 // 查询按钮事件
 const handleSearch = () => {
-  console.log('查询表单数据:', searchForm.value);
   queryParams.value.pageNum = 1;
   getListData();
 };
@@ -156,8 +170,9 @@ const handleReset = () => {
 };
 
 // 分页切换事件
-const handlePageChange = async (page: number) => {
-  queryParams.value.pageNum = page;
+const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
+  queryParams.value.pageNum = pageInfo.page;
+  queryParams.value.pageSize = pageInfo.limit;
   getListData();
 };
 
@@ -169,7 +184,10 @@ const getListData = async () => {
       ...searchForm.value,
       enterpriseType: 1,
       pageNum: queryParams.value.pageNum,
-      pageSize: queryParams.value.pageSize
+      pageSize: queryParams.value.pageSize,
+      reviewTime: undefined,
+      reviewStartTime: searchForm.value.reviewTime?.[0],
+      reviewEndTime: searchForm.value.reviewTime?.[1]
     });
     tableData.value = res.rows || [];
     queryParams.value.total = res.total || 0;

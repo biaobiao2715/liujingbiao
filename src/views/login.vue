@@ -17,7 +17,7 @@
         <!-- 账号密码登录 -->
         <el-tab-pane label="账号密码登录" name="account">
           <div class="form-item">
-            <el-input v-model="accountForm.username" placeholder="账号" size="large" :prefix-icon="UserFilled" />
+            <el-input v-model="accountForm.username" type="text" placeholder="账号" size="large" :prefix-icon="UserFilled" />
           </div>
           <div class="form-item">
             <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" :prefix-icon="Lock" />
@@ -60,17 +60,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { ElInput, ElCheckbox, ElButton } from 'element-plus';
 import { login } from '@/api/login';
 import { setToken } from '@/utils/auth';
 import { UserFilled, Lock } from '@element-plus/icons-vue';
 import { sendSmsCode } from '@/api/register/accountRegiser';
-
+import CryptoJS from 'crypto-js'; // 引入加密库
 import router from '@/router';
 
 // 当前激活的登录方式
 const activeTab = ref('account');
+
+// 加密密钥
+const SECRET_KEY = 'grain_sales_secret_key';
 
 // 账号密码登录表单数据
 const accountForm = ref({
@@ -96,6 +99,22 @@ const tenants = ref([
   { id: '494455', name: '法务专家' }
 ]);
 
+// 组件挂载时，检查是否有保存的账户信息
+onMounted(() => {
+  const rememberedAccount = localStorage.getItem('rememberedAccount');
+  if (rememberedAccount) {
+    try {
+      const decryptedData = CryptoJS.AES.decrypt(rememberedAccount, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+      const accountData = JSON.parse(decryptedData);
+      accountForm.value.username = accountData.username;
+      accountForm.value.password = accountData.password;
+      accountForm.value.rememberMe = true;
+    } catch (err) {
+      console.error('解密失败', err);
+    }
+  }
+});
+
 // 登录逻辑
 const handleLogin = () => {
   loading.value = true;
@@ -106,6 +125,22 @@ const handleLogin = () => {
         ElMessage.success('登录成功');
         // 存储 token
         setToken(res.data.access_token);
+
+        // 如果选择记住密码，保存加密后的账户信息
+        if (accountForm.value.rememberMe) {
+          const encryptedData = CryptoJS.AES.encrypt(
+            JSON.stringify({
+              username: accountForm.value.username,
+              password: accountForm.value.password
+            }),
+            SECRET_KEY
+          ).toString();
+          localStorage.setItem('rememberedAccount', encryptedData);
+        } else {
+          // 未选择记住密码时清除本地存储
+          localStorage.removeItem('rememberedAccount');
+        }
+
         // 登录成功后，跳转到首页
         router.push('/index');
       })

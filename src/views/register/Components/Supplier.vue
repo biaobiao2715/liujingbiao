@@ -51,7 +51,7 @@
 
           <el-col :span="12">
             <el-form-item label="统一社会信用代码" prop="licenseNumber">
-              <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
+              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别" />
             </el-form-item>
           </el-col>
 
@@ -104,7 +104,13 @@
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
               <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
-                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
+                <el-option
+                  v-for="(item, index) in contact_user_type"
+                  :disabled="item.dictValue == 1"
+                  :key="index"
+                  :label="item.dictLabel"
+                  :value="item.dictValue"
+                ></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -624,7 +630,7 @@ const handleDiplomaChange = (file: UploadFile) => {
           .catch((error) => {
             // 如果OCR识别失败，则移除之前添加的文件
             fileListtable.value.pop();
-            ElMessage.error('OCR识别失败，请重试');
+            ElMessage.error('OCR识别失败,请重试');
             console.error('上传失败：', error);
             throw error; // 继续抛出错误以便在最后统一处理
           });
@@ -644,17 +650,27 @@ const handleDiplomaChange = (file: UploadFile) => {
 };
 // 处理文件选择
 const handleChange = (file: any) => {
-  uploadImage({ file: file.raw }).then((res) => {
-    if (res.code === 200 && res.data?.ossId) {
-      fileListtable.value.push({
-        name: file.name,
-        remark: '附件上传',
-        url: res.data.url,
-        fileType: '99',
-        ossId: res.data.ossId
-      });
-    }
-  });
+  proxy?.$modal.loading('正在上传附件，请稍候...');
+  uploadImage({ file: file.raw })
+    .then((res) => {
+      if (res.code === 200 && res.data?.ossId) {
+        fileListtable.value.push({
+          name: file.name,
+          remark: '附件上传',
+          url: res.data.url,
+          fileType: '99',
+          ossId: res.data.ossId
+        });
+      } else {
+        ElMessage.error('上传失败，请重试');
+      }
+      proxy?.$modal.closeLoading();
+    })
+    .catch((error) => {
+      console.error('上传失败:', error);
+      ElMessage.error('上传失败，请重试');
+      proxy?.$modal.closeLoading();
+    });
 };
 
 // 文件上传前校验
