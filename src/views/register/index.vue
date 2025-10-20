@@ -32,7 +32,7 @@
         <Identity @update-identity="handleIdentityUpdate" v-if="activeStep === 1" />
         <div v-else-if="activeStep === 2" class="form-content">
           <!-- 根据选择的身份展示对应的表单组件 -->
-          <PurchaserFrom v-if="selectedIdentity === 'buyer'" />
+          <PurchaserFrom v-if="selectedIdentity === 'buyer'" @nextStep="nextStep" />
           <!-- 供应商注册流程 -->
           <SupplierForm v-if="selectedIdentity === 'supplier'" @nextStep="nextStep" />
           <!-- 企业注册流程 -->
@@ -42,7 +42,7 @@
           <!-- 法务专家注册流程 -->
           <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
         </div>
-        <div v-else-if="activeStep === 3">
+        <div v-else-if="activeStep === 3 && selectedIdentity !== 'buyer'">
           <!-- 账号注册组件 -->
           <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" @setSuccessInfo="setSuccessInfo" />
         </div>

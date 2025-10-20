@@ -73,9 +73,9 @@
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
-import router from '@/router';
 import { getPurchaserTypeDict, registerPurchaser, checkPhoneUnique } from '@/api/register/purchaser';
 import { sendSmsCode } from '@/api/register/accountRegiser';
+const emit = defineEmits(['nextStep']); // 定义事件
 
 // 表单数据
 const form = ref({
@@ -199,8 +199,9 @@ const submitForm = () => {
       registerPurchaser(form.value).then((res) => {
         if (res.code === 200) {
           ElMessage.success('注册成功');
-          // 跳转登录页
-          router.push({ name: 'login' });
+          setTimeout(() => {
+            emit('nextStep');
+          }, 1000);
         } else {
           ElMessage.error(res.msg || '注册失败');
         }
