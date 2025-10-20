@@ -367,33 +367,37 @@ const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传律师证，请稍候...');
   uploadImage({
     file: file.raw
-  }).then((res) => {
-    diplomaUrl.value = res.data.ossId;
-    qualificationList.value.push({
-      index: qualificationList.value.length + 1,
-      name: '毕业证',
-      remark: res?.data?.fileName || '上传毕业证',
-      url: res.data.url,
-      fileType: '2',
-      ossId: res.data.ossId
-    });
-    ocrUploadImage({ file: file.raw })
-      .then((res) => {
-        // console.log('上传成功：', res);
-        Object.keys(res).forEach((key) => {
-          if (key in formData.value) {
-            formData.value[key] = res[key];
-          }
-        });
-      })
-      .catch((error) => {
-        // 如果OCR识别失败，则移除之前添加的文件
-        qualificationList.value.pop();
-        ElMessage.error('OCR识别失败，请重试');
-        console.error('上传失败：', error);
-        throw error; // 继续抛出错误以便在最后统一处理
+  })
+    .then((res) => {
+      diplomaUrl.value = res.data.ossId;
+      qualificationList.value.push({
+        index: qualificationList.value.length + 1,
+        name: '毕业证',
+        remark: res?.data?.fileName || '上传毕业证',
+        url: res.data.url,
+        fileType: '2',
+        ossId: res.data.ossId
       });
-  });
+      return ocrUploadImage({ file: file.raw })
+        .then((res) => {
+          // console.log('上传成功：', res);
+          Object.keys(res).forEach((key) => {
+            if (key in formData.value) {
+              formData.value[key] = res[key];
+            }
+          });
+        })
+        .catch((error) => {
+          // 如果OCR识别失败，则移除之前添加的文件
+          qualificationList.value.pop();
+          ElMessage.error('OCR识别失败，请重试');
+          console.error('上传失败：', error);
+          throw error; // 继续抛出错误以便在最后统一处理
+        });
+    })
+    .finally(() => {
+      proxy?.$modal.closeLoading();
+    });
 };
 
 // 上传照片

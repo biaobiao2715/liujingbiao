@@ -68,7 +68,7 @@ import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser';
 import { checkPhoneUnique } from '@/api/register/purchaser';
 
 const loading = ref(false);
-const emit = defineEmits(['nextStep']);
+const emit = defineEmits(['nextStep', 'setSuccessInfo']);
 
 // 计算属性：是否显示身份证号输入框
 const isShowIdCard = computed(() => identity !== 'enterprise' && identity !== 'supplier');
@@ -209,17 +209,21 @@ const submitForm = async () => {
       ...registerForm,
       ...registerData.value
     };
+    const fun = () => {
+      emit('setSuccessInfo', registerForm.userName, registerForm.phoneNumber);
+      emit('nextStep');
+    };
     // 技术专家
     if (identity === 'expert') {
       const res = await technicalExpertInfoRegister(temp);
       if (res.code === 200) {
-        emit('nextStep');
+        fun();
       }
     } else if (identity === 'legal') {
       // 法务专家
       const res = await legalExpertInfoRegister(temp);
       if (res.code === 200) {
-        emit('nextStep');
+        fun();
       }
     } else if (identity === 'enterprise') {
       // 企业
@@ -234,7 +238,7 @@ const submitForm = async () => {
       registerData.value.code = registerForm.smsCode;
       const res = await enterpriseRegister(registerData.value);
       if (res.code === 200) {
-        emit('nextStep');
+        fun();
       }
     } else if (identity === 'supplier') {
       // 供应商
@@ -249,7 +253,7 @@ const submitForm = async () => {
       registerData.value.code = registerForm.smsCode;
       const res = await supplierRegister(registerData.value);
       if (res.code === 200) {
-        emit('nextStep');
+        fun();
       }
     }
     // 注册成功后的处理

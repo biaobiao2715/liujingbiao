@@ -44,7 +44,7 @@
         </div>
         <div v-else-if="activeStep === 3">
           <!-- 账号注册组件 -->
-          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" />
+          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" @setSuccessInfo="setSuccessInfo" />
         </div>
         <!-- 注册成功组件 -->
         <Success :username="username" :account="account" v-if="activeStep === (selectedIdentity === 'buyer' ? 3 : 4)" />
@@ -127,14 +127,16 @@ const handleIdentityUpdate = (identity: IdentityType) => {
       break;
   }
 };
-// 是否展示大标题
-const large = computed(() => [1, 2].includes(activeStep.value));
 
 // 下一步逻辑
 const nextStep = () => {
   if (activeStep.value < (selectedIdentity.value === 'buyer' ? 3 : 4)) {
     activeStep.value++;
   }
+};
+const setSuccessInfo = (userName: string, accountName: string) => {
+  username.value = userName;
+  account.value = accountName;
 };
 </script>
 

@@ -408,34 +408,38 @@ const qualificationList = ref<
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传毕业证，请稍候...');
-  uploadImage({ file: file.raw }).then((res) => {
-    if (res.code === 200 && res.data?.ossId) {
-      diplomaUrl.value = res.data.ossId;
-      qualificationList.value.push({
-        index: qualificationList.value.length + 1,
-        name: '毕业证',
-        remark: res?.data?.fileName || '上传毕业证',
-        url: res.data.url,
-        fileType: '2',
-        ossId: res.data.ossId
-      });
-      ocrUploadImage({ file: file.raw })
-        .then((res) => {
-          Object.keys(res).forEach((key) => {
-            if (key in formData.value) {
-              formData.value[key] = res[key];
-            }
-          });
-        })
-        .catch((error) => {
-          // 如果OCR识别失败，则移除之前添加的文件
-          qualificationList.value.pop();
-          ElMessage.error('OCR识别失败，请重试');
-          console.error('上传失败：', error);
-          throw error; // 继续抛出错误以便在最后统一处理
+  uploadImage({ file: file.raw })
+    .then((res) => {
+      if (res.code === 200 && res.data?.ossId) {
+        diplomaUrl.value = res.data.ossId;
+        qualificationList.value.push({
+          index: qualificationList.value.length + 1,
+          name: '毕业证',
+          remark: res?.data?.fileName || '上传毕业证',
+          url: res.data.url,
+          fileType: '2',
+          ossId: res.data.ossId
         });
-    }
-  });
+        return ocrUploadImage({ file: file.raw })
+          .then((res) => {
+            Object.keys(res).forEach((key) => {
+              if (key in formData.value) {
+                formData.value[key] = res[key];
+              }
+            });
+          })
+          .catch((error) => {
+            // 如果OCR识别失败，则移除之前添加的文件
+            qualificationList.value.pop();
+            ElMessage.error('OCR识别失败，请重试');
+            console.error('上传失败：', error);
+            throw error; // 继续抛出错误以便在最后统一处理
+          });
+      }
+    })
+    .finally(() => {
+      proxy?.$modal.closeLoading();
+    });
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {
