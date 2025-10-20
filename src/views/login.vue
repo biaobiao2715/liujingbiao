@@ -9,7 +9,7 @@
       </div>
       <!-- 添加租户选择 -->
       <el-select v-model="accountForm.tenantId" placeholder="选择租户" size="large">
-        <el-option v-for="tenant in tenants" :key="tenant.id" :label="tenant.name" :value="tenant.id" />
+        <el-option v-for="tenant in tenants" :key="tenant.tenantId" :label="tenant.companyName" :value="tenant.tenantId" />
       </el-select>
 
       <!-- 登录方式切换 -->
@@ -68,6 +68,7 @@ import { UserFilled, Lock } from '@element-plus/icons-vue';
 import { sendSmsCode } from '@/api/register/accountRegiser';
 import CryptoJS from 'crypto-js'; // 引入加密库
 import router from '@/router';
+import { getTenantList } from '@/api/login';
 
 // 当前激活的登录方式
 const activeTab = ref('account');
@@ -93,14 +94,17 @@ const countdown = ref(0);
 let timer: NodeJS.Timeout | null = null;
 
 const tenants = ref([
-  { id: '000000', name: '管理员' },
-  { id: '495799', name: '采购商' },
-  { id: '906636', name: '技术专家' },
-  { id: '494455', name: '法务专家' }
+  // { id: '000000', name: '管理员' },
+  // { id: '495799', name: '采购商' },
+  // { id: '906636', name: '技术专家' },
+  // { id: '494455', name: '法务专家' }
 ]);
 
-// 组件挂载时，检查是否有保存的账户信息
 onMounted(() => {
+  // 获取租户列表
+  initTenantList();
+
+  // 检查是否有保存的账户信息
   const rememberedAccount = localStorage.getItem('rememberedAccount');
   if (rememberedAccount) {
     try {
@@ -114,6 +118,12 @@ onMounted(() => {
     }
   }
 });
+
+// 获取租户列表
+const initTenantList = async () => {
+  const { data } = await getTenantList(true);
+  tenants.value = data.voList;
+};
 
 // 登录逻辑
 const handleLogin = () => {

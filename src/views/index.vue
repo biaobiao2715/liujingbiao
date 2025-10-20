@@ -10,7 +10,7 @@
       class="flex-center gap-12 application-list"
       style="background: url('../assets/images/application-bg-1.png') no-repeat center center; background-size: cover"
     >
-      <div class="application-card flex" v-for="(app, index) in applications" :key="index">
+      <div class="application-card flex" v-for="(app, index) in applications" :key="index" @click="handleRedirect(app.redirect)">
         <!-- 应用图标和标题 -->
         <div class="icon">
           <img :src="getIcon(app.icon)" width="64" />
@@ -26,6 +26,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/store/modules/user';
+import { to as tos } from 'await-to-js';
+import { getInfo } from '@/api/login';
+
+// 路由实例
+const router = useRouter();
 
 // 应用数据
 const applications = ref([
@@ -33,7 +40,8 @@ const applications = ref([
     title: '供应商管理后台',
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-1.svg',
-    bg: 'application-bg-1.svg'
+    bg: 'application-bg-1.svg',
+    redirect: '/platform/index'
   },
   {
     title: '供应商系统',
@@ -72,9 +80,25 @@ const applications = ref([
     bg: 'application-bg-7.svg'
   }
 ]);
+onMounted(() => {
+  console.log('12312312312123');
+  getUserInfo();
+});
+
+const getUserInfo = async () => {
+  const res = await getInfo();
+  console.log(res);
+};
 
 const getIcon = (svgName: string) => {
   return new URL(`../assets/images/${svgName}`, import.meta.url).href;
+};
+
+// 处理点击跳转
+const handleRedirect = (path: string) => {
+  if (path) {
+    router.push(path);
+  }
 };
 </script>
 
