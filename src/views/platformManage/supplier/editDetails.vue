@@ -52,9 +52,22 @@
               <el-input v-model="formData.officeAddress"></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="24">
+          <el-col :span="12">
             <el-form-item label="经营范围">
               <el-input v-model="formData.businessScope" type="textarea"></el-input>
+            </el-form-item>
+          </el-col>
+          <!-- 营业执照 -->
+          <el-col :span="12">
+            <el-form-item label="营业执照">
+              <!-- <img :src="formData.licenseImage" width="48" /> -->
+              <el-image
+                style="width: 100px; height: 100px"
+                :src="formData.licenseImage"
+                :preview-src-list="[formData.licenseImage]"
+                show-progress
+                fit="cover"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -148,7 +161,7 @@
       <el-form :model="formData" label-width="140px">
         <FormHeader title="资料清单" />
         <el-table :data="formData.folders" border>
-          <el-table-column prop="index" label="序号" width="100"></el-table-column>
+          <el-table-column type="index" label="序号" width="100"></el-table-column>
           <el-table-column prop="originalName" label="附件名">
             <template #default="scope">
               {{ scope.row.ossInfo?.originalName }}
@@ -157,7 +170,7 @@
           <el-table-column prop="remark" label="备注"></el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">预览</el-button>
+              <el-button type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -215,6 +228,7 @@ interface SupplierDetails {
   reviewTime?: string;
   reviewBy?: number;
   accountName?: string;
+  licenseImage?: string;
   contacts: Array<{
     contactUserType?: string;
     contactUserName?: string;
@@ -300,6 +314,8 @@ const getSupplierDetails = async () => {
       // 防止为null的报错
       formData.value.credentialLevel = formData.value.credentialLevel || '';
       formData.value.creditLevel = formData.value.creditLevel || '';
+      //  营业执照
+      formData.value.licenseImage = formData.value.folders?.find((folder) => folder.fileType === '1')?.ossInfo?.url || '';
     } catch (error) {
       console.error('获取供应商详情失败', error);
     } finally {
@@ -357,14 +373,15 @@ const handleAudit = async (status: number) => {
   }
 };
 
-const previewAttachment = (attachment: any) => {
-  console.log('预览附件', attachment);
-  // 用element组件预览图片
-  if (attachment) {
-    // ElImagePreview({
-    //   urls: [attachment],
-    //   visible: true
-    // });
+const previewAttachment = (url: string) => {
+  // 下载附件
+  if (url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = ''; // 设置文件名（可选），如果为空，浏览器会使用默认文件名
+    link.click();
+    // 移除临时创建的链接
+    document.body.removeChild(link);
   }
 };
 </script>

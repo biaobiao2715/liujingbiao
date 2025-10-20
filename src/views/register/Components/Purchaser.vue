@@ -25,7 +25,7 @@
       </el-form-item>
       <!-- 短信验证码输入 -->
       <el-form-item label="短信验证码" prop="smsCode">
-        <el-input v-model="form.smsCode" placeholder="请输入验证码" maxlength="6">
+        <el-input v-model="form.smsCode" placeholder="请输入验证码" maxlength="6" autocomplete="off">
           <template #append>
             <!-- 发送验证码按钮 -->
             <el-button type="primary" :disabled="countdown > 0" @click="sendCode">
@@ -36,7 +36,7 @@
       </el-form-item>
       <!-- 设置密码 -->
       <el-form-item label="设置密码" prop="password">
-        <el-input v-model="form.password" :type="passwordVisible ? 'text' : 'password'" placeholder="请输入密码">
+        <el-input v-model="form.password" :type="passwordVisible ? 'text' : 'password'" placeholder="请输入密码" autocomplete="off">
           <template #append>
             <div @click="togglePasswordVisibility">
               <el-icon>
@@ -49,7 +49,7 @@
       </el-form-item>
       <!-- 确认密码 -->
       <el-form-item label="确认密码" prop="confirmPassword">
-        <el-input v-model="form.confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'" placeholder="请再次输入密码">
+        <el-input v-model="form.confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'" placeholder="请再次输入密码" autocomplete="off">
           <template #append>
             <div @click="toggleConfirmPasswordVisibility">
               <el-icon>
