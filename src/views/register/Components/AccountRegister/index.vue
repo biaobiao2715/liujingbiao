@@ -65,6 +65,7 @@ import { legalExpertInfoRegister } from '@/api/register/legalExpert';
 import { supplierRegister } from '@/api/register/supplier';
 import { enterpriseRegister } from '@/api/register/enterprise';
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser';
+import { checkPhoneUnique } from '@/api/register/purchaser';
 
 const loading = ref(false);
 const emit = defineEmits(['nextStep']);
@@ -161,16 +162,6 @@ const validateConfirmPass = (rule: any, value: string, callback: any) => {
   }
 };
 
-const validatePhone = (rule: any, value: string, callback: any) => {
-  if (value === '') {
-    callback(new Error('请输入手机号'));
-  } else if (!/^1[3-9]\d{9}$/.test(value)) {
-    callback(new Error('请输入正确的手机号'));
-  } else {
-    callback();
-  }
-};
-
 const validateIdCard = (rule: any, value: string, callback: any) => {
   if (value === '') {
     callback();
@@ -183,7 +174,26 @@ const validateIdCard = (rule: any, value: string, callback: any) => {
 
 const registerRules = reactive<FormRules>({
   userName: [{ required: true, message: '请输入专家姓名', trigger: 'blur' }],
-  phoneNumber: [{ validator: validatePhone, trigger: 'blur' }],
+  phoneNumber: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        checkPhoneUnique(value)
+          .then((res) => {
+            if (res.code === 200) {
+              callback();
+            } else {
+              callback(new Error('手机号已被注册'));
+            }
+          })
+          .catch(() => {
+            callback(new Error('手机号码已存在'));
+          });
+      },
+      trigger: 'blur'
+    }
+  ],
   smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
   password: [{ validator: validatePass, trigger: 'blur' }],
   confirmPassword: [{ validator: validateConfirmPass, trigger: 'blur' }],
