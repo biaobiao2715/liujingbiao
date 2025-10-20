@@ -1,5 +1,13 @@
 <template>
   <div class="application-container">
+    <div class="user-info-bar flex-center-between">
+      <img src="@/assets/images/logo-white.svg" width="32" />
+      <div class="user-info flex-center gap-12">
+        <el-icon color="#fff"><Bell /></el-icon>
+        <div class="dept-name">{{ userInfo?.deptName }}</div>
+        <div class="user-name flex-center-center">{{ userInfo?.userName }}</div>
+      </div>
+    </div>
     <!-- 页面标题 -->
     <div class="header flex-center">
       <div>全部应用</div>
@@ -27,13 +35,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/store/modules/user';
-import { to as tos } from 'await-to-js';
 import { getInfo } from '@/api/login';
 
 // 路由实例
 const router = useRouter();
-
+const userInfo = ref();
 // 应用数据
 const applications = ref([
   {
@@ -87,6 +93,7 @@ onMounted(() => {
 
 const getUserInfo = async () => {
   const res = await getInfo();
+  userInfo.value = res.data.user;
   console.log(res);
 };
 
@@ -112,6 +119,22 @@ const handleRedirect = (path: string) => {
     font-weight: bold;
     font-size: 32px;
     color: #000000;
+  }
+}
+
+.user-info-bar {
+  padding: 12px;
+  background-color: var(--color-main);
+  font-size: 14px;
+  .dept-name {
+    color: #fff;
+  }
+  .user-name {
+    width: 44px;
+    height: 44px;
+    color: var(--color-main);
+    border-radius: 50%;
+    background-color: #fff;
   }
 }
 

@@ -27,8 +27,10 @@
       <el-form-item label="短信验证码" prop="smsCode">
         <el-input v-model="form.smsCode" placeholder="请输入验证码" maxlength="6">
           <template #append>
-            <!-- 获取验证码按钮 -->
-            <el-button @click="sendSmsCode">获取短信验证码</el-button>
+            <!-- 发送验证码按钮 -->
+            <el-button type="primary" :disabled="countdown > 0" @click="sendCode">
+              {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
+            </el-button>
           </template>
         </el-input>
       </el-form-item>
@@ -73,6 +75,7 @@ import { ElMessage } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
 import router from '@/router';
 import { getPurchaserTypeDict, registerPurchaser } from '@/api/register/purchaser';
+import { sendSmsCode } from '@/api/register/accountRegiser';
 
 // 表单数据
 const form = ref({
@@ -83,9 +86,16 @@ const form = ref({
   password: '', // 密码
   confirmPassword: '' // 确认密码
 });
-
+const countdown = ref(0); // 验证码倒计时
+let timer: NodeJS.Timeout | null = null;
 // 采购类型选项
 const typeOptions = ref([]);
+
+// 表单引用
+const formRef = ref();
+
+const passwordVisible = ref(false);
+const confirmPasswordVisible = ref(false);
 
 // 表单验证规则
 const rules = {
@@ -123,12 +133,6 @@ const rules = {
   ]
 };
 
-// 表单引用
-const formRef = ref();
-
-const passwordVisible = ref(false);
-const confirmPasswordVisible = ref(false);
-
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
@@ -146,13 +150,29 @@ onMounted(() => {
 });
 
 // 发送短信验证码
-const sendSmsCode = () => {
-  if (!form.value.phoneNumber || !/^1[3-9]\d{9}$/.test(form.value.phoneNumber)) {
+const sendCode = () => {
+  if (!form.value.phoneNumber) {
+    ElMessage.error('请输入手机号');
+    return;
+  }
+  if (!/^1[3-9]\d{9}$/.test(form.value.phoneNumber)) {
     ElMessage.error('请输入正确的手机号');
     return;
   }
-  // 模拟发送短信验证码
-  ElMessage.success('验证码已发送');
+
+  sendSmsCode(form.value.phoneNumber).then((res) => {
+    ElMessage.success('验证码已发送');
+    // 模拟发送验证码请求
+    countdown.value = 60;
+    timer = setInterval(() => {
+      if (countdown.value > 0) {
+        countdown.value--;
+      } else {
+        clearInterval(timer!);
+        timer = null;
+      }
+    }, 1000);
+  });
 };
 
 // 提交表单
