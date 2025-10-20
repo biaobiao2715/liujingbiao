@@ -187,13 +187,14 @@
 import { ref, reactive } from 'vue';
 import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/technicalExpert/types';
-import { uploadImage } from '@/api/register';
+import { ocrUploadImage, uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';
 
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 表单数据
 const form: TechnicalExpert = {
   // 专家姓名
@@ -406,6 +407,7 @@ const qualificationList = ref<
 >([]);
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
+  proxy?.$modal.loading('正在上传毕业证，请稍候...');
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       diplomaUrl.value = res.data.ossId;
@@ -417,6 +419,21 @@ const handleDiplomaChange = (file: any) => {
         fileType: '2',
         ossId: res.data.ossId
       });
+      ocrUploadImage({ file: file.raw })
+        .then((res) => {
+          Object.keys(res).forEach((key) => {
+            if (key in formData.value) {
+              formData.value[key] = res[key];
+            }
+          });
+        })
+        .catch((error) => {
+          // 如果OCR识别失败，则移除之前添加的文件
+          qualificationList.value.pop();
+          ElMessage.error('OCR识别失败，请重试');
+          console.error('上传失败：', error);
+          throw error; // 继续抛出错误以便在最后统一处理
+        });
     }
   });
 };

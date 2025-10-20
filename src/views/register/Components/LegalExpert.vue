@@ -164,13 +164,14 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { isIdCard } from '@/utils/validate';
-import { uploadImage } from '@/api/register';
+import { ocrUploadImage, uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/legalExpert/types';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 表单数据
 // 可选 字段
@@ -363,6 +364,7 @@ const qualificationList = ref<
 >([]);
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
+  proxy?.$modal.loading('正在上传律师证，请稍候...');
   uploadImage({
     file: file.raw
   }).then((res) => {
@@ -375,6 +377,22 @@ const handleDiplomaChange = (file: any) => {
       fileType: '2',
       ossId: res.data.ossId
     });
+    ocrUploadImage({ file: file.raw })
+      .then((res) => {
+        // console.log('上传成功：', res);
+        Object.keys(res).forEach((key) => {
+          if (key in formData.value) {
+            formData.value[key] = res[key];
+          }
+        });
+      })
+      .catch((error) => {
+        // 如果OCR识别失败，则移除之前添加的文件
+        qualificationList.value.pop();
+        ElMessage.error('OCR识别失败，请重试');
+        console.error('上传失败：', error);
+        throw error; // 继续抛出错误以便在最后统一处理
+      });
   });
 };
 
