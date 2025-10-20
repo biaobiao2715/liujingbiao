@@ -60,10 +60,10 @@ import { type IdentityType } from '@/views/register/index.vue';
 import { storeToRefs } from 'pinia';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 const { registerData } = storeToRefs(useRegisterDataStore());
-import { technicalExpertInfoRegister } from '@/api/register/TechnicalExpert';
-import { legalExpertInfoRegister } from '@/api/register/LegalExpert';
-import { supplierRegister } from '@/api/register/Supplier';
-import { enterpriseRegister } from '@/api/register/Enterprise';
+import { technicalExpertInfoRegister } from '@/api/register/technicalExpert';
+import { legalExpertInfoRegister } from '@/api/register/legalExpert';
+import { supplierRegister } from '@/api/register/supplier';
+import { enterpriseRegister } from '@/api/register/enterprise';
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser';
 
 const loading = ref(false);

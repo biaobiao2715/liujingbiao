@@ -165,7 +165,7 @@
 import { ref, reactive } from 'vue';
 import { isIdCard } from '@/utils/validate';
 import { uploadImage } from '@/api/register';
-import { LegalExpert } from '@/api/register/LegalExpert/types';
+import { LegalExpert } from '@/api/register/legalExpert/types';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';

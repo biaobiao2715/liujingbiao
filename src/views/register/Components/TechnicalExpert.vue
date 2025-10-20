@@ -186,7 +186,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { isIdCard } from '@/utils/validate';
-import { TechnicalExpert } from '@/api/register/TechnicalExpert/types';
+import { TechnicalExpert } from '@/api/register/technicalExpert/types';
 import { uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';

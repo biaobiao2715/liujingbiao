@@ -226,8 +226,8 @@
 <script setup lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { uploadImage, ocrUploadImage } from '@/api/register';
-import { getPurchaserTypeDict, enterpriseRegister } from '@/api/register/Enterprise';
-import { FormData, Contact } from '@/api/register/Enterprise/types';
+import { getPurchaserTypeDict, enterpriseRegister } from '@/api/register/enterprise';
+import { FormData, Contact } from '@/api/register/enterprise/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { ElMessage, FormRules } from 'element-plus';
 
