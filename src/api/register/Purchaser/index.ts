@@ -19,3 +19,11 @@ export function registerPurchaser(data?: any) {
     data: data
   });
 }
+
+// 检查手机号是否唯一
+export function checkPhoneUnique(phoneNumber?: string) {
+  return request({
+    url: `/system/user/check-unique/${phoneNumber}`,
+    method: 'get'
+  });
+}

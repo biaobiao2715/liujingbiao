@@ -74,7 +74,7 @@ import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
 import router from '@/router';
-import { getPurchaserTypeDict, registerPurchaser } from '@/api/register/purchaser';
+import { getPurchaserTypeDict, registerPurchaser, checkPhoneUnique } from '@/api/register/purchaser';
 import { sendSmsCode } from '@/api/register/accountRegiser';
 
 // 表单数据
@@ -103,7 +103,23 @@ const rules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phoneNumber: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        checkPhoneUnique(value)
+          .then((res) => {
+            if (res.code === 200) {
+              callback();
+            } else {
+              callback(new Error('手机号已被注册'));
+            }
+          })
+          .catch(() => {
+            callback(new Error('手机号码已存在'));
+          });
+      },
+      trigger: 'blur'
+    }
   ],
   smsCode: [{ required: false, message: '请输入验证码', trigger: 'blur' }],
   password: [
