@@ -103,7 +103,7 @@
           <el-table-column type="index" width="100" label="序号" />
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
-              <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
+              <el-select v-model="scope.row.contactUserType" :disabled="scope.row.contactUserType == 1" placeholder="请选择" filterable clearable>
                 <el-option
                   v-for="(item, index) in contact_user_type"
                   :disabled="item.dictValue == 1"

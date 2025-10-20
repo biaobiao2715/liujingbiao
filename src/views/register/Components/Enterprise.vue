@@ -51,7 +51,7 @@
 
           <el-col :span="12">
             <el-form-item label="统一社会信用代码" prop="licenseNumber">
-              <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
+              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别" />
             </el-form-item>
           </el-col>
 
@@ -103,8 +103,14 @@
           <el-table-column type="index" width="100" label="序号" />
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
-              <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
-                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
+              <el-select v-model="scope.row.contactUserType" :disabled="scope.row.contactUserType == 1" placeholder="请选择" filterable clearable>
+                <el-option
+                  v-for="(item, index) in contact_user_type"
+                  :disabled="item.dictValue == 1"
+                  :key="index"
+                  :label="item.dictLabel"
+                  :value="item.dictValue"
+                ></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -237,12 +243,12 @@ const emit = defineEmits(['nextStep']); // 定义事件
 
 const initFormData: FormData = {
   companyName: '武汉中兴悦达财务有限公司',
-  signUpCapital: '11122',
+  signUpCapital: '1111',
   licenseNumber: '91420105066800342M',
   signUpAddress: '南京市浦口区星火路地铁站',
   signUpTime: '',
   businessScope: '会计咨询：代理记账：企业事务代理：文化艺术交流活动组织、策\n划：企业管理咨询：教育咨询',
-  legalPerson: '刘一手',
+  legalPerson: '刘义刀',
   officeAddress: '南京市浦口区星火路地铁站动漫大厦'
 };
 // 更新表单验证规则
@@ -592,7 +598,7 @@ const submitForm = () => {
       proxy?.$modal.msgSuccess('操作成功');
       emit('nextStep');
     } else {
-      proxy?.$modal.msgSuccess('请完善基础信息必填信息');
+      ElMessage.error('请完善基础信息必填信息');
     }
   });
 };
@@ -624,7 +630,7 @@ const handleDiplomaChange = (file: UploadFile) => {
           .catch((error) => {
             // 如果OCR识别失败，则移除之前添加的文件
             fileListtable.value.pop();
-            ElMessage.error('OCR识别失败，请重试');
+            ElMessage.error('OCR识别失败,请重试');
             console.error('上传失败：', error);
             throw error; // 继续抛出错误以便在最后统一处理
           });
@@ -644,17 +650,27 @@ const handleDiplomaChange = (file: UploadFile) => {
 };
 // 处理文件选择
 const handleChange = (file: any) => {
-  uploadImage({ file: file.raw }).then((res) => {
-    if (res.code === 200 && res.data?.ossId) {
-      fileListtable.value.push({
-        name: file.name,
-        remark: '附件上传',
-        url: res.data.url,
-        fileType: '99',
-        ossId: res.data.ossId
-      });
-    }
-  });
+  proxy?.$modal.loading('正在上传附件，请稍候...');
+  uploadImage({ file: file.raw })
+    .then((res) => {
+      if (res.code === 200 && res.data?.ossId) {
+        fileListtable.value.push({
+          name: file.name,
+          remark: '附件上传',
+          url: res.data.url,
+          fileType: '99',
+          ossId: res.data.ossId
+        });
+      } else {
+        ElMessage.error('上传失败，请重试');
+      }
+      proxy?.$modal.closeLoading();
+    })
+    .catch((error) => {
+      console.error('上传失败:', error);
+      ElMessage.error('上传失败，请重试');
+      proxy?.$modal.closeLoading();
+    });
 };
 
 // 文件上传前校验
@@ -704,14 +720,14 @@ const previewFile = (file: any) => {
           <head>
             <title>图片预览</title>
             <style>
-              body { 
-                margin: 0; 
-                padding: 20px; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-                min-height: 100vh; 
-                background: #f5f5f5; 
+              body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: #f5f5f5;
               }
               img { max-width: 95vw; max-height: 95vh; }
             </style>
