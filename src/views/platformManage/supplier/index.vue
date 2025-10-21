@@ -8,18 +8,18 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form :model="searchForm" inline :label-width="130">
+    <el-form :model="queryParams" inline :label-width="130">
       <el-form-item label="供应商编号">
-        <el-input v-model="searchForm.enterpriseNumber" placeholder="请输入供应商编号" clearable />
+        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入供应商编号" clearable />
       </el-form-item>
       <el-form-item label="供应商名称">
-        <el-input v-model="searchForm.companyName" placeholder="请输入供应商名称" clearable />
+        <el-input v-model="queryParams.companyName" placeholder="请输入供应商名称" clearable />
       </el-form-item>
       <el-form-item label="统一社会信用代码">
-        <el-input v-model="searchForm.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
+        <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">
-        <el-select v-model="searchForm.reviewStatus" placeholder="请选择" clearable>
+        <el-select v-model="queryParams.reviewStatus" placeholder="请选择" clearable>
           <el-option label="待审核" value="0" />
           <el-option label="审核通过" value="1" />
           <el-option label="审核退回" value="99" />
@@ -28,7 +28,7 @@
       <!-- 审核通过时间 -->
       <el-form-item label="审核时间">
         <el-date-picker
-          v-model="searchForm.reviewTime"
+          v-model="queryParams.reviewTime"
           type="daterange"
           value-format="YYYY-MM-DD"
           range-separator="至"
@@ -105,30 +105,26 @@ import router from '@/router';
 import { ref, computed } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise';
 
-// 搜索表单数据
-const searchForm = ref({
+// 查询参数和分页数据
+const queryParams = ref({
   enterpriseNumber: '',
   companyName: '',
   licenseNumber: '',
   reviewStatus: '',
-  reviewTime: []
-});
-
-// 表格数据
-const tableData = ref([]);
-
-// 分页数据
-const queryParams = ref({
+  reviewTime: [],
   total: 0,
   pageSize: 10,
   pageNum: 1
 });
 
+// 表格数据
+const tableData = ref([]);
+
 // 表格加载状态
 const loading = ref(false);
 
 onMounted(() => {
-  getListData();
+  getTableData();
 });
 
 // 计算属性，用于处理表格中复杂的显示逻辑
@@ -154,40 +150,41 @@ const computedTableData = computed(() =>
 // 查询按钮事件
 const handleSearch = () => {
   queryParams.value.pageNum = 1;
-  getListData();
+  getTableData();
 };
 
 // 重置按钮事件
 const handleReset = () => {
-  searchForm.value = {
+  queryParams.value = {
     enterpriseNumber: '',
     companyName: '',
     licenseNumber: '',
     reviewStatus: '',
-    reviewTime: []
+    reviewTime: [],
+    total: queryParams.value.total,
+    pageSize: queryParams.value.pageSize,
+    pageNum: 1
   };
-  getListData();
+  getTableData();
 };
 
 // 分页切换事件
 const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
   queryParams.value.pageNum = pageInfo.page;
   queryParams.value.pageSize = pageInfo.limit;
-  getListData();
+  getTableData();
 };
 
 // 获取列表数据
-const getListData = async () => {
+const getTableData = async () => {
   loading.value = true; // 开始加载
   try {
     const res = await baseEnterpriseInfoList({
-      ...searchForm.value,
+      ...queryParams.value,
       enterpriseType: 1,
-      pageNum: queryParams.value.pageNum,
-      pageSize: queryParams.value.pageSize,
       reviewTime: undefined,
-      reviewStartTime: searchForm.value.reviewTime?.[0],
-      reviewEndTime: searchForm.value.reviewTime?.[1]
+      reviewStartTime: queryParams.value.reviewTime?.[0],
+      reviewEndTime: queryParams.value.reviewTime?.[1]
     });
     tableData.value = res.rows || [];
     queryParams.value.total = res.total || 0;

@@ -1,195 +1,143 @@
-<!--
-  标题: enterprise/index.vue
-  功能: 商品标签
-  说明: 用于商品的标签配置
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
--->
 <template>
-  <div class="supplier-management">
-    <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-      <el-form-item label="字典名称" prop="dictName">
-        <el-input v-model="queryParams.dictName" placeholder="请输入字典名称" clearable @keyup.enter="handleQuery" />
+  <div class="brand-management">
+    <!-- 搜索栏 -->
+    <el-form :model="queryParams" :label-width="80" inline>
+      <el-form-item label="产品保障">
+        <el-input v-model="queryParams.productGuarantee" placeholder="请输入产品保障" clearable />
+      </el-form-item>
+      <el-form-item label="产品功能">
+        <el-input v-model="queryParams.productFunction" placeholder="请输入产品功能" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button type="primary" @click="getListData">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+        <el-button @click="openAddDialog">新建标签</el-button>
       </el-form-item>
     </el-form>
 
-    <el-button type="primary" plain @click="handleAdd" style="margin-bottom: 20px">新增</el-button>
-
-    <el-table v-loading="loading" border :data="typeList">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="字典编号" align="center" prop="dictId" />
-      <el-table-column label="字典名称" align="center" prop="dictName" :show-overflow-tooltip="true" />
-      <el-table-column label="字典类型" align="center" :show-overflow-tooltip="true">
+    <!-- 表格 -->
+    <el-table :data="labelList" border style="width: 100%">
+      <el-table-column prop="id" label="序号" width="80" />
+      <el-table-column prop="productGuarantee" label="产品保障" />
+      <el-table-column prop="productFunction" label="产品功能" />
+      <el-table-column prop="sort" label="排序" />
+      <el-table-column prop="createTime" label="创建时间" />
+      <el-table-column label="操作" width="150">
         <template #default="scope">
-          <router-link :to="'/system/dict-data/index/' + scope.row.dictId" class="link-type">
-            <span>{{ scope.row.dictType }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button type="text" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button type="text" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button type="text" @click="editLabel(scope.row)">编辑</el-button>
+          <el-button type="text" @click="deleteLabel(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
-    </div>
+    <!-- 分页 -->
+    <pagination
+      v-show="queryParams.total > 0"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
+      :total="queryParams.total"
+      @pagination="handlePageChange"
+    />
 
-    <!-- 添加或修改参数配置对话框 -->
-    <el-dialog v-model="dialog.visible" :title="dialog.title" width="500px" append-to-body>
-      <el-form ref="dictFormRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="字典名称" prop="dictName">
-          <el-input v-model="form.dictName" placeholder="请输入字典名称" />
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="dialogVisible" title="新增标签">
+      <el-form :model="formData" ref="formRef" label-width="80px">
+        <el-form-item label="产品保障">
+          <el-input v-model="formData.productGuarantee" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="字典类型" prop="dictType">
-          <el-input v-model="form.dictType" placeholder="请输入字典类型" />
+        <el-form-item label="产品功能" required>
+          <el-input v-model="formData.productFunction" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
+        <el-form-item label="排序" required>
+          <el-input v-model="formData.sort" type="number" placeholder="请输入" />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
+      <div slot="footer" class="dialog-footer flex-center-between">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSave">确定</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
 
-<script setup name="Dict" lang="ts">
-import { useDictStore } from '@/store/modules/dict';
-import { listType, getType, delType, addType, updateType, refreshCache } from '@/api/system/dict/type';
-import { DictTypeForm, DictTypeQuery, DictTypeVO } from '@/api/system/dict/type/types';
+<script setup lang="ts">
+import { ref } from 'vue';
 
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const labelList = ref([]);
+const dialogVisible = ref(false);
 
-const typeList = ref<DictTypeVO[]>([]);
-const loading = ref(true);
-const ids = ref<Array<number | string>>([]);
-const total = ref(0);
-const dateRange = ref<[DateModelType, DateModelType]>(['', '']);
-
-const dictFormRef = ref<ElFormInstance>();
-const queryFormRef = ref<ElFormInstance>();
-
-const dialog = reactive<DialogOption>({
-  visible: false,
-  title: ''
+const queryParams = ref({
+  productGuarantee: '',
+  productFunction: '',
+  pageNum: 1,
+  pageSize: 10,
+  total: 0
 });
 
-const initFormData: DictTypeForm = {
-  dictId: undefined,
-  dictName: '',
-  dictType: '',
-  remark: ''
-};
-const data = reactive<PageData<DictTypeForm, DictTypeQuery>>({
-  form: { ...initFormData },
-  queryParams: {
-    pageNum: 1,
-    pageSize: 10,
-    dictName: '',
-    dictType: ''
-  },
-  rules: {
-    dictName: [{ required: true, message: '字典名称不能为空', trigger: 'blur' }],
-    dictType: [{ required: true, message: '字典类型不能为空', trigger: 'blur' }]
-  }
+const formData = ref({
+  productGuarantee: '',
+  productFunction: '',
+  sort: ''
 });
 
-const { queryParams, form, rules } = toRefs(data);
-
-/** 查询字典类型列表 */
-const getList = () => {
-  loading.value = true;
-  listType(proxy?.addDateRange(queryParams.value, dateRange.value)).then((res) => {
-    typeList.value = res.rows;
-    total.value = res.total;
-    loading.value = false;
-  });
-};
-/** 取消按钮 */
-const cancel = () => {
-  reset();
-  dialog.visible = false;
-};
-/** 表单重置 */
-const reset = () => {
-  form.value = { ...initFormData };
-  dictFormRef.value?.resetFields();
-};
-/** 搜索按钮操作 */
-const handleQuery = () => {
-  queryParams.value.pageNum = 1;
-  getList();
-};
-/** 重置按钮操作 */
-const resetQuery = () => {
-  dateRange.value = ['', ''];
-  queryFormRef.value?.resetFields();
-  handleQuery();
-};
-/** 新增按钮操作 */
-const handleAdd = () => {
-  reset();
-  dialog.visible = true;
-  dialog.title = '添加字典类型';
+// 重置按钮事件
+const handleReset = () => {
+  queryParams.value.productGuarantee = '';
+  queryParams.value.productFunction = '';
+  getListData();
 };
 
-/** 修改按钮操作 */
-const handleUpdate = async (row?: DictTypeVO) => {
-  reset();
-  const dictId = row?.dictId || ids.value[0];
-  const res = await getType(dictId);
-  Object.assign(form.value, res.data);
-  dialog.visible = true;
-  dialog.title = '修改字典类型';
-};
-/** 提交按钮 */
-const submitForm = () => {
-  dictFormRef.value?.validate(async (valid: boolean) => {
-    if (valid) {
-      form.value.dictId ? await updateType(form.value) : await addType(form.value);
-      proxy?.$modal.msgSuccess('操作成功');
-      dialog.visible = false;
-      getList();
-    }
-  });
-};
-/** 删除按钮操作 */
-const handleDelete = async (row?: DictTypeVO) => {
-  const dictIds = row?.dictId || ids.value;
-  await proxy?.$modal.confirm('是否确认删除字典编号为"' + dictIds + '"的数据项？');
-  await delType(dictIds);
-  getList();
-  proxy?.$modal.msgSuccess('删除成功');
+const getListData = () => {
+  // 模拟接口调用
+  queryParams.value.total = 100; // 假设总条数
+  labelList.value = Array.from({ length: queryParams.value.pageSize }, (_, i) => ({
+    id: i + 1 + (queryParams.value.pageNum - 1) * queryParams.value.pageSize,
+    productGuarantee: `保障${i + 1}`,
+    productFunction: `功能${i + 1}`,
+    sort: i + 1,
+    createTime: new Date().toISOString()
+  }));
 };
 
-onMounted(() => {
-  getList();
-});
+// 分页切换事件
+const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
+  queryParams.value.pageNum = pageInfo.page;
+  queryParams.value.pageSize = pageInfo.limit;
+  getListData();
+};
+
+const openAddDialog = () => {
+  formData.value = { productGuarantee: '', productFunction: '', sort: '' };
+  dialogVisible.value = true;
+};
+
+const handleSave = () => {
+  dialogVisible.value = false;
+  getListData();
+};
+
+const editLabel = (row: any) => {
+  formData.value = { ...row };
+  dialogVisible.value = true;
+};
+
+const deleteLabel = (id: number) => {
+  console.log('删除标签', id);
+  getListData();
+};
+
+// 初始化数据
+getListData();
 </script>
+
 <style scoped lang="scss">
-.supplier-management {
+.brand-management {
   padding: 24px;
-}
-.pagination {
-  margin-top: 24px;
-  justify-content: end;
+
+  .search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+  }
 }
 </style>
