@@ -33,8 +33,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">查询</el-button>
+            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
 
@@ -95,8 +95,8 @@
       </template>
       <div>{{ dialogMessage.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
       <template #footer>
-        <el-button @click="close">取消</el-button>
-        <el-button type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定 </el-button>
+        <el-button v-throttle  @click="close">取消</el-button>
+        <el-button v-throttle  type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定 </el-button>
       </template>
     </el-dialog>
   </div>

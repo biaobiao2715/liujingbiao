@@ -7,8 +7,8 @@
             <el-input v-model="queryParams.categoryName" placeholder="请输入分类名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -18,10 +18,10 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button type="primary" plain icon="Plus" @click="handleAdd()" v-hasPermi="['workflow:category:add']">新增</el-button>
+            <el-button v-throttle  type="primary" plain icon="Plus" @click="handleAdd()" v-hasPermi="['workflow:category:add']">新增</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button type="info" plain icon="Sort" @click="handleToggleExpandAll">展开/折叠</el-button>
+            <el-button v-throttle  type="info" plain icon="Sort" @click="handleToggleExpandAll">展开/折叠</el-button>
           </el-col>
           <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
@@ -41,13 +41,13 @@
         <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="修改" placement="top">
-              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['workflow:category:edit']" />
+              <el-button v-throttle  link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['workflow:category:edit']" />
             </el-tooltip>
             <el-tooltip content="新增" placement="top">
-              <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['workflow:category:add']" />
+              <el-button v-throttle  link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['workflow:category:add']" />
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['workflow:category:remove']" />
+              <el-button v-throttle  link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['workflow:category:remove']" />
             </el-tooltip>
           </template>
         </el-table-column>
@@ -80,8 +80,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button v-throttle  :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle  @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>

@@ -46,8 +46,8 @@
         </el-table>
         <pagination v-show="total > 0" v-model:page="pageNum" v-model:limit="pageSize" :total="total" />
         <div style="text-align: center; margin-left: -120px; margin-top: 30px">
-          <el-button type="primary" @click="submitForm()">提交</el-button>
-          <el-button @click="close()">返回</el-button>
+          <el-button v-throttle  type="primary" @click="submitForm()">提交</el-button>
+          <el-button v-throttle  @click="close()">返回</el-button>
         </div>
         <div></div>
       </div>

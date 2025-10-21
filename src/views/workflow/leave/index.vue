@@ -11,8 +11,8 @@
             <el-input v-model="queryParams.endLeaveDays" placeholder="请输入请假天数" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -22,10 +22,10 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button v-hasPermi="['workflow:leave:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+            <el-button v-throttle  v-hasPermi="['workflow:leave:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['workflow:leave:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+            <el-button v-throttle  v-hasPermi="['workflow:leave:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
         </el-row>
@@ -60,22 +60,22 @@
           <template #default="scope">
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5" v-if="scope.row.status === 'draft' || scope.row.status === 'cancel' || scope.row.status === 'back'">
-                <el-button v-hasPermi="['workflow:leave:edit']" size="small" type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                <el-button v-throttle  v-hasPermi="['workflow:leave:edit']" size="small" type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                   >修改</el-button
                 >
               </el-col>
               <el-col :span="1.5" v-if="scope.row.status === 'draft' || scope.row.status === 'cancel' || scope.row.status === 'back'">
-                <el-button v-hasPermi="['workflow:leave:remove']" size="small" type="primary" icon="Delete" @click="handleDelete(scope.row)"
+                <el-button v-throttle  v-hasPermi="['workflow:leave:remove']" size="small" type="primary" icon="Delete" @click="handleDelete(scope.row)"
                   >删除</el-button
                 >
               </el-col>
             </el-row>
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
+                <el-button v-throttle  type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
               </el-col>
               <el-col :span="1.5" v-if="scope.row.status === 'waiting'">
-                <el-button size="small" type="primary" icon="Notification" @click="handleCancelProcessApply(scope.row.id)">撤销</el-button>
+                <el-button v-throttle  size="small" type="primary" icon="Notification" @click="handleCancelProcessApply(scope.row.id)">撤销</el-button>
               </el-col>
             </el-row>
           </template>

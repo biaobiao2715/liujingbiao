@@ -106,7 +106,7 @@
           <el-input v-model="infoForm.genPath">
             <template #append>
               <el-dropdown>
-                <el-button type="primary">
+                <el-button v-throttle  type="primary">
                   最近路径快速选择
                   <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>

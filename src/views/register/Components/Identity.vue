@@ -15,7 +15,7 @@
     </div>
     <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
     <div class="flex-center-center mt-24">
-      <el-button type="primary" class="next-step-button" @click="emitIdentity(false)" :disabled="!selectedIdentity">下一步</el-button>
+      <el-button v-throttle  type="primary" class="next-step-button" @click="emitIdentity(false)" :disabled="!selectedIdentity">下一步</el-button>
     </div>
   </div>
 </template>

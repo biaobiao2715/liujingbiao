@@ -33,7 +33,7 @@
             <el-input v-model="accountForm.smsCode" placeholder="验证码" size="large">
               <template #append>
                 <!-- 获取验证码按钮 -->
-                <el-button @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
+                <el-button v-throttle  @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
                   {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
                 </el-button>
               </template>
@@ -48,7 +48,7 @@
       </div>
 
       <!-- 登录按钮 -->
-      <el-button type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">登录</el-button>
+      <el-button v-throttle  type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">登录</el-button>
 
       <!-- 底部链接 -->
       <div class="login-footer flex-between">

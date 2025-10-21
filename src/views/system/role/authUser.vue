@@ -10,8 +10,8 @@
             <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -20,15 +20,15 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
-            <el-button v-hasPermi="['system:role:add']" type="primary" plain icon="Plus" @click="openSelectUser">添加用户</el-button>
+            <el-button v-throttle  v-hasPermi="['system:role:add']" type="primary" plain icon="Plus" @click="openSelectUser">添加用户</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['system:role:remove']" type="danger" plain icon="CircleClose" :disabled="multiple" @click="cancelAuthUserAll">
+            <el-button v-throttle  v-hasPermi="['system:role:remove']" type="danger" plain icon="CircleClose" :disabled="multiple" @click="cancelAuthUserAll">
               批量取消授权
             </el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button type="warning" plain icon="Close" @click="handleClose">关闭</el-button>
+            <el-button v-throttle  type="warning" plain icon="Close" @click="handleClose">关闭</el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" :search="true" @query-table="getList"></right-toolbar>
         </el-row>
@@ -52,7 +52,7 @@
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="取消授权" placement="top">
-              <el-button v-hasPermi="['system:role:remove']" link type="primary" icon="CircleClose" @click="cancelAuthUser(scope.row)"> </el-button>
+              <el-button v-throttle  v-hasPermi="['system:role:remove']" link type="primary" icon="CircleClose" @click="cancelAuthUser(scope.row)"> </el-button>
             </el-tooltip>
           </template>
         </el-table-column>

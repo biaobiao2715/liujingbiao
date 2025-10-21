@@ -35,8 +35,8 @@
               ></el-date-picker>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -47,15 +47,15 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button v-hasPermi="['monitor:operlog:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
+            <el-button v-throttle  v-hasPermi="['monitor:operlog:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
               删除
             </el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['monitor:operlog:remove']" type="danger" plain icon="WarnTriangleFilled" @click="handleClean">清空</el-button>
+            <el-button v-throttle  v-hasPermi="['monitor:operlog:remove']" type="danger" plain icon="WarnTriangleFilled" @click="handleClean">清空</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['monitor:operlog:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+            <el-button v-throttle  v-hasPermi="['monitor:operlog:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
         </el-row>
@@ -115,7 +115,7 @@
         <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="详细" placement="top">
-              <el-button v-hasPermi="['monitor:operlog:query']" link type="primary" icon="View" @click="handleView(scope.row)"> </el-button>
+              <el-button v-throttle  v-hasPermi="['monitor:operlog:query']" link type="primary" icon="View" @click="handleView(scope.row)"> </el-button>
             </el-tooltip>
           </template>
         </el-table-column>

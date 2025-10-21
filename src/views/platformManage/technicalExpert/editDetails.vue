@@ -142,7 +142,7 @@
           <el-table-column prop="remark" label="备注"></el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">预览</el-button>
+              <el-button v-throttle  type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">预览</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -158,11 +158,11 @@
 
       <!-- 操作按钮 -->
       <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
-        <el-button type="danger" @click="handleAudit('99')">审核退回</el-button>
-        <el-button type="success" @click="handleAudit('1')">审核通过</el-button>
+        <el-button v-throttle  type="danger" @click="handleAudit('99')">审核退回</el-button>
+        <el-button v-throttle  type="success" @click="handleAudit('1')">审核通过</el-button>
       </div>
       <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button v-throttle  type="primary" @click="handleSave">保存</el-button>
       </div>
     </div>
   </div>

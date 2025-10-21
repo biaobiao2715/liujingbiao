@@ -12,12 +12,12 @@
         <el-input v-model="queryParams.dictName" placeholder="请输入字典名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
-    <el-button type="primary" plain @click="handleAdd" style="margin-bottom: 20px">新增</el-button>
+    <el-button v-throttle  type="primary" plain @click="handleAdd" style="margin-bottom: 20px">新增</el-button>
 
     <el-table v-loading="loading" border :data="typeList">
       <el-table-column type="index" label="序号" width="55" align="center" />
@@ -38,8 +38,8 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button type="text" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button type="text" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button v-throttle  type="text" @click="handleUpdate(scope.row)">编辑</el-button>
+          <el-button v-throttle  type="text" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -63,8 +63,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button v-throttle  type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle  @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>

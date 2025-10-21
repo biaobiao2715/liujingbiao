@@ -14,8 +14,8 @@
               <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-throttle  type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>

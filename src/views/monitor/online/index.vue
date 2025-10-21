@@ -10,8 +10,8 @@
             <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -49,7 +49,7 @@
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="强退" placement="top">
-              <el-button v-hasPermi="['monitor:online:forceLogout']" link type="primary" icon="Delete" @click="handleForceLogout(scope.row)">
+              <el-button v-throttle  v-hasPermi="['monitor:online:forceLogout']" link type="primary" icon="Delete" @click="handleForceLogout(scope.row)">
               </el-button>
             </el-tooltip>
           </template>

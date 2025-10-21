@@ -17,7 +17,7 @@
       v-if="!disabled"
     >
       <!-- 上传按钮 -->
-      <el-button type="primary">选取文件</el-button>
+      <el-button v-throttle  type="primary">选取文件</el-button>
     </el-upload>
     <!-- 上传提示 -->
     <div v-if="showTip && !disabled" class="el-upload__tip">
@@ -37,7 +37,7 @@
           <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
         </el-link>
         <div class="ele-upload-list__item-content-action">
-          <el-button type="danger" v-if="!disabled" link @click="handleDelete(index)">删除</el-button>
+          <el-button v-throttle  type="danger" v-if="!disabled" link @click="handleDelete(index)">删除</el-button>
         </div>
       </li>
     </transition-group>

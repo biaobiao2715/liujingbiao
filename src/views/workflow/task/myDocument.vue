@@ -28,8 +28,8 @@
                   <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                  <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -68,18 +68,18 @@
               <template #default="scope">
                 <el-row :gutter="10" class="mb8">
                   <el-col :span="1.5" v-if="scope.row.flowStatus === 'draft' || scope.row.flowStatus === 'cancel' || scope.row.flowStatus === 'back'">
-                    <el-button type="primary" size="small" icon="Edit" @click="handleOpen(scope.row, 'update')">编辑</el-button>
+                    <el-button v-throttle  type="primary" size="small" icon="Edit" @click="handleOpen(scope.row, 'update')">编辑</el-button>
                   </el-col>
                   <el-col :span="1.5" v-if="scope.row.flowStatus === 'draft' || scope.row.flowStatus === 'cancel' || scope.row.flowStatus === 'back'">
-                    <el-button type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+                    <el-button v-throttle  type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
                   </el-col>
                 </el-row>
                 <el-row :gutter="10" class="mb8">
                   <el-col :span="1.5">
-                    <el-button type="primary" size="small" icon="View" @click="handleOpen(scope.row, 'view')">查看</el-button>
+                    <el-button v-throttle  type="primary" size="small" icon="View" @click="handleOpen(scope.row, 'view')">查看</el-button>
                   </el-col>
                   <el-col :span="1.5" v-if="scope.row.flowStatus === 'waiting'">
-                    <el-button type="primary" size="small" icon="Notification" @click="handleCancelProcessApply(scope.row.businessId)"
+                    <el-button v-throttle  type="primary" size="small" icon="Notification" @click="handleCancelProcessApply(scope.row.businessId)"
                       >撤销</el-button
                     >
                   </el-col>

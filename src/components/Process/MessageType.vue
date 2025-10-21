@@ -14,8 +14,8 @@
     </el-form>
     <template #footer>
       <div class="dialog-footer" style="float: right; padding-bottom: 20px">
-        <el-button :disabled="buttonDisabled" type="primary" @click="submit(ruleFormRef)">确认</el-button>
-        <el-button :disabled="buttonDisabled" @click="cancel">取消</el-button>
+        <el-button v-throttle  :disabled="buttonDisabled" type="primary" @click="submit(ruleFormRef)">确认</el-button>
+        <el-button v-throttle  :disabled="buttonDisabled" @click="cancel">取消</el-button>
       </div>
     </template>
   </el-dialog>

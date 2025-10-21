@@ -14,8 +14,8 @@
         <el-input v-model="queryParams.tableComment" placeholder="请输入表描述" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
     <el-row>
@@ -30,8 +30,8 @@
     </el-row>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="handleImportTable">确 定</el-button>
-        <el-button @click="visible = false">取 消</el-button>
+        <el-button v-throttle  type="primary" @click="handleImportTable">确 定</el-button>
+        <el-button v-throttle  @click="visible = false">取 消</el-button>
       </div>
     </template>
   </el-dialog>

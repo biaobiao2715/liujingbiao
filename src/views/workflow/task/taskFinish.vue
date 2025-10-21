@@ -6,7 +6,7 @@
           <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true">
             <el-form-item>
               <el-badge :value="userSelectCount" :max="10" class="item">
-                <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
+                <el-button v-throttle  type="primary" @click="openUserSelect">选择申请人</el-button>
               </el-badge>
             </el-form-item>
             <el-form-item label="任务名称" prop="nodeName">
@@ -19,8 +19,8 @@
               <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -66,7 +66,7 @@
         <el-table-column align="center" prop="createTime" label="创建时间" :show-overflow-tooltip="true" width="150"></el-table-column>
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
-            <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-throttle  type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -151,7 +151,7 @@
         <div class="qualification-header">
           <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
             <div class="upload-btn">
-              <el-button plain style="color: #108c58; border-color: #108c58">
+              <el-button v-throttle  plain style="color: #108c58; border-color: #108c58">
                 <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
               >
             </div>
@@ -169,16 +169,16 @@
           <el-table-column prop="remark" label="备注" />
           <el-table-column label="操作" width="150">
             <template #default="scope">
-              <el-button type="primary" link @click="previewQualification(scope.row)">预览</el-button>
+              <el-button v-throttle  type="primary" link @click="previewQualification(scope.row)">预览</el-button>
               <!--  资质名称为 毕业证 不显示删除按钮  -->
-              <el-button type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)">删除</el-button>
+              <el-button v-throttle  type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
     </div>
     <div class="next-step-container">
-      <el-button type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
+      <el-button v-throttle  type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
     </div>
   </div>
 </template>

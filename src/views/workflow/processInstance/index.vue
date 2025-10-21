@@ -26,7 +26,7 @@
               <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true">
                 <el-form-item>
                   <el-badge :value="userSelectCount" :max="10" class="item">
-                    <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
+                    <el-button v-throttle  type="primary" @click="openUserSelect">选择申请人</el-button>
                   </el-badge>
                 </el-form-item>
                 <el-form-item label="任务名称" prop="nodeName">
@@ -39,8 +39,8 @@
                   <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" @keyup.enter="handleQuery" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                  <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -50,7 +50,7 @@
           <template #header>
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">删除</el-button>
+                <el-button v-throttle  type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">删除</el-button>
               </el-col>
               <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
             </el-row>
@@ -95,24 +95,24 @@
                       <el-popover :ref="`popoverRef${scope.$index}`" trigger="click" placement="left" :width="300">
                         <el-input v-model="deleteReason" resize="none" :rows="3" type="textarea" placeholder="请输入作废原因" />
                         <div style="text-align: right; margin: 5px 0px 0px 0px">
-                          <el-button size="small" text @click="cancelPopover(scope.$index)">取消</el-button>
-                          <el-button size="small" type="primary" @click="handleInvalid(scope.row)">确认</el-button>
+                          <el-button v-throttle  size="small" text @click="cancelPopover(scope.$index)">取消</el-button>
+                          <el-button v-throttle  size="small" type="primary" @click="handleInvalid(scope.row)">确认</el-button>
                         </div>
                         <template #reference>
-                          <el-button type="danger" size="small" icon="CircleClose">作废</el-button>
+                          <el-button v-throttle  type="danger" size="small" icon="CircleClose">作废</el-button>
                         </template>
                       </el-popover>
                     </el-col>
                     <el-col :span="1.5">
-                      <el-button type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)">删除 </el-button>
+                      <el-button v-throttle  type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)">删除 </el-button>
                     </el-col>
                   </el-row>
                   <el-row :gutter="10" class="mb8">
                     <el-col :span="1.5">
-                      <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
+                      <el-button v-throttle  type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
                     </el-col>
                     <el-col :span="1.5">
-                      <el-button type="primary" size="small" icon="Document" @click="handleInstanceVariable(scope.row)"> 变量 </el-button>
+                      <el-button v-throttle  type="primary" size="small" icon="Document" @click="handleInstanceVariable(scope.row)"> 变量 </el-button>
                     </el-col>
                   </el-row>
                 </template>
@@ -170,7 +170,7 @@
             <el-input v-model="form.value" placeholder="请输入变量值" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleVariable(ruleFormRef)">确认</el-button>
+            <el-button v-throttle  type="primary" @click="handleVariable(ruleFormRef)">确认</el-button>
           </el-form-item>
         </el-form>
       </el-card>

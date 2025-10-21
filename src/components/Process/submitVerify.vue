@@ -12,7 +12,7 @@
         <fileUpload v-model="form.fileId" :file-type="['png', 'jpg', 'jpeg', 'doc', 'docx', 'xlsx', 'xls', 'ppt', 'txt', 'pdf']" :file-size="20" />
       </el-form-item>
       <el-form-item label="抄送" v-if="buttonObj.copy">
-        <el-button type="primary" icon="Plus" circle @click="openUserSelectCopy" />
+        <el-button v-throttle  type="primary" icon="Plus" circle @click="openUserSelectCopy" />
         <el-tag v-for="user in selectCopyUserList" :key="user.userId" closable style="margin: 2px" @close="handleCopyCloseTag(user)">
           {{ user.userName }}
         </el-tag>
@@ -23,7 +23,7 @@
           <el-input v-if="false" v-model="form.assigneeMap[item.nodeCode]" />
           <el-input placeholder="请选择审批人" readonly v-model="nickName[item.nodeCode]">
             <template v-slot:append>
-              <el-button @click="choosePeople(item)" icon="search">选择</el-button>
+              <el-button v-throttle  @click="choosePeople(item)" icon="search">选择</el-button>
             </template>
           </el-input>
         </div>
@@ -34,14 +34,14 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button :disabled="buttonDisabled" type="primary" @click="handleCompleteTask"> 提交 </el-button>
-        <el-button v-if="task.flowStatus === 'waiting' && buttonObj.trust" :disabled="buttonDisabled" type="primary" @click="openDelegateTask">
+        <el-button v-throttle  :disabled="buttonDisabled" type="primary" @click="handleCompleteTask"> 提交 </el-button>
+        <el-button v-throttle  v-if="task.flowStatus === 'waiting' && buttonObj.trust" :disabled="buttonDisabled" type="primary" @click="openDelegateTask">
           委托
         </el-button>
-        <el-button v-if="task.flowStatus === 'waiting' && buttonObj.transfer" :disabled="buttonDisabled" type="primary" @click="openTransferTask">
+        <el-button v-throttle  v-if="task.flowStatus === 'waiting' && buttonObj.transfer" :disabled="buttonDisabled" type="primary" @click="openTransferTask">
           转办
         </el-button>
-        <el-button
+        <el-button v-throttle 
           v-if="task.flowStatus === 'waiting' && Number(task.nodeRatio) > 0 && buttonObj.addSign"
           :disabled="buttonDisabled"
           type="primary"
@@ -49,7 +49,7 @@
         >
           加签
         </el-button>
-        <el-button
+        <el-button v-throttle 
           v-if="task.flowStatus === 'waiting' && Number(task.nodeRatio) > 0 && buttonObj.subSign"
           :disabled="buttonDisabled"
           type="primary"
@@ -57,7 +57,7 @@
         >
           减签
         </el-button>
-        <el-button
+        <el-button v-throttle 
           v-if="task.flowStatus === 'waiting' && buttonObj.termination"
           :disabled="buttonDisabled"
           type="danger"
@@ -65,10 +65,10 @@
         >
           终止
         </el-button>
-        <el-button v-if="task.flowStatus === 'waiting' && buttonObj.back" :disabled="buttonDisabled" type="danger" @click="handleBackProcessOpen">
+        <el-button v-throttle  v-if="task.flowStatus === 'waiting' && buttonObj.back" :disabled="buttonDisabled" type="danger" @click="handleBackProcessOpen">
           退回
         </el-button>
-        <el-button :disabled="buttonDisabled" @click="cancel">取消</el-button>
+        <el-button v-throttle  :disabled="buttonDisabled" @click="cancel">取消</el-button>
       </span>
     </template>
     <!-- 抄送 -->
@@ -110,8 +110,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer" style="float: right; padding-bottom: 20px">
-          <el-button :disabled="backButtonDisabled" type="primary" @click="handleBackProcess">确认</el-button>
-          <el-button :disabled="backButtonDisabled" @click="backVisible = false">取消</el-button>
+          <el-button v-throttle  :disabled="backButtonDisabled" type="primary" @click="handleBackProcess">确认</el-button>
+          <el-button v-throttle  :disabled="backButtonDisabled" @click="backVisible = false">取消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -123,7 +123,7 @@
           <el-table-column prop="nickName" label="办理人" />
           <el-table-column label="操作" align="center" width="160">
             <template #default="scope">
-              <el-button type="danger" size="small" icon="Delete" @click="deleteMultiInstanceUser(scope.row)">删除 </el-button>
+              <el-button v-throttle  type="danger" size="small" icon="Delete" @click="deleteMultiInstanceUser(scope.row)">删除 </el-button>
             </template>
           </el-table-column>
         </el-table>

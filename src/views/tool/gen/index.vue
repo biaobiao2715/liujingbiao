@@ -27,8 +27,8 @@
               ></el-date-picker>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -39,16 +39,16 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button v-hasPermi="['tool:gen:code']" type="primary" plain icon="Download" @click="handleGenTable()">生成</el-button>
+            <el-button v-throttle  v-hasPermi="['tool:gen:code']" type="primary" plain icon="Download" @click="handleGenTable()">生成</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['tool:gen:import']" type="info" plain icon="Upload" @click="openImportTable">导入</el-button>
+            <el-button v-throttle  v-hasPermi="['tool:gen:import']" type="info" plain icon="Upload" @click="openImportTable">导入</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['tool:gen:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleEditTable()">修改</el-button>
+            <el-button v-throttle  v-hasPermi="['tool:gen:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleEditTable()">修改</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-hasPermi="['tool:gen:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
+            <el-button v-throttle  v-hasPermi="['tool:gen:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
               删除
             </el-button>
           </el-col>
@@ -72,19 +72,19 @@
         <el-table-column label="操作" align="center" width="330" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="预览" placement="top">
-              <el-button v-hasPermi="['tool:gen:preview']" link type="primary" icon="View" @click="handlePreview(scope.row)"></el-button>
+              <el-button v-throttle  v-hasPermi="['tool:gen:preview']" link type="primary" icon="View" @click="handlePreview(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="编辑" placement="top">
-              <el-button v-hasPermi="['tool:gen:edit']" link type="primary" icon="Edit" @click="handleEditTable(scope.row)"></el-button>
+              <el-button v-throttle  v-hasPermi="['tool:gen:edit']" link type="primary" icon="Edit" @click="handleEditTable(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button v-hasPermi="['tool:gen:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button v-throttle  v-hasPermi="['tool:gen:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="同步" placement="top">
-              <el-button v-hasPermi="['tool:gen:edit']" link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
+              <el-button v-throttle  v-hasPermi="['tool:gen:edit']" link type="primary" icon="Refresh" @click="handleSynchDb(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="生成代码" placement="top">
-              <el-button v-hasPermi="['tool:gen:code']" link type="primary" icon="Download" @click="handleGenTable(scope.row)"></el-button>
+              <el-button v-throttle  v-hasPermi="['tool:gen:code']" link type="primary" icon="Download" @click="handleGenTable(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>

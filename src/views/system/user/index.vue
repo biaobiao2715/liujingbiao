@@ -51,8 +51,8 @@
                   ></el-date-picker>
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                  <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -63,21 +63,21 @@
           <template #header>
             <el-row :gutter="10">
               <el-col :span="1.5">
-                <el-button v-has-permi="['system:user:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
+                <el-button v-throttle  v-has-permi="['system:user:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-has-permi="['system:user:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()">
+                <el-button v-throttle  v-has-permi="['system:user:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()">
                   修改
                 </el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-has-permi="['system:user:remove']" type="danger" plain :disabled="multiple" icon="Delete" @click="handleDelete()">
+                <el-button v-throttle  v-has-permi="['system:user:remove']" type="danger" plain :disabled="multiple" icon="Delete" @click="handleDelete()">
                   删除
                 </el-button>
               </el-col>
               <el-col :span="1.5">
                 <el-dropdown class="mt-[1px]">
-                  <el-button plain type="info">
+                  <el-button v-throttle  plain type="info">
                     更多
                     <el-icon class="el-icon--right"><arrow-down /></el-icon
                   ></el-button>
@@ -117,18 +117,18 @@
             <el-table-column label="操作" fixed="right" width="180" class-name="small-padding fixed-width">
               <template #default="scope">
                 <el-tooltip v-if="scope.row.userId !== 1" content="修改" placement="top">
-                  <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+                  <el-button v-throttle  v-hasPermi="['system:user:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
                 </el-tooltip>
                 <el-tooltip v-if="scope.row.userId !== 1" content="删除" placement="top">
-                  <el-button v-hasPermi="['system:user:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+                  <el-button v-throttle  v-hasPermi="['system:user:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
                 </el-tooltip>
 
                 <el-tooltip v-if="scope.row.userId !== 1" content="重置密码" placement="top">
-                  <el-button v-hasPermi="['system:user:resetPwd']" link type="primary" icon="Key" @click="handleResetPwd(scope.row)"></el-button>
+                  <el-button v-throttle  v-hasPermi="['system:user:resetPwd']" link type="primary" icon="Key" @click="handleResetPwd(scope.row)"></el-button>
                 </el-tooltip>
 
                 <el-tooltip v-if="scope.row.userId !== 1" content="分配角色" placement="top">
-                  <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)"></el-button>
+                  <el-button v-throttle  v-hasPermi="['system:user:edit']" link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)"></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -246,8 +246,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel()">取 消</el-button>
+          <el-button v-throttle  type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle  @click="cancel()">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -280,8 +280,8 @@
       </el-upload>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitFileForm">确 定</el-button>
-          <el-button @click="upload.open = false">取 消</el-button>
+          <el-button v-throttle  type="primary" @click="submitFileForm">确 定</el-button>
+          <el-button v-throttle  @click="upload.open = false">取 消</el-button>
         </div>
       </template>
     </el-dialog>

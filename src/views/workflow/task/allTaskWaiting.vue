@@ -6,7 +6,7 @@
           <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :inline="true">
             <el-form-item>
               <el-badge :value="userSelectCount" :max="10" class="item">
-                <el-button type="primary" @click="openUserSelect">选择申请人</el-button>
+                <el-button v-throttle  type="primary" @click="openUserSelect">选择申请人</el-button>
               </el-badge>
             </el-form-item>
             <el-form-item label="任务名称" prop="nodeName">
@@ -16,8 +16,8 @@
               <el-input v-model="queryParams.flowName" placeholder="请输入流程定义名称" @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -27,8 +27,8 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5" v-if="tab === 'waiting'">
-            <el-button type="primary" plain icon="Edit" :disabled="multiple" @click="handleUserOpen()">修改办理人 </el-button>
-            <el-button type="primary" plain icon="Bell" :disabled="multiple" @click="handleUrgeTaskOpen()">催办 </el-button>
+            <el-button v-throttle  type="primary" plain icon="Edit" :disabled="multiple" @click="handleUserOpen()">修改办理人 </el-button>
+            <el-button v-throttle  type="primary" plain icon="Bell" :disabled="multiple" @click="handleUrgeTaskOpen()">催办 </el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
         </el-row>
@@ -81,10 +81,10 @@
             <template #default="scope">
               <el-row :gutter="10" class="mb8">
                 <el-col :span="1.5" v-if="tab === 'waiting' || tab === 'finish'">
-                  <el-button type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
+                  <el-button v-throttle  type="primary" size="small" icon="View" @click="handleView(scope.row)">查看</el-button>
                 </el-col>
                 <el-col :span="1.5" v-if="tab === 'waiting'">
-                  <el-button type="primary" size="small" icon="Setting" @click="handleMeddle(scope.row)">流程干预 </el-button>
+                  <el-button v-throttle  type="primary" size="small" icon="Setting" @click="handleMeddle(scope.row)">流程干预 </el-button>
                 </el-col>
               </el-row>
             </template>

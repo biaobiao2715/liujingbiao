@@ -13,8 +13,8 @@
               </el-form-item>
 
               <el-form-item>
-                <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
               </el-form-item>
             </el-form>
           </el-card>
@@ -67,8 +67,8 @@
         />
       </el-card>
       <template #footer>
-        <el-button @click="close">取消</el-button>
-        <el-button type="primary" @click="confirm">确定</el-button>
+        <el-button v-throttle  @click="close">取消</el-button>
+        <el-button v-throttle  type="primary" @click="confirm">确定</el-button>
       </template>
     </el-dialog>
   </div>

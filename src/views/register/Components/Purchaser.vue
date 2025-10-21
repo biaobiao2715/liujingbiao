@@ -28,7 +28,7 @@
         <el-input v-model="form.smsCode" placeholder="请输入验证码" maxlength="6" autocomplete="off">
           <template #append>
             <!-- 发送验证码按钮 -->
-            <el-button type="primary" :disabled="countdown > 0" @click="sendCode">
+            <el-button v-throttle  type="primary" :disabled="countdown > 0" @click="sendCode">
               {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
             </el-button>
           </template>
@@ -62,7 +62,7 @@
       </el-form-item>
       <!-- 下一步按钮 -->
       <el-form-item>
-        <el-button class="next-button" type="primary" @click="submitForm">下一步</el-button>
+        <el-button v-throttle  class="next-button" type="primary" @click="submitForm">下一步</el-button>
       </el-form-item>
     </el-form>
   </div>

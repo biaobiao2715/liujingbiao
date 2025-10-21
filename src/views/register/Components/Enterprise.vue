@@ -160,7 +160,7 @@
 
           <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button
+              <el-button v-throttle 
                 v-if="scope.row.contactUserType !== '1'"
                 text
                 @click="removeTableCell(scope.$index, scope.row)"
@@ -173,7 +173,7 @@
           </el-table-column>
         </el-table>
         <div class="flex-center-center">
-          <el-button @click="addTableCell" icon="Plus" color="#108C58" plain style="margin-top: 10px">新增</el-button>
+          <el-button v-throttle  @click="addTableCell" icon="Plus" color="#108C58" plain style="margin-top: 10px">新增</el-button>
         </div>
       </div>
 
@@ -190,7 +190,7 @@
           :before-upload="beforeUpload"
         >
           <div class="upload-btn">
-            <el-button plain style="color: #108c58; border-color: #108c58">
+            <el-button v-throttle  plain style="color: #108c58; border-color: #108c58">
               <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
             >
           </div>
@@ -208,12 +208,12 @@
           </el-table-column>
           <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+              <el-button v-throttle  text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">预览</span>
               </el-button>
 
-              <el-button text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
+              <el-button v-throttle  text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
                 <img src="@/assets/images/register4.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">删除</span>
               </el-button>
@@ -223,7 +223,7 @@
       </div>
 
       <div class="next-step-container">
-        <el-button type="primary" class="next-step-button" @click="submitForm">下一步</el-button>
+        <el-button v-throttle  type="primary" class="next-step-button" @click="submitForm">下一步</el-button>
       </div>
     </el-form>
   </div>

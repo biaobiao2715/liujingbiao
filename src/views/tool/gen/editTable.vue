@@ -105,8 +105,8 @@
     </el-tabs>
     <el-form label-width="100px">
       <div style="text-align: center; margin-left: -100px; margin-top: 10px">
-        <el-button type="primary" @click="submitForm()">提交</el-button>
-        <el-button @click="close()">返回</el-button>
+        <el-button v-throttle  type="primary" @click="submitForm()">提交</el-button>
+        <el-button v-throttle  @click="close()">返回</el-button>
       </div>
     </el-form>
   </el-card>

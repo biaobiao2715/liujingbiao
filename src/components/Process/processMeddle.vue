@@ -10,8 +10,8 @@
     </el-descriptions>
     <template #footer>
       <span class="dialog-footer">
-        <el-button v-if="task.flowStatus === 'waiting'" :disabled="buttonDisabled" type="primary" @click="openTransferTask"> 转办 </el-button>
-        <el-button
+        <el-button v-throttle  v-if="task.flowStatus === 'waiting'" :disabled="buttonDisabled" type="primary" @click="openTransferTask"> 转办 </el-button>
+        <el-button v-throttle 
           v-if="task.flowStatus === 'waiting' && Number(task.nodeRatio) > 0"
           :disabled="buttonDisabled"
           type="primary"
@@ -19,7 +19,7 @@
         >
           加签
         </el-button>
-        <el-button
+        <el-button v-throttle 
           v-if="task.flowStatus === 'waiting' && Number(task.nodeRatio) > 0"
           :disabled="buttonDisabled"
           type="primary"
@@ -27,7 +27,7 @@
         >
           减签
         </el-button>
-        <el-button v-if="task.flowStatus === 'waiting'" :disabled="buttonDisabled" type="danger" @click="handleTerminationTask"> 终止 </el-button>
+        <el-button v-throttle  v-if="task.flowStatus === 'waiting'" :disabled="buttonDisabled" type="danger" @click="handleTerminationTask"> 终止 </el-button>
       </span>
     </template>
     <!-- 转办 -->
@@ -41,7 +41,7 @@
           <el-table-column prop="nickName" label="办理人" />
           <el-table-column label="操作" align="center" width="160">
             <template #default="scope">
-              <el-button type="danger" size="small" icon="Delete" @click="deleteMultiInstanceUser(scope.row)">删除</el-button>
+              <el-button v-throttle  type="danger" size="small" icon="Delete" @click="deleteMultiInstanceUser(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>

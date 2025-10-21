@@ -137,7 +137,7 @@
               <el-form-item label="其他属性" prop="attrList">
                 <div class="form-flex">
                   <div class="flex-text">自定义添加属性，以更精准描述产品。</div>
-                  <el-button class="flex-buttom" @click="addTableCell" :disabled="readonly" type="primary" plain>新增属性</el-button>
+                  <el-button v-throttle  class="flex-buttom" @click="addTableCell" :disabled="readonly" type="primary" plain>新增属性</el-button>
                 </div>
 
                 <el-table :data="tableList" border style="width: 100%">
@@ -165,7 +165,7 @@
                   <el-table-column label="操作" align="center">
                     <template v-slot="scope">
                       <!-- 删除 -->
-                      <el-button type="text" :disabled="readonly" @click="removeTableCell(scope.$index, scope.row)">删除行</el-button>
+                      <el-button v-throttle  type="text" :disabled="readonly" @click="removeTableCell(scope.$index, scope.row)">删除行</el-button>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -289,9 +289,9 @@
 
         <!-- 按钮 -->
         <el-row type="flex" justify="center" :gutter="5">
-          <el-col :span="3"><el-button @click="submitClose">取消</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" @click="submitForm('2')">提交</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle  @click="submitClose">取消</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle  type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle  type="primary" @click="submitForm('2')">提交</el-button></el-col>
         </el-row>
       </div>
     </el-form>

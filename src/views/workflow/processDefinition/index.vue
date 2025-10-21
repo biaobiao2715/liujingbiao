@@ -31,8 +31,8 @@
                   <el-input v-model="queryParams.flowCode" placeholder="请输入流程定义编码" clearable @keyup.enter="handleQuery" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                  <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -42,19 +42,19 @@
           <template #header>
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button type="primary" icon="Plus" @click="handleAdd()">添加</el-button>
+                <el-button v-throttle  type="primary" icon="Plus" @click="handleAdd()">添加</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="success" icon="Edit" :disabled="single" @click="handleUpdate()">修改</el-button>
+                <el-button v-throttle  type="success" icon="Edit" :disabled="single" @click="handleUpdate()">修改</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="danger" icon="Delete" :disabled="multiple" @click="handleDelete()">删除</el-button>
+                <el-button v-throttle  type="danger" icon="Delete" :disabled="multiple" @click="handleDelete()">删除</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="primary" icon="UploadFilled" @click="uploadDialog.visible = true">部署流程文件</el-button>
+                <el-button v-throttle  type="primary" icon="UploadFilled" @click="uploadDialog.visible = true">部署流程文件</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="warning" icon="Download" :disabled="single" @click="handleExportDef">导出</el-button>
+                <el-button v-throttle  type="warning" icon="Download" :disabled="single" @click="handleExportDef">导出</el-button>
               </el-col>
               <right-toolbar v-model:show-search="showSearch" @query-table="handleQuery"></right-toolbar>
             </el-row>
@@ -92,21 +92,21 @@
                 <template #default="scope">
                   <el-row :gutter="10" class="mb8">
                     <el-col :span="1.5">
-                      <el-button link type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">删除流程</el-button>
+                      <el-button v-throttle  link type="primary" size="small" icon="Delete" @click="handleDelete(scope.row)">删除流程</el-button>
                     </el-col>
                     <el-col :span="1.5">
-                      <el-button link type="primary" size="small" icon="CopyDocument" @click="handleCopyDef(scope.row)">复制流程</el-button>
+                      <el-button v-throttle  link type="primary" size="small" icon="CopyDocument" @click="handleCopyDef(scope.row)">复制流程</el-button>
                     </el-col>
                   </el-row>
                   <el-row :gutter="10" class="mb8">
                     <el-col :span="1.5">
-                      <el-button link type="primary" v-if="scope.row.isPublish === 0" icon="Pointer" size="small" @click="design(scope.row)"
+                      <el-button v-throttle  link type="primary" v-if="scope.row.isPublish === 0" icon="Pointer" size="small" @click="design(scope.row)"
                         >流程设计</el-button
                       >
-                      <el-button link type="primary" v-else icon="View" size="small" @click="designView(scope.row)">查看流程</el-button>
+                      <el-button v-throttle  link type="primary" v-else icon="View" size="small" @click="designView(scope.row)">查看流程</el-button>
                     </el-col>
                     <el-col v-if="scope.row.isPublish !== 1" :span="1.5">
-                      <el-button link type="primary" size="small" icon="CircleCheck" @click="handlePublish(scope.row)">发布流程</el-button>
+                      <el-button v-throttle  link type="primary" size="small" icon="CircleCheck" @click="handlePublish(scope.row)">发布流程</el-button>
                     </el-col>
                   </el-row>
                 </template>
@@ -198,8 +198,8 @@
           </el-form-item>
         </el-form>
         <div class="dialog-footer">
-          <el-button @click="modelDialog.visible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">保存</el-button>
+          <el-button v-throttle  @click="modelDialog.visible = false">取消</el-button>
+          <el-button v-throttle  type="primary" @click="handleSubmit">保存</el-button>
         </div>
       </template>
     </el-dialog>
