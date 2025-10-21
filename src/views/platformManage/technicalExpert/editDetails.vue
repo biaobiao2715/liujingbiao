@@ -19,7 +19,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="性别">
-              <el-input v-model="formData.sex" disabled></el-input>
+              <el-input :value="sexMap[formData.sex]" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -89,7 +89,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="账户名">
-              <el-input v-model="formData.userName"></el-input>
+              <el-input v-model="formData.expertName"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -133,7 +133,11 @@
       <el-form :model="formData" label-width="140px">
         <FormHeader title="资料清单" />
         <el-table :data="formData.hnBaseRegisterFolderVoList" border>
-          <el-table-column prop="folderId" label="序号" width="100"></el-table-column>
+          <el-table-column label="序号" width="100">
+            <template #default="scope">
+              {{ scope.$index + 1 }}
+            </template>
+          </el-table-column>
           <el-table-column prop="folderName" label="文件夹名称">
             <template #default="scope">
               {{ scope.row.ossInfo?.originalName }}
@@ -183,6 +187,12 @@ const operateMode = ref(type);
 const loading = ref(false);
 
 const formData = ref<TechnicalExpertList>({} as TechnicalExpertList);
+
+const sexMap = {
+  '0': '女',
+  '1': '男'
+};
+
 
 onMounted(() => {
   getDetail();

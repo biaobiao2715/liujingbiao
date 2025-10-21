@@ -19,17 +19,13 @@
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="入驻日期" prop="registrationTime">
-            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
+            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择"
+              value-format="YYYY-MM-DD" clearable />
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
               <el-option label="全部" :value="''" />
-              <el-option label="待审核" value="0" />
-              <el-option label="审核通过" value="1" />
-              <el-option label="分配账号" value="2" />
-              <el-option label="分配权限" value="3" />
-              <el-option label="入驻成功" value="4" />
-              <el-option label="入驻失败" value="99" />
+              <el-option v-for="dict in reviewStatusDict" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -55,7 +51,7 @@
           </el-table-column>
           <el-table-column label="审核状态" prop="reviewStatus" align="center">
             <template #default="scope">
-              {{ reviewStatusMap[scope.row.reviewStatus] || '未知' }}
+              {{ getDictLabel(reviewStatusDict, scope.row.reviewStatus) || '未知' }}
             </template>
           </el-table-column>
           <el-table-column label="入库状态" prop="storageStatus" align="center">
@@ -70,30 +66,23 @@
                 scope.row.startStopStatus === '0' ? '停用' : '启用'
               }}</el-link>
 
-              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'" @click="handleEdit(scope.row, 'view')"
-                >查看</el-link
-              >
-              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')"
-                >审核</el-link
-              >
+              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '1'"
+                @click="handleEdit(scope.row, 'view')">查看</el-link>
+              <el-link style="margin-left: 10px" type="primary" v-if="scope.row.reviewStatus === '0'"
+                @click="handleEdit(scope.row, 'audit')">审核</el-link>
             </template>
           </el-table-column>
         </el-table>
 
-        <pagination
-          v-show="total > 0"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          :total="total"
-          @pagination="handleQuery"
-        />
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+          :total="total" @pagination="handleQuery" />
       </el-card>
     </div>
     <el-dialog v-model="dialogVisible" width="30%">
       <template #header>
-        <span>{{ dialogMessage.startStopStatus === '1' ? '停用' : '启用' }}</span>
+        <span>{{ dialogMessage.startStopStatus === '1' ? '启用' : '停用' }}</span>
       </template>
-      <div>{{ dialogMessage.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
+      <div>{{ dialogMessage.startStopStatus === '1' ? '请确认是否启用该专家信息?' : '请确认是否停用该专家信息？' }}</div>
       <template #footer>
         <el-button v-throttle  @click="close">取消</el-button>
         <el-button v-throttle  type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定 </el-button>
@@ -103,12 +92,23 @@
 </template>
 
 <script setup name="TechnicalExpert" lang="ts">
-import { reviewStatusMap } from '@/api/platform/legalExpert';
 import { getTechnicalExpertList, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertListRequest, TechnicalExpertList } from '@/api/platform/technicalExpert/types';
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
+import { useDict } from '@/utils/dict';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+//获取字典数据
+const { review_status: reviewStatusDict } = useDict('review_status');
+
+
+// 根据字典值获取标签
+const getDictLabel = (dict: any[], value: string) => {
+  if (!dict || !value) return '';
+  const item = dict.find(item => item.value === value);
+  return item ? item.label : '';
+};
 
 // 查询参数
 const queryParams = reactive<TechnicalExpertListRequest>({
