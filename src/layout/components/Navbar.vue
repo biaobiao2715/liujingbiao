@@ -127,7 +127,7 @@ const dynamicTenantEvent = async (tenantId: string) => {
   if (companyName.value != null && companyName.value !== '') {
     await dynamicTenant(tenantId);
     dynamic.value = true;
-    await proxy?.$router.push('/');
+    // await proxy?.$router.push('/');
     await proxy?.$tab.closeAllPage();
     await proxy?.$tab.refreshPage();
   }

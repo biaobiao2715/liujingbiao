@@ -72,6 +72,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     path: '',
     // component: Layout,
     redirect: '/index',
+    hidden: true,
     children: [
       {
         path: '/index',
