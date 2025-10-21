@@ -28,8 +28,8 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button v-throttle  type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle  @click="handleReset">重置</el-button>
+        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -77,9 +77,9 @@
 
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle  v-if="isPendingReview(scope.row)" type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
-          <el-button v-throttle  v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
-          <el-button v-throttle  v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
+          <el-button v-throttle v-if="isPendingReview(scope.row)" type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>

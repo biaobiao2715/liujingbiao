@@ -26,8 +26,8 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button v-throttle  type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle  @click="handleReset">重置</el-button>
+        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
