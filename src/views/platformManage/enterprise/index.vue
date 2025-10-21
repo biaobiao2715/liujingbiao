@@ -39,7 +39,10 @@
       <el-table-column label="企业名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
       <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
-          <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span>
+          <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
+          <router-link :to="'/platform/enterprise/editDetails/?id=' + scope.row.id + '&type=view'" class="link-type">
+            <span>{{ scope.row.enterpriseNumber }}</span>
+          </router-link>
         </template>
       </el-table-column>
       <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
