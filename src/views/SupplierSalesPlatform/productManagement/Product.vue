@@ -40,7 +40,7 @@
       <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
           <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
-          <router-link :to="'/supplier/product/editDetails/?id=' + scope.row.id + '&type=view'" class="link-type">
+          <router-link :to="'/supplier/product/details/?id=' + scope.row.id + '&type=view'" class="link-type">
             <span>{{ scope.row.enterpriseNumber }}</span>
           </router-link>
         </template>
@@ -149,10 +149,9 @@ const handleReset = () => {
 
 // 编辑按钮事件
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  console.log('编辑:', row, type);
-  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
+  const path = type === 'view' ? '/supplier/product/details' : '/supplier/product/edit';
   router.push({
-    path: '/platform/enterprise/editDetails',
+    path: path,
     query: {
       id: row.id,
       type

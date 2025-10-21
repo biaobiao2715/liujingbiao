@@ -610,7 +610,7 @@ const handleDiplomaChange = (file: UploadFile) => {
     .then((res) => {
       if (res.data?.ossId) {
         const newFile = {
-          name: file.name || '营业执照',
+          name: res.data.fileName || '营业执照',
           remark: '营业执照',
           url: res.data.url,
           fileType: '1',
@@ -655,7 +655,7 @@ const handleChange = (file: any) => {
     .then((res) => {
       if (res.code === 200 && res.data?.ossId) {
         fileListtable.value.push({
-          name: file.name,
+          name: res.data.fileName,
           remark: '附件上传',
           url: res.data.url,
           fileType: '99',

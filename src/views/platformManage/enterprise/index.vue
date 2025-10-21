@@ -15,7 +15,7 @@
       <el-form-item label="企业名称" prop="companyName">
         <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="统一社会信用代码" prop="licenseNumber" label-width="140px">
+      <el-form-item label="统一社会信用代码" prop="licenseNumber">
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="审核状态" prop="reviewStatus">

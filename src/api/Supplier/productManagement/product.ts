@@ -105,3 +105,22 @@ export const baseEnterpriseInfoDelete = (id: any) => {
     method: 'delete'
   });
 };
+
+// 图片上传方法
+
+/**
+ * 图片上传方法
+ * @param data - 包含文件的对象
+ * @returns 图片上传结果的 Promise
+ */
+export const uploadImage = (data) => {
+  return request({
+    url: '/resource/oss/registerUpload',
+    method: 'post',
+    data: data,
+    headers: {
+      isToken: false,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
