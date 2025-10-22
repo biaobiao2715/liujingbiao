@@ -1,47 +1,34 @@
 <!--
   标题: brandManagement.vue
-  功能: 产品保障
-  说明: 该页面用于管理品牌，包括搜索、新增、编辑、删除品牌等操作。
+  功能: 产品功能标签管理
+  说明: 该页面用于管理产品功能标签，包括搜索、新增、编辑、删除产品功能标签等操作。
   当前版本: 1.0
   开发信息: Created by 李春雷 2025-10-21
 -->
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline>
-      <el-form-item label="产品功能">
-        <el-input v-model="queryParams.brandName" placeholder="请输入产品功能" clearable />
+    <el-form :model="queryParams" :label-width="120" inline>
+      <el-form-item label="产品功能名称">
+        <el-input v-model="queryParams.labelName" placeholder="请输入产品功能名称" clearable />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="getListData">搜索</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
-        <el-button v-throttle @click="openAddDialog">新建产品保障</el-button>
+        <el-button v-throttle @click="openAddDialog">新建产品功能</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 表格 -->
     <el-table :data="brandList" border style="width: 100%">
       <el-table-column prop="id" label="序号" width="80" />
-      <el-table-column prop="brandName" label="产品保障" />
+      <el-table-column prop="labelName" label="产品功能" />
       <el-table-column prop="sort" label="排序" />
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <router-link :to="'/system/dict-data/index/' + scope.row.dictId" class="link-type">
-            <span>{{ scope.row.dictType }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button v-throttle link @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button v-throttle link @click="handleDelete(scope.row)">删除</el-button>
+          <el-button v-throttle type="text" @click="editBrand(scope.row)">编辑</el-button>
+          <el-button v-throttle type="text" @click="deleteBrand(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,10 +43,10 @@
     />
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增品牌">
+    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑产品功能' : '新增产品功能'">
       <el-form :model="formData" ref="formRef" label-width="80px">
-        <el-form-item label="产品保障" required>
-          <el-input v-model="formData.brandName" placeholder="请输入" />
+        <el-form-item label="产品功能" required>
+          <el-input v-model="formData.labelName" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="排序" required>
           <el-input v-model="formData.sort" type="number" placeholder="请输入" />
@@ -82,20 +69,21 @@ const brandList = ref([]);
 const dialogVisible = ref(false);
 
 const queryParams = ref({
-  brandName: '',
+  labelName: '',
   pageNum: 1,
   pageSize: 10,
   total: 0
 });
 
 const formData = ref({
-  brandName: '',
-  sort: ''
+  id: '',
+  sort: '',
+  labelName: ''
 });
 
 // 重置按钮事件
 const handleReset = () => {
-  queryParams.value.brandName = '';
+  queryParams.value.labelName = '';
   getListData();
 };
 
@@ -104,7 +92,7 @@ const getListData = () => {
   queryParams.value.total = 100; // 假设总条数
   brandList.value = Array.from({ length: queryParams.value.pageSize }, (_, i) => ({
     id: i + 1 + (queryParams.value.pageNum - 1) * queryParams.value.pageSize,
-    brandName: `品牌${i + 1}`,
+    labelName: `品牌${i + 1}`,
     sort: i + 1,
     createTime: new Date().toISOString()
   }));
@@ -118,7 +106,9 @@ const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
 };
 
 const openAddDialog = () => {
-  formData.value = { brandName: '', sort: '' };
+  formData.value.id = '';
+  formData.value.labelName = '';
+  formData.value.sort = '';
   dialogVisible.value = true;
 };
 

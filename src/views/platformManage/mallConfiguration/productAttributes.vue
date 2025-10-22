@@ -8,14 +8,14 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline>
+    <el-form :model="queryParams" :label-width="120" inline>
       <el-form-item label="产品保障名称">
         <el-input v-model="queryParams.brandName" placeholder="请输入产品保障名称" clearable />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="getListData">搜索</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
-        <el-button v-throttle @click="openAddDialog">新建产品保障</el-button>
+        <el-button type="primary" v-throttle @click="openAddDialog">新建产品保障</el-button>
       </el-form-item>
     </el-form>
 
@@ -43,7 +43,7 @@
     />
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增品牌">
+    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑产品保障' : '新增产品保障'">
       <el-form :model="formData" ref="formRef" label-width="80px">
         <el-form-item label="产品保障" required>
           <el-input v-model="formData.brandName" placeholder="请输入" />
@@ -74,6 +74,7 @@ const queryParams = ref({
 });
 
 const formData = ref({
+  id: '',
   brandName: '',
   sort: ''
 });
@@ -103,7 +104,7 @@ const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
 };
 
 const openAddDialog = () => {
-  formData.value = { brandName: '', sort: '' };
+  formData.value = { id: '', sort: '', brandName: '' };
   dialogVisible.value = true;
 };
 

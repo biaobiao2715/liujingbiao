@@ -43,7 +43,7 @@
     />
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增品牌">
+    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑品牌' : '新增品牌'">
       <el-form :model="formData" ref="formRef" label-width="80px">
         <el-form-item label="品牌名称" required>
           <el-input v-model="formData.brandName" placeholder="请输入" />
@@ -76,8 +76,9 @@ const queryParams = ref({
 });
 
 const formData = ref({
-  brandName: '',
-  sort: ''
+  id: '',
+  sort: '',
+  brandName: ''
 });
 
 // 重置按钮事件
@@ -105,7 +106,7 @@ const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
 };
 
 const openAddDialog = () => {
-  formData.value = { brandName: '', sort: '' };
+  formData.value = { id: '', sort: '', brandName: '' };
   dialogVisible.value = true;
 };
 

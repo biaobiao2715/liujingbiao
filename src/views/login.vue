@@ -131,7 +131,6 @@ const handleLogin = async () => {
 
   try {
     if (!validatePhoneNumber()) return; // 校验手机号
-    // if (!checkTenantExist()) return; // 检查租户是否存在
     if (!tenantMap.value[accountForm.value.phone]) {
       if (!(await checkAccountStatus())) {
         return; // 校验账号状态
@@ -200,9 +199,8 @@ const checkAccountStatus = async () => {
           ElMessage.error('您的注册信息正在审核中，请耐心等待');
           return false;
         } else if (res.data?.reviewStatus === '99') {
-          ElMessage.error('您的注册信息审核未通过，请重新注册');
           // 弹窗提示重新注册
-          ElMessageBox.confirm(`您的注册信息审核未通过，驳回原因：${data?.reviewRemark}？`, '提示', {
+          ElMessageBox.confirm(`您的注册信息审核未通过，驳回原因：${data?.reviewRemark}`, '提示', {
             confirmButtonText: '修改信息并重新注册',
             showCancelButton: false,
             type: 'warning'

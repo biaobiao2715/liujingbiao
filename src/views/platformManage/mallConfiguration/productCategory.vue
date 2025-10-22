@@ -13,7 +13,7 @@
     </div>
 
     <!-- 弹窗表单 -->
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑分类' : '新增分类'">
+    <el-dialog v-model="dialogVisible" width="500px" :title="form.id ? '编辑分类' : '新增分类'">
       <el-form :model="form">
         <!-- 上级分类选择 -->
         <el-form-item label="上级分类">
@@ -40,9 +40,11 @@
       <el-table-column label="操作">
         <template #default="{ row }">
           <!-- 操作按钮 -->
-          <el-button type="text" @click="handleCreateSubCategory(row)">新增子分类</el-button>
-          <el-button type="text" @click="editCategory(row)">编辑</el-button>
-          <el-button type="text" @click="deleteCategory(row)">删除</el-button>
+          <div class="flex-center-end">
+            <el-button type="text" @click="handleCreateSubCategory(row)" v-if="row.children">新增子分类</el-button>
+            <el-button type="text" @click="editCategory(row)">编辑</el-button>
+            <el-button type="text" @click="deleteCategory(row)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>

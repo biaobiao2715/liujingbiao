@@ -99,6 +99,7 @@ onMounted(() => {
   console.log('注册页面手机号参数:', phoneNumber.value);
   if (phoneNumber.value) {
     selectedIdentity.value = route.query.type as IdentityType;
+    handleIdentityUpdate(selectedIdentity.value);
     activeStep.value++;
   }
 });
