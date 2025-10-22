@@ -1,7 +1,7 @@
 <template>
   <!--
     标题：			Supplier.vue
-    功能：			供应商注册-填写信息
+    功能：			供应商/企业注册-填写信息
     说明:
     当前版本：	1.0
     开发信息：	Created by 刘景彪  
@@ -38,7 +38,7 @@
           <el-col :span="12"></el-col>
 
           <el-col :span="12">
-            <el-form-item label="供应商名称" prop="companyName">
+            <el-form-item :label="selectedIdentity == 'supplier' ? '供应商名称' : '企业名称'" prop="companyName">
               <el-input v-model="form.companyName" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
@@ -97,7 +97,7 @@
 
       <div class="h20"></div>
 
-      <div class="title-text">供应商联系人</div>
+      <div class="title-text">{{ selectedIdentity == 'supplier' ? '供应商联系人' : '企业联系人' }}</div>
       <div class="pading16">
         <el-table :data="tableList" stripe>
           <el-table-column type="index" width="100" label="序号" />
@@ -289,10 +289,18 @@ import { getPurchaserTypeDict } from '@/api/register/supplier'; //获取字典�
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { supplierRegister } from '@/api/register/supplier'; //注册接口
+import { isAccountExist } from '@/api/login'; //账号获取详情信息
+
+// 定义props来接收selectedIdentity
+const props = defineProps({
+  selectedIdentity: {
+    type: String,
+    required: false
+  }
+});
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
 const emit = defineEmits(['nextStep']); // 定义事件
-
 const initFormData: FormData = {
   companyName: '武汉中兴悦达财务有限公司',
   signUpCapital: '1111',
@@ -311,11 +319,11 @@ const initFormData: FormData = {
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
   companyName: [
-    { required: true, message: '供应商名称不能为空', trigger: 'blur' },
+    { required: true, message: props.selectedIdentity == 'supplier' ? '供应商名称不能为空' : '企业名称不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
         if (!value || value.trim() === '') {
-          callback(new Error('供应商名称不能为空'));
+          callback(new Error(props.selectedIdentity == 'supplier' ? '供应商名称不能为空' : '企业名称不能为空'));
           return;
         }
 
@@ -328,7 +336,11 @@ const FormRulesarr: FormRules = {
         // 验证特殊字符
         const specialChars = /[^a-zA-Z\u4e00-\u9fa50-9~!@#$%^&*()_+=<>?\/\-.,;:'"\\|`{}[\] ]/;
         if (specialChars.test(value)) {
-          callback(new Error('供应商名称只能包含汉字、字母、数字和常规符号'));
+          callback(
+            new Error(
+              props.selectedIdentity == 'supplier' ? '供应商名称只能包含汉字、字母、数字和常规符号' : '企业名称只能包含汉字、字母、数字和常规符号'
+            )
+          );
           return;
         }
 
@@ -719,7 +731,10 @@ const validateAndSubmit = () => {
   if (isValid) {
     return true;
   } else {
-    proxy?.$modal.msgError('请检查并修正供应商联系人中的错误');
+    proxy?.$modal.msgError(
+      props.selectedIdentity == 'supplier' ? '供应商联系人信息不完整，请补充必填项后重新提交' : '企业联系人信息不完整，请补充必填项后重新提交'
+    );
+
     return false;
   }
 };
@@ -734,7 +749,7 @@ const submitForm = () => {
         code: form.value.smsCode,
         enterpriseInfo: {
           ...form.value,
-          enterpriseType: '0', //注册类型
+          enterpriseType: props.selectedIdentity == 'supplier' ? '0' : '1', //enterpriseType : 1企业 0 供应商
           reviewStatus: '0' //状态
         },
         contacts: tableList.value,
@@ -744,7 +759,7 @@ const submitForm = () => {
       // 供应商
       supplierRegister(params).then((res) => {
         proxy?.$modal.msgSuccess('操作成功');
-        emit('nextStep', { userName: form.value.loginUserName, account: form.value.phoneNumber });
+        emit('nextStep', { username: form.value.loginUserName, account: form.value.phoneNumber });
       });
     } else {
       ElMessage.error('信息尚未填写完整，请检查并完成所有必填内容后再次提交。');
@@ -763,7 +778,8 @@ const handleDiplomaChange = (file: UploadFile) => {
           remark: '营业执照',
           url: res.data.url,
           fileType: '1',
-          ossId: res.data.ossId
+          ossId: res.data.ossId,
+          ossInfo: {}
         };
         fileListtable.value.push(newFile);
 
@@ -923,6 +939,36 @@ const removeFile = (file: any) => {
     fileListtable.value.splice(index, 1);
   }
 };
+
+// 生命周期钩子
+onMounted(async () => {
+  // 获取router路由参数
+  const route = useRoute();
+  const { phoneNumber, type } = route.query;
+  if (phoneNumber) {
+    const phone = Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber;
+    const arr: any = await isAccountExist(phone);
+    form.value = {
+      ...arr.data,
+      confirmPassword: arr.data.password,
+      signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
+    };
+    tableList.value = arr.data.contacts;
+    if (arr.data && arr.data.folders && arr.data.folders.length > 0) {
+      arr.data.folders.forEach((element: any) => {
+        if (element && element.ossInfo) {
+          fileListtable.value.push({
+            name: element.ossInfo.originalName,
+            remark: element.remark,
+            url: element.ossInfo.url,
+            fileType: element.fileType,
+            ossId: element.ossId
+          });
+        }
+      });
+    }
+  }
+});
 </script>
 
 <style scoped lang="scss">
@@ -1034,8 +1080,7 @@ const removeFile = (file: any) => {
   display: flex;
   justify-content: center;
   background: #f7f8fb;
-  margin-top: 24px;
-  padding-bottom: 100px;
+  padding: 20px 0 100px 0;
   .next-step-button {
     width: 180px;
     height: 40px;

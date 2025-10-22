@@ -36,21 +36,16 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="企业名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
+      <el-table-column label="企业名称" align="center" prop="companyName" min-width="100" :show-overflow-tooltip="true" />
       <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
-          <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
-          <router-link :to="'/platform/enterprise/editDetails/?id=' + scope.row.id + '&type=view'" class="link-type">
+          <router-link :to="'/platform/enterprise/editDetails/?id=' + scope.row.id + '&type=view'" style="color: var(--el-color-primary)">
             <span>{{ scope.row.enterpriseNumber }}</span>
           </router-link>
         </template>
       </el-table-column>
       <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
-      <el-table-column label="审核状态" align="center" prop="reviewStatus">
-        <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
-        </template>
-      </el-table-column>
+
       <el-table-column label="资质等级" align="center" prop="credentialLevel">
         <template v-slot="scope">
           <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
@@ -61,7 +56,11 @@
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
         </template>
       </el-table-column>
-
+      <el-table-column label="审核状态" align="center" prop="reviewStatus">
+        <template v-slot="scope">
+          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+        </template>
+      </el-table-column>
       <el-table-column label="申请时间" align="center" prop="createTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>

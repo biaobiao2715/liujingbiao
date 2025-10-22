@@ -26,8 +26,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="发布时间" prop="reviewTime">
-        <el-date-picker v-model="queryParams.reviewTime" value-format="YYYY-MM-DD" type="date"
-          placeholder="请选择日期"></el-date-picker>
+        <el-date-picker v-model="queryParams.reviewTime" value-format="YYYY-MM-DD" type="date" placeholder="请选择日期"></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">新增商品</el-button>
@@ -94,22 +93,17 @@
 
       <el-table-column label="操作" align="center" width="360" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">详情</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-            <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">复制商品</el-button>
-            <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">设置预警</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">详情</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">复制商品</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">设置预警</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        :total="total" @pagination="getList" />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
   </div>
 </template>

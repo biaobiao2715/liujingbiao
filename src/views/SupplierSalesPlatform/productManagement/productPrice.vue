@@ -16,8 +16,7 @@
         <el-input v-model="queryParams.companyName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="商品品牌" prop="licenseNumber" label-width="140px">
-        <el-select v-model="queryParams.licenseNumber" filterable clearable placeholder="请选择或搜索商品品牌"
-          style="width: 240px">
+        <el-select v-model="queryParams.licenseNumber" filterable clearable placeholder="请选择或搜索商品品牌" style="width: 240px">
           <el-option v-for="item in productBrandList" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -26,15 +25,20 @@
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
       <el-form-item label="价格调整日期">
-        <el-date-picker v-model="queryParams.reviewTime" type="daterange" value-format="YYYY-MM-DD"
-          range-separator=" - " start-placeholder="开始日期" end-placeholder="结束日期" />
+        <el-date-picker
+          v-model="queryParams.reviewTime"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator=" - "
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
-
     </el-form>
 
     <!-- 表格展示 -->
@@ -78,8 +82,7 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        :total="total" @pagination="getList" />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
   </div>
 </template>

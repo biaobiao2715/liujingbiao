@@ -646,7 +646,7 @@ const handleNextStep = () => {
       technicalExpertInfoRegister(temp).then((res) => {
         if (res.code === 200) {
           proxy?.$modal.msgSuccess('操作成功');
-          emit('nextStep', { userName: formData.value.userName, account: formData.value.phoneNumber });
+          emit('nextStep', { username: formData.value.userName, account: formData.value.phoneNumber });
         }
       });
       // 这里可以添加提交逻辑

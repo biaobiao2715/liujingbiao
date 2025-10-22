@@ -19,10 +19,8 @@
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">
-        <el-select v-model="queryParams.reviewStatus" placeholder="请选择" clearable>
-          <el-option label="待审核" value="0" />
-          <el-option label="审核通过" value="1" />
-          <el-option label="审核退回" value="99" />
+        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
+          <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <!-- 审核通过时间 -->
@@ -44,44 +42,44 @@
 
     <!-- 表格展示 -->
     <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
-      <el-table-column type="index" label="序号" width="60"></el-table-column>
-      <el-table-column prop="companyName" label="供应商名称"></el-table-column>
-      <el-table-column prop="enterpriseNumber" label="供应商编号">
+      <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
+      <el-table-column prop="companyName" label="供应商名称" align="center" min-width="100" :show-overflow-tooltip="true"></el-table-column>
+      <el-table-column prop="enterpriseNumber" label="供应商编号" width="210" align="center">
         <template #default="scope">
           <router-link :to="`/platform/supplier/details?id=${scope.row.id}&type=view`" style="color: var(--el-color-primary)">{{
             scope.row.enterpriseNumber
           }}</router-link>
         </template>
       </el-table-column>
-      <el-table-column prop="licenseNumber" label="统一社会信用代码"></el-table-column>
-      <el-table-column prop="credentialLevel" label="资质等级">
-        <template #default="scope">
-          {{ scope.row.credentialLevelText }}
+      <el-table-column prop="licenseNumber" label="统一社会信用代码" align="center" width="210"></el-table-column>
+      <el-table-column prop="credentialLevel" label="资质等级" align="center">
+        <template v-slot="scope">
+          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
         </template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级">
-        <template #default="scope">
-          {{ scope.row.creditLevelText }}
+      <el-table-column prop="creditLevel" label="信用等级" align="center">
+        <template v-slot="scope">
+          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
         </template>
       </el-table-column>
-      <el-table-column prop="reviewStatus" label="审核状态">
-        <template #default="scope">
-          {{ scope.row.reviewStatusText }}
+      <el-table-column prop="reviewStatus" label="审核状态" align="center">
+        <template v-slot="scope">
+          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
         </template>
       </el-table-column>
-      <el-table-column prop="signUpTime" label="申请时间" width="120">
+      <el-table-column prop="signUpTime" label="申请时间" width="120" align="center">
         <template #default="scope">
           {{ scope.row.formattedSignUpTime }}
         </template>
       </el-table-column>
-      <el-table-column prop="reviewTime" label="审核时间" width="120"> </el-table-column>
-      <el-table-column prop="reviewBy" label="审核人"></el-table-column>
-      <el-table-column label="操作" width="260">
+      <el-table-column prop="reviewTime" label="审核时间" width="120" align="center"> </el-table-column>
+      <el-table-column prop="reviewBy" label="审核人" align="center"></el-table-column>
+      <el-table-column label="操作" width="260" align="center">
         <template #default="scope">
           <div class="flex-center-center operation-btns">
-            <el-button v-throttle type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
-            <el-button v-throttle type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-            <el-button v-throttle type="primary" @click="handleEdit(scope.row, 'audit')" v-if="scope.row.reviewStatus === '0'">审核</el-button>
+            <el-button v-if="scope.row.reviewStatus !== '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
+            <el-button v-if="scope.row.reviewStatus !== '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
+            <el-button v-if="scope.row.reviewStatus === '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
           </div>
         </template>
       </el-table-column>
@@ -104,6 +102,11 @@
 import router from '@/router';
 import { ref, computed } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
 
 // 查询参数和分页数据
 const queryParams = ref({
