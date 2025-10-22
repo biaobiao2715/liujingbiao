@@ -19,22 +19,17 @@
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="入驻日期" prop="registrationTime">
-            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
+            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择"
+              value-format="YYYY-MM-DD" clearable />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
-              <el-option label="全部" :value="''" />
-              <el-option label="待审核" value="0" />
-              <el-option label="审核通过" value="1" />
-              <el-option label="分配账号" value="2" />
-              <el-option label="分配权限" value="3" />
-              <el-option label="入驻成功" value="4" />
-              <el-option label="入驻失败" value="99" />
+              <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">查询</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
 
@@ -67,21 +62,19 @@
           <el-table-column label="操作" align="center" width="200">
             <template #default="scope">
               <div style="display: flex; justify-content: space-evenly; align-items: center">
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'view')">查看</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
+                  @click="handleEdit(scope.row, 'view')">查看</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
+                  @click="handleEdit(scope.row, 'audit')">审核</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
+                  @click="handleEdit(scope.row, 'edit')">编辑</el-link>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <pagination
-          v-show="total > 0"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          :total="total"
-          @pagination="handleQuery"
-        />
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+          :total="total" @pagination="handleQuery" />
       </el-card>
     </div>
   </div>
@@ -91,9 +84,13 @@
 import { getTechnicalExpertList, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertListRequest, TechnicalExpertList } from '@/api/platform/technicalExpert/types';
 import router from '@/router';
-import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vue';
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+import { ComponentInternalInstance, getCurrentInstance, reactive, ref, toRefs } from 'vue';
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
+// console.log('review_status', review_status);
 // 查询参数
 const queryParams = reactive<TechnicalExpertListRequest>({
   expertName: '',

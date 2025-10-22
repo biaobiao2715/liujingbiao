@@ -9,35 +9,38 @@
   <div class="supplier-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="企业编码" prop="enterpriseNumber">
-        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="商品编码" prop="enterpriseNumber">
+        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="企业名称" prop="companyName">
-        <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="商品名称" prop="companyName">
+        <el-input v-model="queryParams.companyName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="统一社会信用代码" prop="licenseNumber" label-width="140px">
-        <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item label="审核状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
-          <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+      <el-form-item label="商品品牌" prop="licenseNumber" label-width="140px">
+        <el-select v-model="queryParams.licenseNumber" filterable clearable placeholder="请选择或搜索商品品牌"
+          style="width: 240px">
+          <el-option v-for="item in productBrandList" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="入驻时间" prop="reviewTime">
-        <el-date-picker v-model="queryParams.reviewTime" value-format="YYYY-MM-DD" type="date" placeholder="请选择日期"></el-date-picker>
-      </el-form-item>
-
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
+      <el-form-item label="价格调整日期">
+        <el-date-picker v-model="queryParams.reviewTime" type="daterange" value-format="YYYY-MM-DD"
+          range-separator=" - " start-placeholder="开始日期" end-placeholder="结束日期" />
+      </el-form-item>
+      <el-form-item>
+        <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
+        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle @click="handleReset">重置</el-button>
+      </el-form-item>
+
     </el-form>
 
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="企业名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
-      <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
+      <el-table-column label="商品编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
           <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
           <router-link :to="'/platform/enterprise/editDetails/?id=' + scope.row.id + '&type=view'" class="link-type">
@@ -45,24 +48,13 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
-      <el-table-column label="审核状态" align="center" prop="reviewStatus">
-        <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
-        </template>
-      </el-table-column>
-      <el-table-column label="资质等级" align="center" prop="credentialLevel">
-        <template v-slot="scope">
-          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
-        </template>
-      </el-table-column>
-      <el-table-column label="信用等级" align="center" prop="creditLevel">
-        <template v-slot="scope">
-          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
-        </template>
-      </el-table-column>
-
-      <el-table-column label="申请时间" align="center" prop="createTime" min-width="160">
+      <el-table-column label="商品名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
+      <el-table-column label="商品品牌" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="商品类目" align="center" prop="category" width="210"> </el-table-column>
+      <el-table-column label="调整前销售价格" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="调整后销售价格" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="调整人" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="价格调整日期" align="center" prop="createTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
@@ -86,7 +78,8 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+        :total="total" @pagination="getList" />
     </div>
   </div>
 </template>
@@ -100,6 +93,15 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
+
+// 这里使用plat_qualification_grade（平台资质等级）字典，因为它可能包含类似品牌分类的数据
+const productBrandList = ref(plat_qualification_grade.value);
+
+// 如果plat_qualification_grade为空，使用review_status作为备选
+if (!productBrandList.value || productBrandList.value.length === 0) {
+  productBrandList.value = review_status.value;
+}
+
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -177,6 +179,7 @@ onMounted(() => {
 .supplier-management {
   padding: 24px;
 }
+
 .pagination {
   margin-top: 24px;
   justify-content: end;

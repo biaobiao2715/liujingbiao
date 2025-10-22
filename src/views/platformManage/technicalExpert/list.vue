@@ -22,15 +22,14 @@
             <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择"
               value-format="YYYY-MM-DD" clearable />
           </el-form-item>
-          <el-form-item label="审核状态" prop="reviewStatus">
+          <el-form-item label="审核状态" prop="auditStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
-              <el-option label="全部" :value="''" />
-              <el-option v-for="dict in reviewStatusDict" :key="dict.value" :label="dict.label" :value="dict.value" />
+              <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+            <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
 
@@ -51,7 +50,7 @@
           </el-table-column>
           <el-table-column label="审核状态" prop="reviewStatus" align="center">
             <template #default="scope">
-              {{ getDictLabel(reviewStatusDict, scope.row.reviewStatus) || '未知' }}
+              {{ getDictLabel(review_status, scope.row.reviewStatus) || '未知' }}
             </template>
           </el-table-column>
           <el-table-column label="入库状态" prop="storageStatus" align="center">
@@ -84,8 +83,9 @@
       </template>
       <div>{{ dialogMessage.startStopStatus === '1' ? '请确认是否启用该专家信息?' : '请确认是否停用该专家信息？' }}</div>
       <template #footer>
-        <el-button v-throttle  @click="close">取消</el-button>
-        <el-button v-throttle  type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定 </el-button>
+        <el-button v-throttle @click="close">取消</el-button>
+        <el-button v-throttle type="primary" @click="toggleEnabled(dialogMessage)" :loading="loadingStatus"> 确定
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -98,9 +98,9 @@ import { ComponentInternalInstance, getCurrentInstance, reactive, ref } from 'vu
 import { useDict } from '@/utils/dict';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-//获取字典数据
-const { review_status: reviewStatusDict } = useDict('review_status');
+const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
 
 
 // 根据字典值获取标签

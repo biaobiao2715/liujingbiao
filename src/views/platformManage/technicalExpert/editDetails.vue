@@ -189,8 +189,8 @@ const loading = ref(false);
 const formData = ref<TechnicalExpertList>({} as TechnicalExpertList);
 
 const sexMap = {
-  '0': '女',
-  '1': '男'
+  '0': '男',
+  '1': '女'
 };
 
 
