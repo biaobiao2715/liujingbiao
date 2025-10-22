@@ -125,3 +125,18 @@ export function forgotPwd(data: any) {
     data: data
   });
 }
+
+/**
+ * 校验账号状态
+501 代表用户表里面已经存在数据，直接登录
+502 代表技术专家信息
+503 代表法务专家信息
+504 代表企业或供应商信息
+ */
+
+export function isAccountExist(phoneNumber: string): AxiosPromise<boolean> {
+  return request({
+    url: `/system/user/isAccount?phoneNumber=${phoneNumber}`,
+    method: 'get'
+  });
+}

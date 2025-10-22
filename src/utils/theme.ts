@@ -1,5 +1,6 @@
 // 处理主题样式
-export const handleThemeStyle = (theme: string) => {
+export const handleThemeStyle = (theme1: string) => {
+  const theme = '#108c58'; // 默认主题色
   document.documentElement.style.setProperty('--el-color-primary', theme);
   for (let i = 1; i <= 9; i++) {
     document.documentElement.style.setProperty(`--el-color-primary-light-${i}`, `${getLightColor(theme, i / 10)}`);

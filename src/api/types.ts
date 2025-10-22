@@ -56,6 +56,7 @@ export interface TenantVO {
 export interface TenantInfo {
   tenantEnabled: boolean;
   voList: TenantVO[];
+  tenantMap: Record<number, string>;
 }
 
 /**
