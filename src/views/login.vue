@@ -187,19 +187,34 @@ const checkTenantExist = () => {
 const checkAccountStatus = async () => {
   const phoneNumber = activeTab.value === 'account' ? accountForm.value.username : accountForm.value.phone;
   try {
-    const res = await isAccountExist(phoneNumber);
+    const res: any = await isAccountExist(phoneNumber);
     if (res.code === 200) {
-      if (res.msg === '501') {
-        // 注册成功的用户，直接登录
-        return true;
-      } else if (res.msg === '502') {
-        // 技术专家注册
-      } else if (res.msg === '503') {
-        // 法务专家注册
-      } else if (res.msg === '504') {
-        // 企业或供应商信息
+      if (res.msg === '502' || res.msg === '503' || res.msg === '504') {
+        const data = res.data;
+        if (data?.reviewStatus === '0') {
+          ElMessage.error('您的注册信息正在审核中，请耐心等待');
+          return false;
+        } else if (res.data?.reviewStatus === '99') {
+          ElMessage.error('您的注册信息审核未通过，请重新注册');
+          // 弹窗提示重新注册
+          ElMessageBox.confirm(`您的注册信息审核未通过，驳回原因：${data?.reviewRemark}？`, '提示', {
+            confirmButtonText: '修改信息并重新注册',
+            // cancelButtonText: '取消',
+            type: 'warning'
+          })
+            .then(() => {
+              // 点击确认后，跳转到注册页面 并且携带手机号参数
+              router.push({
+                path: '/register',
+                query: {
+                  phoneNumber: accountForm.value.phone
+                }
+              });
+            })
+            .catch(() => {});
+          return false;
+        }
       }
-      ElMessage.error(res.msg);
       return false;
     }
     return true;
