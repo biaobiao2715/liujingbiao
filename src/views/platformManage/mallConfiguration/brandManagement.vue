@@ -13,9 +13,9 @@
         <el-input v-model="queryParams.brandName" placeholder="请输入品牌名称" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle  type="primary" @click="getListData">搜索</el-button>
-        <el-button v-throttle  @click="handleReset">重置</el-button>
-        <el-button v-throttle  @click="openAddDialog">新建品牌</el-button>
+        <el-button v-throttle type="primary" @click="getListData">搜索</el-button>
+        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle @click="openAddDialog">新建品牌</el-button>
       </el-form-item>
     </el-form>
 
@@ -27,8 +27,8 @@
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button v-throttle  type="text" @click="editBrand(scope.row)">编辑</el-button>
-          <el-button v-throttle  type="text" @click="deleteBrand(scope.row.id)">删除</el-button>
+          <el-button v-throttle type="text" @click="editBrand(scope.row)">编辑</el-button>
+          <el-button v-throttle type="text" @click="deleteBrand(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -52,10 +52,12 @@
           <el-input v-model="formData.sort" type="number" placeholder="请输入" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer flex-center-between">
-        <el-button v-throttle  @click="dialogVisible = false">取消</el-button>
-        <el-button v-throttle  type="primary" @click="handleSave">确定</el-button>
-      </div>
+      <template v-slot:footer>
+        <div class="dialog-footer flex-center-between">
+          <el-button v-throttle @click="dialogVisible = false">取消</el-button>
+          <el-button v-throttle type="primary" @click="handleSave">确定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

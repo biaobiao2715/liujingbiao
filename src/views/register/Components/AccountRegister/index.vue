@@ -32,7 +32,7 @@
         <el-form-item label="短信验证码" prop="smsCode" required>
           <div class="sms-code-container">
             <el-input v-model="registerForm.smsCode" maxlength="6" placeholder="六位短信验证码" />
-            <el-button v-throttle  type="primary" class="sms-code-btn" :disabled="isSendingSms" @click="sendSmsCode">
+            <el-button v-throttle type="primary" class="sms-code-btn" :disabled="isSendingSms" @click="sendSmsCode">
               {{ smsButtonText }}
             </el-button>
           </div>
@@ -47,7 +47,7 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button v-throttle  type="primary" :loading="loading" class="submit-btn" @click="submitForm">提交</el-button>
+          <el-button v-throttle type="primary" :loading="loading" class="submit-btn" @click="submitForm">提交</el-button>
         </el-form-item>
       </el-form>
     </div>

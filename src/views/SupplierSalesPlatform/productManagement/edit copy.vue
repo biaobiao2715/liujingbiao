@@ -198,9 +198,9 @@
 
         <!-- 按钮 -->
         <el-row type="flex" justify="center" :gutter="5">
-          <el-col :span="3"><el-button @click="submitClose">取消</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" @click="submitForm('2')">提交</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle @click="submitClose">取消</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm('2')">提交</el-button></el-col>
         </el-row>
       </div>
     </el-form>

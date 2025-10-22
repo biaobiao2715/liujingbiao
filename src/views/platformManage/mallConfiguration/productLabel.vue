@@ -27,8 +27,21 @@
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button v-throttle type="text" @click="editBrand(scope.row)">编辑</el-button>
-          <el-button v-throttle type="text" @click="deleteBrand(scope.row.id)">删除</el-button>
+          <router-link :to="'/system/dict-data/index/' + scope.row.dictId" class="link-type">
+            <span>{{ scope.row.dictType }}</span>
+          </router-link>
+        </template>
+      </el-table-column>
+      <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template #default="scope">
+          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button v-throttle link @click="handleUpdate(scope.row)">编辑</el-button>
+          <el-button v-throttle link @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -52,10 +65,12 @@
           <el-input v-model="formData.sort" type="number" placeholder="请输入" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer flex-center-between">
-        <el-button v-throttle @click="dialogVisible = false">取消</el-button>
-        <el-button v-throttle type="primary" @click="handleSave">确定</el-button>
-      </div>
+      <template v-slot:footer>
+        <div class="dialog-footer flex-center-between">
+          <el-button v-throttle @click="dialogVisible = false">取消</el-button>
+          <el-button v-throttle type="primary" @click="handleSave">确定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>

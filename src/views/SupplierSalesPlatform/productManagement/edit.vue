@@ -85,6 +85,7 @@
               :http-request="uploadFile"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
+              :auto-upload="false"
             >
               <i class="el-icon-plus"></i>
             </el-upload>
@@ -197,9 +198,9 @@
 
       <!-- 按钮 -->
       <el-row type="flex" justify="center" :gutter="5">
-        <el-col :span="3"><el-button @click="submitClose">取消</el-button></el-col>
-        <el-col :span="3"><el-button type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
-        <el-col :span="3"><el-button type="primary" @click="submitForm('2')">提交</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle @click="submitClose">取消</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm('2')">提交</el-button></el-col>
       </el-row>
     </el-form>
 
@@ -305,7 +306,14 @@ const FormRulesarr: FormRules = {
     }
   ],
   productSort: [{ required: true, message: '请选择商品类目', trigger: 'change' }],
-  function: [{ required: true, message: '请选择产品功能', trigger: 'change' }]
+  function: [{ required: true, message: '请选择产品功能', trigger: 'change' }],
+  titleFileList: [
+    {
+      required: true,
+      message: '请上传商品主图',
+      trigger: 'change'
+    }
+  ]
 };
 
 // 方法定义
@@ -645,5 +653,41 @@ onMounted(() => {
     font-size: 14px;
     border-radius: 4px;
   }
+}
+
+// 上传状态样式
+.el-upload-list--picture-card .el-upload-list__item {
+  position: relative;
+}
+
+.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.uploading {
+  background-color: #2d6cf5;
+}
+
+.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.failed {
+  background-color: #f56c6c;
+}
+
+.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.success {
+  background-color: #67c23a;
+}
+
+.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label:hover {
+  opacity: 0.8;
 }
 </style>

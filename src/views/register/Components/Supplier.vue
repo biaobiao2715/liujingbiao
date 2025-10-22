@@ -229,23 +229,68 @@
         </el-table>
       </div>
 
+      <div class="h20"></div>
+
+      <div class="title-text">账号信息</div>
+      <div class="pading16">
+        <el-row :gutter="50">
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="loginUserName" required>
+              <el-input v-model="form.loginUserName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号" prop="phoneNumber" required>
+              <el-input v-model="form.phoneNumber" placeholder="请输入手机号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="短信验证码" prop="smsCode" required>
+              <el-input v-model="form.smsCode" maxlength="6" placeholder="六位短信验证码" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-button v-throttle type="primary" class="sms-code-btn" :disabled="isSendingSms" @click="sendSmsCode">
+              {{ smsButtonText }}
+            </el-button></el-col
+          >
+
+          <el-col :span="12">
+            <el-form-item label="设置密码" prop="password" required>
+              <el-input v-model="form.password" type="password" placeholder="输入密码，包含8-20位大小写字母、符号或数字三种以上" show-password />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="确认密码" prop="confirmPassword" required>
+              <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" show-password /> </el-form-item
+          ></el-col>
+        </el-row>
+      </div>
+
       <div class="next-step-container">
-        <el-button v-throttle type="primary" class="next-step-button" @click="submitForm">下一步</el-button>
+        <el-button v-throttle type="primary" class="next-step-button" @click="submitForm">提交</el-button>
       </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, reactive, ref } from 'vue';
-import { uploadImage, ocrUploadImage } from '@/api/register';
-import { getPurchaserTypeDict, supplierRegister } from '@/api/register/supplier';
-import { FormData, Contact } from '@/api/register/supplier/types';
-import { useRegisterDataStore } from '@/store/modules/registerData';
+import { reactive, ref } from 'vue';
 import { ElMessage, FormRules } from 'element-plus';
-
+import { FormData, Contact } from '@/api/register/supplier/types'; //ts类型
+import { uploadImage, ocrUploadImage } from '@/api/register'; //图片上传接口
+import { getPurchaserTypeDict } from '@/api/register/supplier'; //获取字典接口
+import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
+import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
+import { supplierRegister } from '@/api/register/supplier'; //注册接口
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { setRegisterData } = useRegisterDataStore();
+
 const emit = defineEmits(['nextStep']); // 定义事件
 
 const initFormData: FormData = {
@@ -256,7 +301,12 @@ const initFormData: FormData = {
   signUpTime: '',
   businessScope: '会计咨询：代理记账：企业事务代理：文化艺术交流活动组织、策\n划：企业管理咨询：教育咨询',
   legalPerson: '刘义刀',
-  officeAddress: '南京市浦口区星火路地铁站动漫大厦'
+  officeAddress: '南京市浦口区星火路地铁站动漫大厦',
+  loginUserName: '',
+  phoneNumber: '',
+  smsCode: '',
+  password: '',
+  confirmPassword: ''
 };
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
@@ -457,6 +507,53 @@ const FormRulesarr: FormRules = {
       },
       trigger: 'blur'
     }
+  ],
+  loginUserName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  phoneNumber: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        checkPhoneUnique(value)
+          .then((res) => {
+            if (res.code === 200) {
+              callback();
+            } else {
+              callback(new Error('手机号已被注册'));
+            }
+          })
+          .catch(() => {
+            callback(new Error('手机号码已存在'));
+          });
+      },
+      trigger: 'blur'
+    }
+  ],
+  smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
+          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+        }
+        return true;
+      },
+      trigger: 'blur'
+    }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        if (value !== form.value.password) {
+          return new Error('两次输入的密码不一致');
+        }
+        return true;
+      },
+      trigger: 'blur'
+    }
   ]
 };
 
@@ -497,6 +594,43 @@ const tableList = ref<Contact[]>([
 // 文件列表
 const fileListtable = ref<any[]>([]);
 const diplomaUrl = ref<{ fileName?: string; url?: string; ossId: string } | null>(null);
+
+// 短信验证码相关
+const isSendingSms = ref(false);
+const smsCountdown = ref(0);
+const smsButtonText = ref('获取验证码');
+
+let smsTimer: NodeJS.Timeout | null = null;
+
+// 发送短信验证码
+const sendSmsCode = async () => {
+  if (isSendingSms.value) return;
+
+  // 验证手机号
+  try {
+    await dataFormRef.value?.validateField('phoneNumber');
+    // 发送验证码逻辑
+    isSendingSms.value = true;
+    smsCountdown.value = 60;
+    // 倒计时
+    smsTimer = setInterval(() => {
+      smsCountdown.value--;
+      smsButtonText.value = `${smsCountdown.value}秒后重新获取`;
+      if (smsCountdown.value <= 0) {
+        clearInterval(smsTimer);
+        isSendingSms.value = false;
+        smsButtonText.value = '获取验证码';
+      }
+    }, 1000);
+    const res = await sendSmsCodeApi(form.value.phoneNumber);
+    if (res.code === 200) {
+      ElMessage.success('短信验证码发送成功');
+    }
+  } catch (error) {
+    // 手机号验证失败
+    console.error('手机号验证失败', error);
+  }
+};
 
 // 添加新行-供应商联系人
 const addTableCell = () => {
@@ -597,15 +731,23 @@ const submitForm = () => {
       const arr = validateAndSubmit();
       if (!arr) return;
       const params = {
-        enterpriseInfo: form,
+        code: form.value.smsCode,
+        enterpriseInfo: {
+          ...form.value,
+          enterpriseType: '0', //注册类型
+          reviewStatus: '0' //状态
+        },
         contacts: tableList.value,
         folder: fileListtable.value
       };
-      setRegisterData?.(params);
-      proxy?.$modal.msgSuccess('操作成功');
-      emit('nextStep');
+
+      // 供应商
+      supplierRegister(params).then((res) => {
+        proxy?.$modal.msgSuccess('操作成功');
+        emit('nextStep', { userName: form.value.loginUserName, account: form.value.phoneNumber });
+      });
     } else {
-      ElMessage.error('请完善基础信息必填信息');
+      ElMessage.error('信息尚未填写完整，请检查并完成所有必填内容后再次提交。');
     }
   });
 };
@@ -887,11 +1029,13 @@ const removeFile = (file: any) => {
   min-height: 18px;
   text-align: left;
 }
+
 .next-step-container {
   display: flex;
   justify-content: center;
-  margin-top: 130px;
-  margin-bottom: 20px;
+  background: #f7f8fb;
+  margin-top: 24px;
+  padding-bottom: 100px;
   .next-step-button {
     width: 180px;
     height: 40px;

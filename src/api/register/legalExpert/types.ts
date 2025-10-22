@@ -50,6 +50,10 @@ export interface LegalExpert {
   reviewStatus: string;
   reviewRemark: string;
   remark: string;
+
+  userName: string;
+  smsCode: string;
+  confirmPassword: string;
   folder: Folder[];
 }
 

@@ -8,12 +8,12 @@
 
 <template>
   <div class="wrapper">
-    <div class="content">
-      <div class="title">
-        <div class="block"></div>
-        <span class="text">基础信息</span>
-      </div>
-      <el-form :model="formData" :rules="rules" ref="formRef" label-width="140px" label-position="left" class="expert-form">
+    <el-form :model="formData" :rules="rules" ref="formRef" label-width="140px" label-position="left" class="expert-form">
+      <div class="content">
+        <div class="title">
+          <div class="block"></div>
+          <span class="text">基础信息</span>
+        </div>
         <div style="padding: 0 16px">
           <el-row :gutter="50">
             <el-col :span="12">
@@ -140,46 +140,100 @@
             </el-col>
           </el-row>
         </div>
-      </el-form>
-    </div>
-    <div class="content" style="margin-top: 20px">
-      <div class="title">
-        <div class="block"></div>
-        <span class="text"> <span class="bold">资料清单</span></span>
       </div>
-      <div class="qualification-list">
-        <div class="qualification-header">
-          <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
-            <div class="upload-btn">
-              <el-button v-throttle  plain style="color: #108c58; border-color: #108c58">
-                <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
-              >
-            </div>
-          </el-upload>
+      <div class="content" style="margin-top: 20px">
+        <div class="title">
+          <div class="block"></div>
+          <span class="text"> <span class="bold">资料清单</span></span>
         </div>
-        <el-table
-          :data="qualificationList"
-          style="width: 100%"
-          :cell-style="{ textAlign: 'center' }"
-          :header-cell-style="{ textAlign: 'center' }"
-          border
-        >
-          <el-table-column prop="index" label="序号" width="80" />
-          <el-table-column prop="name" label="附件名" />
-          <el-table-column prop="remark" label="备注" />
-          <el-table-column label="操作" width="150">
-            <template #default="scope">
-              <el-button v-throttle  type="primary" link @click="previewQualification(scope.row)">预览</el-button>
-              <!--  资质名称为 毕业证 不显示删除按钮  -->
-              <el-button v-throttle  type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="qualification-list">
+          <div class="qualification-header">
+            <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
+              <div class="upload-btn">
+                <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
+                  <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
+                >
+              </div>
+            </el-upload>
+          </div>
+          <el-table
+            :data="qualificationList"
+            style="width: 100%"
+            :cell-style="{ textAlign: 'center' }"
+            :header-cell-style="{ textAlign: 'center' }"
+            border
+          >
+            <el-table-column prop="index" label="序号" width="80" />
+            <el-table-column prop="name" label="附件名" />
+            <el-table-column prop="remark" label="备注" />
+            <el-table-column label="操作" width="150">
+              <template #default="scope">
+                <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">预览</el-button>
+                <!--  资质名称为 毕业证 不显示删除按钮  -->
+                <el-button v-throttle type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)"
+                  >删除</el-button
+                >
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
-    </div>
-    <div class="next-step-container">
-      <el-button v-throttle  type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
-    </div>
+
+      <div class="content" style="margin-top: 20px">
+        <div class="title">
+          <div class="block"></div>
+          <span class="text"> <span class="bold">账号信息</span></span>
+        </div>
+        <div class="qualification-list">
+          <el-row :gutter="50">
+            <el-col :span="12">
+              <el-form-item label="姓名" prop="userName" required>
+                <el-input v-model="formData.userName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12"></el-col>
+
+            <el-col :span="12">
+              <el-form-item label="手机号" prop="phoneNumber" required>
+                <el-input v-model="formData.phoneNumber" placeholder="请输入手机号" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12"></el-col>
+
+            <el-col :span="12">
+              <el-form-item label="短信验证码" prop="smsCode" required>
+                <el-input v-model="formData.smsCode" maxlength="6" placeholder="六位短信验证码" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-button v-throttle type="primary" class="sms-code-btn" :disabled="isSendingSms" @click="sendSmsCode">
+                {{ smsButtonText }}
+              </el-button></el-col
+            >
+
+            <el-col :span="12">
+              <el-form-item label="设置密码" prop="password" required>
+                <el-input
+                  v-model="formData.password"
+                  type="password"
+                  placeholder="输入密码，包含8-20位大小写字母、符号或数字两种以上"
+                  show-password
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12"></el-col>
+
+            <el-col :span="12">
+              <el-form-item label="确认密码" prop="confirmPassword" required>
+                <el-input v-model="formData.confirmPassword" type="password" placeholder="请再次输入密码" show-password /> </el-form-item
+            ></el-col>
+          </el-row>
+        </div>
+      </div>
+      <div class="next-step-container">
+        <el-button v-throttle type="primary" class="next-step-button" @click="handleNextStep">提交</el-button>
+      </div>
+    </el-form>
   </div>
 </template>
 
@@ -191,7 +245,9 @@ import { ocrUploadImage, uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
 import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';
-
+import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
+import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
+import { technicalExpertInfoRegister } from '@/api/register/technicalExpert'; //注册接口
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -381,6 +437,53 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
         }
       }
     }
+  ],
+  userName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  phoneNumber: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        checkPhoneUnique(value)
+          .then((res) => {
+            if (res.code === 200) {
+              callback();
+            } else {
+              callback(new Error('手机号已被注册'));
+            }
+          })
+          .catch(() => {
+            callback(new Error('手机号码已存在'));
+          });
+      },
+      trigger: 'blur'
+    }
+  ],
+  smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
+          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+        }
+        return true;
+      },
+      trigger: 'blur'
+    }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    {
+      validator: (rule, value) => {
+        if (value !== formData.value.password) {
+          return new Error('两次输入的密码不一致');
+        }
+        return true;
+      },
+      trigger: 'blur'
+    }
   ]
 };
 
@@ -389,6 +492,8 @@ const data = reactive({
   rules: FormRulesarr
 });
 const { form: formData, rules } = toRefs(data);
+// 表单引用
+const formRef = ref();
 
 // 上传毕业证url
 const diplomaUrl = ref('');
@@ -405,6 +510,43 @@ const qualificationList = ref<
     ossId: string;
   }[]
 >([]);
+
+// 短信验证码相关
+const isSendingSms = ref(false);
+const smsCountdown = ref(0);
+const smsButtonText = ref('获取验证码');
+
+let smsTimer: NodeJS.Timeout | null = null;
+
+// 发送短信验证码
+const sendSmsCode = async () => {
+  if (isSendingSms.value) return;
+
+  // 验证手机号
+  try {
+    await formRef.value?.validateField('phoneNumber');
+    // 发送验证码逻辑
+    isSendingSms.value = true;
+    smsCountdown.value = 60;
+    // 倒计时
+    smsTimer = setInterval(() => {
+      smsCountdown.value--;
+      smsButtonText.value = `${smsCountdown.value}秒后重新获取`;
+      if (smsCountdown.value <= 0) {
+        clearInterval(smsTimer);
+        isSendingSms.value = false;
+        smsButtonText.value = '获取验证码';
+      }
+    }, 1000);
+    const res = await sendSmsCodeApi(formData.value.phoneNumber);
+    if (res.code === 200) {
+      ElMessage.success('短信验证码发送成功');
+    }
+  } catch (error) {
+    // 手机号验证失败
+    console.error('手机号验证失败', error);
+  }
+};
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传毕业证，请稍候...');
@@ -481,9 +623,6 @@ const deleteQualification = (index: number) => {
   //   });
 };
 
-// 表单引用
-const formRef = ref();
-
 // 预览资质文件
 const previewQualification = (row: any) => {
   console.log('预览资质', row);
@@ -495,18 +634,21 @@ const previewQualification = (row: any) => {
 const handleNextStep = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      const temp = { ...formData.value };
       const list = qualificationList.value.map((item) => ({
         fileType: item.fileType,
         ossId: item.ossId,
         remark: item.remark
       }));
-      if (list.length) {
-        //@ts-ignore
-        temp['folder'] = list;
-      }
-      setRegisterData?.(temp);
-      emit('nextStep');
+      const temp = {
+        ...formData.value,
+        folder: list
+      };
+      technicalExpertInfoRegister(temp).then((res) => {
+        if (res.code === 200) {
+          proxy?.$modal.msgSuccess('操作成功');
+          emit('nextStep', { userName: formData.value.userName, account: formData.value.phoneNumber });
+        }
+      });
       // 这里可以添加提交逻辑
     } else {
       ElMessage.error('请完善必填信息');

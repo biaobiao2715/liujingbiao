@@ -14,6 +14,11 @@ export interface FormData {
   businessScope: string;
   legalPerson: string;
   officeAddress: string;
+  loginUserName: string;
+  phoneNumber: string;
+  smsCode: string;
+  password: string;
+  confirmPassword: string;
 }
 
 // 定义联系人接口，包含可选的errors属性

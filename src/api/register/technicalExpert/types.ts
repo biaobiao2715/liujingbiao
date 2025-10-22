@@ -1,9 +1,9 @@
 export interface TechnicalExpert {
-  createDept: number;
-  createBy: number;
-  createTime: string;
-  updateBy: number;
-  updateTime: string;
+  createDept?: number;
+  createBy?: number;
+  createTime?: string;
+  updateBy?: number;
+  updateTime?: string;
   params: Record<string, any>;
   /**
    * 专家姓名
@@ -70,18 +70,23 @@ export interface TechnicalExpert {
   reviewStatus: string;
   reviewRemark: string;
   remark: string;
+
+  userName: string;
+  smsCode: string;
+  confirmPassword: string;
+
   folder: {
-    createDept: number;
-    createBy: number;
-    createTime: string;
-    updateBy: number;
-    updateTime: string;
-    params: Record<string, any>;
-    id: number;
-    registerForeignId: number;
-    fileType: string;
-    ossId: number;
-    remark: string;
+    createDept?: number;
+    createBy?: number;
+    createTime?: string;
+    updateBy?: number;
+    updateTime?: string;
+    params?: Record<string, any>;
+    id?: number;
+    registerForeignId?: number;
+    fileType?: string;
+    ossId?: string;
+    remark?: string;
   }[];
 }
 
