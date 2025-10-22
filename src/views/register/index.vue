@@ -34,9 +34,11 @@
           <!-- 根据选择的身份展示对应的表单组件 -->
           <PurchaserFrom v-if="selectedIdentity === 'buyer'" @nextStep="nextStep" />
           <!-- 供应商注册流程 -->
-          <SupplierForm v-if="selectedIdentity === 'supplier'" @nextStep="nextStep" />
-          <!-- 企业注册流程 -->
-          <EnterpriseForm v-if="selectedIdentity === 'enterprise'" @nextStep="nextStep" />
+          <SupplierForm
+            v-if="selectedIdentity === 'supplier' || selectedIdentity === 'enterprise'"
+            @nextStep="nextStep"
+            :selectedIdentity="selectedIdentity"
+          />
           <!-- 技术专家注册流程 -->
           <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
           <!-- 法务专家注册流程 -->
@@ -57,7 +59,6 @@ import { ref } from 'vue';
 import Identity from './Components/Identity.vue';
 import PurchaserFrom from './Components/Purchaser.vue';
 import SupplierForm from './Components/Supplier.vue';
-import EnterpriseForm from './Components/Enterprise.vue';
 import TechnicalExpertForm from './Components/TechnicalExpert.vue';
 import LegalExpertForm from './Components/LegalExpert.vue';
 import { useRoute } from 'vue-router';
@@ -96,6 +97,10 @@ const buyerSteps = ref([
 onMounted(() => {
   // 页面加载时，检查路由参数是否存在手机号
   console.log('注册页面手机号参数:', phoneNumber.value);
+  if (phoneNumber.value) {
+    selectedIdentity.value = route.query.type as IdentityType;
+    activeStep.value++;
+  }
 });
 
 const getIcon = (svgName: string) => {

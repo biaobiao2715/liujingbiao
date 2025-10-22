@@ -65,6 +65,11 @@ import { UserFilled, Lock } from '@element-plus/icons-vue';
 import { sendSmsCode } from '@/api/register/accountRegiser';
 import CryptoJS from 'crypto-js'; // 引入加密库
 import router from '@/router';
+const LoginMethod = {
+  '502': 'expert',
+  '503': 'legal',
+  '504': 'supplier'
+};
 
 // 当前激活的登录方式
 const activeTab = ref('account');
@@ -199,7 +204,7 @@ const checkAccountStatus = async () => {
           // 弹窗提示重新注册
           ElMessageBox.confirm(`您的注册信息审核未通过，驳回原因：${data?.reviewRemark}？`, '提示', {
             confirmButtonText: '修改信息并重新注册',
-            // cancelButtonText: '取消',
+            showCancelButton: false,
             type: 'warning'
           })
             .then(() => {
@@ -207,7 +212,8 @@ const checkAccountStatus = async () => {
               router.push({
                 path: '/register',
                 query: {
-                  phoneNumber: accountForm.value.phone
+                  phoneNumber: accountForm.value.phone,
+                  type: data.enterpriseType === '1' ? 'enterprise' : LoginMethod[res.msg]
                 }
               });
             })
