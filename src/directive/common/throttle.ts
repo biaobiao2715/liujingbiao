@@ -11,7 +11,7 @@ declare global {
 }
 
 /**
- * 节流指令，默认1秒钟内只允许触发一次点击事件,可手动传入延迟时间，比如v-throttle="500"
+ * 节流指令，默认0.8秒钟内只允许触发一次点击事件,可手动传入延迟时间，比如v-throttle="500"
  */
 export default {
   mounted(el: HTMLElement, binding: DirectiveBinding<number | ThrottleOptions>) {

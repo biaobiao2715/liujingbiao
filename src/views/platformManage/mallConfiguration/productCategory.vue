@@ -1,195 +1,184 @@
 <!--
-  标题: enterprise/index.vue
-  功能: 商品分组
-  说明: 用于商品的分组配置
+  标题: productCategory.vue
+  功能: 商品分类管理
+  说明: 该页面用于管理商品分类，包括新增、编辑、删除分类等操作。
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
+  开发信息: Created by 李春雷 2025-10-21
 -->
 <template>
-  <div class="supplier-management">
-    <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-      <el-form-item label="字典名称" prop="dictName">
-        <el-input v-model="queryParams.dictName" placeholder="请输入字典名称" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item>
-        <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="product-category">
+    <!-- 新建按钮 -->
+    <div class="mb-4">
+      <el-button type="primary" @click="handleCreateCategory">新增分类</el-button>
+    </div>
 
-    <el-button v-throttle  type="primary" plain @click="handleAdd" style="margin-bottom: 20px">新增</el-button>
+    <!-- 弹窗表单 -->
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑分类' : '新增分类'">
+      <el-form :model="form">
+        <!-- 上级分类选择 -->
+        <el-form-item label="上级分类">
+          <el-select v-model="form.parentId" placeholder="请选择">
+            <el-option v-for="item in flatCategories" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <!-- 分类名称输入 -->
+        <el-form-item label="分类名称">
+          <el-input v-model="form.name" placeholder="请输入" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer flex-center-between">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveCategory">确认</el-button>
+      </div>
+    </el-dialog>
 
-    <el-table v-loading="loading" border :data="typeList">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="字典编号" align="center" prop="dictId" />
-      <el-table-column label="字典名称" align="center" prop="dictName" :show-overflow-tooltip="true" />
-      <el-table-column label="字典类型" align="center" :show-overflow-tooltip="true">
-        <template #default="scope">
-          <router-link :to="'/system/dict-data/index/' + scope.row.dictId" class="link-type">
-            <span>{{ scope.row.dictType }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button v-throttle  type="text" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button v-throttle  type="text" @click="handleDelete(scope.row)">删除</el-button>
+    <!-- 树形表格 -->
+    <el-table :data="categories" row-key="id" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" style="width: 100%">
+      <el-table-column prop="name" label="商品分类" />
+      <el-table-column prop="order" label="排序" />
+      <el-table-column prop="createdAt" label="创建时间" />
+      <el-table-column label="操作">
+        <template #default="{ row }">
+          <!-- 操作按钮 -->
+          <el-button type="text" @click="handleCreateSubCategory(row)">新增子分类</el-button>
+          <el-button type="text" @click="editCategory(row)">编辑</el-button>
+          <el-button type="text" @click="deleteCategory(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
-    </div>
-
-    <!-- 添加或修改参数配置对话框 -->
-    <el-dialog v-model="dialog.visible" :title="dialog.title" width="500px" append-to-body>
-      <el-form ref="dictFormRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="字典名称" prop="dictName">
-          <el-input v-model="form.dictName" placeholder="请输入字典名称" />
-        </el-form-item>
-        <el-form-item label="字典类型" prop="dictType">
-          <el-input v-model="form.dictType" placeholder="请输入字典类型" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button v-throttle  type="primary" @click="submitForm">确 定</el-button>
-          <el-button v-throttle  @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
-<script setup name="Dict" lang="ts">
-import { useDictStore } from '@/store/modules/dict';
-import { listType, getType, delType, addType, updateType, refreshCache } from '@/api/system/dict/type';
-import { DictTypeForm, DictTypeQuery, DictTypeVO } from '@/api/system/dict/type/types';
+<script setup lang="ts">
+import { ref } from 'vue';
+import { ElMessageBox } from 'element-plus';
 
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+// 定义分类的接口
+interface Category {
+  id: number; // 分类ID
+  name: string; // 分类名称
+  parentId: number | null; // 上级分类ID，null表示一级分类
+  order: number; // 排序
+  createdAt: string; // 创建时间
+  children?: Category[]; // 子分类
+}
 
-const typeList = ref<DictTypeVO[]>([]);
-const loading = ref(true);
-const ids = ref<Array<number | string>>([]);
-const total = ref(0);
-const dateRange = ref<[DateModelType, DateModelType]>(['', '']);
-
-const dictFormRef = ref<ElFormInstance>();
-const queryFormRef = ref<ElFormInstance>();
-
-const dialog = reactive<DialogOption>({
-  visible: false,
-  title: ''
-});
-
-const initFormData: DictTypeForm = {
-  dictId: undefined,
-  dictName: '',
-  dictType: '',
-  remark: ''
-};
-const data = reactive<PageData<DictTypeForm, DictTypeQuery>>({
-  form: { ...initFormData },
-  queryParams: {
-    pageNum: 1,
-    pageSize: 10,
-    dictName: '',
-    dictType: ''
+// 分类数据（树形结构）
+const categories = ref<Category[]>([
+  // 示例数据
+  {
+    id: 1,
+    name: '种子',
+    parentId: null,
+    order: 0,
+    createdAt: '2025-09-19 9:39:39',
+    children: [
+      {
+        id: 3,
+        name: '粮食类种子',
+        parentId: 1,
+        order: 0,
+        createdAt: '2025-09-19 9:39:39',
+        children: [{ id: 4, name: '玉米种子', parentId: 3, order: 0, createdAt: '2025-09-19 9:39:39' }]
+      }
+    ]
   },
-  rules: {
-    dictName: [{ required: true, message: '字典名称不能为空', trigger: 'blur' }],
-    dictType: [{ required: true, message: '字典类型不能为空', trigger: 'blur' }]
+  {
+    id: 2,
+    name: '植物类种子',
+    parentId: 1,
+    order: 1,
+    createdAt: '2025-09-19 9:39:39',
+    children: [{ id: 5, name: '蔬菜类种子', parentId: 2, order: 0, createdAt: '2025-09-19 9:39:39' }]
   }
-});
+]);
 
-const { queryParams, form, rules } = toRefs(data);
+// 扁平化分类数据，用于上级分类选择
+const flatCategories = ref<Category[]>([]);
 
-/** 查询字典类型列表 */
-const getList = () => {
-  loading.value = true;
-  listType(proxy?.addDateRange(queryParams.value, dateRange.value)).then((res) => {
-    typeList.value = res.rows;
-    total.value = res.total;
-    loading.value = false;
-  });
-};
-/** 取消按钮 */
-const cancel = () => {
-  reset();
-  dialog.visible = false;
-};
-/** 表单重置 */
-const reset = () => {
-  form.value = { ...initFormData };
-  dictFormRef.value?.resetFields();
-};
-/** 搜索按钮操作 */
-const handleQuery = () => {
-  queryParams.value.pageNum = 1;
-  getList();
-};
-/** 重置按钮操作 */
-const resetQuery = () => {
-  dateRange.value = ['', ''];
-  queryFormRef.value?.resetFields();
-  handleQuery();
-};
-/** 新增按钮操作 */
-const handleAdd = () => {
-  reset();
-  dialog.visible = true;
-  dialog.title = '添加字典类型';
+// 弹窗显示状态
+const dialogVisible = ref(false);
+
+// 表单数据
+const form = ref<Category>({ id: 0, name: '', parentId: null, order: 0, createdAt: '' });
+
+// 新建一级分类
+const handleCreateCategory = () => {
+  form.value = { id: 0, name: '', parentId: null, order: 0, createdAt: '' };
+  dialogVisible.value = true;
 };
 
-/** 修改按钮操作 */
-const handleUpdate = async (row?: DictTypeVO) => {
-  reset();
-  const dictId = row?.dictId || ids.value[0];
-  const res = await getType(dictId);
-  Object.assign(form.value, res.data);
-  dialog.visible = true;
-  dialog.title = '修改字典类型';
+// 新建子分类
+const handleCreateSubCategory = (parent: Category) => {
+  form.value = { id: 0, name: '', parentId: parent.id, order: 0, createdAt: '' };
+  dialogVisible.value = true;
 };
-/** 提交按钮 */
-const submitForm = () => {
-  dictFormRef.value?.validate(async (valid: boolean) => {
-    if (valid) {
-      form.value.dictId ? await updateType(form.value) : await addType(form.value);
-      proxy?.$modal.msgSuccess('操作成功');
-      dialog.visible = false;
-      getList();
+
+// 保存分类
+const saveCategory = () => {
+  const newCategory = { ...form.value, id: Date.now(), createdAt: new Date().toISOString() };
+  if (newCategory.parentId) {
+    // 添加到父分类的子分类中
+    const parent = categories.value.find((cat) => cat.id === newCategory.parentId);
+    if (parent) {
+      parent.children = parent.children || [];
+      parent.children.push(newCategory);
     }
-  });
-};
-/** 删除按钮操作 */
-const handleDelete = async (row?: DictTypeVO) => {
-  const dictIds = row?.dictId || ids.value;
-  await proxy?.$modal.confirm('是否确认删除字典编号为"' + dictIds + '"的数据项？');
-  await delType(dictIds);
-  getList();
-  proxy?.$modal.msgSuccess('删除成功');
+  } else {
+    // 添加为一级分类
+    categories.value.push(newCategory);
+  }
+  dialogVisible.value = false;
 };
 
-onMounted(() => {
-  getList();
-});
+// 编辑分类
+const editCategory = (category: Category) => {
+  form.value = { ...category };
+  dialogVisible.value = true;
+};
+
+// 删除分类
+const deleteCategory = (category: Category) => {
+  ElMessageBox.confirm(`确定要删除分类 "${category.name}" 吗？此操作将永久删除该分类及其子分类。`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      const deleteRecursive = (list: Category[], id: number) => {
+        const index = list.findIndex((item) => item.id === id);
+        if (index !== -1) {
+          list.splice(index, 1);
+        } else {
+          list.forEach((item) => {
+            if (item.children) deleteRecursive(item.children, id);
+          });
+        }
+      };
+      deleteRecursive(categories.value, category.id);
+    })
+    .catch(() => {
+      // 用户取消删除操作
+    });
+};
+
+// 初始化扁平化分类数据
+flatCategories.value = categories.value.reduce((acc, cur) => {
+  const flatten = (cat: Category) => {
+    acc.push(cat);
+    if (cat.children) cat.children.forEach(flatten);
+  };
+  flatten(cur);
+  return acc;
+}, []);
 </script>
+
 <style scoped lang="scss">
-.supplier-management {
+.product-category {
   padding: 24px;
 }
-.pagination {
-  margin-top: 24px;
-  justify-content: end;
+/* 弹窗样式 */
+.el-dialog {
+  width: 400px;
 }
 </style>

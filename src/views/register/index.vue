@@ -42,12 +42,8 @@
           <!-- 法务专家注册流程 -->
           <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
         </div>
-        <div v-else-if="activeStep === 3 && selectedIdentity !== 'buyer'">
-          <!-- 账号注册组件 -->
-          <AccountRegister :identity="selectedIdentity" @nextStep="nextStep" @setSuccessInfo="setSuccessInfo" />
-        </div>
         <!-- 注册成功组件 -->
-        <Success :username="username" :account="account" v-if="activeStep === (selectedIdentity === 'buyer' ? 3 : 4)" />
+        <Success :username="username" :account="account" v-if="activeStep === 3" />
       </div>
     </div>
   </div>
@@ -64,8 +60,6 @@ import SupplierForm from './Components/Supplier.vue';
 import EnterpriseForm from './Components/Enterprise.vue';
 import TechnicalExpertForm from './Components/TechnicalExpert.vue';
 import LegalExpertForm from './Components/LegalExpert.vue';
-// 账号注册组件
-import AccountRegister from './Components/AccountRegister/index.vue';
 // 引入成功组件
 import Success from './Components/Success.vue';
 
@@ -83,14 +77,13 @@ const account = ref('');
 const steps = ref([
   { title: '选择身份信息', icon: '../../assets/images/step-1.svg' },
   { title: '填写信息', icon: '../../assets/images/step-2.svg' },
-  { title: '创建账号', icon: '../../assets/images/step-3.svg' },
   { title: '申请注册成功', icon: '../../assets/images/step-4.svg' }
 ]);
 
 // 采购商注册流程
 const buyerSteps = ref([
   { title: '选择身份信息', icon: '../../assets/images/step-1.svg' },
-  { title: '创建账号', icon: '../../assets/images/step-3.svg' },
+  { title: '填写采购商信息', icon: '../../assets/images/step-2.svg' },
   { title: '申请注册成功', icon: '../../assets/images/step-4.svg' }
 ]);
 
@@ -129,15 +122,19 @@ const handleIdentityUpdate = (identity: IdentityType) => {
 };
 
 // 下一步逻辑
-const nextStep = () => {
-  if (activeStep.value < (selectedIdentity.value === 'buyer' ? 3 : 4)) {
+const nextStep = (info?: { username: string; account: string }) => {
+  if (info) {
+    username.value = info.username;
+    account.value = info.account;
+  }
+  if (activeStep.value < 3) {
     activeStep.value++;
   }
 };
-const setSuccessInfo = (userName: string, accountName: string) => {
-  username.value = userName;
-  account.value = accountName;
-};
+// const setSuccessInfo = (userName: string, accountName: string) => {
+//   username.value = userName;
+//   account.value = accountName;
+// };
 </script>
 
 <style scoped lang="scss">

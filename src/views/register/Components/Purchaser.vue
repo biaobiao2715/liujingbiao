@@ -28,7 +28,7 @@
         <el-input v-model="form.smsCode" placeholder="请输入验证码" maxlength="6" autocomplete="off">
           <template #append>
             <!-- 发送验证码按钮 -->
-            <el-button v-throttle  type="primary" :disabled="countdown > 0" @click="sendCode">
+            <el-button v-throttle type="primary" :disabled="countdown > 0" @click="sendCode">
               {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
             </el-button>
           </template>
@@ -62,14 +62,13 @@
       </el-form-item>
       <!-- 下一步按钮 -->
       <el-form-item>
-        <el-button v-throttle  class="next-button" type="primary" @click="submitForm">下一步</el-button>
+        <el-button v-throttle class="next-button" type="primary" @click="submitForm">下一步</el-button>
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-// 引入 Vue 的 ref 函数和 Element Plus 的消息提示
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
@@ -77,7 +76,18 @@ import { getPurchaserTypeDict, registerPurchaser, checkPhoneUnique } from '@/api
 import { sendSmsCode } from '@/api/register/accountRegiser';
 const emit = defineEmits(['nextStep']); // 定义事件
 
-// 表单数据
+let timer: NodeJS.Timeout | null = null; // 验证码倒计时定时器
+
+const countdown = ref(0); // 验证码倒计时
+
+const typeOptions = ref([]); // 采购类型选项
+
+const formRef = ref(); // 表单引用
+
+const passwordVisible = ref(false); // 密码可见性
+
+const confirmPasswordVisible = ref(false); // 确认密码可见性
+
 const form = ref({
   purchaseType: '', // 采购类型
   name: '', // 姓名
@@ -86,16 +96,6 @@ const form = ref({
   password: '', // 密码
   confirmPassword: '' // 确认密码
 });
-const countdown = ref(0); // 验证码倒计时
-let timer: NodeJS.Timeout | null = null;
-// 采购类型选项
-const typeOptions = ref([]);
-
-// 表单引用
-const formRef = ref();
-
-const passwordVisible = ref(false);
-const confirmPasswordVisible = ref(false);
 
 // 表单验证规则
 const rules = {
@@ -149,14 +149,6 @@ const rules = {
   ]
 };
 
-const togglePasswordVisibility = () => {
-  passwordVisible.value = !passwordVisible.value;
-};
-
-const toggleConfirmPasswordVisibility = () => {
-  confirmPasswordVisible.value = !confirmPasswordVisible.value;
-};
-
 onMounted(() => {
   getPurchaserTypeDict('purchaser_type').then((res) => {
     if (res.code === 200) {
@@ -164,6 +156,16 @@ onMounted(() => {
     }
   });
 });
+
+// 切换密码可见性
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value;
+};
+
+// 切换确认密码可见性
+const toggleConfirmPasswordVisibility = () => {
+  confirmPasswordVisible.value = !confirmPasswordVisible.value;
+};
 
 // 发送短信验证码
 const sendCode = () => {
@@ -178,7 +180,6 @@ const sendCode = () => {
 
   sendSmsCode(form.value.phoneNumber).then((res) => {
     ElMessage.success('验证码已发送');
-    // 模拟发送验证码请求
     countdown.value = 60;
     timer = setInterval(() => {
       if (countdown.value > 0) {
@@ -200,7 +201,7 @@ const submitForm = () => {
         if (res.code === 200) {
           ElMessage.success('注册成功');
           setTimeout(() => {
-            emit('nextStep');
+            emit('nextStep', { username: form.value.name, account: form.value.phoneNumber });
           }, 1000);
         } else {
           ElMessage.error(res.msg || '注册失败');

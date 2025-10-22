@@ -7,8 +7,8 @@ import { UserInfo } from '@/api/system/user/types';
 const clientId = import.meta.env.VITE_APP_CLIENT_ID;
 
 /**
- * @param data {LoginData}
- * @returns
+ *
+ * 登录方法
  */
 export function login(data: LoginData): AxiosPromise<LoginResult> {
   const params = {
