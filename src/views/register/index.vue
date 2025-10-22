@@ -60,18 +60,24 @@ import SupplierForm from './Components/Supplier.vue';
 import EnterpriseForm from './Components/Enterprise.vue';
 import TechnicalExpertForm from './Components/TechnicalExpert.vue';
 import LegalExpertForm from './Components/LegalExpert.vue';
+import { useRoute } from 'vue-router';
 // 引入成功组件
 import Success from './Components/Success.vue';
 
 // 定义身份类型
 export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'legal';
 
-// 定义当前步骤的状态
+const route = useRoute();
+
 const activeStep = ref(1); // 当前步骤
+
 const selectedIdentity = ref<IdentityType>('' as IdentityType); // 当前选择的身份
-// 定义用户名和账号
+
 const username = ref('');
+
 const account = ref('');
+
+const phoneNumber = ref(route.query.phoneNumber); // 获取路由中的手机号参数
 
 // 定义步骤标题数组
 const steps = ref([
@@ -86,6 +92,11 @@ const buyerSteps = ref([
   { title: '填写采购商信息', icon: '../../assets/images/step-2.svg' },
   { title: '申请注册成功', icon: '../../assets/images/step-4.svg' }
 ]);
+
+onMounted(() => {
+  // 页面加载时，检查路由参数是否存在手机号
+  console.log('注册页面手机号参数:', phoneNumber.value);
+});
 
 const getIcon = (svgName: string) => {
   return new URL(`${svgName}`, import.meta.url).href;
