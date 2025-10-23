@@ -19,8 +19,7 @@
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="入驻日期" prop="registrationTime">
-            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择"
-              value-format="YYYY-MM-DD" clearable />
+            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
@@ -62,19 +61,21 @@
           <el-table-column label="操作" align="center" width="200">
             <template #default="scope">
               <div style="display: flex; justify-content: space-evenly; align-items: center">
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
-                  @click="handleEdit(scope.row, 'view')">查看</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
-                  @click="handleEdit(scope.row, 'audit')">审核</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
-                  @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'view')">查看</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-          :total="total" @pagination="handleQuery" />
+        <pagination
+          v-show="total > 0"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          :total="total"
+          @pagination="handleQuery"
+        />
       </el-card>
     </div>
   </div>
@@ -169,7 +170,7 @@ const toggleEnabled = async (row: TechnicalExpertList) => {
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({
-    path: '/platform/technical/audit/details',
+    path: '/platform/technicalExpert/details',
     query: {
       id: row.id,
       type

@@ -33,8 +33,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+            <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -150,7 +150,7 @@ const resetQuery = () => {
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   router.push({
-    path: '/platform/legal/audit/details',
+    path: '/platform/legalExpert/details',
     query: {
       id: row.id,
       type
