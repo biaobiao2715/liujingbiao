@@ -318,6 +318,8 @@
     "whenever": true,
     "Slot": true,
     "Slots": true,
-    "createRef": true
+    "createRef": true,
+    "ElImagePreview": true,
+    "ElImageViewer": true
   }
 }

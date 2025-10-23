@@ -25,7 +25,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="性别">
-              <el-input v-model="formData.sex" disabled></el-input>
+              <el-input :value="getSexLabel(formData.sex)" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -107,7 +107,11 @@
       <el-form :model="formData" label-width="140px">
         <FormHeader title="资料清单" />
         <el-table :data="formData.hnBaseRegisterFolderVoList" border>
-          <el-table-column prop="folderId" label="序号" width="100"></el-table-column>
+          <el-table-column label="序号" width="100" align="center">
+            <template #default="scope">
+              <span>{{ scope.$index + 1 }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="folderName" label="文件夹名称">
             <template #default="scope">
               {{ scope.row.ossInfo?.originalName }}
@@ -156,6 +160,16 @@ const operateMode = ref(type);
 const loading = ref(false);
 
 const formData = ref<LegalExpertList>({} as LegalExpertList);
+
+// 性别字典映射
+const sexMap = {
+  '0': '男',
+  '1': '女'
+};
+// 获取性别显示文本
+const getSexLabel = (sex: string) => {
+  return sexMap[sex] || sex;
+};
 
 onMounted(() => {
   getDetail();
@@ -208,7 +222,7 @@ const handleAudit = async (status: '99' | '1') => {
         reviewStatus: status
       },
       folder: formData.value.hnBaseRegisterFolderVoList,
-      optType: '3' 
+      optType: status
     });
 
     if (res.code === 200) {
