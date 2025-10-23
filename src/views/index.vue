@@ -5,6 +5,7 @@
       <div class="user-info flex-center gap-12">
         <el-icon color="#fff"><Bell /></el-icon>
         <div class="dept-name">{{ userInfo?.deptName }}</div>
+        <el-button type="primary" @click="handleLogout">退出登录</el-button>
         <div class="user-name flex-center-center">{{ userInfo?.userName }}</div>
       </div>
     </div>
@@ -36,6 +37,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getInfo } from '@/api/login';
+import { ElMessageBox } from 'element-plus';
+import { useUserStore } from '@/store/modules/user';
+
+const userStore = useUserStore();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 路由实例
 const router = useRouter();
@@ -106,6 +112,24 @@ const handleRedirect = (path: string) => {
   if (path) {
     router.push(path);
   }
+};
+
+const handleLogout = () => {
+  ElMessageBox.confirm('确定注销并退出系统吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.logout().then(() => {
+      router.replace({
+        path: '/login',
+        query: {
+          redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
+        }
+      });
+      proxy?.$tab.closeAllPage();
+    });
+  });
 };
 </script>
 

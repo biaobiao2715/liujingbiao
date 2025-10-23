@@ -51,8 +51,8 @@
                   ></el-date-picker>
                 </el-form-item>
                 <el-form-item>
-                  <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                  <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+                  <el-button v-throttle type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -63,21 +63,29 @@
           <template #header>
             <el-row :gutter="10">
               <el-col :span="1.5">
-                <el-button v-throttle  v-has-permi="['system:user:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
+                <el-button v-throttle v-has-permi="['system:user:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-throttle  v-has-permi="['system:user:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()">
+                <el-button v-throttle v-has-permi="['system:user:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()">
                   修改
                 </el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-throttle  v-has-permi="['system:user:remove']" type="danger" plain :disabled="multiple" icon="Delete" @click="handleDelete()">
+                <el-button
+                  v-throttle
+                  v-has-permi="['system:user:remove']"
+                  type="danger"
+                  plain
+                  :disabled="multiple"
+                  icon="Delete"
+                  @click="handleDelete()"
+                >
                   删除
                 </el-button>
               </el-col>
               <el-col :span="1.5">
                 <el-dropdown class="mt-[1px]">
-                  <el-button v-throttle  plain type="info">
+                  <el-button v-throttle plain type="info">
                     更多
                     <el-icon class="el-icon--right"><arrow-down /></el-icon
                   ></el-button>
@@ -117,18 +125,46 @@
             <el-table-column label="操作" fixed="right" width="180" class-name="small-padding fixed-width">
               <template #default="scope">
                 <el-tooltip v-if="scope.row.userId !== 1" content="修改" placement="top">
-                  <el-button v-throttle  v-hasPermi="['system:user:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+                  <el-button
+                    v-throttle
+                    v-hasPermi="['system:user:edit']"
+                    link
+                    type="primary"
+                    icon="Edit"
+                    @click="handleUpdate(scope.row)"
+                  ></el-button>
                 </el-tooltip>
                 <el-tooltip v-if="scope.row.userId !== 1" content="删除" placement="top">
-                  <el-button v-throttle  v-hasPermi="['system:user:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+                  <el-button
+                    v-throttle
+                    v-hasPermi="['system:user:remove']"
+                    link
+                    type="primary"
+                    icon="Delete"
+                    @click="handleDelete(scope.row)"
+                  ></el-button>
                 </el-tooltip>
 
                 <el-tooltip v-if="scope.row.userId !== 1" content="重置密码" placement="top">
-                  <el-button v-throttle  v-hasPermi="['system:user:resetPwd']" link type="primary" icon="Key" @click="handleResetPwd(scope.row)"></el-button>
+                  <el-button
+                    v-throttle
+                    v-hasPermi="['system:user:resetPwd']"
+                    link
+                    type="primary"
+                    icon="Key"
+                    @click="handleResetPwd(scope.row)"
+                  ></el-button>
                 </el-tooltip>
 
                 <el-tooltip v-if="scope.row.userId !== 1" content="分配角色" placement="top">
-                  <el-button v-throttle  v-hasPermi="['system:user:edit']" link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)"></el-button>
+                  <el-button
+                    v-throttle
+                    v-hasPermi="['system:user:edit']"
+                    link
+                    type="primary"
+                    icon="CircleCheck"
+                    @click="handleAuthRole(scope.row)"
+                  ></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -181,12 +217,12 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col :span="12">
+          <!-- <el-col :span="12">
             <el-form-item v-if="form.userId == undefined" label="用户名称" prop="userName">
               <el-input v-model="form.userName" placeholder="请输入用户名称" maxlength="30" />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
+          </el-col> -->
+          <el-col :span="24">
             <el-form-item v-if="form.userId == undefined" label="用户密码" prop="password">
               <el-input v-model="form.password" placeholder="请输入用户密码" type="password" maxlength="20" show-password />
             </el-form-item>
@@ -246,8 +282,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  type="primary" @click="submitForm">确 定</el-button>
-          <el-button v-throttle  @click="cancel()">取 消</el-button>
+          <el-button v-throttle type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle @click="cancel()">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -280,8 +316,8 @@
       </el-upload>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  type="primary" @click="submitFileForm">确 定</el-button>
-          <el-button v-throttle  @click="upload.open = false">取 消</el-button>
+          <el-button v-throttle type="primary" @click="submitFileForm">确 定</el-button>
+          <el-button v-throttle @click="upload.open = false">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -381,12 +417,20 @@ const initData: PageData<UserForm, UserQuery> = {
     roleId: ''
   },
   rules: {
-    userName: [
-      { required: true, message: '用户名称不能为空', trigger: 'blur' },
+    // userName: [
+    //   { required: true, message: '用户名称不能为空', trigger: 'blur' },
+    //   {
+    //     min: 2,
+    //     max: 20,
+    //     message: '用户名称长度必须介于 2 和 20 之间',
+    //     trigger: 'blur'
+    //   }
+    // ],
+    phonenumber: [
+      { required: true, message: '手机号码不能为空', trigger: 'blur' },
       {
-        min: 2,
-        max: 20,
-        message: '用户名称长度必须介于 2 和 20 之间',
+        pattern: /^1[3456789][0-9]\d{8}$/,
+        message: '请输入正确的手机号码',
         trigger: 'blur'
       }
     ],
@@ -406,13 +450,6 @@ const initData: PageData<UserForm, UserQuery> = {
         type: 'email',
         message: '请输入正确的邮箱地址',
         trigger: ['blur', 'change']
-      }
-    ],
-    phonenumber: [
-      {
-        pattern: /^1[3456789][0-9]\d{8}$/,
-        message: '请输入正确的手机号码',
-        trigger: 'blur'
       }
     ],
     roleIds: [{ required: true, message: '用户角色不能为空', trigger: 'blur' }]
@@ -615,9 +652,7 @@ const handleUpdate = async (row?: UserForm) => {
   dialog.title = '修改用户';
   Object.assign(form.value, data.user);
   postOptions.value = data.posts;
-  roleOptions.value = Array.from(
-    new Map([...data.roles, ...data.user.roles].map(role => [role.roleId, role])).values()
-  );
+  roleOptions.value = Array.from(new Map([...data.roles, ...data.user.roles].map((role) => [role.roleId, role])).values());
   form.value.postIds = data.postIds;
   form.value.roleIds = data.roleIds;
   form.value.password = '';
@@ -627,6 +662,7 @@ const handleUpdate = async (row?: UserForm) => {
 const submitForm = () => {
   userFormRef.value?.validate(async (valid: boolean) => {
     if (valid) {
+      form.value.userName = form.value.phonenumber;
       if (form.value.userId) {
         // 自己编辑自己的情况下 不允许编辑角色部门岗位
         if (form.value.userId == useUserStore().userId) {
