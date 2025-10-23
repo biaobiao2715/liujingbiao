@@ -140,6 +140,7 @@ const resetQuery = () => {
   queryParams.expertName = '';
   queryParams.registrationTime = '';
   queryParams.reviewStatus = '';
+  queryParams.expertNumber = '';
   queryParams.pageNum = 1;
   handleQuery();
 };
