@@ -34,7 +34,7 @@ defineProps({
   }
 });
 
-const title = ref('农资农具销售服务平台');
+const title = ref('全国种子销售服务平台');
 const settingsStore = useSettingsStore();
 const sideTheme = computed(() => settingsStore.sideTheme);
 </script>
