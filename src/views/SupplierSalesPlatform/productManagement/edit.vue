@@ -11,25 +11,25 @@
       <div class="content-form-title">基本信息</div>
       <el-row>
         <el-col :span="12">
-          <el-form-item label="商品名称" prop="headline">
-            <el-input v-model="formData.headline" placeholder="请输入商品名称" maxlength="60" show-word-limit />
+          <el-form-item label="商品名称" prop="goodsName">
+            <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="60" show-word-limit />
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="商品编码" prop="productCode">
-            <el-input :disabled="true" v-model="formData.productCode" placeholder="自动生成" />
+          <el-form-item label="商品编码" prop="goodsCode">
+            <el-input :disabled="true" v-model="formData.goodsCode" placeholder="自动生成" />
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="商品类目" prop="productSort">
+          <el-form-item label="商品类目" prop="goodsCategoryId">
             <el-cascader
               v-if="creditList"
               style="width: 100%"
-              v-model="formData.productSort"
+              v-model="formData.goodsCategoryId"
               filterable
               :options="creditList"
               :props="{
@@ -44,8 +44,8 @@
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="商品品牌" prop="brand">
-            <el-select v-model="formData.brand" placeholder="请选择品牌" style="width: 100%" clearable>
+          <el-form-item label="商品品牌" prop="goodsBrandId">
+            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" clearable>
               <el-option v-for="item in brandOptions" :key="item.id" :label="item.name" :value="item.id" :disabled="!item.status" />
             </el-select>
           </el-form-item>
@@ -53,8 +53,8 @@
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="产品保障" prop="guarantee">
-            <el-select v-model="formData.guarantee" placeholder="请选择产品保障" style="width: 100%" clearable>
+          <el-form-item label="产品保障" prop="goodsEnsureId">
+            <el-select v-model="formData.goodsEnsureId" placeholder="请选择产品保障" style="width: 100%" clearable>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
           </el-form-item>
@@ -62,17 +62,15 @@
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="产品功能" prop="function">
-            <el-select v-model="formData.function" placeholder="请选择产品功能" style="width: 100%" clearable>
+          <el-form-item label="产品功能" prop="goodsAbilityIds">
+            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable>
               <el-option v-for="item in functionOptions" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
           </el-form-item>
         </el-col>
 
         <el-col :span="24">
-          <el-form-item label="商品主图" prop="titleFileList">
-            <div>1、首张主图需保证图片品质,共需上传5张商品图片</div>
-            <div>2、需上传800px以上的实拍大图,包含商品整体款式和商品细节</div>
+          <el-form-item label="商品主图" prop="titleFileList" class="uploadcss">
             <el-upload
               :file-list="fileList"
               :limit="5"
@@ -87,20 +85,22 @@
               :on-exceed="handleExceed"
               :auto-upload="false"
             >
-              <i class="el-icon-plus"></i>
+              <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
             </el-upload>
+            <div>1.将用于首页、活动等特定场景的展示</div>
+            <div>2.建议图片比例1:1,像素高于需800*800px,小于10MB,格式为PNG/JPEG/JPG</div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="商品介绍" prop="goodsInfo">
+            <el-input v-model="formData.goodsInfo" type="textarea" :rows="5" placeholder="请输入商品介绍" maxlength="300" show-word-limit />
           </el-form-item>
         </el-col>
 
         <el-col :span="24">
-          <el-form-item label="商品介绍" prop="productDesc">
-            <el-input v-model="formData.productDesc" type="textarea" :rows="5" placeholder="请输入商品介绍" maxlength="300" show-word-limit />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="商品详情" prop="productDetail">
-            <editor v-model="formData.productDetail" :min-height="192" />
+          <el-form-item label="商品详情" prop="goodsDetail">
+            <editor v-model="formData.goodsDetail" :min-height="192" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -110,9 +110,9 @@
       <div class="content-form-title">价格与库存</div>
       <el-row>
         <el-col :span="12">
-          <el-form-item label="商品规格" prop="specifications">
-            <el-select v-model="formData.specifications" placeholder="请选择商品规格" style="width: 100%" clearable>
-              <el-option v-for="item in specificationOptions" :key="item.id" :label="item.name" :value="item.id" />
+          <el-form-item label="商品规格" prop="goodsSpecification">
+            <el-select v-model="formData.goodsSpecification" placeholder="请选择商品规格" style="width: 100%" clearable>
+              <el-option v-for="dict in goods_specification" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -123,48 +123,48 @@
           </div>
 
           <el-table :data="tableList" border style="width: 100%">
-            <el-table-column prop="unit" label="单位">
+            <el-table-column prop="goodsSpecificationValue" label="单位">
               <template #header>
                 <span class="required">单位</span>
               </template>
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.unit"
+                  v-model="scope.row.goodsSpecificationValue"
                   placeholder="请输入姓名"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.unit }"
+                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsSpecificationValue }"
                 ></el-input>
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.unit">
-                  {{ scope.row.errors.unit }}
+                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsSpecificationValue">
+                  {{ scope.row.errors.goodsSpecificationValue }}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="sellingPrice" label="销售价">
+            <el-table-column prop="goodsPrice" label="销售价">
               <template #header>
                 <span class="required">销售价</span>
               </template>
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.sellingPrice"
+                  v-model="scope.row.goodsPrice"
                   placeholder="请输入销售价"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.sellingPrice }"
+                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 ></el-input>
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.sellingPrice">
-                  {{ scope.row.errors.sellingPrice }}
+                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsPrice">
+                  {{ scope.row.errors.goodsPrice }}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="availableInventory" label="可用库存">
+            <el-table-column prop="goodsStock" label="可用库存">
               <template #header>
                 <span class="required">可用库存</span>
               </template>
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.availableInventory"
+                  v-model="scope.row.goodsStock"
                   placeholder="请输入可用库存"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.availableInventory }"
+                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsStock }"
                 ></el-input>
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.availableInventory">
-                  {{ scope.row.errors.availableInventory }}
+                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsStock">
+                  {{ scope.row.errors.goodsStock }}
                 </div>
               </template>
             </el-table-column>
@@ -182,14 +182,14 @@
 
       <div class="content-form-title">服务信息</div>
       <div>
-        <el-form-item label="上架状态" prop="shelfStatus">
-          <el-radio-group v-model="formData.shelfStatus">
+        <el-form-item label="上架状态" prop="status">
+          <el-radio-group v-model="formData.status">
             <el-radio :value="1" size="large">上架</el-radio>
             <el-radio :value="2" size="large">下架</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="上架时间" prop="listingTime">
-          <el-date-picker v-model="formData.listingTime" value-format="YYYY-MM-DD HH:mm:ss" type="datetime" placeholder="请选择日期时间">
+        <el-form-item label="上架时间" prop="launchTime">
+          <el-date-picker v-model="formData.launchTime" value-format="YYYY-MM-DD HH:mm:ss" type="datetime" placeholder="请选择日期时间">
           </el-date-picker>
         </el-form-item>
       </div>
@@ -222,12 +222,13 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
 import { useRoute } from 'vue-router';
-import { uploadImage } from '@/api/Supplier/productManagement/product';
+import { ossUploadImage, goodsAdd, goodsUpdate } from '@/api/Supplier/productManagement/product';
 // 获取router路由参数
 const route = useRoute();
 const { selID } = route.query;
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
+const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 定义 refs
 const refForm = ref<InstanceType<typeof ElForm> | null>(null);
 const refShop = ref();
@@ -239,8 +240,6 @@ const brandOptions = ref([]);
 const guaranteeOptions = ref([]);
 // 功能选项
 const functionOptions = ref([]);
-// 规格选项
-const specificationOptions = ref([]);
 // 图片上传相关
 const fileSize = ref(5); // 大小限制(MB)
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']); // 文件类型
@@ -256,30 +255,30 @@ const tableList = ref<any[]>([{}]);
 // 表单数据
 const formData = ref({
   // 基础信息
-  headline: '', //商品名称
-  productCode: '', //商品编码
-  productSort: '', //商品类目
-  brand: '', //商品品牌
-  guarantee: '', //产品保障
-  function: '', //产品功能
-  productDesc: '', //商品介绍
-  productDetail: '', //商品详情
+  goodsName: '', //商品名称
+  goodsCode: '', //商品编码
+  goodsCategoryId: '', //商品类目
+  goodsBrandId: '', //商品品牌
+  goodsEnsureId: '', //产品保障
+  goodsAbilityIds: '', //产品功能
+  goodsInfo: '', //商品介绍
+  goodsDetail: '', //商品详情
 
   auditStatus: '',
   imagePathMain: '', //主图
 
   // 服务信息
-  shelfStatus: 1, //上架状态
-  listingTime: '', //上架时间
+  status: 1, //上架状态
+  launchTime: '', //上架时间
 
   // 规格
-  specifications: '', //商品规格
+  goodsSpecification: '', //商品规格
   imageList: []
 });
 
 // 表单校验规则
 const FormRulesarr: FormRules = {
-  headline: [
+  goodsName: [
     { required: true, message: '供应商名称不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
@@ -305,8 +304,8 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  productSort: [{ required: true, message: '请选择商品类目', trigger: 'change' }],
-  function: [{ required: true, message: '请选择产品功能', trigger: 'change' }],
+  goodsCategoryId: [{ required: true, message: '请选择商品类目', trigger: 'change' }],
+  goodsAbilityIds: [{ required: true, message: '请选择产品功能', trigger: 'change' }],
   titleFileList: [
     {
       required: true,
@@ -406,7 +405,7 @@ const uploadedSuccessfully = (file: any) => {
     fileData.append(`file`, v);
   });
 
-  uploadImage(fileData)
+  ossUploadImage(fileData)
     .then((response) => {
       imgList.value = [];
       const newFile = {
@@ -491,20 +490,20 @@ const removeTableCell = (index: number, row: any) => {
  * @returns 包含验证错误信息的对象，如果没有错误则返回空对象
  */
 const validateContact = (contact: any) => {
-  const errorsValue: { unit?: string; sellingPrice?: string; availableInventory?: string } = {};
+  const errorsValue: { goodsSpecificationValue?: string; goodsPrice?: string; goodsStock?: string } = {};
 
   // 单位（必填）
-  if (!contact.unit || contact.unit.trim() === '') {
-    errorsValue.unit = '请输入姓名';
+  if (!contact.goodsSpecificationValue || contact.goodsSpecificationValue.trim() === '') {
+    errorsValue.goodsSpecificationValue = '请输入姓名';
   }
 
   // 销售价（必填）
-  if (!contact.sellingPrice || contact.sellingPrice.trim() === '') {
-    errorsValue.sellingPrice = '请输入姓名';
+  if (!contact.goodsPrice || contact.goodsPrice.trim() === '') {
+    errorsValue.goodsPrice = '请输入姓名';
   }
   // 可用库存（必填）
-  if (!contact.availableInventory || contact.availableInventory.trim() === '') {
-    errorsValue.availableInventory = '请输入姓名';
+  if (!contact.goodsStock || contact.goodsStock.trim() === '') {
+    errorsValue.goodsStock = '请输入姓名';
   }
 
   return errorsValue;
@@ -578,12 +577,6 @@ onMounted(() => {
     { id: 3, name: '功能3' }
   ];
 
-  // 模拟规格数据
-  specificationOptions.value = [
-    { id: 1, name: '规格1' },
-    { id: 2, name: '规格2' }
-  ];
-
   if (selID) {
     // wzfProductReleaseId(selID).then((response) => {
     //   formData.value = response.data;
@@ -628,6 +621,27 @@ onMounted(() => {
   content: '*';
   color: #f56c6c;
   margin-right: 4px;
+}
+
+.uploadcss {
+  // 表单
+  ::v-deep .el-form-item__content {
+    white-space: nowrap;
+    display: inline-block;
+  }
+}
+
+// 图片上传
+::v-deep .el-upload-list--picture-card .el-upload-list__item {
+  width: 106px;
+  height: 106px;
+}
+
+::v-deep .el-upload--picture-card {
+  width: 106px;
+  height: 106px;
+  line-height: 106px;
+  float: left;
 }
 
 .form-flex {

@@ -428,17 +428,17 @@ const FormRulesarr: FormRules = {
     }
   ],
   signUpAddress: [
-    { required: true, message: '注册地址不能为空', trigger: 'blur' },
+    { required: true, message: '详情地址不能为空', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
         if (!value || value.trim() === '') {
-          callback(new Error('注册地址不能为空'));
+          callback(new Error('详情地址不能为空'));
           return;
         }
 
         // 验证长度（200字节）
         if (new Blob([value]).size > 200) {
-          callback(new Error('注册地址最长不超过200字节'));
+          callback(new Error('详情地址最长不超过200字节'));
           return;
         }
 
@@ -700,6 +700,7 @@ const handleAreaChange = (val) => {
   const [provinceCode, cityCode, districtCode] = val;
 
   // 更新编码和名称
+  form.value.areaCodes = val;
   form.value.provinceCode = provinceCode || '';
   form.value.cityCode = cityCode || '';
   form.value.districtCode = districtCode || '';

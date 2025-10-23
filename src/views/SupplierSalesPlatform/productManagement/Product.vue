@@ -23,15 +23,21 @@
         </el-select>
       </el-form-item>
       <el-form-item label="价格调整日期">
-        <el-date-picker v-model="queryParams.reviewTime" type="daterange" value-format="YYYY-MM-DD"
-          range-separator=" - " start-placeholder="开始日期" end-placeholder="结束日期" />
+        <el-date-picker
+          v-model="queryParams.reviewTime"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator=" - "
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
       </el-form-item>
-       <el-form-item>
+      <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">新增商品</el-button>
+        <el-button v-throttle type="primary" @click="handleAdd">新增商品</el-button>
         <el-button v-throttle type="primary" @click="handleSearch">删除</el-button>
         <el-button v-throttle type="primary" @click="handleSearch">上架</el-button>
         <el-button v-throttle type="primary" @click="handleSearch">下架</el-button>
@@ -48,7 +54,7 @@
       <el-table-column label="商品编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
           <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
-          <router-link :to="'/supplier/product/details/?id=' + scope.row.id + '&type=view'" class="link-type">
+          <router-link :to="'/supplier/sales/product/details/?id=' + scope.row.id + '&type=view'" class="link-type">
             <span>{{ scope.row.enterpriseNumber }}</span>
           </router-link>
         </template>
@@ -89,14 +95,10 @@
 
       <el-table-column label="操作" align="center" width="360" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">详情</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">复制商品</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary"
-            @click="handleEdit(scope.row, 'view')">设置预警</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">详情</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">复制商品</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">设置预警</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -153,9 +155,9 @@ const handleSearch = () => {
   console.log('查询表单数据:', queryParams.value);
   getList();
 };
-// 查询价格调整历史 
+// 查询价格调整历史
 const onPriceHistory = () => {
-  // router.push({ path: '/supplier/product/price-history' });
+  // router.push({ path: '/supplier/sales/product/price-history' });
 };
 
 /** 搜索按钮操作 */
@@ -169,9 +171,13 @@ const handleReset = () => {
   handleQuery();
 };
 
+const handleAdd = () => {
+  router.push({ path: '/supplier/sales/product/edit' });
+};
+
 // 编辑按钮事件
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  const path = type === 'view' ? '/supplier/product/details' : '/supplier/product/edit';
+  const path = type === 'view' ? '/supplier/sales/product/details' : '/supplier/sales/product/edit';
   router.push({
     path: path,
     query: {

@@ -1,107 +1,74 @@
 /**
- * 企业接口
+ * 商品接口
  */
 
 import request from '@/utils/request';
-// 查询企业信息列表(关联租户)
-export function baseEnterpriseInfoList(query?: any) {
+// 查询商品信息列表
+export function goodsList(query?: any) {
   console.log(query);
   return request({
-    url: '/system/baseEnterpriseInfo/list',
+    url: '/system/goods/list',
     method: 'get',
     params: query
   });
 }
 
-// 获取企业信息详细信息
-export function baseEnterpriseInfoId(id?: string) {
+// 获取商品信息详细信息
+export function goodsId(id?: string) {
   return request({
-    url: `/system/baseEnterpriseInfo/${id}`,
+    url: `/system/goods/${id}`,
     method: 'get'
   });
 }
-// 获取企业信息详细信息(无租户)
-export function baseEnterpriseInfoNoTenantListId(query?: any) {
-  return request({
-    url: '/system/baseEnterpriseInfo/getInfoByNoTenant/{id}',
-    method: 'get',
-    params: query
-  });
-}
 
-// 导出企业信息列表
-export function baseEnterpriseInfoExport(data?: any) {
+// 导出商品信息列表
+export function goodsExport(data?: any) {
   return request({
-    url: '/system/baseEnterpriseInfo/export',
+    url: '/system/goods/export',
     method: 'post',
     data: data
   });
 }
 
-// 新增企业信息
-export function baseEnterpriseInfoAdd(data?: any) {
+// 新增商品信息
+export function goodsAdd(data?: any) {
   return request({
-    url: '/system/baseEnterpriseInfo',
+    url: '/system/goods',
     method: 'post',
     data: data
   });
 }
-
 /**
- * 修改企业信息
+ * 修改商品信息
  * @param data
  */
-export const baseEnterpriseInfoUpdate = (data: any) => {
+export const goodsUpdate = (data: any) => {
   return request({
-    url: '/system/baseEnterpriseInfo',
+    url: '/system/goods',
     method: 'put',
     data: data
   });
 };
 
 /**
- * 企业信息注册
+ * 修改商品价格信息
  * @param data
  */
-export const enterpriseRegister = (data: any) => {
+export const goodsUpdatePrice = (data: any) => {
   return request({
-    url: '/system/baseEnterpriseInfo/enterpriseRegister',
+    url: '/system/goods/price',
     method: 'put',
     data: data
   });
 };
 
 /**
- * 企业信息修改（平台）
+ * 删除商品信息
  * @param data
  */
-export const enterpriseEdit = (data: any) => {
+export const goodsDelete = (id: any) => {
   return request({
-    url: '/system/baseEnterpriseInfo/enterpriseEdit',
-    method: 'put',
-    data: data
-  });
-};
-
-/**
- * 企业信息审核（平台）
- * @param data
- */
-export const enterpriseReview = (data: any) => {
-  return request({
-    url: '/system/baseEnterpriseInfo/enterpriseReview',
-    method: 'put',
-    data: data
-  });
-};
-
-/**
- * 删除企业信息
- * @param data
- */
-export const baseEnterpriseInfoDelete = (id: any) => {
-  return request({
-    url: '/system/baseEnterpriseInfo/' + id,
+    url: '/system/goods/' + id,
     method: 'delete'
   });
 };
@@ -113,9 +80,9 @@ export const baseEnterpriseInfoDelete = (id: any) => {
  * @param data - 包含文件的对象
  * @returns 图片上传结果的 Promise
  */
-export const uploadImage = (data) => {
+export const ossUploadImage = (data) => {
   return request({
-    url: '/resource/oss/registerUpload',
+    url: '/oss/upload',
     method: 'post',
     data: data,
     headers: {
