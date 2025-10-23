@@ -208,7 +208,7 @@ const handleAudit = async (status: '99' | '1') => {
         reviewStatus: status
       },
       folder: formData.value.hnBaseRegisterFolderVoList,
-      optType: status === '99' ? '2' : '3'
+      optType: '3' 
     });
 
     if (res.code === 200) {
