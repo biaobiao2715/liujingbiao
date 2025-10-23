@@ -19,6 +19,13 @@ export interface FormData {
   smsCode: string;
   password: string;
   confirmPassword: string;
+  areaCodes: any;
+  districtCode: string;
+  cityCode: string;
+  provinceCode: string;
+  district: string;
+  city: string;
+  province: string;
 }
 
 // 定义联系人接口，包含可选的errors属性

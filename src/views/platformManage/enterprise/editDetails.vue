@@ -15,6 +15,26 @@
           <el-form-item label="企业编码">
             <el-input v-model="formData.enterpriseNumber" disabled></el-input>
           </el-form-item>
+
+          <el-form-item label="企业名称">
+            <el-input v-model="formData.companyName" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="注册地址">
+            <el-input v-model="areaCodes" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="详情地址">
+            <el-input v-model="formData.signUpAddress" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="办公地址">
+            <el-input v-model="formData.officeAddress" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="企业经营范围">
+            <el-input v-model="formData.businessScope" type="textarea" disabled></el-input>
+          </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="审核状态">
@@ -22,46 +42,17 @@
               <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="企业名称">
-            <el-input v-model="formData.companyName" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
+
           <el-form-item label="社会统一信用代码">
             <el-input v-model="formData.licenseNumber" disabled></el-input>
           </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册资本">
-            <el-input v-model="formData.signUpCapital" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
+
           <el-form-item label="注册日期">
             <el-input v-model="formData.signUpTime" disabled></el-input>
           </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="注册地址">
-            <el-input v-model="formData.signUpAddress" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
+
           <el-form-item label="营业执照">
             <img :src="urlImage" width="200" alt="营业执照" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="办公地址">
-            <el-input v-model="formData.officeAddress" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="企业经营范围">
-            <el-input v-model="formData.businessScope" type="textarea" disabled></el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -184,7 +175,7 @@ import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview } from '@/api/pl
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 import router from '@/router';
-
+import { FormData } from '@/api/platform/enterprise/types'; //ts类型
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
@@ -199,55 +190,7 @@ const disabledIf = ref(true);
 // type = 'view' | 'edit' | 'audit'; 详情模式 编辑模式 审核模式
 disabledIf.value = type !== 'view';
 
-// 定义接口返回数据的类型
-interface SupplierDetails {
-  id?: number;
-  enterpriseNumber?: string;
-  enterpriseType?: string;
-  companyName?: string;
-  licenseNumber?: string;
-  signUpTime?: string;
-  legalPerson?: string;
-  officeAddress?: string;
-  signUpAddress?: string;
-  signUpCapital?: string;
-  businessScope?: string;
-  companyIntro?: string;
-  companyDomain?: string;
-  loginUserName?: string;
-  phoneNumber?: string;
-  password?: string;
-  credentialLevel?: string;
-  creditLevel?: string;
-  userId?: number;
-  remark?: string;
-  reviewStatus?: string;
-  reviewRemark?: string;
-  reviewTime?: string;
-  reviewBy?: number;
-  accountName?: string;
-  contacts: Array<{
-    contactUserType?: string;
-    contactUserName?: string;
-    contactPhone?: string;
-    contactIdCard?: string;
-  }>;
-  folders?: Array<{
-    id?: number;
-    name?: string;
-    fileType?: string;
-    ossId?: number;
-    remark?: string;
-    ossInfo?: {
-      ossId?: number;
-      fileName?: string;
-      originalName?: string;
-      url?: string;
-    };
-  }>;
-}
-
-const formData = ref<SupplierDetails>({
+const formData = ref<FormData>({
   id: undefined,
   enterpriseNumber: '',
   enterpriseType: '',
@@ -258,11 +201,21 @@ const formData = ref<SupplierDetails>({
   signUpAddress: '',
   signUpCapital: '',
   businessScope: '',
+  legalPerson: '',
   companyIntro: '',
   companyDomain: '',
   loginUserName: '',
   phoneNumber: '',
+  smsCode: '',
   password: '',
+  confirmPassword: '',
+  areaCodes: '',
+  districtCode: '',
+  cityCode: '',
+  provinceCode: '',
+  district: '',
+  city: '',
+  province: '',
   credentialLevel: '',
   creditLevel: '',
   userId: undefined,
@@ -276,6 +229,7 @@ const formData = ref<SupplierDetails>({
   folders: []
 });
 const idType = ref('身份认证');
+const areaCodes = ref('');
 const contactZ = ref([]); // 自然人
 const contactF = ref({
   // 法人联系人信息
@@ -290,6 +244,7 @@ const urlImage = ref(); // 营业执照
 baseEnterpriseInfoId(id as string)
   .then((res) => {
     formData.value = res.data;
+    areaCodes.value = formData.value.province + formData.value.city + formData.value.district;
     if (res.data?.contacts?.length > 0) {
       res.data.contacts.forEach((element) => {
         console.log('33', element);

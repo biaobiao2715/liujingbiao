@@ -56,8 +56,20 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="注册地址" prop="signUpAddress">
-              <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
+            <el-form-item label="注册地址" prop="areaCodes">
+              <el-cascader
+                style="width: 100%"
+                v-model="form.areaCodes"
+                filterable
+                :options="optionsAddres"
+                :props="{
+                  value: 'value',
+                  label: 'label',
+                  children: 'children'
+                }"
+                placeholder="请选择"
+                @change="handleAreaChange"
+              ></el-cascader>
             </el-form-item>
           </el-col>
 
@@ -74,8 +86,8 @@
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="经营范围" prop="businessScope">
-              <el-input v-model="form.businessScope" placeholder="OCR识别,可修改" />
+            <el-form-item label="详细地址" prop="signUpAddress">
+              <el-input v-model="form.signUpAddress" placeholder="OCR识别,可修改" />
             </el-form-item>
           </el-col>
 
@@ -85,7 +97,11 @@
             </el-form-item>
           </el-col>
 
-          <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="经营范围" prop="businessScope">
+              <el-input v-model="form.businessScope" placeholder="OCR识别,可修改" />
+            </el-form-item>
+          </el-col>
 
           <el-col :span="12">
             <el-form-item label="办公地址" prop="officeAddress">
@@ -290,7 +306,7 @@ import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一�
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { supplierRegister } from '@/api/register/supplier'; //注册接口
 import { isAccountExist } from '@/api/login'; //账号获取详情信息
-
+import areaData from 'china-area-data'; //注册地址数据
 // 定义props来接收selectedIdentity
 const props = defineProps({
   selectedIdentity: {
@@ -314,7 +330,14 @@ const initFormData: FormData = {
   phoneNumber: '',
   smsCode: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  areaCodes: [],
+  districtCode: '',
+  cityCode: '',
+  provinceCode: '',
+  district: '',
+  city: '',
+  province: ''
 };
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
@@ -424,6 +447,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
+  areaCodes: { required: true, message: '注册日期不能为空', trigger: 'blur' },
   signUpTime: [
     { required: true, message: '注册日期不能为空', trigger: 'blur' },
     {
@@ -642,6 +666,46 @@ const sendSmsCode = async () => {
     // 手机号验证失败
     console.error('手机号验证失败', error);
   }
+};
+
+// 地址选择数据
+const optionsAddres = computed(() => {
+  const formatData = (parentCode) => {
+    const children = areaData[parentCode];
+    if (!children) return undefined;
+
+    return Object.keys(children).map((code) => ({
+      value: code,
+      label: children[code],
+      children: formatData(code)
+    }));
+  };
+
+  return formatData('86') || [];
+});
+
+// 地址选择变化
+const handleAreaChange = (val) => {
+  if (!val || val.length === 0) {
+    form.value.areaCodes = [];
+    form.value.provinceCode = '';
+    form.value.cityCode = '';
+    form.value.districtCode = '';
+    form.value.province = '';
+    form.value.city = '';
+    form.value.district = '';
+    return;
+  }
+
+  const [provinceCode, cityCode, districtCode] = val;
+
+  // 更新编码和名称
+  form.value.provinceCode = provinceCode || '';
+  form.value.cityCode = cityCode || '';
+  form.value.districtCode = districtCode || '';
+  form.value.province = areaData['86'][provinceCode] || '';
+  form.value.city = areaData[provinceCode]?.[cityCode] || '';
+  form.value.district = areaData[cityCode]?.[districtCode] || '';
 };
 
 // 添加新行-供应商联系人
@@ -940,6 +1004,50 @@ const removeFile = (file: any) => {
   }
 };
 
+// 根据地址名称查找对应的编码值，用于回显
+const findAreaCodeByAddress = (address) => {
+  if (!address) return [];
+  const areaCodeValue = ref([]);
+
+  // 这里需要根据实际的地址格式来解析，以下是一个示例实现
+  // 假设地址格式为 "广东省广州市天河区"
+  const provinces = areaData['86'];
+  for (const provinceCode in provinces) {
+    const provinceName = provinces[provinceCode];
+    if (address.includes(provinceName)) {
+      // 找到省份
+      areaCodeValue.value = [provinceCode];
+
+      // 查找城市
+      const cities = areaData[provinceCode];
+      if (cities) {
+        for (const cityCode in cities) {
+          const cityName = cities[cityCode];
+          if (address.includes(cityName)) {
+            // 找到城市
+            areaCodeValue.value = [provinceCode, cityCode];
+
+            // 查找区县
+            const areas = areaData[cityCode];
+            if (areas) {
+              for (const areaCode in areas) {
+                const areaName = areas[areaCode];
+                if (address.includes(areaName)) {
+                  // 找到区县
+                  areaCodeValue.value = [provinceCode, cityCode, areaCode];
+                  return areaCodeValue.value;
+                }
+              }
+            }
+            return areaCodeValue.value;
+          }
+        }
+      }
+      return areaCodeValue.value;
+    }
+  }
+  return [];
+};
 // 生命周期钩子
 onMounted(async () => {
   // 获取router路由参数
@@ -950,6 +1058,7 @@ onMounted(async () => {
     const arr: any = await isAccountExist(phone);
     form.value = {
       ...arr.data,
+
       confirmPassword: arr.data.password,
       signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
     };

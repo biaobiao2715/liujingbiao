@@ -136,21 +136,15 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="资质等级">
-              <el-select filterable v-model="formData.credentialLevel">
-                <el-option label="一级认证" value="0"></el-option>
-                <el-option label="二级认证" value="1"></el-option>
-                <el-option label="三级认证" value="2"></el-option>
+              <el-select v-model="formData.credentialLevel" placeholder="请选择资质等级" filterable clearable>
+                <el-option v-for="dict in plat_qualification_grade" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="信用等级">
-              <el-select filterable v-model="formData.creditLevel">
-                <el-option label="优秀" value="0"></el-option>
-                <el-option label="良好" value="1"></el-option>
-                <el-option label="一般" value="2"></el-option>
-                <el-option label="一般一下" value="3"></el-option>
-                <el-option label="差" value="99"></el-option>
+              <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable>
+                <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -201,6 +195,10 @@ import { ref, onMounted } from 'vue';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 import { enterpriseEdit, enterpriseReview, baseEnterpriseInfoId } from '@/api/platform/enterprise';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+);
 
 // 定义接口返回数据的类型
 interface SupplierDetails {
