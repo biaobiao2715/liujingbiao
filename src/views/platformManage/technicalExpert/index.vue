@@ -18,8 +18,9 @@
           <el-form-item label="专家编号" prop="expertNumber">
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="入驻日期" prop="registrationTime">
-            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
+          <el-form-item label="入驻时间">
+            <el-date-picker v-model="queryParams.registrationTime" type="daterange" value-format="YYYY-MM-DD"
+              range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="全部" filterable clearable style="width: 140px">
@@ -61,21 +62,32 @@
           <el-table-column label="操作" align="center" width="200">
             <template #default="scope">
               <div style="display: flex; justify-content: space-evenly; align-items: center">
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'view')">查看</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+                <el-link type="primary" @click="openToggleDialog(scope.row)">
+                  {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
+                </el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
+                  @click="handleEdit(scope.row, 'view')">查看</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
+                  @click="handleEdit(scope.row, 'audit')">审核</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
+                  @click="handleEdit(scope.row, 'edit')">编辑</el-link>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <pagination
-          v-show="total > 0"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          :total="total"
-          @pagination="handleQuery"
-        />
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+          :total="total" @pagination="handleQuery" />
+        <el-dialog v-model="toggleDialogVisible" width="30%">
+          <template #header>
+            <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
+          </template>
+          <div>{{ toggleDialogData.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
+          <template #footer>
+            <el-button @click="closeToggleDialog">取消</el-button>
+            <el-button type="primary" @click="confirmToggle" :loading="loadingStatus">确定</el-button>
+          </template>
+        </el-dialog>
       </el-card>
     </div>
   </div>
@@ -96,10 +108,51 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
 const queryParams = reactive<TechnicalExpertListRequest>({
   expertName: '',
   registrationTime: '',
+  reviewEntTime: '',
   reviewStatus: '',
   pageNum: 1,
   pageSize: 10
 });
+// 停用/启用弹窗相关
+const loadingStatus = ref(false);
+const toggleDialogVisible = ref(false);
+const toggleDialogData = ref<TechnicalExpertList>({} as TechnicalExpertList);
+const openToggleDialog = (row: TechnicalExpertList) => {
+  toggleDialogData.value = row;
+  toggleDialogVisible.value = true;
+};
+const closeToggleDialog = () => {
+  toggleDialogVisible.value = false;
+}
+// 确认停用/启用操作
+const confirmToggle = async () => {
+  if (loadingStatus.value || !toggleDialogData.value.id) return;
+  loadingStatus.value = true;
+
+  // 当前状态为启用(1)时，执行停用操作；当前状态为停用(0)时，执行启用操作
+  const isEnabled = toggleDialogData.value.startStopStatus === '1';
+  const res = await techUpdateOrSaveData({
+    optType: isEnabled ? '5' : '4', // 停用传5，启用传4
+    hnBaseTechExpertInfoBo: {
+      id: toggleDialogData.value.id
+    }
+  }).finally(() => {
+    loadingStatus.value = false;
+    closeToggleDialog();
+  });
+
+  if (res.code === 200) {
+    // 修复提示信息反向问题：停用成功显示"已停用"，启用成功显示"已启用"
+    proxy?.$modal.msgSuccess(isEnabled ? '已停用' : '已启用');
+
+    // 更新列表数据状态
+    const index = list.value.findIndex(item => item.id === toggleDialogData.value.id);
+    if (index !== -1) {
+      list.value[index].startStopStatus = isEnabled ? '0' : '1';
+    }
+    getList();
+  }
+};
 
 // 列表与分页
 const list = ref<TechnicalExpertList[]>([]);
@@ -139,34 +192,34 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryParams.expertName = '';
   queryParams.registrationTime = '';
+  queryParams.reviewEntTime = '';
   queryParams.reviewStatus = '';
   queryParams.expertNumber = '';
   queryParams.pageNum = 1;
   handleQuery();
 };
 
-const loadingStatus = ref(false);
-// 操作
-const toggleEnabled = async (row: TechnicalExpertList) => {
-  if (loadingStatus.value || !row.id) return;
-  loadingStatus.value = true;
-  // 停用：0 -> 1
-  // 启用：1 -> 0
-  // 是否启用
-  const isEnabled = row.startStopStatus === '1';
-  const res = await techUpdateOrSaveData({
-    optType: isEnabled ? '5' : '4',
-    hnBaseTechExpertInfoBo: {
-      id: row.id
-    }
-  }).finally(() => {
-    loadingStatus.value = false;
-  });
-  if (res.data) {
-    row.startStopStatus = isEnabled ? '0' : '1';
-    proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
-  }
-};
+// // 操作
+// const toggleEnabled = async (row: TechnicalExpertList) => {
+//   if (loadingStatus.value || !row.id) return;
+//   loadingStatus.value = true;
+//   // 停用：0 -> 1
+//   // 启用：1 -> 0
+//   // 是否启用
+//   const isEnabled = row.startStopStatus === '1';
+//   const res = await techUpdateOrSaveData({
+//     optType: isEnabled ? '5' : '4',
+//     hnBaseTechExpertInfoBo: {
+//       id: row.id
+//     }
+//   }).finally(() => {
+//     loadingStatus.value = false;
+//   });
+//   if (res.data) {
+//     row.startStopStatus = isEnabled ? '0' : '1';
+//     proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
+//   }
+// };
 
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数

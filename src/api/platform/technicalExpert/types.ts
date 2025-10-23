@@ -149,6 +149,10 @@ export interface TechnicalExpertListRequest extends IPublicRequest {
    */
   registrationTime?: string;
   /**
+   * 入驻结束时间
+   */
+  reviewEntTime?: string;
+  /**
    * 审核状态
    * 0：待审核
    * 1：审核通过
