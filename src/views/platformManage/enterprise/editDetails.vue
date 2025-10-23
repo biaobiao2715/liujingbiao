@@ -223,7 +223,7 @@ const formData = ref<FormData>({
   reviewStatus: '',
   reviewRemark: '',
   reviewTime: '',
-  reviewBy: undefined,
+  auditPerson: undefined,
   accountName: '',
   contacts: [],
   folders: []

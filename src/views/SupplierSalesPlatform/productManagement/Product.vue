@@ -8,15 +8,15 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="商品编码" prop="enterpriseNumber">
-        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+      <el-form-item label="商品编码" prop="goodsCode">
+        <el-input v-model="queryParams.goodsCode" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="商品名称" prop="companyName">
-        <el-input v-model="queryParams.companyName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="商品名称" prop="goodsName">
+        <el-input v-model="queryParams.goodsName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="商品状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
+      <el-form-item label="商品状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="审核状态" filterable clearable>
           <el-option label="全部" value="1" />
           <el-option label="已上架" value="2" />
           <el-option label="已下架" value="3" />
@@ -36,66 +36,63 @@
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
-      <el-form-item>
-        <el-button v-throttle type="primary" @click="handleAdd">新增商品</el-button>
-        <el-button v-throttle type="primary" @click="handleSearch">删除</el-button>
-        <el-button v-throttle type="primary" @click="handleSearch">上架</el-button>
-        <el-button v-throttle type="primary" @click="handleSearch">下架</el-button>
-        <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
-        <el-button v-throttle type="primary" @click="handleSearch">价格设定</el-button>
-        <el-button v-throttle type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
-      </el-form-item>
     </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleAdd">新增商品</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleSearch">删除</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleSearch">上架</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleSearch">下架</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
+      </el-col>
+
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleSearch">价格设定</el-button>
+      </el-col>
+
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
+      </el-col>
+      <right-toolbar :show-search="showSearch" @query-table="getList"></right-toolbar>
+    </el-row>
 
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="商品名称" align="center" prop="companyName" :show-overflow-tooltip="true" />
-      <el-table-column label="商品编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
+      <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
+      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
         <template #default="scope">
-          <!-- <span @click="handleEdit(scope.row, 'view')" style="color: #0000ff">{{ scope.row.enterpriseNumber }}</span> -->
           <router-link :to="'/supplier/sales/product/details/?id=' + scope.row.id + '&type=view'" class="link-type">
-            <span>{{ scope.row.enterpriseNumber }}</span>
+            <span>{{ scope.row.goodsCode }}</span>
           </router-link>
         </template>
       </el-table-column>
       <el-table-column label="销售价" align="center" prop="companyName" :show-overflow-tooltip="true" />
-      <el-table-column label="商品类目" align="center" prop="licenseNumber" width="210"> </el-table-column>
-      <el-table-column label="预警下限" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="商品类目" align="center" prop="goodsCategoryId" width="210"> </el-table-column>
+      <el-table-column label="预警下限" align="center" prop="goodsAlert" width="210"> </el-table-column>
       <el-table-column label="提醒" align="center" prop="licenseNumber" width="210"> </el-table-column>
-      <el-table-column label="商品状态" align="center" prop="reviewStatus">
+      <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          <dict-tag :options="review_status" :value="scope.row.status" />
         </template>
       </el-table-column>
-
-      <!-- <el-table-column label="资质等级" align="center" prop="credentialLevel">
-        <template v-slot="scope">
-          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
-        </template>
-      </el-table-column>
-      <el-table-column label="信用等级" align="center" prop="creditLevel">
-        <template v-slot="scope">
-          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
-        </template>
-      </el-table-column> -->
-
       <el-table-column label="发布时间" align="center" prop="createTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-
-      <!-- <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核人" align="center" prop="reviewBy"> </el-table-column> -->
-
       <el-table-column label="操作" align="center" width="360" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">详情</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">详情</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">复制商品</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">设置预警</el-button>
@@ -113,8 +110,7 @@
 <script setup lang="ts">
 import router from '@/router';
 import { ref } from 'vue';
-import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
-import { on } from 'events';
+import { goodsList } from '@/api/Supplier/productManagement/product';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
@@ -126,10 +122,9 @@ const queryParams = ref({
   pageSize: 10,
   status: '',
   reviewTime: '',
-  reviewStatus: '',
-  licenseNumber: '',
-  companyName: '',
-  enterpriseNumber: '',
+  goodsCategoryId: '',
+  goodsName: '',
+  goodsCode: '',
   enterpriseType: '1'
 });
 
@@ -139,11 +134,11 @@ const total = ref(0);
 const loading = ref(true);
 const queryFormRef = ref();
 const dateRange = ref(['', '']);
-
+const showSearch = ref(true);
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  baseEnterpriseInfoList(queryParams.value).then((res) => {
+  goodsList(queryParams.value).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
@@ -175,9 +170,12 @@ const handleAdd = () => {
   router.push({ path: '/supplier/sales/product/edit' });
 };
 
+const handleDetails = (row: any) => {
+  router.push({ path: '/supplier/sales/product/details', query: { id: row.id } });
+};
 // 编辑按钮事件
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  const path = type === 'view' ? '/supplier/sales/product/details' : '/supplier/sales/product/edit';
+  const path = '/supplier/sales/product/edit';
   router.push({
     path: path,
     query: {

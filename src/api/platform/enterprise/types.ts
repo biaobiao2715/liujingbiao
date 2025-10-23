@@ -39,7 +39,7 @@ export interface FormData {
   reviewStatus?: string;
   reviewRemark?: string;
   reviewTime?: string;
-  reviewBy?: number;
+  auditPerson?: number;
   accountName?: string;
 
   contacts: Array<{

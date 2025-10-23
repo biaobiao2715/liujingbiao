@@ -224,7 +224,7 @@ interface SupplierDetails {
   reviewStatus?: string;
   reviewRemark?: string;
   reviewTime?: string;
-  reviewBy?: number;
+  auditPerson?: number;
   accountName?: string;
   licenseImage?: string;
   contacts: Array<{
@@ -283,7 +283,7 @@ const formData = ref<SupplierDetails>({
   reviewStatus: '',
   reviewRemark: '',
   reviewTime: '',
-  reviewBy: undefined,
+  auditPerson: undefined,
   accountName: '',
   contacts: [],
   folders: [],

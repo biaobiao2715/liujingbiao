@@ -13,42 +13,42 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="8">
           <el-form-item label="商品名称">
-            <el-input v-model="formData.enterpriseNumber" disabled></el-input>
+            <el-input v-model="formData.goodsName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品编码">
-            <el-input v-model="formData.enterpriseNumber" disabled></el-input>
+            <el-input v-model="formData.goodsCode" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="产品保障">
-            <el-input v-model="formData.companyName" disabled></el-input>
+            <el-input v-model="formData.goodsEnsureName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品品牌">
-            <el-input v-model="formData.licenseNumber" disabled></el-input>
+            <el-input v-model="formData.goodsBrandName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="创建时间">
-            <el-input v-model="formData.signUpCapital" disabled></el-input>
+            <el-input v-model="formData.createTime" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品主图">
-            <img :src="urlImage" width="200" alt="商品主图" />
+            <img v-if="mainImage" :src="mainImage" width="200" alt="商品主图" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品状态">
-            <el-input v-model="formData.signUpAddress" disabled></el-input>
+            <el-input v-model="statusName" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="上架时间">
-            <el-input v-model="formData.signUpTime" disabled></el-input>
+            <el-input v-model="formData.launchTime" disabled></el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -56,11 +56,9 @@
       <!-- 商品信息 -->
       <FormHeader title="商品信息" />
       <el-table :data="tableList" border style="width: 100%">
-        <el-table-column prop="sellingPrice" label="商品名称" align="center"> </el-table-column>
-        <el-table-column prop="sellingPrice" label="商品编码" align="center"> </el-table-column>
-        <el-table-column prop="sellingPrice" label="销售价" align="center"> </el-table-column>
-        <el-table-column prop="unit" label="商品规格" align="center"> </el-table-column>
-        <el-table-column prop="availableInventory" label="可用库存" align="center"> </el-table-column>
+        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center"> </el-table-column>
+        <el-table-column prop="goodsPrice" label="销售价" align="center"> </el-table-column>
+        <el-table-column prop="goodsStock" label="可用库存" align="center"> </el-table-column>
       </el-table>
 
       <div style="height: 20px"></div>
@@ -70,7 +68,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview } from '@/api/platform/enterprise/index';
+import { goodsId } from '@/api/Supplier/productManagement/product';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 
@@ -83,93 +81,101 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
 const route = useRoute();
 const { id } = route.query;
 
-// 定义接口返回数据的类型
-interface SupplierDetails {
+// 定义接口返回数据的类型（基于新接口定义）
+interface HnGoodsFiles {
   id?: number;
-  enterpriseNumber?: string;
-  enterpriseType?: string;
-  companyName?: string;
-  licenseNumber?: string;
-  signUpTime?: string;
-  legalPerson?: string;
-  officeAddress?: string;
-  signUpAddress?: string;
-  signUpCapital?: string;
-  businessScope?: string;
-  companyIntro?: string;
-  companyDomain?: string;
-  loginUserName?: string;
-  phoneNumber?: string;
-  password?: string;
-  credentialLevel?: string;
-  creditLevel?: string;
-  userId?: number;
-  remark?: string;
-  reviewStatus?: string;
-  reviewRemark?: string;
-  reviewTime?: string;
-  reviewBy?: number;
-  accountName?: string;
-  contacts: Array<{
-    contactUserType?: string;
-    contactUserName?: string;
-    contactPhone?: string;
-    contactIdCard?: string;
-  }>;
-  folders?: Array<{
-    id?: number;
-    name?: string;
-    fileType?: string;
+  goodsId?: number;
+  fileType?: string;
+  ossId?: number;
+  ossInfo?: {
     ossId?: number;
-    remark?: string;
-    ossInfo?: {
-      ossId?: number;
-      fileName?: string;
-      originalName?: string;
-      url?: string;
-    };
-  }>;
+    fileName?: string;
+    originalName?: string;
+    url?: string;
+  };
+  [property: string]: any;
 }
 
-const formData = ref<SupplierDetails>({
-  id: undefined,
-  enterpriseNumber: '',
-  enterpriseType: '',
-  companyName: '',
-  licenseNumber: '',
-  signUpTime: '',
-  officeAddress: '',
-  signUpAddress: '',
-  signUpCapital: '',
-  businessScope: '',
-  companyIntro: '',
-  companyDomain: '',
-  loginUserName: '',
-  phoneNumber: '',
-  password: '',
-  credentialLevel: '',
-  creditLevel: '',
-  userId: undefined,
-  remark: '',
-  reviewStatus: '',
-  reviewRemark: '',
-  reviewTime: '',
-  reviewBy: undefined,
-  accountName: '',
-  contacts: [],
-  folders: []
-});
-const tableList = ref([]); // 商品信息
+interface HnGoodsSpecificationData {
+  id?: number;
+  goodsId?: number;
+  goodsSpecification?: string;
+  goodsSpecificationValue?: string;
+  goodsPrice?: number;
+  goodsStock?: number;
+  [property: string]: any;
+}
 
-const urlImage = ref(); // 营业执照
+interface HnGoodsVo {
+  id?: number;
+  goodsName?: string;
+  goodsCode?: string;
+  goodsEnsureId?: number;
+  goodsEnsureName?: string;
+  goodsBrandId?: number;
+  goodsBrandName?: string;
+  createTime?: string;
+  launchTime?: string;
+  takeDownTime?: string;
+  status?: string;
+  goodsAlert?: number;
+  goodsCategoryId?: number;
+  goodsCategoryName?: string;
+  goodsDetail?: string;
+  goodsInfo?: string;
+  goodsSpecification?: string;
+  goodsSpecificationName?: string;
+  hnGoodsFilesList?: HnGoodsFiles[];
+  hnGoodsSpecificationDataList?: HnGoodsSpecificationData[];
+  [property: string]: any;
+}
+const formData = ref<HnGoodsVo>({
+  id: undefined,
+  goodsName: '',
+  goodsCode: '',
+  goodsEnsureId: undefined,
+  goodsEnsureName: '',
+  goodsBrandId: undefined,
+  goodsBrandName: '',
+  createTime: '',
+  launchTime: '',
+  takeDownTime: '',
+  status: '',
+  goodsAlert: undefined,
+  goodsCategoryId: undefined,
+  goodsCategoryName: '',
+  goodsDetail: '',
+  goodsInfo: '',
+  goodsSpecification: '',
+  goodsSpecificationName: '',
+  hnGoodsFilesList: [],
+  hnGoodsSpecificationDataList: []
+});
+
+const tableList = ref<HnGoodsSpecificationData[]>([]); // 商品信息
+
+// 计算商品状态显示名称
+const statusName = computed(() => {
+  return formData.value.status === '1' ? '上架' : '下架';
+});
+
+// 获取主图
+const mainImage = computed(() => {
+  if (!formData.value.hnGoodsFilesList || formData.value.hnGoodsFilesList.length === 0) {
+    return '';
+  }
+  const mainFile = formData.value.hnGoodsFilesList.find((file) => file.fileType === '0');
+  return mainFile && mainFile.ossInfo ? mainFile.ossInfo.url : '';
+});
 
 // id获取详情信息
-baseEnterpriseInfoId(id as string)
+goodsId(id as string)
   .then((res) => {
     formData.value = res.data;
+    tableList.value = res.data.hnGoodsSpecificationDataList || [];
   })
   .catch((error) => {
-    console.error('获取企业基本信息失败:', error);
+    console.error('获取商品详情失败:', error);
   });
 </script>
 

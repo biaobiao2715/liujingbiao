@@ -79,7 +79,7 @@
           <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="审核人" align="center" prop="reviewBy"> </el-table-column>
+      <el-table-column label="审核人" align="center" prop="auditPerson"> </el-table-column>
 
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">

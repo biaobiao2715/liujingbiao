@@ -73,7 +73,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="120" align="center"> </el-table-column>
-      <el-table-column prop="reviewBy" label="审核人" align="center"></el-table-column>
+      <el-table-column prop="auditPerson" label="审核人" align="center"></el-table-column>
       <el-table-column label="操作" width="260" align="center">
         <template #default="scope">
           <div class="flex-center-center operation-btns">

@@ -72,7 +72,7 @@
         <el-col :span="24">
           <el-form-item label="商品主图" prop="titleFileList" class="uploadcss">
             <el-upload
-              :file-list="fileList"
+              :file-list="hnGoodsFilesList"
               :limit="5"
               ref="refShop"
               list-type="picture-card"
@@ -122,7 +122,7 @@
             <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格</el-button>
           </div>
 
-          <el-table :data="tableList" border style="width: 100%">
+          <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
             <el-table-column prop="goodsSpecificationValue" label="单位">
               <template #header>
                 <span class="required">单位</span>
@@ -244,14 +244,14 @@ const functionOptions = ref([]);
 const fileSize = ref(5); // 大小限制(MB)
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']); // 文件类型
 // 图片储存
-const fileList = ref<any[]>([]);
+const hnGoodsFilesList = ref<any[]>([]);
 const imgList = ref<any[]>([]);
 let timer: NodeJS.Timeout | null = null;
 // 图片预览
 const picOpen = ref(false);
 const dialogImageUrl = ref('');
 // 表格数据
-const tableList = ref<any[]>([{}]);
+const hnGoodsSpecificationDataList = ref<any[]>([{}]);
 // 表单数据
 const formData = ref({
   // 基础信息
@@ -371,9 +371,9 @@ const handlePictureCardPreview = (file: any) => {
 
 // 删除图片
 const handleDelete = (file: any) => {
-  const findex = fileList.value.map((f: any) => f.path).indexOf(file.path);
+  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
   if (findex > -1) {
-    fileList.value.splice(findex, 1);
+    hnGoodsFilesList.value.splice(findex, 1);
   }
 };
 // 上传
@@ -415,7 +415,7 @@ const uploadedSuccessfully = (file: any) => {
         fileType: '1',
         ossId: response.data.ossId
       };
-      fileList.value.push(newFile);
+      hnGoodsFilesList.value.push(newFile);
       // 关闭loading
       proxy?.$modal.closeLoading();
     })
@@ -468,7 +468,7 @@ const handleBeforeUpload = (file: any) => {
 
 // table新增
 const addTableCell = () => {
-  tableList.value.push({});
+  hnGoodsSpecificationDataList.value.push({});
 };
 
 // table删除
@@ -479,7 +479,7 @@ const removeTableCell = (index: number, row: any) => {
     type: 'warning'
   })
     .then(() => {
-      tableList.value.splice(index, 1);
+      hnGoodsSpecificationDataList.value.splice(index, 1);
     })
     .catch(() => {});
 };
@@ -516,7 +516,7 @@ const validateAndSubmit = () => {
   let isValid = true;
 
   // 验证所有联系人
-  tableList.value.forEach((contact) => {
+  hnGoodsSpecificationDataList.value.forEach((contact) => {
     const errors = validateContact(contact);
     contact.errors = errors;
 

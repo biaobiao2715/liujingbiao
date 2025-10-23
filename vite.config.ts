@@ -25,7 +25,8 @@ export default defineConfig(({ mode, command }) => {
       proxy: {
         [env.VITE_APP_BASE_API]: {
           // target: 'http://192.168.2.132:8080',
-          target: 'http://192.168.2.12:8080', // 后端接口
+          // target: 'http://192.168.2.12:8080', // 后端接口
+          target: 'http://192.168.2.202:8080', // 后端接口
           changeOrigin: true,
           ws: true,
           rewrite: (path) => path.replace(new RegExp('^' + env.VITE_APP_BASE_API), '')

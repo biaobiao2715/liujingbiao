@@ -7,7 +7,7 @@ import request from '@/utils/request';
 export function goodsList(query?: any) {
   console.log(query);
   return request({
-    url: '/system/goods/list',
+    url: '/grain-sales/goods/list',
     method: 'get',
     params: query
   });
@@ -16,7 +16,7 @@ export function goodsList(query?: any) {
 // 获取商品信息详细信息
 export function goodsId(id?: string) {
   return request({
-    url: `/system/goods/${id}`,
+    url: `/grain-sales/goods/${id}`,
     method: 'get'
   });
 }
@@ -24,7 +24,7 @@ export function goodsId(id?: string) {
 // 导出商品信息列表
 export function goodsExport(data?: any) {
   return request({
-    url: '/system/goods/export',
+    url: '/grain-sales/goods/export',
     method: 'post',
     data: data
   });
@@ -33,7 +33,7 @@ export function goodsExport(data?: any) {
 // 新增商品信息
 export function goodsAdd(data?: any) {
   return request({
-    url: '/system/goods',
+    url: '/grain-sales/goods',
     method: 'post',
     data: data
   });
@@ -44,7 +44,7 @@ export function goodsAdd(data?: any) {
  */
 export const goodsUpdate = (data: any) => {
   return request({
-    url: '/system/goods',
+    url: '/grain-sales/goods',
     method: 'put',
     data: data
   });
@@ -56,7 +56,7 @@ export const goodsUpdate = (data: any) => {
  */
 export const goodsUpdatePrice = (data: any) => {
   return request({
-    url: '/system/goods/price',
+    url: '/grain-sales/goods/price',
     method: 'put',
     data: data
   });
@@ -68,7 +68,7 @@ export const goodsUpdatePrice = (data: any) => {
  */
 export const goodsDelete = (id: any) => {
   return request({
-    url: '/system/goods/' + id,
+    url: '/grain-sales/goods/' + id,
     method: 'delete'
   });
 };
