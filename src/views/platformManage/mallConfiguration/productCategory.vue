@@ -1,7 +1,7 @@
 <!--
   标题: productCategory.vue
-  功能: 商品分类管理
-  说明: 该页面用于管理商品分类，包括新增、编辑、删除分类等操作。
+  功能: 商品类目管理
+  说明: 该页面用于管理商品类目，包括新增、编辑、删除类目等操作。
   当前版本: 1.0
   开发信息: Created by 李春雷 2025-10-21
 -->
@@ -9,21 +9,19 @@
   <div class="product-category">
     <!-- 新建按钮 -->
     <div class="mb-4">
-      <el-button type="primary" @click="handleCreateCategory">新增分类</el-button>
+      <el-button type="primary" @click="handleCreateCategory">新增类目</el-button>
     </div>
 
     <!-- 弹窗表单 -->
-    <el-dialog v-model="dialogVisible" width="500px" :title="form.id ? '编辑分类' : '新增分类'">
-      <el-form :model="form">
-        <!-- 上级分类选择 -->
-        <el-form-item label="上级分类">
-          <el-select v-model="form.parentId" filterable placeholder="请选择">
-            <el-option v-for="item in flatCategories" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
+    <el-dialog v-model="dialogVisible" width="500px" :title="form.id ? '编辑类目' : '新增类目'">
+      <el-form :model="form" :label-width="80" ref="formRef" :rules="rules">
+        <!-- 类目名称 -->
+        <el-form-item label="类目名称" prop="categoryName" required>
+          <el-input v-model="form.categoryName" placeholder="请输入" />
         </el-form-item>
-        <!-- 分类名称输入 -->
-        <el-form-item label="分类名称">
-          <el-input v-model="form.name" placeholder="请输入" />
+        <!-- 排序 -->
+        <el-form-item label="排序" prop="orderNum" required>
+          <el-input v-model="form.orderNum" placeholder="请输入" />
         </el-form-item>
       </el-form>
       <template v-slot:footer>
@@ -35,15 +33,21 @@
     </el-dialog>
 
     <!-- 树形表格 -->
-    <el-table :data="categories" row-key="id" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" style="width: 100%">
-      <el-table-column prop="name" label="商品分类" />
-      <el-table-column prop="order" label="排序" />
-      <el-table-column prop="createdAt" label="创建时间" />
+    <el-table
+      :data="tableData"
+      row-key="id"
+      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+      style="width: 100%"
+      v-loading="loading"
+    >
+      <el-table-column prop="categoryName" label="商品类目" />
+      <el-table-column prop="orderNum" label="排序" />
+      <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作">
         <template #default="{ row }">
           <!-- 操作按钮 -->
           <div class="flex-center-end">
-            <el-button type="text" @click="handleCreateSubCategory(row)" v-if="row.children">新增子分类</el-button>
+            <el-button type="text" @click="handleCreateSubCategory(row)" v-if="row.ancestors.split(',').length < 3">新增子类目</el-button>
             <el-button type="text" @click="editCategory(row)">编辑</el-button>
             <el-button type="text" @click="deleteCategory(row)">删除</el-button>
           </div>
@@ -54,127 +58,123 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { ElMessageBox } from 'element-plus';
+import { ref, onMounted } from 'vue';
+import { ElMessageBox, ElMessage } from 'element-plus';
+import {
+  getProductCategoryList,
+  createProductCategory,
+  updateProductCategory,
+  deleteProductCategory
+} from '@/api/platform/mallConfiguration/productCategory';
 
-// 定义分类的接口
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 定义类目的接口
 interface Category {
-  id: number; // 分类ID
-  name: string; // 分类名称
-  parentId: number | null; // 上级分类ID，null表示一级分类
-  order: number; // 排序
-  createdAt: string; // 创建时间
-  children?: Category[]; // 子分类
+  id: string; // 类目ID
+  categoryName: string; // 类目名称
+  parentId: string | null; // 上级类目ID，null表示一级类目
+  orderNum: number | null; // 排序
+  createTime: string; // 创建时间
+  children?: Category[]; // 子类目
 }
 
-// 分类数据（树形结构）
-const categories = ref<Category[]>([
-  // 示例数据
-  {
-    id: 1,
-    name: '种子',
-    parentId: null,
-    order: 0,
-    createdAt: '2025-09-19 9:39:39',
-    children: [
-      {
-        id: 3,
-        name: '粮食类种子',
-        parentId: 1,
-        order: 0,
-        createdAt: '2025-09-19 9:39:39',
-        children: [{ id: 4, name: '玉米种子', parentId: 3, order: 0, createdAt: '2025-09-19 9:39:39' }]
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '植物类种子',
-    parentId: 1,
-    order: 1,
-    createdAt: '2025-09-19 9:39:39',
-    children: [{ id: 5, name: '蔬菜类种子', parentId: 2, order: 0, createdAt: '2025-09-19 9:39:39' }]
-  }
-]);
+const loading = ref(false);
 
-// 扁平化分类数据，用于上级分类选择
-const flatCategories = ref<Category[]>([]);
+const formRef = ref<ElFormInstance>();
+
+// 类目数据（树形结构）
+const tableData = ref<Category[]>([]);
 
 // 弹窗显示状态
 const dialogVisible = ref(false);
 
 // 表单数据
-const form = ref<Category>({ id: 0, name: '', parentId: null, order: 0, createdAt: '' });
+const form = ref<Category>({ id: null, categoryName: '', parentId: null, orderNum: null, createTime: '' });
 
-// 新建一级分类
+const rules = {
+  categoryName: [
+    { required: true, message: '请输入类目名称', trigger: 'blur' },
+    { min: 1, max: 50, message: '类目名称长度在1到50个字符之间', trigger: 'blur' }
+  ],
+  orderNum: [
+    { required: true, message: '请输入排序', trigger: 'blur' },
+    { pattern: /^[0-9]+$/, message: '排序必须为数字', trigger: 'blur' }
+  ]
+};
+
+// 新建一级类目
 const handleCreateCategory = () => {
-  form.value = { id: 0, name: '', parentId: null, order: 0, createdAt: '' };
+  form.value = { id: null, categoryName: '', parentId: '0', orderNum: null, createTime: '' };
   dialogVisible.value = true;
 };
 
-// 新建子分类
+// 新建子类目
 const handleCreateSubCategory = (parent: Category) => {
-  form.value = { id: 0, name: '', parentId: parent.id, order: 0, createdAt: '' };
+  form.value = { id: null, categoryName: '', parentId: parent.id, orderNum: null, createTime: '' };
   dialogVisible.value = true;
 };
 
-// 保存分类
-const saveCategory = () => {
-  const newCategory = { ...form.value, id: Date.now(), createdAt: new Date().toISOString() };
-  if (newCategory.parentId) {
-    // 添加到父分类的子分类中
-    const parent = categories.value.find((cat) => cat.id === newCategory.parentId);
-    if (parent) {
-      parent.children = parent.children || [];
-      parent.children.push(newCategory);
+// 获取类目列表
+const fetchCategories = async () => {
+  loading.value = true;
+  try {
+    const response = await getProductCategoryList();
+    if (response.code === 200) {
+      tableData.value = proxy?.handleTree<Category>(response.data, 'id');
+      console.log(tableData.value);
     }
-  } else {
-    // 添加为一级分类
-    categories.value.push(newCategory);
+  } catch (error) {
+    ElMessage.error('获取类目列表失败');
+  } finally {
+    loading.value = false;
   }
-  dialogVisible.value = false;
 };
 
-// 编辑分类
+// 保存类目
+const saveCategory = async () => {
+  try {
+    formRef.value.validate(async (valid: boolean) => {
+      if (valid) {
+        const res = form.value.id ? await updateProductCategory(form.value) : await createProductCategory(form.value);
+        if (res.code === 200) {
+          ElMessage.success(form.value.id ? '类目更新成功' : '类目创建成功');
+        }
+      }
+      dialogVisible.value = false;
+      fetchCategories();
+    });
+  } catch (error) {
+    ElMessage.error('保存类目失败');
+  }
+};
+
+// 编辑类目
 const editCategory = (category: Category) => {
   form.value = { ...category };
   dialogVisible.value = true;
 };
 
-// 删除分类
-const deleteCategory = (category: Category) => {
-  ElMessageBox.confirm(`确定要删除分类 "${category.name}" 吗？此操作将永久删除该分类及其子分类。`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(() => {
-      const deleteRecursive = (list: Category[], id: number) => {
-        const index = list.findIndex((item) => item.id === id);
-        if (index !== -1) {
-          list.splice(index, 1);
-        } else {
-          list.forEach((item) => {
-            if (item.children) deleteRecursive(item.children, id);
-          });
-        }
-      };
-      deleteRecursive(categories.value, category.id);
-    })
-    .catch(() => {
-      // 用户取消删除操作
+// 删除类目
+const deleteCategory = async (category: Category) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除类目 "${category.categoryName}" 吗？此操作将永久删除该类目及其子类目。`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
     });
+    const res = await deleteProductCategory(category.id);
+    if (res.code === 200) {
+      ElMessage.success('类目删除成功');
+      fetchCategories();
+    }
+  } catch (error) {}
 };
 
-// 初始化扁平化分类数据
-flatCategories.value = categories.value.reduce((acc, cur) => {
-  const flatten = (cat: Category) => {
-    acc.push(cat);
-    if (cat.children) cat.children.forEach(flatten);
-  };
-  flatten(cur);
-  return acc;
-}, []);
+// 页面加载时获取类目数据
+onMounted(() => {
+  fetchCategories();
+});
 </script>
 
 <style scoped lang="scss">

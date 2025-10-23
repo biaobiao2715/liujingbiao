@@ -8,27 +8,27 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline>
+    <el-form :model="queryParams" :label-width="120" inline>
       <el-form-item label="品牌名称">
-        <el-input v-model="queryParams.brandName" placeholder="请输入品牌名称" clearable />
+        <el-input v-model="queryParams.attributeName" placeholder="请输入品牌名称" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="getListData">搜索</el-button>
+        <el-button v-throttle type="primary" @click="getTableData">搜索</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
-        <el-button v-throttle @click="openAddDialog">新建品牌</el-button>
+        <el-button type="primary" v-throttle @click="handleAdd">新建品牌名称</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 表格 -->
-    <el-table :data="brandList" border style="width: 100%">
-      <el-table-column prop="id" label="序号" width="80" />
-      <el-table-column prop="brandName" label="品牌名称" />
-      <el-table-column prop="sort" label="排序" />
+    <el-table :data="tableData" border style="width: 100%" v-loading="loading">
+      <el-table-column type="index" label="序号" width="80" />
+      <el-table-column prop="attributeName" label="品牌名称" />
+      <el-table-column prop="orderNum" label="排序" />
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button v-throttle type="text" @click="editBrand(scope.row)">编辑</el-button>
-          <el-button v-throttle type="text" @click="deleteBrand(scope.row.id)">删除</el-button>
+          <el-button v-throttle type="text" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle type="text" @click="handleDelete(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,33 +43,40 @@
     />
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑品牌' : '新增品牌'">
-      <el-form :model="formData" ref="formRef" label-width="80px">
-        <el-form-item label="品牌名称" required>
-          <el-input v-model="formData.brandName" placeholder="请输入" />
+    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑品牌名称' : '新增品牌名称'">
+      <el-form :model="formData" :rules="formRules" ref="formRef" label-width="80px">
+        <el-form-item label="品牌名称" prop="attributeName" required>
+          <el-input v-model="formData.attributeName" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="排序" required>
-          <el-input v-model="formData.sort" type="number" placeholder="请输入" />
+        <el-form-item label="排序" prop="orderNum" required>
+          <el-input v-model="formData.orderNum" type="number" placeholder="请输入" />
         </el-form-item>
       </el-form>
-      <template v-slot:footer>
-        <div class="dialog-footer flex-center-between">
-          <el-button v-throttle @click="dialogVisible = false">取消</el-button>
-          <el-button v-throttle type="primary" @click="handleSave">确定</el-button>
-        </div>
-      </template>
+      <div slot="footer" class="flex-center-end">
+        <el-button v-throttle @click="dialogVisible = false">取消</el-button>
+        <el-button v-throttle type="primary" @click="handleSave">确定</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  getProductAttributesList,
+  deleteProductAttribute,
+  createProductAttribute,
+  updateProductAttribute
+} from '@/api/platform/mallConfiguration/productAttributeLabel';
 
-const brandList = ref([]);
+const tableData = ref([]);
 const dialogVisible = ref(false);
+const loading = ref(false);
+const formRef = ref();
 
 const queryParams = ref({
-  brandName: '',
+  attributeName: '',
   pageNum: 1,
   pageSize: 10,
   total: 0
@@ -77,56 +84,102 @@ const queryParams = ref({
 
 const formData = ref({
   id: '',
-  sort: '',
-  brandName: ''
+  attributeName: '',
+  orderNum: ''
 });
+
+const formRules = {
+  attributeName: [{ required: true, message: '请输入品牌名称', trigger: 'blur' }],
+  orderNum: [{ required: true, message: '请输入排序', trigger: 'blur' }]
+};
+
+onMounted(() => {
+  getTableData();
+});
+
+const getTableData = async () => {
+  loading.value = true;
+  try {
+    const res = await getProductAttributesList({
+      attributeType: 0,
+      attributeName: queryParams.value.attributeName,
+      pageNum: queryParams.value.pageNum,
+      pageSize: queryParams.value.pageSize
+    });
+    if (res.code === 200) {
+      tableData.value = res.rows || [];
+      queryParams.value.total = res.total || 0;
+    }
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 重置按钮事件
 const handleReset = () => {
-  queryParams.value.brandName = '';
-  getListData();
-};
-
-const getListData = () => {
-  // 模拟接口调用
-  queryParams.value.total = 100; // 假设总条数
-  brandList.value = Array.from({ length: queryParams.value.pageSize }, (_, i) => ({
-    id: i + 1 + (queryParams.value.pageNum - 1) * queryParams.value.pageSize,
-    brandName: `品牌${i + 1}`,
-    sort: i + 1,
-    createTime: new Date().toISOString()
-  }));
+  queryParams.value.attributeName = '';
+  getTableData();
 };
 
 // 分页切换事件
 const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
   queryParams.value.pageNum = pageInfo.page;
   queryParams.value.pageSize = pageInfo.limit;
-  getListData();
+  getTableData();
 };
 
-const openAddDialog = () => {
-  formData.value = { id: '', sort: '', brandName: '' };
+const handleAdd = () => {
+  formData.value = { id: '', orderNum: '', attributeName: '' };
   dialogVisible.value = true;
 };
 
-const handleSave = () => {
-  dialogVisible.value = false;
-  getListData();
+const handleSave = async () => {
+  formRef.value.validate(async (valid: boolean) => {
+    if (valid) {
+      const api = formData.value.id ? updateProductAttribute : createProductAttribute;
+      try {
+        const res = await api({
+          id: formData.value.id,
+          attributeType: 0,
+          attributeName: formData.value.attributeName,
+          orderNum: formData.value.orderNum
+        });
+        if (res.code === 200) {
+          ElMessage.success(`${formData.value.id ? '修改' : '新增'}成功`);
+          dialogVisible.value = false;
+          getTableData();
+        }
+      } catch {}
+    }
+  });
 };
 
-const editBrand = (row: any) => {
-  formData.value = { ...row };
+// 修改
+const handleEdit = (row: any) => {
+  formData.value = {
+    id: row.id,
+    attributeName: row.attributeName,
+    orderNum: row.orderNum
+  };
   dialogVisible.value = true;
 };
 
-const deleteBrand = (id: number) => {
-  console.log('删除品牌', id);
-  getListData();
+// 删除
+const handleDelete = async (id: number) => {
+  ElMessageBox.confirm('确定要删除该品牌吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await deleteProductAttribute([id]);
+      ElMessage.success('删除成功');
+      getTableData();
+    } catch {
+      ElMessage.error('删除失败');
+    }
+  });
 };
-
-// 初始化数据
-getListData();
 </script>
 
 <style scoped lang="scss">

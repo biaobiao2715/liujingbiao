@@ -184,7 +184,7 @@ const getTableData = async () => {
   try {
     const res = await baseEnterpriseInfoList({
       ...queryParams.value,
-      enterpriseType: 1,
+      enterpriseType: 0,
       reviewTime: undefined,
       reviewStartTime: queryParams.value.reviewTime?.[0],
       reviewEndTime: queryParams.value.reviewTime?.[1]
