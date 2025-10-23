@@ -9,13 +9,13 @@
   <div class="identity-container flex-center-between">
     <div class="flex-center-center gap-12">
       <label class="identity-label">您的身份是</label>
-      <el-select v-model="selectedIdentity" placeholder="请选择" class="identity-select" @change="emitIdentity">
+      <el-select v-model="selectedIdentity" filterable placeholder="请选择" class="identity-select" @change="emitIdentity">
         <el-option v-for="option in identityOptions" :key="option.value" :label="option.label" :value="option.value"> </el-option>
       </el-select>
     </div>
     <!-- 下一步按钮，只有在第一步选择身份后才可点击 -->
     <div class="flex-center-center mt-24">
-      <el-button v-throttle  type="primary" class="next-step-button" @click="emitIdentity(false)" :disabled="!selectedIdentity">下一步</el-button>
+      <el-button v-throttle type="primary" class="next-step-button" @click="emitIdentity(false)" :disabled="!selectedIdentity">下一步</el-button>
     </div>
   </div>
 </template>

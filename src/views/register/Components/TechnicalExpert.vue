@@ -38,50 +38,6 @@
                   </el-upload>
                 </div>
               </el-form-item>
-
-              <el-form-item label="专家姓名" prop="expertName" required>
-                <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
-              </el-form-item>
-
-              <el-form-item label="出生年月" prop="birthDate" required>
-                <el-date-picker v-model="formData.birthDate" type="date" value-format="YYYY-MM" placeholder="选择日期" style="width: 100%" />
-              </el-form-item>
-
-              <el-form-item label="专业" prop="major" required>
-                <el-input v-model="formData.major" maxlength="99" placeholder="50个字符，仅限中文" />
-              </el-form-item>
-
-              <el-form-item label="毕业日期" prop="graduationDate" required>
-                <el-date-picker v-model="formData.graduationDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
-              </el-form-item>
-
-              <el-form-item label="学位" prop="degree" required>
-                <el-select v-model="formData.degree" placeholder="请选择" style="width: 100%">
-                  <el-option label="学士" value="学士" />
-                  <el-option label="硕士" value="硕士" />
-                  <el-option label="博士" value="博士" />
-                  <el-option label="其他" value="其他" />
-                </el-select>
-              </el-form-item>
-
-              <el-form-item label="专业技术资格名称" prop="technicalQualification" required style="white-space: nowrap">
-                <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
-              </el-form-item>
-
-              <el-form-item label="身份证号" prop="idCard">
-                <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
-              </el-form-item>
-
-              <el-form-item label="专家简介" prop="expertInfo" required>
-                <el-input
-                  v-model="formData.expertInfo"
-                  type="textarea"
-                  :maxlength="300"
-                  show-word-limit
-                  input-style="height: 188px"
-                  placeholder="请输入专家简介"
-                />
-              </el-form-item>
             </el-col>
 
             <el-col :span="12">
@@ -105,39 +61,114 @@
                   <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</p>
                 </div>
               </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="专家姓名" prop="expertName" required>
+                <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
+              </el-form-item>
+            </el-col>
 
+            <el-col :span="12">
               <el-form-item label="性别" prop="sex" required>
-                <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
+                <el-select v-model="formData.sex" placeholder="请选择" filterable style="width: 100%">
                   <el-option label="男" value="0" />
                   <el-option label="女" value="1" />
-                </el-select>
-              </el-form-item>
+                </el-select> </el-form-item
+            ></el-col>
 
+            <el-col :span="12">
+              <el-form-item label="出生年月" prop="birthDate" required>
+                <el-date-picker
+                  v-model="formData.birthDate"
+                  type="date"
+                  value-format="YYYY-MM"
+                  placeholder="选择日期"
+                  style="width: 100%"
+                /> </el-form-item
+            ></el-col>
+            <el-col :span="12">
               <el-form-item label="毕业院校" prop="graduationSchool" required>
                 <el-input v-model="formData.graduationSchool" placeholder="请输入毕业院校" />
               </el-form-item>
+            </el-col>
 
+            <el-col :span="12">
+              <el-form-item label="专业" prop="major" required>
+                <el-input v-model="formData.major" maxlength="99" placeholder="50个字符，仅限中文" /> </el-form-item
+            ></el-col>
+            <el-col :span="12">
               <el-form-item label="入学日期" prop="enrollmentDate" required>
-                <el-date-picker v-model="formData.enrollmentDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
-              </el-form-item>
+                <el-date-picker
+                  v-model="formData.enrollmentDate"
+                  type="date"
+                  value-format="YYYY-MM-DD"
+                  placeholder="选择日期"
+                  style="width: 100%"
+                /> </el-form-item
+            ></el-col>
 
+            <el-col :span="12">
+              <el-form-item label="毕业日期" prop="graduationDate" required>
+                <el-date-picker
+                  v-model="formData.graduationDate"
+                  :disabled-date="disabledGraduationDate"
+                  type="date"
+                  value-format="YYYY-MM-DD"
+                  placeholder="选择日期"
+                  style="width: 100%"
+                /> </el-form-item
+            ></el-col>
+
+            <el-col :span="12">
               <el-form-item label="学历" prop="education" required>
-                <el-select v-model="formData.education" placeholder="请选择" style="width: 100%">
+                <el-select v-model="formData.education" placeholder="请选择" filterable style="width: 100%">
                   <el-option label="本科" value="本科" />
                   <el-option label="硕士" value="硕士" />
                   <el-option label="博士" value="博士" />
                   <el-option label="其他" value="其他" />
                 </el-select>
               </el-form-item>
+            </el-col>
 
+            <el-col :span="12">
+              <el-form-item label="学位" prop="degree" required>
+                <el-select v-model="formData.degree" placeholder="请选择" filterable style="width: 100%">
+                  <el-option label="学士" value="学士" />
+                  <el-option label="硕士" value="硕士" />
+                  <el-option label="博士" value="博士" />
+                  <el-option label="其他" value="其他" />
+                </el-select> </el-form-item
+            ></el-col>
+
+            <el-col :span="12">
               <el-form-item label="毕业证编号" prop="graduationCertNo" required>
-                <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" />
-              </el-form-item>
-
-              <el-form-item label="联系电话" prop="contactPhone" required>
-                <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
+                <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" /> </el-form-item
+            ></el-col>
+            <el-col :span="12">
+              <el-form-item label="专业技术资格名称" prop="technicalQualification" required style="white-space: nowrap">
+                <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="联系电话" prop="phoneNumber" required>
+                <el-input v-model="formData.phoneNumber" placeholder="请输入联系电话" /> </el-form-item
+            ></el-col>
+            <el-col :span="12">
+              <el-form-item label="身份证号" prop="idCard"> <el-input v-model="formData.idCard" placeholder="请输入身份证号" /> </el-form-item
+            ></el-col>
+
+            <el-col :span="12"></el-col>
+            <el-col :span="12">
+              <el-form-item label="专家简介" prop="expertInfo" required>
+                <el-input
+                  v-model="formData.expertInfo"
+                  type="textarea"
+                  :maxlength="300"
+                  show-word-limit
+                  input-style="height: 188px"
+                  placeholder="请输入专家简介"
+                /> </el-form-item
+            ></el-col>
           </el-row>
         </div>
       </div>
@@ -187,8 +218,8 @@
         <div class="qualification-list">
           <el-row :gutter="50">
             <el-col :span="12">
-              <el-form-item label="姓名" prop="userName" required>
-                <el-input v-model="formData.userName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
+              <el-form-item label="姓名" prop="expertName" required>
+                <el-input v-model="formData.expertName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
               </el-form-item>
             </el-col>
             <el-col :span="12"></el-col>
@@ -248,6 +279,7 @@ import { FormRules } from 'element-plus';
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { technicalExpertInfoRegister } from '@/api/register/technicalExpert'; //注册接口
+import { isAccountExist } from '@/api/login'; //账号获取详情信息
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -277,7 +309,7 @@ const form: TechnicalExpert = {
   // 专家简介
   expertInfo: '',
   // 联系电话
-  contactPhone: ''
+  phoneNumber: ''
 } as TechnicalExpert;
 
 const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string }> = {
@@ -320,7 +352,20 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   // 专业
   major: [{ required: true, message: '请输入专业名称', trigger: 'blur' }],
   // 毕业日期
-  graduationDate: [{ required: true, message: '请选择毕业日期', trigger: 'change' }],
+  graduationDate: [
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请选择毕业日期'));
+        } else if (formData.value.enrollmentDate && value < formData.value.enrollmentDate) {
+          callback(new Error('毕业日期不能早于入学日期'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
+  ],
   // 专家简介
   expertInfo: [
     {
@@ -547,6 +592,14 @@ const sendSmsCode = async () => {
     console.error('手机号验证失败', error);
   }
 };
+// 禁用毕业日期早于入学日期
+const disabledGraduationDate = (date) => {
+  if (!formData.value.enrollmentDate) {
+    return false;
+  }
+  const enrollmentDate = new Date(formData.value.enrollmentDate);
+  return date.getTime() < enrollmentDate.getTime();
+};
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传毕业证，请稍候...');
@@ -646,7 +699,7 @@ const handleNextStep = () => {
       technicalExpertInfoRegister(temp).then((res) => {
         if (res.code === 200) {
           proxy?.$modal.msgSuccess('操作成功');
-          emit('nextStep', { username: formData.value.userName, account: formData.value.phoneNumber });
+          emit('nextStep', { username: formData.value.expertName, account: formData.value.phoneNumber });
         }
       });
       // 这里可以添加提交逻辑
@@ -656,6 +709,42 @@ const handleNextStep = () => {
     }
   });
 };
+
+// 生命周期钩子
+onMounted(async () => {
+  // 获取router路由参数
+  const route = useRoute();
+  const { phoneNumber, type } = route.query;
+  if (phoneNumber) {
+    const phone = Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber;
+    const arr: any = await isAccountExist(phone);
+    formData.value = {
+      ...arr.data,
+      confirmPassword: arr.data.password
+      // signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
+    };
+    if (arr.data && arr.data.hnBaseRegisterFolderVoList && arr.data.hnBaseRegisterFolderVoList.length > 0) {
+      arr.data.hnBaseRegisterFolderVoList.forEach((element: any, key: number) => {
+        if (element && element.ossInfo) {
+          qualificationList.value.push({
+            index: key + 1,
+            name: element.ossInfo.originalName,
+            remark: element.remark,
+            url: element.ossInfo.url,
+            fileType: element.fileType,
+            ossId: element.ossId
+          });
+          if (element.fileType == '2') {
+            diplomaUrl.value = element.ossInfo.url;
+          }
+          if (element.fileType == '0') {
+            photoUrl.value = element.ossInfo.url;
+          }
+        }
+      });
+    }
+  }
+});
 </script>
 
 <style scoped lang="scss">

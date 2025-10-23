@@ -17,7 +17,7 @@
       <el-form :model="form">
         <!-- 上级分类选择 -->
         <el-form-item label="上级分类">
-          <el-select v-model="form.parentId" placeholder="请选择">
+          <el-select v-model="form.parentId" filterable placeholder="请选择">
             <el-option v-for="item in flatCategories" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
@@ -26,10 +26,12 @@
           <el-input v-model="form.name" placeholder="请输入" />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer flex-center-between">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCategory">确认</el-button>
-      </div>
+      <template v-slot:footer>
+        <div class="dialog-footer flex-center-between">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveCategory">确认</el-button>
+        </div>
+      </template>
     </el-dialog>
 
     <!-- 树形表格 -->

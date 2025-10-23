@@ -22,14 +22,8 @@
             <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
-            <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
-              <el-option label="全部" :value="''" />
-              <el-option label="待审核" value="0" />
-              <el-option label="审核通过" value="1" />
-              <el-option label="分配账号" value="2" />
-              <el-option label="分配权限" value="3" />
-              <el-option label="入驻成功" value="4" />
-              <el-option label="入驻失败" value="99" />
+            <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
+              <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -100,6 +94,8 @@ import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExp
 import { getLegalExpertList, reviewStatusMap } from '@/api/platform/legalExpert';
 import router from '@/router';
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
 const expertList = ref<LegalExpertList[]>([]);
 const loading = ref(false);
 const total = ref(0);

@@ -11,7 +11,7 @@
     <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
       <!-- 采购类型选择 -->
       <el-form-item label="采购类型" prop="purchaseType">
-        <el-select v-model="form.purchaseType" placeholder="请选择">
+        <el-select v-model="form.purchaseType" placeholder="请选择" filterable>
           <el-option v-for="item in typeOptions" :key="item.dictCode" :label="item.dictLabel" :value="item.dictCode" />
         </el-select>
       </el-form-item>

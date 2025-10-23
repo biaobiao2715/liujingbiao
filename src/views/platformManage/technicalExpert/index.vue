@@ -22,7 +22,7 @@
             <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
-            <el-select v-model="queryParams.reviewStatus" placeholder="全部" clearable style="width: 140px">
+            <el-select v-model="queryParams.reviewStatus" placeholder="全部" filterable clearable style="width: 140px">
               <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>

@@ -16,7 +16,7 @@
         <el-input v-model="queryParams.companyName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="商品状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
+        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
           <el-option label="全部" value="1" />
           <el-option label="已上架" value="2" />
           <el-option label="已下架" value="3" />

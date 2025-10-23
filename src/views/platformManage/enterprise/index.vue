@@ -19,12 +19,19 @@
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="审核状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
+        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
           <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="入驻时间" prop="reviewTime">
-        <el-date-picker v-model="queryParams.reviewTime" value-format="YYYY-MM-DD" type="date" placeholder="请选择日期"></el-date-picker>
+      <el-form-item label="审核时间">
+        <el-date-picker
+          v-model="queryParams.reviewTime"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
       </el-form-item>
 
       <el-form-item>
@@ -112,7 +119,6 @@ const queryParams = ref({
   enterpriseType: '1'
 });
 
-
 // 表格数据
 const tableData = ref([]);
 const total = ref(0);
@@ -123,7 +129,12 @@ const dateRange = ref(['', '']);
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  baseEnterpriseInfoList(queryParams.value).then((res) => {
+  baseEnterpriseInfoList({
+    ...queryParams.value,
+    reviewTime: undefined,
+    reviewStartTime: queryParams.value.reviewTime?.[0],
+    reviewEndTime: queryParams.value.reviewTime?.[1]
+  }).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
@@ -132,7 +143,7 @@ const getList = () => {
 
 // 查询按钮事件
 const handleSearch = () => {
-  console.log('查询表单数据:', queryParams.value);
+  queryParams.value.pageNum = 1;
   getList();
 };
 

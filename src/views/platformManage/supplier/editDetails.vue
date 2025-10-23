@@ -136,7 +136,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="资质等级">
-              <el-select v-model="formData.credentialLevel">
+              <el-select filterable v-model="formData.credentialLevel">
                 <el-option label="一级认证" value="0"></el-option>
                 <el-option label="二级认证" value="1"></el-option>
                 <el-option label="三级认证" value="2"></el-option>
@@ -145,7 +145,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="信用等级">
-              <el-select v-model="formData.creditLevel">
+              <el-select filterable v-model="formData.creditLevel">
                 <el-option label="优秀" value="0"></el-option>
                 <el-option label="良好" value="1"></el-option>
                 <el-option label="一般" value="2"></el-option>

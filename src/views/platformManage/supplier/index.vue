@@ -19,7 +19,7 @@
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" clearable>
+        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
           <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>

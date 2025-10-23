@@ -29,41 +29,6 @@
                 </el-upload>
               </div>
             </el-form-item>
-
-            <el-form-item label="专家姓名:" prop="expertName" required>
-              <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
-            </el-form-item>
-
-            <el-form-item label="执业机构:" prop="practiceInstitution" required>
-              <el-input v-model="formData.practiceInstitution" placeholder="50个字符，仅限中文" />
-            </el-form-item>
-
-            <el-form-item label="执业证号:" prop="practiceCertificateNumber" required>
-              <el-input v-model="formData.practiceCertificateNumber" placeholder="50个字符，仅限中文" />
-            </el-form-item>
-
-            <el-form-item label="发证机关:" prop="issuingAuthority" required>
-              <el-input v-model="formData.issuingAuthority" placeholder="请输入发证机关" />
-            </el-form-item>
-
-            <el-form-item label="身份证号:" prop="idCard" required>
-              <el-input v-model="formData.idCard" placeholder="请输入身份证号" />
-            </el-form-item>
-
-            <el-form-item label="专业技术资格名称:" prop="technicalQualification" style="white-space: nowrap">
-              <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
-            </el-form-item>
-
-            <el-form-item label="专家简介:" prop="professionalSummary" required>
-              <el-input
-                v-model="formData.professionalSummary"
-                type="textarea"
-                :maxlength="150"
-                show-word-limit
-                input-style="height: 188px"
-                placeholder="请输入专家简介"
-              />
-            </el-form-item>
           </el-col>
 
           <el-col :span="12">
@@ -87,30 +52,73 @@
                 <span class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</span>
               </div>
             </el-form-item>
-
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="专家姓名:" prop="expertName" required>
+              <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
             <el-form-item label="性别:" prop="sex" required>
-              <el-select v-model="formData.sex" placeholder="请选择" style="width: 100%">
+              <el-select v-model="formData.sex" placeholder="请选择" filterable style="width: 100%">
                 <el-option label="男" value="0" />
                 <el-option label="女" value="1" />
               </el-select>
             </el-form-item>
-
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="执业机构:" prop="practiceInstitution" required>
+              <el-input v-model="formData.practiceInstitution" placeholder="50个字符，仅限中文" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
             <el-form-item label="执业证类型:" prop="practiceCertificateType" required>
               <el-input v-model="formData.practiceCertificateType" placeholder="请输入执业证类型" />
             </el-form-item>
-
-            <el-form-item label="法律执业资格或律师资格证号:" prop="legalPracticeQualification" style="white-space: nowrap" required>
-              <el-input v-model="formData.legalPracticeQualification" placeholder="请输入法律执业资格或律师资格证号" />
-            </el-form-item>
-
-            <el-form-item label="发证日期:" prop="issueDate" required>
-              <el-date-picker v-model="formData.issueDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
-            </el-form-item>
-
-            <el-form-item label="联系电话:" prop="contactPhone" required>
-              <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
-            </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="执业证号:" prop="practiceCertificateNumber" required>
+              <el-input v-model="formData.practiceCertificateNumber" placeholder="50个字符，仅限中文" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="法律执业资格或律师资格证号:" prop="legalPracticeQualification" style="white-space: nowrap" required>
+              <el-input v-model="formData.legalPracticeQualification" placeholder="请输入法律执业资格或律师资格证号" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="发证机关:" prop="issuingAuthority" required>
+              <el-input v-model="formData.issuingAuthority" placeholder="请输入发证机关" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="发证日期:" prop="issueDate" required>
+              <el-date-picker
+                v-model="formData.issueDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                placeholder="选择日期"
+                style="width: 100%"
+              /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="身份证号:" prop="idCard" required> <el-input v-model="formData.idCard" placeholder="请输入身份证号" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话:" prop="phoneNumber" required>
+              <el-input v-model="formData.phoneNumber" placeholder="请输入联系电话" /> </el-form-item
+          ></el-col>
+          <el-col :span="12">
+            <el-form-item label="专业技术资格名称:" prop="technicalQualification" style="white-space: nowrap">
+              <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" /> </el-form-item
+          ></el-col>
+          <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="专家简介:" prop="professionalSummary" required>
+              <el-input
+                v-model="formData.professionalSummary"
+                type="textarea"
+                :maxlength="150"
+                show-word-limit
+                input-style="height: 188px"
+                placeholder="请输入专家简介"
+              /> </el-form-item
+          ></el-col>
         </el-row>
       </div>
       <div class="content" style="margin-top: 20px">
@@ -164,8 +172,8 @@
         <div class="qualification-list">
           <el-row :gutter="50">
             <el-col :span="12">
-              <el-form-item label="姓名" prop="userName" required>
-                <el-input v-model="formData.userName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
+              <el-form-item label="姓名" prop="expertName" required>
+                <el-input v-model="formData.expertName" placeholder="注册人姓名，填写身份证上的真实姓名，不要填写昵称" />
               </el-form-item>
             </el-col>
             <el-col :span="12"></el-col>
@@ -226,6 +234,7 @@ import { FormRules } from 'element-plus';
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { legalExpertInfoRegister } from '@/api/register/legalExpert'; //注册接口
+import { isAccountExist } from '@/api/login'; //账号获取详情信息
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -397,7 +406,6 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
       trigger: 'change'
     }
   ],
-  userName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phoneNumber: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
@@ -607,7 +615,7 @@ const handleNextStep = () => {
       legalExpertInfoRegister(temp).then((res) => {
         if (res.code === 200) {
           proxy?.$modal.msgSuccess('操作成功');
-          emit('nextStep', { username: formData.value.userName, account: formData.value.phoneNumber });
+          emit('nextStep', { username: formData.value.expertName, account: formData.value.phoneNumber });
         }
       });
     } else {
@@ -615,6 +623,42 @@ const handleNextStep = () => {
     }
   });
 };
+
+// 生命周期钩子
+onMounted(async () => {
+  // 获取router路由参数
+  const route = useRoute();
+  const { phoneNumber, type } = route.query;
+  if (phoneNumber) {
+    const phone = Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber;
+    const arr: any = await isAccountExist(phone);
+    formData.value = {
+      ...arr.data,
+      confirmPassword: arr.data.password
+      // signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
+    };
+    if (arr.data && arr.data.hnBaseRegisterFolderVoList && arr.data.hnBaseRegisterFolderVoList.length > 0) {
+      arr.data.hnBaseRegisterFolderVoList.forEach((element: any, key: number) => {
+        if (element && element.ossInfo) {
+          qualificationList.value.push({
+            index: key + 1,
+            name: element.ossInfo.originalName,
+            remark: element.remark,
+            url: element.ossInfo.url,
+            fileType: element.fileType,
+            ossId: element.ossId
+          });
+          if (element.fileType == '2') {
+            diplomaUrl.value = element.ossInfo.url;
+          }
+          if (element.fileType == '0') {
+            photoUrl.value = element.ossInfo.url;
+          }
+        }
+      });
+    }
+  }
+});
 </script>
 
 <style scoped lang="scss">
