@@ -643,7 +643,6 @@ const toggleStatus = (row: any) => {
 // 生命周期钩子
 onMounted(async () => {
   const response = await getProductCategoryList({ status: '0' });
-  console.log('creditList', response);
   if (response.code === 200) {
     creditList.value = proxy?.handleTree<Category>(response.data, 'id');
   }

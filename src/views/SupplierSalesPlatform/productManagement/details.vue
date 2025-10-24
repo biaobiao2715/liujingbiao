@@ -23,12 +23,12 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="产品保障">
-            <el-input v-model="formData.goodsEnsureName" disabled></el-input>
+            <el-input v-model="formData.goodsEnsureIds" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品品牌">
-            <el-input v-model="formData.goodsBrandName" disabled></el-input>
+            <el-input v-model="formData.goodsBrandId" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -43,7 +43,7 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="商品状态">
-            <el-input v-model="statusName" disabled></el-input>
+            <el-input v-model="formData.status" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -154,18 +154,13 @@ const formData = ref<HnGoodsVo>({
 
 const tableList = ref<HnGoodsSpecificationData[]>([]); // 商品信息
 
-// 计算商品状态显示名称
-const statusName = computed(() => {
-  return formData.value.status === '1' ? '上架' : '下架';
-});
-
 // 获取主图
 const mainImage = computed(() => {
-  if (!formData.value.hnGoodsFilesList || formData.value.hnGoodsFilesList.length === 0) {
+  if (!formData.value.sysOssLists || formData.value.sysOssLists.length === 0) {
     return '';
   }
-  const mainFile = formData.value.hnGoodsFilesList.find((file) => file.fileType === '0');
-  return mainFile && mainFile.ossInfo ? mainFile.ossInfo.url : '';
+  const mainFile = formData.value.sysOssLists[0];
+  return mainFile && mainFile?.url;
 });
 
 // id获取详情信息
