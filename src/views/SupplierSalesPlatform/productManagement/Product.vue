@@ -543,6 +543,7 @@ const savePriceChanges = async () => {
     
     // 准备保存的数据，使用正确的格式
     const saveData = {
+      id: currentProduct.value.id || currentProduct.value.goodsId, // 商品ID（最外层）
       hnGoodsSpecificationDataList: productSpecs.value.map(spec => ({
         id: spec.id, // 规格ID
         goodsId: currentProduct.value.id || currentProduct.value.goodsId, // 商品ID
