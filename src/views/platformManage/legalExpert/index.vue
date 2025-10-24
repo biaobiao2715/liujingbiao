@@ -52,7 +52,7 @@
             <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="contactPhone" label="联系电话" min-width="130" align="center" />
+        <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
         <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
         <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
           <template #default="scope">
