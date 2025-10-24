@@ -11,7 +11,7 @@
     <el-card shadow="hover">
       <!-- 查询区域 -->
       <div class="mb-[10px]">
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
           <el-form-item label="专家姓名" prop="expertName">
             <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
           </el-form-item>
@@ -19,8 +19,14 @@
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="入驻时间">
-            <el-date-picker v-model="queryParams.registrationTime" type="daterange" value-format="YYYY-MM-DD"
-              range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" />
+            <el-date-picker
+              v-model="queryParams.registrationTime"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator=" - "
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+            />
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>

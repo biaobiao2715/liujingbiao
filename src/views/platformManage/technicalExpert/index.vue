@@ -11,7 +11,7 @@
     <!-- 查询区域 -->
     <div class="mb-[10px]">
       <el-card shadow="hover">
-        <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
           <el-form-item label="专家姓名" prop="name">
             <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
           </el-form-item>
@@ -19,11 +19,17 @@
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="入驻时间">
-            <el-date-picker v-model="queryParams.registrationTime" type="daterange" value-format="YYYY-MM-DD"
-              range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" />
+            <el-date-picker
+              v-model="queryParams.registrationTime"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator=" - "
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+            />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
-            <el-select v-model="queryParams.reviewStatus" placeholder="全部" filterable clearable style="width: 140px">
+            <el-select v-model="queryParams.reviewStatus" placeholder="全部" filterable clearable>
               <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
@@ -65,19 +71,21 @@
                 <el-link type="primary" @click="openToggleDialog(scope.row)">
                   {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
                 </el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
-                  @click="handleEdit(scope.row, 'view')">查看</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
-                  @click="handleEdit(scope.row, 'audit')">审核</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'"
-                  @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'view')">查看</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
+                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-          :total="total" @pagination="handleQuery" />
+        <pagination
+          v-show="total > 0"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          :total="total"
+          @pagination="handleQuery"
+        />
         <el-dialog v-model="toggleDialogVisible" width="30%">
           <template #header>
             <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
@@ -123,7 +131,7 @@ const openToggleDialog = (row: TechnicalExpertList) => {
 };
 const closeToggleDialog = () => {
   toggleDialogVisible.value = false;
-}
+};
 // 确认停用/启用操作
 const confirmToggle = async () => {
   if (loadingStatus.value || !toggleDialogData.value.id) return;
@@ -146,7 +154,7 @@ const confirmToggle = async () => {
     proxy?.$modal.msgSuccess(isEnabled ? '已停用' : '已启用');
 
     // 更新列表数据状态
-    const index = list.value.findIndex(item => item.id === toggleDialogData.value.id);
+    const index = list.value.findIndex((item) => item.id === toggleDialogData.value.id);
     if (index !== -1) {
       list.value[index].startStopStatus = isEnabled ? '0' : '1';
     }
