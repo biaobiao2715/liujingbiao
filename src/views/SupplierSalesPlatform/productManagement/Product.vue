@@ -43,7 +43,7 @@
         <el-button v-throttle type="primary" @click="handleAdd">新增商品</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleSearch">删除</el-button>
+        <el-button v-throttle type="primary" @click="handleDelete">删除</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="handleSearch">上架</el-button>
@@ -55,9 +55,9 @@
         <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
       </el-col>
 
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="handleSearch">价格设定</el-button>
-      </el-col>
+      </el-col> -->
 
       <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
@@ -66,7 +66,8 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange" >
+      <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
@@ -93,6 +94,7 @@
       <el-table-column label="操作" align="center" width="360" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">详情</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">价格设定</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">复制商品</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">设置预警</el-button>
@@ -110,7 +112,7 @@
 <script setup lang="ts">
 import router from '@/router';
 import { ref } from 'vue';
-import { goodsList } from '@/api/Supplier/productManagement/product';
+import { goodsList , goodsDelete } from '@/api/Supplier/productManagement/product';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
@@ -135,6 +137,8 @@ const loading = ref(true);
 const queryFormRef = ref();
 const dateRange = ref(['', '']);
 const showSearch = ref(true);
+const selectedIds = ref([]);// 选中的行ID数组
+
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
@@ -164,6 +168,46 @@ const handleQuery = () => {
 const handleReset = () => {
   queryFormRef.value?.resetFields();
   handleQuery();
+};
+
+// 表格选择变化事件
+const handleSelectionChange = (selection) => {
+  selectedIds.value = selection.map(item => item.id);
+};
+
+// 删除按钮事件 - 修改为支持批量删除
+const handleDelete = () => {
+  // 批量删除 - 使用选中的行
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要删除的商品');
+    return;
+  }
+  
+  ElMessageBox.confirm(`确定要删除选中的${selectedIds.value.length}个商品吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    // 批量删除 - 逐个调用删除接口
+    const deletePromises = selectedIds.value.map(id => goodsDelete(id));
+    
+    Promise.all(deletePromises).then(results => {
+      const successCount = results.filter(res => res.code === 200).length;
+      if (successCount > 0) {
+        ElMessage.success(`成功删除${successCount}个商品`);
+        getList();
+        // 清空选中状态
+        selectedIds.value = [];
+      }
+      if (successCount < selectedIds.value.length) {
+        ElMessage.warning(`部分删除失败，共删除${successCount}/${selectedIds.value.length}个商品`);
+      }
+    }).catch(error => {
+      ElMessage.error('删除操作失败');
+    });
+  }).catch(() => {
+    ElMessage.info('删除操作已取消');
+  });
 };
 
 const handleAdd = () => {
