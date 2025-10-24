@@ -96,7 +96,7 @@
         <template #default="scope">
           <!-- 详情按钮 -->
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">详情</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">价格设定</el-button>
+          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handlePriceSetting(scope.row)">价格设定</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEC(scope.row)">复制商品</el-button>
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdits(scope.row, 'view')">设置预警</el-button>
@@ -108,13 +108,109 @@
     <div class="flex-center pagination">
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
+
+    <!-- 价格设定弹窗 -->
+    <el-dialog
+      v-model="priceDialogVisible"
+      title="价格修改"
+      width="800px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+    >
+      <div class="price-dialog-content">
+        <!-- 商品基本信息 -->
+        <div class="product-basic-info">
+          <div class="info-row">
+            <div class="info-item">
+              <span class="label">商品名称：</span>
+              <span class="value">{{ currentProduct.goodsName || '--' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">商品编码：</span>
+              <span class="value">{{ currentProduct.goodsCode || '--' }}</span>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-item">
+              <span class="label">商品品牌：</span>
+              <span class="value">{{ currentProduct.brand || '--' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">商品状态：</span>
+              <span class="value">{{ getStatusText(currentProduct.status) }}</span>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="info-item">
+              <span class="label">上架时间：</span>
+              <span class="value">{{ proxy?.parseTime(currentProduct.createTime) || '--' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">产品保障：</span>
+              <span class="value">{{ currentProduct.warranty || '--' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 商品信息表格 -->
+        <div class="product-info-section">
+          <div class="section-title">
+            <el-icon><Grid /></el-icon>
+            <span>商品信息</span>
+          </div>
+          <el-table :data="productSpecs" border style="width: 100%">
+            <el-table-column prop="goodsName" label="商品名称" width="200">
+              <template #default="scope">
+                <div class="spec-name">{{ scope.row.goodsName }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="goodsCode" label="商品编码" width="180">
+              <template #default="scope">
+                <div class="spec-code">{{ scope.row.goodsCode }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="price" label="销售价" width="120">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.price"
+                  type="number"
+                  :min="0"
+                  step="0.01"
+                  placeholder="请输入价格"
+                  class="price-input"
+                >
+                  <template #suffix>¥</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="specification" label="商品规格" width="120">
+              <template #default="scope">
+                <div class="spec-info">{{ scope.row.specification }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="inventory" label="可用库存" width="120">
+              <template #default="scope">
+                <div class="spec-info">{{ scope.row.inventory }}</div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closePriceDialog">取消</el-button>
+          <el-button type="primary" @click="savePriceChanges" :loading="priceSaving">保存</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 import router from '@/router';
-import { goodsList , goodsDelete, updateGoodsStatus } from '@/api/Supplier/productManagement/product';
+import { goodsList , goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
 
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -148,6 +244,12 @@ const dateRange = ref(['', '']);
 const showSearch = ref(true);
 const selectedIds = ref([]);// 选中的行ID数组
 const selectedRows = ref([]);// 选中的行数据数组
+
+// 价格设定弹窗相关
+const priceDialogVisible = ref(false);
+const currentProduct = ref<any>({});
+const productSpecs = ref<any[]>([]);
+const priceSaving = ref(false);
 
 /** 查询企业列表 */
 const getList = () => {
@@ -226,40 +328,47 @@ const handleDelete = () => {
 
 // 上架按钮事件
 const handleShelf = () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要上架的商品');
-    return;
+  // 如果没有选择商品，则处理全部商品
+  let targetIds = selectedIds.value;
+  let targetRows = selectedRows.value;
+  
+  if (targetIds.length === 0) {
+    // 获取当前页面的所有商品ID
+    targetIds = tableData.value.map(item => item.id);
+    targetRows = tableData.value;
+    ElMessage.info('未选择商品，将对当前页面全部商品进行上架操作');
   }
   
-  // 检查选中的商品是否都是下架状态（上架操作只能对下架状态的商品进行）
+  // 检查目标商品是否都是下架状态（上架操作只能对下架状态的商品进行）
   // 状态 '0' 表示上架，'1' 表示下架，所以上架操作需要检查状态不是 '0'
-  const invalidRows = selectedRows.value.filter(row => row.status === '0');
+  const invalidRows = targetRows.filter(row => row.status === '0');
   if (invalidRows.length > 0) {
-    ElMessage.warning(`选中的商品中包含已上架的商品，无法重复上架`);
+    ElMessage.warning(`目标商品中包含已上架的商品，无法重复上架`);
     return;
   }
   
-  ElMessageBox.confirm(`确定要将选中的${selectedIds.value.length}个商品上架吗？`, '上架确认', {
+  ElMessageBox.confirm(`确定要将${targetIds.length}个商品上架吗？`, '上架确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    // 批量上架 - 逐个调用API，传入单个对象
-    const shelfPromises = selectedIds.value.map(id => 
-      updateGoodsStatus({ id: id, status: '0' }) // 0表示上架
-    );
+    // 批量上架 - 使用正确的数据格式
+    const shelfData = {
+      goodsIds: targetIds, // 商品ID数组
+      status: '0' // 0表示上架
+    };
     
-    Promise.all(shelfPromises).then(results => {
-      const successCount = results.filter(res => res.code === 200).length;
-      if (successCount > 0) {
-        ElMessage.success(`成功上架${successCount}个商品`);
+    console.log('上架数据:', shelfData);
+    
+    updateGoodsStatus(shelfData).then(response => {
+      if (response.code === 200) {
+        ElMessage.success(`成功上架${targetIds.length}个商品`);
         getList();
         // 清空选中状态
         selectedIds.value = [];
         selectedRows.value = [];
-      }
-      if (successCount < selectedIds.value.length) {
-        ElMessage.warning(`部分上架失败，共上架${successCount}/${selectedIds.value.length}个商品`);
+      } else {
+        ElMessage.error(response.msg || '上架操作失败');
       }
     }).catch(error => {
       console.error('上架操作失败:', error);
@@ -272,43 +381,47 @@ const handleShelf = () => {
 
 // 下架按钮事件
 const handleUnshelf = () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要下架的商品');
-    return;
+  // 如果没有选择商品，则处理全部商品
+  let targetIds = selectedIds.value;
+  let targetRows = selectedRows.value;
+  
+  if (targetIds.length === 0) {
+    // 获取当前页面的所有商品ID
+    targetIds = tableData.value.map(item => item.id);
+    targetRows = tableData.value;
+    ElMessage.info('未选择商品，将对当前页面全部商品进行下架操作');
   }
   
-  // 检查选中的商品是否都是上架状态（下架操作只能对上架状态的商品进行）
+  // 检查目标商品是否都是上架状态（下架操作只能对上架状态的商品进行）
   // 状态 '0' 表示上架，'1' 表示下架，所以下架操作需要检查状态是 '0'
-  const invalidRows = selectedRows.value.filter(row => row.status !== '0');
+  const invalidRows = targetRows.filter(row => row.status !== '0');
   if (invalidRows.length > 0) {
-    ElMessage.warning(`选中的商品中包含已下架的商品，无法重复下架`);
+    ElMessage.warning(`目标商品中包含已下架的商品，无法重复下架`);
     return;
   }
   
-  ElMessageBox.confirm(`确定要将选中的${selectedIds.value.length}个商品下架吗？`, '下架确认', {
+  ElMessageBox.confirm(`确定要将${targetIds.length}个商品下架吗？`, '下架确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    // 批量下架 - 逐个调用API，传入单个对象
-    console.log('下架操作，选中的商品IDs:', selectedIds.value);
-    console.log('下架操作，选中的商品数据:', selectedRows.value);
-    const unshelfPromises = selectedIds.value.map(id => {
-      console.log(`下架商品ID: ${id}, 状态: 1`);
-      return updateGoodsStatus({ id: id, status: '1' }); // 1表示下架
-    });
+    // 批量下架 - 使用正确的数据格式
+    const unshelfData = {
+      goodsIds: targetIds, // 商品ID数组
+      status: '1' // 1表示下架
+    };
     
-    Promise.all(unshelfPromises).then(results => {
-      const successCount = results.filter(res => res.code === 200).length;
-      if (successCount > 0) {
-        ElMessage.success(`成功下架${successCount}个商品`);
+    console.log('下架数据:', unshelfData);
+    
+    updateGoodsStatus(unshelfData).then(response => {
+      if (response.code === 200) {
+        ElMessage.success(`成功下架${targetIds.length}个商品`);
         getList();
         // 清空选中状态
         selectedIds.value = [];
         selectedRows.value = [];
-      }
-      if (successCount < selectedIds.value.length) {
-        ElMessage.warning(`部分下架失败，共下架${successCount}/${selectedIds.value.length}个商品`);
+      } else {
+        ElMessage.error(response.msg || '下架操作失败');
       }
     }).catch(error => {
       console.error('下架操作失败:', error);
@@ -335,6 +448,127 @@ const handleAdd = () => {
 /** 查看详情 */
 const handleDetails = (row: any) => {
   router.push({ path: '/supplier/sales/product/details', query: { id: row.id } });
+};
+
+/** 价格设定 */
+const handlePriceSetting = async (row: any) => {
+  try {
+    // 显示加载状态
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: '正在加载商品详情...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    });
+
+    // 调用商品详情接口获取完整数据
+    const response = await goodsId(row.id);
+    
+    if (response && response.code === 200) {
+      const productData = response.data;
+      
+      // 设置商品基本信息
+      currentProduct.value = {
+        id: productData.id || row.id, // 商品ID
+        goodsId: productData.goodsId || productData.id || row.id, // 商品ID
+        goodsName: productData.goodsName || row.goodsName,
+        goodsCode: productData.goodsCode || row.goodsCode,
+        brand: productData.brand || productData.companyName || '--',
+        status: productData.status || row.status,
+        createTime: productData.createTime || row.createTime,
+        warranty: productData.warranty || productData.guarantee || '--',
+        mainImage: productData.mainImage || productData.image || ''
+      };
+      
+      // 设置商品规格数据
+      if (productData.specs && productData.specs.length > 0) {
+        // 如果API返回了规格数据
+        productSpecs.value = productData.specs.map((spec: any) => ({
+          id: spec.id || spec.specId, // 规格ID
+          goodsName: productData.goodsName,
+          goodsCode: productData.goodsCode,
+          price: spec.price || spec.goodsPrice || '0.00',
+          specification: spec.specification || spec.spec || '--',
+          inventory: spec.inventory || spec.stock || '0'
+        }));
+      } else if (productData.hnGoodsSpecificationDataList && productData.hnGoodsSpecificationDataList.length > 0) {
+        // 如果API返回了规格数据列表
+        productSpecs.value = productData.hnGoodsSpecificationDataList.map((spec: any) => ({
+          id: spec.id, // 规格ID
+          goodsName: productData.goodsName,
+          goodsCode: productData.goodsCode,
+          price: spec.goodsPrice || '0.00',
+          specification: spec.specification || '--',
+          inventory: spec.inventory || '0'
+        }));
+      } else {
+        // 如果没有规格数据，使用默认数据
+        productSpecs.value = [
+          {
+            id: 1, // 默认规格ID
+            goodsName: productData.goodsName,
+            goodsCode: productData.goodsCode,
+            price: productData.price || '0.00',
+            specification: '默认规格',
+            inventory: productData.inventory || '0'
+          }
+        ];
+      }
+      
+      priceDialogVisible.value = true;
+    } else {
+      ElMessage.error('获取商品详情失败');
+    }
+  } catch (error) {
+    console.error('获取商品详情失败:', error);
+    ElMessage.error('获取商品详情失败，请重试');
+  } finally {
+    // 关闭加载状态
+    setTimeout(() => {
+      ElLoading.service().close();
+    }, 500);
+  }
+};
+
+/** 关闭价格设定弹窗 */
+const closePriceDialog = () => {
+  priceDialogVisible.value = false;
+  currentProduct.value = {};
+  productSpecs.value = [];
+};
+
+/** 保存价格修改 */
+const savePriceChanges = async () => {
+  try {
+    priceSaving.value = true;
+    
+    // 准备保存的数据，使用正确的格式
+    const saveData = {
+      hnGoodsSpecificationDataList: productSpecs.value.map(spec => ({
+        id: spec.id, // 规格ID
+        goodsId: currentProduct.value.id || currentProduct.value.goodsId, // 商品ID
+        goodsPrice: parseFloat(spec.price) || 0 // 商品价格
+      }))
+    };
+    
+    console.log('保存价格数据:', saveData);
+    
+    // 调用保存价格接口
+    const response = await updateGoodsPrice(saveData);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('价格修改成功');
+      closePriceDialog();
+      // 刷新列表
+      getList();
+    } else {
+      ElMessage.error(response?.msg || '价格修改失败');
+    }
+  } catch (error) {
+    console.error('保存价格失败:', error);
+    ElMessage.error('价格修改失败，请重试');
+  } finally {
+    priceSaving.value = false;
+  }
 };
 
 /** 编辑商品 */
@@ -407,5 +641,83 @@ onActivated(() => {
 .pagination {
   margin-top: 24px;
   justify-content: end;
+}
+
+// 价格设定弹窗样式
+.price-dialog-content {
+  .product-basic-info {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    
+    .info-row {
+      display: flex;
+      margin-bottom: 12px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    .info-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      
+      .label {
+        font-weight: 500;
+        color: #606266;
+        margin-right: 8px;
+        min-width: 80px;
+      }
+      
+      .value {
+        color: #303133;
+        flex: 1;
+      }
+    }
+  }
+  
+  .product-info-section {
+    .section-title {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #303133;
+      
+      .el-icon {
+        margin-right: 8px;
+        color: #409eff;
+      }
+    }
+    
+    .spec-name, .spec-code, .spec-info {
+      padding: 8px 12px;
+      background-color: #f5f7fa;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #606266;
+    }
+    
+    .price-input {
+      width: 100%;
+      
+      :deep(.el-input__inner) {
+        text-align: right;
+        padding-right: 20px;
+      }
+    }
+  }
+}
+
+.dialog-footer {
+  text-align: center;
+  
+  .el-button {
+    margin: 0 8px;
+  }
 }
 </style>

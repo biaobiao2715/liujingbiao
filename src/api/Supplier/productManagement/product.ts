@@ -16,7 +16,7 @@ export function goodsList(query?: any) {
 // 修改商品价格信息  
 export function updateGoodsPrice(data?: any) {
   return request({
-    url: '/goods/price',
+    url: '/grain-sales/goods/price',
     method: 'put',
     data: data
   });
@@ -84,9 +84,9 @@ export const goodsDelete = (id: any) => {
 
 /**
  * 商品上架下架
- * @param data - 商品状态更新对象，格式: {id: string, status: string}
+ * @param data - 商品状态更新对象，格式: {goodsIds: string[], status: string}
  */
-export const updateGoodsStatus = (data: {id: string, status: string}) => {
+export const updateGoodsStatus = (data: {goodsIds: string[], status: string}) => {
   return request({
     url: '/grain-sales/goods/onAndShelves',
     method: 'put',
