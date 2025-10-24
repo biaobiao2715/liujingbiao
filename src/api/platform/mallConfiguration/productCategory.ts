@@ -1,10 +1,12 @@
 import request from '@/utils/request';
 
 // 商品分类列表
-export function getProductCategoryList() {
+
+export function getProductCategoryList(data = {}) {
   return request({
     url: '/grain-sales/goodsCategory/list',
-    method: 'get'
+    method: 'get',
+    params: data // GET 请求使用 params
   });
 }
 

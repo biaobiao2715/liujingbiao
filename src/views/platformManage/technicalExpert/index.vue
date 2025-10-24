@@ -229,7 +229,11 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   });
 };
 // 初始化
-handleQuery();
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  handleQuery();
+});
 </script>
 
 <style scoped lang="scss">

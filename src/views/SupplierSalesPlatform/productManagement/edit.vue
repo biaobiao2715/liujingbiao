@@ -15,7 +15,9 @@
             <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="60" show-word-limit />
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
+        <el-col :span="12">
+          <!--  -->
+        </el-col>
 
         <el-col :span="12">
           <el-form-item label="商品编码" prop="goodsCode">
@@ -35,7 +37,7 @@
               :props="{
                 emitPath: false,
                 value: 'id',
-                label: 'name',
+                label: 'categoryName',
                 children: 'children'
               }"
             ></el-cascader>
@@ -46,16 +48,16 @@
         <el-col :span="12">
           <el-form-item label="商品品牌" prop="goodsBrandId">
             <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" clearable>
-              <el-option v-for="item in brandOptions" :key="item.id" :label="item.name" :value="item.id" :disabled="!item.status" />
+              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
 
         <el-col :span="12">
-          <el-form-item label="产品保障" prop="goodsEnsureId">
-            <el-select v-model="formData.goodsEnsureId" placeholder="请选择产品保障" style="width: 100%" clearable>
-              <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.name" :value="item.id" />
+          <el-form-item label="产品保障" prop="goodsEnsureIds">
+            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" clearable multiple>
+              <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -63,8 +65,8 @@
 
         <el-col :span="12">
           <el-form-item label="产品功能" prop="goodsAbilityIds">
-            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable>
-              <el-option v-for="item in functionOptions" :key="item.id" :label="item.name" :value="item.id" />
+            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable multiple>
+              <el-option v-for="item in functionOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -83,7 +85,6 @@
               :http-request="uploadFile"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
-              :auto-upload="false"
             >
               <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
             </el-upload>
@@ -110,27 +111,45 @@
       <div class="content-form-title">价格与库存</div>
       <el-row>
         <el-col :span="12">
+          <el-form-item label="库存预警下限" prop="goodsAlert">
+            <el-input v-model="formData.goodsAlert" placeholder="请输入商品库存预警下限" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12"></el-col>
+        <el-col :span="12">
           <el-form-item label="商品规格" prop="goodsSpecification">
-            <el-select v-model="formData.goodsSpecification" placeholder="请选择商品规格" style="width: 100%" clearable>
+            <el-select
+              v-model="formData.goodsSpecification"
+              placeholder="请选择商品规格"
+              style="width: 100%"
+              clearable
+              @change="updateTableGoodsSpecification"
+            >
               <el-option v-for="dict in goods_specification" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="24">
+        <el-col :span="24" v-show="formData.goodsSpecification">
           <div class="form-flex">
             <div class="flex-text">自定义添加规格，以更精准描述产品。</div>
-            <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格</el-button>
+            <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格值</el-button>
           </div>
 
           <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
-            <el-table-column prop="goodsSpecificationValue" label="单位">
+            <el-table-column prop="goodsSpecificationValue" label="单位" align="center">
               <template #header>
-                <span class="required">单位</span>
+                <span class="required" aria-label="必填项">
+                  {{ selectedSpecification(formData.goodsSpecification) }}
+                </span>
               </template>
+
               <template #default="scope">
                 <el-input
                   v-model="scope.row.goodsSpecificationValue"
-                  placeholder="请输入姓名"
+                  placeholder="请输入商品规格值"
+                  type="number"
+                  :min="0"
+                  :max="999999"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsSpecificationValue }"
                 ></el-input>
                 <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsSpecificationValue">
@@ -138,7 +157,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="goodsPrice" label="销售价">
+            <el-table-column prop="goodsPrice" label="销售价" align="center">
               <template #header>
                 <span class="required">销售价</span>
               </template>
@@ -146,20 +165,27 @@
                 <el-input
                   v-model="scope.row.goodsPrice"
                   placeholder="请输入销售价"
+                  type="number"
+                  :min="0"
+                  :max="999999"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 ></el-input>
+
                 <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsPrice">
                   {{ scope.row.errors.goodsPrice }}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="goodsStock" label="可用库存">
+            <el-table-column prop="goodsStock" label="可用库存" align="center">
               <template #header>
                 <span class="required">可用库存</span>
               </template>
               <template #default="scope">
                 <el-input
                   v-model="scope.row.goodsStock"
+                  type="number"
+                  :min="0"
+                  :max="999999"
                   placeholder="请输入可用库存"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsStock }"
                 ></el-input>
@@ -170,8 +196,20 @@
             </el-table-column>
             <el-table-column label="操作" align="center">
               <template v-slot="scope">
-                <!-- 删除 -->
-                <el-button link @click="removeTableCell(scope.$index, scope.row)">删除行</el-button>
+                <!-- 删除按钮仅在数据多于一条时显示 -->
+                <el-button
+                  v-if="hnGoodsSpecificationDataList.length > 1"
+                  v-throttle
+                  link
+                  @click="removeTableCell(scope.$index, scope.row)"
+                  type="primary"
+                >
+                  删除行
+                </el-button>
+                <!-- 启用/禁用 -->
+                <el-button v-throttle link @click="toggleStatus(scope.row)" type="primary">
+                  {{ scope.row.status === 0 ? '启用' : '禁用' }}
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -184,8 +222,8 @@
       <div>
         <el-form-item label="上架状态" prop="status">
           <el-radio-group v-model="formData.status">
-            <el-radio :value="1" size="large">上架</el-radio>
-            <el-radio :value="2" size="large">下架</el-radio>
+            <el-radio value="1" size="large">上架</el-radio>
+            <el-radio value="2" size="large">下架</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="上架时间" prop="launchTime">
@@ -198,9 +236,8 @@
 
       <!-- 按钮 -->
       <el-row type="flex" justify="center" :gutter="5">
-        <el-col :span="3"><el-button v-throttle @click="submitClose">取消</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle type="primary" plain @click="submitForm('1')">暂存</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm('2')">提交</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">提交商品</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle @click="submitClose">返回</el-button></el-col>
       </el-row>
     </el-form>
 
@@ -222,13 +259,16 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
 import { useRoute } from 'vue-router';
-import { ossUploadImage, goodsAdd, goodsUpdate } from '@/api/Supplier/productManagement/product';
+import router from '@/router';
+import { Category } from '@/api/Supplier/productManagement/types'; //ts类型
+import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/Supplier/productManagement/product';
+import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
+import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障+功能+品牌：
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 获取router路由参数
 const route = useRoute();
-const { selID } = route.query;
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
+const { id, copyid } = route.query;
 // 定义 refs
 const refForm = ref<InstanceType<typeof ElForm> | null>(null);
 const refShop = ref();
@@ -251,7 +291,15 @@ let timer: NodeJS.Timeout | null = null;
 const picOpen = ref(false);
 const dialogImageUrl = ref('');
 // 表格数据
-const hnGoodsSpecificationDataList = ref<any[]>([{}]);
+const hnGoodsSpecificationDataList = ref<any[]>([
+  {
+    goodsSpecification: '', //商品规格
+    goodsSpecificationValue: '', //商品规格值
+    goodsPrice: '', //商品价格
+    goodsStock: '', //商品库存
+    status: 1 //状态（0：禁用 1：启用）
+  }
+]);
 // 表单数据
 const formData = ref({
   // 基础信息
@@ -259,16 +307,15 @@ const formData = ref({
   goodsCode: '', //商品编码
   goodsCategoryId: '', //商品类目
   goodsBrandId: '', //商品品牌
-  goodsEnsureId: '', //产品保障
+  goodsEnsureIds: '', //产品保障
   goodsAbilityIds: '', //产品功能
   goodsInfo: '', //商品介绍
   goodsDetail: '', //商品详情
-
-  auditStatus: '',
+  goodsAlert: '', //库存下限
   imagePathMain: '', //主图
 
   // 服务信息
-  status: 1, //上架状态
+  status: '1', //上架状态
   launchTime: '', //上架时间
 
   // 规格
@@ -279,25 +326,25 @@ const formData = ref({
 // 表单校验规则
 const FormRulesarr: FormRules = {
   goodsName: [
-    { required: true, message: '供应商名称不能为空', trigger: 'blur' },
+    { required: true, message: '请输入商品名称，最多支持60个字符，30个汉字。', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
         if (!value || value.trim() === '') {
-          callback(new Error('供应商名称不能为空'));
+          callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
           return;
         }
 
         // 验证长度（100字节）
         if (new Blob([value]).size > 100) {
-          callback(new Error('输入字符超过限制，最多可输入100字节'));
+          callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
           return;
         }
         if (value.length > 60) {
-          callback(new Error('输入字符超过限制，最多可输入60字节'));
+          callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
           return;
         }
         if (value.match(/[\u4e00-\u9fa5]/g).length > 30) {
-          callback(new Error('输入字符超过限制，最多可输入30汉字'));
+          callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
         }
         callback();
       },
@@ -305,18 +352,32 @@ const FormRulesarr: FormRules = {
     }
   ],
   goodsCategoryId: [{ required: true, message: '请选择商品类目', trigger: 'change' }],
+  goodsBrandId: [{ required: true, message: '请选择产品品牌', trigger: 'change' }],
+  goodsEnsureIds: [{ required: true, message: '请选择产品保障', trigger: 'change' }],
   goodsAbilityIds: [{ required: true, message: '请选择产品功能', trigger: 'change' }],
+  goodsInfo: [{ required: true, message: '请输入商品介绍', trigger: 'change' }],
+  goodsDetail: [{ required: true, message: '请输入商品详情', trigger: 'change' }],
+  goodsAlert: [{ required: true, message: '请输入库存预警下限', trigger: 'change' }],
+  goodsSpecification: [{ required: true, message: '请选择商品规格', trigger: 'change' }],
+  status: [{ required: true, message: '请选择上架状态', trigger: 'change' }],
+  launchTime: [{ required: true, message: '请选择上架时间', trigger: 'change' }],
   titleFileList: [
     {
-      required: true,
-      message: '请上传商品主图',
+      validator: (rule: any, value: any, callback: any) => {
+        if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) {
+          callback(new Error('请上传至少一张商品主图'));
+        } else {
+          callback();
+        }
+      },
       trigger: 'change'
     }
-  ]
+  ], // 新增规格值校验规则
+  goodsSpecificationValue: [{ required: true, message: '请输入单位规格', trigger: 'blur' }]
 };
 
-// 方法定义
-const submitForm = (status: string) => {
+// 提交商品
+const submitForm = () => {
   if (!refForm.value) return;
 
   refForm.value.validate((valid: boolean) => {
@@ -324,24 +385,37 @@ const submitForm = (status: string) => {
       return;
     }
 
-    const arr = validateAndSubmit();
-    if (!arr) return;
+    // 规格值表格校验
+    const isValid = validateAndSubmit();
+    if (!isValid) return;
 
-    const newtiem = new Date();
-    const jsonData = {
+    const requestData = {
       ...formData.value,
-      auditStatus: status
+      hnGoodsFilesList: hnGoodsFilesList.value,
+      hnGoodsSpecificationDataList: hnGoodsSpecificationDataList.value.map((spec) => ({
+        goodsSpecification: spec.goodsSpecification,
+        goodsSpecificationValue: spec.goodsSpecificationValue,
+        goodsPrice: parseFloat(spec.goodsPrice),
+        goodsStock: parseInt(spec.goodsStock, 10),
+        status: spec.status
+      }))
     };
+    console.log('提交数据', requestData);
 
-    // status：1-暂存，2-发布
-    if (selID) {
-      // wzfProductReleaseAdd(jsonData).then((response) => {
-      //   ElMessage.success('修改成功');
-      // });
+    if (id) {
+      goodsUpdate(requestData).then(() => {
+        ElMessage.success('修改成功');
+        router.push({
+          path: '/supplier/sales/product/list'
+        });
+      });
     } else {
-      // wzfProductReleaseAdd(jsonData).then((row) => {
-      //   ElMessage.success('新增成功');
-      // });
+      goodsAdd(requestData).then(() => {
+        ElMessage.success('新增成功');
+        router.push({
+          path: '/supplier/sales/product/list'
+        });
+      });
     }
   });
 };
@@ -353,7 +427,11 @@ const submitClose = () => {
     cancelButtonText: '取消',
     type: 'warning'
   })
-    .then(() => {})
+    .then(() => {
+      router.push({
+        path: '/supplier/sales/product/list'
+      });
+    })
     .catch(() => {});
 };
 
@@ -376,55 +454,45 @@ const handleDelete = (file: any) => {
     hnGoodsFilesList.value.splice(findex, 1);
   }
 };
-// 上传
-const uploadFile = (options: any) => {
-  console.log('上传图片', options);
-  // 直接返回上传操作的 Promise
-  return new Promise((resolve, reject) => {
-    imgList.value.push(options.file);
 
+// 上传
+const uploadFile = (file: any) => {
+  return new Promise((resolve, reject) => {
+    // imgList.value.push(file);
+
+    // 防止重复触发，清除已有的定时器
     if (timer) {
       clearTimeout(timer);
-      timer = null;
     }
 
-    timer = setTimeout(function () {
-      uploadedSuccessfully(options.file);
+    // 设置新的定时器
+    timer = setTimeout(() => {
+      processUpload(file, resolve, reject);
     }, 500);
   });
 };
 
-// 上传结束处理
-const uploadedSuccessfully = (file: any) => {
-  // 多张图片上传
-  const arr = imgList.value;
-  const fileData = new FormData();
-
-  arr.forEach((v) => {
-    // fileData.append(`files`, v);
-    fileData.append(`file`, v);
-  });
-
-  ossUploadImage(fileData)
+// 处理上传逻辑
+const processUpload = (file: any, resolve: any, reject: any) => {
+  const fileData = file.file;
+  ossUploadImage({ file: fileData })
     .then((response) => {
-      imgList.value = [];
       const newFile = {
         name: response.data.fileName || '商品主图',
-        remark: '商品主图',
         url: response.data.url,
         fileType: '1',
         ossId: response.data.ossId
       };
-      hnGoodsFilesList.value.push(newFile);
-      // 关闭loading
-      proxy?.$modal.closeLoading();
+
+      hnGoodsFilesList.value.push(newFile); // 添加到文件列表
+      proxy?.$modal.closeLoading(); // 关闭 loading
+      resolve(newFile); // 上传成功，调用 resolve
     })
-    .catch((res) => {
-      imgList.value = [];
-      // 关闭loading
-      proxy?.$modal.closeLoading();
-      ElMessage.error(res.msg);
-      refShop.value.handleRemove(file);
+    .catch((error) => {
+      proxy?.$modal.closeLoading(); // 关闭 loading
+      ElMessage.error(error.msg || '文件上传失败，请重试'); // 显示错误信息
+      refShop.value.handleRemove(file); // 移除失败的文件
+      reject(error); // 上传失败，调用 reject
     });
 };
 
@@ -468,7 +536,13 @@ const handleBeforeUpload = (file: any) => {
 
 // table新增
 const addTableCell = () => {
-  hnGoodsSpecificationDataList.value.push({});
+  hnGoodsSpecificationDataList.value.push({
+    goodsSpecification: formData.value.goodsSpecification, //商品规格
+    goodsSpecificationValue: '', //商品规格值
+    goodsPrice: '', //商品价格
+    goodsStock: '', //商品库存
+    status: 1 //状态（0：禁用 1：启用）
+  });
 };
 
 // table删除
@@ -486,7 +560,7 @@ const removeTableCell = (index: number, row: any) => {
 
 /**
  * 验证规格信息
- * @param contact - 包含联系人信息的对象，包含姓名、身份证号和电话等字段
+ * @param contact - 包含联系人信息的对象
  * @returns 包含验证错误信息的对象，如果没有错误则返回空对象
  */
 const validateContact = (contact: any) => {
@@ -494,16 +568,21 @@ const validateContact = (contact: any) => {
 
   // 单位（必填）
   if (!contact.goodsSpecificationValue || contact.goodsSpecificationValue.trim() === '') {
-    errorsValue.goodsSpecificationValue = '请输入姓名';
+    errorsValue.goodsSpecificationValue = '请输入单位规格';
   }
 
-  // 销售价（必填）
-  if (!contact.goodsPrice || contact.goodsPrice.trim() === '') {
-    errorsValue.goodsPrice = '请输入姓名';
+  // 销售价（必填且必须为大于0的数字）
+  if (!contact.goodsPrice) {
+    errorsValue.goodsPrice = '请输入销售价';
+  } else if (isNaN(contact.goodsPrice) || parseFloat(contact.goodsPrice) <= 0) {
+    errorsValue.goodsPrice = '销售价必须为大于0的数字';
   }
-  // 可用库存（必填）
-  if (!contact.goodsStock || contact.goodsStock.trim() === '') {
-    errorsValue.goodsStock = '请输入姓名';
+
+  // 可用库存（必填且必须为非负整数）
+  if (!contact.goodsStock) {
+    errorsValue.goodsStock = '请输入可用库存';
+  } else if (!Number.isInteger(Number(contact.goodsStock)) || parseInt(contact.goodsStock, 10) < 0) {
+    errorsValue.goodsStock = '可用库存必须为非负整数';
   }
 
   return errorsValue;
@@ -525,6 +604,14 @@ const validateAndSubmit = () => {
     }
   });
 
+  // 检查是否所有联系人都被禁用
+  const allDisabled = hnGoodsSpecificationDataList.value.length > 0 && hnGoodsSpecificationDataList.value.every((contact) => contact.status == 0);
+
+  if (allDisabled) {
+    proxy?.$modal.msgError('必须启用至少一个规格');
+    return false;
+  }
+
   if (isValid) {
     return true;
   } else {
@@ -532,56 +619,71 @@ const validateAndSubmit = () => {
     return false;
   }
 };
+// 表格中规格行的单位显示
+const selectedSpecification = (value: string) => {
+  const dict = goods_specification.value.find((item: any) => item.value === value);
+  return dict ? dict.label : '';
+};
+
+/**
+ * 更新表格中所有行的商品规格
+ * @param selectedSpecification - 用户选择的商品规格
+ */
+const updateTableGoodsSpecification = (selectedSpecification: string) => {
+  hnGoodsSpecificationDataList.value.forEach((item) => {
+    item.goodsSpecification = selectedSpecification; // 更新每一行的商品规格
+  });
+};
+
+// 切换行的启用/禁用状态
+const toggleStatus = (row: any) => {
+  row.status = row.status === 1 ? 0 : 1; // 切换状态（1：启用，0：禁用）
+};
 
 // 生命周期钩子
-onMounted(() => {
-  // 模拟商品分组数据
-  creditList.value = [
-    {
-      id: 1,
-      name: '商品分类1',
-      children: [
-        { id: 1, name: '商品分类1-1' },
-        { id: 2, name: '商品分类1-2' },
-        { id: 3, name: '商品分类1-3' }
-      ]
-    },
-    {
-      id: 1,
-      name: '商品分类2',
-      children: [
-        { id: 1, name: '商品分类2-1' },
-        { id: 2, name: '商品分类2-2' },
-        { id: 3, name: '商品分类2-3' }
-      ]
+onMounted(async () => {
+  const response = await getProductCategoryList({ status: '0' });
+  console.log('creditList', response);
+  if (response.code === 200) {
+    creditList.value = proxy?.handleTree<Category>(response.data, 'id');
+  }
+
+  await goodsAttributesAllList().then((res) => {
+    console.log('商品保障+功能+品牌', res);
+    // 模拟保障数据
+    guaranteeOptions.value = res.guaranteeList;
+
+    // 模拟品牌数据
+    brandOptions.value = res.brandList;
+
+    // 模拟功能数据
+    functionOptions.value = res.functionList;
+  });
+
+  if (id || copyid) {
+    const ids = id || copyid;
+    const detailResponse = await goodsId(ids as string); // 调用详情接口
+    if (detailResponse.code === 200) {
+      const data = detailResponse.data;
+      if (copyid) {
+        delete data.id;
+        delete data.enterpriseId;
+        delete data.goodsCode;
+      }
+      console.log('商品详情数据', data);
+      formData.value = {
+        ...data
+      };
+
+      hnGoodsFilesList.value = data.sysOssLists.map((file) => ({
+        name: file.originalName || '商品主图',
+        url: file.url,
+        fileType: '1',
+        ossId: file.ossId,
+        path: file.url
+      }));
+      hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
     }
-  ];
-
-  // 模拟品牌数据
-  brandOptions.value = [
-    { id: 1, name: '品牌A', status: true },
-    { id: 2, name: '品牌B', status: true },
-    { id: 3, name: '品牌C', status: false }
-  ];
-
-  // 模拟保障数据
-  guaranteeOptions.value = [
-    { id: 1, name: '保障1' },
-    { id: 2, name: '保障2' }
-  ];
-
-  // 模拟功能数据
-  functionOptions.value = [
-    { id: 1, name: '功能1' },
-    { id: 2, name: '功能2' },
-    { id: 3, name: '功能3' }
-  ];
-
-  if (selID) {
-    // wzfProductReleaseId(selID).then((response) => {
-    //   formData.value = response.data;
-    //   attrListClick(); //其他属性进行 更改
-    // });
   }
 });
 </script>
@@ -689,19 +791,12 @@ onMounted(() => {
   z-index: 1;
 }
 
-.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.uploading {
-  background-color: #2d6cf5;
-}
-
-.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.failed {
-  background-color: #f56c6c;
-}
-
-.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label.success {
-  background-color: #67c23a;
-}
-
-.el-upload-list--picture-card .el-upload-list__item .el-upload-list__item-status-label:hover {
-  opacity: 0.8;
+.validation-errors {
+  color: #f56c6c;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+  min-height: 18px;
+  text-align: left;
 }
 </style>

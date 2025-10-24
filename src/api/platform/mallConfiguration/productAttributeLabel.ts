@@ -8,6 +8,14 @@ export function getProductAttributesList(data: any) {
     params: data
   });
 }
+// 商品属性所有数据 保障+功能+品牌：
+export function goodsAttributesAllList(data: Record<string, any> = {}) {
+  return request({
+    url: '/grain-sales/goodsAttributes/allList',
+    method: 'get',
+    params: data
+  });
+}
 
 // 商品属性详情
 export function getProductAttributeDetail(id: number) {

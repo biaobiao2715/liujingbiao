@@ -327,14 +327,14 @@ enum idTypeEnum {
   legal = 'fwzjId'
 }
 const initFormData: FormData = {
-  companyName: '武汉中兴悦达财务有限公司',
-  signUpCapital: '1111',
-  licenseNumber: '91420105066800342M',
-  signUpAddress: '南京市浦口区星火路地铁站',
+  companyName: '',
+  signUpCapital: '',
+  licenseNumber: '',
+  signUpAddress: '',
   signUpTime: '',
-  businessScope: '会计咨询：代理记账：企业事务代理：文化艺术交流活动组织、策\n划：企业管理咨询：教育咨询',
-  legalPerson: '刘义刀',
-  officeAddress: '南京市浦口区星火路地铁站动漫大厦',
+  businessScope: '',
+  legalPerson: '',
+  officeAddress: '',
   loginUserName: '',
   phoneNumber: '',
   smsCode: '',
@@ -623,16 +623,10 @@ getPurchaserTypeDict('contact_user_type').then((res) => {
 // 供应商联系人
 const tableList = ref<Contact[]>([
   {
-    contactUserType: '1',
-    contactUserName: '刘义刀',
+    contactUserType: '',
+    contactUserName: '',
     contactIdCard: '',
-    contactPhone: '17839305536'
-  },
-  {
-    contactUserType: '0',
-    contactUserName: '刘义手',
-    contactIdCard: '',
-    contactPhone: '17839305536'
+    contactPhone: ''
   }
 ]);
 

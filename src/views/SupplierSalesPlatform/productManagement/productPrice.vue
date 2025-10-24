@@ -166,11 +166,6 @@ const handleReset = () => {
   getTableData();
 };
 
-// 处理表格复选框选择事件
-const handleSelectionChange = (rows) => {
-  selectedRows.value = rows;
-};
-
 // 导出按钮操作
 const handleExport = async () => {
   if (selectedRows.value.length === 0) {
@@ -237,6 +232,26 @@ const getProductBrandList = async () => {
     loading.value = false;
   }
 };
+
+// 查询按钮事件
+const onQuery = () => {
+  console.log('查询表单数据:', queryParams.value);
+  getTableData();
+};
+
+// 处理表格复选框选择事件
+const handleSelectionChange = (rows) => {
+  selectedRows.value = rows;
+};
+
+onMounted(() => {
+  getTableData();
+});
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getTableData();
+});
 </script>
 
 <style scoped lang="scss">

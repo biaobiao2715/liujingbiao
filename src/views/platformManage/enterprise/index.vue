@@ -179,7 +179,8 @@ const isReviewProcessed = (row) => {
   return !(row.reviewStatus == 0);
 };
 
-onMounted(() => {
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
   getList();
 });
 </script>

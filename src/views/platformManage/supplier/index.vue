@@ -126,7 +126,8 @@ const tableData = ref([]);
 // 表格加载状态
 const loading = ref(false);
 
-onMounted(() => {
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
   getTableData();
 });
 

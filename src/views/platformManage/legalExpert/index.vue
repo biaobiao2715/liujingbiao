@@ -172,8 +172,10 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   });
 };
 
-// 初始化
-getList();
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
 </script>
 
 <style scoped lang="scss">

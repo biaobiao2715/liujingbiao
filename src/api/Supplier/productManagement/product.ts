@@ -73,20 +73,20 @@ export const goodsDelete = (id: any) => {
   });
 };
 
-// 图片上传方法
-
 /**
  * 图片上传方法
- * @param data - 包含文件的对象
+ * @param data - 包含文件的对象，需包含 `file` 属性
  * @returns 图片上传结果的 Promise
  */
-export const ossUploadImage = (data) => {
+export const ossUploadImage = (data: { file: File }) => {
+  const formData = new FormData();
+  formData.append('file', data.file);
+
   return request({
-    url: '/oss/upload',
+    url: '/resource/oss/upload',
     method: 'post',
-    data: data,
+    data: formData,
     headers: {
-      isToken: false,
       'Content-Type': 'multipart/form-data'
     }
   });
