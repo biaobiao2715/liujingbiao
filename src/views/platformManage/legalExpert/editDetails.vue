@@ -222,7 +222,7 @@ const handleAudit = async (status: '99' | '1') => {
         reviewStatus: status
       },
       folder: formData.value.hnBaseRegisterFolderVoList,
-      optType: status
+      optType: '3'
     });
 
     if (res.code === 200) {

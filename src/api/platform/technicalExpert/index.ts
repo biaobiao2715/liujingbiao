@@ -21,17 +21,16 @@ export const getTechnicalExpertList = (query?: TechnicalExpertListRequest): Prom
 };
 
 interface TechUpdateOrSaveDataRequest {
-  /**
-   * 操作类型（审核状态）
-   * 0：待审核
-   * 1：审核通过
-   * 2：分配账号
-   * 3：分配权限
-   * 4：入驻成功
-   * 99：入驻失败
+ /**
+   * 操作类型
+   * 1：注册
+   * 2：修改
+   * 3：审核
+   * 4：启用
+   * 5：停用
    */
-  optType: '0' | '1' | '2' | '3' | '4' | '99';
-  hnBaseTechExpertInfoBo?: {  // 修复：将 hnBaseLegalExpertInfoBo 改为 hnBaseTechExpertInfoBo
+  optType: '1' | '2' | '3' | '4' | '5';
+  hnBaseTechExpertInfoBo?: {
     expertName?: string;
     sex?: '0' | '1';
     birthDate?: string;
@@ -39,7 +38,7 @@ interface TechUpdateOrSaveDataRequest {
     major?: string;
     startStopStatus?: '0' | '1';
     id?: number;
-    reviewStatus?: '0' | '1' | '2' | '3' | '4' | '99';
+    reviewStatus?: '99' | '1' | '2' | '3' | '4';
   };
 }
 

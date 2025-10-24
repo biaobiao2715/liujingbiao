@@ -18,8 +18,9 @@
           <el-form-item label="专家编号" prop="expertNumber">
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="入驻日期" prop="registrationTime">
-            <el-date-picker v-model="queryParams.registrationTime" type="date" placeholder="请选择" value-format="YYYY-MM-DD" clearable />
+          <el-form-item label="入驻时间">
+            <el-date-picker v-model="queryParams.registrationTime" type="daterange" value-format="YYYY-MM-DD"
+              range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" />
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
             <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>

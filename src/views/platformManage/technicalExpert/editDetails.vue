@@ -244,7 +244,7 @@ const handleAudit = async (status: '99' | '1') => {
         reviewStatus: status
       },
       folder: formData.value.hnBaseRegisterFolderVoList,
-      optType: status
+      optType: '3'
     });
     if (res.code === 200) {
       ElMessage.success(status === '99' ? '审核退回成功' : '审核通过成功');
