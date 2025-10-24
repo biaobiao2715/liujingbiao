@@ -6,6 +6,7 @@ export interface DictDataQuery extends PageQuery {
 
 // 定义表单数据类型
 export interface FormData {
+  id?: string;
   companyName: string;
   signUpCapital: string;
   licenseNumber: string;

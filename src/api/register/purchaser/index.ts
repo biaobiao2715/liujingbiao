@@ -21,9 +21,10 @@ export function registerPurchaser(data?: any) {
 }
 
 // 检查手机号是否唯一
-export function checkPhoneUnique(phoneNumber?: string) {
+export function checkPhoneUnique(phoneNumber?: string, params?: { [key: string]: string }) {
   return request({
     url: `/system/user/check-unique/${phoneNumber}`,
-    method: 'get'
+    method: 'get',
+    params
   });
 }

@@ -20,12 +20,13 @@
           </el-form-item>
           <el-form-item label="入驻时间">
             <el-date-picker
-              v-model="queryParams.registrationTime"
+              v-model="registrationTime"
               type="daterange"
               value-format="YYYY-MM-DD"
               range-separator=" - "
               start-placeholder="开始时间"
               end-placeholder="结束时间"
+              @change="handleSelectDate"
             />
           </el-form-item>
           <el-form-item label="审核状态" prop="auditStatus">
@@ -113,10 +114,11 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
 );
 // console.log('review_status', review_status);
 // 查询参数
+const registrationTime = ref<Array<string>>([]);
 const queryParams = reactive<TechnicalExpertListRequest>({
   expertName: '',
-  registrationTime: '',
-  reviewEntTime: '',
+  registrationTime: [],
+  reviewEndTime: '',
   reviewStatus: '',
   pageNum: 1,
   pageSize: 10
@@ -179,7 +181,10 @@ const reviewStatusMap = {
 };
 const getList = () => {
   loading.value = true;
-  getTechnicalExpertList(queryParams)
+  getTechnicalExpertList({
+    ...queryParams,
+    registrationTime: undefined
+  })
     .then((res) => {
       if (res.code === 200) {
         list.value = res.rows || [];
@@ -198,36 +203,20 @@ const handleQuery = () => {
 
 // 重置
 const resetQuery = () => {
+  registrationTime.value = [];
   queryParams.expertName = '';
-  queryParams.registrationTime = '';
-  queryParams.reviewEntTime = '';
+  queryParams.reviewStartTime = '';
+  queryParams.reviewEndTime = '';
   queryParams.reviewStatus = '';
   queryParams.expertNumber = '';
   queryParams.pageNum = 1;
   handleQuery();
 };
 
-// // 操作
-// const toggleEnabled = async (row: TechnicalExpertList) => {
-//   if (loadingStatus.value || !row.id) return;
-//   loadingStatus.value = true;
-//   // 停用：0 -> 1
-//   // 启用：1 -> 0
-//   // 是否启用
-//   const isEnabled = row.startStopStatus === '1';
-//   const res = await techUpdateOrSaveData({
-//     optType: isEnabled ? '5' : '4',
-//     hnBaseTechExpertInfoBo: {
-//       id: row.id
-//     }
-//   }).finally(() => {
-//     loadingStatus.value = false;
-//   });
-//   if (res.data) {
-//     row.startStopStatus = isEnabled ? '0' : '1';
-//     proxy?.$modal.msgSuccess(isEnabled ? '已启用' : '已停用');
-//   }
-// };
+const handleSelectDate = (val: any) => {
+  queryParams.reviewStartTime = val?.[0] || '';
+  queryParams.reviewEndTime = val?.[1] || '';
+};
 
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数

@@ -144,14 +144,16 @@ export interface TechnicalExpertListRequest extends IPublicRequest {
    * 技术专家姓名
    */
   expertName?: string;
+  
   /**
    * 入驻时间
    */
-  registrationTime?: string;
+  registrationTime: string[];
+  reviewStartTime?: string;
   /**
-   * 入驻结束时间
+   * 审核结束时间
    */
-  reviewEntTime?: string;
+  reviewEndTime?: string;
   /**
    * 审核状态
    * 0：待审核

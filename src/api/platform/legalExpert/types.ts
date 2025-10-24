@@ -149,7 +149,9 @@ export interface LegalExpertListRequest extends IPublicRequest {
   /**
    * 入驻时间
    */
-  registrationTime?: string;
+  registrationTime?: Array<string>;
+  reviewStartTime?: string;
+  reviewEndTime?: string;
   /**
    * 审核状态
    * 0：待审核

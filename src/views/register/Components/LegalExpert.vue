@@ -238,7 +238,13 @@ import { isAccountExist } from '@/api/login'; //账号获取详情信息
 const emit = defineEmits(['nextStep']); // 定义事件
 const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
+const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目前直接传null】,qyId【企业或者供应商id】,jszjId【技术专家id】,fwzjId【法务专家id】  如果响应的二次入驻的页面有对应的id存在，就传对应的id就行
+enum idTypeEnum {
+  sysUserId = null,
+  supplier = 'qyId',
+  expert = 'jszjId',
+  legal = 'fwzjId'
+}
 // 表单数据
 // 可选 字段
 const form: LegalExpert = {
@@ -411,7 +417,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
-        checkPhoneUnique(value)
+        checkPhoneUnique(value, { [idTypeEnum[idType.value]]: formData.value?.id })
           .then((res) => {
             if (res.code === 200) {
               callback();
@@ -629,6 +635,7 @@ onMounted(async () => {
   // 获取router路由参数
   const route = useRoute();
   const { phoneNumber, type } = route.query;
+  idType.value = type;
   if (phoneNumber) {
     const phone = Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber;
     const arr: any = await isAccountExist(phone);

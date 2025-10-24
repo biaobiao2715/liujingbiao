@@ -20,12 +20,13 @@
           </el-form-item>
           <el-form-item label="入驻时间">
             <el-date-picker
-              v-model="queryParams.registrationTime"
+              v-model="registrationTime"
               type="daterange"
               value-format="YYYY-MM-DD"
               range-separator=" - "
               start-placeholder="开始时间"
               end-placeholder="结束时间"
+              @change="handleSelectDate"
             />
           </el-form-item>
           <el-form-item label="审核状态" prop="reviewStatus">
@@ -110,12 +111,15 @@ const total = ref(0);
 const queryFormRef = ref<ElFormInstance>();
 const tableRef = ref<ElTableInstance>();
 
+const registrationTime = ref<Array<string>>([]);
+
 const queryParams = ref<LegalExpertListRequest>({
   pageNum: 1,
   pageSize: 10,
   expertName: '',
   expertNumber: '',
-  registrationTime: '',
+  reviewStartTime: '',
+  reviewEndTime: '',
   reviewStatus: ''
 });
 
@@ -140,13 +144,20 @@ const handleQuery = () => {
 // 重置
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
+  registrationTime.value = [];
   queryParams.value.expertName = '';
   queryParams.value.expertNumber = '';
-  queryParams.value.registrationTime = '';
+  queryParams.value.reviewStartTime = '';
+  queryParams.value.reviewEndTime = '';
   queryParams.value.reviewStatus = '';
   queryParams.value.pageNum = 1;
   queryParams.value.pageSize = 10;
   handleQuery();
+};
+
+const handleSelectDate = (val: Array<string>) => {
+  queryParams.value.reviewStartTime = val?.[0] || '';
+  queryParams.value.reviewEndTime = val?.[1] || '';
 };
 
 // 操作
