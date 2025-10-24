@@ -77,10 +77,18 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="销售价" align="center" prop="companyName" />
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryId" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="预警下限" align="center" prop="goodsAlert"></el-table-column>
-      <el-table-column label="提醒" align="center" prop="remind" width="100"></el-table-column>
+      <el-table-column label="销售价" align="center" prop="salesPrice">
+        <template #default="scope">
+          <span>{{ getSalesPrice(scope.row) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品类目" align="center" prop="goodsCategoryId" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <span>{{ getCategoryName(scope.row.goodsCategoryId) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预警下限" align="center" prop="goodsAlert"> </el-table-column>
+      <el-table-column label="提醒" align="center" prop="remind"> </el-table-column>
       <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
           <dict-tag :options="goods_status" :value="scope.row.status" />
@@ -91,7 +99,7 @@
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
           <!-- 详情按钮 -->
           <el-button v-throttle type="primary" @click="handleDetails(scope.row)">详情</el-button>
@@ -195,8 +203,9 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
+
 import router from '@/router';
-import { goodsList, goodsDelete, updateGoodsStatus, updateGoodsPrice, goodsId } from '@/api/Supplier/productManagement/product';
+import { goodsList , goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -235,6 +244,29 @@ const priceDialogVisible = ref(false);
 const currentProduct = ref<any>({});
 const productSpecs = ref<any[]>([]);
 const priceSaving = ref(false);
+
+// 商品类目相关
+const categoryList = ref<any[]>([]);
+const categoryMap = ref<Record<string, string>>({});
+
+/** 获取商品类目列表 */
+const getCategoryList = async () => {
+  try {
+    const response = await getProductCategoryList();
+    if (response && response.code === 200) {
+      categoryList.value = response.data || response.rows || [];
+      // 构建类目ID到名称的映射
+      categoryMap.value = {};
+      categoryList.value.forEach(category => {
+        categoryMap.value[category.id] = category.categoryName || category.name;
+      });
+      console.log('商品类目列表:', categoryList.value);
+      console.log('类目映射:', categoryMap.value);
+    }
+  } catch (error) {
+    console.error('获取商品类目失败:', error);
+  }
+};
 
 /** 查询企业列表 */
 const getList = async () => {
@@ -337,8 +369,8 @@ const handleShelf = () => {
   }
 
   // 检查目标商品是否都是下架状态（上架操作只能对下架状态的商品进行）
-  // 状态 '0' 表示上架，'1' 表示下架，所以上架操作需要检查状态不是 '0'
-  const invalidRows = targetRows.filter((row) => row.status === '0');
+  // 状态 '0' 表示下架，'1' 表示上架，所以上架操作需要检查状态是 '0'
+  const invalidRows = targetRows.filter((row) => row.status === '1');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已上架的商品，无法重复上架`);
     return;
@@ -353,7 +385,7 @@ const handleShelf = () => {
       // 批量上架 - 使用正确的数据格式
       const shelfData = {
         goodsIds: targetIds, // 商品ID数组
-        status: '0' // 0表示上架
+        status: '1' // 1表示上架
       };
 
       console.log('上架数据:', shelfData);
@@ -394,8 +426,8 @@ const handleUnshelf = () => {
   }
 
   // 检查目标商品是否都是上架状态（下架操作只能对上架状态的商品进行）
-  // 状态 '0' 表示上架，'1' 表示下架，所以下架操作需要检查状态是 '0'
-  const invalidRows = targetRows.filter((row) => row.status !== '0');
+  // 状态 '0' 表示下架，'1' 表示上架，所以下架操作需要检查状态是 '1'
+  const invalidRows = targetRows.filter((row) => row.status !== '1');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已下架的商品，无法重复下架`);
     return;
@@ -410,7 +442,7 @@ const handleUnshelf = () => {
       // 批量下架 - 使用正确的数据格式
       const unshelfData = {
         goodsIds: targetIds, // 商品ID数组
-        status: '1' // 1表示下架
+        status: '0' // 0表示下架
       };
 
       console.log('下架数据:', unshelfData);
@@ -435,6 +467,30 @@ const handleUnshelf = () => {
     .catch(() => {
       ElMessage.info('下架操作已取消');
     });
+};
+
+// 获取类目名称
+const getCategoryName = (categoryId) => {
+  if (!categoryId) return '--';
+  return categoryMap.value[categoryId] || '未知类目';
+};
+
+// 获取销售价（拼接所有规格的价格）
+const getSalesPrice = (row) => {
+  if (!row.hnGoodsSpecificationDataList || row.hnGoodsSpecificationDataList.length === 0) {
+    return '--';
+  }
+  
+  // 提取所有规格的价格并用"-"拼接
+  const prices = row.hnGoodsSpecificationDataList
+    .map(spec => spec.goodsPrice || 0)
+    .filter(price => price > 0);
+  
+  if (prices.length === 0) {
+    return '--';
+  }
+  
+  return prices.join('-');
 };
 
 const handleAdd = () => {
@@ -601,11 +657,24 @@ const handleEdit = (row: any) => {
 
 //导出按钮事件
 const handleExport = () => {
+  // 构建导出参数
+  const exportParams = {
+    ...queryParams.value // 传递查询参数
+  };
+  
+  // 如果有选中的商品，传入选中的ID
+  if (selectedIds.value.length > 0) {
+    exportParams.ids = selectedIds.value.join(','); // 多个ID用逗号拼接
+    ElMessage.info(`将导出选中的${selectedIds.value.length}个商品`);
+  } else {
+    ElMessage.info('将导出当前查询条件下的所有商品');
+  }
+  
+  console.log('导出参数:', exportParams);
+  
   proxy?.download(
     '/grain-sales/goods/export', // 导出接口地址
-    {
-      ...queryParams.value // 传递查询参数
-    },
+    exportParams,
     `goods_${new Date().getTime()}.xlsx` // 文件名格式
   );
 };
@@ -615,7 +684,10 @@ const isPendingReview = (row) => {
 };
 
 // 页面加载时获取列表数据
-onMounted(() => {
+onMounted(async () => {
+  // 先获取商品类目列表
+  await getCategoryList();
+  // 再获取商品列表
   getList();
 });
 
