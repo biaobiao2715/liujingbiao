@@ -13,6 +13,15 @@ export function goodsList(query?: any) {
   });
 }
 
+// 修改商品价格信息  
+export function updateGoodsPrice(data?: any) {
+  return request({
+    url: '/goods/price',
+    method: 'put',
+    data: data
+  });
+}
+
 // 获取商品信息详细信息
 export function goodsId(id?: string) {
   return request({
@@ -72,6 +81,21 @@ export const goodsDelete = (id: any) => {
     method: 'delete'
   });
 };
+
+/**
+ * 商品上架下架
+ * @param data - 商品状态更新对象，格式: {id: string, status: string}
+ */
+export const updateGoodsStatus = (data: {id: string, status: string}) => {
+  return request({
+    url: '/grain-sales/goods/onAndShelves',
+    method: 'put',
+    data: data
+  });
+};
+
+
+// 图片上传方法
 
 /**
  * 图片上传方法

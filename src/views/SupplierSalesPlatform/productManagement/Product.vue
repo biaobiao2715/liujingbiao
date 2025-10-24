@@ -52,19 +52,14 @@
         <el-button v-throttle type="primary" @click="handleDelete">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleSearch">上架</el-button>
+        <el-button v-throttle type="primary" @click="handleShelf">上架</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleSearch">下架</el-button>
+        <el-button v-throttle type="primary" @click="handleUnshelf">下架</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="handleExport">导出</el-button>
       </el-col>
-
-      <!-- <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleSearch">价格设定</el-button>
-      </el-col> -->
-
       <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
       </el-col>
@@ -89,7 +84,7 @@
       <el-table-column label="提醒" align="center" prop="licenseNumber"> </el-table-column>
       <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.status" />
+          <span>{{ getStatusText(scope.row.status) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="createTime" min-width="160">
@@ -117,9 +112,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 import router from '@/router';
-import { ref } from 'vue';
-import { goodsList, goodsDelete } from '@/api/Supplier/productManagement/product';
+import { goodsList , goodsDelete, updateGoodsStatus } from '@/api/Supplier/productManagement/product';
+
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
@@ -150,7 +146,8 @@ const queryFormRef = ref();
 const dateRange = ref(['', '']);
 // 是否显示搜索
 const showSearch = ref(true);
-const selectedIds = ref([]); // 选中的行ID数组
+const selectedIds = ref([]);// 选中的行ID数组
+const selectedRows = ref([]);// 选中的行数据数组
 
 /** 查询企业列表 */
 const getList = () => {
@@ -187,10 +184,11 @@ const handleReset = () => {
 
 // 表格选择变化事件
 const handleSelectionChange = (selection) => {
-  selectedIds.value = selection.map((item) => item.id);
+  selectedIds.value = selection.map(item => item.id);
+  selectedRows.value = selection;
 };
 
-// 删除按钮事件 - 修改为支持批量删除
+// 删除按钮事件
 const handleDelete = () => {
   // 批量删除 - 使用选中的行
   if (selectedIds.value.length === 0) {
@@ -202,31 +200,132 @@ const handleDelete = () => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  })
-    .then(() => {
-      // 批量删除 - 逐个调用删除接口
-      const deletePromises = selectedIds.value.map((id) => goodsDelete(id));
-
-      Promise.all(deletePromises)
-        .then((results) => {
-          const successCount = results.filter((res) => res.code === 200).length;
-          if (successCount > 0) {
-            ElMessage.success(`成功删除${successCount}个商品`);
-            getList();
-            // 清空选中状态
-            selectedIds.value = [];
-          }
-          if (successCount < selectedIds.value.length) {
-            ElMessage.warning(`部分删除失败，共删除${successCount}/${selectedIds.value.length}个商品`);
-          }
-        })
-        .catch((error) => {
-          ElMessage.error('删除操作失败');
-        });
-    })
-    .catch(() => {
-      ElMessage.info('删除操作已取消');
+  }).then(() => {
+    // 批量删除 - 逐个调用删除接口
+    const deletePromises = selectedIds.value.map(id => goodsDelete(id));
+    
+    Promise.all(deletePromises).then(results => {
+      const successCount = results.filter(res => res.code === 200).length;
+      if (successCount > 0) {
+        ElMessage.success(`成功删除${successCount}个商品`);
+        getList();
+        // 清空选中状态
+        selectedIds.value = [];
+        selectedRows.value = [];
+      }
+      if (successCount < selectedIds.value.length) {
+        ElMessage.warning(`部分删除失败，共删除${successCount}/${selectedIds.value.length}个商品`);
+      }
+    }).catch(error => {
+      ElMessage.error('删除操作失败');
     });
+  }).catch(() => {
+    ElMessage.info('删除操作已取消');
+  });
+};
+
+// 上架按钮事件
+const handleShelf = () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要上架的商品');
+    return;
+  }
+  
+  // 检查选中的商品是否都是下架状态（上架操作只能对下架状态的商品进行）
+  // 状态 '0' 表示上架，'1' 表示下架，所以上架操作需要检查状态不是 '0'
+  const invalidRows = selectedRows.value.filter(row => row.status === '0');
+  if (invalidRows.length > 0) {
+    ElMessage.warning(`选中的商品中包含已上架的商品，无法重复上架`);
+    return;
+  }
+  
+  ElMessageBox.confirm(`确定要将选中的${selectedIds.value.length}个商品上架吗？`, '上架确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    // 批量上架 - 逐个调用API，传入单个对象
+    const shelfPromises = selectedIds.value.map(id => 
+      updateGoodsStatus({ id: id, status: '0' }) // 0表示上架
+    );
+    
+    Promise.all(shelfPromises).then(results => {
+      const successCount = results.filter(res => res.code === 200).length;
+      if (successCount > 0) {
+        ElMessage.success(`成功上架${successCount}个商品`);
+        getList();
+        // 清空选中状态
+        selectedIds.value = [];
+        selectedRows.value = [];
+      }
+      if (successCount < selectedIds.value.length) {
+        ElMessage.warning(`部分上架失败，共上架${successCount}/${selectedIds.value.length}个商品`);
+      }
+    }).catch(error => {
+      console.error('上架操作失败:', error);
+      ElMessage.error('上架操作失败');
+    });
+  }).catch(() => {
+    ElMessage.info('上架操作已取消');
+  });
+};
+
+// 下架按钮事件
+const handleUnshelf = () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要下架的商品');
+    return;
+  }
+  
+  // 检查选中的商品是否都是上架状态（下架操作只能对上架状态的商品进行）
+  // 状态 '0' 表示上架，'1' 表示下架，所以下架操作需要检查状态是 '0'
+  const invalidRows = selectedRows.value.filter(row => row.status !== '0');
+  if (invalidRows.length > 0) {
+    ElMessage.warning(`选中的商品中包含已下架的商品，无法重复下架`);
+    return;
+  }
+  
+  ElMessageBox.confirm(`确定要将选中的${selectedIds.value.length}个商品下架吗？`, '下架确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    // 批量下架 - 逐个调用API，传入单个对象
+    console.log('下架操作，选中的商品IDs:', selectedIds.value);
+    console.log('下架操作，选中的商品数据:', selectedRows.value);
+    const unshelfPromises = selectedIds.value.map(id => {
+      console.log(`下架商品ID: ${id}, 状态: 1`);
+      return updateGoodsStatus({ id: id, status: '1' }); // 1表示下架
+    });
+    
+    Promise.all(unshelfPromises).then(results => {
+      const successCount = results.filter(res => res.code === 200).length;
+      if (successCount > 0) {
+        ElMessage.success(`成功下架${successCount}个商品`);
+        getList();
+        // 清空选中状态
+        selectedIds.value = [];
+        selectedRows.value = [];
+      }
+      if (successCount < selectedIds.value.length) {
+        ElMessage.warning(`部分下架失败，共下架${successCount}/${selectedIds.value.length}个商品`);
+      }
+    }).catch(error => {
+      console.error('下架操作失败:', error);
+      ElMessage.error('下架操作失败');
+    });
+  }).catch(() => {
+    ElMessage.info('下架操作已取消');
+  });
+};
+
+//表格状态字典映射
+const getStatusText = (status) => {
+  const statusMap = {
+    '0': '上架',
+    '1': '下架',
+  };
+  return statusMap[status] || '';
 };
 
 const handleAdd = () => {
