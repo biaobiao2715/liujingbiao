@@ -20,6 +20,7 @@ export function exportGoodsPriceHistory(data: any) {
   return request({
     url: '/grain-sales/goodsPriceHistory/export',
     method: 'post',
+    responseType: 'blob',
     data
   });
 }

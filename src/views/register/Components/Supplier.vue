@@ -322,6 +322,7 @@ const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目�
 enum idTypeEnum {
   sysUserId = null,
   supplier = 'qyId',
+  enterprise = 'qyId',
   expert = 'jszjId',
   legal = 'fwzjId'
 }
@@ -455,7 +456,7 @@ const FormRulesarr: FormRules = {
       trigger: 'blur'
     }
   ],
-  areaCodes: { required: true, message: '注册日期不能为空', trigger: 'blur' },
+  areaCodes: { required: true, message: '注册地址不能为空', trigger: 'blur' },
   signUpTime: [
     { required: true, message: '注册日期不能为空', trigger: 'blur' },
     {
