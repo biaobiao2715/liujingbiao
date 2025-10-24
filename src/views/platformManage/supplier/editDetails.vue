@@ -117,7 +117,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="账户名">
-              <el-input v-model="formData.accountName"></el-input>
+              <el-input v-model="formData.loginUserName"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -164,7 +164,7 @@
           <el-table-column prop="remark" label="备注"></el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button type="primary" @click="previewAttachment(scope.row.ossInfo?.url)">下载</el-button>
+              <el-button type="primary" @click="downloadAttachment(scope.row.ossInfo?.url)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -371,15 +371,19 @@ const handleAudit = async (status: number) => {
   }
 };
 
-const previewAttachment = (url: string) => {
-  // 下载附件
-  if (url) {
+const downloadAttachment = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
     const link = document.createElement('a');
-    link.href = url;
-    link.download = ''; // 设置文件名（可选），如果为空，浏览器会使用默认文件名
+    link.href = URL.createObjectURL(blob);
+    link.download = '文件名.txt'; // 设置文件名
+    document.body.appendChild(link);
     link.click();
-    // 移除临时创建的链接
     document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
   }
 };
 </script>
