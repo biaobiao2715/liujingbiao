@@ -137,13 +137,13 @@
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column prop="name" label="附件名" align="center">
           <template #default="scope">
-            {{ scope.row.ossInfo.fileName }}
+            {{ scope.row.ossInfo.originalName }}
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" align="center"></el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
-            <el-button v-throttle type="primary" @click="previewAttachment(scope.row)">预览</el-button>
+            <el-button v-throttle type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)">下载</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -329,8 +329,20 @@ const handleSave = async () => {
   }
 };
 
-const previewAttachment = (attachment) => {
-  console.log('预览附件', attachment);
+const downloadAttachment = async (fileName: string, url: string) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
+  }
 };
 </script>
 

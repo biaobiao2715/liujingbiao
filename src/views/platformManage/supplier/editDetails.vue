@@ -164,7 +164,7 @@
           <el-table-column prop="remark" label="备注"></el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
-              <el-button type="primary" @click="downloadAttachment(scope.row.ossInfo?.url)">下载</el-button>
+              <el-button type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -371,13 +371,13 @@ const handleAudit = async (status: number) => {
   }
 };
 
-const downloadAttachment = async (url: string) => {
+const downloadAttachment = async (fileName: string, url: string) => {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = '文件名.txt'; // 设置文件名
+    link.download = fileName; // 设置文件名
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
