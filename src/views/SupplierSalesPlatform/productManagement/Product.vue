@@ -658,7 +658,7 @@ const handleEdit = (row: any) => {
 //导出按钮事件
 const handleExport = () => {
   // 构建导出参数
-  const exportParams = {
+  const exportParams: any = {
     ...queryParams.value // 传递查询参数
   };
   
