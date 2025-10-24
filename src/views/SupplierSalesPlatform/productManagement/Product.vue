@@ -52,7 +52,7 @@
         <el-button v-throttle type="primary" @click="handleSearch">下架</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleSearch">导出</el-button>
+        <el-button v-throttle type="primary" @click="handleExport">导出</el-button>
       </el-col>
 
       <!-- <el-col :span="1.5">
@@ -114,6 +114,7 @@ import router from '@/router';
 import { ref } from 'vue';
 import { goodsList , goodsDelete } from '@/api/Supplier/productManagement/product';
 
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
@@ -156,7 +157,7 @@ const handleSearch = () => {
 };
 // 查询价格调整历史
 const onPriceHistory = () => {
-  // router.push({ path: '/supplier/sales/product/price-history' });
+  router.push({ path: '/company/sales/company/goods/productPrice' });
 };
 
 /** 搜索按钮操作 */
@@ -228,6 +229,20 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
     }
   });
 };
+
+
+//导出按钮事件
+const handleExport = () => {
+  proxy?.download(
+    '/grain-sales/goods/export',  // 导出接口地址
+    {
+      ...queryParams.value        // 传递查询参数
+    },
+    `goods_${new Date().getTime()}.xlsx`  // 文件名格式
+  );
+};
+
+
 
 const isPendingReview = (row) => {
   return row.reviewStatus == 0;
