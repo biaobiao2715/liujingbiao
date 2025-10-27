@@ -77,7 +77,7 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="销售价" align="center" prop="salesPrice">
+      <el-table-column label="销售价" align="center" prop="salesPrice" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ getSalesPrice(scope.row) }}</span>
         </template>
