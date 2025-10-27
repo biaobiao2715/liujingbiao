@@ -205,7 +205,7 @@
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 
 import router from '@/router';
-import { goodsList , goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
+import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -257,7 +257,7 @@ const getCategoryList = async () => {
       categoryList.value = response.data || response.rows || [];
       // 构建类目ID到名称的映射
       categoryMap.value = {};
-      categoryList.value.forEach(category => {
+      categoryList.value.forEach((category) => {
         categoryMap.value[category.id] = category.categoryName || category.name;
       });
       console.log('商品类目列表:', categoryList.value);
@@ -480,16 +480,14 @@ const getSalesPrice = (row) => {
   if (!row.hnGoodsSpecificationDataList || row.hnGoodsSpecificationDataList.length === 0) {
     return '--';
   }
-  
+
   // 提取所有规格的价格并用"-"拼接
-  const prices = row.hnGoodsSpecificationDataList
-    .map(spec => spec.goodsPrice || 0)
-    .filter(price => price > 0);
-  
+  const prices = row.hnGoodsSpecificationDataList.map((spec) => spec.goodsPrice || 0).filter((price) => price > 0);
+
   if (prices.length === 0) {
     return '--';
   }
-  
+
   return prices.join('-');
 };
 
@@ -661,7 +659,7 @@ const handleExport = () => {
   const exportParams: any = {
     ...queryParams.value // 传递查询参数
   };
-  
+
   // 如果有选中的商品，传入选中的ID
   if (selectedIds.value.length > 0) {
     exportParams.ids = selectedIds.value.join(','); // 多个ID用逗号拼接
@@ -669,9 +667,9 @@ const handleExport = () => {
   } else {
     ElMessage.info('将导出当前查询条件下的所有商品');
   }
-  
+
   console.log('导出参数:', exportParams);
-  
+
   proxy?.download(
     '/grain-sales/goods/export', // 导出接口地址
     exportParams,

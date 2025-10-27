@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { goodsId } from '@/api/Supplier/productManagement/product';
+import { goodsId } from '@/api/supplier/productManagement/product';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 

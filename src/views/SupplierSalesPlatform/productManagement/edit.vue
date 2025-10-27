@@ -260,8 +260,8 @@ import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
 import { useRoute } from 'vue-router';
 import router from '@/router';
-import { Category } from '@/api/Supplier/productManagement/types'; //ts类型
-import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/Supplier/productManagement/product';
+import { Category } from '@/api/supplier/productManagement/types'; //ts类型
+import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障+功能+品牌：
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;

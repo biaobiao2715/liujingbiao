@@ -223,7 +223,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
 import { AnyAaaaRecord } from 'node:dns';
-import { uploadImage } from '@/api/Supplier/productManagement/product';
+import { uploadImage } from '@/api/supplier/productManagement/product';
 // import { wzfProductReleaseAdd, wzfProductReleaseId, wzfProductSortAll, uploadBatchImg } from '@/api/gapi/supplier';
 // 获取router路由参数
 const route = useRoute();
