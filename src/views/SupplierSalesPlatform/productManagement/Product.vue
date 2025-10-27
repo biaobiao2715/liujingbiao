@@ -215,7 +215,7 @@
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 
 import router from '@/router';
-import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
+import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;

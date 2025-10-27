@@ -47,17 +47,17 @@ export function goodsAdd(data?: any) {
     data: data
   });
 }
-// /**
-//  * 修改商品信息
-//  * @param data
-//  */
-// export const goodsUpdate = (data: any) => {
-//   return request({
-//     url: '/grain-sales/goods',
-//     method: 'put',
-//     data: data
-//   });
-// };
+/**
+ * 修改商品信息
+ * @param data
+ */
+export const goodsUpdate = (data: any) => {
+  return request({
+    url: '/grain-sales/goods',
+    method: 'put',
+    data: data
+  });
+};
 
 /**
  * 修改商品价格信息
