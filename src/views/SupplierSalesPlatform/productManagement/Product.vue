@@ -217,6 +217,7 @@ import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
+import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
@@ -259,6 +260,10 @@ const priceSaving = ref(false);
 const categoryList = ref<any[]>([]);
 const categoryMap = ref<Record<string, string>>({});
 
+// 产品保障相关
+const guaranteeOptions = ref<any[]>([]);
+const guaranteeMap = ref<Record<string, string>>({});
+
 /** 获取商品类目列表 */
 const getCategoryList = async () => {
   try {
@@ -270,11 +275,25 @@ const getCategoryList = async () => {
       categoryList.value.forEach((category) => {
         categoryMap.value[category.id] = category.categoryName || category.name;
       });
-      console.log('商品类目列表:', categoryList.value);
-      console.log('类目映射:', categoryMap.value);
     }
   } catch (error) {
     console.error('获取商品类目失败:', error);
+  }
+};
+
+/** 获取产品保障列表 */
+const getGuaranteeList = async () => {
+  try {
+    const response: any = await goodsAttributesAllList();
+    if (response && response.guaranteeList) {
+      guaranteeOptions.value = response.guaranteeList;
+      guaranteeMap.value = {};
+      guaranteeOptions.value.forEach((item) => {
+        guaranteeMap.value[item.id] = item.attributeName;
+      });
+    }
+  } catch (error) {
+    console.error('获取产品保障失败:', error);
   }
 };
 
@@ -538,7 +557,9 @@ const handlePriceSetting = async (row: any) => {
         status: productData.status,
         createTime: productData.createTime,
         onlineTime: productData.launchTime,
-        warranty: productData.goodssEnsureName?.join('、') || '--',
+        warranty: (productData.goodsEnsureIds && productData.goodsEnsureIds.length > 0)
+          ? productData.goodsEnsureIds.map(id => guaranteeMap.value[id] || id).join('、')
+          : '--',
         mainImage: productData.sysOssLists?.[0]?.url || ''
       };
 
@@ -549,8 +570,8 @@ const handlePriceSetting = async (row: any) => {
           goodsName: productData.goodsName,
           goodsCode: productData.goodsCode,
           price: spec.goodsPrice || '0.00',
-          specification: spec.specification || '--',
-          inventory: spec.inventory || '0'
+          specification: spec.goodsSpecificationValue || spec.specification || '--',
+          inventory: spec.goodsStock || spec.inventory || '0'
         }));
       } else {
         productSpecs.value = [{
@@ -684,6 +705,8 @@ const isPendingReview = (row) => {
 onMounted(async () => {
   // 先获取商品类目列表
   await getCategoryList();
+  // 获取产品保障列表
+  await getGuaranteeList();
   // 再获取商品列表
   getList();
 });

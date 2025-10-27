@@ -100,7 +100,7 @@ import {
   addGoodsPriceHistory,
   updateGoodsPriceHistory,
   deleteGoodsPriceHistory
-} from '@/api/supplier/productManagement/productPrice';
+} from '@/api/Supplier/productManagement/productPrice';
 import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
