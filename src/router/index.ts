@@ -95,6 +95,20 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  // 商城  外连接打开
+  {
+    path: '/mall',
+    hidden: false,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/mall/index.vue'),
+        name: 'Mall',
+        meta: { title: '商城', icon: 'user' }
+      }
+    ]
   }
 ];
 
