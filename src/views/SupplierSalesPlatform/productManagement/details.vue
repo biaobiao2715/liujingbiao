@@ -180,28 +180,27 @@ const mainImage = computed(() => {
 
 // 页面加载时获取列表数据
 onMounted(async () => {
-  // 先获取商品品牌列表
-  await goodsAttributesAllList().then((res) => {
-    console.log('商品保障+功能+品牌', res);
-    // 模拟保障数据
-    guaranteeOptions.value = res.guaranteeList;
+  const data = await goodsAttributesAllList();
+  console.log('商品保障+功能+品牌', data);
 
-    // 模拟品牌数据
-    brandOptions.value = res.brandList;
+  // 模拟保障数据
+  guaranteeOptions.value = data.guaranteeList || [];
 
-    // 模拟功能数据
-    // functionOptions.value = res.functionList;
+  // 模拟品牌数据
+  brandOptions.value = data.brandList || [];
 
-    // id获取详情信息
-    goodsId(id as string)
-      .then((res) => {
-        formData.value = res.data;
-        tableList.value = res.data.hnGoodsSpecificationDataList || [];
-      })
-      .catch((error) => {
-        console.error('获取商品详情失败:', error);
-      });
-  });
+  // 模拟功能数据
+  // functionOptions.value = data.functionList || [];
+
+  // id获取详情信息
+  goodsId(id as string)
+    .then((res) => {
+      formData.value = res.data;
+      tableList.value = res.data.hnGoodsSpecificationDataList || [];
+    })
+    .catch((error) => {
+      console.error('获取商品详情失败:', error);
+    });
 });
 </script>
 

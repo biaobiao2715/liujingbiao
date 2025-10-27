@@ -168,6 +168,7 @@
                   type="number"
                   :min="0"
                   :max="999999"
+                  :disabled="id ? true : false"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 ></el-input>
 
@@ -208,7 +209,7 @@
                 </el-button>
                 <!-- 启用/禁用 -->
                 <el-button v-throttle link @click="toggleStatus(scope.row)" type="primary">
-                  {{ scope.row.status === 0 ? '启用' : '禁用' }}
+                  {{ scope.row.status == 0 ? '启用' : '禁用' }}
                 </el-button>
               </template>
             </el-table-column>
@@ -480,7 +481,7 @@ const processUpload = (file: any, resolve: any, reject: any) => {
       const newFile = {
         name: response.data.fileName || '商品主图',
         url: response.data.url,
-        fileType: '1',
+        fileType: '0',
         ossId: response.data.ossId
       };
 
@@ -647,17 +648,17 @@ onMounted(async () => {
     creditList.value = proxy?.handleTree<Category>(response.data, 'id');
   }
 
-  await goodsAttributesAllList().then((res) => {
-    console.log('商品保障+功能+品牌', res);
-    // 模拟保障数据
-    guaranteeOptions.value = res.guaranteeList;
+  const data = await goodsAttributesAllList();
+  console.log('商品保障+功能+品牌', data);
 
-    // 模拟品牌数据
-    brandOptions.value = res.brandList;
+  // 模拟保障数据
+  guaranteeOptions.value = data.guaranteeList || [];
 
-    // 模拟功能数据
-    functionOptions.value = res.functionList;
-  });
+  // 模拟品牌数据
+  brandOptions.value = data.brandList || [];
+
+  // 模拟功能数据
+  functionOptions.value = data.functionList || [];
 
   if (id || copyid) {
     const ids = id || copyid;

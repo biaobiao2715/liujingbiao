@@ -88,7 +88,7 @@
         </template>
       </el-table-column>
       <el-table-column label="预警下限" align="center" prop="goodsAlert"> </el-table-column>
-      <el-table-column label="提醒" align="center" prop="remind"> </el-table-column>
+      <el-table-column label="提醒" align="center" prop="remind" width="100"> </el-table-column>
       <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
           <dict-tag :options="goods_status" :value="scope.row.status" />
@@ -130,7 +130,7 @@
               <span class="label">商品编码：</span>
               <span class="value">{{ currentProduct.goodsCode || '--' }}</span>
             </div>
-             <div class="info-item">
+            <div class="info-item">
               <span class="label">产品保障：</span>
               <span class="value">{{ currentProduct.warranty || '--' }}</span>
             </div>
@@ -140,9 +140,15 @@
               <span class="label">商品品牌：</span>
               <span class="value">{{ currentProduct.brand || '--' }}</span>
             </div>
-             <div class="info-item">
+            <div class="info-item">
               <span class="label">商品主图：</span>
-              <el-image v-if="currentProduct.mainImage" :src="currentProduct.mainImage" style="width: 60px; height: 60px" fit="cover" :preview-src-list="[currentProduct.mainImage]" />
+              <el-image
+                v-if="currentProduct.mainImage"
+                :src="currentProduct.mainImage"
+                style="width: 60px; height: 60px"
+                fit="cover"
+                :preview-src-list="[currentProduct.mainImage]"
+              />
               <span v-else class="value">--</span>
             </div>
             <div class="info-item">
@@ -215,7 +221,7 @@
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 
 import router from '@/router';
-import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
+import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障
 
@@ -557,9 +563,10 @@ const handlePriceSetting = async (row: any) => {
         status: productData.status,
         createTime: productData.createTime,
         onlineTime: productData.launchTime,
-        warranty: (productData.goodsEnsureIds && productData.goodsEnsureIds.length > 0)
-          ? productData.goodsEnsureIds.map(id => guaranteeMap.value[id] || id).join('、')
-          : '--',
+        warranty:
+          productData.goodsEnsureIds && productData.goodsEnsureIds.length > 0
+            ? productData.goodsEnsureIds.map((id) => guaranteeMap.value[id] || id).join('、')
+            : '--',
         mainImage: productData.sysOssLists?.[0]?.url || ''
       };
 
@@ -574,14 +581,16 @@ const handlePriceSetting = async (row: any) => {
           inventory: spec.goodsStock || spec.inventory || '0'
         }));
       } else {
-        productSpecs.value = [{
-          id: 1,
-          goodsName: productData.goodsName,
-          goodsCode: productData.goodsCode,
-          price: '0.00',
-          specification: '默认规格',
-          inventory: '0'
-        }];
+        productSpecs.value = [
+          {
+            id: 1,
+            goodsName: productData.goodsName,
+            goodsCode: productData.goodsCode,
+            price: '0.00',
+            specification: '默认规格',
+            inventory: '0'
+          }
+        ];
       }
 
       priceDialogVisible.value = true;

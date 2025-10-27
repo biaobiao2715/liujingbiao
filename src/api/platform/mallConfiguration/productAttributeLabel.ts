@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-
+import { AxiosResponse } from 'axios';
 // 商品属性列表 保障+功能+品牌：
 export function getProductAttributesList(data: any) {
   return request({
@@ -9,13 +9,19 @@ export function getProductAttributesList(data: any) {
   });
 }
 // 商品属性所有数据 保障+功能+品牌：
-export function goodsAttributesAllList(data: Record<string, any> = {}) {
+interface GoodsAttributesResponse {
+  guaranteeList: Array<any>;
+  brandList: Array<any>;
+  functionList: Array<any>;
+}
+// 商品属性所有数据 保障+功能+品牌：
+export const goodsAttributesAllList = (data: Record<string, any> = {}): Promise<AxiosResponse<GoodsAttributesResponse>> => {
   return request({
     url: '/grain-sales/goodsAttributes/allList',
     method: 'get',
     params: data
   });
-}
+};
 
 // 商品属性详情
 export function getProductAttributeDetail(id: number) {
