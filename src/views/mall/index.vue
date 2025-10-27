@@ -6,7 +6,7 @@
   开发信息: Created by 李春雷 2025-10-27
 -->
 <template>
-  <div>
+  <div class="mall-container flex-column">
     <!-- 头部组件 -->
     <HeaderComponent />
 
@@ -14,14 +14,14 @@
     <SearchComponent />
 
     <!-- Tabs 切换 -->
-    <div>
+    <div class="tabs-container">
       <el-tabs v-model="activeTab" @tab-click="handleTabClick">
-        <el-tab-pane label="全部" name="all"></el-tab-pane>
-        <el-tab-pane label="最新" name="demand"></el-tab-pane>
-        <el-tab-pane label="价格" name="market"></el-tab-pane>
-        <el-tab-pane label="销量" name="expert"></el-tab-pane>
+        <el-tab-pane label="首页" name="goods"></el-tab-pane>
+        <el-tab-pane label="供需大厅" name="demand"></el-tab-pane>
+        <el-tab-pane label="市场行情" name="market"></el-tab-pane>
+        <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
       </el-tabs>
-      <div v-if="activeTab === 'home'">
+      <div v-if="activeTab === 'goods'">
         <GoodsComponent />
       </div>
       <div v-else-if="activeTab === 'demand'">
@@ -41,12 +41,12 @@
 import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
 import SearchComponent from './Components/SearchComponent.vue'; // 搜索组件
-import GoodsComponent from './Components/GoodsComponent.vue'; // 首页组件
+import GoodsComponent from './Components/GoodsComponent.vue'; // 商品组件
 import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件
 import ExpertComponent from './Components/ExpertComponent.vue'; // 专家组件
 
-const activeTab = ref('all');
+const activeTab = ref('goods');
 
 function handleTabClick(tab: any) {
   console.log('切换到:', tab.name);
@@ -54,5 +54,10 @@ function handleTabClick(tab: any) {
 </script>
 
 <style scoped lang="scss">
-/* 样式保持不变 */
+.mall-container {
+}
+
+.tabs-container {
+  padding: 12px;
+}
 </style>
