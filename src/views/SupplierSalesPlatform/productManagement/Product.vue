@@ -117,7 +117,7 @@
     </div>
 
     <!-- 价格设定弹窗 -->
-    <el-dialog v-model="priceDialogVisible" title="价格修改" width="800px" :close-on-click-modal="false" :close-on-press-escape="false">
+    <el-dialog v-model="priceDialogVisible" title="价格修改" width="1000px" :close-on-click-modal="false" :close-on-press-escape="false">
       <div class="price-dialog-content">
         <!-- 商品基本信息 -->
         <div class="product-basic-info">
@@ -130,26 +130,36 @@
               <span class="label">商品编码：</span>
               <span class="value">{{ currentProduct.goodsCode || '--' }}</span>
             </div>
+             <div class="info-item">
+              <span class="label">产品保障：</span>
+              <span class="value">{{ currentProduct.warranty || '--' }}</span>
+            </div>
           </div>
           <div class="info-row">
             <div class="info-item">
               <span class="label">商品品牌：</span>
               <span class="value">{{ currentProduct.brand || '--' }}</span>
             </div>
+             <div class="info-item">
+              <span class="label">商品主图：</span>
+              <el-image v-if="currentProduct.mainImage" :src="currentProduct.mainImage" style="width: 60px; height: 60px" fit="cover" :preview-src-list="[currentProduct.mainImage]" />
+              <span v-else class="value">--</span>
+            </div>
             <div class="info-item">
-              <span class="label">商品状态：</span>
-              <span class="value"><dict-tag :options="goods_status" :value="currentProduct.status" /></span>
+              <span class="label">创建时间：</span>
+              <span class="value">{{ proxy?.parseTime(currentProduct.createTime) || '--' }}</span>
             </div>
           </div>
           <div class="info-row">
             <div class="info-item">
-              <span class="label">上架时间：</span>
-              <span class="value">{{ proxy?.parseTime(currentProduct.createTime) || '--' }}</span>
+              <span class="label">商品状态：</span>
+              <span class="value"><dict-tag :options="goods_status" :value="currentProduct.status" /></span>
             </div>
             <div class="info-item">
-              <span class="label">产品保障：</span>
-              <span class="value">{{ currentProduct.warranty || '--' }}</span>
+              <span class="label">上架时间：</span>
+              <span class="value">{{ proxy?.parseTime(currentProduct.onlineTime) || '--' }}</span>
             </div>
+            <div class="info-item"></div>
           </div>
         </div>
 
@@ -160,24 +170,24 @@
             <span>商品信息</span>
           </div>
           <el-table :data="productSpecs" border style="width: 100%">
-            <el-table-column prop="goodsName" label="商品名称" width="200">
+            <el-table-column prop="goodsName" label="商品名称" min-width="180">
               <template #default="scope">
                 <div class="spec-name">{{ scope.row.goodsName }}</div>
               </template>
             </el-table-column>
-            <el-table-column prop="goodsCode" label="商品编码" width="180">
+            <el-table-column prop="goodsCode" label="商品编码" min-width="200">
               <template #default="scope">
                 <div class="spec-code">{{ scope.row.goodsCode }}</div>
               </template>
             </el-table-column>
-            <el-table-column prop="price" label="销售价" width="120">
+            <el-table-column prop="price" label="销售价" width="150">
               <template #default="scope">
                 <el-input v-model="scope.row.price" type="number" :min="0" step="0.01" placeholder="请输入价格" class="price-input">
                   <template #suffix>¥</template>
                 </el-input>
               </template>
             </el-table-column>
-            <el-table-column prop="specification" label="商品规格" width="120">
+            <el-table-column prop="specification" label="商品规格" min-width="150">
               <template #default="scope">
                 <div class="spec-info">{{ scope.row.specification }}</div>
               </template>
@@ -286,6 +296,9 @@ const getList = async () => {
 const handleSearch = () => {
   queryParams.value.startTime = dateRange.value[0];
   queryParams.value.endTime = dateRange.value[1];
+  if (queryParams.value.status === '全部') {
+    queryParams.value.status = '';
+  }
   getList();
 };
 
@@ -518,32 +531,21 @@ const handlePriceSetting = async (row: any) => {
 
       // 设置商品基本信息
       currentProduct.value = {
-        id: productData.id || row.id, // 商品ID
-        goodsId: productData.goodsId || productData.id || row.id, // 商品ID
-        goodsName: productData.goodsName || row.goodsName,
-        goodsCode: productData.goodsCode || row.goodsCode,
-        brand: productData.brand || productData.companyName || '--',
-        status: productData.status || row.status,
-        createTime: productData.createTime || row.createTime,
-        warranty: productData.warranty || productData.guarantee || '--',
-        mainImage: productData.mainImage || productData.image || ''
+        id: productData.id,
+        goodsName: productData.goodsName,
+        goodsCode: productData.goodsCode,
+        brand: productData.goodsBrandName || '--',
+        status: productData.status,
+        createTime: productData.createTime,
+        onlineTime: productData.launchTime,
+        warranty: productData.goodssEnsureName?.join('、') || '--',
+        mainImage: productData.sysOssLists?.[0]?.url || ''
       };
 
       // 设置商品规格数据
-      if (productData.specs && productData.specs.length > 0) {
-        // 如果API返回了规格数据
-        productSpecs.value = productData.specs.map((spec: any) => ({
-          id: spec.id || spec.specId, // 规格ID
-          goodsName: productData.goodsName,
-          goodsCode: productData.goodsCode,
-          price: spec.price || spec.goodsPrice || '0.00',
-          specification: spec.specification || spec.spec || '--',
-          inventory: spec.inventory || spec.stock || '0'
-        }));
-      } else if (productData.hnGoodsSpecificationDataList && productData.hnGoodsSpecificationDataList.length > 0) {
-        // 如果API返回了规格数据列表
+      if (productData.hnGoodsSpecificationDataList && productData.hnGoodsSpecificationDataList.length > 0) {
         productSpecs.value = productData.hnGoodsSpecificationDataList.map((spec: any) => ({
-          id: spec.id, // 规格ID
+          id: spec.id,
           goodsName: productData.goodsName,
           goodsCode: productData.goodsCode,
           price: spec.goodsPrice || '0.00',
@@ -551,17 +553,14 @@ const handlePriceSetting = async (row: any) => {
           inventory: spec.inventory || '0'
         }));
       } else {
-        // 如果没有规格数据，使用默认数据
-        productSpecs.value = [
-          {
-            id: 1, // 默认规格ID
-            goodsName: productData.goodsName,
-            goodsCode: productData.goodsCode,
-            price: productData.price || '0.00',
-            specification: '默认规格',
-            inventory: productData.inventory || '0'
-          }
-        ];
+        productSpecs.value = [{
+          id: 1,
+          goodsName: productData.goodsName,
+          goodsCode: productData.goodsCode,
+          price: '0.00',
+          specification: '默认规格',
+          inventory: '0'
+        }];
       }
 
       priceDialogVisible.value = true;
