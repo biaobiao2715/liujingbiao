@@ -1,83 +1,324 @@
-<!--
-        标题: Purchaser.vue
-        功能: 我的收藏
-        说明: 用于查看我收藏的商品和文章。
-        当前版本: 1.0
-        开发信息: Created by 刘景彪 2025-10-27
-    -->
 <template>
-  <div class="orders">
-    <h2>我的收藏</h2>
-    <div class="line"></div>
+  <div class="favorite-page">
+    <el-card shadow="never" class="fav-card">
+      <div class="header">
+        <div class="title">我的收藏夹</div>
+        <el-input v-model="state.query.googsName" placeholder="搜索收藏名称/编号" class="search" clearable @clear="reload" @keyup.enter="reload">
+          <template #append>
+            <el-button @click="reload" :loading="state.loading" icon="Search">搜索</el-button>
+          </template>
+        </el-input>
+      </div>
 
-    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-      <el-tab-pane label="收藏商品" name="1"></el-tab-pane>
-      <el-tab-pane label="收藏文章" name="2"></el-tab-pane>
-    </el-tabs>
+      <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
+        <el-tab-pane label="收藏商品" name="1" />
+        <el-tab-pane label="收藏文章" name="3" />
+      </el-tabs>
 
-    <el-table :data="filteredOrders" border style="width: 100%"> </el-table>
+      <el-skeleton :loading="state.loading" animated :throttle="200" :count="1">
+        <template #template>
+          <div class="grid">
+            <el-skeleton-item variant="image" style="width: 240px; height: 160px" />
+            <el-skeleton-item variant="p" style="width: 60%" />
+          </div>
+        </template>
+
+        <template #default>
+          <el-empty v-if="state.list.length === 0" description="暂无收藏" />
+
+          <!-- 商品收藏：固定 5 列 -->
+          <div v-if="state.activeTab === '1'" class="grid goods-grid">
+            <el-card
+              v-for="item in state.list"
+              @click="goDetail(item)"
+              :key="item.id"
+              class="goods-item"
+              shadow="hover"
+              :body-style="{ padding: '12px' }"
+            >
+              <div class="goods">
+                <img class="li-img" :src="item.googsImageUrl || defaultImg" alt="商品图片" />
+                <div class="flex-between">
+                  <div>{{ getPrice(item.googsPrice, item.spread) }} {{ specificationText(item.goodsSpecificationId) }}</div>
+                  <div>{{ priceDelta(item.spread) }}</div>
+                </div>
+                <div class="flex-between">
+                  <div class="name-ellipsis">{{ item.googsName }}</div>
+                  <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
+                </div>
+                <div class="flex-between meta-line">
+                  <div>
+                    <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px">{{
+                      vs.attributeName
+                    }}</el-tag>
+                  </div>
+                  <div class="addr-ellipsis">{{ item.address }}</div>
+                </div>
+              </div>
+            </el-card>
+          </div>
+
+          <!-- 文章收藏 -->
+          <div v-else class="grid goods-grid">
+            <el-card
+              v-for="item in state.list"
+              @click="goDetail(item)"
+              :key="item.id"
+              class="article-item"
+              shadow="hover"
+              :body-style="{ padding: '12px' }"
+            >
+              <div class="article">
+                <img class="li-img" :src="item.googsImage || defaultImg" alt="商品图片" />
+                <div class="info">
+                  <div class="name" :title="item.articleTitle || item.googsName">
+                    {{ item.articleTitle || item.googsName || '-' }}
+                  </div>
+                  <div>作者： {{ item.createBy }}</div>
+                  <div class="actions">
+                    <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
+                  </div>
+                </div>
+              </div>
+            </el-card>
+          </div>
+        </template>
+      </el-skeleton>
+
+      <div class="pager">
+        <pagination
+          v-if="state.total > 0"
+          v-model:page="state.query.pageNum"
+          v-model:limit="state.query.pageSize"
+          :total="state.total"
+          @pagination="reload"
+        />
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, computed } from 'vue';
-import type { TabsPaneContext } from 'element-plus';
-interface Order {
-  id: number;
-  productName: string;
-  price: number;
-  status: string;
-  phone: string;
-  orderNumber: string;
-}
+import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import type { FavoriteItem } from '@/api/mall/personalCenter/favorite';
+import { favoriteList, favoriteDelete, favoriteArticleList, favoriteArticleDelete } from '@/api/mall/personalCenter/favorite';
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-// 使用字典数据
-const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
-const activeName = ref('first');
-const orders: Order[] = [
-  { id: 1, productName: '商品1', price: 200, status: '待发货', phone: '15629373858', orderNumber: 'SA202509121100000005' },
-  { id: 2, productName: '商品2', price: 200, status: '已发货', phone: '15629373851', orderNumber: 'SA202509121100000004' },
-  { id: 3, productName: '商品3', price: 200, status: '已取消', phone: '15629373852', orderNumber: 'SA202509121100000003' },
-  { id: 4, productName: '商品4', price: 200, status: '已完成', phone: '15629373853', orderNumber: 'SA202509121100000002' }
-];
-
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event);
-};
-
-const filteredOrders = computed(() => {
-  // 可根据需求添加过滤逻辑
-  return orders;
+const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
+// 本地占位图（可根据实际资源调整路径）
+const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
+const router = useRouter();
+const state = reactive({
+  activeTab: '1', // 1=商品 3=文章
+  list: [] as FavoriteItem[],
+  total: 0,
+  loading: false,
+  opLoadingId: 0 as number | 0,
+  query: {
+    pageNum: 1,
+    pageSize: 20,
+    googsName: '',
+    orderByColumn: 'createTime',
+    isAsc: 'desc' as 'asc' | 'desc'
+  }
 });
 
-const cancelOrder = (orderId: number) => {
-  console.log(`取消订单: ${orderId}`);
-  // 添加取消订单的逻辑
+onMounted(() => {
+  reload();
+});
+
+function onTabChange(name: string | number) {
+  state.activeTab = String(name);
+  state.query.pageNum = 1;
+  reload();
+}
+
+function reload() {
+  state.loading = true;
+  const query = { ...state.query };
+  // 根据 Tab 选择对应接口
+  const req = state.activeTab === '1' ? favoriteList(query) : favoriteArticleList(query);
+
+  req
+    .then((res: any) => {
+      // 兼容 ruoyi 分页返回 { rows, total } 或 PageResult 格式
+      const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];
+      const total = res?.total ?? res?.data?.total ?? rows.length ?? 0;
+
+      state.list = rows || [];
+      state.total = Number(total) || 0;
+    })
+    .finally(() => {
+      state.loading = false;
+    });
+}
+
+function onUnfav(item: FavoriteItem) {
+  if (!item?.id) return;
+  ElMessageBox.confirm(`确定要取消收藏“${item.googsName || item.articleTitle || ''}”吗？`, '取消收藏确认', {
+    type: 'warning',
+    confirmButtonText: '确定',
+    cancelButtonText: '再想想'
+  })
+    .then(async () => {
+      state.opLoadingId = item.id as number;
+      // 根据 Tab 选择对应删除接口
+      if (state.activeTab === '1') {
+        await favoriteDelete(item.id as number);
+      } else {
+        await favoriteArticleDelete(item.id as number);
+      }
+      ElMessage.success('已取消收藏');
+      reload();
+    })
+    .finally(() => (state.opLoadingId = 0));
+}
+
+// 跳转详情（按你项目实际路由调整）
+function goDetail(item: FavoriteItem) {
+  if (state.activeTab === '1') {
+    // 商品详情
+    const id = item.id;
+    // router.push(`/mall/goods/detail/${id}`);
+  } else {
+    // 文章详情
+    const id = item.id;
+    // router.push(`/platform/article/detail/${id}`);
+  }
+}
+
+// 金额格式化（￥可按需添加）
+const formatMoney = (v: number) => v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// 转数字的安全工具：空/无效返回 null
+const toNumber = (v: unknown): number | null => {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 };
 
-const confirmReceipt = (orderId: number) => {
-  console.log(`签收订单: ${orderId}`);
-  // 添加签收订单的逻辑
+// price 为收藏时价格，spread 为与当前价格的差价（当前价 - 收藏价）
+// spread 为空时按 0 处理，返回“当前价格”的格式化字符串
+const getPrice = (price: unknown, spread: unknown) => {
+  const base = toNumber(price);
+  if (base === null) return '';
+  const deltaNum = toNumber(spread);
+  const delta = deltaNum === null ? 0 : deltaNum;
+  const current = base + delta;
+  return formatMoney(current);
+};
+
+// 价格变动信息：比收藏时涨/降/持平
+const priceDelta = (spread: unknown) => {
+  const n = toNumber(spread) ?? 0;
+  const dir = n > 0 ? `比收藏时涨${formatMoney(n)}元` : n < 0 ? `比收藏时降${formatMoney(-n)}元` : '';
+  return dir;
+};
+
+// 规格值文本
+const specificationText = (specId: unknown) => {
+  const list = goods_specification.value || [];
+  if (!list.length || specId === null || specId === undefined || specId === '') return '';
+  const hit = list.find((v: any) => String(v?.dictValue ?? v?.value ?? v?.id) === String(specId));
+  return hit?.dictLabel ?? hit?.label ?? '';
 };
 </script>
 
 <style scoped>
-.orders {
-  padding: 20px;
+.favorite-page {
+  padding: 16px;
+}
+.fav-card {
+  width: 100%;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.search {
+  max-width: 360px;
+  margin-left: auto;
 }
 
-h2 {
-  margin-bottom: 20px;
+/* 通用网格（文章等保持自适应） */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
-.line {
-  height: 1px;
-  background-color: #f0f0f0;
-  margin-bottom: 20px;
+/* 商品收藏：固定 5 列，20 条即 4 行 */
+.goods-grid {
+  grid-template-columns: repeat(5, 1fr);
 }
 
-.table-img {
-  width: 60px;
-  height: 60px;
+/* 商品卡片统一高度与交互优化 */
+.goods-item {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 260px;
+}
+.goods-item:hover {
+  transform: translateY(-2px);
+}
+
+/* 卡片内布局与文本溢出处理 */
+.goods {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.meta-line {
+  color: #909399;
+  font-size: 12px;
+}
+
+/* 图片比例统一 */
+.li-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f7f8fa;
+}
+
+/* 文本省略 */
+.name-ellipsis {
+  max-width: 65%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.addr-ellipsis {
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 文章块保持原有自适应即可 */
+.pager {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.ml8 {
+  margin-left: 8px;
 }
 </style>

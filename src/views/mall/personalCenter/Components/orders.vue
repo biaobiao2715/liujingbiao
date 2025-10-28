@@ -7,102 +7,181 @@
     -->
 <template>
   <div class="orders">
-    <h2>我的最近订单</h2>
-    <div class="line"></div>
+    <!-- 页面标题 -->
+    <div class="title">我的订单</div>
+    <el-divider />
 
-    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+    <!--
+      使用 v-model 与查询参数 orderStatus 绑定，去除额外状态变量
+      点击 Tab 时触发 getList 拉取对应状态的数据
+    -->
+    <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-click="getList">
       <el-tab-pane label="全部" name="0"></el-tab-pane>
-      <el-tab-pane v-for="value in goods_status" :label="value.label" :name="value.value"></el-tab-pane>
+      <el-tab-pane v-for="value in order_status" :key="value.id" :label="value.label" :name="value.value"></el-tab-pane>
     </el-tabs>
 
-    <el-table :data="filteredOrders" style="width: 100%">
-      <el-table-column prop="productName" label="商品信息" width="200" :show-overflow-tooltip="true">
+    <el-table :data="tabList" style="width: 100%">
+      <el-table-column prop="goodsName" label="商品信息" width="200" :show-overflow-tooltip="true">
         <template v-slot="scope">
           <div style="display: flex">
-            <img class="table-img" :src="scope.row.imagePathMain" />
-            <span style="margin-left: 10px">{{ scope.row.headline }}</span>
+            <!-- 图片增加兜底，避免空值报错 -->
+            <img class="table-img" :src="scope.row.orderItems?.goodsPic || ''" />
+            <span style="margin-left: 10px">{{ scope.row.orderItems?.goodsName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="price" label="商品价格" width="100">
-        <template #default="{ row }"> {{ row.price }}元 </template>
+      <el-table-column prop="goodsPrice" label="商品价格" align="center">
+        <template #default="{ row }"> {{ row.orderItems?.goodsPrice }}元 </template>
       </el-table-column>
-      <el-table-column prop="status" label="订单状态" width="100">
+      <el-table-column prop="orderStatus" label="订单状态" align="center">
         <template v-slot="scope">
-          <dict-tag :options="goods_status" :value="scope.row.reviewStatus" />
+          <dict-tag :options="order_status" :value="scope.row.orderStatus" />
         </template>
       </el-table-column>
-      <el-table-column prop="phone" label="商家联系电话" width="150"></el-table-column>
-      <el-table-column prop="orderNumber" label="销售订单号" width="200"></el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column prop="enterprisePhone" label="商家联系电话" align="center"></el-table-column>
+      <el-table-column prop="orderSn" label="销售订单号" width="250" align="center"></el-table-column>
+      <el-table-column label="操作" width="150" align="center">
         <template #default="{ row }">
-          <el-button v-if="row.status === '待发货'" type="danger" size="small" @click="cancelOrder(row.id)"> 取消订单 </el-button>
-          <el-button v-if="row.status === '已发货'" type="primary" size="small" @click="confirmReceipt(row.id)"> 签收 </el-button>
+          <el-button v-if="row.orderStatus == '1'" type="danger" size="small" @click="cancelOrder(row.id)"> 取消订单 </el-button>
+          <el-button v-if="row.orderStatus == '2'" type="primary" size="small" @click="confirmReceipt(row.id)"> 签收 </el-button>
         </template>
       </el-table-column>
     </el-table>
+    <!-- 分页 -->
+    <div class="flex-center pagination">
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, computed } from 'vue';
-import type { TabsPaneContext } from 'element-plus';
+// 引入 Vue 能力/类型，增强类型安全
+import { ref, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
+import { orderConfirm, orderCancel, orderList } from '@/api/mall/personalCenter';
+
+// 订单条目与订单结构类型，匹配后端返回结构
+interface OrderItem {
+  goodsPic: string;
+  goodsName: string;
+  goodsPrice: number | string;
+}
 interface Order {
   id: number;
-  productName: string;
-  price: number;
-  status: string;
-  phone: string;
-  orderNumber: string;
+  orderItems: OrderItem;
+  orderStatus: string;
+  enterprisePhone: string;
+  orderSn: string;
 }
+
+// Vue 上下文
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-// 使用字典数据
-const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
-const activeName = ref('first');
-const orders: Order[] = [
-  { id: 1, productName: '商品1', price: 200, status: '待发货', phone: '15629373858', orderNumber: 'SA202509121100000005' },
-  { id: 2, productName: '商品2', price: 200, status: '已发货', phone: '15629373851', orderNumber: 'SA202509121100000004' },
-  { id: 3, productName: '商品3', price: 200, status: '已取消', phone: '15629373852', orderNumber: 'SA202509121100000003' },
-  { id: 4, productName: '商品4', price: 200, status: '已完成', phone: '15629373853', orderNumber: 'SA202509121100000002' }
-];
 
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event);
-};
+// 使用字典数据（RuoYi: useDict 返回响应式对象）
+const { order_status } = toRefs<any>(proxy?.useDict('order_status'));
 
-const filteredOrders = computed(() => {
-  // 可根据需求添加过滤逻辑
-  return orders;
+// 列表数据与加载状态
+const tabList = ref<Order[]>([]);
+const total = ref(0);
+const loading = ref(false); // 表格/页面加载状态
+
+// 查询参数（订单状态: 0全部，1待发货，2待收货，3已完成，4已取消）
+const queryParams = ref({
+  pageNum: 1,
+  pageSize: 20,
+  orderStatus: '0'
 });
 
-const cancelOrder = (orderId: number) => {
-  console.log(`取消订单: ${orderId}`);
-  // 添加取消订单的逻辑
+// 拉取列表
+const getList = async () => {
+  loading.value = true;
+  proxy?.$modal.loading('正在加载，请稍候...');
+  try {
+    // 当 orderStatus 为 '0' 时不传递该字段
+    const requestParams = {
+      pageNum: queryParams.value.pageNum,
+      pageSize: queryParams.value.pageSize,
+      ...(queryParams.value.orderStatus !== '0' && { orderStatus: queryParams.value.orderStatus })
+    };
+    const res = await orderList(requestParams);
+    if (res.code === 200) {
+      // 成功赋值，兜底空值
+      tabList.value = res.rows || [];
+      total.value = res.total || 0;
+    }
+  } catch (error) {
+    // 可根据需要增加错误提示
+  } finally {
+    proxy?.$modal.closeLoading();
+    loading.value = false;
+  }
 };
 
-const confirmReceipt = (orderId: number) => {
-  console.log(`签收订单: ${orderId}`);
-  // 添加签收订单的逻辑
+// 取消订单
+const cancelOrder = async (orderId: number) => {
+  try {
+    await ElMessageBox.confirm('确定取消订单？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    proxy?.$modal.loading('正在加载，请稍候...');
+    const res = await orderCancel(orderId);
+    if (res.code === 200) {
+      ElMessage.success('取消订单成功');
+      getList();
+    }
+  } catch {
+    // 用户取消或请求失败
+  } finally {
+    proxy?.$modal.closeLoading();
+  }
 };
+
+// 确认收货
+const confirmReceipt = async (orderId: number) => {
+  try {
+    await ElMessageBox.confirm('确定签收订单？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    proxy?.$modal.loading('正在加载，请稍候...');
+    const res = await orderConfirm(orderId);
+    if (res.code === 200) {
+      ElMessage.success('签收订单成功');
+      getList();
+    }
+  } catch {
+    // 用户取消或请求失败
+  } finally {
+    proxy?.$modal.closeLoading();
+  }
+};
+
+// 首次进入/挂载拉取数据
+onMounted(() => {
+  getList();
+});
 </script>
 
 <style scoped>
+/* 页面布局样式 */
 .orders {
   padding: 20px;
 }
 
-h2 {
-  margin-bottom: 20px;
-}
-
-.line {
-  height: 1px;
-  background-color: #f0f0f0;
-  margin-bottom: 20px;
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .table-img {
   width: 60px;
   height: 60px;
+}
+.pagination {
+  margin-top: 24px;
+  justify-content: end;
 }
 </style>
