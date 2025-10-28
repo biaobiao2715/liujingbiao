@@ -11,9 +11,6 @@
       <!-- 头部组件 -->
       <HeaderComponent />
 
-      <!-- 搜索组件 -->
-      <SearchComponent />
-
       <!-- Tabs 切换 -->
       <div class="tabs-container">
         <el-tabs v-model="activeTab" @tab-click="handleTabClick">
