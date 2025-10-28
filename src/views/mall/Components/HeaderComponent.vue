@@ -3,15 +3,15 @@
     <div class="welcome-message">
       <span>Hi, 张三，您好，欢迎来到XXX</span>
     </div>
-    <el-dropdown>
+    <el-dropdown @command="handleCommand">
       <el-button> 个人中心<i class="el-icon-arrow-down el-icon--right"></i> </el-button>
       <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item>我的订单</el-dropdown-item>
-          <el-dropdown-item>我的收藏</el-dropdown-item>
-          <el-dropdown-item>地址管理</el-dropdown-item>
-          <el-dropdown-item>我发布的需求</el-dropdown-item>
-          <el-dropdown-item>我的提问</el-dropdown-item>
+        <el-dropdown-menu class="dropdown-menu">
+          <el-dropdown-item command="order">我的订单</el-dropdown-item>
+          <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
+          <el-dropdown-item command="address">地址管理</el-dropdown-item>
+          <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
+          <el-dropdown-item command="question">我的提问</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -24,6 +24,12 @@
 
 <script setup lang="ts">
 import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
+
+const handleCommand = (command: string) => {
+  console.log('点击了:', command);
+  eventBus.emit('navigateToPersonalCenter', command);
+};
 </script>
 
 <style scoped lang="scss">
