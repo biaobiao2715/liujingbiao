@@ -40,7 +40,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
-import SearchComponent from './Components/SearchComponent.vue'; // 搜索组件
 import GoodsComponent from './Components/GoodsComponent.vue'; // 商品组件
 import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件

@@ -2,7 +2,12 @@
   <div>
     <!-- 顶部按钮 -->
     <el-button type="primary" @click="handleOpenDialog">发布采购需求</el-button>
-
+    <!-- 筛选条件 -->
+    <el-form :model="queryParams" inline>
+      <el-form-item label="区域">
+        <el-cascader v-model="category" :options="categorieList" :props="props" placeholder="请选择区域进行查询" />
+      </el-form-item>
+    </el-form>
     <!-- 数据表格 -->
     <el-table :data="demandList" style="width: 100%">
       <el-table-column prop="type" label="发布类型" width="150"></el-table-column>
@@ -83,6 +88,24 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
+import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 定义类目的接口
+interface Category {
+  id: string; // 类目ID
+  categoryName: string; // 类目名称
+  parentId: string | null; // 上级类目ID，null表示一级类目
+  orderNum: number | null; // 排序
+  createTime: string; // 创建时间
+  children?: Category[]; // 子类目
+}
+
+const props = {
+  value: 'id',
+  label: 'categoryName',
+  children: 'children'
+};
 
 const dialogVisible = ref(false);
 const demandList = ref([
@@ -90,10 +113,17 @@ const demandList = ref([
   // ...其他数据...
 ]);
 
+const categorieList = ref([]); // 商品分类列表
+
+const category = ref([]);
+
+const region = ref([]);
+
 const queryParams = ref({
   total: 23,
   pageNum: 1,
-  pageSize: 10
+  pageSize: 10,
+  type: ''
 });
 
 const form = ref({
@@ -144,6 +174,18 @@ const getDemandList = () => {
 // 获取商品列表
 const getGoodsList = (type: string) => {
   console.log(`获取${type}商品数据`);
+};
+
+// 获取商品分类数据
+const fetchCategories = async () => {
+  try {
+    const res = await getProductCategoryList();
+    if (res.code === 200) {
+      categorieList.value = proxy?.handleTree<Category>(res.data, 'id');
+    }
+  } catch (error) {
+    console.error('获取商品分类数据失败:', error);
+  }
 };
 
 // 数组分块函数
