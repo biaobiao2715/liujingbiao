@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 export const useDictStore = defineStore('dict', () => {
   const dict = ref<Map<string, DictDataOption[]>>(new Map());

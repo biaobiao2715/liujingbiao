@@ -19,23 +19,26 @@
         <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择" filterable clearable>
-            <el-option label="全部" value="全部" />
-            <el-option label="待开始" value="待开始" />
-            <el-option label="进行中" value="进行中" />
-            <el-option label="已结束" value="已结束" />
-            <el-option label="已取消" value="已取消" />
+            <el-option label="请选择" value="请选择" />
+            <el-option 
+              v-for="item in legal_popularize_status" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
         <!-- 所属类型下拉框 -->
         <el-form-item label="所属类型" prop="activityType">
           <el-select v-model="queryParams.activityType" placeholder="请选择" filterable clearable>
-            <el-option label="全部" value="全部" />
-            <el-option label="专家讲座" value="专家讲座" />
-            <el-option label="普法培训" value="普法培训" />
-            <el-option label="法律咨询" value="法律咨询" />
-            <el-option label="案例分析" value="案例分析" />
-            <el-option label="政策解读" value="政策解读" />
+            <el-option label="请选择" value="请选择" />
+            <el-option 
+              v-for="item in legal_popularize_activity_type" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
@@ -203,12 +206,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { ArrowUp, ArrowDown } from '@element-plus/icons-vue';
 
 const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 使用字典数据
+const { legal_popularize_activity_type, legal_popularize_status } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_activity_type', 'legal_popularize_status')
+);
 
 // 搜索表单数据
 const queryParams = ref({

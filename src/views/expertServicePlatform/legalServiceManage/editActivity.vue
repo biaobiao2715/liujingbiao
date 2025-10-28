@@ -49,11 +49,13 @@
         <!-- 普法活动类型 -->
         <el-form-item label="普法活动类型" prop="activityType" required>
           <el-select v-model="formData.activityType" placeholder="请选择" style="width: 100%" clearable>
-            <el-option label="专家讲座" value="专家讲座" />
-            <el-option label="普法培训" value="普法培训" />
-            <el-option label="法律咨询" value="法律咨询" />
-            <el-option label="案例分析" value="案例分析" />
-            <el-option label="政策解读" value="政策解读" />
+            <el-option label="请选择" value="请选择" />
+            <el-option 
+              v-for="item in legal_popularize_activity_type" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
@@ -117,12 +119,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
 const route = useRoute();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 使用字典数据
+const { legal_popularize_activity_type } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_activity_type')
+);
 
 // 表单引用
 const formRef = ref();

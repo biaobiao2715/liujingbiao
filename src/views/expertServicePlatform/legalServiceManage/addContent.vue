@@ -33,8 +33,13 @@
             <el-col :span="12">
               <el-form-item label="发布状态" prop="status" required>
                 <el-select v-model="formData.status" placeholder="请选择" style="width: 100%">
-                  <el-option label="启用" value="启用" />
-                  <el-option label="禁用" value="禁用" />
+                  <el-option label="请选择" value="请选择" />
+                  <el-option 
+                    v-for="item in legal_popularize_status" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value" 
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -57,10 +62,13 @@
             <el-col :span="12">
               <el-form-item label="普法类别" prop="contentType" required>
                 <el-select v-model="formData.contentType" placeholder="请选择" style="width: 100%">
-                  <el-option label="法律法规" value="法律法规" />
-                  <el-option label="政策解读" value="政策解读" />
-                  <el-option label="典型案例" value="典型案例" />
-                  <el-option label="司法判决" value="司法判决" />
+                  <el-option label="请选择" value="请选择" />
+                  <el-option 
+                    v-for="item in legal_popularize_type" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value" 
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -161,12 +169,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Document, Plus } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 使用字典数据
+const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
+);
 
 // 表单数据
 const formData = reactive({

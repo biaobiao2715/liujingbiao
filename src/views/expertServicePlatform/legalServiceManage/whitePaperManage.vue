@@ -19,9 +19,13 @@
         <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择" filterable clearable>
-            <el-option label="全部" value="全部" />
-            <el-option label="启用" value="启用" />
-            <el-option label="禁用" value="禁用" />
+            <el-option label="请选择" value="请选择" />
+            <el-option 
+              v-for="item in legal_popularize_status" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
@@ -41,10 +45,6 @@
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
-          <el-button v-throttle type="text" @click="toggleSearch">
-            {{ showSearch ? '收起' : '展开' }}
-            <el-icon><ArrowUp v-if="showSearch" /><ArrowDown v-else /></el-icon>
-          </el-button>
         </el-form-item>
       </el-form>
 
@@ -171,12 +171,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
-import { ArrowUp, ArrowDown } from '@element-plus/icons-vue';
 
 const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+// 使用字典数据
+const { legal_popularize_status } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_status')
+);
 
 // 搜索表单数据
 const queryParams = ref({
@@ -323,10 +329,6 @@ const handleReset = () => {
   handleQuery();
 };
 
-/** 切换搜索显示 */
-const toggleSearch = () => {
-  showSearch.value = !showSearch.value;
-};
 
 // 表格选择变化事件
 const handleSelectionChange = (selection: any[]) => {
