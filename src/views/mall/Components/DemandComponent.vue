@@ -1,11 +1,15 @@
 <template>
   <div>
-    <!-- 顶部按钮 -->
-    <el-button type="primary" @click="handleOpenDialog">发布采购需求</el-button>
     <!-- 筛选条件 -->
-    <el-form :model="queryParams" inline>
+    <el-form :model="queryParams" inline :label-width="80">
       <el-form-item label="区域">
-        <el-cascader v-model="category" :options="categorieList" :props="props" placeholder="请选择区域进行查询" />
+        <RegionSelect v-model="region" />
+      </el-form-item>
+      <el-form-item label="商品分类">
+        <GoodsCategorySelect v-model="category" />
+      </el-form-item>
+      <el-form-item>
+        <el-button v-throttle type="primary" @click="handleOpenDialog" style="margin: 0">发布采购需求</el-button>
       </el-form-item>
     </el-form>
     <!-- 数据表格 -->
@@ -31,7 +35,7 @@
       @pagination="getDemandList"
     />
 
-    <!-- 弹窗 -->
+    <!-- 采购需求弹窗 -->
     <el-dialog title="发布采购需求" v-model="dialogVisible" width="600px">
       <el-form :model="form" ref="formRef" :rules="rules" label-width="120px">
         <el-form-item label="采购类别" required>
@@ -63,6 +67,21 @@
       </template>
     </el-dialog>
 
+    <!-- 展示供应商联系信息 -->
+    <el-dialog title="供应商联系信息" v-model="contactVisible" width="400px">
+      <el-form :model="contactForm" label-width="100">
+        <el-form-item label="供应商名称">
+          <div>{{ contactForm.supplierName }}</div>
+        </el-form-item>
+        <el-form-item label="联系人">
+          <div>{{ contactForm.contactName }}</div>
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <div>{{ contactForm.phone }}</div>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+
     <!-- 热销推荐 -->
     <h3>热销推荐</h3>
     <el-carousel :interval="5000" height="180px">
@@ -88,36 +107,26 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
-import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-// 定义类目的接口
-interface Category {
-  id: string; // 类目ID
-  categoryName: string; // 类目名称
-  parentId: string | null; // 上级类目ID，null表示一级类目
-  orderNum: number | null; // 排序
-  createTime: string; // 创建时间
-  children?: Category[]; // 子类目
-}
-
-const props = {
-  value: 'id',
-  label: 'categoryName',
-  children: 'children'
-};
+import RegionSelect from '@/components/RegionSelect/index.vue';
+import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 
 const dialogVisible = ref(false);
+
 const demandList = ref([
   { type: '种子--辣椒种子', region: '湖北省-武汉市-江汉区', note: '买的越多，越便宜', stock: 11, views: 1, publishDate: '2025-10-23' }
-  // ...其他数据...
 ]);
-
-const categorieList = ref([]); // 商品分类列表
 
 const category = ref([]);
 
 const region = ref([]);
+
+const contactVisible = ref(false);
+
+const contactForm = ref({
+  supplierName: '',
+  contactName: '',
+  phone: ''
+});
 
 const queryParams = ref({
   total: 23,
@@ -176,18 +185,6 @@ const getGoodsList = (type: string) => {
   console.log(`获取${type}商品数据`);
 };
 
-// 获取商品分类数据
-const fetchCategories = async () => {
-  try {
-    const res = await getProductCategoryList();
-    if (res.code === 200) {
-      categorieList.value = proxy?.handleTree<Category>(res.data, 'id');
-    }
-  } catch (error) {
-    console.error('获取商品分类数据失败:', error);
-  }
-};
-
 // 数组分块函数
 const chunkArray = (array: any[], size: number) => {
   const result = [];
@@ -211,6 +208,8 @@ const submitForm = () => {
 
 const contact = (row: any) => {
   console.log('联系数据:', row);
+  contactForm.value = row;
+  contactVisible.value = true;
 };
 </script>
 
