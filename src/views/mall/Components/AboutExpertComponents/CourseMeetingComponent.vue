@@ -16,8 +16,8 @@
       <!-- 课程 -->
       <el-row :gutter="12" v-if="activeTab === 'course'">
         <el-col :span="6" v-for="(course, index) in courseList" :key="index">
-          <el-card>
-            <div class="course-item">
+          <el-card shadow="hover">
+            <div class="course-item" @click="handleClick('courseDetail', course)">
               <img :src="course.image" class="course-image" />
               <div class="hot flex-center">
                 <div class="views flex-center gap-2">
@@ -42,7 +42,7 @@
       </el-row>
       <!-- 会议 -->
       <div class="meeting-list" v-else>
-        <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index">
+        <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleClick('meetingDetail', meeting)">
           <div class="meeting-title">{{ meeting.title }}</div>
         </div>
         <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" />
@@ -53,6 +53,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+const emit = defineEmits(['detailChange']);
 const tabsList = [
   { label: '培训课程', value: 'course' },
   { label: '培训会议', value: 'meeting' }
@@ -119,6 +120,11 @@ const meetingList = ref([
     location: '上海市浦东新区'
   }
 ]);
+
+// 点击课程或会议时触发方法，传递课程或会议数据
+const handleClick = (type: string, course: any) => {
+  emit('detailChange', { type, data: course });
+};
 </script>
 
 <style scoped lang="scss">

@@ -126,6 +126,10 @@ const loading = ref(true);
 const queryFormRef = ref();
 const dateRange = ref(['', '']);
 
+onMounted(() => {
+  getList();
+});
+
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;

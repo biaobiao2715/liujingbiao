@@ -17,7 +17,7 @@
       </template>
 
       <div class="content flex gap-12" :class="{ expanded: isExpanded }">
-        <el-card v-for="expert in filteredExperts" :key="expert.id" class="expert-item">
+        <el-card v-for="expert in filteredExperts" :key="expert.id" class="expert-item" shadow="hover">
           <div class="title-info flex-center">
             <!-- <img :src="expert.avatar" alt="专家头像" class="avatar" /> -->
             <div class="avatar flex-center">
@@ -42,16 +42,18 @@
         </el-card>
       </div>
     </el-card>
+    <AskExpertComponent ref="askExpertRef"></AskExpertComponent>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import AskExpertComponent from './AskExpertComponent.vue';
 
 const tabs = ['热门专家', '技术专家', '法务专家'];
 const activeTab = ref(tabs[0]);
 const isExpanded = ref(false);
-
+const askExpertRef = ref(null);
 const experts = ref([
   {
     id: 1,
@@ -86,7 +88,8 @@ const toggleExpand = () => {
 // 处理立即咨询按钮点击
 const handleConsultation = (expert) => {
   // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
-  console.log('咨询专家:', expert);
+  console.log('咨询专家:', expert,askExpertRef.value);
+  askExpertRef.value.openDialog(expert.id);
 };
 </script>
 
@@ -121,11 +124,8 @@ const handleConsultation = (expert) => {
 
     .expert-item {
       width: calc(25% - 8px);
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-bottom: 10px;
-
+      cursor: pointer;
       .title-info {
         display: flex;
         align-items: center;

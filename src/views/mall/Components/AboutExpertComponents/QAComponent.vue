@@ -7,7 +7,7 @@
       </template>
       <el-row :gutter="20">
         <el-col :span="8" v-for="(item, index) in qaList" :key="index" @click="handleClick(item)">
-          <el-card class="qa-card">
+          <el-card class="qa-card" shadow="hover">
             <div class="qa-question">
               <div class="qa-icon question-icon">问</div>
               <div class="qa-question-text">{{ item.question }}</div>

@@ -13,11 +13,17 @@
         <!-- 普法专栏 -->
         <PopularizLawComponent @detailChange="showDetail" />
       </div>
+      <!-- 直播 -->
+      <LivingComponent @detailChange="showDetail" />
     </div>
     <!-- 问答详情 -->
     <QADetailComponent v-if="showArea === 'qaDetail'" />
     <!-- 文章详情 -->
     <EssayDetailComponent v-if="showArea === 'essayDetail'" />
+    <!-- 课程详情 -->
+    <CourseDetailComponent v-if="showArea === 'courseDetail'" />
+    <!-- 会议详情 -->
+    <MeetingDetailComponent v-if="showArea === 'meetingDetail'" />
   </div>
 </template>
 
@@ -30,8 +36,11 @@ import PopularizLawComponent from './AboutExpertComponents/PopularizLawComponent
 import QADetailComponent from './AboutExpertComponents/QADetailComponent.vue'; // 问答详情组件
 import EssayDetailComponent from './AboutExpertComponents/EssayDetailComponent.vue'; // 文章详情组件
 import CourseMeetingComponent from './AboutExpertComponents/CourseMeetingComponent.vue'; // 课程会议组件
+import CourseDetailComponent from './AboutExpertComponents/CourseDetailComponent.vue'; // 课程详情组件
+import MeetingDetailComponent from './AboutExpertComponents/MeetingDetailComponent.vue'; // 会议详情组件
+import LivingComponent from './AboutExpertComponents/LivingComponent.vue'; // 直播组件
 
-type showAreaType = 'area' | 'qaDetail' | 'essayDetail';
+type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meetingDetail' | 'livingDetail';
 
 const showArea = ref('area');
 
