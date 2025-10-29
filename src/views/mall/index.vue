@@ -58,6 +58,9 @@ onMounted(() => {
     personalCommand.value = command;
     showHomeContent.value = false;
   });
+  eventBus.on('showHomeContentChange', (command: boolean) => {
+    showHomeContent.value = command;
+  });
 });
 
 function handleTabClick(tab: any) {

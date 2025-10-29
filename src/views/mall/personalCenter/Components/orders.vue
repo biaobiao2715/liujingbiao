@@ -57,7 +57,7 @@
 <script setup lang="ts">
 // 引入 Vue 能力/类型，增强类型安全
 import { ref, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
-import { orderConfirm, orderCancel, orderList } from '@/api/mall/personalCenter';
+import { orderConfirm, orderCancel, orderList } from '@/api/mall/personalCenter/orders';
 
 // 订单条目与订单结构类型，匹配后端返回结构
 interface OrderItem {
