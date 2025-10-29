@@ -50,9 +50,19 @@ const options = computed(() => {
 });
 
 const handleChange = (val: string[]) => {
-  console.log(val);
+  // console.log(val);
+  const [provinceCode, cityCode, districtCode] = val;
 
-  emits('regionChange', val);
+  const arr = {
+    regionPath: val,
+    provinceCode: provinceCode || '',
+    cityCode: cityCode || '',
+    regionCode: districtCode || '',
+    province: areaData['86'][provinceCode] || '',
+    city: areaData[provinceCode]?.[cityCode] || '',
+    region: areaData[cityCode]?.[districtCode] || ''
+  };
+  emits('regionChange', arr);
 };
 </script>
 

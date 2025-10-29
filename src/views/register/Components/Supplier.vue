@@ -57,7 +57,7 @@
 
           <el-col :span="12">
             <el-form-item label="注册地址" prop="areaCodes">
-              <el-cascader
+              <!-- <el-cascader
                 style="width: 100%"
                 v-model="form.areaCodes"
                 filterable
@@ -69,7 +69,8 @@
                 }"
                 placeholder="请选择"
                 @change="handleAreaChange"
-              ></el-cascader>
+              ></el-cascader> -->
+              <RegionSelect style="width: 100%" v-model="form.areaCodes" @regionChange="handleAreaChange" />
             </el-form-item>
           </el-col>
 
@@ -322,7 +323,7 @@ const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目�
 enum idTypeEnum {
   sysUserId = null,
   supplier = 'qyId',
-  enterprise = 'qyId',
+  // enterprise = 'qyId',
   expert = 'jszjId',
   legal = 'fwzjId'
 }
@@ -689,27 +690,14 @@ const optionsAddres = computed(() => {
 
 // 地址选择变化
 const handleAreaChange = (val) => {
-  if (!val || val.length === 0) {
-    form.value.areaCodes = [];
-    form.value.provinceCode = '';
-    form.value.cityCode = '';
-    form.value.districtCode = '';
-    form.value.province = '';
-    form.value.city = '';
-    form.value.district = '';
-    return;
-  }
-
-  const [provinceCode, cityCode, districtCode] = val;
-
   // 更新编码和名称
-  form.value.areaCodes = val;
-  form.value.provinceCode = provinceCode || '';
-  form.value.cityCode = cityCode || '';
-  form.value.districtCode = districtCode || '';
-  form.value.province = areaData['86'][provinceCode] || '';
-  form.value.city = areaData[provinceCode]?.[cityCode] || '';
-  form.value.district = areaData[cityCode]?.[districtCode] || '';
+  form.value.areaCodes = val.regionPath;
+  form.value.provinceCode = val.provinceCode;
+  form.value.cityCode = val.cityCode;
+  form.value.districtCode = val.regionCode;
+  form.value.province = val.province;
+  form.value.city = val.city;
+  form.value.district = val.region;
 };
 
 // 添加新行-供应商联系人
@@ -1008,50 +996,6 @@ const removeFile = (file: any) => {
   }
 };
 
-// 根据地址名称查找对应的编码值，用于回显
-const findAreaCodeByAddress = (address) => {
-  if (!address) return [];
-  const areaCodeValue = ref([]);
-
-  // 这里需要根据实际的地址格式来解析，以下是一个示例实现
-  // 假设地址格式为 "广东省广州市天河区"
-  const provinces = areaData['86'];
-  for (const provinceCode in provinces) {
-    const provinceName = provinces[provinceCode];
-    if (address.includes(provinceName)) {
-      // 找到省份
-      areaCodeValue.value = [provinceCode];
-
-      // 查找城市
-      const cities = areaData[provinceCode];
-      if (cities) {
-        for (const cityCode in cities) {
-          const cityName = cities[cityCode];
-          if (address.includes(cityName)) {
-            // 找到城市
-            areaCodeValue.value = [provinceCode, cityCode];
-
-            // 查找区县
-            const areas = areaData[cityCode];
-            if (areas) {
-              for (const areaCode in areas) {
-                const areaName = areas[areaCode];
-                if (address.includes(areaName)) {
-                  // 找到区县
-                  areaCodeValue.value = [provinceCode, cityCode, areaCode];
-                  return areaCodeValue.value;
-                }
-              }
-            }
-            return areaCodeValue.value;
-          }
-        }
-      }
-      return areaCodeValue.value;
-    }
-  }
-  return [];
-};
 // 生命周期钩子
 onMounted(async () => {
   // 获取router路由参数
