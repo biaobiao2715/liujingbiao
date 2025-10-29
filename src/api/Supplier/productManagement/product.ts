@@ -114,5 +114,3 @@ export const ossUploadImage = (data: { file: File }) => {
     }
   });
 };
-
-

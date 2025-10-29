@@ -153,6 +153,10 @@ const handleConsultation = (expert) => {
             color: red;
             font-weight: bold;
           }
+          div:last-child {
+            font-size: 12px;
+            color: #666;
+          }
         }
       }
 

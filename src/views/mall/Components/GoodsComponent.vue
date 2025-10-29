@@ -38,13 +38,13 @@ const fetchGoodsList = async () => {
   loading.value = true;
   try {
     const response = await goodsList({
-      goodsCategoryId: searchInfo.goodsCategoryId,
-      region: searchInfo.region,
+      // goodsCategoryId: searchInfo.value.goodsCategoryId,
+      // region: searchInfo.value.region,
       pageNum: 1,
       pageSize: 10
     });
     if (response.code === 200) {
-      goodsData.value = response.data.records;
+      goodsData.value = response.rows;
     }
   } catch (error) {
     ElMessage.error('获取商品列表失败');
