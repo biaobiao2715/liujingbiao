@@ -41,7 +41,7 @@
         <el-col :span="24">
           <el-form-item label=" " colon="false">
             <el-checkbox v-model="form.isDefault" true-value="1" false-value="0">设为默认地址</el-checkbox>
-            <div>设置后系统将在下单时自动选择该收货地址</div>
+            <div style="margin-left: 20px; color: #909399">设置后系统将在下单时自动选择该收货地址</div>
           </el-form-item>
         </el-col>
 
@@ -72,7 +72,7 @@
       </el-table-column>
       <el-table-column label="设为默认地址" width="160" align="center">
         <template #default="{ row }">
-          <el-radio :model-value="row.isDefault" :label="row.id" @change="() => onSetDefault(row)"> 设为默认地址 </el-radio>
+          <el-checkbox v-model="row.isDefault" true-value="1" false-value="0" @change="() => onSetDefault(row)">设为默认地址</el-checkbox>
         </template>
       </el-table-column>
     </el-table>
@@ -85,7 +85,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
-// 按你项目真实路径与方法名调整下列导入名称：
 import {
   Address,
   userAddressList,
@@ -94,9 +93,9 @@ import {
   userAddressDelete,
   userAddressSetDefault
 } from '@/api/mall/personalCenter/addressManagement';
-
+import { useUserStore } from '@/store/modules/user';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
+const userStore = useUserStore();
 // 列表 & 分页
 const loading = ref(false);
 const saving = ref(false);
@@ -113,6 +112,7 @@ const queryParams = reactive({
 
 // 表单
 const formRef = ref();
+// 新增：表单模型扩展 regionPath
 const form = reactive<Address>({
   receiverName: '',
   receiverPhone: '',
@@ -124,7 +124,8 @@ const form = reactive<Address>({
   region: '',
   detailAddress: '',
   isDefault: '0',
-  tag: ''
+  tag: '',
+  regionPath: [] // 新增：与 RegionSelect 绑定
 });
 
 // 校验
@@ -190,7 +191,8 @@ const resetForm = () => {
     region: '',
     detailAddress: '',
     isDefault: '0',
-    tag: ''
+    tag: '',
+    regionPath: [] // 新增：重置地区
   });
   formRef.value?.clearValidate?.();
 };
@@ -200,9 +202,11 @@ const onSubmit = async () => {
   saving.value = true;
   console.log('submit', form);
   try {
-    // 新增 or 修改
     const api = form.id ? userAddressUpdate : userAddressAdd;
-    const res: any = await api({ ...form });
+    const res: any = await api({
+      ...form,
+      userId: Number(userStore.userId)
+    });
     if (res?.code === 200) {
       ElMessage.success(form.id ? '修改成功' : '新增成功');
       resetForm();
@@ -215,6 +219,8 @@ const onSubmit = async () => {
 
 const onEdit = (row: Address) => {
   Object.assign(form, row);
+  // 新增：编辑时回填地区路径
+  // form.regionPath = [row.provinceCode, row.cityCode, row.regionCode].filter(Boolean) as string[];
 };
 
 const onDelete = async (row: Address) => {

@@ -52,7 +52,7 @@
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="210" style="color: #0000ff">
         <template #default="scope">
-          <router-link :to="'/SupplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
+          <router-link :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
             <span>{{ scope.row.goodsCode }}</span>
           </router-link>
         </template>
@@ -100,7 +100,7 @@ import {
   addGoodsPriceHistory,
   updateGoodsPriceHistory,
   deleteGoodsPriceHistory
-} from '@/api/Supplier/productManagement/productPrice';
+} from '@/api/supplier/productManagement/productPrice';
 import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;

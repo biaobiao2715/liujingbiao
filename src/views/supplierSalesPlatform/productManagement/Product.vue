@@ -100,7 +100,7 @@
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
           <!-- 详情按钮 -->
           <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">详情</el-button>
@@ -118,13 +118,7 @@
     </div>
 
     <!-- 价格设定弹窗 -->
-    <el-dialog
-      v-model="priceDialogVisible"
-      title="价格修改"
-      width="800px"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-    >
+    <el-dialog v-model="priceDialogVisible" title="价格修改" width="800px" :close-on-click-modal="false" :close-on-press-escape="false">
       <div class="price-dialog-content">
         <!-- 商品基本信息 -->
         <div class="product-basic-info">
@@ -179,14 +173,7 @@
             </el-table-column>
             <el-table-column prop="price" label="销售价" width="120">
               <template #default="scope">
-                <el-input
-                  v-model="scope.row.price"
-                  type="number"
-                  :min="0"
-                  step="0.01"
-                  placeholder="请输入价格"
-                  class="price-input"
-                >
+                <el-input v-model="scope.row.price" type="number" :min="0" step="0.01" placeholder="请输入价格" class="price-input">
                   <template #suffix>¥</template>
                 </el-input>
               </template>
@@ -219,7 +206,7 @@
 import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 
 import router from '@/router';
-import { goodsList , goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/Supplier/productManagement/product';
+import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -251,8 +238,8 @@ const queryFormRef = ref();
 const dateRange = ref(['', '']);
 // 是否显示搜索
 const showSearch = ref(true);
-const selectedIds = ref([]);// 选中的行ID数组
-const selectedRows = ref([]);// 选中的行数据数组
+const selectedIds = ref([]); // 选中的行ID数组
+const selectedRows = ref([]); // 选中的行数据数组
 
 // 价格设定弹窗相关
 const priceDialogVisible = ref(false);
@@ -272,7 +259,7 @@ const getCategoryList = async () => {
       categoryList.value = response.data || response.rows || [];
       // 构建类目ID到名称的映射
       categoryMap.value = {};
-      categoryList.value.forEach(category => {
+      categoryList.value.forEach((category) => {
         categoryMap.value[category.id] = category.categoryName || category.name;
       });
       console.log('商品类目列表:', categoryList.value);
@@ -318,7 +305,7 @@ const handleReset = () => {
 
 // 表格选择变化事件
 const handleSelectionChange = (selection) => {
-  selectedIds.value = selection.map(item => item.id);
+  selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
 };
 
@@ -334,28 +321,32 @@ const handleDelete = () => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    // 批量删除 - 逐个调用删除接口
-    const deletePromises = selectedIds.value.map(id => goodsDelete(id));
-    
-    Promise.all(deletePromises).then(results => {
-      const successCount = results.filter(res => res.code === 200).length;
-      if (successCount > 0) {
-        ElMessage.success(`成功删除${successCount}个商品`);
-        getList();
-        // 清空选中状态
-        selectedIds.value = [];
-        selectedRows.value = [];
-      }
-      if (successCount < selectedIds.value.length) {
-        ElMessage.warning(`部分删除失败，共删除${successCount}/${selectedIds.value.length}个商品`);
-      }
-    }).catch(error => {
-      ElMessage.error('删除操作失败');
+  })
+    .then(() => {
+      // 批量删除 - 逐个调用删除接口
+      const deletePromises = selectedIds.value.map((id) => goodsDelete(id));
+
+      Promise.all(deletePromises)
+        .then((results) => {
+          const successCount = results.filter((res) => res.code === 200).length;
+          if (successCount > 0) {
+            ElMessage.success(`成功删除${successCount}个商品`);
+            getList();
+            // 清空选中状态
+            selectedIds.value = [];
+            selectedRows.value = [];
+          }
+          if (successCount < selectedIds.value.length) {
+            ElMessage.warning(`部分删除失败，共删除${successCount}/${selectedIds.value.length}个商品`);
+          }
+        })
+        .catch((error) => {
+          ElMessage.error('删除操作失败');
+        });
+    })
+    .catch(() => {
+      ElMessage.info('删除操作已取消');
     });
-  }).catch(() => {
-    ElMessage.info('删除操作已取消');
-  });
 };
 
 // 上架按钮事件
@@ -363,52 +354,56 @@ const handleShelf = () => {
   // 如果没有选择商品，则处理全部商品
   let targetIds = selectedIds.value;
   let targetRows = selectedRows.value;
-  
+
   if (targetIds.length === 0) {
     // 获取当前页面的所有商品ID
-    targetIds = tableData.value.map(item => item.id);
+    targetIds = tableData.value.map((item) => item.id);
     targetRows = tableData.value;
     ElMessage.info('未选择商品，将对当前页面全部商品进行上架操作');
   }
-  
+
   // 检查目标商品是否都是下架状态（上架操作只能对下架状态的商品进行）
   // 状态 '0' 表示上架，'1' 表示下架，所以上架操作需要检查状态不是 '0'
-  const invalidRows = targetRows.filter(row => row.status === '0');
+  const invalidRows = targetRows.filter((row) => row.status === '0');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已上架的商品，无法重复上架`);
     return;
   }
-  
+
   ElMessageBox.confirm(`确定要将${targetIds.length}个商品上架吗？`, '上架确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    // 批量上架 - 使用正确的数据格式
-    const shelfData = {
-      goodsIds: targetIds, // 商品ID数组
-      status: '0' // 0表示上架
-    };
-    
-    console.log('上架数据:', shelfData);
-    
-    updateGoodsStatus(shelfData).then(response => {
-      if (response.code === 200) {
-        ElMessage.success(`成功上架${targetIds.length}个商品`);
-        getList();
-        // 清空选中状态
-        selectedIds.value = [];
-        selectedRows.value = [];
-      } else {
-        ElMessage.error(response.msg || '上架操作失败');
-      }
-    }).catch(error => {
-      console.error('上架操作失败:', error);
-      ElMessage.error('上架操作失败');
+  })
+    .then(() => {
+      // 批量上架 - 使用正确的数据格式
+      const shelfData = {
+        goodsIds: targetIds, // 商品ID数组
+        status: '0' // 0表示上架
+      };
+
+      console.log('上架数据:', shelfData);
+
+      updateGoodsStatus(shelfData)
+        .then((response) => {
+          if (response.code === 200) {
+            ElMessage.success(`成功上架${targetIds.length}个商品`);
+            getList();
+            // 清空选中状态
+            selectedIds.value = [];
+            selectedRows.value = [];
+          } else {
+            ElMessage.error(response.msg || '上架操作失败');
+          }
+        })
+        .catch((error) => {
+          console.error('上架操作失败:', error);
+          ElMessage.error('上架操作失败');
+        });
+    })
+    .catch(() => {
+      ElMessage.info('上架操作已取消');
     });
-  }).catch(() => {
-    ElMessage.info('上架操作已取消');
-  });
 };
 
 // 下架按钮事件
@@ -416,59 +411,63 @@ const handleUnshelf = () => {
   // 如果没有选择商品，则处理全部商品
   let targetIds = selectedIds.value;
   let targetRows = selectedRows.value;
-  
+
   if (targetIds.length === 0) {
     // 获取当前页面的所有商品ID
-    targetIds = tableData.value.map(item => item.id);
+    targetIds = tableData.value.map((item) => item.id);
     targetRows = tableData.value;
     ElMessage.info('未选择商品，将对当前页面全部商品进行下架操作');
   }
-  
+
   // 检查目标商品是否都是上架状态（下架操作只能对上架状态的商品进行）
   // 状态 '0' 表示上架，'1' 表示下架，所以下架操作需要检查状态是 '0'
-  const invalidRows = targetRows.filter(row => row.status !== '0');
+  const invalidRows = targetRows.filter((row) => row.status !== '0');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已下架的商品，无法重复下架`);
     return;
   }
-  
+
   ElMessageBox.confirm(`确定要将${targetIds.length}个商品下架吗？`, '下架确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    // 批量下架 - 使用正确的数据格式
-    const unshelfData = {
-      goodsIds: targetIds, // 商品ID数组
-      status: '1' // 1表示下架
-    };
-    
-    console.log('下架数据:', unshelfData);
-    
-    updateGoodsStatus(unshelfData).then(response => {
-      if (response.code === 200) {
-        ElMessage.success(`成功下架${targetIds.length}个商品`);
-        getList();
-        // 清空选中状态
-        selectedIds.value = [];
-        selectedRows.value = [];
-      } else {
-        ElMessage.error(response.msg || '下架操作失败');
-      }
-    }).catch(error => {
-      console.error('下架操作失败:', error);
-      ElMessage.error('下架操作失败');
+  })
+    .then(() => {
+      // 批量下架 - 使用正确的数据格式
+      const unshelfData = {
+        goodsIds: targetIds, // 商品ID数组
+        status: '1' // 1表示下架
+      };
+
+      console.log('下架数据:', unshelfData);
+
+      updateGoodsStatus(unshelfData)
+        .then((response) => {
+          if (response.code === 200) {
+            ElMessage.success(`成功下架${targetIds.length}个商品`);
+            getList();
+            // 清空选中状态
+            selectedIds.value = [];
+            selectedRows.value = [];
+          } else {
+            ElMessage.error(response.msg || '下架操作失败');
+          }
+        })
+        .catch((error) => {
+          console.error('下架操作失败:', error);
+          ElMessage.error('下架操作失败');
+        });
+    })
+    .catch(() => {
+      ElMessage.info('下架操作已取消');
     });
-  }).catch(() => {
-    ElMessage.info('下架操作已取消');
-  });
 };
 
 //表格状态字典映射
 const getStatusText = (status) => {
   const statusMap = {
     '0': '上架',
-    '1': '下架',
+    '1': '下架'
   };
   return statusMap[status] || '';
 };
@@ -484,21 +483,15 @@ const getSalesPrice = (row) => {
   if (!row.hnGoodsSpecificationDataList || row.hnGoodsSpecificationDataList.length === 0) {
     return '--';
   }
-  
+
   // 提取所有规格的价格并用"-"拼接
-  const prices = row.hnGoodsSpecificationDataList
-    .map(spec => spec.goodsPrice || 0)
-    .filter(price => price > 0);
-  
+  const prices = row.hnGoodsSpecificationDataList.map((spec) => spec.goodsPrice || 0).filter((price) => price > 0);
+
   if (prices.length === 0) {
     return '--';
   }
-  
-  return prices.join('-');
-};
 
-const handleAdd = () => {
-  router.push({ path: '/supplier/sales/product/edit' });
+  return prices.join('-');
 };
 
 /** 查看详情 */
@@ -518,10 +511,10 @@ const handlePriceSetting = async (row: any) => {
 
     // 调用商品详情接口获取完整数据
     const response = await goodsId(row.id);
-    
+
     if (response && response.code === 200) {
       const productData = response.data;
-      
+
       // 设置商品基本信息
       currentProduct.value = {
         id: productData.id || row.id, // 商品ID
@@ -534,7 +527,7 @@ const handlePriceSetting = async (row: any) => {
         warranty: productData.warranty || productData.guarantee || '--',
         mainImage: productData.mainImage || productData.image || ''
       };
-      
+
       // 设置商品规格数据
       if (productData.specs && productData.specs.length > 0) {
         // 如果API返回了规格数据
@@ -569,7 +562,7 @@ const handlePriceSetting = async (row: any) => {
           }
         ];
       }
-      
+
       priceDialogVisible.value = true;
     } else {
       ElMessage.error('获取商品详情失败');
@@ -596,22 +589,22 @@ const closePriceDialog = () => {
 const savePriceChanges = async () => {
   try {
     priceSaving.value = true;
-    
+
     // 准备保存的数据，使用正确的格式
     const saveData = {
       id: currentProduct.value.id || currentProduct.value.goodsId, // 商品ID（最外层）
-      hnGoodsSpecificationDataList: productSpecs.value.map(spec => ({
+      hnGoodsSpecificationDataList: productSpecs.value.map((spec) => ({
         id: spec.id, // 规格ID
         goodsId: currentProduct.value.id || currentProduct.value.goodsId, // 商品ID
         goodsPrice: parseFloat(spec.price) || 0 // 商品价格
       }))
     };
-    
+
     console.log('保存价格数据:', saveData);
-    
+
     // 调用保存价格接口
     const response = await updateGoodsPrice(saveData);
-    
+
     if (response && response.code === 200) {
       ElMessage.success('价格修改成功');
       closePriceDialog();
@@ -638,6 +631,10 @@ const handleEdits = (row: any, type: 'view' | 'edit' | 'audit') => {
       type
     }
   });
+};
+
+const handleAdd = () => {
+  router.push({ path: '/supplier/sales/product/edit' });
 };
 
 const handleEC = (row: any) => {
@@ -710,35 +707,35 @@ onActivated(() => {
     padding: 16px;
     background-color: #f8f9fa;
     border-radius: 8px;
-    
+
     .info-row {
       display: flex;
       margin-bottom: 12px;
-      
+
       &:last-child {
         margin-bottom: 0;
       }
     }
-    
+
     .info-item {
       flex: 1;
       display: flex;
       align-items: center;
-      
+
       .label {
         font-weight: 500;
         color: #606266;
         margin-right: 8px;
         min-width: 80px;
       }
-      
+
       .value {
         color: #303133;
         flex: 1;
       }
     }
   }
-  
+
   .product-info-section {
     .section-title {
       display: flex;
@@ -747,24 +744,26 @@ onActivated(() => {
       font-size: 16px;
       font-weight: 500;
       color: #303133;
-      
+
       .el-icon {
         margin-right: 8px;
         color: #409eff;
       }
     }
-    
-    .spec-name, .spec-code, .spec-info {
+
+    .spec-name,
+    .spec-code,
+    .spec-info {
       padding: 8px 12px;
       background-color: #f5f7fa;
       border-radius: 4px;
       font-size: 14px;
       color: #606266;
     }
-    
+
     .price-input {
       width: 100%;
-      
+
       :deep(.el-input__inner) {
         text-align: right;
         padding-right: 20px;
@@ -775,7 +774,7 @@ onActivated(() => {
 
 .dialog-footer {
   text-align: center;
-  
+
   .el-button {
     margin: 0 8px;
   }

@@ -16,7 +16,7 @@ export interface Address {
   userId?: number;
   createTime?: string;
   updateTime?: string;
-  regionPath?: [string, string, string];
+  regionPath?: [string?, string?, string?];
 }
 
 /**
