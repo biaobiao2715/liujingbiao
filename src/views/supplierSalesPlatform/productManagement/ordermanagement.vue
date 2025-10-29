@@ -30,8 +30,15 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="下单时间">
-        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
-          start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator=" - "
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          @change="handleSelectDate"
+        />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -77,19 +84,22 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        :total="total" @pagination="getTableData" />
+      <pagination
+        v-show="total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :total="total"
+        @pagination="getTableData"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import axios from 'axios'; 
+import axios from 'axios';
 // 确保引入 axios
-import {
-  getorderpageList,
-} from '@/api/supplier/productManagement/ordermanagement';
+import { getorderpageList } from '@/api/supplier/productManagement/ordermanagement';
 import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -123,7 +133,7 @@ const queryParams = ref({
   goodsName: '', //商品名称
   receiverName: '', // 收货人名字
   endTime: '', // 下单结束时间
-  startTime: '',// 下单开始时间
+  startTime: '' // 下单开始时间
 });
 
 onMounted(() => {
@@ -154,7 +164,7 @@ const handleReset = () => {
     goodsName: '', //商品名称
     receiverName: '', // 收货人名字
     endTime: '', // 下单结束时间
-    startTime: '',// 下单开始时间
+    startTime: '' // 下单开始时间
   };
   dateRange.value = [];
   getTableData();

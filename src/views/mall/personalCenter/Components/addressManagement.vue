@@ -219,8 +219,9 @@ const onSubmit = async () => {
 
 const onEdit = (row: Address) => {
   Object.assign(form, row);
+  console.log('edit row', row, form);
   // 新增：编辑时回填地区路径
-  // form.regionPath = [row.provinceCode, row.cityCode, row.regionCode].filter(Boolean) as string[];
+  form.regionPath = [row.provinceCode, row.cityCode, row.regionCode];
 };
 
 const onDelete = async (row: Address) => {
