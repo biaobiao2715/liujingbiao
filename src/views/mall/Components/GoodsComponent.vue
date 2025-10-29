@@ -1,10 +1,10 @@
 <template>
   <div>
     <!-- 查询组件 -->
-    <SearchComponent />
+    <SearchComponent @searchChange="getSearchInfo" />
     <!-- 商品组件 -->
     <div class="goods-list">
-      <GoodsItemComponent v-for="item in goodsList" :key="item.id" :goods="item" @clickGoods="handleClick" />
+      <GoodsItemComponent v-for="item in goodsData" :key="item.id" :goods="item" @clickGoods="handleClick" />
     </div>
   </div>
 </template>
@@ -12,7 +12,47 @@
 <script setup lang="ts">
 import SearchComponent from './SearchComponent.vue'; // 分类组件
 import GoodsItemComponent from './GoodsItemComponent.vue';
-const goodsList = ref([]);
+import { goodsList } from '@/api/Supplier/productManagement/product';
+
+const loading = ref(false); // 加载状态
+
+const goodsData = ref([]); // 商品列表数据
+
+const searchInfo = ref({
+  goodsCategoryId: [] as string[],
+  region: [] as string[]
+});
+
+onMounted(() => {
+  fetchGoodsList();
+});
+
+const getSearchInfo = (searchInfo) => {
+  console.log(searchInfo);
+
+  // fetchGoodsList(searchInfo);
+};
+
+// 获取商品列表数据
+const fetchGoodsList = async () => {
+  loading.value = true;
+  try {
+    const response = await goodsList({
+      goodsCategoryId: searchInfo.goodsCategoryId,
+      region: searchInfo.region,
+      pageNum: 1,
+      pageSize: 10
+    });
+    if (response.code === 200) {
+      goodsData.value = response.data.records;
+    }
+  } catch (error) {
+    ElMessage.error('获取商品列表失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 点击商品时触发方法
 const handleClick = (item) => {
   // emit('onClick', item);
