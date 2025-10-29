@@ -17,15 +17,15 @@
       <el-form :model="form" :label-width="80" ref="formRef" :rules="rules">
         <!-- 类目名称 -->
         <el-form-item label="类目名称" prop="categoryName" required>
-          <el-input v-model="form.categoryName" placeholder="请输入" />
+          <el-input v-model="form.categoryName" placeholder="请输入类目名称" />
         </el-form-item>
         <!-- 排序 -->
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input v-model="form.orderNum" placeholder="请输入" />
+          <el-input v-model="form.orderNum" type="number" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <template v-slot:footer>
-        <div class="dialog-footer flex-center-between">
+        <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="saveCategory">确认</el-button>
         </div>
@@ -139,10 +139,10 @@ const saveCategory = async () => {
         const res = form.value.id ? await updateProductCategory(form.value) : await createProductCategory(form.value);
         if (res.code === 200) {
           ElMessage.success(form.value.id ? '类目更新成功' : '类目创建成功');
+          dialogVisible.value = false;
+          fetchCategories();
         }
       }
-      dialogVisible.value = false;
-      fetchCategories();
     });
   } catch (error) {
     ElMessage.error('保存类目失败');
@@ -158,11 +158,15 @@ const editCategory = (category: Category) => {
 // 删除类目
 const deleteCategory = async (category: Category) => {
   try {
-    await ElMessageBox.confirm(`确定要删除类目 "${category.categoryName}" 吗？此操作将永久删除该类目及其子类目。`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
+    await ElMessageBox.confirm(
+      `确定要删除类目 "${category.categoryName}" 吗？此操作将永久删除该类目${category.children.length > 0 ? '及其子类目' : ''}。`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
     const res = await deleteProductCategory(category.id);
     if (res.code === 200) {
       ElMessage.success('类目删除成功');

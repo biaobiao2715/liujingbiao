@@ -131,6 +131,10 @@ onActivated(() => {
   getTableData();
 });
 
+onMounted(() => {
+  getTableData();
+});
+
 // 计算属性，用于处理表格中复杂的显示逻辑
 const computedTableData = computed(() =>
   tableData.value.map((row) => ({
