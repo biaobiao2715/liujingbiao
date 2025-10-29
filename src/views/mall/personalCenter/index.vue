@@ -25,6 +25,7 @@
         <questions v-if="selectedComponent === 'question'" />
         <addressManagement v-if="selectedComponent === 'address'" />
         <requests v-if="selectedComponent === 'demand'" />
+        <participatedRequests v-if="selectedComponent === 'participated'" />
       </el-col>
     </el-row>
   </div>
@@ -39,6 +40,7 @@ import favorites from './Components/favorites.vue';
 import addressManagement from './Components/addressManagement.vue';
 import questions from './Components/questions.vue';
 import requests from './Components/requests.vue';
+import participatedRequests from './Components/participatedRequests.vue';
 interface Props {
   command?: string | number | object;
 }
@@ -64,7 +66,8 @@ const menuItems = [
   { id: 2, title: '我的收藏', component: 'collection' },
   { id: 3, title: '我的提问', component: 'question' },
   { id: 4, title: '地址管理', component: 'address' },
-  { id: 5, title: '我发布的需求', component: 'demand' }
+  { id: 5, title: '我发布的需求', component: 'demand' },
+  { id: 6, title: '我参与的', component: 'participated' }
 ];
 
 // 当前选中的组件

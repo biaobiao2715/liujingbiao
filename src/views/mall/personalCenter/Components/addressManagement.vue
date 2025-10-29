@@ -52,7 +52,7 @@
     </el-form>
 
     <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
-    <el-alert class="summary-alert" type="warning" :closable="false" show-icon :title="`已保存${total}条地址，还能保存${remainCount}条`" />
+    <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已保存${total}条地址，还能保存${remainCount}条`" />
     <!-- 表格：加边框与紧凑尺寸 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
       <el-table-column prop="receiverName" label="收货人" align="center" />

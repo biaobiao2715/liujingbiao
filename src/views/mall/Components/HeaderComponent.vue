@@ -16,6 +16,7 @@
           <el-dropdown-item command="question">我的提问</el-dropdown-item>
           <el-dropdown-item command="address">地址管理</el-dropdown-item>
           <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
+          <el-dropdown-item command="participated">我参与的</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>

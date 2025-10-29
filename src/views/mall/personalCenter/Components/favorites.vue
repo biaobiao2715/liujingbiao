@@ -1,3 +1,10 @@
+<!--
+        标题: Purchaser.vue
+        功能: 我的收藏夹
+        说明: 用于查看我收藏的商品和文章。
+        当前版本: 1.0
+        开发信息: Created by 刘景彪 2025-10-27
+    -->
 <template>
   <div class="favorite-page">
     <el-card shadow="never" class="fav-card">
