@@ -168,7 +168,7 @@
                   type="number"
                   :min="0"
                   :max="999999"
-                  :disabled="id ? true : false"
+                  :disabled="id ? (scope.row.id ? true : false) : false"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 ></el-input>
 
@@ -651,12 +651,10 @@ onMounted(async () => {
   const data = await goodsAttributesAllList();
   console.log('商品保障+功能+品牌', data);
 
-  // 模拟保障数据
-  guaranteeOptions.value = data.guaranteeList || [];
-
   // 模拟品牌数据
   brandOptions.value = data.brandList || [];
-
+  // 模拟保障数据
+  guaranteeOptions.value = data.guaranteeList || [];
   // 模拟功能数据
   functionOptions.value = data.functionList || [];
 
@@ -674,15 +672,16 @@ onMounted(async () => {
       formData.value = {
         ...data
       };
-
-      hnGoodsFilesList.value = data.sysOssLists.map((file) => ({
-        name: file.originalName || '商品主图',
-        url: file.url,
-        fileType: '1',
-        ossId: file.ossId,
-        path: file.url
-      }));
-      hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
+      if (data.sysOssLists && data.sysOssLists.length > 0) {
+        hnGoodsFilesList.value = data.sysOssLists.map((file) => ({
+          name: file.originalName || '商品主图',
+          url: file.url,
+          fileType: '1',
+          ossId: file.ossId,
+          path: file.url
+        }));
+        hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
+      }
     }
   }
 });

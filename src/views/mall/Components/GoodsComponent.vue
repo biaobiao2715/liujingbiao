@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import SearchComponent from './SearchComponent.vue'; // 分类组件
 import GoodsItemComponent from './GoodsItemComponent.vue';
-import { goodsList } from '@/api/Supplier/productManagement/product';
+import { goodsList } from '@/api/supplier/productManagement/product';
 
 const loading = ref(false); // 加载状态
 
