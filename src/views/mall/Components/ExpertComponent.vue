@@ -5,6 +5,8 @@
       <ConsultationComponent @detailChange="showDetail" />
       <!-- 专家问答 -->
       <QAComponent @detailChange="showDetail" />
+      <!-- 培训课程会议 -->
+      <CourseMeetingComponent @detailChange="showDetail" />
       <div class="flex gap-24">
         <!-- 文章专栏 -->
         <EssayComponent @detailChange="showDetail" />
@@ -27,6 +29,7 @@ import EssayComponent from './AboutExpertComponents/EssayComponent.vue'; // 文�
 import PopularizLawComponent from './AboutExpertComponents/PopularizLawComponent.vue'; // 普法组件
 import QADetailComponent from './AboutExpertComponents/QADetailComponent.vue'; // 问答详情组件
 import EssayDetailComponent from './AboutExpertComponents/EssayDetailComponent.vue'; // 文章详情组件
+import CourseMeetingComponent from './AboutExpertComponents/CourseMeetingComponent.vue'; // 课程会议组件
 
 type showAreaType = 'area' | 'qaDetail' | 'essayDetail';
 

@@ -4,9 +4,12 @@
       <template #header>
         <div class="card-header">普法宣传</div>
       </template>
-      <el-tabs v-model="activeTab" type="card" @tab-change="handleTabChange">
+      <!-- <el-tabs v-model="activeTab" type="card" @tab-change="handleTabChange">
         <el-tab-pane v-for="(tab, index) in tabs" :key="index" :label="tab" :name="index.toString()"> </el-tab-pane>
-      </el-tabs>
+      </el-tabs> -->
+
+      <el-segmented v-model="activeTab" :options="tabsList" />
+
       <div class="data-list">
         <div v-for="item in dataList" :key="item.type">
           <div class="title">{{ item.title }}</div>
@@ -19,8 +22,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const tabs = ['国家政策法规', '普法活动', '普法白皮书'];
-const activeTab = ref(0);
+// 改成lable value形式
+const tabsList = [
+  { label: '国家政策法规', value: 'policy' },
+  { label: '普法活动', value: 'activity' },
+  { label: '普法白皮书', value: 'whitepaper' }
+];
+const activeTab = ref('policy');
+
 const dataList = ref([
   {
     type: '0',
@@ -63,6 +72,7 @@ const getDataList = async () => {
   .data-list {
     height: 544px;
     overflow: auto;
+    margin-top: 12px;
   }
   .content {
     font-size: 16px;
