@@ -31,6 +31,7 @@
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
+          clearable
         />
       </el-form-item>
 
@@ -111,7 +112,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   status: '',
-  reviewTime: '',
+  reviewTime: [] as string[] | [],
   reviewStatus: '',
   licenseNumber: '',
   companyName: '',
@@ -130,14 +131,28 @@ onMounted(() => {
   getList();
 });
 
+/** 规范化审核时间上传 */
+const buildReviewTimePayload = () => {
+  const rt = queryParams.value.reviewTime;
+  if (Array.isArray(rt) && rt.length === 2 && rt[0] && rt[1]) {
+    return {
+      reviewStartTime: `${rt[0]} 00:00:00`,
+      reviewEndTime: `${rt[1]} 23:59:59`
+    };
+  }
+  return {
+    reviewStartTime: undefined,
+    reviewEndTime: undefined
+  };
+};
+
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
   baseEnterpriseInfoList({
     ...queryParams.value,
     reviewTime: undefined,
-    reviewStartTime: queryParams.value.reviewTime?.[0],
-    reviewEndTime: queryParams.value.reviewTime?.[1]
+    ...buildReviewTimePayload()
   }).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
@@ -159,6 +174,8 @@ const handleQuery = () => {
 /** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
+  // 强制清除日期范围
+  queryParams.value.reviewTime = [];
   handleQuery();
 };
 

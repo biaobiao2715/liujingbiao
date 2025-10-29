@@ -51,9 +51,11 @@
                 </div>
                 <div class="flex-between">
                   <div class="name-ellipsis">{{ item.googsName }}</div>
-                  <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
+                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                    <el-icon><StarFilled /></el-icon>
+                  </el-button>
                 </div>
-                <div class="flex-between meta-line">
+                <div class="flex-between">
                   <div>
                     <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px">{{
                       vs.attributeName
@@ -71,20 +73,20 @@
               v-for="item in state.list"
               @click="goDetail(item)"
               :key="item.id"
-              class="article-item"
+              class="goods-item"
               shadow="hover"
               :body-style="{ padding: '12px' }"
             >
-              <div class="article">
-                <img class="li-img" :src="item.googsImage || defaultImg" alt="商品图片" />
-                <div class="info">
-                  <div class="name" :title="item.articleTitle || item.googsName">
-                    {{ item.articleTitle || item.googsName || '-' }}
-                  </div>
-                  <div>作者： {{ item.createBy }}</div>
-                  <div class="actions">
-                    <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
-                  </div>
+              <div class="goods">
+                <img class="li-img" :src="item.articleCover || defaultImg" alt="文章图片" />
+                <div class="name" :title="item.articleTitle || item.googsName">
+                  {{ item.articleTitle || item.googsName || '-' }}
+                </div>
+                <div class="flex-between">
+                  <div class="author">作者： {{ item.articleAuthor }}</div>
+                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                    <el-icon><StarFilled /></el-icon>
+                  </el-button>
                 </div>
               </div>
             </el-card>
@@ -112,6 +114,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FavoriteItem } from '@/api/mall/personalCenter/favorite';
 import { favoriteList, favoriteDelete, favoriteArticleList, favoriteArticleDelete } from '@/api/mall/personalCenter/favorite';
+import { StarFilled } from '@element-plus/icons-vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
@@ -126,10 +129,8 @@ const state = reactive({
   opLoadingId: 0 as number | 0,
   query: {
     pageNum: 1,
-    pageSize: 20,
-    googsName: '',
-    orderByColumn: 'createTime',
-    isAsc: 'desc' as 'asc' | 'desc'
+    pageSize: 10,
+    googsName: ''
   }
 });
 
@@ -275,7 +276,7 @@ const specificationText = (specId: unknown) => {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-  min-height: 260px;
+  /* min-height: 260px; */
 }
 .goods-item:hover {
   transform: translateY(-2px);
@@ -287,22 +288,13 @@ const specificationText = (specId: unknown) => {
   flex-direction: column;
   gap: 8px;
 }
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.meta-line {
-  color: #909399;
-  font-size: 12px;
-}
 
 /* 图片比例统一 */
 .li-img {
   width: 100%;
   height: 140px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #f7f8fa;
 }
 
@@ -318,6 +310,37 @@ const specificationText = (specId: unknown) => {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* 收藏心形按钮：图标化、悬停放大 */
+.fav-heart {
+  color: #ff6a00;
+  font-size: 18px;
+  padding: 0;
+}
+.fav-heart .el-icon {
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+.fav-heart:hover .el-icon {
+  transform: scale(1.1);
+}
+
+/* ========== 文章卡片样式优化 ========== */
+
+.article .name {
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--el-text-color-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 两行省略 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article .author {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
 }
 
 /* 文章块保持原有自适应即可 */

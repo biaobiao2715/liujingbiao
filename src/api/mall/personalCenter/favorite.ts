@@ -45,6 +45,7 @@ export interface FavoriteItem {
 
   // 文章/企业等其他扩展字段（按需加）
   articleId?: number;
+  articleAuthor?: string;
   articleTitle?: string;
   articleCover?: string;
 }
