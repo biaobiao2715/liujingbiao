@@ -32,7 +32,7 @@ import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge
 import { eventBus } from '@/utils/eventBus';
 
 const handleCommand = (command: string) => {
-  console.log('点击了:', command);
+  // console.log('点击了:', command);
   eventBus.emit('navigateToPersonalCenter', command);
 };
 </script>

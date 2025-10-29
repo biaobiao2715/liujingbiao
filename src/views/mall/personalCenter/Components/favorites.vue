@@ -227,6 +227,7 @@ const priceDelta = (spread: unknown) => {
 
 // 规格值文本
 const specificationText = (specId: unknown) => {
+  // console.log('specId', specId, goods_specification, goods_specification.value);
   const list = goods_specification.value || [];
   if (!list.length || specId === null || specId === undefined || specId === '') return '';
   const hit = list.find((v: any) => String(v?.dictValue ?? v?.value ?? v?.id) === String(specId));

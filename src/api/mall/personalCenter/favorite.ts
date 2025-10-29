@@ -1,6 +1,5 @@
 // src/api/mall/favorite.ts
 import request from '@/utils/request';
-import { string } from 'vue-types';
 
 export type FavoriteType = '1' | '2' | '3'; // 1商品 2企业 3文章
 
@@ -56,7 +55,6 @@ export interface FavoriteItem {
 
 // 查询商品信息列表
 export function favoriteList(query?: any) {
-  console.log(query);
   return request({
     url: 'grain-sales/favoriteGoogs/list',
     method: 'get',
@@ -81,9 +79,8 @@ export const favoriteDelete = (id: any) => {
 
 // 查询文章信息列表
 export function favoriteArticleList(query?: any) {
-  console.log(query);
   return request({
-    url: 'grain-sales/favoriteArticles/list',
+    url: 'skill-server/articleFavorite/list',
     method: 'get',
     params: query
   });
@@ -95,7 +92,7 @@ export function favoriteArticleList(query?: any) {
  */
 export const favoriteArticleDelete = (id: any) => {
   return request({
-    url: 'grain-sales/favoriteArticles/' + id,
+    url: 'skill-server/articleFavorite/' + id,
     method: 'delete'
   });
 };

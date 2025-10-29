@@ -89,7 +89,7 @@
         </template>
       </el-table-column>
       <el-table-column label="预警下限" align="center" prop="goodsAlert"> </el-table-column>
-      <el-table-column label="提醒" align="center" prop="licenseNumber"> </el-table-column>
+      <el-table-column label="提醒" align="center" prop="remind" width="100"> </el-table-column>
       <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
           <span>{{ getStatusText(scope.row.status) }}</span>
@@ -208,6 +208,7 @@ import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
+import { Row } from 'element-plus/es/components/table-v2/src/components';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
