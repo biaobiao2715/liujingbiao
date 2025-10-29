@@ -42,6 +42,9 @@
         </el-card>
       </div>
     </el-card>
+    <!-- 专家详情弹窗 -->
+    <ExpertDetailComponent ref="expertDetailRef"></ExpertDetailComponent>
+    <!-- 咨询专家弹窗 -->
     <AskExpertComponent ref="askExpertRef"></AskExpertComponent>
   </div>
 </template>
@@ -49,6 +52,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AskExpertComponent from './AskExpertComponent.vue';
+import ExpertDetailComponent from './ExpertDetailComponent.vue';
 
 const tabs = ['热门专家', '技术专家', '法务专家'];
 const activeTab = ref(tabs[0]);
@@ -88,7 +92,7 @@ const toggleExpand = () => {
 // 处理立即咨询按钮点击
 const handleConsultation = (expert) => {
   // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
-  console.log('咨询专家:', expert,askExpertRef.value);
+  console.log('咨询专家:', expert, askExpertRef.value);
   askExpertRef.value.openDialog(expert.id);
 };
 </script>
