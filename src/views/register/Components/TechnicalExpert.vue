@@ -51,6 +51,7 @@
                     style="width: 150px"
                     :show-file-list="false"
                     :on-change="handlePhotoChange"
+                    accept=".jpg,.jpeg,.gif,.png"
                   >
                     <div class="upload-content" style="padding: 20px">
                       <img src="@/assets/images/register3.svg" class="step-icon" />
@@ -197,14 +198,18 @@
           >
             <el-table-column prop="index" label="序号" width="80" />
             <el-table-column prop="name" label="附件名" />
-            <el-table-column prop="remark" label="备注" />
+            <el-table-column prop="remark" label="备注">
+              <template #default="scope">
+                <el-input v-model="scope.row.remark" placeholder="请输入"></el-input>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="150">
               <template #default="scope">
-                <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">预览</el-button>
+                <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
                 <!--  资质名称为 毕业证 不显示删除按钮  -->
-                <el-button v-throttle type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)"
+                <!-- <el-button v-throttle type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)"
                   >删除</el-button
-                >
+                > -->
               </template>
             </el-table-column>
           </el-table>
@@ -615,14 +620,21 @@ const handleDiplomaChange = (file: any) => {
     .then((res) => {
       if (res.code === 200 && res.data?.ossId) {
         diplomaUrl.value = res.data.ossId;
-        qualificationList.value.push({
-          index: qualificationList.value.length + 1,
-          name: '毕业证',
-          remark: res?.data?.fileName || '上传毕业证',
-          url: res.data.url,
-          fileType: '2',
-          ossId: res.data.ossId
-        });
+        const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
+        if (findDiploma) {
+          findDiploma.name = res?.data?.fileName;
+          findDiploma.url = res.data.url;
+          findDiploma.ossId = res.data.ossId;
+        } else {
+          qualificationList.value.push({
+            index: qualificationList.value.length + 1,
+            name: res?.data?.fileName,
+            remark: '毕业证',
+            url: res.data.url,
+            fileType: '2',
+            ossId: res.data.ossId
+          });
+        }
         return ocrUploadImage({ file: file.raw })
           .then((res) => {
             Object.keys(res).forEach((key) => {
@@ -649,14 +661,21 @@ const handlePhotoChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       photoUrl.value = res.data.ossId;
-      qualificationList.value.push({
-        index: qualificationList.value.length + 1,
-        name: '照片',
-        remark: res?.data?.fileName || '上传照片',
-        url: res.data.url,
-        fileType: '0',
-        ossId: res.data.ossId
-      });
+      const findPhoto = qualificationList.value.find((item) => item.fileType === '0');
+      if (findPhoto) {
+        findPhoto.name = res?.data?.fileName;
+        findPhoto.url = res.data.url;
+        findPhoto.ossId = res.data.ossId;
+      } else {
+        qualificationList.value.push({
+          index: qualificationList.value.length + 1,
+          name: res?.data?.fileName,
+          remark: '照片',
+          url: res.data.url,
+          fileType: '0',
+          ossId: res.data.ossId
+        });
+      }
     }
   });
 };
@@ -676,13 +695,6 @@ const addQualification = (file: any) => {
   });
 };
 
-const deleteQualification = (index: number) => {
-  //   qualificationList.value.splice(index, 1);
-  //   // 重新计算序号
-  //   qualificationList.value.forEach((item, i) => {
-  //     item.index = i + 1;
-  //   });
-};
 // 文件上传前校验
 const beforeUpload = (file: any) => {
   const maxSize = 5 * 1024 * 1024; // 5MB
@@ -771,73 +783,25 @@ onMounted(async () => {
     }
   }
 });
-// 预览文件
-const previewQualification = (file: any) => {
-  console.log('预览文件:', file);
-  if (!file.url) {
-    ElMessage.warning('无法预览该文件');
-    return;
+
+// 下载文件
+const previewQualification = async (file: any) => {
+  console.log(file);
+
+  try {
+    const response = await fetch(file.url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.name; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
   }
-
-  // 根据文件类型进行不同方式的预览
-  const fileExtension = file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase();
-
-  // 图片文件预览
-  if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-    const img = new Image();
-    img.src = file.url;
-    const imageWindow = window.open('');
-    if (imageWindow) {
-      imageWindow.document.write(`
-        <html>
-          <head>
-            <title>图片预览</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                background: #f5f5f5;
-              }
-              img { max-width: 95vw; max-height: 95vh; }
-            </style>
-          </head>
-          <body>
-            <img src="${file.url}" alt="${file.name}" />
-          </body>
-        </html>
-      `);
-      imageWindow.document.close();
-    } else {
-      ElMessage.error('弹窗被阻止，请允许弹窗后重试');
-    }
-    return;
-  }
-
-  // PDF文件预览
-  if (fileExtension === 'pdf') {
-    window.open(file.url, '_blank');
-    return;
-  }
-
-  // 文档文件预览（使用浏览器内置功能或提示下载）
-  if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExtension)) {
-    const newWindow = window.open(file.url, '_blank');
-    if (!newWindow) {
-      ElMessage.error('弹窗被阻止，请允许弹窗或直接下载文件');
-    }
-    return;
-  }
-
-  // 其他文件类型提供下载
-  const link = document.createElement('a');
-  link.href = file.url;
-  link.download = file.name;
-  link.click();
-  ElMessage.info('不支持在线预览，已尝试下载文件');
+  console.log('下载文件:', file);
 };
 </script>
 

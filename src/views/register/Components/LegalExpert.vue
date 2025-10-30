@@ -26,6 +26,7 @@
                   :auto-upload="false"
                   :show-file-list="false"
                   :on-change="handleDiplomaChange"
+                  accept=".jpg,.jpeg,.gif,.png,.pdf"
                 >
                   <div class="upload-content">
                     <img src="@/assets/images/register3.svg" class="step-icon" />
@@ -49,6 +50,7 @@
                   style="width: 150px"
                   :show-file-list="false"
                   :on-change="handlePhotoChange"
+                  accept=".jpg,.jpeg,.gif,.png"
                 >
                   <div class="upload-content" style="padding: 20px 20px 10px">
                     <img src="@/assets/images/register3.svg" class="step-icon" />
@@ -156,16 +158,15 @@
             <el-table-column prop="remark" label="备注" />
             <el-table-column label="操作" width="150">
               <template #default="scope">
-                <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">预览</el-button>
-                <!--  资质名称为 毕业证 或 法律执业资格或律师资格证号 不显示删除按钮  -->
-                <el-button
+                <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
+                <!-- <el-button
                   v-throttle
                   type="primary"
-                  v-if="scope.row.name !== '毕业证' && scope.row.name !== '照片'"
+                  v-if="scope.row.name !== '律师证' && scope.row.name !== '照片'"
                   link
                   @click="deleteQualification(scope.$index)"
                   >删除</el-button
-                >
+                > -->
               </template>
             </el-table-column>
           </el-table>
@@ -337,6 +338,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   idCard: [
     {
       trigger: 'blur',
+      required: false,
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
           callback();
@@ -355,7 +357,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
       trigger: 'change',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback(new Error('执业证类别选择无效，请重新选择。'));
+          callback(new Error('请输入执业证类型'));
         } else {
           callback();
         }
@@ -367,7 +369,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   // 发证日期
   issueDate: [{ required: true, message: '请选择发证日期', trigger: 'change' }],
   // 技术资格证号
-  technicalQualification: [{ required: true, message: '请输入技术资格证号', trigger: 'blur' }],
+  technicalQualification: [{ required: true, message: '请输专业技术资格名称', trigger: 'blur' }],
   // 联系电话
   contactPhone: [
     {
@@ -406,13 +408,13 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
       }
     }
   ],
-  // 毕业证书
+  // 律师证书
   diploma: [
     {
       required: true,
       validator: (rule: any, value: any, callback: any) => {
         if (!diplomaUrl.value) {
-          callback(new Error('请上传毕业证书'));
+          callback(new Error('请上传律师证'));
         } else {
           callback();
         }
@@ -549,38 +551,44 @@ const sendSmsCode = async () => {
     console.error('手机号验证失败', error);
   }
 };
-// 上传毕业证
+// 上传律师证
 const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传律师证，请稍候...');
   uploadImage({
     file: file.raw
   })
-    .then((res) => {
+    .then(async (res) => {
       diplomaUrl.value = res.data.ossId;
-      qualificationList.value.push({
-        index: qualificationList.value.length + 1,
-        name: '毕业证',
-        remark: res?.data?.fileName || '上传毕业证',
-        url: res.data.url,
-        fileType: '2',
-        ossId: res.data.ossId
-      });
-      return ocrUploadImage({ file: file.raw })
-        .then((res) => {
-          // console.log('上传成功：', res);
-          Object.keys(res).forEach((key) => {
-            if (key in formData.value) {
-              formData.value[key] = res[key];
-            }
-          });
-        })
-        .catch((error) => {
-          // 如果OCR识别失败，则移除之前添加的文件
-          qualificationList.value.pop();
-          ElMessage.error('OCR识别失败，请重试');
-          console.error('上传失败：', error);
-          throw error; // 继续抛出错误以便在最后统一处理
+      const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
+      if (findDiploma) {
+        findDiploma.name = res?.data?.fileName;
+        findDiploma.url = res.data.url;
+        findDiploma.ossId = res.data.ossId;
+      } else {
+        qualificationList.value.push({
+          index: qualificationList.value.length + 1,
+          name: res?.data?.fileName,
+          remark: '律师证',
+          url: res.data.url,
+          fileType: '2',
+          ossId: res.data.ossId
         });
+      }
+      try {
+        const res_1 = await ocrUploadImage({ file: file.raw });
+        // console.log('上传成功：', res);
+        Object.keys(res_1).forEach((key) => {
+          if (key in formData.value) {
+            formData.value[key] = res_1[key];
+          }
+        });
+      } catch (error) {
+        // 如果OCR识别失败，则移除之前添加的文件
+        qualificationList.value.pop();
+        ElMessage.error('OCR识别失败，请重试');
+        console.error('上传失败：', error);
+        throw error; // 继续抛出错误以便在最后统一处理
+      }
     })
     .finally(() => {
       proxy?.$modal.closeLoading();
@@ -592,14 +600,21 @@ const handlePhotoChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       photoUrl.value = res.data.ossId;
-      qualificationList.value.push({
-        index: qualificationList.value.length + 1,
-        name: '照片',
-        remark: res?.data?.fileName || '上传照片',
-        url: res.data.url,
-        fileType: '0',
-        ossId: res.data.ossId
-      });
+      const findImage = qualificationList.value.find((item) => item.fileType === '0');
+      if (findImage) {
+        findImage.name = res?.data?.fileName;
+        findImage.url = res.data.url;
+        findImage.ossId = res.data.ossId;
+      } else {
+        qualificationList.value.push({
+          index: qualificationList.value.length + 1,
+          name: res?.data?.fileName,
+          remark: '照片',
+          url: res.data.url,
+          fileType: '0',
+          ossId: res.data.ossId
+        });
+      }
     }
   });
 };
@@ -619,84 +634,25 @@ const addQualification = (file: any) => {
   });
 };
 
-const deleteQualification = (index: number) => {
-  //   qualificationList.value.splice(index, 1);
-  //   // 重新计算序号
-  //   qualificationList.value.forEach((item, i) => {
-  //     item.index = i + 1;
-  //   });
-};
-
 // 表单引用
 const formRef = ref();
 
-// 预览文件
-const previewQualification = (file: any) => {
-  console.log('预览文件:', file);
-  if (!file.url) {
-    ElMessage.warning('无法预览该文件');
-    return;
+// 下载文件
+const previewQualification = async (file: any) => {
+  try {
+    const response = await fetch(file.url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.name; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
   }
-
-  // 根据文件类型进行不同方式的预览
-  const fileExtension = file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase();
-
-  // 图片文件预览
-  if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-    const img = new Image();
-    img.src = file.url;
-    const imageWindow = window.open('');
-    if (imageWindow) {
-      imageWindow.document.write(`
-        <html>
-          <head>
-            <title>图片预览</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                background: #f5f5f5;
-              }
-              img { max-width: 95vw; max-height: 95vh; }
-            </style>
-          </head>
-          <body>
-            <img src="${file.url}" alt="${file.name}" />
-          </body>
-        </html>
-      `);
-      imageWindow.document.close();
-    } else {
-      ElMessage.error('弹窗被阻止，请允许弹窗后重试');
-    }
-    return;
-  }
-
-  // PDF文件预览
-  if (fileExtension === 'pdf') {
-    window.open(file.url, '_blank');
-    return;
-  }
-
-  // 文档文件预览（使用浏览器内置功能或提示下载）
-  if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExtension)) {
-    const newWindow = window.open(file.url, '_blank');
-    if (!newWindow) {
-      ElMessage.error('弹窗被阻止，请允许弹窗或直接下载文件');
-    }
-    return;
-  }
-
-  // 其他文件类型提供下载
-  const link = document.createElement('a');
-  link.href = file.url;
-  link.download = file.name;
-  link.click();
-  ElMessage.info('不支持在线预览，已尝试下载文件');
+  console.log('下载文件:', file);
 };
 
 // 下一步按钮处理函数
