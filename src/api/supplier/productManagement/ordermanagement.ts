@@ -4,12 +4,11 @@
 
 import request from '@/utils/request';
 
-// 分页查询销售订单列表
-export function getorderpageList(data: any) {
+// 获取销售订单列表  查询订单
+export function getorderList(data: any) {
   return request({
-    url: '/grain-sales/order/page',
+    url: '/grain-sales/order/list',
     method: 'get',
     params: data
   });
 }
-

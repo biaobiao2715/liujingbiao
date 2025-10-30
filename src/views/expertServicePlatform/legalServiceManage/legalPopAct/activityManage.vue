@@ -28,6 +28,7 @@
             />
           </el-select>
         </el-form-item>
+      
         
         <!-- 所属类型下拉框 -->
         <el-form-item label="所属类型" prop="activityType">

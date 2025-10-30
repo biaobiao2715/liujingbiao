@@ -16,7 +16,13 @@
       </el-form-item>
       <el-form-item label="订单状态">
         <el-select v-model="queryParams.orderStatus" filterable clearable placeholder="请选择订单状态">
-          <el-option v-for="item in productBrandList" :key="item.id" :label="item.attributeName" :value="item.id" />
+          <el-option label="全部" value="" />
+          <el-option
+            v-for="dict in order_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="商品名称">
@@ -62,21 +68,74 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <!-- <el-table-column type="selection" width="55" align="center" /> -->
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="销售订单号" align="center" prop="orderSn" width="210" style="color: #0000ff" />
-      <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
-      <el-table-column label="数量" align="center" prop="goodsQuantity" width="210"> </el-table-column>
-      <el-table-column label="配送方式" align="center" prop="goodsCategoryName" width="210"> </el-table-column>
-      <el-table-column label="下单时间" align="center" prop="goodsOldPrice" width="210"> </el-table-column>
-      <el-table-column label="收货人姓名" align="center" prop="receiverName" width="210"> </el-table-column>
-      <el-table-column label="收货人电话" align="center" prop="receiverPhone" width="210"> </el-table-column>
-      <el-table-column label="收货地址" align="center" prop="adjustBy" width="210"> </el-table-column>
-      <el-table-column label="订单状态" align="center" prop="orderStatus" width="210"> </el-table-column>
+      <el-table-column label="销售订单号" align="center" prop="orderSn" width="180" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.orderSn }}</el-link>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" min-width="120">
+        <template #default="scope">
+          <span>{{ scope.row.goodsName || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品数量" align="center" prop="goodsQuantity" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.goodsQuantity || 0 }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品价格" align="center" prop="goodsPrice" width="120">
+        <template #default="scope">
+          <span class="amount-text">¥{{ scope.row.goodsPrice || '0.00' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="配送方式" align="center" prop="deliveryOptions" width="120">
+        <template #default="scope">
+          <span>{{ getDeliveryMethodText(scope.row.deliveryOptions) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="下单时间" align="center" prop="createTime" width="160">
+        <template #default="scope">
+          <span>{{ scope.row.createTime }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="收货人" align="center" prop="receiverName" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.receiverName || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="收货电话" align="center" prop="receiverPhone" width="130">
+        <template #default="scope">
+          <span>{{ scope.row.receiverPhone || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="收货地址" align="center" prop="fullReceiverAddress" width="200" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <span>{{ getFullAddress(scope.row) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="订单状态" align="center" prop="orderStatus" width="100">
+        <template #default="scope">
+          <dict-tag :options="order_status" :value="scope.row.orderStatus" />
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="200">
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
-            <el-link type="primary">查看</el-link>
-            <el-link type="primary">发货</el-link>
-            <el-link type="primary">取消订单</el-link>
+            <el-link type="primary" @click="handleView(scope.row)">查看</el-link>
+            <el-link 
+              type="primary" 
+              @click="handleShip(scope.row)" 
+              v-if="scope.row.orderStatus === '1'"
+            >
+              发货
+            </el-link>
+            <el-link 
+              type="danger" 
+              @click="handleCancel(scope.row)" 
+              v-if="scope.row.orderStatus === '1'"
+            >
+              取消订单
+            </el-link>
           </div>
         </template>
       </el-table-column>
@@ -84,27 +143,41 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :total="total"
-        @pagination="getTableData"
-      />
+        <pagination
+          v-show="total > 0"
+          :page="queryParams.pageNum"
+          :limit="queryParams.pageSize"
+          :total="total"
+          @pagination="getTableData"
+        />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onActivated, getCurrentInstance } from 'vue';
+import { toRefs } from '@vueuse/core';
+import type { ComponentInternalInstance } from 'vue';
+import { ElMessage } from 'element-plus';
 import axios from 'axios';
 // 确保引入 axios
-import { getorderpageList } from '@/api/supplier/productManagement/ordermanagement';
-import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
+import {  getorderList } from '@/api/supplier/productManagement/ordermanagement';
+// import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
+
+
+const getProductAttributesList = async (params: any) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        code: 200,
+        rows: []
+      });
+    }, 500);
+  });
+};
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
+const { order_status } = toRefs<any>((proxy as any)?.useDict('order_status'));
 
 const productBrandList = ref([]); // 商品品牌列表
 
@@ -172,22 +245,22 @@ const handleReset = () => {
 const handleTabChange = (tabName: string) => {
   activeTab.value = tabName;
 
-  // 设置查询参数中的状态字段
+  // 设置查询参数中的状态字段 - 根据字典键值
   switch (tabName) {
     case 'pending':
-      queryParams.value.orderStatus = '1';
+      queryParams.value.orderStatus = '1'; // 待发货
       break;
     case 'shipped':
-      queryParams.value.orderStatus = '2';
+      queryParams.value.orderStatus = '2'; // 已发货
       break;
     case 'finished':
-      queryParams.value.orderStatus = '3';
+      queryParams.value.orderStatus = '3'; // 已完成
       break;
     case 'cancelled':
-      queryParams.value.orderStatus = '99';
+      queryParams.value.orderStatus = '99'; // 已取消
       break;
     default:
-      queryParams.value.orderStatus = '1'; // 全部
+      queryParams.value.orderStatus = ''; // 全部
   }
 
   queryParams.value.pageNum = 1;
@@ -226,21 +299,23 @@ const handleTabChange = (tabName: string) => {
 // };
 
 // 获取销售订单列表
-const getTableData = () => {
+const getTableData = async () => {
   loading.value = true;
+  console.log('订单列表数据:');
   try {
-    getorderpageList(queryParams.value).then((res) => {
-      if (res.code === 200) {
-        tableData.value = res.rows;
-        total.value = res.total;
-      }
-    });
+    const res: any = await getorderList(queryParams.value);
+    if (res.code === 200) {
+      tableData.value = res.rows || [];
+      total.value = res.total || 0;
+      console.log('订单列表数据:', tableData.value);
+    } else {
+      ElMessage.error(res.msg || '获取订单列表失败');
+    }
   } catch (error) {
-    console.error('查询商品价格历史列表失败:', error);
+    console.error('查询订单列表失败:', error);
+    ElMessage.error('查询订单列表失败，请稍后重试');
   } finally {
-    setTimeout(() => {
-      loading.value = false;
-    }, 500);
+    loading.value = false;
   }
 };
 
@@ -248,7 +323,7 @@ const getTableData = () => {
 const getProductBrandList = async () => {
   loading.value = true;
   try {
-    const res = await getProductAttributesList({
+    const res: any = await getProductAttributesList({
       attributeType: 0,
       pageNum: 1,
       pageSize: 9999
@@ -265,6 +340,46 @@ const getProductBrandList = async () => {
 const onQuery = () => {
   console.log('查询表单数据:', queryParams.value);
   getTableData();
+};
+
+/** 获取完整收货地址 */
+const getFullAddress = (row: any) => {
+  const parts = [
+    row.receiverProvince,
+    row.receiverCity,
+    row.receiverRegion,
+    row.receiverDetailAddress
+  ].filter(Boolean);
+  return parts.join('') || '-';
+};
+
+
+/** 获取配送方式文本 */
+const getDeliveryMethodText = (deliveryOptions: string | number) => {
+  const methodMap: Record<string, string> = {
+    '1': '同城自提',
+    '2': '快递'
+  };
+  return methodMap[String(deliveryOptions)] || '-';
+};
+
+/** 查看订单详情 */
+const handleView = (row: any) => {
+  console.log('查看订单:', row);
+  // 这里可以跳转到订单详情页面
+  // router.push(`/order/detail/${row.id}`);
+};
+
+/** 发货操作 */
+const handleShip = (row: any) => {
+  console.log('发货订单:', row);
+  // 这里可以打开发货对话框或跳转到发货页面
+};
+
+/** 取消订单 */
+const handleCancel = (row: any) => {
+  console.log('取消订单:', row);
+  // 这里可以打开取消订单确认对话框
 };
 
 // // 处理表格复选框选择事件
@@ -298,5 +413,35 @@ onActivated(() => {
   :deep(.el-tabs__header) {
     margin-bottom: 0;
   }
+}
+
+// 金额样式
+.amount-text {
+  color: #f56c6c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+// 表格样式优化
+:deep(.el-table) {
+  .el-table__header {
+    th {
+      background-color: #f5f7fa;
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+  
+  .el-table__row {
+    &:hover {
+      background-color: #f5f7fa;
+    }
+  }
+}
+
+// 状态标签样式
+:deep(.el-tag) {
+  font-weight: 500;
+  border: none;
 }
 </style>
