@@ -24,12 +24,12 @@
                   :on-change="handleDiplomaChange"
                 >
                   <div class="upload-content">
-                    <img src="@/assets/images/register3.svg" class="step-icon" />
-                    <!-- <img v-else :src="diplomaUrl" class="preview-image" /> -->
-                    <div class="upload-text">
-                      {{ diplomaUrl?.fileName ? diplomaUrl.fileName : '点击或将文件拖拽到这里上传' }}
+                    <div v-if="diplomaUrl.url == null" class="upload-placeholder">
+                      <img src="@/assets/images/register3.svg" class="step-icon" />
+                      <div class="upload-text">点击或将文件拖拽到这里上传</div>
+                      <div class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</div>
                     </div>
-                    <div class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</div>
+                    <img v-else :src="diplomaUrl.url" :alt="diplomaUrl.name" class="upload-image" />
                   </div>
                 </el-upload>
               </div>
@@ -57,19 +57,6 @@
 
           <el-col :span="12">
             <el-form-item label="注册地址" prop="areaCodes">
-              <!-- <el-cascader
-                style="width: 100%"
-                v-model="form.areaCodes"
-                filterable
-                :options="optionsAddres"
-                :props="{
-                  value: 'value',
-                  label: 'label',
-                  children: 'children'
-                }"
-                placeholder="请选择"
-                @change="handleAreaChange"
-              ></el-cascader> -->
               <RegionSelect style="width: 100%" v-model="form.areaCodes" @regionChange="handleAreaChange" />
             </el-form-item>
           </el-col>
@@ -120,14 +107,10 @@
           <el-table-column type="index" width="100" label="序号" />
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
-              <el-select v-model="scope.row.contactUserType" :disabled="scope.row.contactUserType == 1" placeholder="请选择" filterable clearable>
-                <el-option
-                  v-for="(item, index) in contact_user_type"
-                  :disabled="item.dictValue == 1"
-                  :key="index"
-                  :label="item.dictLabel"
-                  :value="item.dictValue"
-                ></el-option>
+              <!-- :disabled="scope.row.contactUserType == 1" -->
+              <!-- :disabled="item.dictValue == 1" -->
+              <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
+                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -633,7 +616,8 @@ const tableList = ref<Contact[]>([
 
 // 文件列表
 const fileListtable = ref<any[]>([]);
-const diplomaUrl = ref<{ fileName?: string; url?: string; ossId: string } | null>(null);
+// 原来：const diplomaUrl = ref<any>(null);
+const diplomaUrl = ref<any>({ url: null, name: '', fileType: '1', remark: '', ossId: undefined, ossInfo: {} });
 
 // 短信验证码相关
 const isSendingSms = ref(false);
@@ -825,7 +809,7 @@ const submitForm = () => {
 /** 文件上传成功处理 */
 const handleDiplomaChange = (file: UploadFile) => {
   proxy?.$modal.loading('正在上传营业执照，请稍候...');
-  // 文件上传
+
   uploadImage({ file: file.raw })
     .then((res) => {
       if (res.data?.ossId) {
@@ -837,23 +821,52 @@ const handleDiplomaChange = (file: UploadFile) => {
           ossId: res.data.ossId,
           ossInfo: {}
         };
-        fileListtable.value.push(newFile);
 
+        // 查找是否已有 fileType === '1' 的营业执照文件
+        const existingIndex = fileListtable.value.findIndex((f) => f.fileType == '1');
+
+        // 记录旧值，便于 OCR 失败时回滚
+        const previousFile = existingIndex !== -1 ? { ...fileListtable.value[existingIndex] } : null;
+
+        if (existingIndex !== -1) {
+          // 已存在 => 替换
+          fileListtable.value.splice(existingIndex, 1, newFile);
+        } else {
+          // 不存在 => 新增
+          fileListtable.value.push(newFile);
+        }
+
+        // 同步预览对象（保持为对象，模板使用 diplomaUrl.url）
+        diplomaUrl.value = newFile;
+
+        // 继续调用 OCR
         return ocrUploadImage({ file: file.raw })
-          .then((res) => {
-            // console.log('上传成功：', res);
-            Object.keys(res).forEach((key) => {
+          .then((ocrRes) => {
+            Object.keys(ocrRes).forEach((key) => {
               if (key in form.value) {
-                form.value[key] = res[key];
+                form.value[key] = ocrRes[key];
               }
             });
           })
           .catch((error) => {
-            // 如果OCR识别失败，则移除之前添加的文件
-            fileListtable.value.pop();
+            // OCR 失败回滚
+            if (existingIndex !== -1) {
+              // 恢复旧的营业执照文件
+              if (previousFile) {
+                fileListtable.value.splice(existingIndex, 1, previousFile);
+                diplomaUrl.value = previousFile;
+              }
+            } else {
+              // 删除刚新增的记录
+              const idx = fileListtable.value.findIndex((f) => f.ossId === newFile.ossId);
+              if (idx !== -1) fileListtable.value.splice(idx, 1);
+              // 保持为对象结构，避免模板空指针
+              diplomaUrl.value = { url: null, name: '', fileType: '1', remark: '', ossId: undefined, ossInfo: {} };
+            }
+
             ElMessage.error('OCR识别失败,请重试');
             console.error('上传失败：', error);
-            throw error; // 继续抛出错误以便在最后统一处理
+            throw error; // 抛出以便外层 catch 处理 loading 等
           });
       } else {
         ElMessage.error('营业执照上传失败，请重试');
@@ -865,7 +878,6 @@ const handleDiplomaChange = (file: UploadFile) => {
       ElMessage.error('上传失败，请重试');
     })
     .finally(() => {
-      // 关闭加载状态
       proxy?.$modal.closeLoading();
     });
 };
@@ -920,72 +932,21 @@ const beforeUpload = (file: any) => {
 };
 
 // 预览文件
-const previewFile = (file: any) => {
+const previewFile = async (file: any) => {
+  try {
+    const response = await fetch(file.url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.fileName; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
+  }
   console.log('预览文件:', file);
-  if (!file.url) {
-    ElMessage.warning('无法预览该文件');
-    return;
-  }
-
-  // 根据文件类型进行不同方式的预览
-  const fileExtension = file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase();
-
-  // 图片文件预览
-  if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-    const img = new Image();
-    img.src = file.url;
-    const imageWindow = window.open('');
-    if (imageWindow) {
-      imageWindow.document.write(`
-        <html>
-          <head>
-            <title>图片预览</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                background: #f5f5f5;
-              }
-              img { max-width: 95vw; max-height: 95vh; }
-            </style>
-          </head>
-          <body>
-            <img src="${file.url}" alt="${file.name}" />
-          </body>
-        </html>
-      `);
-      imageWindow.document.close();
-    } else {
-      ElMessage.error('弹窗被阻止，请允许弹窗后重试');
-    }
-    return;
-  }
-
-  // PDF文件预览
-  if (fileExtension === 'pdf') {
-    window.open(file.url, '_blank');
-    return;
-  }
-
-  // 文档文件预览（使用浏览器内置功能或提示下载）
-  if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExtension)) {
-    const newWindow = window.open(file.url, '_blank');
-    if (!newWindow) {
-      ElMessage.error('弹窗被阻止，请允许弹窗或直接下载文件');
-    }
-    return;
-  }
-
-  // 其他文件类型提供下载
-  const link = document.createElement('a');
-  link.href = file.url;
-  link.download = file.name;
-  link.click();
-  ElMessage.info('不支持在线预览，已尝试下载文件');
 };
 
 // 删除文件
@@ -1014,14 +975,21 @@ onMounted(async () => {
     tableList.value = arr.data.contacts;
     if (arr.data && arr.data.folders && arr.data.folders.length > 0) {
       arr.data.folders.forEach((element: any) => {
-        if (element && element.ossInfo) {
-          fileListtable.value.push({
+        fileListtable.value.push({
+          name: element.ossInfo.originalName,
+          remark: element.remark,
+          url: element.ossInfo.url,
+          fileType: element.fileType,
+          ossId: element.ossId
+        });
+        if (element.fileType == '1') {
+          diplomaUrl.value = {
             name: element.ossInfo.originalName,
             remark: element.remark,
             url: element.ossInfo.url,
             fileType: element.fileType,
             ossId: element.ossId
-          });
+          };
         }
       });
     }
@@ -1108,6 +1076,10 @@ onMounted(async () => {
           text-transform: none;
         }
       }
+    }
+    .upload-image {
+      width: 100%;
+      height: 150px;
     }
   }
 }

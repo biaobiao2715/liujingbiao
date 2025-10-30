@@ -1,15 +1,15 @@
-<!--
+<template>
+  <!--
   标题: enterprise/index.vue
   功能: 知识库管理
   说明: 用于知识库文章管理，包括查询、添加、编辑、删除等操作
   当前版本: 1.0
   开发信息: Created by 刘景彪 2025-10-15
 -->
-<template>
   <!-- 知识库管理 -->
   <div class="kb-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :label-width="130">
       <el-form-item label="文章类别" prop="articleType">
         <el-select v-model="queryParams.articleType" placeholder="请选择" clearable filterable>
           <el-option v-for="dict in article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
@@ -27,14 +27,12 @@
       </el-form-item>
       <el-form-item label="发布时间">
         <el-date-picker
-          v-model="queryParams.publishTimeRange"
+          v-model="queryParams.publishTime"
           type="daterange"
-          unlink-panels
           value-format="YYYY-MM-DD"
-          range-separator=" ~ "
+          range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          clearable
         />
       </el-form-item>
 
@@ -83,12 +81,12 @@
       </el-table-column>
       <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
         <template #default="scope">
-          {{ scope.row.viewCount ?? scope.row.views ?? 0 }}
+          {{ scope.row.viewCount ? scope.row.viewCount : 0 }}
         </template>
       </el-table-column>
       <el-table-column label="收藏量" align="center" prop="favoriteCount" width="100">
         <template #default="scope">
-          {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
+          {{ scope.row.favoriteCount ? scope.row.favoriteCount : 0 }}
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="400" fixed="right">
@@ -116,7 +114,7 @@ import { useRoute } from 'vue-router';
 import { listArticles, delArticle, changeArticleStatus } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { article_type, article_content_type, article_status } = toRefs<any>(proxy?.useDict('article_type', 'article_content_type', 'article_status'));
+const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 // 搜索表单
 const queryParams = ref({
   pageNum: 1,
@@ -124,7 +122,7 @@ const queryParams = ref({
   articleType: '' as string | number | '',
   articleTitle: '',
   articleStatus: '' as string | number | '',
-  publishTimeRange: [] as string[] | []
+  publishTime: [] as string[] | []
 });
 
 // 列表/分页
@@ -148,27 +146,19 @@ const getEnableStatusText = (s: any) => {
   return map[String(s)] || '-';
 };
 
-// 构造查询参数（含时间范围）
-const buildQuery = () => {
-  const q: any = { ...queryParams.value };
-  if (q.publishTimeRange && q.publishTimeRange.length === 2) {
-    q.params = {
-      beginTime: q.publishTimeRange[0],
-      endTime: q.publishTimeRange[1]
-    };
-  }
-  delete q.publishTimeRange;
-  return q;
-};
-
 // 查询列表
 const getList = async () => {
   loading.value = true;
   try {
-    const res = await listArticles(buildQuery());
+    const res = await listArticles({
+      ...queryParams.value,
+      publishTime: undefined,
+      publishStartTime: queryParams.value.publishTime?.[0],
+      publishEndTime: queryParams.value.publishTime?.[1]
+    });
     // 兼容 rows/total 或 data.total/list
-    tableData.value = res?.rows ?? res?.data?.list ?? [];
-    total.value = res?.total ?? res?.data?.total ?? 0;
+    tableData.value = res?.rows || [];
+    total.value = res?.total || 0;
   } finally {
     loading.value = false;
   }
@@ -182,7 +172,6 @@ const handleQuery = () => {
 };
 const handleReset = () => {
   queryFormRef.value?.resetFields?.();
-  queryParams.value.publishTimeRange = [];
   handleQuery();
 };
 
@@ -270,9 +259,6 @@ const handleView = (row: any) => router.push({ path: '/expertServicePlatform/kno
 // 生命周期
 onMounted(() => {
   if (!isKeepAlive.value) getList();
-});
-onActivated(() => {
-  if (isKeepAlive.value) getList();
 });
 </script>
 
