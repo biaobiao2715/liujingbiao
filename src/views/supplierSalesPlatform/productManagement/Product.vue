@@ -83,9 +83,9 @@
           <span>{{ getSalesPrice(scope.row) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryId" :show-overflow-tooltip="true">
+      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" :show-overflow-tooltip="true">
         <template #default="scope">
-          <span>{{ getCategoryName(scope.row.goodsCategoryId) }}</span>
+          <span>{{ getCategoryDisplay(scope.row) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="预警下限" align="center" prop="goodsAlert"> </el-table-column>
@@ -114,7 +114,7 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
     <!-- 价格设定弹窗 -->
@@ -203,8 +203,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, getCurrentInstance, toRefs, onMounted } from 'vue';
-
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
@@ -305,6 +306,16 @@ const handleQuery = () => {
 /** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
+  // 彻底恢复默认搜索参数
+  queryParams.value = {
+    pageNum: 1,
+    pageSize: 10,
+    status: '',
+    reviewTime: [],
+    goodsCategoryId: '',
+    goodsName: '',
+    goodsCode: ''
+  };
   handleQuery();
 };
 
@@ -368,8 +379,8 @@ const handleShelf = () => {
   }
 
   // 检查目标商品是否都是下架状态（上架操作只能对下架状态的商品进行）
-  // 状态 '0' 表示上架，'1' 表示下架，所以上架操作需要检查状态不是 '0'
-  const invalidRows = targetRows.filter((row) => row.status === '0');
+  // 兼容不同后端取值，先标准化为'1'(上架)/'0'(下架)
+  const invalidRows = targetRows.filter((row) => normalizeStatusCode(row.status) === '1');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已上架的商品，无法重复上架`);
     return;
@@ -384,7 +395,7 @@ const handleShelf = () => {
       // 批量上架 - 使用正确的数据格式
       const shelfData = {
         goodsIds: targetIds, // 商品ID数组
-        status: '0' // 0表示上架
+        status: '1' // 1表示已上架
       };
 
       console.log('上架数据:', shelfData);
@@ -425,8 +436,8 @@ const handleUnshelf = () => {
   }
 
   // 检查目标商品是否都是上架状态（下架操作只能对上架状态的商品进行）
-  // 状态 '0' 表示上架，'1' 表示下架，所以下架操作需要检查状态是 '0'
-  const invalidRows = targetRows.filter((row) => row.status !== '0');
+  // 兼容不同后端取值，先标准化为'1'(上架)/'0'(下架)
+  const invalidRows = targetRows.filter((row) => normalizeStatusCode(row.status) !== '1');
   if (invalidRows.length > 0) {
     ElMessage.warning(`目标商品中包含已下架的商品，无法重复下架`);
     return;
@@ -441,7 +452,7 @@ const handleUnshelf = () => {
       // 批量下架 - 使用正确的数据格式
       const unshelfData = {
         goodsIds: targetIds, // 商品ID数组
-        status: '1' // 1表示下架
+        status: '0' // 0表示已下架
       };
 
       console.log('下架数据:', unshelfData);
@@ -468,13 +479,22 @@ const handleUnshelf = () => {
     });
 };
 
+// 将任意后端返回的状态值统一标准化为'1'(已上架)/'0'(已下架)
+const normalizeStatusCode = (status) => {
+  const s = (status ?? '').toString();
+  if (s === '1' || s === '已上架' || s === '上架' || s === '2') return '1';
+  if (s === '0' || s === '已下架' || s === '下架' || s === '3') return '0';
+  return s; // 未知则原样返回
+};
+
 //表格状态字典映射
 const getStatusText = (status) => {
+  const code = normalizeStatusCode(status);
   const statusMap = {
-    '0': '上架',
-    '1': '下架'
+    '1': '已上架',
+    '0': '已下架'
   };
-  return statusMap[status] || '';
+  return statusMap[code] || '未知状态';
 };
 
 // 获取类目名称
@@ -483,20 +503,40 @@ const getCategoryName = (categoryId) => {
   return categoryMap.value[categoryId] || '未知类目';
 };
 
-// 获取销售价（拼接所有规格的价格）
+// 获取展示的类目名称（优先使用接口返回的 goodsCategoryName）
+const getCategoryDisplay = (row) => {
+  if (row && row.goodsCategoryName) {
+    return row.goodsCategoryName;
+  }
+  return getCategoryName(row?.goodsCategoryId);
+};
+
+// 获取销售价
+// 规则：
+// - 页面展示小数点后两位
+// - 多规格时展示为 最低价-最高价
+// - 单规格或相同价格展示为单价
+// - 末尾追加 "¥"
 const getSalesPrice = (row) => {
   if (!row.hnGoodsSpecificationDataList || row.hnGoodsSpecificationDataList.length === 0) {
     return '--';
   }
 
-  // 提取所有规格的价格并用"-"拼接
-  const prices = row.hnGoodsSpecificationDataList.map((spec) => spec.goodsPrice || 0).filter((price) => price > 0);
+  const numericPrices = row.hnGoodsSpecificationDataList
+    .map((spec) => Number(spec.goodsPrice))
+    .filter((p) => !isNaN(p) && p >= 0);
 
-  if (prices.length === 0) {
+  if (numericPrices.length === 0) {
     return '--';
   }
 
-  return prices.join('-');
+  const min = Math.min(...numericPrices);
+  const max = Math.max(...numericPrices);
+
+  const minStr = min.toFixed(2);
+  const maxStr = max.toFixed(2);
+
+  return (minStr === maxStr ? `${minStr}` : `${minStr}-${maxStr}`) + '¥';
 };
 
 /** 查看详情 */

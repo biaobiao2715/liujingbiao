@@ -14,7 +14,7 @@
         <!-- 普法类型搜索框 -->
         <el-form-item label="普法类型" prop="contentType">
           <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="请选择" />
+            <el-option label="全部" value="" />
             <el-option 
               v-for="item in legal_popularize_type" 
               :key="item.value" 
@@ -37,15 +37,11 @@
         </el-form-item>
         
         <!-- 所属状态下拉框 -->
-        <el-form-item label="所属状态" prop="status">
-          <el-select v-model="queryParams.status" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="请选择" />
-            <el-option 
-              v-for="item in legal_popularize_status" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
+        <el-form-item label="所属状态" prop="contentStatus">
+          <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
+            <el-option label="全部" value="" />
+            <el-option label="启用" value="2" />
+            <el-option label="禁用" value="3" />
           </el-select>
         </el-form-item>
         
@@ -75,6 +71,9 @@
         <el-col :span="1.5">
           <el-button v-throttle type="danger" @click="handleDelete">删除</el-button>
         </el-col>
+        <el-col :span="1.5">
+          <el-tag type="info">共 {{ total }} 条数据</el-tag>
+        </el-col>
         <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
 
@@ -83,26 +82,40 @@
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <!-- 发布时间 -->
-        <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+        <!-- 内容编号 -->
+        <el-table-column label="内容编号" align="center" prop="contentNo" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.publishTime }}</span>
+            <span>{{ scope.row.contentNo }}</span>
+          </template>
+        </el-table-column>
+        
+        <!-- 内容标题 -->
+        <el-table-column label="内容标题" align="center" prop="contentTitle" :show-overflow-tooltip="true" min-width="200">
+          <template #default="scope">
+            <router-link :to="'/expertServicePlatform/legalServiceManage/contentDetail?id=' + scope.row.id + '&type=view'" class="link-type">
+              <span>{{ scope.row.contentTitle }}</span>
+            </router-link>
           </template>
         </el-table-column>
         
         <!-- 普法类型 -->
         <el-table-column label="普法类型" align="center" prop="contentType" width="120">
           <template #default="scope">
-            <span>{{ scope.row.contentType }}</span>
+            <dict-tag :options="legal_popularize_type" :value="scope.row.contentType" />
           </template>
         </el-table-column>
         
-        <!-- 普法标题 -->
-        <el-table-column label="普法标题" align="center" prop="title" :show-overflow-tooltip="true" min-width="200">
+        <!-- 内容等级 -->
+        <el-table-column label="内容等级" align="center" prop="contentLevel" width="100">
           <template #default="scope">
-            <router-link :to="'/expertServicePlatform/legalServiceManage/contentDetail?id=' + scope.row.id + '&type=view'" class="link-type">
-              <span>{{ scope.row.title }}</span>
-            </router-link>
+            <span>{{ getLevelText(scope.row.contentLevel) }}</span>
+          </template>
+        </el-table-column>
+        
+        <!-- 发布时间 -->
+        <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+          <template #default="scope">
+            <span>{{ scope.row.publishTime }}</span>
           </template>
         </el-table-column>
         
@@ -130,7 +143,7 @@
         </el-table-column>
         
         <!-- 操作 -->
-        <el-table-column label="操作" align="center" width="280">
+        <el-table-column label="操作" align="center" width="280" fixed="right">
           <template #default="scope">
             <div class="operation-buttons">
               <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
@@ -140,7 +153,7 @@
                 v-throttle 
                 type="warning" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '禁用')"
+                @click="handleStatusChange(scope.row, '3')"
               >
                 禁用
               </el-button>
@@ -149,7 +162,7 @@
                 v-throttle 
                 type="success" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '启用')"
+                @click="handleStatusChange(scope.row, '2')"
               >
                 启用
               </el-button>
@@ -183,27 +196,35 @@
 
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
-import type { ComponentInternalInstance } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
+import { 
+  getContentList, 
+  getContentDetail,
+  updateContentStatus,
+  deleteContent
+} from '../../../../api/expertServicePlatform/legalServiceManage/contentManage';
 
 const router = useRouter();
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-// 使用字典数据
-const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
+const { proxy } = getCurrentInstance() as any;
+const { legal_popularize_type, legal_pop_content_status } = toRefs<any>(
+  proxy?.useDict('legal_popularize_type', 'legal_pop_content_status')
 );
+
+// 字典由后端提供：legal_popularize_type、legal_pop_content_status
 
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  contentType: '', // 普法类型
-  status: '', // 状态
-  title: '', // 标题
+  contentType: '', // 内容类型:1法律法规2政策解读3案例分析4司法判决
+  contentSummary: '', // 内容简介
+  contentStatus: '', // 内容状态:0草稿1待审核2已发布3已下架4审核不通过99已关闭
   startTime: '', // 开始时间
-  endTime: '' // 结束时间
+  endTime: '', // 结束时间
+  orderByColumn: '', // 排序列
+  isAsc: '', // 排序的方向desc或者asc
+  title: '' // 普法内容标题
 });
 
 // 表格数据
@@ -227,55 +248,41 @@ const selectedRows = ref([]);
 const getList = async () => {
   loading.value = true;
   try {
-    // 模拟数据，实际开发时替换为真实API调用
-    const mockData = {
-      rows: [
-        {
-          id: 1,
-          title: '2025年XXX通告',
-          contentType: '法律法规',
-          publishTime: '2019-12-12 10:29:30',
-          viewCount: 1550,
-          downloadCount: 988,
-          status: '启用'
-        },
-        {
-          id: 2,
-          title: 'XXX公告专家解读',
-          contentType: '政策解读',
-          publishTime: '2019-12-11 10:29:30',
-          viewCount: 1872,
-          downloadCount: 172,
-          status: '禁用'
-        },
-        {
-          id: 3,
-          title: '种子维权',
-          contentType: '典型案例',
-          publishTime: '2019-12-10 10:29:30',
-          viewCount: 1981,
-          downloadCount: 192,
-          status: '启用'
-        },
-        {
-          id: 4,
-          title: '种子司法判决',
-          contentType: '司法判决',
-          publishTime: '2019-12-10 10:29:30',
-          viewCount: 1981,
-          downloadCount: 192,
-          status: '禁用'
+    // 调用真实的API接口
+    const response = await getContentList(queryParams.value);
+    const resData: any = response?.data || response;
+    if (resData && resData.code === 200) {
+      // 处理后端返回的数据，映射字段
+      const processedData = (resData.rows || []).map((item: any) => {
+        // 状态映射：2-已发布(启用) 3-已下架(禁用)
+        let statusText = '未知';
+        if (item.contentStatus === '2' || item.contentStatus === 2) {
+          statusText = '启用';
+        } else if (item.contentStatus === '3' || item.contentStatus === 3) {
+          statusText = '禁用';
         }
-      ],
-      total: 4
-    };
-    
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    tableData.value = mockData.rows;
-    total.value = mockData.total;
+        
+        return {
+          ...item,
+          // 确保状态字段正确映射
+          status: statusText,
+          // 保留原始数据
+          publishTime: item.publishTime || item.createTime || '-',
+          viewCount: item.viewCount || 0,
+          downloadCount: item.downloadCount || 0
+        };
+      });
+      
+      tableData.value = processedData;
+      total.value = resData.total || 0;
+      console.log('获取普法内容列表成功:', resData);
+      console.log('处理后的表格数据:', processedData);
+      console.log('第一条数据的所有字段:', processedData[0]);
+    } else {
+      ElMessage.error(resData?.msg || '获取普法内容列表失败');
+    }
   } catch (error) {
+    console.error('获取普法内容列表失败:', error);
     ElMessage.error('获取普法内容列表失败，请稍后重试');
   } finally {
     loading.value = false;
@@ -302,6 +309,11 @@ const handleReset = () => {
   dateRange.value = ['', ''];
   queryParams.value.startTime = '';
   queryParams.value.endTime = '';
+  queryParams.value.contentType = '';
+  queryParams.value.contentStatus = '';
+  queryParams.value.contentSummary = '';
+  queryParams.value.orderByColumn = '';
+  queryParams.value.isAsc = '';
   handleQuery();
 };
 
@@ -317,30 +329,103 @@ const handleAdd = () => {
 };
 
 /** 启用按钮事件 */
-const handleEnable = () => {
+const handleEnable = async () => {
   if (selectedIds.value.length === 0) {
     ElMessage.warning('请先选择要启用的内容');
     return;
   }
-  ElMessage.success(`成功启用${selectedIds.value.length}个内容`);
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要启用选中的${selectedIds.value.length}条内容吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    await updateContentStatus({
+      ids: selectedIds.value,
+      contentStatus: '2' // 2-启用
+    });
+    
+    ElMessage.success(`成功启用${selectedIds.value.length}条内容`);
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('启用失败');
+    }
+  }
 };
 
 /** 停用按钮事件 */
-const handleDisable = () => {
+const handleDisable = async () => {
   if (selectedIds.value.length === 0) {
     ElMessage.warning('请先选择要停用的内容');
     return;
   }
-  ElMessage.success(`成功停用${selectedIds.value.length}个内容`);
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要停用选中的${selectedIds.value.length}条内容吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    await updateContentStatus({
+      ids: selectedIds.value,
+      contentStatus: '3' // 3-停用
+    });
+    
+    ElMessage.success(`成功停用${selectedIds.value.length}条内容`);
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('停用失败');
+    }
+  }
 };
 
 /** 删除按钮事件 */
-const handleDelete = () => {
+const handleDelete = async () => {
   if (selectedIds.value.length === 0) {
     ElMessage.warning('请先选择要删除的内容');
     return;
   }
-  ElMessage.success(`成功删除${selectedIds.value.length}个内容`);
+  
+  // 检查是否有启用状态的内容
+  const hasEnabledItems = selectedRows.value.some(row => row.status === '启用');
+  if (hasEnabledItems) {
+    ElMessage.warning('只能删除已停用的内容，请先停用后再删除');
+    return;
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的${selectedIds.value.length}条内容吗？删除后将无法恢复！`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }
+    );
+    
+    await deleteContent(selectedIds.value);
+    
+    ElMessage.success(`成功删除${selectedIds.value.length}条内容`);
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败');
+    }
+  }
 };
 
 /** 编辑按钮事件 */
@@ -360,14 +445,77 @@ const handleView = (row: any) => {
 };
 
 /** 状态变更事件 */
-const handleStatusChange = (row: any, status: string) => {
-  ElMessage.success(`${status}成功`);
+const handleStatusChange = async (row: any, newStatus: string) => {
+  // newStatus: '2'-启用 '3'-禁用
+  const statusText = newStatus === '2' ? '启用' : '禁用';
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要${statusText}该内容吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    await updateContentStatus({ 
+      ids: [row.id], 
+      contentStatus: newStatus 
+    });
+    
+    ElMessage.success(`${statusText}成功`);
+    // 刷新列表
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(`${statusText}失败`);
+    }
+  }
 };
 
 /** 单个删除事件 */
-const handleDeleteSingle = (row: any) => {
-  ElMessage.success('删除成功');
+const handleDeleteSingle = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除"${row.contentTitle}"吗？删除后将无法恢复！`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }
+    );
+    
+    await deleteContent([row.id]);
+    
+    ElMessage.success('删除成功');
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败');
+    }
+  }
 };
+
+/** 内容等级映射函数 */
+const getLevelText = (level: string | number) => {
+  switch (String(level)) {
+    case '1':
+      return '国家级';
+    case '2':
+      return '省级';
+    case '3':
+      return '市级';
+    case '4':
+      return '县级';
+    default:
+      return '-';
+  }
+};
+
+// 字典渲染已使用 <dict-tag>，无需本地映射函数
 
 // 页面加载时获取列表数据
 onMounted(() => {

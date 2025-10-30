@@ -72,8 +72,16 @@
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center"> </el-table-column>
-        <el-table-column prop="goodsPrice" label="销售价" align="center"> </el-table-column>
+        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.goodsSpecificationValue }}g/袋</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="goodsPrice" label="销售价" align="center">
+          <template #default="scope">
+            <span>{{ formatPrice(scope.row.goodsPrice) }}¥</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="goodsStock" label="可用库存" align="center"> </el-table-column>
       </el-table>
 
@@ -202,6 +210,19 @@ onMounted(async () => {
       console.error('获取商品详情失败:', error);
     });
 });
+
+// 价格格式化（两位小数）
+const formatPrice = (price?: number) => {
+  if (price === null || price === undefined || isNaN(Number(price))) return '--';
+  return Number(price).toFixed(2);
+};
+
+// 组合规格（数值 + 单位）
+const combineSpec = (value?: string | number, unit?: string) => {
+  const v = value === undefined || value === null ? '' : String(value);
+  const u = unit || '';
+  return `${v}${u}`.trim();
+};
 </script>
 
 <style scoped lang="scss">
