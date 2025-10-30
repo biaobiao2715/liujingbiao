@@ -332,7 +332,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback(new Error('请输入专家姓名'));
+          callback(new Error('请输入姓名'));
         } else if (value.length > 50) {
           callback(new Error('专家姓名最多50个字符'));
         } else if (!/^[\u4e00-\u9fa5a-zA-Z\s]+$/.test(value)) {

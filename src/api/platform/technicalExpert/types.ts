@@ -17,6 +17,27 @@ export interface HnBaseRegisterFolderVoList {
    * 文件夹名称
    */
   folderName: string;
+  /**
+   * 文件类型
+   */
+  fileType: string;
+  /**
+   * OSS信息
+   */
+  ossInfo: {
+    /**
+     * oss文件ID
+     */
+    ossId: number;
+    /**
+     * 原始文件名
+     */
+    originalName: string;
+    /**
+     * OSS文件URL
+     */
+    url: string;
+  };
 }
 
 // 技术专家列表
@@ -144,7 +165,7 @@ export interface TechnicalExpertListRequest extends IPublicRequest {
    * 技术专家姓名
    */
   expertName?: string;
-  
+
   /**
    * 入驻时间
    */

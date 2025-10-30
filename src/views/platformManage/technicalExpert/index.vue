@@ -72,9 +72,27 @@
                 <el-link type="primary" @click="openToggleDialog(scope.row)">
                   {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
                 </el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'view')">查看</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus === '0'" @click="handleEdit(scope.row, 'audit')">审核</el-link>
-                <el-link type="primary" v-if="scope.row.reviewStatus !== '0'" @click="handleEdit(scope.row, 'edit')">编辑</el-link>
+                <el-link
+                  type="primary"
+                  v-if="scope.row.reviewStatus !== '0'"
+                  v-hasPermi="['system:baseTechExpertInfo:list']"
+                  @click="handleEdit(scope.row, 'view')"
+                  >查看</el-link
+                >
+                <el-link
+                  type="primary"
+                  v-if="scope.row.reviewStatus === '0'"
+                  v-hasPermi="['system:baseEnterpriseInfo:edit']"
+                  @click="handleEdit(scope.row, 'audit')"
+                  >审核</el-link
+                >
+                <el-link
+                  type="primary"
+                  v-if="scope.row.reviewStatus !== '0'"
+                  v-hasPermi="['system:baseEnterpriseInfo:edit']"
+                  @click="handleEdit(scope.row, 'edit')"
+                  >编辑</el-link
+                >
               </div>
             </template>
           </el-table-column>
@@ -99,14 +117,17 @@
         </el-dialog>
       </el-card>
     </div>
+    <EditDetails ref="editDetailsRef" />
   </div>
 </template>
 
 <script setup name="TechnicalExpert" lang="ts">
 import { getTechnicalExpertList, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertListRequest, TechnicalExpertList } from '@/api/platform/technicalExpert/types';
-import router from '@/router';
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref, toRefs } from 'vue';
+import EditDetails from './EditDetails.vue';
+
+const editDetailsRef = ref<any>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
@@ -220,13 +241,14 @@ const handleSelectDate = (val: any) => {
 
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
-  router.push({
-    path: '/platform/technicalExpert/details',
-    query: {
-      id: row.id,
-      type
-    }
-  });
+  editDetailsRef.value.handleOpenDialog(row.id, type);
+  //   router.push({
+  //     path: '/platform/technicalExpert/details',
+  //     query: {
+  //       id: row.id,
+  //       type
+  //     }
+  //   });
 };
 // 初始化
 

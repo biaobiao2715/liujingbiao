@@ -21,7 +21,7 @@ export const getTechnicalExpertList = (query?: TechnicalExpertListRequest): Prom
 };
 
 interface TechUpdateOrSaveDataRequest {
- /**
+  /**
    * 操作类型
    * 1：注册
    * 2：修改
@@ -53,7 +53,6 @@ export const techUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosPr
 
 // 查询技术专家详细信息
 export const getTechnicalExpertDetail = (id: string): AxiosPromise<TechnicalExpertList> => {
-  console.log(id, '1111');
   return request({
     url: `/system/baseTechExpertInfo/${id}`,
     method: 'get'
