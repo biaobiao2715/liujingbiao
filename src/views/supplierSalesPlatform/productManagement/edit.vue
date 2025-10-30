@@ -224,7 +224,7 @@
         <el-form-item label="上架状态" prop="status">
           <el-radio-group v-model="formData.status">
             <el-radio value="1" size="large">上架</el-radio>
-            <el-radio value="2" size="large">下架</el-radio>
+            <el-radio value="0" size="large">下架</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="上架时间" prop="launchTime">

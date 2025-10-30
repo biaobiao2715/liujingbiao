@@ -1,15 +1,15 @@
-<template>
-  <!--
+<!--
   标题: enterprise/index.vue
   功能: 知识库管理
   说明: 用于知识库文章管理，包括查询、添加、编辑、删除等操作
   当前版本: 1.0
   开发信息: Created by 刘景彪 2025-10-15
 -->
-  <!-- 知识库管理 -->
+
+<template>
   <div class="kb-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <el-form-item label="文章类别" prop="articleType">
         <el-select v-model="queryParams.articleType" placeholder="请选择" clearable filterable>
           <el-option v-for="dict in article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
@@ -81,12 +81,12 @@
       </el-table-column>
       <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
         <template #default="scope">
-          {{ scope.row.viewCount ? scope.row.viewCount : 0 }}
+          {{ scope.row.viewCount ?? scope.row.views ?? 0 }}
         </template>
       </el-table-column>
       <el-table-column label="收藏量" align="center" prop="favoriteCount" width="100">
         <template #default="scope">
-          {{ scope.row.favoriteCount ? scope.row.favoriteCount : 0 }}
+          {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="400" fixed="right">
@@ -157,8 +157,8 @@ const getList = async () => {
       publishEndTime: queryParams.value.publishTime?.[1]
     });
     // 兼容 rows/total 或 data.total/list
-    tableData.value = res?.rows || [];
-    total.value = res?.total || 0;
+    tableData.value = res?.rows ?? res?.data?.list ?? [];
+    total.value = res?.total ?? res?.data?.total ?? 0;
   } finally {
     loading.value = false;
   }
@@ -259,6 +259,9 @@ const handleView = (row: any) => router.push({ path: '/expertServicePlatform/kno
 // 生命周期
 onMounted(() => {
   if (!isKeepAlive.value) getList();
+});
+onActivated(() => {
+  if (isKeepAlive.value) getList();
 });
 </script>
 

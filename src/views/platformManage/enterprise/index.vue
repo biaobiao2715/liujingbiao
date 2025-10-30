@@ -47,12 +47,13 @@
       <el-table-column label="企业名称" align="center" prop="companyName" min-width="100" :show-overflow-tooltip="true" />
       <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
-          <router-link :to="'/platform/enterprise/editDetails/?id=' + scope.row.id + '&type=view'" style="color: var(--el-color-primary)">
-            <span>{{ scope.row.enterpriseNumber }}</span>
-          </router-link>
+          <!-- 跳转改为弹窗查看 -->
+          <el-link type="primary" :underline="false" @click="handleEdit(scope.row, 'view')">
+            {{ scope.row.enterpriseNumber }}
+          </el-link>
         </template>
       </el-table-column>
-      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210"> </el-table-column>
+      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210" :show-overflow-tooltip="true"> </el-table-column>
 
       <el-table-column label="资质等级" align="center" prop="credentialLevel">
         <template v-slot="scope">
@@ -84,9 +85,30 @@
 
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-if="isPendingReview(scope.row)" type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
+          <el-button
+            v-throttle
+            v-hasPermi="['system:business:audit']"
+            v-if="scope.row.reviewStatus === '0'"
+            type="primary"
+            @click="handleEdit(scope.row, 'audit')"
+            >审核</el-button
+          >
+          <el-button
+            v-throttle
+            v-hasPermi="['system:business:queryByTenant']"
+            v-if="scope.row.reviewStatus !== '0'"
+            type="primary"
+            @click="handleEdit(scope.row, 'view')"
+            >查看</el-button
+          >
+          <el-button
+            v-throttle
+            v-hasPermi="['system:business:edit']"
+            v-if="scope.row.reviewStatus === '1'"
+            type="primary"
+            @click="handleEdit(scope.row, 'edit')"
+            >编辑</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -95,13 +117,26 @@
     <div class="flex-center pagination">
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
+
+    <el-dialog
+      class="dialog-preview"
+      :title="dlgTitle"
+      v-model="dlgPreviewVisible"
+      :before-close="cancelDlg"
+      :close-on-click-modal="isReadonly"
+      :destroy-on-close="true"
+      append-to-body
+      width="80%"
+    >
+      <editDetails :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import { ref } from 'vue';
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
+import editDetails from './editDetails.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
@@ -125,7 +160,12 @@ const tableData = ref([]);
 const total = ref(0);
 const loading = ref(true);
 const queryFormRef = ref();
-const dateRange = ref(['', '']);
+// 对话框相关状态
+const dlgPreviewVisible = ref(false);
+const dlgTitle = ref('');
+const isReadonly = ref(false);
+const selectID = ref<string | number>('');
+const selectType = ref<'view' | 'edit' | 'audit'>('view');
 
 onMounted(() => {
   getList();
@@ -179,17 +219,13 @@ const handleReset = () => {
   handleQuery();
 };
 
-// 编辑按钮事件
+// 打开对话框：审核/查看/编辑
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  console.log('编辑:', row, type);
-  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
-  router.push({
-    path: '/platform/enterprise/editDetails',
-    query: {
-      id: row.id,
-      type
-    }
-  });
+  selectID.value = row.id;
+  selectType.value = type;
+  isReadonly.value = type === 'view';
+  dlgTitle.value = type === 'audit' ? '企业审核' : type === 'edit' ? '企业编辑' : '企业详情';
+  dlgPreviewVisible.value = true;
 };
 
 const isPendingReview = (row) => {
@@ -198,6 +234,17 @@ const isPendingReview = (row) => {
 
 const isReviewProcessed = (row) => {
   return !(row.reviewStatus == 0);
+};
+
+// 关闭对话框
+const cancelDlg = () => {
+  dlgPreviewVisible.value = false;
+};
+
+// 子组件刷新回调
+const refreshData = () => {
+  dlgPreviewVisible.value = false;
+  getList();
 };
 
 // 每次页面激活时执行（从缓存中恢复）

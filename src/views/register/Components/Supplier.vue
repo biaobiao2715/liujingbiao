@@ -107,10 +107,16 @@
           <el-table-column type="index" width="100" label="序号" />
           <el-table-column prop="contactUserType" label="联系人类型">
             <template #default="scope">
-              <!-- :disabled="scope.row.contactUserType == 1" -->
-              <!-- :disabled="item.dictValue == 1" -->
-              <el-select v-model="scope.row.contactUserType" placeholder="请选择" filterable clearable>
-                <el-option v-for="(item, index) in contact_user_type" :key="index" :label="item.dictLabel" :value="item.dictValue"></el-option>
+              <!--  -->
+              <!--  -->
+              <el-select v-model="scope.row.contactUserType" :disabled="scope.row.contactUserType == 1" placeholder="请选择" filterable clearable>
+                <el-option
+                  :disabled="item.dictValue == 1"
+                  v-for="(item, index) in contact_user_type"
+                  :key="index"
+                  :label="item.dictLabel"
+                  :value="item.dictValue"
+                ></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -607,7 +613,7 @@ getPurchaserTypeDict('contact_user_type').then((res) => {
 // 供应商联系人
 const tableList = ref<Contact[]>([
   {
-    contactUserType: '',
+    contactUserType: '1',
     contactUserName: '',
     contactIdCard: '',
     contactPhone: ''
@@ -696,6 +702,10 @@ const addTableCell = () => {
 
 // 删除行 -供应商联系人
 const removeTableCell = (index: number, row: Contact) => {
+  if (tableList.value.length === 1) {
+    ElMessage.error('至少保留一个联系人');
+    return;
+  }
   tableList.value.splice(index, 1);
 };
 

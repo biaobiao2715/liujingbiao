@@ -173,22 +173,29 @@
 import { ref } from 'vue';
 import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview } from '@/api/platform/enterprise/index';
 import FormHeader from '@/components/FormHeader/index.vue';
-import { useRoute } from 'vue-router';
-import router from '@/router';
+
 import { FormData } from '@/api/platform/enterprise/types'; //ts类型
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
 
-// 获取router路由参数
-const route = useRoute();
-const { id, type } = route.query;
-const operateMode = ref(type);
+// 通过 props 接收父组件传参
+const props = defineProps<{
+  id: string | number;
+  type: 'view' | 'edit' | 'audit';
+}>();
+// 子组件对外事件
+const emit = defineEmits<{
+  (e: 'refresh'): void;
+  (e: 'cancel'): void;
+}>();
+
+// 操作模式来源于 props
+const operateMode = ref(props.type);
 // 编辑/详情模式
 const disabledIf = ref(true);
-// type = 'view' | 'edit' | 'audit'; 详情模式 编辑模式 审核模式
-disabledIf.value = type !== 'view';
+disabledIf.value = props.type !== 'view';
 
 const formData = ref<FormData>({
   id: undefined,
@@ -240,8 +247,8 @@ const contactF = ref({
 });
 const urlImage = ref(); // 营业执照
 
-// id获取详情信息
-baseEnterpriseInfoId(id as string)
+// id获取详情信息（使用 props.id）
+baseEnterpriseInfoId(String(props.id))
   .then((res) => {
     formData.value = res.data;
     areaCodes.value = formData.value.province + formData.value.city + formData.value.district;
@@ -283,14 +290,10 @@ const cancelAudit = async (type: number) => {
       folder: formData.value.folders
     }).then(() => {
       ElMessage.success('审核成功');
-      router.push({
-        query: {
-          ...route.query,
-          type: 'view'
-        }
-      });
+      // 不再进行路由跳转，改为内部状态更新并通知父组件
       operateMode.value = 'view';
       disabledIf.value = operateMode.value !== 'view';
+      emit('refresh');
     });
   } catch (error) {
     ElMessage.error('审核失败');
@@ -313,14 +316,10 @@ const handleSave = async () => {
       folder: formData.value.folders
     }).then(() => {
       ElMessage.success('保存成功');
-      router.push({
-        query: {
-          ...route.query,
-          type: 'view'
-        }
-      });
+      // 不再进行路由跳转，改为内部状态更新并通知父组件
       operateMode.value = 'view';
       disabledIf.value = operateMode.value !== 'view';
+      emit('refresh');
     });
   } catch (error) {
     console.error('保存失败', error);

@@ -1,168 +1,167 @@
 <!--
-  标题: EditDetails.vue
-  功能: 企业编辑详情页
-  说明: 用于企业编辑自己的详细信息
+  标题: details.vue
+  功能: 知识库文章详情
+  说明: 展示标题、作者、发布时间、类别、封面、正文与附件下载
   当前版本: 1.0
   开发信息: Created by 刘景彪 2025-10-15
 -->
 <template>
-  <div class="supplier-edit-details">
-    <!-- 基础信息 -->
-    <el-form :model="formData" label-width="140px">
-      <FormHeader title="商品详情" />
-      <el-row :gutter="20" class="detail-form">
-        <el-col :span="8">
-          <el-form-item label="商品名称">
-            <el-input v-model="formData.goodsName" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品编码">
-            <el-input v-model="formData.goodsCode" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="产品保障">
-            <el-select v-model="formData.goodsEnsureId" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
-              <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品品牌">
-            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" disabled clearable>
-              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="创建时间">
-            <el-input v-model="formData.createTime" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品状态">
-            <el-select v-model="formData.status" placeholder="请选择商品状态" filterable clearable disabled>
-              <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="上架时间">
-            <el-input v-model="formData.launchTime" disabled></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
+  <div class="kb-detail">
+    <div class="header">
+      <div class="title">{{ form.articleTitle || '-' }}</div>
+      <div class="meta">
+        <el-avatar :src="form.authorAvatar" size="small">
+          {{ (form.authorName || '作者').slice(0, 1) }}
+        </el-avatar>
+        <span class="author">{{ form.authorName || '-' }}</span>
+        <span class="dot" />
+        <span>发布时间：{{ parseTime(form.publishTime) }}</span>
+        <dict-text :options="article_type" :value="form.articleType" />
+        <div class="stats">
+          <el-icon><View /></el-icon>
+          <span>{{ form.viewCount ?? form.views ?? 0 }}</span>
+          <el-icon class="fav"><Star /></el-icon>
+          <span>{{ form.favoriteCount ?? form.favorites ?? 0 }}</span>
+        </div>
+      </div>
+    </div>
 
-      <!-- 商品信息 -->
-      <FormHeader title="商品信息" />
-      <el-table :data="tableList" border style="width: 100%">
-        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center"> </el-table-column>
-        <el-table-column prop="goodsPrice" label="销售价" align="center"> </el-table-column>
-        <el-table-column prop="goodsStock" label="可用库存" align="center"> </el-table-column>
+    <div v-if="form.articleCover" class="cover">
+      <el-image :src="form.articleCover" fit="contain" />
+    </div>
+
+    <div class="content" v-html="form.articleContent"></div>
+
+    <div v-if="imgList.length" class="attachments">
+      <div class="section-title">附件</div>
+      <el-table :data="imgList" border>
+        <el-table-column prop="typeText" label="附件类型" width="120" align="center" />
+        <el-table-column prop="name" label="附件名称" />
+        <el-table-column prop="sizeText" label="文件大小" width="140" align="center" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="scope">
+            <el-button v-throttle type="primary" text @click="previewFile(scope.row)">下载</el-button>
+          </template>
+        </el-table-column>
       </el-table>
-
-      <div style="height: 20px"></div>
-    </el-form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import FormHeader from '@/components/FormHeader/index.vue';
+import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { useRoute } from 'vue-router';
-import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障+功能+品牌：
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
+import { View, Star } from '@element-plus/icons-vue';
+import { getArticle } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
-// 获取router路由参数
 const route = useRoute();
-const { id } = route.query;
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
-const formData = ref({
-  id: undefined,
-  goodsName: '',
-  goodsCode: '',
-  goodsEnsureId: undefined,
-  goodsEnsureName: '',
-  goodsBrandId: undefined,
-  goodsBrandName: '',
-  createTime: '',
-  launchTime: '',
-  takeDownTime: '',
-  status: '',
-  goodsAlert: undefined,
-  goodsCategoryId: undefined,
-  goodsCategoryName: '',
-  goodsDetail: '',
-  goodsInfo: '',
-  goodsSpecification: '',
-  goodsSpecificationName: '',
-  hnGoodsFilesList: [],
-  hnGoodsSpecificationDataList: []
-});
+const form = ref<any>({});
+const imgList = ref<Array<{ name: string; url: string; size?: number; sizeText?: string; type?: string; typeText?: string }>>([]);
 
-const tableList = ref<[]>([]); // 商品信息
-const brandOptions = ref<any[]>([]); // 商品品牌
-const guaranteeOptions = ref<any[]>([]); // 商品保障
+const previewFile = async (file: any) => {
+  try {
+    const response = await fetch(file.url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.fileName; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    // console.error('下载失败', error);
+  }
+  // console.log('预览文件:', file);
+};
 
-// 页面加载时获取列表数据
 onMounted(async () => {
-  // id获取详情信息
-  //   goodsId(id as string)
-  //     .then((res) => {
-  //       formData.value = res.data;
-  //       tableList.value = res.data.hnGoodsSpecificationDataList || [];
-  //     })
-  //     .catch((error) => {
-  //       console.error('获取商品详情失败:', error);
-  //     });
+  const id = Number(route.query?.id);
+  if (!id) {
+    ElMessage.error('缺少文章ID');
+    return;
+  }
+  const res = await getArticle(id);
+  const data = res?.data ?? res ?? {};
+  form.value = data;
+  // buildAttachments(data);
 });
 </script>
 
 <style scoped lang="scss">
-.supplier-edit-details {
-  padding: 0 24px;
+.kb-detail {
+  padding: 20px 24px;
+  background: #fff;
 }
-
-// 去掉表单的默认样式
-::v-deep .el-input__wrapper {
-  box-shadow: none !important;
-  background-color: transparent !important;
-  cursor: default !important;
-  resize: none !important;
-}
-
-::v-deep .el-input__inner {
-  cursor: default !important;
-}
-
-// 去除 el-date-picker 的样式
-::v-deep .el-date-editor {
-  border: none;
-  background-color: transparent;
-  pointer-events: none;
+.header .title {
+  font-size: 20px;
+  font-weight: 600;
   color: #333;
+  text-align: center;
 }
-
-.textarea-item {
-  ::v-deep .el-textarea__inner {
-    box-shadow: none !important;
-    background-color: transparent !important;
-    cursor: default !important;
-    resize: none !important;
-  }
-}
-
-.main-image-container {
+.header .meta {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
   position: relative;
 }
-
-.main-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200px;
-  height: auto;
+.header .meta .author {
+  margin-left: 6px;
+}
+.header .meta .dot::after {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: #dcdfe6;
+  border-radius: 50%;
+  margin: 0 6px;
+}
+.header .meta .cate {
+  color: #909399;
+}
+.header .meta .stats {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #909399;
+}
+.header .meta .stats .fav {
+  margin-left: 8px;
+}
+.cover {
+  margin: 16px auto;
+  width: 100%;
+  max-width: 1040px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+.cover :deep(img),
+.cover :deep(.el-image) {
+  width: 100%;
+}
+.content {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 12px 0 8px;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-word;
+}
+.attachments {
+  max-width: 1040px;
+  margin: 12px auto 0;
+}
+.section-title {
+  font-weight: 600;
+  margin: 8px 0;
+  color: #333;
 }
 </style>

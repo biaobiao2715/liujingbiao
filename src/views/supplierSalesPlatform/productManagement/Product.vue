@@ -20,20 +20,20 @@
       <!-- 商品状态下拉框 -->
       <el-form-item label="商品状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="审核状态" filterable clearable>
-          <el-option label="全部" value="1" />
-          <el-option label="已上架" value="2" />
-          <el-option label="已下架" value="3" />
+          <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <!-- 价格调整日期选择器 -->
-      <el-form-item label="价格调整日期">
+      <el-form-item label="发布时间" prop="createTime">
         <el-date-picker
-          v-model="queryParams.reviewTime"
-          type="daterange"
-          value-format="YYYY-MM-DD"
+          v-model="queryParams.createTime"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
           range-separator=" - "
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
         />
       </el-form-item>
       <!-- 查询和重置按钮 -->
@@ -78,7 +78,7 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="销售价" align="center" prop="salesPrice">
+      <el-table-column label="销售价" align="center" prop="salesPrice" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ getSalesPrice(scope.row) }}</span>
         </template>
@@ -92,7 +92,7 @@
       <el-table-column label="提醒" align="center" prop="remind" width="100"> </el-table-column>
       <el-table-column label="商品状态" align="center" prop="status">
         <template v-slot="scope">
-          <span>{{ getStatusText(scope.row.status) }}</span>
+          <dict-text :options="goods_status" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="createTime" min-width="160">
@@ -212,16 +212,14 @@ import { Row } from 'element-plus/es/components/table-v2/src/components';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
-const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
-);
+const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
 
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   status: '',
-  reviewTime: '',
+  createTime: [],
   goodsCategoryId: '',
   goodsName: '',
   goodsCode: ''
@@ -252,6 +250,31 @@ const priceSaving = ref(false);
 const categoryList = ref<any[]>([]);
 const categoryMap = ref<Record<string, string>>({});
 
+/** 查询企业列表 */
+const getList = () => {
+  loading.value = true;
+
+  const { createTime, ...rest } = queryParams.value as any;
+  const [startTime, endTime] = Array.isArray(createTime) ? createTime : [];
+
+  const params = {
+    ...rest,
+    ...(startTime && endTime ? { startTime, endTime } : {})
+  };
+
+  goodsList(params).then((res) => {
+    tableData.value = res.rows;
+    total.value = res.total;
+    loading.value = false;
+  });
+};
+
+/** 查询按钮事件 */
+const handleSearch = () => {
+  // console.log('查询表单数据:', queryParams.value);
+  getList();
+};
+
 /** 获取商品类目列表 */
 const getCategoryList = async () => {
   try {
@@ -263,30 +286,11 @@ const getCategoryList = async () => {
       categoryList.value.forEach((category) => {
         categoryMap.value[category.id] = category.categoryName || category.name;
       });
-      console.log('商品类目列表:', categoryList.value);
-      console.log('类目映射:', categoryMap.value);
     }
   } catch (error) {
     console.error('获取商品类目失败:', error);
   }
 };
-
-/** 查询企业列表 */
-const getList = () => {
-  loading.value = true;
-  goodsList(queryParams.value).then((res) => {
-    tableData.value = res.rows;
-    total.value = res.total;
-    loading.value = false;
-  });
-};
-
-/** 查询按钮事件 */
-const handleSearch = () => {
-  console.log('查询表单数据:', queryParams.value);
-  getList();
-};
-
 /** 查询价格调整历史 */
 const onPriceHistory = () => {
   router.push({ path: '/company/sales/company/goods/productPrice' });
