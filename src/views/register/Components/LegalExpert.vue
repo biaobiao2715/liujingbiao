@@ -18,7 +18,15 @@
           <el-col :span="12">
             <el-form-item label="律师证书:" prop="diploma" required>
               <div class="upload-container">
-                <el-upload class="upload-box" action="#" drag :auto-upload="false" :show-file-list="false" :on-change="handleDiplomaChange">
+                <el-upload
+                  class="upload-box"
+                  action="#"
+                  :before-upload="beforeUpload"
+                  drag
+                  :auto-upload="false"
+                  :show-file-list="false"
+                  :on-change="handleDiplomaChange"
+                >
                   <div class="upload-content">
                     <img src="@/assets/images/register3.svg" class="step-icon" />
                     <div class="upload-text">
@@ -480,6 +488,30 @@ const qualificationList = ref<
     ossId: string;
   }[]
 >([]);
+// 文件上传前校验
+const beforeUpload = (file: any) => {
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过5MB');
+    return false;
+  }
+
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    ElMessage.error('不支持的文件类型');
+    return false;
+  }
+
+  return true;
+};
 
 // 短信验证码相关
 const isSendingSms = ref(false);

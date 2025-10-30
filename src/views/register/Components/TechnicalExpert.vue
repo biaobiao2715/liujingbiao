@@ -27,6 +27,7 @@
                     :auto-upload="false"
                     :show-file-list="false"
                     :on-change="handleDiplomaChange"
+                    :before-upload="beforeUpload"
                   >
                     <div class="upload-content">
                       <img src="@/assets/images/register3.svg" class="step-icon" />
@@ -681,6 +682,30 @@ const deleteQualification = (index: number) => {
   //   qualificationList.value.forEach((item, i) => {
   //     item.index = i + 1;
   //   });
+};
+// 文件上传前校验
+const beforeUpload = (file: any) => {
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过5MB');
+    return false;
+  }
+
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    ElMessage.error('不支持的文件类型');
+    return false;
+  }
+
+  return true;
 };
 
 // 下一步按钮处理函数
