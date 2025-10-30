@@ -206,10 +206,9 @@
             <el-table-column label="操作" width="150">
               <template #default="scope">
                 <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
-                <!--  资质名称为 毕业证 不显示删除按钮  -->
-                <!-- <el-button v-throttle type="primary" v-if="scope.row.name !== '毕业证'" link @click="deleteQualification(scope.$index)"
+                <el-button v-throttle type="primary" v-if="scope.row.fileType !== '1'" link @click="deleteQualification(scope.$index)"
                   >删除</el-button
-                > -->
+                >
               </template>
             </el-table-column>
           </el-table>
@@ -655,6 +654,13 @@ const handleDiplomaChange = (file: any) => {
     .finally(() => {
       proxy?.$modal.closeLoading();
     });
+};
+// 删除文件
+const deleteQualification = (index: number) => {
+  qualificationList.value.splice(index, 1);
+  qualificationList.value.forEach((item, i) => {
+    item.index = i + 1;
+  });
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {

@@ -159,14 +159,9 @@
             <el-table-column label="操作" width="150">
               <template #default="scope">
                 <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
-                <!-- <el-button
-                  v-throttle
-                  type="primary"
-                  v-if="scope.row.name !== '律师证' && scope.row.name !== '照片'"
-                  link
-                  @click="deleteQualification(scope.$index)"
+                <el-button v-throttle type="primary" v-if="scope.row.fileType !== '1'" link @click="deleteQualification(scope.$index)"
                   >删除</el-button
-                > -->
+                >
               </template>
             </el-table-column>
           </el-table>
@@ -550,6 +545,13 @@ const sendSmsCode = async () => {
     // 手机号验证失败
     console.error('手机号验证失败', error);
   }
+};
+// 删除文件
+const deleteQualification = (index: number) => {
+  qualificationList.value.splice(index, 1);
+  qualificationList.value.forEach((item, i) => {
+    item.index = i + 1;
+  });
 };
 // 上传律师证
 const handleDiplomaChange = (file: any) => {
