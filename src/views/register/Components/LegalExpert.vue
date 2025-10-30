@@ -65,11 +65,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="专家姓名:" prop="expertName" required>
-              <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" /> </el-form-item
+              <el-input v-model="formData.expertName" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="性别:" prop="sex" required>
-              <el-select v-model="formData.sex" placeholder="请选择" filterable style="width: 100%">
+              <el-select v-model="formData.sex" placeholder="OCR识别，可编辑" filterable style="width: 100%">
                 <el-option label="男" value="0" />
                 <el-option label="女" value="1" />
               </el-select>
@@ -77,24 +77,24 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="执业机构:" prop="practiceInstitution" required>
-              <el-input v-model="formData.practiceInstitution" placeholder="50个字符，仅限中文" /> </el-form-item
+              <el-input v-model="formData.practiceInstitution" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="执业证类型:" prop="practiceCertificateType" required>
-              <el-input v-model="formData.practiceCertificateType" placeholder="请输入执业证类型" />
+              <el-input v-model="formData.practiceCertificateType" placeholder="OCR识别，可编辑" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="执业证号:" prop="practiceCertificateNumber" required>
-              <el-input v-model="formData.practiceCertificateNumber" placeholder="50个字符，仅限中文" /> </el-form-item
+              <el-input v-model="formData.practiceCertificateNumber" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="法律执业资格或律师资格证号:" prop="legalPracticeQualification" style="white-space: nowrap" required>
-              <el-input v-model="formData.legalPracticeQualification" placeholder="请输入法律执业资格或律师资格证号" /> </el-form-item
+              <el-input v-model="formData.legalPracticeQualification" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="发证机关:" prop="issuingAuthority" required>
-              <el-input v-model="formData.issuingAuthority" placeholder="请输入发证机关" /> </el-form-item
+              <el-input v-model="formData.issuingAuthority" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="发证日期:" prop="issueDate" required>
@@ -102,12 +102,13 @@
                 v-model="formData.issueDate"
                 type="date"
                 value-format="YYYY-MM-DD"
-                placeholder="选择日期"
+                placeholder="OCR识别，可编辑"
                 style="width: 100%"
               /> </el-form-item
           ></el-col>
           <el-col :span="12">
-            <el-form-item label="身份证号:" prop="idCard" required> <el-input v-model="formData.idCard" placeholder="请输入身份证号" /> </el-form-item
+            <el-form-item label="身份证号:" prop="idCard" required>
+              <el-input v-model="formData.idCard" placeholder="OCR识别，可编辑" /> </el-form-item
           ></el-col>
           <el-col :span="12">
             <el-form-item label="联系电话:" prop="phoneNumber" required>
@@ -232,7 +233,6 @@ import { isIdCard } from '@/utils/validate';
 import { ocrUploadImage, uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/legalExpert/types';
 import { FileType } from '@/api/register/types';
-import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';
 
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
@@ -240,7 +240,6 @@ import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; /
 import { legalExpertInfoRegister } from '@/api/register/legalExpert'; //注册接口
 import { isAccountExist } from '@/api/login'; //账号获取详情信息
 const emit = defineEmits(['nextStep']); // 定义事件
-const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目前直接传null】,qyId【企业或者供应商id】,jszjId【技术专家id】,fwzjId【法务专家id】  如果响应的二次入驻的页面有对应的id存在，就传对应的id就行
 enum idTypeEnum {
@@ -287,7 +286,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback(new Error('请输入专家姓名'));
+          callback(new Error('请输入姓名'));
         } else if (value.length > 20 || !/^[一-龥A-Za-z]+$/.test(value)) {
           callback(new Error('姓名只能包含汉字或字母，最长不超过50字节。'));
         } else {
@@ -578,7 +577,6 @@ const handleDiplomaChange = (file: any) => {
       }
       try {
         const res_1 = await ocrUploadImage({ file: file.raw });
-        // console.log('上传成功：', res);
         Object.keys(res_1).forEach((key) => {
           if (key in formData.value) {
             formData.value[key] = res_1[key];

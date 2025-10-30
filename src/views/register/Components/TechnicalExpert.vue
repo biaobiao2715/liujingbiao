@@ -66,13 +66,13 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="专家姓名" prop="expertName" required>
-                <el-input v-model="formData.expertName" placeholder="50个字符，仅限中文" />
+                <el-input v-model="formData.expertName" placeholder="OCR识别，可编辑" />
               </el-form-item>
             </el-col>
 
             <el-col :span="12">
               <el-form-item label="性别" prop="sex" required>
-                <el-select v-model="formData.sex" placeholder="请选择" filterable style="width: 100%">
+                <el-select v-model="formData.sex" placeholder="OCR识别，可编辑" filterable style="width: 100%">
                   <el-option label="男" value="0" />
                   <el-option label="女" value="1" />
                 </el-select> </el-form-item
@@ -84,19 +84,19 @@
                   v-model="formData.birthDate"
                   type="date"
                   value-format="YYYY-MM"
-                  placeholder="选择日期"
+                  placeholder="OCR识别，可编辑"
                   style="width: 100%"
                 /> </el-form-item
             ></el-col>
             <el-col :span="12">
               <el-form-item label="毕业院校" prop="graduationSchool" required>
-                <el-input v-model="formData.graduationSchool" placeholder="请输入毕业院校" />
+                <el-input v-model="formData.graduationSchool" placeholder="OCR识别，可编辑" />
               </el-form-item>
             </el-col>
 
             <el-col :span="12">
               <el-form-item label="专业" prop="major" required>
-                <el-input v-model="formData.major" maxlength="99" placeholder="50个字符，仅限中文" /> </el-form-item
+                <el-input v-model="formData.major" maxlength="99" placeholder="OCR识别，可编辑" /> </el-form-item
             ></el-col>
             <el-col :span="12">
               <el-form-item label="入学日期" prop="enrollmentDate" required>
@@ -104,7 +104,7 @@
                   v-model="formData.enrollmentDate"
                   type="date"
                   value-format="YYYY-MM-DD"
-                  placeholder="选择日期"
+                  placeholder="OCR识别，可编辑"
                   style="width: 100%"
                 /> </el-form-item
             ></el-col>
@@ -116,14 +116,14 @@
                   :disabled-date="disabledGraduationDate"
                   type="date"
                   value-format="YYYY-MM-DD"
-                  placeholder="选择日期"
+                  placeholder="OCR识别，可编辑"
                   style="width: 100%"
                 /> </el-form-item
             ></el-col>
 
             <el-col :span="12">
               <el-form-item label="学历" prop="education" required>
-                <el-select v-model="formData.education" placeholder="请选择" filterable style="width: 100%">
+                <el-select v-model="formData.education" placeholder="OCR识别，可编辑" filterable style="width: 100%">
                   <el-option label="本科" value="本科" />
                   <el-option label="硕士" value="硕士" />
                   <el-option label="博士" value="博士" />
@@ -134,7 +134,7 @@
 
             <el-col :span="12">
               <el-form-item label="学位" prop="degree" required>
-                <el-select v-model="formData.degree" placeholder="请选择" filterable style="width: 100%">
+                <el-select v-model="formData.degree" placeholder="OCR识别，可编辑" filterable style="width: 100%">
                   <el-option label="学士" value="学士" />
                   <el-option label="硕士" value="硕士" />
                   <el-option label="博士" value="博士" />
@@ -143,11 +143,11 @@
             ></el-col>
 
             <el-col :span="12">
-              <el-form-item label="毕业证编号" prop="graduationCertNo" required>
-                <el-input v-model="formData.graduationCertNo" placeholder="请输入毕业证编号" /> </el-form-item
+              <el-form-item label="毕业证书编号" prop="graduationCertNo" required>
+                <el-input v-model="formData.graduationCertNo" placeholder="OCR识别，可编辑" /> </el-form-item
             ></el-col>
             <el-col :span="12">
-              <el-form-item label="专业技术资格名称" prop="technicalQualification" required style="white-space: nowrap">
+              <el-form-item label="专业技术资格名称" prop="technicalQualification" style="white-space: nowrap">
                 <el-input v-model="formData.technicalQualification" placeholder="请输入专业技术资格名称" />
               </el-form-item>
             </el-col>
@@ -329,7 +329,6 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   expertName: [
     {
       required: true,
-      message: '请输入专家姓名',
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
@@ -382,7 +381,6 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   expertInfo: [
     {
       required: true,
-      message: '请输入专家简介',
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
@@ -413,8 +411,6 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
       }
     }
   ],
-  // 专业技术资格名称
-  technicalQualification: [{ required: true, message: '请输入专业技术资格名称', trigger: 'blur' }],
   // 联系电话
   contactPhone: [
     {
@@ -482,7 +478,6 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   graduationSchool: [
     {
       required: true,
-      message: '请输入毕业学校',
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
@@ -792,8 +787,6 @@ onMounted(async () => {
 
 // 下载文件
 const previewQualification = async (file: any) => {
-  console.log(file);
-
   try {
     const response = await fetch(file.url);
     const blob = await response.blob();
