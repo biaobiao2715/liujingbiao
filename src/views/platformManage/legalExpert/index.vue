@@ -124,7 +124,7 @@ import router from '@/router';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
 const expertList = ref<LegalExpertList[]>([]);
-import EditDetails from './EditDetails.vue';
+import EditDetails from './editDetails.vue';
 const editDetailsRef = ref(null);
 const loading = ref(false);
 const total = ref(0);

@@ -125,7 +125,7 @@
 import { getTechnicalExpertList, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertListRequest, TechnicalExpertList } from '@/api/platform/technicalExpert/types';
 import { ComponentInternalInstance, getCurrentInstance, reactive, ref, toRefs } from 'vue';
-import EditDetails from './EditDetails.vue';
+import EditDetails from './editDetails.vue';
 
 const editDetailsRef = ref<any>();
 
