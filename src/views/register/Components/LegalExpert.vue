@@ -417,7 +417,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
-        checkPhoneUnique(value, { [idTypeEnum[idType.value]]: formData.value?.id })
+        checkPhoneUnique(value, { [idTypeEnum[idType.value]]: String(formData.value?.id) })
           .then((res) => {
             if (res.code === 200) {
               callback();
@@ -598,11 +598,73 @@ const deleteQualification = (index: number) => {
 // 表单引用
 const formRef = ref();
 
-// 预览资质文件
-const previewQualification = (row: any) => {
-  console.log('预览资质', row);
+// 预览文件
+const previewQualification = (file: any) => {
+  console.log('预览文件:', file);
+  if (!file.url) {
+    ElMessage.warning('无法预览该文件');
+    return;
+  }
 
-  // 这里可以实现预览逻辑，例如打开文件或显示预览对话框
+  // 根据文件类型进行不同方式的预览
+  const fileExtension = file.name.substring(file.name.lastIndexOf('.') + 1).toLowerCase();
+
+  // 图片文件预览
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+    const img = new Image();
+    img.src = file.url;
+    const imageWindow = window.open('');
+    if (imageWindow) {
+      imageWindow.document.write(`
+        <html>
+          <head>
+            <title>图片预览</title>
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: #f5f5f5;
+              }
+              img { max-width: 95vw; max-height: 95vh; }
+            </style>
+          </head>
+          <body>
+            <img src="${file.url}" alt="${file.name}" />
+          </body>
+        </html>
+      `);
+      imageWindow.document.close();
+    } else {
+      ElMessage.error('弹窗被阻止，请允许弹窗后重试');
+    }
+    return;
+  }
+
+  // PDF文件预览
+  if (fileExtension === 'pdf') {
+    window.open(file.url, '_blank');
+    return;
+  }
+
+  // 文档文件预览（使用浏览器内置功能或提示下载）
+  if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExtension)) {
+    const newWindow = window.open(file.url, '_blank');
+    if (!newWindow) {
+      ElMessage.error('弹窗被阻止，请允许弹窗或直接下载文件');
+    }
+    return;
+  }
+
+  // 其他文件类型提供下载
+  const link = document.createElement('a');
+  link.href = file.url;
+  link.download = file.name;
+  link.click();
+  ElMessage.info('不支持在线预览，已尝试下载文件');
 };
 
 // 下一步按钮处理函数

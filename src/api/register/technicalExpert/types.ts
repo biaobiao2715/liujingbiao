@@ -5,6 +5,7 @@ export interface TechnicalExpert {
   updateBy?: number;
   updateTime?: string;
   params: Record<string, any>;
+  id: number;
   /**
    * 专家姓名
    */
