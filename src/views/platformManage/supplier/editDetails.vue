@@ -136,14 +136,14 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="资质等级">
-              <el-select v-model="formData.credentialLevel" placeholder="请选择资质等级" filterable clearable>
+              <el-select v-model="formData.credentialLevel" :placeholder="operateMode === 'view' ? '' : '请选择资质等级'" filterable clearable>
                 <el-option v-for="dict in plat_qualification_grade" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="信用等级">
-              <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable>
+              <el-select v-model="formData.creditLevel" :placeholder="operateMode === 'view' ? '' : '请选择信用等级'" filterable clearable>
                 <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
