@@ -2,6 +2,7 @@
   <el-cascader
     v-model="regionValue"
     filterable
+    clearable
     :options="options"
     :props="{
       value: 'value',
@@ -49,12 +50,16 @@ const options = computed(() => {
   return formatData('86') || [];
 });
 
-const handleChange = (val: string[]) => {
-  // console.log(val);
-  const [provinceCode, cityCode, districtCode] = val;
+const handleChange = (val: string[] | undefined) => {
+  if (!val) {
+    emits('regionChange', undefined);
+    return;
+  }
+
+  const [provinceCode, cityCode, districtCode] = val || [];
 
   const arr = {
-    regionPath: val,
+    regionPath: val || [],
     provinceCode: provinceCode || '',
     cityCode: cityCode || '',
     regionCode: districtCode || '',

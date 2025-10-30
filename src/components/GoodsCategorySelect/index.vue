@@ -3,6 +3,7 @@
     <el-cascader
       v-model="selectedCategory"
       :options="categorieList"
+      clearable
       :props="{
         value: 'id',
         label: 'categoryName',

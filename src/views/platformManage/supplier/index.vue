@@ -44,13 +44,7 @@
     <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
       <el-table-column prop="companyName" label="供应商名称" align="center" min-width="100" :show-overflow-tooltip="true"></el-table-column>
-      <el-table-column prop="enterpriseNumber" label="供应商编号" width="210" align="center">
-        <template #default="scope">
-          <router-link :to="`/platform/supplier/details?id=${scope.row.id}&type=view`" style="color: var(--el-color-primary)">{{
-            scope.row.enterpriseNumber
-          }}</router-link>
-        </template>
-      </el-table-column>
+      <el-table-column prop="enterpriseNumber" label="供应商编号" width="210" align="center"> </el-table-column>
       <el-table-column prop="licenseNumber" label="统一社会信用代码" align="center" width="210"></el-table-column>
       <el-table-column prop="credentialLevel" label="资质等级" align="center">
         <template v-slot="scope">
@@ -77,9 +71,30 @@
       <el-table-column label="操作" width="260" align="center">
         <template #default="scope">
           <div class="flex-center-center operation-btns">
-            <el-button v-if="scope.row.reviewStatus !== '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'view')">查看</el-button>
-            <el-button v-if="scope.row.reviewStatus !== '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'edit')">编辑</el-button>
-            <el-button v-if="scope.row.reviewStatus === '0'" v-throttle type="primary" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+            <el-button
+              v-throttle
+              type="primary"
+              v-if="scope.row.reviewStatus !== '0'"
+              @click="handleEdit(scope.row, 'view')"
+              v-hasPermi="['system:baseEnterpriseInfo:query']"
+              >查看</el-button
+            >
+            <el-button
+              v-if="scope.row.reviewStatus === '1'"
+              v-throttle
+              type="primary"
+              @click="handleEdit(scope.row, 'edit')"
+              v-hasPermi="['system:baseEnterpriseInfo:edit']"
+              >编辑</el-button
+            >
+            <el-button
+              v-throttle
+              v-if="scope.row.reviewStatus === '0'"
+              type="primary"
+              @click="handleEdit(scope.row, 'audit')"
+              v-hasPermi="['system:baseEnterpriseInfo:edit']"
+              >审核</el-button
+            >
           </div>
         </template>
       </el-table-column>
@@ -95,18 +110,21 @@
         @pagination="handlePageChange"
       />
     </div>
+    <EditDetails ref="editDetailsRef" />
   </div>
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
 import { ref, computed } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise';
+import EditDetails from './EditDetails.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
+
+const editDetailsRef = ref(null);
 
 // 查询参数和分页数据
 const queryParams = ref({
@@ -205,13 +223,7 @@ const getTableData = async () => {
 
 // 编辑按钮事件
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  router.push({
-    path: '/platform/supplier/details',
-    query: {
-      id: row.id,
-      type
-    }
-  });
+  editDetailsRef.value.handleOpenDialog(row.id, type);
 };
 </script>
 

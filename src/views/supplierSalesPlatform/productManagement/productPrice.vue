@@ -50,7 +50,7 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="商品编码" align="center" prop="goodsCode" width="210" style="color: #0000ff">
+      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
         <template #default="scope">
           <router-link :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
             <span>{{ scope.row.goodsCode }}</span>
@@ -58,23 +58,12 @@
         </template>
       </el-table-column>
       <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
-      <el-table-column label="商品品牌" align="center" prop="goodsBrandName" width="210"> </el-table-column>
+      <el-table-column label="商品品牌" align="center" prop="goodsBrandName"> </el-table-column>
       <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="210"> </el-table-column>
-      <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice" width="210"> </el-table-column>
-      <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice" width="210"> </el-table-column>
-      <el-table-column label="调整人" align="center" prop="adjustBy" width="210"> </el-table-column>
-      <el-table-column label="价格调整日期" align="center" prop="adjustTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.adjustTime) }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核人" align="center" prop="reviewBy"> </el-table-column>
+      <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column>
+      <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column>
+      <el-table-column label="调整人" align="center" prop="createName"> </el-table-column>
+      <el-table-column label="价格调整日期" align="center" prop="createTime" width="160"> </el-table-column>
     </el-table>
 
     <!-- 分页 -->
@@ -92,15 +81,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import axios from 'axios'; // 确保引入 axios
-import {
-  getGoodsPriceHistoryList,
-  exportGoodsPriceHistory,
-  getGoodsPriceHistoryDetail,
-  addGoodsPriceHistory,
-  updateGoodsPriceHistory,
-  deleteGoodsPriceHistory
-} from '@/api/supplier/productManagement/productPrice';
+import { getGoodsPriceHistoryList, exportGoodsPriceHistory } from '@/api/supplier/productManagement/productPrice';
 import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;

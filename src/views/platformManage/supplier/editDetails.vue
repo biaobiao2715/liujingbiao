@@ -6,8 +6,12 @@
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
-  <div v-loading="loading">
-    <div :class="['supplier-edit-details', 'detail-form']">
+  <el-dialog
+    :title="operateMode === 'edit' ? '供应商编辑' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
+    v-model="dialogVisible"
+    width="80%"
+  >
+    <div :class="['supplier-edit-details', 'detail-form']" v-loading="loading">
       <!-- 基础信息 -->
       <el-form :model="formData" label-width="140px" :disabled="true">
         <FormHeader title="供应商基础信息" />
@@ -187,7 +191,7 @@
         <el-button type="primary" @click="handleSave">保存</el-button>
       </div>
     </div>
-  </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -202,7 +206,7 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
 
 // 定义接口返回数据的类型
 interface SupplierDetails {
-  id?: number;
+  id?: string;
   enterpriseNumber?: string;
   enterpriseType?: string;
   companyName?: string;
@@ -259,6 +263,7 @@ const { id, type } = route.query;
 
 const operateMode = ref(type);
 const loading = ref(false);
+const dialogVisible = ref(false);
 
 const formData = ref<SupplierDetails>({
   id: undefined,
@@ -295,15 +300,11 @@ const formData = ref<SupplierDetails>({
   }
 });
 
-onMounted(() => {
-  getSupplierDetails();
-});
-
 const getSupplierDetails = async () => {
-  if (id) {
+  if (formData.value.id) {
     loading.value = true;
     try {
-      const response = await baseEnterpriseInfoId(id as string);
+      const response = await baseEnterpriseInfoId(formData.value.id);
       formData.value = response.data;
       // 法人信息 只用来回显
       formData.value.legalPerson = { ...response.data.contacts.find((contact) => contact.contactUserType === '1') };
@@ -346,6 +347,7 @@ const handleSave = async () => {
   }
 };
 
+// 审核按钮事件
 const handleAudit = async (status: number) => {
   try {
     loading.value = true;
@@ -371,6 +373,7 @@ const handleAudit = async (status: number) => {
   }
 };
 
+// 下载附件
 const downloadAttachment = async (fileName: string, url: string) => {
   try {
     const response = await fetch(url);
@@ -386,10 +389,18 @@ const downloadAttachment = async (fileName: string, url: string) => {
     console.error('下载失败', error);
   }
 };
+
+// 打开/关闭弹窗
+const handleOpenDialog = (id: string, type: 'view' | 'edit' | 'audit') => {
+  operateMode.value = type;
+  formData.value.id = id;
+  dialogVisible.value = true;
+  getSupplierDetails();
+};
+
+defineExpose({
+  handleOpenDialog
+});
 </script>
 
-<style scoped lang="scss">
-.supplier-edit-details {
-  padding: 24px;
-}
-</style>
+<style scoped lang="scss"></style>

@@ -18,7 +18,7 @@
 
       <div class="content flex gap-12" :class="{ expanded: isExpanded }">
         <el-card v-for="expert in filteredExperts" :key="expert.id" class="expert-item" shadow="hover">
-          <div class="title-info flex-center">
+          <div class="title-info flex-center" @click="handleDetail(expert)">
             <!-- <img :src="expert.avatar" alt="专家头像" class="avatar" /> -->
             <div class="avatar flex-center">
               <el-icon size="32"><User /></el-icon>
@@ -58,6 +58,7 @@ const tabs = ['热门专家', '技术专家', '法务专家'];
 const activeTab = ref(tabs[0]);
 const isExpanded = ref(false);
 const askExpertRef = ref(null);
+const expertDetailRef = ref(null);
 const experts = ref([
   {
     id: 1,
@@ -93,7 +94,13 @@ const toggleExpand = () => {
 const handleConsultation = (expert) => {
   // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
   console.log('咨询专家:', expert, askExpertRef.value);
-  askExpertRef.value.openDialog(expert.id);
+  askExpertRef.value?.openDialog(expert.id);
+};
+
+// 处理查看详情按钮点击
+const handleDetail = (expert) => {
+  console.log('查看专家详情:', expert, expertDetailRef.value);
+  expertDetailRef.value?.openDialog(expert.id);
 };
 </script>
 

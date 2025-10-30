@@ -6,16 +6,16 @@
   开发信息: Created by 李春雷 2025-10-29
 -->
 <template>
-  <el-card class="expert-detail-card">
+  <el-dialog v-model="dialogVisible" class="expert-detail-card">
     <!-- 专家信息 -->
     <div class="expert-info">
       <el-row>
         <el-col :span="6">
-          <el-avatar shape="square" size="large" src="专家头像链接"></el-avatar>
+          <el-avatar shape="square" size="large" :src="expert.avatar"></el-avatar>
         </el-col>
         <el-col :span="18">
-          <h3>{{ expert.name }} - {{ expert.specialty }}</h3>
-          <p>{{ expert.introduction }}</p>
+          <div>{{ expert.name }} - {{ expert.specialty }}</div>
+          <div>{{ expert.introduction }}</div>
           <el-row>
             <el-col :span="12">
               <el-statistic title="咨询量" :value="expert.consultationCount" />
@@ -37,11 +37,15 @@
         </el-collapse-item>
       </el-collapse>
     </div>
-  </el-card>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
+const dialogVisible = ref(false);
+
+const expertId = ref<string | null>(null);
 
 const expert = ref({
   name: '张三',
@@ -49,6 +53,7 @@ const expert = ref({
   introduction: '湖北省高级农艺师，主要从事全县农技推广工作。',
   consultationCount: 1000,
   replyCount: 2000,
+  avatar: '/path/to/expert-avatar.jpg',
   qaList: [
     {
       question: '种植玉米需要预防的病虫害有哪些？',
@@ -59,6 +64,16 @@ const expert = ref({
       answer: '合理施肥、科学灌溉、病虫害防治是关键。'
     }
   ]
+});
+
+// 打开专家详情弹窗
+const openDialog = (id: string) => {
+  dialogVisible.value = true;
+  expertId.value = id;
+};
+
+defineExpose({
+  openDialog
 });
 </script>
 
