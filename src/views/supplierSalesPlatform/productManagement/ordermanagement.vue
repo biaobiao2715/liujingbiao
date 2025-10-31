@@ -17,12 +17,7 @@
       <el-form-item label="订单状态">
         <el-select v-model="queryParams.orderStatus" filterable clearable placeholder="请选择订单状态">
           <el-option label="全部" value="" />
-          <el-option
-            v-for="dict in order_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in order_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="商品名称">
@@ -36,15 +31,8 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="下单时间">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          range-separator=" - "
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="handleSelectDate"
-        />
+        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
+          start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -122,34 +110,29 @@
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
             <el-link type="primary" @click="handleView(scope.row)">查看</el-link>
-            <el-link 
-              type="primary" 
-              @click="handleShip(scope.row)" 
-              v-if="scope.row.orderStatus === '1'"
-            >
+            <el-link type="primary" @click="handleShip(scope.row)" v-if="scope.row.orderStatus === '1'">
               发货
             </el-link>
-            <el-link 
-              type="danger" 
-              @click="handleCancel(scope.row)" 
-              v-if="scope.row.orderStatus === '1'"
-            >
+            <el-link type="danger" @click="handleCancel(scope.row)" v-if="scope.row.orderStatus === '1'">
               取消订单
             </el-link>
           </div>
         </template>
       </el-table-column>
     </el-table>
-
+    <el-dialog title="操作确认" v-model="dialogVisible" width="30%">
+      <span>取消后无法恢复，是否确认取消订单</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="cancelloading" @click="cancelorder">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
     <!-- 分页 -->
     <div class="flex-center pagination">
-        <pagination
-          v-show="total > 0"
-          :page="queryParams.pageNum"
-          :limit="queryParams.pageSize"
-          :total="total"
-          @pagination="getTableData"
-        />
+      <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total"
+        @pagination="getTableData" />
     </div>
   </div>
 </template>
@@ -160,8 +143,9 @@ import { toRefs } from '@vueuse/core';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
+import router from '@/router';
 // 确保引入 axios
-import {  getorderList } from '@/api/supplier/productManagement/ordermanagement';
+import { getorderList,cancelorderapi } from '@/api/supplier/productManagement/ordermanagement';
 // import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 
@@ -183,6 +167,8 @@ const productBrandList = ref([]); // 商品品牌列表
 
 const tableData = ref([]); // 表格数据
 
+const dialogVisible = ref(false) //取消订单确认框
+
 const total = ref(0); // 总条数
 
 const loading = ref(false); // 加载中
@@ -196,6 +182,9 @@ const selectedRows = ref([]); // 选中的表格数据
 // 当前选中的 Tab
 const activeTab = ref('all');
 
+const cancelobj = ref() //取消订单row
+
+const cancelloading =ref(false) //取消loading
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -367,7 +356,7 @@ const getDeliveryMethodText = (deliveryOptions: string | number) => {
 const handleView = (row: any) => {
   console.log('查看订单:', row);
   // 这里可以跳转到订单详情页面
-  // router.push(`/order/detail/${row.id}`);
+  router.push({ path: '/company/sales/company/goods/ordermanagementdetail', query: { id: row.id } });
 };
 
 /** 发货操作 */
@@ -379,9 +368,30 @@ const handleShip = (row: any) => {
 /** 取消订单 */
 const handleCancel = (row: any) => {
   console.log('取消订单:', row);
-  // 这里可以打开取消订单确认对话框
+  cancelobj.value = row
+  dialogVisible.value = true
 };
-
+/* 确定取消 */
+const cancelorder = async () => {
+  console.log('cancelobj.value', cancelobj.value);
+  cancelloading.value=true
+  let params={
+    goodsSpecificationId:Number(cancelobj.value.goodsSpecificationId),
+    goodsQuantity:Number(cancelobj.value.goodsQuantity),
+    id:Number(cancelobj.value.id),
+    orderStatus:"99"
+  }
+  try {
+    await cancelorderapi(params)
+    getTableData()
+    ElMessage.success('取消成功')
+  } catch (error) {
+    ElMessage.error(error)
+  }finally{
+    cancelloading.value=false
+    dialogVisible.value = false
+  }
+}
 // // 处理表格复选框选择事件
 // const handleSelectionChange = (rows) => {
 //   selectedRows.value = rows;
@@ -431,7 +441,7 @@ onActivated(() => {
       font-weight: 600;
     }
   }
-  
+
   .el-table__row {
     &:hover {
       background-color: #f5f7fa;
