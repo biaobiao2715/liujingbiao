@@ -17,8 +17,8 @@
       </div>
     </div>
 
-    <div class="weight-selection flex gap-24">
-      <div class="category-selection mb-12">
+    <div class="weight-selection flex-center gap-24">
+      <div class="category-selection">
         <GoodsCategorySelect v-model="filterState.category" @categoryChange="handleCategoryChange" />
       </div>
       <div class="local">
@@ -123,7 +123,7 @@ const handleCategoryChange = (value: string[]) => {
   }
   .weight-selection {
     .local {
-      width: 360px;
+      width: 220px;
       ::v-deep .el-cascader {
         width: 100%;
       }

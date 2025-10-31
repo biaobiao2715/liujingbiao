@@ -3,7 +3,7 @@
     <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
       <div v-show="showSearch" class="mb-[10px]">
         <el-card shadow="hover">
-          <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+          <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="80">
             <el-form-item label="角色名称" prop="roleName">
               <el-input v-model="queryParams.roleName" placeholder="请输入角色名称" clearable @keyup.enter="handleQuery" />
             </el-form-item>
@@ -15,7 +15,7 @@
                 <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
-            <el-form-item label="创建时间" style="width: 308px">
+            <el-form-item label="创建时间">
               <el-date-picker
                 v-model="dateRange"
                 value-format="YYYY-MM-DD HH:mm:ss"
@@ -28,8 +28,8 @@
             </el-form-item>
 
             <el-form-item>
-              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -40,16 +40,20 @@
       <template #header>
         <el-row :gutter="10">
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:role:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
+            <el-button v-throttle v-hasPermi="['system:role:add']" type="primary" plain icon="Plus" @click="handleAdd()">新增</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:role:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()">修改</el-button>
+            <el-button v-throttle v-hasPermi="['system:role:edit']" type="success" plain :disabled="single" icon="Edit" @click="handleUpdate()"
+              >修改</el-button
+            >
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:role:delete']" type="danger" plain :disabled="ids.length === 0" @click="handleDelete()">删除</el-button>
+            <el-button v-throttle v-hasPermi="['system:role:delete']" type="danger" plain :disabled="ids.length === 0" @click="handleDelete()"
+              >删除</el-button
+            >
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:role:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+            <el-button v-throttle v-hasPermi="['system:role:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
         </el-row>
@@ -75,16 +79,30 @@
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
             <el-tooltip v-if="scope.row.roleId !== 1" content="修改" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:role:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+              <el-button v-throttle v-hasPermi="['system:role:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip v-if="scope.row.roleId !== 1" content="删除" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:role:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:role:remove']"
+                link
+                type="primary"
+                icon="Delete"
+                @click="handleDelete(scope.row)"
+              ></el-button>
             </el-tooltip>
             <el-tooltip v-if="scope.row.roleId !== 1" content="数据权限" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:role:edit']" link type="primary" icon="CircleCheck" @click="handleDataScope(scope.row)"></el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:role:edit']"
+                link
+                type="primary"
+                icon="CircleCheck"
+                @click="handleDataScope(scope.row)"
+              ></el-button>
             </el-tooltip>
             <el-tooltip v-if="scope.row.roleId !== 1" content="分配用户" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:role:edit']" link type="primary" icon="User" @click="handleAuthUser(scope.row)"></el-button>
+              <el-button v-throttle v-hasPermi="['system:role:edit']" link type="primary" icon="User" @click="handleAuthUser(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -144,8 +162,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  type="primary" @click="submitForm">确 定</el-button>
-          <el-button v-throttle  @click="cancel">取 消</el-button>
+          <el-button v-throttle type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -183,8 +201,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  type="primary" @click="submitDataScope">确 定</el-button>
-          <el-button v-throttle  @click="cancelDataScope">取 消</el-button>
+          <el-button v-throttle type="primary" @click="submitDataScope">确 定</el-button>
+          <el-button v-throttle @click="cancelDataScope">取 消</el-button>
         </div>
       </template>
     </el-dialog>

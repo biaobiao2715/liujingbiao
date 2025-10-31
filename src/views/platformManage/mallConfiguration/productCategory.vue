@@ -9,12 +9,16 @@
   <div class="product-category">
     <!-- 新建按钮 -->
     <div class="mb-4">
-      <el-button type="primary" @click="handleCreateCategory">新增类目</el-button>
+      <el-button type="primary" @click="handleCreateCategory" v-hasPermi="['grain:goodsCategory:add']"> 新增类目 </el-button>
     </div>
 
     <!-- 弹窗表单 -->
     <el-dialog v-model="dialogVisible" width="500px" :title="form.id ? '编辑类目' : '新增类目'">
       <el-form :model="form" :label-width="80" ref="formRef" :rules="rules">
+        <!-- 上级类目 -->
+        <el-form-item label="上级类目" prop="parentId" required v-if="form.parentId && form.parentId !== '0'">
+          <el-input v-model="form.parentName" :disabled="true" />
+        </el-form-item>
         <!-- 类目名称 -->
         <el-form-item label="类目名称" prop="categoryName" required>
           <el-input v-model="form.categoryName" placeholder="请输入类目名称" />
@@ -47,9 +51,16 @@
         <template #default="{ row }">
           <!-- 操作按钮 -->
           <div class="flex-center-end">
-            <el-button type="text" @click="handleCreateSubCategory(row)" v-if="row.ancestors.split(',').length < 3">新增子类目</el-button>
-            <el-button type="text" @click="editCategory(row)">编辑</el-button>
-            <el-button type="text" @click="deleteCategory(row)">删除</el-button>
+            <el-button
+              type="text"
+              @click="handleCreateSubCategory(row)"
+              v-if="row.ancestors.split(',').length < 3"
+              v-hasPermi="['grain:goodsCategory:add']"
+            >
+              新增子类目
+            </el-button>
+            <el-button type="text" @click="editCategory(row)" v-hasPermi="['grain:goodsCategory:edit']"> 编辑 </el-button>
+            <el-button type="text" @click="deleteCategory(row)" v-hasPermi="['grain:goodsCategory:remove']"> 删除 </el-button>
           </div>
         </template>
       </el-table-column>
@@ -74,6 +85,7 @@ interface Category {
   id: string; // 类目ID
   categoryName: string; // 类目名称
   parentId: string | null; // 上级类目ID，null表示一级类目
+  parentName?: string; // 上级类目名称
   orderNum: number | null; // 排序
   createTime: string; // 创建时间
   children?: Category[]; // 子类目
@@ -90,7 +102,14 @@ const tableData = ref<Category[]>([]);
 const dialogVisible = ref(false);
 
 // 表单数据
-const form = ref<Category>({ id: null, categoryName: '', parentId: null, orderNum: null, createTime: '' });
+const form = ref<Category>({
+  id: null,
+  categoryName: '',
+  parentId: null,
+  parentName: '', // 新增字段：上级类目名称
+  orderNum: null,
+  createTime: ''
+});
 
 const rules = {
   categoryName: [
@@ -105,13 +124,14 @@ const rules = {
 
 // 新建一级类目
 const handleCreateCategory = () => {
-  form.value = { id: null, categoryName: '', parentId: '0', orderNum: null, createTime: '' };
+  form.value = { id: null, categoryName: '', parentId: '0', parentName: '一级类目', orderNum: null, createTime: '' };
   dialogVisible.value = true;
 };
 
 // 新建子类目
 const handleCreateSubCategory = (parent: Category) => {
-  form.value = { id: null, categoryName: '', parentId: parent.id, orderNum: null, createTime: '' };
+  form.value = { id: null, categoryName: '', parentId: parent.id, parentName: parent.categoryName, orderNum: null, createTime: '' };
+  findParentName(parent.id);
   dialogVisible.value = true;
 };
 
@@ -151,8 +171,14 @@ const saveCategory = async () => {
 
 // 编辑类目
 const editCategory = (category: Category) => {
-  form.value = { ...category };
+  form.value = { ...category, parentName: category.parentId === '0' ? '一级类目' : findParentName(category.parentId) };
   dialogVisible.value = true;
+};
+
+// 根据 parentId 查找上级类目名称
+const findParentName = (parentId: string): string => {
+  const parent = tableData.value.find((item) => item.id === parentId);
+  return parent ? parent.categoryName : '';
 };
 
 // 删除类目

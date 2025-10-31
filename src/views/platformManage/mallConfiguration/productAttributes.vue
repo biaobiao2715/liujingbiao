@@ -13,9 +13,9 @@
         <el-input v-model="queryParams.attributeName" placeholder="请输入产品保障名称" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="getTableData">搜索</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
-        <el-button type="primary" v-throttle @click="handleAdd">新建产品保障</el-button>
+        <el-button v-throttle type="primary" @click="getTableData" v-hasPermi="['grain:goodsAttributes:guaranteeList']">搜索</el-button>
+        <el-button v-throttle @click="handleReset" v-hasPermi="['grain:goodsAttributes:guaranteeList']">重置</el-button>
+        <el-button type="primary" v-throttle @click="handleAdd" v-hasPermi="['grain:goodsAttributes:guaranteeAdd']">新建产品保障</el-button>
       </el-form-item>
     </el-form>
 
@@ -27,8 +27,10 @@
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作" width="150">
         <template #default="scope">
-          <el-button v-throttle type="text" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle type="text" @click="handleDelete(scope.row.id)">删除</el-button>
+          <el-button v-throttle type="text" @click="handleEdit(scope.row)" v-hasPermi="['grain:goodsAttributes:guaranteeEdit']">编辑</el-button>
+          <el-button v-throttle type="text" @click="handleDelete(scope.row.id)" v-hasPermi="['grain:goodsAttributes:guaranteeRemove']"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
