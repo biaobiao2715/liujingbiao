@@ -77,27 +77,15 @@
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
             <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-link
-                type="primary"
-                v-if="scope.row.reviewStatus === '1'"
-                v-hasPermi="['system:baseLegalExpertInfo:query']"
-                @click="handleEdit(scope.row, 'view')"
-                >查看</el-link
-              >
-              <el-link
-                type="primary"
-                v-if="scope.row.reviewStatus === '0'"
-                v-hasPermi="['system:baseTechExpertInfo:process']"
-                @click="handleEdit(scope.row, 'audit')"
-                >审核</el-link
-              >
-              <el-link
+              <el-button type="primary" v-hasPermi="['system:baseLegalExpertInfo:query']" @click="handleEdit(scope.row, 'view')">查看</el-button>
+              <el-button type="primary" v-hasPermi="['system:baseLegalExpertInfo:process']" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+              <!-- <el-link
                 type="primary"
                 v-if="scope.row.reviewStatus === '0'"
                 v-hasPermi="['system:baseTechExpertInfo:process']"
                 @click="handleEdit(scope.row, 'edit')"
                 >编辑</el-link
-              >
+              > -->
             </div>
           </template>
         </el-table-column>
@@ -119,7 +107,6 @@
 import { ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
 import { getLegalExpertList, reviewStatusMap } from '@/api/platform/legalExpert';
-import router from '@/router';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
@@ -183,7 +170,6 @@ const handleSelectDate = (val: Array<string>) => {
 
 // 操作
 const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
   editDetailsRef.value.handleOpenDialog(row.id, type);
 };
 
