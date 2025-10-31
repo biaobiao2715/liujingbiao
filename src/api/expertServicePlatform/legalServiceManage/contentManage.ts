@@ -15,7 +15,8 @@ export interface ContentListQuery {
   endTime?: string; // 结束时间
   orderByColumn?: string; // 排序列
   isAsc?: string; // 排序的方向desc或者asc
-  title?: string; // 普法内容标题
+  contentTitle?: string; // 普法内容标题（后端可能期望contentTitle而不是title）
+  title?: string; // 普法内容标题（兼容字段）
 }
 
 // 普法内容响应接口

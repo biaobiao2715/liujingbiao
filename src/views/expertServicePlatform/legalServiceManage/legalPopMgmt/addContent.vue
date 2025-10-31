@@ -174,6 +174,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Document, Plus } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
+import { addContent } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -185,11 +186,23 @@ const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
 
 // 表单数据
 const formData = reactive({
+  contentTitle: '',
   contentType: '',
-  title: '',
-  status: '启用',
-  summary: '',
-  content: ''
+  contentStatus: '',
+  contentSummary: '',
+  contentContent: '',
+  contentLevel: '',
+  lawKeywords: '',
+  relatedLaws: '',
+  // 模板使用的别名(getter/setter)
+  get title() { return this.contentTitle; },
+  set title(val) { this.contentTitle = val; },
+  get summary() { return this.contentSummary; },
+  set summary(val) { this.contentSummary = val; },
+  get content() { return this.contentContent; },
+  set content(val) { this.contentContent = val; },
+  get status() { return this.contentStatus; },
+  set status(val) { this.contentStatus = val; }
 });
 
 // 表单验证规则
@@ -246,43 +259,87 @@ const handleCancel = () => {
 };
 
 /** 保存操作 */
-const handleSave = async () => {
+const handleSave = () => {
   if (!formRef.value) return;
-  
-  try {
-    await formRef.value.validate();
-    saving.value = true;
-    
-    // TODO: 调用保存接口
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟API调用
-    
-    ElMessage.success('保存成功');
-    router.push('/expertServicePlatform/legalServiceManage/contentManage');
-  } catch (error) {
-    ElMessage.error('保存失败，请检查表单信息');
-  } finally {
-    saving.value = false;
-  }
+
+  formRef.value.validate((valid: boolean) => {
+    if (!valid) {
+      return;
+    }
+
+    ElMessageBox.confirm('确定要保存吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    }).then(() => {
+      saving.value = true;
+
+      // 准备提交数据
+      const submitData = {
+        contentTitle: formData.contentTitle,
+        contentType: formData.contentType,
+        contentStatus: formData.contentStatus,
+        contentSummary: formData.contentSummary,
+        contentContent: formData.contentContent,
+        contentLevel: formData.contentLevel || '',
+        lawKeywords: formData.lawKeywords || '',
+        relatedLaws: formData.relatedLaws || ''
+      };
+
+      addContent(submitData).then(() => {
+        ElMessage.success('保存成功');
+        router.push('/expertServicePlatform/legalServiceManage/contentManage');
+      }).catch(() => {
+        ElMessage.error('保存失败，请检查表单信息');
+      }).finally(() => {
+        saving.value = false;
+      });
+    }).catch(() => {
+      // 用户取消操作
+    });
+  });
 };
 
 /** 发布操作 */
-const handlePublish = async () => {
+const handlePublish = () => {
   if (!formRef.value) return;
-  
-  try {
-    await formRef.value.validate();
-    publishing.value = true;
-    
-    // TODO: 调用发布接口
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟API调用
-    
-    ElMessage.success('发布成功');
-    router.push('/expertServicePlatform/legalServiceManage/contentManage');
-  } catch (error) {
-    ElMessage.error('发布失败，请检查表单信息');
-  } finally {
-    publishing.value = false;
-  }
+
+  formRef.value.validate((valid: boolean) => {
+    if (!valid) {
+      return;
+    }
+
+    ElMessageBox.confirm('确定要发布该内容吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      publishing.value = true;
+
+      // 发布时强制设置状态为已发布
+      const submitData = {
+        contentTitle: formData.contentTitle,
+        contentType: formData.contentType,
+        contentStatus: '2', // 强制为已发布
+        contentSummary: formData.contentSummary,
+        contentContent: formData.contentContent,
+        contentLevel: formData.contentLevel || '',
+        lawKeywords: formData.lawKeywords || '',
+        relatedLaws: formData.relatedLaws || ''
+      };
+
+      addContent(submitData).then(() => {
+        ElMessage.success('发布成功');
+        router.push('/expertServicePlatform/legalServiceManage/contentManage');
+      }).catch(() => {
+        ElMessage.error('发布失败，请检查表单信息');
+      }).finally(() => {
+        publishing.value = false;
+      });
+    }).catch(() => {
+      // 用户取消操作
+    });
+  });
 };
 
 /** 添加附件 */

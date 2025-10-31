@@ -262,7 +262,8 @@ import { useRouter, useRoute } from 'vue-router';
 import { 
   getContentDetail, 
   editContent 
-} from '../../../../api/expertServicePlatform/legalServiceManage/contentManage';
+} from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { formatDate } from '@/utils/index';
 
 const router = useRouter();
 const route = useRoute();
@@ -356,132 +357,74 @@ const catalogItems = ref([
 ]);
 
 /** 获取内容详情 */
-const fetchContentDetail = async () => {
-  console.log('===== 🚀 开始获取内容详情 =====');
-  console.log('路由参数 id:', id);
-  console.log('id 类型:', typeof id);
-  
+const fetchContentDetail = () => {
   if (!id) {
-    console.error('❌ 缺少内容ID');
     ElMessage.warning('缺少内容ID');
     return;
   }
   
   loading.value = true;
-  console.log('🔄 开始调用 getContentDetail API, ID:', Number(id));
   
-  try {
-    const response = await getContentDetail(Number(id));
-    console.log('📡 API 原始响应:', response);
-    
-    // 处理响应数据结构：response.data 是 Axios 包装，实际数据在 response.data.data
-    const resData: any = response?.data || response;
-    console.log('📦 解析后的响应数据:', resData);
-    console.log('响应码:', resData?.code);
-    
-    if (resData && resData.code === 200) {
-      // 详情数据在 resData.data 中
-      const data = resData.data;
-      if (!data) {
-        console.error('❌ 详情数据为空');
-        ElMessage.error('获取内容详情失败：数据为空');
-        return;
-      }
-      
-      console.log('✅ 获取普法内容详情成功!');
-      console.log('📄 详情数据:', data);
-      console.log('详情数据字段:', Object.keys(data));
-      
-      console.log('开始映射数据到表单...');
-      // 映射后端数据到表单（使用 ?? 处理 null 值，保留空字符串和 0 作为有效值）
-      formData.id = data.id ?? 0;
-      formData.contentNo = data.contentNo ?? '';
-      formData.contentTitle = data.contentTitle ?? '';
-      formData.contentType = data.contentType ?? '';
-      formData.contentLevel = data.contentLevel ?? '';
-      formData.contentSummary = data.contentSummary ?? '';
-      formData.contentContent = data.contentContent ?? '';
-      formData.contentStatus = data.contentStatus ?? '';
-      formData.publishTime = data.publishTime ?? '';
-      formData.lawKeywords = data.lawKeywords ?? '';
-      formData.relatedLaws = data.relatedLaws ?? '';
-      // 处理 null 值：如果为 null 则设为 0，否则使用原值
-      formData.viewCount = data.viewCount != null ? data.viewCount : 0;
-      formData.downloadCount = data.downloadCount != null ? data.downloadCount : 0;
-      formData.authorId = data.authorId ?? 0;
-      formData.authorName = data.authorName ?? '';
-      
-      console.log('✅ 基础数据映射完成!');
-      console.log('formData.id:', formData.id);
-      console.log('formData.contentTitle:', formData.contentTitle);
-      console.log('formData.title (别名):', formData.title);
-      console.log('formData.contentType:', formData.contentType);
-      console.log('formData.contentStatus:', formData.contentStatus);
-      console.log('formData.contentSummary:', formData.contentSummary);
-      console.log('formData.contentContent:', formData.contentContent);
-      console.log('formData.viewCount:', formData.viewCount);
-      console.log('formData.downloadCount:', formData.downloadCount);
-      
-      console.log('开始处理附件列表...');
-      // 处理附件列表（sysOssLists 可能为 null）
-      if (data.sysOssLists && Array.isArray(data.sysOssLists) && data.sysOssLists.length > 0) {
-        console.log('找到附件:', data.sysOssLists);
-        fileList.value = data.sysOssLists.map((file: any) => ({
-          id: file.ossId,
-          name: file.fileName || file.originalName || '未知文件',
-          type: getFileTypeFromSuffix(file.fileSuffix),
-          size: file.size || 0,
-          url: file.url,
-          file: null
-        }));
-        formData.ids = data.sysOssLists.map((file: any) => file.ossId).filter((id: any) => id != null);
-        console.log('附件处理完成, fileList:', fileList.value);
-        console.log('附件ID列表:', formData.ids);
+  getContentDetail(Number(id))
+    .then((res: any) => {
+      // 响应拦截器已处理，res 直接是 res.data，如果成功则 res.code === 200
+      if (res && res.code === 200) {
+        const data = res.data;
+        if (!data) {
+          ElMessage.error('获取内容详情失败：数据为空');
+          loading.value = false;
+          return;
+        }
+        
+        
+        const contentId = data.id != null ? Number(data.id) : (id ? Number(id) : 0);
+        if (!contentId || contentId === 0) {
+          ElMessage.error('内容ID获取失败，请刷新页面重试');
+          loading.value = false;
+          return;
+        }
+        formData.id = contentId;
+        formData.contentNo = data.contentNo ?? '';
+        formData.contentTitle = data.contentTitle ?? '';
+        formData.contentType = data.contentType ?? '';
+        formData.contentLevel = data.contentLevel ?? '';
+        formData.contentSummary = data.contentSummary ?? '';
+        formData.contentContent = data.contentContent ?? '';
+        formData.contentStatus = data.contentStatus ?? '';
+        // 格式化发布时间为 YYYY-MM-DD HH:MM:SS 24小时制
+        formData.publishTime = data.publishTime ? formatDate(data.publishTime) : '';
+        formData.lawKeywords = data.lawKeywords ?? '';
+        formData.relatedLaws = data.relatedLaws ?? '';
+        formData.viewCount = data.viewCount != null ? data.viewCount : 0;
+        formData.downloadCount = data.downloadCount != null ? data.downloadCount : 0;
+        formData.authorId = data.authorId ?? 0;
+        formData.authorName = data.authorName ?? '';
+        
+        // 处理附件列表
+        if (data.sysOssLists && Array.isArray(data.sysOssLists) && data.sysOssLists.length > 0) {
+          fileList.value = data.sysOssLists.map((file: any) => ({
+            id: file.ossId,
+            name: file.fileName || file.originalName || '未知文件',
+            type: getFileTypeFromSuffix(file.fileSuffix),
+            size: file.size || 0,
+            url: file.url,
+            file: null
+          }));
+          formData.ids = data.sysOssLists.map((file: any) => file.ossId).filter((id: any) => id != null);
+        } else {
+          fileList.value = [];
+          formData.ids = [];
+        }
       } else {
-        console.log('没有附件 (sysOssLists为null或空数组)');
-        fileList.value = [];
-        formData.ids = [];
+        ElMessage.error(res?.msg || '获取内容详情失败');
       }
-      
-      console.log('✅ 表单数据填充完成!');
-      console.log('最终 formData 摘要:', {
-        id: formData.id,
-        contentNo: formData.contentNo,
-        contentTitle: formData.contentTitle,
-        title: formData.title,
-        contentType: formData.contentType,
-        contentLevel: formData.contentLevel,
-        contentSummary: formData.contentSummary?.substring(0, 50) + '...',
-        contentContent: formData.contentContent?.substring(0, 50) + '...',
-        contentStatus: formData.contentStatus,
-        publishTime: formData.publishTime,
-        viewCount: formData.viewCount,
-        downloadCount: formData.downloadCount,
-        fileCount: fileList.value.length
-      });
-      
-      // 验证关键字段是否已填充
-      if (formData.contentTitle) {
-        console.log('✅ 表单数据验证通过，标题已填充');
-      } else {
-        console.warn('⚠️ 警告：标题为空');
-      }
-    } else {
-      console.error('❌ API 返回错误!');
-      console.error('错误信息:', resData?.msg);
-      console.error('完整响应:', resData);
-      ElMessage.error(resData?.msg || '获取内容详情失败');
-    }
-  } catch (error: any) {
-    console.error('❌ 获取内容详情异常!');
-    console.error('错误对象:', error);
-    console.error('错误消息:', error.message);
-    console.error('错误响应:', error.response);
-    ElMessage.error('获取内容详情失败，请稍后重试');
-  } finally {
-    loading.value = false;
-    console.log('===== 获取内容详情结束 =====');
-  }
+      loading.value = false;
+    })
+    .catch((error: any) => {
+      console.error('获取内容详情失败:', error);
+      ElMessage.error('获取内容详情失败，请稍后重试');
+      loading.value = false;
+    });
 };
 
 /** 取消操作 */
@@ -498,99 +441,103 @@ const handleCancel = () => {
 };
 
 /** 保存操作 */
-const handleSave = async () => {
+const handleSave = () => {
   if (!formRef.value) return;
   
-  try {
-    await formRef.value.validate();
+  formRef.value.validate((valid: boolean) => {
+    if (!valid) {
+      return;
+    }
     
-    await ElMessageBox.confirm('确定要保存修改吗？', '提示', {
+    ElMessageBox.confirm('确定要保存修改吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'info'
+    }).then(() => {
+      // 验证ID是否存在
+      if (!formData.id || formData.id === 0) {
+        ElMessage.error('内容ID缺失，无法保存');
+        return;
+      }
+      
+      saving.value = true;
+      
+      // 准备提交数据
+      const submitData = {
+        id: formData.id,
+        contentTitle: formData.contentTitle,
+        contentType: formData.contentType,
+        contentLevel: formData.contentLevel,
+        contentSummary: formData.contentSummary,
+        contentContent: formData.contentContent,
+        contentStatus: formData.contentStatus,
+        lawKeywords: formData.lawKeywords,
+        relatedLaws: formData.relatedLaws,
+        ids: formData.ids
+      };
+      
+      editContent(submitData).then(() => {
+        ElMessage.success('保存成功');
+        router.push('/expertServicePlatform/legalServiceManage/contentManage');
+      }).catch(() => {
+        ElMessage.error('保存失败，请检查表单信息');
+      }).finally(() => {
+        saving.value = false;
+      });
+    }).catch(() => {
+      // 用户取消操作
     });
-    
-    saving.value = true;
-    
-    // 准备提交数据
-    const submitData = {
-      id: formData.id,
-      contentTitle: formData.contentTitle,
-      contentType: formData.contentType,
-      contentLevel: formData.contentLevel,
-      contentSummary: formData.contentSummary,
-      contentContent: formData.contentContent,
-      contentStatus: formData.contentStatus,
-      lawKeywords: formData.lawKeywords,
-      relatedLaws: formData.relatedLaws,
-      ids: formData.ids
-    };
-    
-    const response = await editContent(submitData);
-    const resData: any = response?.data || response;
-    
-    if (resData && resData.code === 200) {
-      ElMessage.success('保存成功');
-      router.push('/expertServicePlatform/legalServiceManage/contentManage');
-    } else {
-      ElMessage.error(resData?.msg || '保存失败');
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('保存失败:', error);
-      ElMessage.error('保存失败，请检查表单信息');
-    }
-  } finally {
-    saving.value = false;
-  }
+  });
 };
 
 /** 发布操作 */
-const handlePublish = async () => {
+const handlePublish = () => {
   if (!formRef.value) return;
   
-  try {
-    await formRef.value.validate();
+  formRef.value.validate((valid: boolean) => {
+    if (!valid) {
+      return;
+    }
     
-    await ElMessageBox.confirm('确定要发布该内容吗？', '提示', {
+    ElMessageBox.confirm('确定要发布该内容吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
+    }).then(() => {
+      // 验证ID是否存在
+      if (!formData.id || formData.id === 0) {
+        ElMessage.error('内容ID缺失，无法发布');
+        return;
+      }
+      
+      publishing.value = true;
+      
+      // 发布时强制设置状态为已发布
+      const submitData = {
+        id: formData.id,
+        contentTitle: formData.contentTitle,
+        contentType: formData.contentType,
+        contentLevel: formData.contentLevel,
+        contentSummary: formData.contentSummary,
+        contentContent: formData.contentContent,
+        contentStatus: '2', // 强制为已发布
+        lawKeywords: formData.lawKeywords,
+        relatedLaws: formData.relatedLaws,
+        ids: formData.ids
+      };
+      
+      editContent(submitData).then(() => {
+        ElMessage.success('发布成功');
+        router.push('/expertServicePlatform/legalServiceManage/contentManage');
+      }).catch(() => {
+        ElMessage.error('发布失败，请检查表单信息');
+      }).finally(() => {
+        publishing.value = false;
+      });
+    }).catch(() => {
+      // 用户取消操作
     });
-    
-    publishing.value = true;
-    
-    // 发布时强制设置状态为已发布
-    const submitData = {
-      id: formData.id,
-      contentTitle: formData.contentTitle,
-      contentType: formData.contentType,
-      contentLevel: formData.contentLevel,
-      contentSummary: formData.contentSummary,
-      contentContent: formData.contentContent,
-      contentStatus: '2', // 强制为已发布
-      lawKeywords: formData.lawKeywords,
-      relatedLaws: formData.relatedLaws,
-      ids: formData.ids
-    };
-    
-    const response = await editContent(submitData);
-    const resData: any = response?.data || response;
-    
-    if (resData && resData.code === 200) {
-      ElMessage.success('发布成功');
-      router.push('/expertServicePlatform/legalServiceManage/contentManage');
-    } else {
-      ElMessage.error(resData?.msg || '发布失败');
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error('发布失败:', error);
-      ElMessage.error('发布失败，请检查表单信息');
-    }
-  } finally {
-    publishing.value = false;
-  }
+  });
 };
 
 /** 添加附件 */
@@ -713,11 +660,6 @@ const getFileTypeFromSuffix = (suffix: string) => {
 
 // 页面加载时获取详情
 onMounted(() => {
-  console.log('🎬 编辑页面已挂载 (onMounted)');
-  console.log('当前路由:', route);
-  console.log('路由 query:', route.query);
-  console.log('路由 id 参数:', id);
-  console.log('formData 初始状态:', formData);
   fetchContentDetail();
 });
 </script>

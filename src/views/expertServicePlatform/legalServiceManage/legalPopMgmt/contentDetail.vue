@@ -121,9 +121,10 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Document, User, View, Star, Picture, VideoPlay } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
+import { getContentDetail } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { formatDate } from '@/utils/index';
 
 const router = useRouter();
-
 const route = useRoute();
 const { id, type } = route.query;
 
@@ -169,56 +170,72 @@ const operationRecords = ref([
   }
 ]);
 
+/** 根据文件后缀获取文件类型 */
+const getFileTypeFromSuffix = (suffix: string) => {
+  const s = suffix?.toLowerCase() || '';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(s)) return '图片';
+  if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(s)) return '文档';
+  if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'].includes(s)) return '视频';
+  if (['mp3', 'wav', 'flac', 'aac'].includes(s)) return '音频';
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(s)) return '压缩包';
+  return '其他';
+};
+
 /** 获取内容详情 */
-const getContentDetail = async () => {
+const fetchContentDetail = () => {
   if (!id) return;
   
-  try {
-    // TODO: 调用获取详情接口
-    // const response = await getContentDetail(id);
-    
-    // 模拟数据
-    const mockData = {
-      id: id,
-      contentType: '农技知识',
-      title: '农技学堂种子科教种植',
-      publishTime: '2019-12-12 10:29:30',
-      status: '启用',
-      summary: '苎麻细切种根繁殖方法是一种无性繁殖技术,它利用苎麻地下根茎(俗称"种根"或"龙头根")的强大萌蘖能力,通过将其切割成小块(小段)来繁殖新植株。',
-      content: `苎麻细切种根繁殖方法是一种无性繁殖技术,它利用苎麻地下根茎(俗称"种根"或"龙头根")的强大萌蘖能力,通过将其切割成小块(小段)来繁殖新植株。这种方法具有繁殖系数大、成活率高、生长快、能保持品种原有优质高产种性等优点,是生产上最常用、最传统的繁殖方法之一。
-
-具体操作步骤：
-1. 选择健壮的种根，要求根茎粗壮、无病虫害
-2. 将种根切成3-5厘米的小段，每段至少包含1-2个芽眼
-3. 切口要平整，避免损伤芽眼
-4. 种植时保持适当的株行距，一般行距60-80厘米，株距30-40厘米
-5. 种植深度以种根顶端露出土面2-3厘米为宜
-6. 种植后及时浇水，保持土壤湿润
-
-注意事项：
-- 选择适宜的种植时间，一般在春季3-4月或秋季9-10月
-- 种植前要对土壤进行深翻和施肥
-- 种植后要加强田间管理，及时除草、施肥、防治病虫害
-- 注意保持土壤湿润，但不要积水`,
-      viewCount: 232633,
-      downloadCount: 988,
-      likeCount: 12,
-      author: '张三',
-      imageUrl: '',
-      attachments: [
-        {
-          name: '视频演示.mp4',
-          type: '视频',
-          url: '/files/video.mp4',
-          size: 500 * 1024 * 1024 // 500MB
+  getContentDetail(Number(id))
+    .then((res: any) => {
+      // 响应拦截器已处理，res 直接是 res.data，如果成功则 res.code === 200
+      if (res && res.code === 200) {
+        const data = res.data;
+        if (!data) {
+          ElMessage.error('获取内容详情失败：数据为空');
+          return;
         }
-      ]
-    };
-    
-    Object.assign(detailData, mockData);
-  } catch (error) {
-    ElMessage.error('获取内容详情失败');
-  }
+      
+        // 映射后端数据到详情数据
+        detailData.id = data.id ?? '';
+        detailData.contentType = data.contentType ?? '';
+        detailData.title = data.contentTitle ?? '';
+        // 格式化发布时间为 YYYY-MM-DD HH:MM:SS 24小时制
+        detailData.publishTime = data.publishTime ? formatDate(data.publishTime) : '';
+        detailData.status = data.contentStatus ?? '';
+        detailData.summary = data.contentSummary ?? '';
+        detailData.content = data.contentContent ?? '';
+        detailData.viewCount = data.viewCount != null ? data.viewCount : 0;
+        detailData.downloadCount = data.downloadCount != null ? data.downloadCount : 0;
+        detailData.author = data.authorName ?? '';
+        
+        // 处理附件列表
+        if (data.sysOssLists && Array.isArray(data.sysOssLists) && data.sysOssLists.length > 0) {
+          detailData.attachments = data.sysOssLists.map((file: any) => ({
+            id: file.ossId,
+            name: file.fileName || file.originalName || '未知文件',
+            type: getFileTypeFromSuffix(file.fileSuffix),
+            size: file.size || 0,
+            url: file.url
+          }));
+        } else {
+          detailData.attachments = [];
+        }
+        
+        // 处理图片（如果有）
+        if (data.sysOssLists && Array.isArray(data.sysOssLists)) {
+          const imageFile = data.sysOssLists.find((file: any) => {
+            const suffix = file.fileSuffix?.toLowerCase() || '';
+            return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(suffix);
+          });
+          detailData.imageUrl = imageFile?.url || '';
+        }
+      } else {
+        ElMessage.error(res?.msg || '获取内容详情失败');
+      }
+    })
+    .catch((error) => {
+      ElMessage.error('获取内容详情失败');
+    });
 };
 
 /** 返回操作 */
@@ -253,7 +270,7 @@ const formatFileSize = (size: number) => {
 
 // 页面加载时获取详情
 onMounted(() => {
-  getContentDetail();
+  fetchContentDetail();
 });
 </script>
 

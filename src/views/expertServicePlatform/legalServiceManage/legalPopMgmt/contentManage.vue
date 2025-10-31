@@ -28,11 +28,13 @@
         <el-form-item label="发布时间">
           <el-date-picker
             v-model="dateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             range-separator=" - "
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
           />
         </el-form-item>
         
@@ -105,13 +107,6 @@
           </template>
         </el-table-column>
         
-        <!-- 内容等级 -->
-        <el-table-column label="内容等级" align="center" prop="contentLevel" width="100">
-          <template #default="scope">
-            <span>{{ getLevelText(scope.row.contentLevel) }}</span>
-          </template>
-        </el-table-column>
-        
         <!-- 发布时间 -->
         <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
           <template #default="scope">
@@ -122,14 +117,14 @@
         <!-- 浏览量 -->
         <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
           <template #default="scope">
-            <span>{{ scope.row.viewCount || 0 }}</span>
+            <span>{{ scope.row.viewCount != null ? scope.row.viewCount : 0 }}</span>
           </template>
         </el-table-column>
         
         <!-- 下载量 -->
         <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
           <template #default="scope">
-            <span>{{ scope.row.downloadCount || 0 }}</span>
+            <span>{{ scope.row.downloadCount != null ? scope.row.downloadCount : 0 }}</span>
           </template>
         </el-table-column>
         
@@ -244,17 +239,32 @@ const selectedIds = ref([]);
 const selectedRows = ref([]);
 
 /** 获取普法内容列表 */
-const getList = async () => {
+const getList = () => {
   loading.value = true;
-  try {
-    // 调用真实的API接口
-    const response = await getContentList(queryParams.value);
-    console.log('获取普法内容列表的API响应:', response);
-    const resData: any = response?.data || response;
-    if (resData && resData.code === 200) {
-      // 处理后端返回的数据，映射字段
-      const processedData = (resData.rows || []).map((item: any) => {
-        // 状态映射：2-已发布(启用) 3-已下架(禁用)
+  
+  // 准备查询参数，参考商品管理的写法
+  const { title, dateRange: _, ...rest } = queryParams.value as any;
+  const [startTime, endTime] = dateRange.value || [];
+  
+  const params: any = {
+    ...rest,
+    // 将title映射为contentTitle（后端接口使用contentTitle作为查询参数）
+    ...(title ? { contentTitle: title } : {}),
+    // 日期范围处理
+    ...(startTime && endTime ? { startTime, endTime } : {})
+  };
+  
+  // 过滤空字符串参数
+  Object.keys(params).forEach(key => {
+    if (params[key] === '') {
+      delete params[key];
+    }
+  });
+  
+  // 调用API接口
+  getContentList(params).then((res: any) => {
+    if (res && res.code === 200) {
+      const processedData = (res.rows || []).map((item: any) => {
         let statusText = '未知';
         if (item.contentStatus === '2' || item.contentStatus === 2) {
           statusText = '启用';
@@ -262,37 +272,39 @@ const getList = async () => {
           statusText = '禁用';
         }
         
+        // 处理浏览量和下载量：正确映射后端字段
+        // 检查后端可能使用的字段名（viewCount/view_count/downloadCount/download_count）
+        const viewCount = item.viewCount ?? item.view_count ?? 0;
+        const downloadCount = item.downloadCount ?? item.download_count ?? 0;
+        
         return {
           ...item,
           // 确保状态字段正确映射
           status: statusText,
           // 保留原始数据
           publishTime: item.publishTime || item.createTime || '-',
-          viewCount: item.viewCount || 0,
-          downloadCount: item.downloadCount || 0
+          // 处理浏览量：确保正确显示数值
+          viewCount: viewCount != null && viewCount !== '' ? Number(viewCount) : 0,
+          // 处理下载量：确保正确显示数值
+          downloadCount: downloadCount != null && downloadCount !== '' ? Number(downloadCount) : 0
         };
       });
       
       tableData.value = processedData;
-      total.value = resData.total || 0;
-      console.log('获取普法内容列表成功:', resData);
-      console.log('处理后的表格数据:', processedData);
-      console.log('第一条数据的所有字段:', processedData[0]);
+      total.value = res.total || 0;
     } else {
-      ElMessage.error(resData?.msg || '获取普法内容列表失败');
+      ElMessage.error(res?.msg || '获取普法内容列表失败');
     }
-  } catch (error) {
+    loading.value = false;
+  }).catch((error) => {
     console.error('获取普法内容列表失败:', error);
     ElMessage.error('获取普法内容列表失败，请稍后重试');
-  } finally {
     loading.value = false;
-  }
+  });
 };
 
 /** 查询按钮事件 */
 const handleSearch = () => {
-  queryParams.value.startTime = dateRange.value[0];
-  queryParams.value.endTime = dateRange.value[1];
   queryParams.value.pageNum = 1;
   getList();
 };
@@ -312,6 +324,7 @@ const handleReset = () => {
   queryParams.value.contentType = '';
   queryParams.value.contentStatus = '';
   queryParams.value.contentSummary = '';
+  queryParams.value.title = '';
   queryParams.value.orderByColumn = '';
   queryParams.value.isAsc = '';
   handleQuery();
@@ -329,67 +342,119 @@ const handleAdd = () => {
 };
 
 /** 启用按钮事件 */
-const handleEnable = async () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要启用的内容');
+const handleEnable = () => {
+  // 如果没有选择内容，则处理全部内容
+  let targetIds = selectedIds.value;
+  let targetRows = selectedRows.value;
+
+  if (targetIds.length === 0) {
+    // 获取当前页面的所有内容ID
+    targetIds = tableData.value.map((item: any) => item.id);
+    targetRows = tableData.value;
+    ElMessage.info('未选择内容，将对当前页面全部内容进行启用操作');
+  }
+
+  // 检查目标内容是否都是禁用状态（启用操作只能对禁用状态的内容进行）
+  // 状态：'2'-启用 '3'-禁用
+  const invalidRows = targetRows.filter((row: any) => {
+    const status = row.contentStatus || row.status;
+    return status === '2' || status === '启用' || status === 2;
+  });
+  if (invalidRows.length > 0) {
+    ElMessage.warning(`目标内容中包含已启用的内容，无法重复启用`);
     return;
   }
-  
-  try {
-    await ElMessageBox.confirm(
-      `确定要启用选中的${selectedIds.value.length}条内容吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    );
-    
-    await updateContentStatus({
-      ids: selectedIds.value,
-      contentStatus: '2' // 2-启用
+
+  ElMessageBox.confirm(`确定要将${targetIds.length}条内容启用吗？`, '启用确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      // 批量启用 - 使用正确的数据格式
+      const enableData = {
+        ids: targetIds, // 内容ID数组
+        contentStatus: '2' // 2表示已启用
+      };
+
+      updateContentStatus(enableData)
+        .then((response: any) => {
+          if (response.code === 200) {
+            ElMessage.success(`成功启用${targetIds.length}条内容`);
+            getList();
+            // 清空选中状态
+            selectedIds.value = [];
+            selectedRows.value = [];
+          } else {
+            ElMessage.error(response.msg || '启用操作失败');
+          }
+        })
+        .catch((error) => {
+          console.error('启用操作失败:', error);
+          ElMessage.error('启用操作失败');
+        });
+    })
+    .catch(() => {
+      ElMessage.info('启用操作已取消');
     });
-    
-    ElMessage.success(`成功启用${selectedIds.value.length}条内容`);
-    getList();
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error('启用失败');
-    }
-  }
 };
 
 /** 停用按钮事件 */
-const handleDisable = async () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要停用的内容');
+const handleDisable = () => {
+  // 如果没有选择内容，则处理全部内容
+  let targetIds = selectedIds.value;
+  let targetRows = selectedRows.value;
+
+  if (targetIds.length === 0) {
+    // 获取当前页面的所有内容ID
+    targetIds = tableData.value.map((item: any) => item.id);
+    targetRows = tableData.value;
+    ElMessage.info('未选择内容，将对当前页面全部内容进行停用操作');
+  }
+
+  // 检查目标内容是否都是启用状态（停用操作只能对启用状态的内容进行）
+  // 状态：'2'-启用 '3'-禁用
+  const invalidRows = targetRows.filter((row: any) => {
+    const status = row.contentStatus || row.status;
+    return status === '3' || status === '禁用' || status === 3;
+  });
+  if (invalidRows.length > 0) {
+    ElMessage.warning(`目标内容中包含已禁用的内容，无法重复禁用`);
     return;
   }
-  
-  try {
-    await ElMessageBox.confirm(
-      `确定要停用选中的${selectedIds.value.length}条内容吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    );
-    
-    await updateContentStatus({
-      ids: selectedIds.value,
-      contentStatus: '3' // 3-停用
+
+  ElMessageBox.confirm(`确定要将${targetIds.length}条内容停用吗？`, '停用确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      // 批量停用 - 使用正确的数据格式
+      const disableData = {
+        ids: targetIds, // 内容ID数组
+        contentStatus: '3' // 3表示已禁用
+      };
+
+      updateContentStatus(disableData)
+        .then((response: any) => {
+          if (response.code === 200) {
+            ElMessage.success(`成功停用${targetIds.length}条内容`);
+            getList();
+            // 清空选中状态
+            selectedIds.value = [];
+            selectedRows.value = [];
+          } else {
+            ElMessage.error(response.msg || '停用操作失败');
+          }
+        })
+        .catch((error) => {
+          console.error('停用操作失败:', error);
+          ElMessage.error('停用操作失败');
+        });
+    })
+    .catch(() => {
+      ElMessage.info('停用操作已取消');
     });
-    
-    ElMessage.success(`成功停用${selectedIds.value.length}条内容`);
-    getList();
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error('停用失败');
-    }
-  }
 };
 
 /** 删除按钮事件 */
@@ -501,22 +566,6 @@ const handleDeleteSingle = async (row: any) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败');
     }
-  }
-};
-
-/** 内容等级映射函数 */
-const getLevelText = (level: string | number) => {
-  switch (String(level)) {
-    case '1':
-      return '国家级';
-    case '2':
-      return '省级';
-    case '3':
-      return '市级';
-    case '4':
-      return '县级';
-    default:
-      return '-';
   }
 };
 
