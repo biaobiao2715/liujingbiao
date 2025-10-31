@@ -21,18 +21,6 @@ export interface FormData {
   confirmPassword: string;
 }
 
-// 定义联系人接口，包含可选的errors属性
-export interface Contact {
-  contactUserType: string | number;
-  contactUserName: string;
-  contactIdCard: string;
-  contactPhone: string;
-  errors?: {
-    contactUserName?: string;
-    contactIdCard?: string;
-    contactPhone?: string;
-  };
-}
 // 定义类目的接口
 export interface Category {
   id: string; // 类目ID
@@ -48,4 +36,53 @@ export interface GoodsAttributesResponse {
   brandList: Array<{ id: string | number; attributeName: string; status?: number }>;
   guaranteeList: Array<{ id: string | number; attributeName: string; status?: number }>;
   functionList: Array<{ id: string | number; attributeName: string; status?: number }>;
+}
+
+// 定义商品详情数据类型
+export interface HnGoodsFiles {
+  id?: number;
+  goodsId?: number;
+  fileType?: string;
+  ossId?: number;
+  ossInfo?: {
+    ossId?: number;
+    fileName?: string;
+    originalName?: string;
+    url?: string;
+  };
+  [property: string]: any;
+}
+// 定义商品规格数据类型
+export interface HnGoodsSpecificationData {
+  id?: number;
+  goodsId?: number;
+  goodsSpecification?: string;
+  goodsSpecificationValue?: string;
+  goodsPrice?: number;
+  goodsStock?: number;
+  [property: string]: any;
+}
+// 定义商品详情数据类型
+export interface HnGoodsVo {
+  id?: number;
+  goodsName?: string;
+  goodsCode?: string;
+  goodsEnsureId?: number;
+  goodsEnsureName?: string;
+  goodsBrandId?: number | string;
+  goodsBrandName?: string;
+  createTime?: string;
+  launchTime?: string;
+  takeDownTime?: string;
+  status?: string;
+  goodsAlert?: number | string;
+  goodsCategoryId?: number | string;
+  goodsCategoryName?: string;
+  goodsDetail?: string;
+  goodsInfo?: string;
+  goodsSpecification?: string;
+  goodsSpecificationName?: string;
+  hnGoodsFilesList?: HnGoodsFiles[];
+  hnGoodsSpecificationDataList?: HnGoodsSpecificationData[];
+  [property: string]: any;
 }

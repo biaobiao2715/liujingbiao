@@ -79,12 +79,13 @@ const previewFile = async (file: any) => {
 };
 
 onMounted(async () => {
-  const id = Number(route.query?.id);
+  const id = route.query?.id;
   if (!id) {
     ElMessage.error('缺少文章ID');
     return;
   }
-  const res = await getArticle(id);
+
+  const res = await getArticle(id as string);
   const data = res?.data ?? res ?? {};
   form.value = data;
   // buildAttachments(data);

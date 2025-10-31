@@ -9,7 +9,7 @@
       label: 'label',
       children: 'children'
     }"
-    placeholder="请选择区域进行查询"
+    placeholder="请选择区域"
     @change="handleChange"
   ></el-cascader>
 </template>

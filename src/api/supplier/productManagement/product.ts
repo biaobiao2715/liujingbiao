@@ -86,7 +86,7 @@ export const goodsDelete = (id: any) => {
  * 商品上架下架
  * @param data - 商品状态更新对象，格式: {goodsIds: string[], status: string}
  */
-export const updateGoodsStatus = (data: { goodsIds: string[]; status: string }) => {
+export const updateGoodsStatus = (data: { goodsIds: (string | number)[]; status: string }) => {
   return request({
     url: '/grain-sales/goods/onAndShelves',
     method: 'put',

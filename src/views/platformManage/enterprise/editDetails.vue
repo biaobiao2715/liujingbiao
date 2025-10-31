@@ -254,7 +254,7 @@ baseEnterpriseInfoId(String(props.id))
     areaCodes.value = formData.value.province + formData.value.city + formData.value.district;
     if (res.data?.contacts?.length > 0) {
       res.data.contacts.forEach((element) => {
-        console.log('33', element);
+        // console.log('33', element);
         if (element.contactUserType == 1) {
           contactF.value = element;
         } else {

@@ -662,22 +662,6 @@ const sendSmsCode = async () => {
   }
 };
 
-// 地址选择数据
-const optionsAddres = computed(() => {
-  const formatData = (parentCode) => {
-    const children = areaData[parentCode];
-    if (!children) return undefined;
-
-    return Object.keys(children).map((code) => ({
-      value: code,
-      label: children[code],
-      children: formatData(code)
-    }));
-  };
-
-  return formatData('86') || [];
-});
-
 // 地址选择变化
 const handleAreaChange = (val) => {
   // 更新编码和名称
@@ -978,11 +962,12 @@ onMounted(async () => {
     const arr: any = await isAccountExist(phone);
     form.value = {
       ...arr.data,
-
+      areaCodes: [arr.data.provinceCode, arr.data.cityCode, arr.data.districtCode],
       confirmPassword: arr.data.password,
       signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
     };
     tableList.value = arr.data.contacts;
+
     if (arr.data && arr.data.folders && arr.data.folders.length > 0) {
       arr.data.folders.forEach((element: any) => {
         fileListtable.value.push({
