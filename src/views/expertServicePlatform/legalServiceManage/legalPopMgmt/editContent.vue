@@ -20,11 +20,6 @@
         <div class="form-section basic-info">
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="内容编号" prop="contentNo">
-                <el-input v-model="formData.contentNo" placeholder="内容编号" disabled />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
               <el-form-item label="普法标题" prop="title" required>
                 <el-input 
                   v-model="formData.title" 
@@ -33,6 +28,22 @@
                   show-word-limit
                 />
                 <div class="form-tip">请输入标题,最多支持30个汉字</div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="24">
+              <el-form-item label="普法简介" prop="summary" required>
+                <el-input 
+                  v-model="formData.summary" 
+                  type="textarea" 
+                  :rows="3" 
+                  placeholder="请输入简介"
+                  maxlength="60"
+                  show-word-limit
+                />
+                <div class="form-tip">请输入简介,最多支持60个汉字</div>
               </el-form-item>
             </el-col>
           </el-row>
@@ -51,95 +62,15 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="12">
-              <el-form-item label="内容级别" prop="contentLevel" required>
-                <el-select v-model="formData.contentLevel" placeholder="请选择" style="width: 100%">
-                  <el-option label="请选择" value="" />
-                  <el-option label="初级" value="1" />
-                  <el-option label="中级" value="2" />
-                  <el-option label="高级" value="3" />
-                </el-select>
-                <div class="form-tip">1-初级 2-中级 3-高级</div>
-              </el-form-item>
-            </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="发布状态" prop="status" required>
                 <el-select v-model="formData.status" placeholder="请选择" style="width: 100%">
-                  <el-option label="请选择" value="" />
-                  <el-option 
-                    v-for="item in legal_popularize_status" 
-                    :key="item.value" 
-                    :label="item.label" 
-                    :value="item.value" 
-                  />
+                  <el-option label="启用" value="3" />
+                  <el-option label="禁用" value="2" />
                 </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="发布时间" prop="publishTime">
-                <el-input v-model="formData.publishTime" placeholder="发布时间" disabled />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="24">
-              <el-form-item label="普法简介" prop="summary" required>
-                <el-input 
-                  v-model="formData.summary" 
-                  type="textarea" 
-                  :rows="3" 
-                  placeholder="请输入简介"
-                  maxlength="200"
-                  show-word-limit
-                />
-                <div class="form-tip">请输入简介,最多支持200个字符</div>
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="法律关键词" prop="lawKeywords">
-                <el-input 
-                  v-model="formData.lawKeywords" 
-                  placeholder="请输入法律关键词，多个关键词用逗号分隔"
-                  clearable
-                />
-                <div class="form-tip">多个关键词用逗号分隔</div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="相关法条" prop="relatedLaws">
-                <el-input 
-                  v-model="formData.relatedLaws" 
-                  placeholder="请输入相关法条"
-                  clearable
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="作者姓名" prop="authorName">
-                <el-input v-model="formData.authorName" placeholder="作者姓名" disabled />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="浏览量" prop="viewCount">
-                <el-input v-model="formData.viewCount" placeholder="浏览量" disabled />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="下载量" prop="downloadCount">
-                <el-input v-model="formData.downloadCount" placeholder="下载量" disabled />
               </el-form-item>
             </el-col>
           </el-row>
@@ -257,13 +188,12 @@
 import { ref, reactive, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Document, Plus, Upload } from '@element-plus/icons-vue';
+import { Plus, Upload } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
 import { 
   getContentDetail, 
   editContent 
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
-import { formatDate } from '@/utils/index';
 
 const router = useRouter();
 const route = useRoute();
@@ -271,8 +201,8 @@ const { id } = route.query;
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
-const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
+const { legal_popularize_type } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_type')
 );
 
 // 加载状态
@@ -281,20 +211,11 @@ const loading = ref(false);
 // 表单数据 - 使用后端字段名并支持模板别名
 const formData = reactive({
   id: 0,
-  contentNo: '',
   contentTitle: '',
   contentType: '',
-  contentLevel: '',
   contentSummary: '',
   contentContent: '',
   contentStatus: '',
-  publishTime: '',
-  lawKeywords: '',
-  relatedLaws: '',
-  viewCount: 0,
-  downloadCount: 0,
-  authorId: 0,
-  authorName: '',
   ids: [] as number[],
   // 模板使用的别名(getter/setter)
   get title() { return this.contentTitle; },
@@ -318,23 +239,14 @@ const rules = {
   ],
   summary: [
     { required: true, message: '请输入普法简介', trigger: 'blur' },
-    { max: 200, message: '简介最多 200 个字符', trigger: 'blur' }
+    { max: 60, message: '简介最多 60 个汉字', trigger: 'blur' }
   ],
   contentType: [
     { required: true, message: '请选择普法类别', trigger: 'change' }
   ],
-  contentLevel: [
-    { required: true, message: '请选择内容级别', trigger: 'change' }
-  ],
   content: [
     { required: true, message: '请输入文章内容', trigger: 'blur' },
     { min: 10, message: '内容至少 10 个字符', trigger: 'blur' }
-  ],
-  lawKeywords: [
-    { max: 100, message: '关键词最多 100 个字符', trigger: 'blur' }
-  ],
-  relatedLaws: [
-    { max: 200, message: '相关法条最多 200 个字符', trigger: 'blur' }
   ]
 };
 
@@ -346,15 +258,6 @@ const saving = ref(false);
 const publishing = ref(false);
 // 文件列表
 const fileList = ref<any[]>([]);
-
-// 文章目录数据
-const catalogItems = ref([
-  { level: '1', text: '第一章 总则' },
-  { level: '2', text: '第一条 适用范围' },
-  { level: '2', text: '第二条 基本原则' },
-  { level: '1', text: '第二章 具体规定' },
-  { level: '2', text: '第三条 实施要求' }
-]);
 
 /** 获取内容详情 */
 const fetchContentDetail = () => {
@@ -384,21 +287,11 @@ const fetchContentDetail = () => {
           return;
         }
         formData.id = contentId;
-        formData.contentNo = data.contentNo ?? '';
         formData.contentTitle = data.contentTitle ?? '';
         formData.contentType = data.contentType ?? '';
-        formData.contentLevel = data.contentLevel ?? '';
         formData.contentSummary = data.contentSummary ?? '';
         formData.contentContent = data.contentContent ?? '';
         formData.contentStatus = data.contentStatus ?? '';
-        // 格式化发布时间为 YYYY-MM-DD HH:MM:SS 24小时制
-        formData.publishTime = data.publishTime ? formatDate(data.publishTime) : '';
-        formData.lawKeywords = data.lawKeywords ?? '';
-        formData.relatedLaws = data.relatedLaws ?? '';
-        formData.viewCount = data.viewCount != null ? data.viewCount : 0;
-        formData.downloadCount = data.downloadCount != null ? data.downloadCount : 0;
-        formData.authorId = data.authorId ?? 0;
-        formData.authorName = data.authorName ?? '';
         
         // 处理附件列表
         if (data.sysOssLists && Array.isArray(data.sysOssLists) && data.sysOssLists.length > 0) {
@@ -467,12 +360,9 @@ const handleSave = () => {
         id: formData.id,
         contentTitle: formData.contentTitle,
         contentType: formData.contentType,
-        contentLevel: formData.contentLevel,
         contentSummary: formData.contentSummary,
         contentContent: formData.contentContent,
         contentStatus: formData.contentStatus,
-        lawKeywords: formData.lawKeywords,
-        relatedLaws: formData.relatedLaws,
         ids: formData.ids
       };
       
@@ -512,17 +402,14 @@ const handlePublish = () => {
       
       publishing.value = true;
       
-      // 发布时强制设置状态为已发布
+      // 发布时强制设置状态为已启用
       const submitData = {
         id: formData.id,
         contentTitle: formData.contentTitle,
         contentType: formData.contentType,
-        contentLevel: formData.contentLevel,
         contentSummary: formData.contentSummary,
         contentContent: formData.contentContent,
-        contentStatus: '2', // 强制为已发布
-        lawKeywords: formData.lawKeywords,
-        relatedLaws: formData.relatedLaws,
+        contentStatus: '3', // 强制为已启用
         ids: formData.ids
       };
       
@@ -937,3 +824,4 @@ onMounted(() => {
   color: #c0c4cc;
 }
 </style>
+

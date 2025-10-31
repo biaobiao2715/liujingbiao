@@ -16,7 +16,6 @@ export interface ContentListQuery {
   orderByColumn?: string; // 排序列
   isAsc?: string; // 排序的方向desc或者asc
   contentTitle?: string; // 普法内容标题（后端可能期望contentTitle而不是title）
-  title?: string; // 普法内容标题（兼容字段）
 }
 
 // 普法内容响应接口
@@ -145,8 +144,15 @@ export function deleteContent(ids: number[]): AxiosPromise<any> {
 
 /**
  * 更新普法内容状态
+ * @param data - 包含 ids（必需）、contentStatus（必需）以及其他占位字段（contentTitle、contentType、contentSummary）
  */
-export function updateContentStatus(data: { ids: number[]; contentStatus: string }): AxiosPromise<any> {
+export function updateContentStatus(data: { 
+  ids: number[]; 
+  contentStatus: string;
+  contentTitle?: string;
+  contentType?: string;
+  contentSummary?: string;
+}): AxiosPromise<any> {
   return request({
     url: '/skill-server/law/content/status',
     method: 'put',

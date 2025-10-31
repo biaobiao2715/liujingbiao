@@ -42,8 +42,8 @@
         <el-form-item label="所属状态" prop="contentStatus">
           <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
             <el-option label="全部" value="" />
-            <el-option label="启用" value="2" />
-            <el-option label="禁用" value="3" />
+            <el-option label="启用" value="3" />
+            <el-option label="禁用" value="2" />
           </el-select>
         </el-form-item>
         
@@ -148,7 +148,7 @@
                 v-throttle 
                 type="warning" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '3')"
+                @click="handleStatusChange(scope.row, '2')"
               >
                 禁用
               </el-button>
@@ -157,7 +157,7 @@
                 v-throttle 
                 type="success" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '2')"
+                @click="handleStatusChange(scope.row, '3')"
               >
                 启用
               </el-button>
@@ -195,7 +195,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { 
   getContentList, 
-  updateContentStatus,
+  editContent,
   deleteContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 
@@ -266,9 +266,9 @@ const getList = () => {
     if (res && res.code === 200) {
       const processedData = (res.rows || []).map((item: any) => {
         let statusText = '未知';
-        if (item.contentStatus === '2' || item.contentStatus === 2) {
+        if (item.contentStatus === '3' || item.contentStatus === 3) {
           statusText = '启用';
-        } else if (item.contentStatus === '3' || item.contentStatus === 3) {
+        } else if (item.contentStatus === '2' || item.contentStatus === 2) {
           statusText = '禁用';
         }
         
@@ -343,44 +343,49 @@ const handleAdd = () => {
 
 /** 启用按钮事件 */
 const handleEnable = () => {
-  // 如果没有选择内容，则处理全部内容
-  let targetIds = selectedIds.value;
-  let targetRows = selectedRows.value;
-
-  if (targetIds.length === 0) {
-    // 获取当前页面的所有内容ID
-    targetIds = tableData.value.map((item: any) => item.id);
-    targetRows = tableData.value;
-    ElMessage.info('未选择内容，将对当前页面全部内容进行启用操作');
-  }
-
-  // 检查目标内容是否都是禁用状态（启用操作只能对禁用状态的内容进行）
-  // 状态：'2'-启用 '3'-禁用
-  const invalidRows = targetRows.filter((row: any) => {
-    const status = row.contentStatus || row.status;
-    return status === '2' || status === '启用' || status === 2;
-  });
-  if (invalidRows.length > 0) {
-    ElMessage.warning(`目标内容中包含已启用的内容，无法重复启用`);
+  // 如果没有选择内容，则提示用户选择
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要启用的内容');
     return;
   }
 
-  ElMessageBox.confirm(`确定要将${targetIds.length}条内容启用吗？`, '启用确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
+  // 检查目标内容是否都是禁用状态（启用操作只能对禁用状态的内容进行）
+  // 状态：'3'-启用 '2'-禁用
+  const invalidRows = selectedRows.value.filter((row: any) => {
+    const status = row.contentStatus || row.status;
+    return status === '3' || status === '启用' || status === 3;
+  });
+  
+  if (invalidRows.length > 0) {
+    ElMessage.warning('所选内容中包含已启用的内容，无法重复启用');
+    return;
+  }
+
+  // 弹窗确认
+  ElMessageBox.confirm(
+    '是否确认启用？', 
+    '操作确认', 
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning',
+      center: true
+    }
+  )
     .then(() => {
       // 批量启用 - 使用正确的数据格式
       const enableData = {
-        ids: targetIds, // 内容ID数组
-        contentStatus: '2' // 2表示已启用
+        contentTitle: 'batch_enable', // 批量操作标识（随意值）
+        contentType: 'batch', // 批量操作标识（随意值）
+        contentSummary: 'batch_operation', // 批量操作标识（随意值）
+        ids: selectedIds.value, // 内容ID数组
+        contentStatus: '3' // 3表示已启用
       };
 
-      updateContentStatus(enableData)
+      editContent(enableData)
         .then((response: any) => {
           if (response.code === 200) {
-            ElMessage.success(`成功启用${targetIds.length}条内容`);
+            ElMessage.success(`成功启用 ${selectedIds.value.length} 条内容`);
             getList();
             // 清空选中状态
             selectedIds.value = [];
@@ -391,54 +396,59 @@ const handleEnable = () => {
         })
         .catch((error) => {
           console.error('启用操作失败:', error);
-          ElMessage.error('启用操作失败');
+          ElMessage.error('启用操作失败，请稍后重试');
         });
     })
     .catch(() => {
-      ElMessage.info('启用操作已取消');
+      // 用户取消操作
     });
 };
 
 /** 停用按钮事件 */
 const handleDisable = () => {
-  // 如果没有选择内容，则处理全部内容
-  let targetIds = selectedIds.value;
-  let targetRows = selectedRows.value;
-
-  if (targetIds.length === 0) {
-    // 获取当前页面的所有内容ID
-    targetIds = tableData.value.map((item: any) => item.id);
-    targetRows = tableData.value;
-    ElMessage.info('未选择内容，将对当前页面全部内容进行停用操作');
-  }
-
-  // 检查目标内容是否都是启用状态（停用操作只能对启用状态的内容进行）
-  // 状态：'2'-启用 '3'-禁用
-  const invalidRows = targetRows.filter((row: any) => {
-    const status = row.contentStatus || row.status;
-    return status === '3' || status === '禁用' || status === 3;
-  });
-  if (invalidRows.length > 0) {
-    ElMessage.warning(`目标内容中包含已禁用的内容，无法重复禁用`);
+  // 如果没有选择内容，则提示用户选择
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要停用的内容');
     return;
   }
 
-  ElMessageBox.confirm(`确定要将${targetIds.length}条内容停用吗？`, '停用确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
+  // 检查目标内容是否都是启用状态（停用操作只能对启用状态的内容进行）
+  // 状态：'3'-启用 '2'-禁用
+  const invalidRows = selectedRows.value.filter((row: any) => {
+    const status = row.contentStatus || row.status;
+    return status === '2' || status === '禁用' || status === 2;
+  });
+  
+  if (invalidRows.length > 0) {
+    ElMessage.warning('所选内容中包含已停用的内容，无法重复停用');
+    return;
+  }
+
+  // 弹窗确认
+  ElMessageBox.confirm(
+    '是否确认禁用？', 
+    '操作确认', 
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning',
+      center: true
+    }
+  )
     .then(() => {
       // 批量停用 - 使用正确的数据格式
       const disableData = {
-        ids: targetIds, // 内容ID数组
-        contentStatus: '3' // 3表示已禁用
+        contentTitle: 'batch_disable', // 批量操作标识（随意值）
+        contentType: 'batch', // 批量操作标识（随意值）
+        contentSummary: 'batch_operation', // 批量操作标识（随意值）
+        ids: selectedIds.value, // 内容ID数组
+        contentStatus: '2' // 2表示已禁用
       };
 
-      updateContentStatus(disableData)
+      editContent(disableData)
         .then((response: any) => {
           if (response.code === 200) {
-            ElMessage.success(`成功停用${targetIds.length}条内容`);
+            ElMessage.success(`成功停用 ${selectedIds.value.length} 条内容`);
             getList();
             // 清空选中状态
             selectedIds.value = [];
@@ -449,11 +459,11 @@ const handleDisable = () => {
         })
         .catch((error) => {
           console.error('停用操作失败:', error);
-          ElMessage.error('停用操作失败');
+          ElMessage.error('停用操作失败，请稍后重试');
         });
     })
     .catch(() => {
-      ElMessage.info('停用操作已取消');
+      // 用户取消操作
     });
 };
 
@@ -473,22 +483,26 @@ const handleDelete = async () => {
   
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的${selectedIds.value.length}条内容吗？删除后将无法恢复！`,
-      '警告',
+      '是否确认删除？删除后将无法恢复！',
+      '操作确认',
       {
-        confirmButtonText: '确定',
+        confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'error'
+        type: 'warning',
+        center: true
       }
     );
     
     await deleteContent(selectedIds.value);
     
-    ElMessage.success(`成功删除${selectedIds.value.length}条内容`);
+    ElMessage.success(`成功删除 ${selectedIds.value.length} 条内容`);
     getList();
+    // 清空选中状态
+    selectedIds.value = [];
+    selectedRows.value = [];
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败');
+      ElMessage.error('删除失败，请稍后重试');
     }
   }
 };
@@ -516,21 +530,25 @@ const handleView = (row: any) => {
 
 /** 状态变更事件 */
 const handleStatusChange = async (row: any, newStatus: string) => {
-  // newStatus: '2'-启用 '3'-禁用
-  const statusText = newStatus === '2' ? '启用' : '禁用';
+  // newStatus: '3'-启用 '2'-禁用
+  const statusText = newStatus === '3' ? '启用' : '禁用';
   
   try {
     await ElMessageBox.confirm(
-      `确定要${statusText}该内容吗？`,
-      '提示',
+      `是否确认${statusText}？`,
+      '操作确认',
       {
-        confirmButtonText: '确定',
+        confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        center: true
       }
     );
     
-    await updateContentStatus({ 
+    await editContent({ 
+      contentTitle: 'single_operation', // 单个操作标识（随意值）
+      contentType: 'single', // 单个操作标识（随意值）
+      contentSummary: 'single_operation', // 单个操作标识（随意值）
       ids: [row.id], 
       contentStatus: newStatus 
     });
@@ -540,7 +558,7 @@ const handleStatusChange = async (row: any, newStatus: string) => {
     getList();
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(`${statusText}失败`);
+      ElMessage.error(`${statusText}失败，请稍后重试`);
     }
   }
 };
@@ -549,12 +567,13 @@ const handleStatusChange = async (row: any, newStatus: string) => {
 const handleDeleteSingle = async (row: any) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除"${row.contentTitle}"吗？删除后将无法恢复！`,
-      '警告',
+      '是否确认删除？删除后将无法恢复！',
+      '操作确认',
       {
-        confirmButtonText: '确定',
+        confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'error'
+        type: 'warning',
+        center: true
       }
     );
     
@@ -564,7 +583,7 @@ const handleDeleteSingle = async (row: any) => {
     getList();
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败');
+      ElMessage.error('删除失败，请稍后重试');
     }
   }
 };

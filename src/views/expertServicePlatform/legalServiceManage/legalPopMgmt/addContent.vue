@@ -33,13 +33,8 @@
             <el-col :span="12">
               <el-form-item label="发布状态" prop="status" required>
                 <el-select v-model="formData.status" placeholder="请选择" style="width: 100%">
-                  <el-option label="请选择" value="请选择" />
-                  <el-option 
-                    v-for="item in legal_popularize_status" 
-                    :key="item.value" 
-                    :label="item.label" 
-                    :value="item.value" 
-                  />
+                  <el-option label="启用" value="3" />
+                  <el-option label="禁用" value="2" />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -316,11 +311,11 @@ const handlePublish = () => {
     }).then(() => {
       publishing.value = true;
 
-      // 发布时强制设置状态为已发布
+      // 发布时强制设置状态为已启用
       const submitData = {
         contentTitle: formData.contentTitle,
         contentType: formData.contentType,
-        contentStatus: '2', // 强制为已发布
+        contentStatus: '3', // 强制为已启用
         contentSummary: formData.contentSummary,
         contentContent: formData.contentContent,
         contentLevel: formData.contentLevel || '',
