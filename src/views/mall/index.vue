@@ -19,9 +19,8 @@
           <el-tab-pane label="市场行情" name="market"></el-tab-pane>
           <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
         </el-tabs>
-        <div v-if="activeTab === 'goods'">
-          <GoodsComponent />
-        </div>
+        <!-- 商品组件 -->
+        <GoodsComponent v-if="activeTab === 'goods'" />
         <div v-else-if="activeTab === 'demand'">
           <DemandComponent />
         </div>
@@ -33,6 +32,7 @@
         </div>
       </div>
     </div>
+    <!-- 个人中心 -->
     <PersonalCenterComponent v-show="!showHomeContent" :command="personalCommand" />
   </div>
 </template>

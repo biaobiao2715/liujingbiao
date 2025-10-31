@@ -8,14 +8,19 @@
 
 <template>
   <div class="goods-item" @click="handleClick">
-    <img :src="goods.image" alt="商品图片" class="goods-image" />
+    <img :src="goods.sysOssLists[0].url" width="100" class="goods-image" />
     <div class="goods-info">
-      <p class="goods-price">{{ goods.price }}元/袋</p>
-      <p class="goods-title">{{ goods.title }}</p>
-      <div class="goods-tags">
-        <span v-for="tag in goods.tags" :key="tag" class="goods-tag">{{ tag }}</span>
+      <div class="flex-center-between mt-12">
+        <div class="goods-price">{{ goods.price }}元/袋</div>
+        <div class="goods-volume">{{ goods.goodsSales }}件已售</div>
       </div>
-      <p class="goods-location">{{ goods.location }}</p>
+      <div class="goods-title">{{ goods.goodsName }}</div>
+      <div class="flex-center-between mt-12">
+        <div class="goods-tags">
+          <el-tag v-for="tag in goods.goodssEnsureName" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
+        </div>
+        <div class="goods-location">{{ goods.hnBaseEnterpriseInfo.companyName }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -24,7 +29,7 @@
 import { defineProps, defineEmits } from 'vue';
 const emit = defineEmits(['clickGoods']);
 // 接收外部传入的商品信息
-defineProps({
+const props = defineProps({
   goods: {
     type: Object,
     required: true,
@@ -38,6 +43,10 @@ defineProps({
   }
 });
 
+onMounted(() => {
+  console.log('商品信息:', props.goods);
+});
+
 // 点击商品时触发方法
 const handleClick = (item) => {
   emit('clickGoods', item);
@@ -46,10 +55,9 @@ const handleClick = (item) => {
 
 <style scoped lang="scss">
 .goods-item {
-  width: calc(20% - 8px);
+  width: calc(20% - 16px);
   display: flex;
   flex-direction: column;
-  border: 1px solid #ddd;
   padding: 10px;
   cursor: pointer;
   transition: box-shadow 0.3s;

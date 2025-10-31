@@ -355,6 +355,21 @@ const handleSave = async () => {
 // 审核按钮事件
 const handleAudit = async (status: number) => {
   try {
+    // 判断资质等级和信用等级是否选择
+    if (!formData.value.credentialLevel) {
+      ElMessage.error('请选择资质等级');
+      return;
+    }
+    if (!formData.value.creditLevel) {
+      ElMessage.error('请选择信用等级');
+      return;
+    }
+    // 审核不通过 必须填写审核备注
+    if (status === 99 && !formData.value.reviewRemark) {
+      ElMessage.error('请填写审核意见');
+      return;
+    }
+
     loading.value = true;
     const res = await enterpriseReview({
       enterpriseInfo: {

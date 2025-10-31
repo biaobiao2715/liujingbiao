@@ -1,22 +1,5 @@
 <template>
   <div class="category-container">
-    <div class="search-component flex">
-      <div class="search-select">
-        <el-input v-model="searchContent" placeholder="请输入要搜索的内容" size="large" style="width: 520px">
-          <template #prepend>
-            <el-select v-model="searchType" placeholder="商品名称" class="search-type" size="large">
-              <el-option label="名称" value="goodsName"></el-option>
-              <el-option label="品牌" value="goodsBrandName"></el-option>
-              <el-option label="属性" value="goodsAbilityName"></el-option>
-            </el-select>
-          </template>
-          <template #append>
-            <el-button type="primary" @click="handleSearch" size="large"> 搜索 </el-button>
-          </template>
-        </el-input>
-      </div>
-    </div>
-
     <div class="weight-selection flex-center gap-24">
       <div class="category-selection">
         <GoodsCategorySelect v-model="filterState.category" @categoryChange="handleCategoryChange" />
@@ -25,13 +8,33 @@
         <RegionSelect v-model="filterState.areaCodes" @regionChange="handleAreaChange" />
       </div>
 
-      <el-segmented v-model="filterState.sortType" :options="sortList" />
+      <!-- <el-segmented v-model="filterState.sortType" :options="sortList" /> -->
+      <!-- 排序方式 -->
+      <el-select v-model="filterState.sortType" placeholder="排序方式" style="width: 150px">
+        <el-option v-for="item in sortList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+      </el-select>
 
       <div class="price flex-center gap-8">
         <div class="price-label">价格</div>
         <el-input v-model="filterState.minPrice" type="number" placeholder="最低价" />
         -
         <el-input v-model="filterState.maxPrice" type="number" placeholder="最高价" />
+      </div>
+      <div class="search-component flex">
+        <div class="search-select">
+          <el-input v-model="searchContent" placeholder="请输入要搜索的内容" size="large" style="width: 380px">
+            <template #prepend>
+              <el-select v-model="searchType" placeholder="商品名称" class="search-type" size="large">
+                <el-option label="名称" value="goodsName"></el-option>
+                <el-option label="品牌" value="goodsBrandName"></el-option>
+                <el-option label="属性" value="goodsAbilityName"></el-option>
+              </el-select>
+            </template>
+            <template #append>
+              <el-button type="primary" @click="handleSearch" size="large"> 搜索 </el-button>
+            </template>
+          </el-input>
+        </div>
       </div>
     </div>
   </div>
@@ -51,8 +54,8 @@ const searchContent = ref(''); // 搜索内容
 
 const sortList = ref([
   {
-    label: '综合',
-    value: ''
+    label: '综合排序',
+    value: '-1'
   },
   {
     label: '按销量',
@@ -61,13 +64,21 @@ const sortList = ref([
   {
     label: '按最新',
     value: '1'
+  },
+  {
+    label: '按价格升序',
+    value: '2'
+  },
+  {
+    label: '按价格倒序',
+    value: '3'
   }
 ]);
 
 // 合并状态到一个对象
 const filterState = reactive({
   areaCodes: [], // 地址选择
-  sortType: '', // 排序类型
+  sortType: '-1', // 排序类型
   minPrice: 0, // 最低价
   maxPrice: 0, // 最高价
   category: [] // 商品分类选择
@@ -130,6 +141,7 @@ const handleCategoryChange = (value: string[]) => {
     }
     .price {
       .price-label {
+        width: 42px;
       }
       .el-input {
         width: 80px;
