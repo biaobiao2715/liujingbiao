@@ -94,6 +94,18 @@ export const updateGoodsStatus = (data: { goodsIds: (string | number)[]; status:
   });
 };
 
+/**
+ * 设置商品预警信息
+ * @param data - 商品预警信息对象，格式: {goodsId: string, threshold: number}
+ */
+export const setGoodsWarnings = (data: { id: string | number; goodsAlert: number | string }) => {
+  return request({
+    url: '/grain-sales/goods/setWarnings',
+    method: 'put',
+    data: data
+  });
+};
+
 // 图片上传方法
 
 /**

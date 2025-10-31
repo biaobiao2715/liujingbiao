@@ -28,11 +28,13 @@
       <el-form-item label="发布时间">
         <el-date-picker
           v-model="queryParams.publishTime"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
         />
       </el-form-item>
 

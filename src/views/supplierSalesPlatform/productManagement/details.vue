@@ -53,12 +53,12 @@
 
       <FormHeader title="商品信息" />
       <el-table :data="tableList" border style="width: 100%">
-        <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
+        <el-table-column prop="goodsName" label="商品名称" width="200" align="center" :show-overflow-tooltip="true">
           <template #default>
             <div class="spec-name">{{ formData.goodsName }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsCode" label="商品编码" width="220">
+        <el-table-column prop="goodsCode" label="商品编码" width="220" align="center">
           <template #default>
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
@@ -81,7 +81,7 @@
         </el-table-column>
         <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center">
           <template #default="scope">
-            <span>{{ scope.row.goodsSpecificationValue }}g/袋</span>
+            <span>{{ scope.row.goodsSpecificationValue }}{{ formData.goodsSpecificationName }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="goodsStock" label="可用库存" align="center" />
@@ -185,7 +185,7 @@ onMounted(async () => {
     formData.value = res.data;
     tableList.value = res.data.hnGoodsSpecificationDataList || [];
   }
-  const { data } = await goodsAttributesAllList();
+  const data = await goodsAttributesAllList();
   const { brandList = [], guaranteeList = [] } = (data ?? {}) as Partial<GoodsAttributesResponse>;
   brandOptions.value = brandList;
   guaranteeOptions.value = guaranteeList;

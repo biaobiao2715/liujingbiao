@@ -275,10 +275,43 @@ baseEnterpriseInfoId(String(props.id))
     console.error('获取企业基本信息失败:', error);
   });
 
+/**
+ * 审核前置校验
+ * @param status 审核状态，示例：1=通过，99=不通过（与现有后端约定保持一致）
+ * @returns 是否通过校验
+ */
+const validateAudit = (status: number): boolean => {
+  // 资质等级必选
+  if (!formData.value.credentialLevel) {
+    ElMessage.error('请选择资质等级');
+    return false;
+  }
+
+  // 信用等级必选
+  if (!formData.value.creditLevel) {
+    ElMessage.error('请选择信用等级');
+    return false;
+  }
+
+  // 审核不通过：必须填写审核意见
+  if (status === 99 && !formData.value.reviewRemark?.trim()) {
+    ElMessage.error('请填写审核意见');
+    return false;
+  }
+
+  // 审核通过：可在这里添加额外的必填校验（按业务需要开启）
+  // if (status === 1) {
+  // }
+
+  return true;
+};
+
 // 审核
 const cancelAudit = async (type: number) => {
+  if (!validateAudit(type)) return;
   try {
     proxy?.$modal.loading('正在审核，请稍候...');
+    if (!validateAudit(type)) return;
     await enterpriseReview({
       enterpriseInfo: {
         ...formData.value,
@@ -290,9 +323,6 @@ const cancelAudit = async (type: number) => {
       folder: formData.value.folders
     }).then(() => {
       ElMessage.success('审核成功');
-      // 不再进行路由跳转，改为内部状态更新并通知父组件
-      operateMode.value = 'view';
-      disabledIf.value = operateMode.value !== 'view';
       emit('refresh');
     });
   } catch (error) {
@@ -316,9 +346,6 @@ const handleSave = async () => {
       folder: formData.value.folders
     }).then(() => {
       ElMessage.success('保存成功');
-      // 不再进行路由跳转，改为内部状态更新并通知父组件
-      operateMode.value = 'view';
-      disabledIf.value = operateMode.value !== 'view';
       emit('refresh');
     });
   } catch (error) {

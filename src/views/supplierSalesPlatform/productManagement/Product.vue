@@ -34,11 +34,12 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd">新增商品</el-button>
+        <el-button v-throttle v-hasPermi="['system:business:add']" type="primary" @click="handleAdd">新增商品</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           v-throttle
+          v-hasPermi="['system:business:delete']"
           type="primary"
           @click="handleDelete"
           :loading="actionLoading === 'delete'"
@@ -48,7 +49,14 @@
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleShelf" :loading="actionLoading === 'shelf'" :disabled="loading || actionLoading !== null">
+        <el-button
+          v-throttle
+          v-hasPermi="['system:business:onAndShelves']"
+          type="primary"
+          @click="handleShelf"
+          :loading="actionLoading === 'shelf'"
+          :disabled="loading || actionLoading !== null"
+        >
           上架
         </el-button>
       </el-col>
@@ -56,6 +64,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          v-hasPermi="['system:business:onAndShelves']"
           type="primary"
           @click="handleUnshelf"
           :loading="actionLoading === 'unshelf'"
@@ -65,10 +74,10 @@
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleExport">导出</el-button>
+        <el-button v-throttle v-hasPermi="['system:business:export']" type="primary" @click="handleExport">导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
       </el-col>
       <right-toolbar :show-search="showSearch" @query-table="getList" />
     </el-row>
@@ -90,11 +99,7 @@
           <span>{{ getSalesPrice(scope.row) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true">
-        <template #default="scope">
-          <span>{{ getCategoryDisplay(scope.row) }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="预警下限" align="center" prop="goodsAlert" />
       <el-table-column label="提醒" align="center" prop="remind" width="100" />
       <el-table-column label="商品状态" align="center" prop="status">
@@ -109,11 +114,11 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
-          <el-button v-throttle type="primary" @click="openDetails(scope.row, 'view')">详情</el-button>
-          <el-button v-throttle type="primary" @click="openDetails(scope.row, 'edit')">价格设定</el-button>
-          <el-button v-throttle type="primary" @click="openEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle type="primary" @click="openCopy(scope.row)">复制商品</el-button>
-          <el-button v-throttle type="primary">设置预警</el-button>
+          <el-button v-throttle v-hasPermi="['system:business:query']" type="primary" @click="openDetails(scope.row, 'view')">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetails(scope.row, 'edit')">价格设定</el-button>
+          <el-button v-throttle v-hasPermi="['system:business:edit']" type="primary" @click="openEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['system:business:add']" type="primary" @click="openCopy(scope.row)">复制商品</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:setWarnings']" type="primary" @click="openWarnDialog(scope.row)">设置预警</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -122,6 +127,26 @@
     <div class="flex-center pagination">
       <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
+
+    <!-- 设置预警值弹窗 -->
+    <el-dialog v-model="warnDialogVisible" title="设置预警值" width="420px" :close-on-click-modal="false">
+      <el-form ref="warnFormRef" :model="warnForm" :rules="warnRules" label-width="80px">
+        <el-form-item label="预警下限" prop="goodsAlert">
+          <el-input
+            v-model="warnForm.goodsAlert"
+            placeholder="请输入预警下限"
+            inputmode="numeric"
+            @input="(val) => onInputDigits(val as string, warnForm, 'goodsAlert', { maxLen: 9 })"
+            @keypress="onKeypressDigits"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" :loading="warnSubmitting" @click="onWarnConfirm">确定</el-button>
+        <el-button :disabled="warnSubmitting" @click="onWarnCancel">取消</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 父控弹窗：商品编辑/新增/复制 -->
     <el-dialog
@@ -162,12 +187,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, getCurrentInstance, toRefs, onMounted, onActivated, defineAsyncComponent } from 'vue';
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated, defineAsyncComponent, reactive, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import type { FormInstance, FormRules } from 'element-plus';
 import router from '@/router';
-import { goodsList, goodsDelete, updateGoodsStatus } from '@/api/supplier/productManagement/product';
-import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings } from '@/api/supplier/productManagement/product';
 
 // 异步引入子组件（按需加载）
 const Edit = defineAsyncComponent(() => import('./edit.vue'));
@@ -198,10 +223,6 @@ const actionLoading = ref<'shelf' | 'unshelf' | 'delete' | null>(null);
 const selectedIds = ref<(string | number)[]>([]);
 const selectedRows = ref<any[]>([]);
 
-// 类目映射
-const categoryList = ref<any[]>([]);
-const categoryMap = ref<Record<string, string>>({});
-
 // 父控对话框（编辑/新增/复制）
 const editDlgVisible = ref(false);
 const editDlgTitle = ref('');
@@ -212,6 +233,41 @@ const editOperateMode = ref<'add' | 'edit' | 'copy'>('add');
 const detailsDlgVisible = ref(false);
 const detailsDlgTitle = ref('');
 const detailsOperateMode = ref<'view' | 'edit'>('view');
+
+// 设置预警 弹窗显隐与提交状态
+const warnDialogVisible = ref(false);
+const warnSubmitting = ref(false);
+
+// 表单与校验
+const warnFormRef = ref<FormInstance>();
+const warnForm = reactive<{
+  id?: number | string;
+  goodsAlert: string | null;
+}>({
+  id: undefined,
+  goodsAlert: ''
+});
+
+const warnRules: FormRules = {
+  goodsAlert: [
+    { required: true, message: '请输入预警下限', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        const v = String(value ?? '').trim();
+        if (v === '') {
+          callback(new Error('请输入预警下限'));
+          return;
+        }
+        if (!/^\d+$/.test(v)) {
+          callback(new Error('请输入大于等于 0 的整数'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'blur'
+    }
+  ]
+};
 
 /** 获取列表 */
 const getList = () => {
@@ -246,18 +302,48 @@ const handleReset = () => {
   handleQuery();
 };
 
-// 获取类目
-const getCategoryList = async () => {
-  try {
-    const response = await getProductCategoryList();
-    if (response && response.code === 200) {
-      categoryList.value = response.data || response.rows || [];
-      categoryMap.value = {};
-      categoryList.value.forEach((c) => (categoryMap.value[c.id] = c.categoryName || c.name));
+// 取消
+const onWarnCancel = () => {
+  warnDialogVisible.value = false;
+  resetWarnForm();
+};
+
+// 重置
+const resetWarnForm = () => {
+  warnForm.id = undefined;
+  warnForm.goodsAlert = '';
+  warnFormRef.value?.clearValidate?.();
+};
+
+// 打开弹窗并回显
+const openWarnDialog = (row: any) => {
+  warnForm.id = row?.id;
+  warnForm.goodsAlert = String(row?.goodsAlert ?? '');
+  warnDialogVisible.value = true;
+  nextTick(() => warnFormRef.value?.clearValidate?.());
+};
+
+// 确定提交
+const onWarnConfirm = () => {
+  if (!warnFormRef.value) return;
+  warnFormRef.value.validate(async (valid) => {
+    if (!valid) return;
+    warnSubmitting.value = true;
+    try {
+      await setGoodsWarnings({
+        id: warnForm.id,
+        goodsAlert: Number(warnForm.goodsAlert)
+      });
+      ElMessage.success('设置成功');
+      warnDialogVisible.value = false;
+      getList();
+    } catch (err: any) {
+      ElMessage.error(err?.message || '设置失败，请稍后重试');
+    } finally {
+      warnSubmitting.value = false;
+      resetWarnForm();
     }
-  } catch (e) {
-    console.error('获取商品类目失败:', e);
-  }
+  });
 };
 
 // 价格调整历史
@@ -381,11 +467,6 @@ const performStatusUpdate = async (toStatus: '1' | '0') => {
 
 const handleShelf = () => performStatusUpdate('1'); //上架
 const handleUnshelf = () => performStatusUpdate('0'); //下架
-// 展示辅助
-const getCategoryDisplay = (row: any) => {
-  if (row?.goodsCategoryName) return row.goodsCategoryName;
-  return row?.goodsCategoryId ? categoryMap.value[row.goodsCategoryId] || '未知类目' : '--';
-};
 
 // 金额格式化：¥ 前缀 + 千分位 + 两位小数
 const formatCNY = (n: number) => `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -421,6 +502,22 @@ const getSalesPrice = (row: any) => {
 // 导出
 const handleExport = () => {
   proxy?.download('/grain-sales/goods/export', { ...queryParams.value }, `goods_${new Date().getTime()}.xlsx`);
+};
+
+// 仅允许数字输入的通用方法
+const filterDigits = (val: string, opts?: { maxLen?: number }) => {
+  let s = (val ?? '').replace(/\D/g, '');
+  if (opts?.maxLen) s = s.slice(0, opts.maxLen);
+  return s;
+};
+const onInputDigits = (val: string, obj: Record<string, any>, key: string, opts?: { maxLen?: number }) => {
+  obj[key] = filterDigits(val, opts);
+};
+const onKeypressDigits = (e: KeyboardEvent) => {
+  const key = e.key;
+  if (!/[0-9]/.test(key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
+    e.preventDefault();
+  }
 };
 
 // 打开编辑/新增/复制（父控弹窗）
@@ -463,7 +560,6 @@ const onDetailsSuccess = () => {
 
 // 初始化
 onMounted(async () => {
-  await getCategoryList();
   getList();
 });
 onActivated(() => {

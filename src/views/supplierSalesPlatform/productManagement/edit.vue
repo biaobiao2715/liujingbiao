@@ -1,5 +1,6 @@
 <template>
   <div class="supplier-edit-details">
+    <!-- 基本信息 -->
     <el-form ref="refForm" :model="formData" :rules="FormRulesarr" label-width="120px">
       <div class="content-form-title">基本信息</div>
       <el-row>
@@ -99,11 +100,18 @@
 
       <div class="line" style="margin-top: 18px"></div>
 
+      <!-- 价格与库存 -->
       <div class="content-form-title">价格与库存</div>
       <el-row>
         <el-col :span="12">
           <el-form-item label="库存预警下限" prop="goodsAlert">
-            <el-input v-model="formData.goodsAlert" placeholder="请输入商品库存预警下限" />
+            <el-input
+              v-model="formData.goodsAlert"
+              placeholder="请输入商品库存预警下限"
+              inputmode="numeric"
+              @input="(val) => onInputDigits(val, formData, 'goodsAlert', { maxLen: 9 })"
+              @keypress="onKeypressDigits"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
@@ -139,10 +147,9 @@
                 <el-input
                   v-model="scope.row.goodsSpecificationValue"
                   placeholder="请输入商品规格值"
-                  type="number"
-                  :min="0"
-                  :max="999999"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsSpecificationValue }"
+                  inputmode="numeric"
+                  @input="(val) => onInputDigits(val, scope.row, 'goodsSpecificationValue')"
+                  @keypress="onKeypressDigits"
                 />
                 <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsSpecificationValue">
                   {{ scope.row.errors.goodsSpecificationValue }}
@@ -177,11 +184,10 @@
               <template #default="scope">
                 <el-input
                   v-model="scope.row.goodsStock"
-                  type="number"
-                  :min="0"
-                  :max="999999"
                   placeholder="请输入可用库存"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsStock }"
+                  inputmode="numeric"
+                  @input="(val) => onInputDigits(val, scope.row, 'goodsStock')"
+                  @keypress="onKeypressDigits"
                 />
                 <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsStock">
                   {{ scope.row.errors.goodsStock }}
@@ -205,6 +211,7 @@
 
       <div class="line" style="margin-top: 18px"></div>
 
+      <!-- 服务信息 -->
       <div class="content-form-title">服务信息</div>
       <div>
         <el-form-item label="上架状态" prop="status">
@@ -220,14 +227,14 @@
 
       <div class="line" style="margin-top: 18px"></div>
 
-      <!-- 按钮 -->
+      <!-- 操作按钮 -->
       <el-row type="flex" justify="center" :gutter="5">
         <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">提交商品</el-button></el-col>
         <el-col :span="3"><el-button v-throttle @click="submitClose">返回</el-button></el-col>
       </el-row>
     </el-form>
 
-    <!-- 图片预览（保留） -->
+    <!-- 图片预览 -->
     <el-dialog
       title="预览"
       v-model="picOpen"
@@ -243,13 +250,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
+// ==========================
+// 导入（分组、补全缺失 API）
+// ==========================
+import { ref, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
+import { ElMessage, ElMessageBox, ElForm, type FormRules } from 'element-plus';
 import { Category, GoodsAttributesResponse, HnGoodsVo } from '@/api/supplier/productManagement/types';
 import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
+// ==========================
+// Props/Emits
+// ==========================
 const props = defineProps<{
   id: string | number | null;
   type: 'add' | 'edit' | 'copy';
@@ -262,6 +275,9 @@ const emit = defineEmits<{
   (e: 'getListChange'): void;
 }>();
 
+// ==========================
+// 字典/常量/状态
+// ==========================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 
@@ -275,7 +291,9 @@ const functionOptions = ref<any[]>([]);
 
 const operateMode = ref(props.type);
 
-// 图片上传相关
+// ==========================
+// 图片上传：状态 & 预览
+// ==========================
 const fileSize = ref(5);
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']);
 const hnGoodsFilesList = ref<any[]>([]);
@@ -285,7 +303,9 @@ let timer: NodeJS.Timeout | null = null;
 const picOpen = ref(false);
 const dialogImageUrl = ref('');
 
-// 表格数据
+// ==========================
+// 表格数据 & 表单数据
+// ==========================
 const hnGoodsSpecificationDataList = ref<any[]>([{ goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', status: 1 }]);
 
 // 表单数据
@@ -306,7 +326,10 @@ const formData = ref<HnGoodsVo>({
   imageList: []
 });
 
-// 校验
+// ==========================
+// 表单校验（与 UI 规则一致）
+// 注：库存预警为“正整数”
+// ==========================
 const FormRulesarr: FormRules = {
   goodsName: [
     { required: true, message: '请输入商品名称，最多支持60个字符，30个汉字。', trigger: 'blur' },
@@ -328,7 +351,20 @@ const FormRulesarr: FormRules = {
   goodsAbilityIds: [{ required: true, message: '请选择产品功能', trigger: 'change' }],
   goodsInfo: [{ required: true, message: '请输入商品介绍', trigger: 'change' }],
   goodsDetail: [{ required: true, message: '请输入商品详情', trigger: 'change' }],
-  goodsAlert: [{ required: true, message: '请输入库存预警下限', trigger: 'change' }],
+  goodsAlert: [
+    { required: true, message: '请输入库存预警下限', trigger: 'change' },
+    {
+      validator: (_: any, value: any, callback: any) => {
+        // 正整数
+        if (!/^[1-9]\d*$/.test(String(value ?? ''))) {
+          callback(new Error('库存预警下限必须为正整数'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
   goodsSpecification: [{ required: true, message: '请选择商品规格', trigger: 'change' }],
   status: [{ required: true, message: '请选择上架状态', trigger: 'change' }],
   launchTime: [{ required: true, message: '请选择上架时间', trigger: 'change' }],
@@ -344,7 +380,9 @@ const FormRulesarr: FormRules = {
   goodsSpecificationValue: [{ required: true, message: '请输入单位规格', trigger: 'blur' }]
 };
 
-// 提交
+// ==========================
+// 提交/取消
+// ==========================
 const submitForm = () => {
   if (!refForm.value) return;
   refForm.value.validate(async (valid: boolean) => {
@@ -383,6 +421,9 @@ const submitClose = () => {
     .catch(() => {});
 };
 
+// ==========================
+// 图片预览/上传相关方法（聚合至同一区域）
+// ==========================
 // 预览关闭
 const picPreBeforeClose = () => {
   dialogImageUrl.value = '';
@@ -454,7 +495,10 @@ const handleBeforeUpload = (file: any) => {
   return true;
 };
 
-// 表格相关
+// ==========================
+// 表格相关（规格/状态）
+// ==========================
+// 新增/删除
 const addTableCell = () => {
   hnGoodsSpecificationDataList.value.push({
     goodsSpecification: formData.value.goodsSpecification,
@@ -470,6 +514,7 @@ const removeTableCell = (index: number) => {
     .catch(() => {});
 };
 
+// 单行校验/整表校验
 const validateContact = (contact: any) => {
   const errorsValue: { goodsSpecificationValue?: string; goodsPrice?: string; goodsStock?: string } = {};
   if (!contact.goodsSpecificationValue || contact.goodsSpecificationValue.trim() === '') errorsValue.goodsSpecificationValue = '请输入单位规格';
@@ -494,6 +539,7 @@ const validateAndSubmit = () => {
   if (!isValid) proxy?.$modal.msgError('请检查并修正价格与库存中的错误');
   return isValid;
 };
+// 规格显示/更新/启用禁用
 const selectedSpecification = (value: string) => {
   const dict = goods_specification.value.find((item: any) => item.value === value);
   return dict ? dict.label : '';
@@ -505,7 +551,32 @@ const toggleStatus = (row: any) => {
   row.status = row.status === 1 ? 0 : 1;
 };
 
-// 初始化
+// ==========================
+// 通用输入过滤（数字）
+// ==========================
+// 过滤出纯数字（可选长度限制）
+const filterDigits = (val: string, opts?: { maxLen?: number }) => {
+  let s = (val ?? '').replace(/\D/g, '');
+  if (opts?.maxLen) s = s.slice(0, opts.maxLen);
+  return s;
+};
+
+// 通用：把输入值写入任意对象的任意键
+const onInputDigits = (val: string, obj: Record<string, any>, key: string, opts?: { maxLen?: number }) => {
+  obj[key] = filterDigits(val, opts);
+};
+
+// 屏蔽非数字按键（保留常见控制键）
+const onKeypressDigits = (e: KeyboardEvent) => {
+  const key = e.key;
+  if (!/[0-9]/.test(key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) {
+    e.preventDefault();
+  }
+};
+
+// ==========================
+// 初始化（根据 props 加载数据）
+// ==========================
 const initByProps = async () => {
   operateMode.value = props.type;
   refForm.value?.resetFields?.();
@@ -536,6 +607,9 @@ const initByProps = async () => {
   }
 };
 
+// ==========================
+// 生命周期
+// ==========================
 onMounted(async () => {
   // 类目
   const response = await getProductCategoryList();
@@ -543,7 +617,7 @@ onMounted(async () => {
     creditList.value = proxy?.handleTree<Category>(response.data, 'id') || [];
   }
   // 品牌/保障/功能
-  const { data } = await goodsAttributesAllList();
+  const data = await goodsAttributesAllList();
   const { brandList = [], guaranteeList = [], functionList = [] } = (data ?? {}) as Partial<GoodsAttributesResponse>;
   brandOptions.value = brandList;
   guaranteeOptions.value = guaranteeList;
@@ -555,7 +629,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-/* 保留原样式 */
+/* 布局与样式（未更改，仅保留原样式） */
 .supplier-edit-details {
   padding: 24px;
 }
