@@ -203,6 +203,7 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
+const emit = defineEmits(['saveSuccess']);
 
 // 定义接口返回数据的类型
 interface SupplierDetails {
@@ -315,6 +316,8 @@ const getSupplierDetails = async () => {
       formData.value.creditLevel = formData.value.creditLevel || '';
       //  营业执照
       formData.value.licenseImage = formData.value.folders?.find((folder) => folder.fileType === '1')?.ossInfo?.url || '';
+
+      formData.value.enterpriseType = '供应商'; //固定死
     } catch (error) {
       console.error('获取供应商详情失败', error);
     } finally {
@@ -339,6 +342,8 @@ const handleSave = async () => {
     });
     if (response.code === 200) {
       ElMessage.success('保存成功');
+      emit('saveSuccess');
+      dialogVisible.value = false;
     }
   } catch (error) {
     console.error('保存失败', error);
@@ -365,6 +370,8 @@ const handleAudit = async (status: number) => {
     if (res.code === 200) {
       ElMessage.success('审核成功');
       operateMode.value = 'view';
+      emit('saveSuccess');
+      dialogVisible.value = false;
     }
   } catch (error) {
     ElMessage.error('审核失败');
@@ -390,7 +397,7 @@ const downloadAttachment = async (fileName: string, url: string) => {
   }
 };
 
-// 打开/关闭弹窗
+// 打开弹窗
 const handleOpenDialog = (id: string, type: 'view' | 'edit' | 'audit') => {
   operateMode.value = type;
   formData.value.id = id;

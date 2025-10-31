@@ -121,7 +121,7 @@ const rules = {
       trigger: 'blur'
     }
   ],
-  smsCode: [{ required: false, message: '请输入验证码', trigger: 'blur' }],
+  smsCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },

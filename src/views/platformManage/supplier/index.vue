@@ -42,33 +42,39 @@
 
     <!-- 表格展示 -->
     <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
-      <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
-      <el-table-column prop="companyName" label="供应商名称" align="center" min-width="100" :show-overflow-tooltip="true"></el-table-column>
-      <el-table-column prop="enterpriseNumber" label="供应商编号" width="210" align="center"> </el-table-column>
-      <el-table-column prop="licenseNumber" label="统一社会信用代码" align="center" width="210"></el-table-column>
-      <el-table-column prop="credentialLevel" label="资质等级" align="center">
+      <el-table-column type="index" label="序号" width="60"></el-table-column>
+      <el-table-column prop="companyName" label="供应商名称" min-width="100" :show-overflow-tooltip="true"></el-table-column>
+      <el-table-column prop="enterpriseNumber" label="供应商编号" width="210"> </el-table-column>
+      <el-table-column prop="licenseNumber" label="统一社会信用代码" width="210"></el-table-column>
+      <el-table-column prop="credentialLevel" label="资质等级">
         <template v-slot="scope">
-          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
+          <div class="flex-center-center">
+            <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级" align="center">
+      <el-table-column prop="creditLevel" label="信用等级">
         <template v-slot="scope">
-          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
+          <div class="flex-center-center">
+            <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="reviewStatus" label="审核状态" align="center">
+      <el-table-column prop="reviewStatus" label="审核状态">
         <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          <div class="flex-center-center">
+            <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="signUpTime" label="申请时间" width="120" align="center">
+      <el-table-column prop="signUpTime" label="申请时间" width="120">
         <template #default="scope">
           {{ scope.row.formattedSignUpTime }}
         </template>
       </el-table-column>
-      <el-table-column prop="reviewTime" label="审核时间" width="120" align="center"> </el-table-column>
-      <el-table-column prop="auditPerson" label="审核人" align="center"></el-table-column>
-      <el-table-column label="操作" width="260" align="center">
+      <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
+      <el-table-column prop="auditPerson" label="审核人" width="100"></el-table-column>
+      <el-table-column label="操作" width="260">
         <template #default="scope">
           <div class="flex-center-center operation-btns">
             <el-button
@@ -110,7 +116,7 @@
         @pagination="handlePageChange"
       />
     </div>
-    <EditDetails ref="editDetailsRef" />
+    <EditDetails ref="editDetailsRef" @saveSuccess="getTableData" />
   </div>
 </template>
 

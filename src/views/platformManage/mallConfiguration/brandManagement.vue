@@ -8,7 +8,7 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="120" inline>
+    <el-form :model="queryParams" :label-width="80" inline>
       <el-form-item label="品牌名称">
         <el-input v-model="queryParams.attributeName" placeholder="请输入品牌名称" clearable />
       </el-form-item>
@@ -46,10 +46,10 @@
     <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑品牌名称' : '新增品牌名称'">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="80px">
         <el-form-item label="品牌名称" prop="attributeName" required>
-          <el-input v-model="formData.attributeName" placeholder="请输入" />
+          <el-input v-model="formData.attributeName" placeholder="请输入品牌名称" maxlength="20" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input v-model="formData.orderNum" type="number" placeholder="请输入" />
+          <el-input v-model="formData.orderNum" type="number" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="flex-center-end">
@@ -128,11 +128,19 @@ const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
   getTableData();
 };
 
+// 新建品牌名称
 const handleAdd = () => {
   formData.value = { id: '', orderNum: '', attributeName: '' };
   dialogVisible.value = true;
+  clearValidate();
 };
 
+// 清除表单验证
+const clearValidate = () => {
+  formRef.value?.clearValidate();
+};
+
+// 保存
 const handleSave = async () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
@@ -162,6 +170,7 @@ const handleEdit = (row: any) => {
     orderNum: row.orderNum
   };
   dialogVisible.value = true;
+  clearValidate();
 };
 
 // 删除

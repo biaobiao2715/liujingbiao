@@ -8,8 +8,8 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="120" inline>
-      <el-form-item label="产品保障名称">
+    <el-form :model="queryParams" :label-width="80" inline>
+      <el-form-item label="产品保障">
         <el-input v-model="queryParams.attributeName" placeholder="请输入产品保障名称" clearable />
       </el-form-item>
       <el-form-item>
@@ -48,10 +48,10 @@
     <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑产品保障' : '新增产品保障'">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="80px">
         <el-form-item label="产品保障" prop="attributeName" required>
-          <el-input v-model="formData.attributeName" placeholder="请输入" />
+          <el-input v-model="formData.attributeName" placeholder="请输入产品保障" maxlength="20" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input v-model="formData.orderNum" type="number" placeholder="请输入" />
+          <el-input v-model="formData.orderNum" type="number" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="flex-center-end">
@@ -130,9 +130,27 @@ const handlePageChange = async (pageInfo: { page: number; limit: number }) => {
   getTableData();
 };
 
+// 新建品牌名称
 const handleAdd = () => {
   formData.value = { id: '', orderNum: '', attributeName: '' };
   dialogVisible.value = true;
+  clearValidate();
+};
+
+// 修改
+const handleEdit = (row: any) => {
+  formData.value = {
+    id: row.id,
+    attributeName: row.attributeName,
+    orderNum: row.orderNum
+  };
+  dialogVisible.value = true;
+  clearValidate();
+};
+
+// 清除表单验证
+const clearValidate = () => {
+  formRef.value?.clearValidate();
 };
 
 const handleSave = async () => {
@@ -154,16 +172,6 @@ const handleSave = async () => {
       } catch {}
     }
   });
-};
-
-// 修改
-const handleEdit = (row: any) => {
-  formData.value = {
-    id: row.id,
-    attributeName: row.attributeName,
-    orderNum: row.orderNum
-  };
-  dialogVisible.value = true;
 };
 
 // 删除
