@@ -45,7 +45,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd">新增知识库</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增知识库</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle type="primary" @click="handleEnableBatch">启用</el-button>
@@ -94,12 +94,11 @@
           <el-button v-throttle type="primary" text @click="handleEdit(scope.row)">编辑</el-button>
           <el-button v-if="String(scope.row.articleStatus) === '2'" v-throttle type="primary" text @click="handleEnable(scope.row)">启用</el-button>
           <el-button v-if="String(scope.row.articleStatus) === '2'" v-throttle type="primary" text @click="handleDisable(scope.row)">禁用</el-button>
-          <el-button v-throttle type="primary" text @click="handleView(scope.row)">查看</el-button>
+          <el-button v-throttle v-hasPermi="['system:article:query']" type="primary" text @click="handleView(scope.row)">查看</el-button>
           <el-button v-throttle type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
     <!-- 分页 -->
     <div class="flex-end pagination">
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />

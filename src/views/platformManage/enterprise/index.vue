@@ -167,10 +167,6 @@ const isReadonly = ref(false);
 const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'edit' | 'audit'>('view');
 
-onMounted(() => {
-  getList();
-});
-
 /** 规范化审核时间上传 */
 const buildReviewTimePayload = () => {
   const rt = queryParams.value.reviewTime;
@@ -249,6 +245,10 @@ const refreshData = () => {
 
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {
+  getList();
+});
+
+onMounted(() => {
   getList();
 });
 </script>

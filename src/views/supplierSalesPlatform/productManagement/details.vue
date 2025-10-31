@@ -6,88 +6,90 @@
   开发信息: Created by 刘景彪 2025-10-15
 -->
 <template>
-  <div class="supplier-edit-details">
-    <!-- 基础信息 -->
-    <el-form :model="formData" label-width="140px">
-      <FormHeader title="商品详情" />
-      <el-row :gutter="20" class="detail-form">
-        <el-col :span="8">
-          <el-form-item label="商品名称">
-            <el-input v-model="formData.goodsName" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品编码">
-            <el-input v-model="formData.goodsCode" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="产品保障">
-            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
-              <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品品牌">
-            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" disabled clearable>
-              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="创建时间">
-            <el-input v-model="formData.createTime" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品主图" class="main-image-container">
-            <img v-if="mainImage" :src="mainImage" class="main-image" alt="商品主图" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品状态">
-            <el-select v-model="formData.status" placeholder="请选择商品状态" filterable clearable disabled>
-              <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="上架时间">
-            <el-input v-model="formData.launchTime" disabled></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
+  <el-dialog title="商品详情" v-model="dialogVisible" width="80%">
+    <div class="supplier-edit-details">
+      <!-- 基础信息 -->
+      <el-form :model="formData" label-width="140px">
+        <FormHeader title="商品详情" />
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="8">
+            <el-form-item label="商品名称">
+              <el-input v-model="formData.goodsName" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="商品编码">
+              <el-input v-model="formData.goodsCode" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="产品保障">
+              <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
+                <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="商品品牌">
+              <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" disabled clearable>
+                <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="创建时间">
+              <el-input v-model="formData.createTime" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="商品主图" class="main-image-container">
+              <img v-if="mainImage" :src="mainImage" class="main-image" alt="商品主图" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="商品状态">
+              <el-select v-model="formData.status" placeholder="请选择商品状态" filterable clearable disabled>
+                <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="上架时间">
+              <el-input v-model="formData.launchTime" disabled></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-      <!-- 商品信息 -->
-      <FormHeader title="商品信息" />
-      <el-table :data="tableList" border style="width: 100%">
-        <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
-          <template #default="scope">
-            <div class="spec-name">{{ formData.goodsName }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsCode" label="商品编码" width="220">
-          <template #default="scope">
-            <div class="spec-code">{{ formData.goodsCode }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center">
-          <template #default="scope">
-            <span>{{ scope.row.goodsSpecificationValue }}g/袋</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsPrice" label="销售价" align="center">
-          <template #default="scope">
-            <span>{{ formatPrice(scope.row.goodsPrice) }}¥</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsStock" label="可用库存" align="center"> </el-table-column>
-      </el-table>
+        <!-- 商品信息 -->
+        <FormHeader title="商品信息" />
+        <el-table :data="tableList" border style="width: 100%">
+          <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
+            <template #default>
+              <div class="spec-name">{{ formData.goodsName }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="goodsCode" label="商品编码" width="220">
+            <template #default>
+              <div class="spec-code">{{ formData.goodsCode }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center">
+            <template #default="scope">
+              <span>{{ scope.row.goodsSpecificationValue }}g/袋</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="goodsPrice" label="销售价" align="center">
+            <template #default="scope">
+              <span>{{ formatPrice(scope.row.goodsPrice) }}¥</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="goodsStock" label="可用库存" align="center"> </el-table-column>
+        </el-table>
 
-      <div style="height: 20px"></div>
-    </el-form>
-  </div>
+        <div style="height: 20px"></div>
+      </el-form>
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -95,6 +97,7 @@ import { ref } from 'vue';
 import { goodsId } from '@/api/supplier/productManagement/product';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
+import { GoodsAttributesResponse } from '@/api/supplier/productManagement/types'; //ts类型
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障+功能+品牌：
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
@@ -185,23 +188,13 @@ const mainImage = computed(() => {
   const mainFile = formData.value.sysOssLists[0];
   return mainFile && mainFile?.url;
 });
+const dialogVisible = ref(false);
 
-// 页面加载时获取列表数据
-onMounted(async () => {
-  const data = await goodsAttributesAllList();
-  console.log('商品保障+功能+品牌', data);
-
-  // 模拟保障数据
-  guaranteeOptions.value = data.guaranteeList || [];
-
-  // 模拟品牌数据
-  brandOptions.value = data.brandList || [];
-
-  // 模拟功能数据
-  // functionOptions.value = data.functionList || [];
-
+// 打开/关闭弹窗
+const handleOpenDialog = async (props: { id: string | null }) => {
+  dialogVisible.value = true;
   // id获取详情信息
-  goodsId(id as string)
+  goodsId(props.id as string)
     .then((res) => {
       formData.value = res.data;
       tableList.value = res.data.hnGoodsSpecificationDataList || [];
@@ -209,6 +202,19 @@ onMounted(async () => {
     .catch((error) => {
       console.error('获取商品详情失败:', error);
     });
+};
+
+defineExpose({
+  handleOpenDialog
+});
+// 页面加载时获取列表数据
+onMounted(async () => {
+  const { data } = await goodsAttributesAllList();
+  const { brandList = [], guaranteeList = [], functionList = [] } = (data ?? {}) as Partial<GoodsAttributesResponse>;
+
+  brandOptions.value = brandList;
+  guaranteeOptions.value = guaranteeList;
+  // functionOptions.value = functionList;
 });
 
 // 价格格式化（两位小数）

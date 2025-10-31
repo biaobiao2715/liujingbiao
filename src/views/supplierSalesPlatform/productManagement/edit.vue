@@ -6,270 +6,272 @@
   开发信息: Created by 刘景彪 2025-10-15
 -->
 <template>
-  <div class="supplier-edit-details">
-    <el-form ref="refForm" :model="formData" :rules="FormRulesarr" label-width="120px">
-      <div class="content-form-title">基本信息</div>
-      <el-row>
-        <el-col :span="12">
-          <el-form-item label="商品名称" prop="goodsName">
-            <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="60" show-word-limit />
+  <el-dialog :title="operateMode === 'edit' ? '商品编辑' : '商品新增'" v-model="dialogVisible" width="80%">
+    <div class="supplier-edit-details">
+      <el-form ref="refForm" :model="formData" :rules="FormRulesarr" label-width="120px">
+        <div class="content-form-title">基本信息</div>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品名称" prop="goodsName">
+              <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="60" show-word-limit />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <!--  -->
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="商品编码" prop="goodsCode">
+              <el-input :disabled="true" v-model="formData.goodsCode" placeholder="自动生成" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="商品类目" prop="goodsCategoryId">
+              <el-cascader
+                v-if="creditList"
+                style="width: 100%"
+                v-model="formData.goodsCategoryId"
+                filterable
+                :options="creditList"
+                :props="{
+                  emitPath: false,
+                  value: 'id',
+                  label: 'categoryName',
+                  children: 'children'
+                }"
+              ></el-cascader>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="商品品牌" prop="goodsBrandId">
+              <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" clearable>
+                <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="产品保障" prop="goodsEnsureIds">
+              <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" clearable multiple>
+                <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+
+          <el-col :span="12">
+            <el-form-item label="产品功能" prop="goodsAbilityIds">
+              <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable multiple>
+                <el-option v-for="item in functionOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="商品主图" prop="titleFileList" class="uploadcss">
+              <el-upload
+                :file-list="hnGoodsFilesList"
+                :limit="5"
+                ref="refShop"
+                list-type="picture-card"
+                action="#"
+                multiple
+                :on-preview="handlePictureCardPreview"
+                :before-upload="handleBeforeUpload"
+                :http-request="uploadFile"
+                :on-remove="handleDelete"
+                :on-exceed="handleExceed"
+              >
+                <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
+              </el-upload>
+              <div>1.将用于首页、活动等特定场景的展示</div>
+              <div>2.建议图片比例1:1,像素高于需800*800px,小于10MB,格式为PNG/JPEG/JPG</div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="商品介绍" prop="goodsInfo">
+              <el-input v-model="formData.goodsInfo" type="textarea" :rows="5" placeholder="请输入商品介绍" maxlength="300" show-word-limit />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="商品详情" prop="goodsDetail">
+              <editor v-model="formData.goodsDetail" :min-height="192" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="line" style="margin-top: 18px"></div>
+
+        <div class="content-form-title">价格与库存</div>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="库存预警下限" prop="goodsAlert">
+              <el-input v-model="formData.goodsAlert" placeholder="请输入商品库存预警下限" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="商品规格" prop="goodsSpecification">
+              <el-select
+                v-model="formData.goodsSpecification"
+                placeholder="请选择商品规格"
+                style="width: 100%"
+                clearable
+                @change="updateTableGoodsSpecification"
+              >
+                <el-option v-for="dict in goods_specification" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" v-show="formData.goodsSpecification">
+            <div class="form-flex">
+              <div class="flex-text">自定义添加规格，以更精准描述产品。</div>
+              <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格值</el-button>
+            </div>
+
+            <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
+              <el-table-column prop="goodsSpecificationValue" label="单位" align="center">
+                <template #header>
+                  <span class="required" aria-label="必填项">
+                    {{ selectedSpecification(formData.goodsSpecification) }}
+                  </span>
+                </template>
+
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.goodsSpecificationValue"
+                    placeholder="请输入商品规格值"
+                    type="number"
+                    :min="0"
+                    :max="999999"
+                    :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsSpecificationValue }"
+                  ></el-input>
+                  <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsSpecificationValue">
+                    {{ scope.row.errors.goodsSpecificationValue }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="goodsPrice" label="销售价" align="center">
+                <template #header>
+                  <span class="required">销售价</span>
+                </template>
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.goodsPrice"
+                    placeholder="请输入销售价"
+                    type="number"
+                    :min="0"
+                    :max="999999"
+                    :disabled="operateMode == 'edit' ? (scope.row.id ? true : false) : false"
+                    :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
+                  ></el-input>
+
+                  <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsPrice">
+                    {{ scope.row.errors.goodsPrice }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="goodsStock" label="可用库存" align="center">
+                <template #header>
+                  <span class="required">可用库存</span>
+                </template>
+                <template #default="scope">
+                  <el-input
+                    v-model="scope.row.goodsStock"
+                    type="number"
+                    :min="0"
+                    :max="999999"
+                    placeholder="请输入可用库存"
+                    :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsStock }"
+                  ></el-input>
+                  <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsStock">
+                    {{ scope.row.errors.goodsStock }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" align="center">
+                <template v-slot="scope">
+                  <!-- 删除按钮仅在数据多于一条时显示 -->
+                  <el-button
+                    v-if="hnGoodsSpecificationDataList.length > 1"
+                    v-throttle
+                    link
+                    @click="removeTableCell(scope.$index, scope.row)"
+                    type="primary"
+                  >
+                    删除行
+                  </el-button>
+                  <!-- 启用/禁用 -->
+                  <el-button v-throttle link @click="toggleStatus(scope.row)" type="primary">
+                    {{ scope.row.status == 0 ? '启用' : '禁用' }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-col>
+        </el-row>
+
+        <div class="line" style="margin-top: 18px"></div>
+
+        <div class="content-form-title">服务信息</div>
+        <div>
+          <el-form-item label="上架状态" prop="status">
+            <el-radio-group v-model="formData.status">
+              <el-radio value="1" size="large">上架</el-radio>
+              <el-radio value="0" size="large">下架</el-radio>
+            </el-radio-group>
           </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <!--  -->
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="商品编码" prop="goodsCode">
-            <el-input :disabled="true" v-model="formData.goodsCode" placeholder="自动生成" />
+          <el-form-item label="上架时间" prop="launchTime">
+            <el-date-picker v-model="formData.launchTime" value-format="YYYY-MM-DD HH:mm:ss" type="datetime" placeholder="请选择日期时间">
+            </el-date-picker>
           </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
+        </div>
 
-        <el-col :span="12">
-          <el-form-item label="商品类目" prop="goodsCategoryId">
-            <el-cascader
-              v-if="creditList"
-              style="width: 100%"
-              v-model="formData.goodsCategoryId"
-              filterable
-              :options="creditList"
-              :props="{
-                emitPath: false,
-                value: 'id',
-                label: 'categoryName',
-                children: 'children'
-              }"
-            ></el-cascader>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
+        <div class="line" style="margin-top: 18px"></div>
 
-        <el-col :span="12">
-          <el-form-item label="商品品牌" prop="goodsBrandId">
-            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" clearable>
-              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
+        <!-- 按钮 -->
+        <el-row type="flex" justify="center" :gutter="5">
+          <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">提交商品</el-button></el-col>
+          <el-col :span="3"><el-button v-throttle @click="submitClose">返回</el-button></el-col>
+        </el-row>
+      </el-form>
 
-        <el-col :span="12">
-          <el-form-item label="产品保障" prop="goodsEnsureIds">
-            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" clearable multiple>
-              <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
-
-        <el-col :span="12">
-          <el-form-item label="产品功能" prop="goodsAbilityIds">
-            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable multiple>
-              <el-option v-for="item in functionOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="商品主图" prop="titleFileList" class="uploadcss">
-            <el-upload
-              :file-list="hnGoodsFilesList"
-              :limit="5"
-              ref="refShop"
-              list-type="picture-card"
-              action="#"
-              multiple
-              :on-preview="handlePictureCardPreview"
-              :before-upload="handleBeforeUpload"
-              :http-request="uploadFile"
-              :on-remove="handleDelete"
-              :on-exceed="handleExceed"
-            >
-              <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-            </el-upload>
-            <div>1.将用于首页、活动等特定场景的展示</div>
-            <div>2.建议图片比例1:1,像素高于需800*800px,小于10MB,格式为PNG/JPEG/JPG</div>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="商品介绍" prop="goodsInfo">
-            <el-input v-model="formData.goodsInfo" type="textarea" :rows="5" placeholder="请输入商品介绍" maxlength="300" show-word-limit />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="商品详情" prop="goodsDetail">
-            <editor v-model="formData.goodsDetail" :min-height="192" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <div class="line" style="margin-top: 18px"></div>
-
-      <div class="content-form-title">价格与库存</div>
-      <el-row>
-        <el-col :span="12">
-          <el-form-item label="库存预警下限" prop="goodsAlert">
-            <el-input v-model="formData.goodsAlert" placeholder="请输入商品库存预警下限" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
-        <el-col :span="12">
-          <el-form-item label="商品规格" prop="goodsSpecification">
-            <el-select
-              v-model="formData.goodsSpecification"
-              placeholder="请选择商品规格"
-              style="width: 100%"
-              clearable
-              @change="updateTableGoodsSpecification"
-            >
-              <el-option v-for="dict in goods_specification" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24" v-show="formData.goodsSpecification">
-          <div class="form-flex">
-            <div class="flex-text">自定义添加规格，以更精准描述产品。</div>
-            <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格值</el-button>
-          </div>
-
-          <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
-            <el-table-column prop="goodsSpecificationValue" label="单位" align="center">
-              <template #header>
-                <span class="required" aria-label="必填项">
-                  {{ selectedSpecification(formData.goodsSpecification) }}
-                </span>
-              </template>
-
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.goodsSpecificationValue"
-                  placeholder="请输入商品规格值"
-                  type="number"
-                  :min="0"
-                  :max="999999"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsSpecificationValue }"
-                ></el-input>
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsSpecificationValue">
-                  {{ scope.row.errors.goodsSpecificationValue }}
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="goodsPrice" label="销售价" align="center">
-              <template #header>
-                <span class="required">销售价</span>
-              </template>
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.goodsPrice"
-                  placeholder="请输入销售价"
-                  type="number"
-                  :min="0"
-                  :max="999999"
-                  :disabled="id ? (scope.row.id ? true : false) : false"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
-                ></el-input>
-
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsPrice">
-                  {{ scope.row.errors.goodsPrice }}
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="goodsStock" label="可用库存" align="center">
-              <template #header>
-                <span class="required">可用库存</span>
-              </template>
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.goodsStock"
-                  type="number"
-                  :min="0"
-                  :max="999999"
-                  placeholder="请输入可用库存"
-                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsStock }"
-                ></el-input>
-                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsStock">
-                  {{ scope.row.errors.goodsStock }}
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" align="center">
-              <template v-slot="scope">
-                <!-- 删除按钮仅在数据多于一条时显示 -->
-                <el-button
-                  v-if="hnGoodsSpecificationDataList.length > 1"
-                  v-throttle
-                  link
-                  @click="removeTableCell(scope.$index, scope.row)"
-                  type="primary"
-                >
-                  删除行
-                </el-button>
-                <!-- 启用/禁用 -->
-                <el-button v-throttle link @click="toggleStatus(scope.row)" type="primary">
-                  {{ scope.row.status == 0 ? '启用' : '禁用' }}
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-col>
-      </el-row>
-
-      <div class="line" style="margin-top: 18px"></div>
-
-      <div class="content-form-title">服务信息</div>
-      <div>
-        <el-form-item label="上架状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio value="1" size="large">上架</el-radio>
-            <el-radio value="0" size="large">下架</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="上架时间" prop="launchTime">
-          <el-date-picker v-model="formData.launchTime" value-format="YYYY-MM-DD HH:mm:ss" type="datetime" placeholder="请选择日期时间">
-          </el-date-picker>
-        </el-form-item>
-      </div>
-
-      <div class="line" style="margin-top: 18px"></div>
-
-      <!-- 按钮 -->
-      <el-row type="flex" justify="center" :gutter="5">
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">提交商品</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle @click="submitClose">返回</el-button></el-col>
-      </el-row>
-    </el-form>
-
-    <el-dialog
-      title="预览"
-      v-model="picOpen"
-      :before-close="picPreBeforeClose"
-      class="pic-dialog"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      append-to-body
-    >
-      <img width="100%" :src="dialogImageUrl" alt="" />
-    </el-dialog>
-  </div>
+      <el-dialog
+        title="预览"
+        v-model="picOpen"
+        :before-close="picPreBeforeClose"
+        class="pic-dialog"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        append-to-body
+      >
+        <img width="100%" :src="dialogImageUrl" alt="" />
+      </el-dialog>
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, FormRules } from 'element-plus';
-import { useRoute } from 'vue-router';
-import router from '@/router';
-import { Category } from '@/api/supplier/productManagement/types'; //ts类型
+import { Category, GoodsAttributesResponse } from '@/api/supplier/productManagement/types'; //ts类型
 import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel'; //商品保障+功能+品牌：
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
-// 获取router路由参数
-const route = useRoute();
-const { id, copyid } = route.query;
+// 子组件对外事件
+const emit = defineEmits<{
+  (e: 'getListChange'): void;
+}>();
+
 // 定义 refs
 const refForm = ref<InstanceType<typeof ElForm> | null>(null);
 const refShop = ref();
@@ -281,6 +283,9 @@ const brandOptions = ref([]);
 const guaranteeOptions = ref([]);
 // 功能选项
 const functionOptions = ref([]);
+
+const operateMode = ref('');
+const dialogVisible = ref(false);
 // 图片上传相关
 const fileSize = ref(5); // 大小限制(MB)
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']); // 文件类型
@@ -308,8 +313,6 @@ const formData = ref({
   goodsCode: '', //商品编码
   goodsCategoryId: '', //商品类目
   goodsBrandId: '', //商品品牌
-  goodsEnsureIds: '', //产品保障
-  goodsAbilityIds: '', //产品功能
   goodsInfo: '', //商品介绍
   goodsDetail: '', //商品详情
   goodsAlert: '', //库存下限
@@ -318,6 +321,8 @@ const formData = ref({
   // 服务信息
   status: '1', //上架状态
   launchTime: '', //上架时间
+  goodsEnsureIds: [] as Array<string | number>, // 产品保障（多选）
+  goodsAbilityIds: [] as Array<string | number>, // 产品功能（多选）
 
   // 规格
   goodsSpecification: '', //商品规格
@@ -403,19 +408,17 @@ const submitForm = () => {
     };
     console.log('提交数据', requestData);
 
-    if (id) {
+    if (operateMode.value == 'edit') {
       goodsUpdate(requestData).then(() => {
         ElMessage.success('修改成功');
-        router.push({
-          path: '/supplier/sales/product/list'
-        });
+        dialogVisible.value = false;
+        emit('getListChange');
       });
     } else {
       goodsAdd(requestData).then(() => {
         ElMessage.success('新增成功');
-        router.push({
-          path: '/supplier/sales/product/list'
-        });
+        dialogVisible.value = false;
+        emit('getListChange');
       });
     }
   });
@@ -429,9 +432,7 @@ const submitClose = () => {
     type: 'warning'
   })
     .then(() => {
-      router.push({
-        path: '/supplier/sales/product/list'
-      });
+      dialogVisible.value = false;
     })
     .catch(() => {});
 };
@@ -641,34 +642,21 @@ const toggleStatus = (row: any) => {
   row.status = row.status === 1 ? 0 : 1; // 切换状态（1：启用，0：禁用）
 };
 
-// 生命周期钩子
-onMounted(async () => {
-  const response = await getProductCategoryList({ status: '0' });
-  if (response.code === 200) {
-    creditList.value = proxy?.handleTree<Category>(response.data, 'id');
-  }
+// 打开/关闭弹窗
+const handleOpenDialog = async (props: { id: string | null; type: 'add' | 'edit' | 'copy' }) => {
+  operateMode.value = props.type;
+  dialogVisible.value = true;
 
-  const data = await goodsAttributesAllList();
-  console.log('商品保障+功能+品牌', data);
-
-  // 模拟品牌数据
-  brandOptions.value = data.brandList || [];
-  // 模拟保障数据
-  guaranteeOptions.value = data.guaranteeList || [];
-  // 模拟功能数据
-  functionOptions.value = data.functionList || [];
-
-  if (id || copyid) {
-    const ids = id || copyid;
-    const detailResponse = await goodsId(ids as string); // 调用详情接口
+  if (props.id) {
+    const detailResponse = await goodsId(props.id as string); // 调用详情接口
     if (detailResponse.code === 200) {
       const data = detailResponse.data;
-      if (copyid) {
+      if (props.type === 'copy') {
         delete data.id;
         delete data.enterpriseId;
         delete data.goodsCode;
       }
-      console.log('商品详情数据', data);
+      // console.log('商品详情数据', data);
       formData.value = {
         ...data
       };
@@ -684,6 +672,24 @@ onMounted(async () => {
       }
     }
   }
+};
+
+defineExpose({
+  handleOpenDialog
+});
+onMounted(async () => {
+  // 初始化操作
+  const response = await getProductCategoryList();
+  if (response.code === 200) {
+    creditList.value = proxy?.handleTree<Category>(response.data, 'id');
+  }
+
+  const { data } = await goodsAttributesAllList();
+  const { brandList = [], guaranteeList = [], functionList = [] } = (data ?? {}) as Partial<GoodsAttributesResponse>;
+
+  brandOptions.value = brandList;
+  guaranteeOptions.value = guaranteeList;
+  functionOptions.value = functionList;
 });
 </script>
 <style lang="scss" scoped>

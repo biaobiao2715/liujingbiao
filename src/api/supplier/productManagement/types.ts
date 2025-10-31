@@ -42,3 +42,10 @@ export interface Category {
   createTime: string; // 创建时间
   children?: Category[]; // 子类目
 }
+
+// 定义商品属性接口
+export interface GoodsAttributesResponse {
+  brandList: Array<{ id: string | number; attributeName: string; status?: number }>;
+  guaranteeList: Array<{ id: string | number; attributeName: string; status?: number }>;
+  functionList: Array<{ id: string | number; attributeName: string; status?: number }>;
+}

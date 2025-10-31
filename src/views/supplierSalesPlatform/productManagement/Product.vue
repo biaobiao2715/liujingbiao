@@ -103,11 +103,11 @@
       <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
           <!-- 详情按钮 -->
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleDetails(scope.row)">详情</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handlePriceSetting(scope.row)">价格设定</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEC(scope.row)">复制商品</el-button>
-          <el-button v-throttle v-if="isReviewProcessed(scope.row)" type="primary" @click="handleEdits(scope.row, 'view')">设置预警</el-button>
+          <el-button v-throttle type="primary" @click="handleDetails(scope.row)">详情</el-button>
+          <el-button v-throttle type="primary" @click="handlePriceSetting(scope.row)">价格设定</el-button>
+          <el-button v-throttle type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle type="primary" @click="handleEC(scope.row)">复制商品</el-button>
+          <el-button v-throttle type="primary">设置预警</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -199,6 +199,9 @@
         </div>
       </template>
     </el-dialog>
+
+    <Edit ref="editRef" :getListChange="getList" />
+    <Details ref="detailsRef" :getListChange="getList" />
   </div>
 </template>
 
@@ -209,12 +212,14 @@ import { ElMessage, ElMessageBox, ElLoading } from 'element-plus';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, goodsId, updateGoodsPrice } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory'; //商品类目
-import { Row } from 'element-plus/es/components/table-v2/src/components';
-
+import Edit from './edit.vue';
+import Details from './details.vue';
+import { id } from 'element-plus/es/locale';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
 const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
-
+const editRef = ref(null);
+const detailsRef = ref(null);
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -311,7 +316,7 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     status: '',
-    reviewTime: [],
+    createTime: [],
     goodsCategoryId: '',
     goodsName: '',
     goodsCode: ''
@@ -522,9 +527,7 @@ const getSalesPrice = (row) => {
     return '--';
   }
 
-  const numericPrices = row.hnGoodsSpecificationDataList
-    .map((spec) => Number(spec.goodsPrice))
-    .filter((p) => !isNaN(p) && p >= 0);
+  const numericPrices = row.hnGoodsSpecificationDataList.map((spec) => Number(spec.goodsPrice)).filter((p) => !isNaN(p) && p >= 0);
 
   if (numericPrices.length === 0) {
     return '--';
@@ -537,11 +540,6 @@ const getSalesPrice = (row) => {
   const maxStr = max.toFixed(2);
 
   return (minStr === maxStr ? `${minStr}` : `${minStr}-${maxStr}`) + '¥';
-};
-
-/** 查看详情 */
-const handleDetails = (row: any) => {
-  router.push({ path: '/supplier/sales/product/details', query: { id: row.id } });
 };
 
 /** 价格设定 */
@@ -678,26 +676,32 @@ const handleEdits = (row: any, type: 'view' | 'edit' | 'audit') => {
   });
 };
 
-const handleAdd = () => {
-  router.push({ path: '/supplier/sales/product/edit' });
-};
-
-const handleEC = (row: any) => {
-  const path = '/supplier/sales/product/edit';
-  router.push({
-    path: path,
-    query: {
-      copyid: row.id
-    }
+/** 查看详情 */
+const handleDetails = (row: any) => {
+  detailsRef.value.handleOpenDialog({
+    id: row.id
   });
 };
 
+const handleAdd = () => {
+  editRef.value.handleOpenDialog({
+    id: null,
+    type: 'add'
+  });
+};
+
+// 编辑按钮事件
 const handleEdit = (row: any) => {
-  router.push({
-    path: '/supplier/sales/product/edit',
-    query: {
-      id: row.id
-    }
+  editRef.value.handleOpenDialog({
+    id: row.id,
+    type: 'edit'
+  });
+};
+
+const handleEC = (row: any) => {
+  editRef.value.handleOpenDialog({
+    id: row.id,
+    type: 'copy'
   });
 };
 
@@ -714,11 +718,6 @@ const handleExport = () => {
 
 const isPendingReview = (row) => {
   return row.reviewStatus == 0;
-};
-
-/** 判断是否已审核 */
-const isReviewProcessed = (row) => {
-  return !(row.reviewStatus == 0);
 };
 
 // 页面加载时获取列表数据
