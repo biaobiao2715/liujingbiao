@@ -200,10 +200,9 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { 
   getContentList, 
-  getContentDetail,
   updateContentStatus,
   deleteContent
-} from '../../../../api/expertServicePlatform/legalServiceManage/contentManage';
+} from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as any;
@@ -250,6 +249,7 @@ const getList = async () => {
   try {
     // 调用真实的API接口
     const response = await getContentList(queryParams.value);
+    console.log('获取普法内容列表的API响应:', response);
     const resData: any = response?.data || response;
     if (resData && resData.code === 200) {
       // 处理后端返回的数据，映射字段
@@ -430,6 +430,11 @@ const handleDelete = async () => {
 
 /** 编辑按钮事件 */
 const handleEdit = (row: any) => {
+  if (!row.id) {
+    ElMessage.warning('数据ID缺失，无法编辑');
+    return;
+  }
+  console.log('📝 点击编辑按钮, ID:', row.id);
   router.push({
     path: '/expertServicePlatform/legalServiceManage/editContent',
     query: { id: row.id }

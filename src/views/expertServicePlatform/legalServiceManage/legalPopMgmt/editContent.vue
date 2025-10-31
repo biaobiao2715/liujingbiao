@@ -15,10 +15,15 @@
       </div>
 
       <!-- 表单内容 -->
-      <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
+      <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px" v-loading="loading">
         <!-- 基础信息区域 -->
         <div class="form-section basic-info">
           <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="内容编号" prop="contentNo">
+                <el-input v-model="formData.contentNo" placeholder="内容编号" disabled />
+              </el-form-item>
+            </el-col>
             <el-col :span="12">
               <el-form-item label="普法标题" prop="title" required>
                 <el-input 
@@ -30,39 +35,13 @@
                 <div class="form-tip">请输入标题,最多支持30个汉字</div>
               </el-form-item>
             </el-col>
-            <el-col :span="12">
-              <el-form-item label="发布状态" prop="status" required>
-                <el-select v-model="formData.status" placeholder="请选择" style="width: 100%">
-                  <el-option label="请选择" value="请选择" />
-                  <el-option 
-                    v-for="item in legal_popularize_status" 
-                    :key="item.value" 
-                    :label="item.label" 
-                    :value="item.value" 
-                  />
-                </el-select>
-              </el-form-item>
-            </el-col>
           </el-row>
 
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="普法简介" prop="summary" required>
-                <el-input 
-                  v-model="formData.summary" 
-                  type="textarea" 
-                  :rows="3" 
-                  placeholder="请输入简介"
-                  maxlength="60"
-                  show-word-limit
-                />
-                <div class="form-tip">请输入简介,最多支持60个汉字</div>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
               <el-form-item label="普法类别" prop="contentType" required>
                 <el-select v-model="formData.contentType" placeholder="请选择" style="width: 100%">
-                  <el-option label="请选择" value="请选择" />
+                  <el-option label="请选择" value="" />
                   <el-option 
                     v-for="item in legal_popularize_type" 
                     :key="item.value" 
@@ -72,14 +51,92 @@
                 </el-select>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="内容级别" prop="contentLevel" required>
+                <el-select v-model="formData.contentLevel" placeholder="请选择" style="width: 100%">
+                  <el-option label="请选择" value="" />
+                  <el-option label="初级" value="1" />
+                  <el-option label="中级" value="2" />
+                  <el-option label="高级" value="3" />
+                </el-select>
+                <div class="form-tip">1-初级 2-中级 3-高级</div>
+              </el-form-item>
+            </el-col>
           </el-row>
 
           <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="发布状态" prop="status" required>
+                <el-select v-model="formData.status" placeholder="请选择" style="width: 100%">
+                  <el-option label="请选择" value="" />
+                  <el-option 
+                    v-for="item in legal_popularize_status" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value" 
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="发布时间" prop="publishTime">
+                <el-input v-model="formData.publishTime" placeholder="发布时间" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="24">
+              <el-form-item label="普法简介" prop="summary" required>
+                <el-input 
+                  v-model="formData.summary" 
+                  type="textarea" 
+                  :rows="3" 
+                  placeholder="请输入简介"
+                  maxlength="200"
+                  show-word-limit
+                />
+                <div class="form-tip">请输入简介,最多支持200个字符</div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="法律关键词" prop="lawKeywords">
+                <el-input 
+                  v-model="formData.lawKeywords" 
+                  placeholder="请输入法律关键词，多个关键词用逗号分隔"
+                  clearable
+                />
+                <div class="form-tip">多个关键词用逗号分隔</div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="相关法条" prop="relatedLaws">
+                <el-input 
+                  v-model="formData.relatedLaws" 
+                  placeholder="请输入相关法条"
+                  clearable
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
+            <el-col :span="12">
+              <el-form-item label="作者姓名" prop="authorName">
+                <el-input v-model="formData.authorName" placeholder="作者姓名" disabled />
+              </el-form-item>
+            </el-col>
             <el-col :span="12">
               <el-form-item label="浏览量" prop="viewCount">
                 <el-input v-model="formData.viewCount" placeholder="浏览量" disabled />
               </el-form-item>
             </el-col>
+          </el-row>
+
+          <el-row :gutter="24">
             <el-col :span="12">
               <el-form-item label="下载量" prop="downloadCount">
                 <el-input v-model="formData.downloadCount" placeholder="下载量" disabled />
@@ -202,6 +259,10 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Document, Plus, Upload } from '@element-plus/icons-vue';
 import { useRouter, useRoute } from 'vue-router';
+import { 
+  getContentDetail, 
+  editContent 
+} from '../../../../api/expertServicePlatform/legalServiceManage/contentManage';
 
 const router = useRouter();
 const route = useRoute();
@@ -213,16 +274,36 @@ const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
 );
 
-// 表单数据
+// 加载状态
+const loading = ref(false);
+
+// 表单数据 - 使用后端字段名并支持模板别名
 const formData = reactive({
-  id: '',
+  id: 0,
+  contentNo: '',
+  contentTitle: '',
   contentType: '',
-  title: '',
-  status: '启用',
-  summary: '',
-  content: '',
+  contentLevel: '',
+  contentSummary: '',
+  contentContent: '',
+  contentStatus: '',
+  publishTime: '',
+  lawKeywords: '',
+  relatedLaws: '',
   viewCount: 0,
-  downloadCount: 0
+  downloadCount: 0,
+  authorId: 0,
+  authorName: '',
+  ids: [] as number[],
+  // 模板使用的别名(getter/setter)
+  get title() { return this.contentTitle; },
+  set title(val) { this.contentTitle = val; },
+  get summary() { return this.contentSummary; },
+  set summary(val) { this.contentSummary = val; },
+  get content() { return this.contentContent; },
+  set content(val) { this.contentContent = val; },
+  get status() { return this.contentStatus; },
+  set status(val) { this.contentStatus = val; }
 });
 
 // 表单验证规则
@@ -236,14 +317,23 @@ const rules = {
   ],
   summary: [
     { required: true, message: '请输入普法简介', trigger: 'blur' },
-    { min: 5, max: 60, message: '简介长度在 5 到 60 个字符', trigger: 'blur' }
+    { max: 200, message: '简介最多 200 个字符', trigger: 'blur' }
   ],
   contentType: [
     { required: true, message: '请选择普法类别', trigger: 'change' }
   ],
+  contentLevel: [
+    { required: true, message: '请选择内容级别', trigger: 'change' }
+  ],
   content: [
     { required: true, message: '请输入文章内容', trigger: 'blur' },
     { min: 10, message: '内容至少 10 个字符', trigger: 'blur' }
+  ],
+  lawKeywords: [
+    { max: 100, message: '关键词最多 100 个字符', trigger: 'blur' }
+  ],
+  relatedLaws: [
+    { max: 200, message: '相关法条最多 200 个字符', trigger: 'blur' }
   ]
 };
 
@@ -254,14 +344,7 @@ const saving = ref(false);
 // 发布状态
 const publishing = ref(false);
 // 文件列表
-const fileList = ref([
-  {
-    name: '农作物.MP4',
-    type: '视频',
-    size: 2 * 1024 * 1024, // 2MB
-    file: null
-  }
-]);
+const fileList = ref<any[]>([]);
 
 // 文章目录数据
 const catalogItems = ref([
@@ -273,53 +356,131 @@ const catalogItems = ref([
 ]);
 
 /** 获取内容详情 */
-const getContentDetail = async () => {
-  if (!id) return;
+const fetchContentDetail = async () => {
+  console.log('===== 🚀 开始获取内容详情 =====');
+  console.log('路由参数 id:', id);
+  console.log('id 类型:', typeof id);
+  
+  if (!id) {
+    console.error('❌ 缺少内容ID');
+    ElMessage.warning('缺少内容ID');
+    return;
+  }
+  
+  loading.value = true;
+  console.log('🔄 开始调用 getContentDetail API, ID:', Number(id));
   
   try {
-    // TODO: 调用获取详情接口
-    // const response = await getContentDetail(id);
+    const response = await getContentDetail(Number(id));
+    console.log('📡 API 原始响应:', response);
     
-    // 模拟数据
-    const mockData = {
-      id: id,
-      contentType: '法律法规',
-      title: '2025年XXX通告',
-      status: '启用',
-      summary: '这是一条重要的法律法规通告，涉及种子销售相关规范...',
-      content: `详细的法律法规内容：
-
-第一章 总则
-第一条 为了规范种子销售市场，保障种子质量，维护农民合法权益，根据《中华人民共和国种子法》等法律法规，制定本通告。
-
-第二条 本通告适用于在中华人民共和国境内从事种子销售活动的单位和个人。
-
-第二章 销售许可
-第三条 从事种子销售活动，应当依法取得种子经营许可证。
-
-第四条 种子经营许可证的有效期为五年。
-
-第三章 质量要求
-第五条 销售的种子应当符合国家质量标准。
-
-第六条 种子包装应当标明品种名称、生产日期、质量指标等信息。
-
-第四章 监督管理
-第七条 农业行政主管部门应当加强对种子销售活动的监督管理。
-
-第八条 对违反本通告规定的，依法给予行政处罚。
-
-第五章 附则
-第九条 本通告自发布之日起施行。
-
-第十条 本通告由农业部负责解释。`,
-      viewCount: 1550,
-      downloadCount: 988
-    };
+    // 处理响应数据结构：response.data 是 Axios 包装，实际数据在 response.data.data
+    const resData: any = response?.data || response;
+    console.log('📦 解析后的响应数据:', resData);
+    console.log('响应码:', resData?.code);
     
-    Object.assign(formData, mockData);
-  } catch (error) {
-    ElMessage.error('获取内容详情失败');
+    if (resData && resData.code === 200) {
+      // 详情数据在 resData.data 中
+      const data = resData.data;
+      if (!data) {
+        console.error('❌ 详情数据为空');
+        ElMessage.error('获取内容详情失败：数据为空');
+        return;
+      }
+      
+      console.log('✅ 获取普法内容详情成功!');
+      console.log('📄 详情数据:', data);
+      console.log('详情数据字段:', Object.keys(data));
+      
+      console.log('开始映射数据到表单...');
+      // 映射后端数据到表单（使用 ?? 处理 null 值，保留空字符串和 0 作为有效值）
+      formData.id = data.id ?? 0;
+      formData.contentNo = data.contentNo ?? '';
+      formData.contentTitle = data.contentTitle ?? '';
+      formData.contentType = data.contentType ?? '';
+      formData.contentLevel = data.contentLevel ?? '';
+      formData.contentSummary = data.contentSummary ?? '';
+      formData.contentContent = data.contentContent ?? '';
+      formData.contentStatus = data.contentStatus ?? '';
+      formData.publishTime = data.publishTime ?? '';
+      formData.lawKeywords = data.lawKeywords ?? '';
+      formData.relatedLaws = data.relatedLaws ?? '';
+      // 处理 null 值：如果为 null 则设为 0，否则使用原值
+      formData.viewCount = data.viewCount != null ? data.viewCount : 0;
+      formData.downloadCount = data.downloadCount != null ? data.downloadCount : 0;
+      formData.authorId = data.authorId ?? 0;
+      formData.authorName = data.authorName ?? '';
+      
+      console.log('✅ 基础数据映射完成!');
+      console.log('formData.id:', formData.id);
+      console.log('formData.contentTitle:', formData.contentTitle);
+      console.log('formData.title (别名):', formData.title);
+      console.log('formData.contentType:', formData.contentType);
+      console.log('formData.contentStatus:', formData.contentStatus);
+      console.log('formData.contentSummary:', formData.contentSummary);
+      console.log('formData.contentContent:', formData.contentContent);
+      console.log('formData.viewCount:', formData.viewCount);
+      console.log('formData.downloadCount:', formData.downloadCount);
+      
+      console.log('开始处理附件列表...');
+      // 处理附件列表（sysOssLists 可能为 null）
+      if (data.sysOssLists && Array.isArray(data.sysOssLists) && data.sysOssLists.length > 0) {
+        console.log('找到附件:', data.sysOssLists);
+        fileList.value = data.sysOssLists.map((file: any) => ({
+          id: file.ossId,
+          name: file.fileName || file.originalName || '未知文件',
+          type: getFileTypeFromSuffix(file.fileSuffix),
+          size: file.size || 0,
+          url: file.url,
+          file: null
+        }));
+        formData.ids = data.sysOssLists.map((file: any) => file.ossId).filter((id: any) => id != null);
+        console.log('附件处理完成, fileList:', fileList.value);
+        console.log('附件ID列表:', formData.ids);
+      } else {
+        console.log('没有附件 (sysOssLists为null或空数组)');
+        fileList.value = [];
+        formData.ids = [];
+      }
+      
+      console.log('✅ 表单数据填充完成!');
+      console.log('最终 formData 摘要:', {
+        id: formData.id,
+        contentNo: formData.contentNo,
+        contentTitle: formData.contentTitle,
+        title: formData.title,
+        contentType: formData.contentType,
+        contentLevel: formData.contentLevel,
+        contentSummary: formData.contentSummary?.substring(0, 50) + '...',
+        contentContent: formData.contentContent?.substring(0, 50) + '...',
+        contentStatus: formData.contentStatus,
+        publishTime: formData.publishTime,
+        viewCount: formData.viewCount,
+        downloadCount: formData.downloadCount,
+        fileCount: fileList.value.length
+      });
+      
+      // 验证关键字段是否已填充
+      if (formData.contentTitle) {
+        console.log('✅ 表单数据验证通过，标题已填充');
+      } else {
+        console.warn('⚠️ 警告：标题为空');
+      }
+    } else {
+      console.error('❌ API 返回错误!');
+      console.error('错误信息:', resData?.msg);
+      console.error('完整响应:', resData);
+      ElMessage.error(resData?.msg || '获取内容详情失败');
+    }
+  } catch (error: any) {
+    console.error('❌ 获取内容详情异常!');
+    console.error('错误对象:', error);
+    console.error('错误消息:', error.message);
+    console.error('错误响应:', error.response);
+    ElMessage.error('获取内容详情失败，请稍后重试');
+  } finally {
+    loading.value = false;
+    console.log('===== 获取内容详情结束 =====');
   }
 };
 
@@ -342,15 +503,43 @@ const handleSave = async () => {
   
   try {
     await formRef.value.validate();
+    
+    await ElMessageBox.confirm('确定要保存修改吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    });
+    
     saving.value = true;
     
-    // TODO: 调用保存接口
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟API调用
+    // 准备提交数据
+    const submitData = {
+      id: formData.id,
+      contentTitle: formData.contentTitle,
+      contentType: formData.contentType,
+      contentLevel: formData.contentLevel,
+      contentSummary: formData.contentSummary,
+      contentContent: formData.contentContent,
+      contentStatus: formData.contentStatus,
+      lawKeywords: formData.lawKeywords,
+      relatedLaws: formData.relatedLaws,
+      ids: formData.ids
+    };
     
-    ElMessage.success('保存成功');
-    router.push('/expertServicePlatform/legalServiceManage/contentManage');
-  } catch (error) {
-    ElMessage.error('保存失败，请检查表单信息');
+    const response = await editContent(submitData);
+    const resData: any = response?.data || response;
+    
+    if (resData && resData.code === 200) {
+      ElMessage.success('保存成功');
+      router.push('/expertServicePlatform/legalServiceManage/contentManage');
+    } else {
+      ElMessage.error(resData?.msg || '保存失败');
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('保存失败:', error);
+      ElMessage.error('保存失败，请检查表单信息');
+    }
   } finally {
     saving.value = false;
   }
@@ -362,15 +551,43 @@ const handlePublish = async () => {
   
   try {
     await formRef.value.validate();
+    
+    await ElMessageBox.confirm('确定要发布该内容吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    
     publishing.value = true;
     
-    // TODO: 调用发布接口
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟API调用
+    // 发布时强制设置状态为已发布
+    const submitData = {
+      id: formData.id,
+      contentTitle: formData.contentTitle,
+      contentType: formData.contentType,
+      contentLevel: formData.contentLevel,
+      contentSummary: formData.contentSummary,
+      contentContent: formData.contentContent,
+      contentStatus: '2', // 强制为已发布
+      lawKeywords: formData.lawKeywords,
+      relatedLaws: formData.relatedLaws,
+      ids: formData.ids
+    };
     
-    ElMessage.success('发布成功');
-    router.push('/expertServicePlatform/legalServiceManage/contentManage');
-  } catch (error) {
-    ElMessage.error('发布失败，请检查表单信息');
+    const response = await editContent(submitData);
+    const resData: any = response?.data || response;
+    
+    if (resData && resData.code === 200) {
+      ElMessage.success('发布成功');
+      router.push('/expertServicePlatform/legalServiceManage/contentManage');
+    } else {
+      ElMessage.error(resData?.msg || '发布失败');
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('发布失败:', error);
+      ElMessage.error('发布失败，请检查表单信息');
+    }
   } finally {
     publishing.value = false;
   }
@@ -483,9 +700,25 @@ const formatFileSize = (size: number) => {
   }
 };
 
+/** 根据文件后缀获取文件类型 */
+const getFileTypeFromSuffix = (suffix: string) => {
+  const s = suffix?.toLowerCase() || '';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(s)) return '图片';
+  if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(s)) return '文档';
+  if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'].includes(s)) return '视频';
+  if (['mp3', 'wav', 'flac', 'aac'].includes(s)) return '音频';
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(s)) return '压缩包';
+  return '其他';
+};
+
 // 页面加载时获取详情
 onMounted(() => {
-  getContentDetail();
+  console.log('🎬 编辑页面已挂载 (onMounted)');
+  console.log('当前路由:', route);
+  console.log('路由 query:', route.query);
+  console.log('路由 id 参数:', id);
+  console.log('formData 初始状态:', formData);
+  fetchContentDetail();
 });
 </script>
 
