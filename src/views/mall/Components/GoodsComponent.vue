@@ -70,11 +70,9 @@ const getSearchInfo = (searchInfo) => {
   queryParams.goodsCategoryId = searchInfo.category.length > 0 ? searchInfo.category[searchInfo.category.length - 1] : undefined;
 
   // 省市区
-  if (searchInfo.areaCodes.length > 0) {
-    queryParams.provinceCode = searchInfo.areaCodes[0];
-    queryParams.cityCode = searchInfo.areaCodes[1];
-    queryParams.districtCode = searchInfo.areaCodes[2];
-  }
+  queryParams.provinceCode = searchInfo.areaCodes[0] || undefined;
+  queryParams.cityCode = searchInfo.areaCodes[1] || undefined;
+  queryParams.districtCode = searchInfo.areaCodes[2] || undefined;
 
   // 最新/销量排序
   queryParams.sortManner = searchInfo.sortType === '-1' ? undefined : searchInfo.sortType;

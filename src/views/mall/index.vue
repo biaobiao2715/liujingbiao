@@ -33,7 +33,7 @@
       </div>
     </div>
     <!-- 个人中心 -->
-    <PersonalCenterComponent v-show="!showHomeContent" :command="personalCommand" />
+    <PersonalCenterComponent v-if="!showHomeContent" :command="personalCommand" />
   </div>
 </template>
 

@@ -8,18 +8,18 @@
 
 <template>
   <div class="goods-item" @click="handleClick">
-    <img :src="goods.sysOssLists[0].url" width="100" class="goods-image" />
+    <img :src="goods.sysOssLists[0]?.url" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
         <div class="goods-price">{{ goods.hnGoodsSpecificationDataList[0].goodsPrice }}元起</div>
         <div class="goods-volume">{{ goods.goodsSales }}件已售</div>
       </div>
       <div class="goods-title">{{ goods.goodsName }}</div>
-      <div class="flex-center-between mt-12">
+      <div class="flex-between mt-12">
         <div class="goods-tags">
           <el-tag v-for="tag in goods.goodssEnsureName" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
         </div>
-        <div class="goods-location">{{ goods.hnBaseEnterpriseInfo.companyName }}</div>
+        <div class="goods-location">{{ goods.hnBaseEnterpriseInfo.province }}</div>
       </div>
     </div>
   </div>
@@ -69,7 +69,7 @@ const handleClick = (item) => {
 
 .goods-image {
   width: 100%;
-  height: auto;
+  height: 120px;
   margin-bottom: 10px;
 }
 
@@ -89,9 +89,11 @@ const handleClick = (item) => {
 }
 
 .goods-tags {
+  width: calc(100% - 55px);
   display: flex;
   gap: 5px;
   margin: 5px 0;
+  flex-wrap: wrap;
 }
 
 .goods-tag {
@@ -104,5 +106,6 @@ const handleClick = (item) => {
 .goods-location {
   color: #888;
   font-size: 14px;
+  width: 50px;
 }
 </style>
