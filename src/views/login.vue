@@ -163,7 +163,7 @@ const handleLogin = async () => {
           localStorage.removeItem('rememberedAccount');
         }
         // 登录成功后，跳转到首页
-        router.push('/index');
+        router.push('/mall/index');
       })
       .catch((err) => {
         // ElMessage.error('登录失败');

@@ -11,7 +11,7 @@
     <img :src="goods.sysOssLists[0].url" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
-        <div class="goods-price">{{ goods.price }}元/袋</div>
+        <div class="goods-price">{{ goods.hnGoodsSpecificationDataList[0].goodsPrice }}元起</div>
         <div class="goods-volume">{{ goods.goodsSales }}件已售</div>
       </div>
       <div class="goods-title">{{ goods.goodsName }}</div>

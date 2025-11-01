@@ -4,7 +4,7 @@
       <!-- 查询组件 -->
       <SearchComponent @searchChange="getSearchInfo" />
       <!-- 商品组件 -->
-      <div class="goods-list mt-24">
+      <div class="goods-list mt-24" v-loading="loading">
         <GoodsItemComponent v-for="item in goodsData" :key="item.id" :goods="item" @clickGoods="handleClick(item.id)" />
       </div>
 

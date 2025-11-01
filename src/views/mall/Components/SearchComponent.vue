@@ -42,7 +42,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted, toRaw } from 'vue';
-import { eventBus } from '@/utils/eventBus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 
@@ -115,7 +114,6 @@ const handleCategoryChange = (value: string[]) => {
   padding: 12px;
   border: 1px solid #e4e7ed;
   .search-component {
-    padding: 12px;
   }
   .search-select {
     display: flex;
@@ -133,6 +131,7 @@ const handleCategoryChange = (value: string[]) => {
     }
   }
   .weight-selection {
+    flex-wrap: wrap;
     .local {
       width: 220px;
       ::v-deep .el-cascader {

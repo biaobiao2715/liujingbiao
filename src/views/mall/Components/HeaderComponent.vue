@@ -7,7 +7,11 @@
     <div class="welcome-message">
       <span>Hi, 张三，您好，欢迎来到XXX</span>
     </div>
-    <el-dropdown @command="handleCommand">
+    <!-- 进入后台管理 -->
+    <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button>
+    <el-button type="primary" @click="handleLogout">退出登录</el-button>
+
+    <el-dropdown @command="handleCommand" v-hasPermi="['system:into:myCenter']">
       <el-button> 个人中心<i class="el-icon-arrow-down el-icon--right"></i> </el-button>
       <template #dropdown>
         <el-dropdown-menu class="dropdown-menu">
@@ -30,10 +34,40 @@
 <script setup lang="ts">
 import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge } from 'element-plus';
 import { eventBus } from '@/utils/eventBus';
+import { useUserStore } from '@/store/modules/user';
+
+const userStore = useUserStore();
+const router = useRouter();
 
 const handleCommand = (command: string) => {
   // console.log('点击了:', command);
   eventBus.emit('navigateToPersonalCenter', command);
+};
+
+// 进入后台管理 拼接基础地址加路由
+const handleAdminLogin = () => {
+  const env = import.meta.env.VITE_APP_BASE_URL;
+  console.log(env);
+  window.open(env + '/index');
+};
+
+// 退出登录
+const handleLogout = () => {
+  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.logout().then(() => {
+      router.replace({
+        path: '/login',
+        query: {
+          redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
+        }
+      });
+      // proxy?.$tab.closeAllPage();
+    });
+  });
 };
 </script>
 
