@@ -19,16 +19,16 @@
         <el-col :span="24">
           <el-form-item label="正文编辑" prop="articleContent">
             <div style="display: flex">
+              <!-- 编辑器区 -->
+              <div style="flex: 1">
+                <Editor v-model="form.articleContent" :height="500" :minHeight="500" />
+              </div>
               <!-- 目录区 -->
               <div style="width: 220px; margin-right: 24px; background: #fafafa; border-radius: 6px; padding: 16px">
                 <div style="font-weight: bold; margin-bottom: 12px">文章目录</div>
                 <div v-for="item in tocList" :key="item.id" :style="{ marginLeft: item.tag === 'H2' ? '16px' : item.tag === 'H3' ? '32px' : '0' }">
                   <a href="javascript:;" @click="scrollTo(item.id)" style="color: #409eff">{{ item.text }}</a>
                 </div>
-              </div>
-              <!-- 编辑器区 -->
-              <div style="flex: 1">
-                <Editor v-model="form.articleContent" :height="500" :minHeight="500" />
               </div>
             </div>
           </el-form-item>
@@ -141,13 +141,14 @@ watch(
 );
 
 function scrollTo(id: string) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const editor = document.querySelector('.ql-editor');
+  if (editor) {
+    const el = editor.querySelector(`#${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
-  console.log(id, 'sssdf', el);
 }
-
 const submit = async () => {
   await formRef.value?.validate();
   const payload = {

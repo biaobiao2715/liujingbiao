@@ -13,9 +13,9 @@
           <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布时间" prop="createTime">
+      <el-form-item label="发布时间" prop="launchTime">
         <el-date-picker
-          v-model="queryParams.createTime"
+          v-model="queryParams.launchTime"
           type="datetimerange"
           value-format="YYYY-MM-DD HH:mm:ss"
           format="YYYY-MM-DD HH:mm:ss"
@@ -107,9 +107,9 @@
           <dict-text :options="goods_status" :value="scope.row.status" />
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" align="center" prop="createTime" min-width="160">
+      <el-table-column label="发布时间" align="center" prop="launchTime" min-width="160">
         <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
+          <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="500">
@@ -148,36 +148,28 @@
       </template>
     </el-dialog>
 
-    <!-- 父控弹窗：商品编辑/新增/复制 -->
-    <el-dialog
-      v-model="editDlgVisible"
-      :title="editDlgTitle"
-      width="80%"
-      append-to-body
-      :destroy-on-close="true"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-    >
+    <!-- 统一弹窗 -->
+    <el-dialog v-model="dialog.visible" :title="dialog.title" width="80%" destroy-on-close :close-on-click-modal="false" @close="dialog.type = ''">
       <Suspense>
-        <Edit :id="selectedGoodsId" :type="editOperateMode" @success="onEditSuccess" @cancel="onEditCancel" />
-        <template #fallback>
-          <el-skeleton :rows="8" animated />
+        <template #default>
+          <component
+            :is="
+              dialog.type === 'edit'
+                ? EditDialog
+                : dialog.type === 'view'
+                  ? DetailsDialog
+                  : dialog.type === 'price'
+                    ? ProductPriceDialog
+                    : dialog.type === 'copy'
+                      ? EditDialog
+                      : null
+            "
+            :id="dialog.id"
+            :type="dialog.type"
+            @success="onDialogSuccess"
+            @cancel="dialog.visible = false"
+          />
         </template>
-      </Suspense>
-    </el-dialog>
-
-    <!-- 父控弹窗：商品详情/价格设定 -->
-    <el-dialog
-      v-model="detailsDlgVisible"
-      :title="detailsDlgTitle"
-      width="80%"
-      append-to-body
-      :destroy-on-close="true"
-      :close-on-click-modal="detailsOperateMode === 'view'"
-      :close-on-press-escape="detailsOperateMode === 'view'"
-    >
-      <Suspense>
-        <Details :id="selectedGoodsId" :type="detailsOperateMode" @success="onDetailsSuccess" @cancel="onDetailsCancel" />
         <template #fallback>
           <el-skeleton :rows="6" animated />
         </template>
@@ -194,9 +186,10 @@ import type { FormInstance, FormRules } from 'element-plus';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings } from '@/api/supplier/productManagement/product';
 
-// 异步引入子组件（按需加载）
-const Edit = defineAsyncComponent(() => import('./edit.vue'));
-const Details = defineAsyncComponent(() => import('./details.vue'));
+// 异步引入弹窗组件
+const EditDialog = defineAsyncComponent(() => import('./Edit.vue'));
+const DetailsDialog = defineAsyncComponent(() => import('./Details.vue'));
+const ProductPriceDialog = defineAsyncComponent(() => import('./ProductPrice.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
@@ -206,7 +199,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   status: '',
-  createTime: [] as string[] | [],
+  launchTime: [] as string[] | [],
   goodsCategoryId: '',
   goodsName: '',
   goodsCode: ''
@@ -223,16 +216,13 @@ const actionLoading = ref<'shelf' | 'unshelf' | 'delete' | null>(null);
 const selectedIds = ref<(string | number)[]>([]);
 const selectedRows = ref<any[]>([]);
 
-// 父控对话框（编辑/新增/复制）
-const editDlgVisible = ref(false);
-const editDlgTitle = ref('');
-const selectedGoodsId = ref<string | number | null>(null);
-const editOperateMode = ref<'add' | 'edit' | 'copy'>('add');
-
-// 父控对话框（详情/价格设定）
-const detailsDlgVisible = ref(false);
-const detailsDlgTitle = ref('');
-const detailsOperateMode = ref<'view' | 'edit'>('view');
+// 统一弹窗状态
+const dialog = reactive({
+  visible: false,
+  type: '', // 'edit' | 'view' | 'price'
+  id: null,
+  title: ''
+});
 
 // 设置预警 弹窗显隐与提交状态
 const warnDialogVisible = ref(false);
@@ -272,8 +262,8 @@ const warnRules: FormRules = {
 /** 获取列表 */
 const getList = () => {
   loading.value = true;
-  const { createTime, ...rest } = queryParams.value as any;
-  const [startTime, endTime] = Array.isArray(createTime) ? createTime : [];
+  const { launchTime, ...rest } = queryParams.value as any;
+  const [startTime, endTime] = Array.isArray(launchTime) ? launchTime : [];
   const params = { ...rest, ...(startTime && endTime ? { startTime, endTime } : {}) };
   goodsList(params).then((res) => {
     tableData.value = res.rows;
@@ -294,7 +284,7 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     status: '',
-    createTime: [],
+    launchTime: [],
     goodsCategoryId: '',
     goodsName: '',
     goodsCode: ''
@@ -345,9 +335,6 @@ const onWarnConfirm = () => {
     }
   });
 };
-
-// 价格调整历史
-const onPriceHistory = () => router.push({ path: '/company/sales/company/goods/productPrice' });
 
 // 选择变化
 const handleSelectionChange = (selection: any[]) => {
@@ -520,41 +507,22 @@ const onKeypressDigits = (e: KeyboardEvent) => {
   }
 };
 
-// 打开编辑/新增/复制（父控弹窗）
-const handleAdd = () => {
-  selectedGoodsId.value = null;
-  editOperateMode.value = 'add';
-  editDlgTitle.value = '商品新增';
-  editDlgVisible.value = true;
-};
-const openEdit = (row: any) => {
-  selectedGoodsId.value = row.id;
-  editOperateMode.value = 'edit';
-  editDlgTitle.value = '商品编辑';
-  editDlgVisible.value = true;
-};
-const openCopy = (row: any) => {
-  selectedGoodsId.value = row.id;
-  editOperateMode.value = 'copy';
-  editDlgTitle.value = '复制商品';
-  editDlgVisible.value = true;
-};
-const onEditCancel = () => (editDlgVisible.value = false);
-const onEditSuccess = () => {
-  editDlgVisible.value = false;
-  getList();
-};
+// 打开弹窗方法
+function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | number | null = null, title = '') {
+  dialog.type = type;
+  dialog.id = id;
+  dialog.title = title;
+  dialog.visible = true;
+}
 
-// 打开详情/价格设定（父控弹窗）
-const openDetails = (row: any, type: 'view' | 'edit') => {
-  selectedGoodsId.value = row.id;
-  detailsOperateMode.value = type;
-  detailsDlgTitle.value = type === 'edit' ? '价格设定' : '商品详情';
-  detailsDlgVisible.value = true;
-};
-const onDetailsCancel = () => (detailsDlgVisible.value = false);
-const onDetailsSuccess = () => {
-  detailsDlgVisible.value = false;
+// 弹窗相关事件
+const handleAdd = () => openDialog('edit', null, '新增商品');
+const openEdit = (row: any) => openDialog('edit', row.id, '商品编辑');
+const openCopy = (row: any) => openDialog('copy', row.id, '复制商品');
+const openDetails = (row: any, type: 'view' | 'edit') => openDialog('view', row.id, type === 'edit' ? '价格设定' : '商品详情');
+const onPriceHistory = () => openDialog('price', null, '商品价格调整历史');
+const onDialogSuccess = () => {
+  dialog.visible = false;
   getList();
 };
 

@@ -152,8 +152,8 @@ const dialog = ref({
   type: '', // 'add' | 'edit' | 'view'
   id: null
 });
-const EditDialog = defineAsyncComponent(() => import('./edit.vue'));
-const DetailsDialog = defineAsyncComponent(() => import('./details.vue'));
+const EditDialog = defineAsyncComponent(() => import('./Edit.vue'));
+const DetailsDialog = defineAsyncComponent(() => import('./Details.vue'));
 // 搜索表单
 const queryParams = ref({
   pageNum: 1,
