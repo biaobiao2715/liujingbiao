@@ -8,10 +8,10 @@
 <template>
   <div class="activity-detail">
     <!-- 活动详情卡片 -->
-    <div class="activity-card">
+    <div class="activity-card" v-loading="loading">
       <!-- 卡片头部 -->
       <div class="card-header">
-        <h1 class="activity-title">{{ activityDetail.title }}</h1>
+        <h1 class="activity-title">{{ activityDetail.activityTitle }}</h1>
         <el-button 
           type="text" 
           class="close-btn" 
@@ -31,8 +31,8 @@
           </div>
         </div>
         <div class="activity-status">
-          <div class="status-item">活动状态:{{ activityDetail.status }}</div>
-          <div class="status-item">报名人数:{{ activityDetail.registrationCount || 0 }}人</div>
+          <div class="status-item">活动状态:{{ activityDetail.activityStatus }}</div>
+          <div class="status-item">报名人数:{{ activityDetail.enrollCount || 0 }}人</div>
         </div>
       </div>
 
@@ -48,17 +48,17 @@
         
         <div class="detail-row">
           <span class="detail-label">活动简介:</span>
-          <span class="detail-value">{{ activityDetail.description }}</span>
+          <span class="detail-value">{{ activityDetail.activitySummary }}</span>
         </div>
         
         <div class="detail-row">
           <span class="detail-label">活动联系人:</span>
-          <span class="detail-value">{{ activityDetail.contactPerson }}</span>
+          <span class="detail-value">{{ activityDetail.activityContact }}</span>
         </div>
         
         <div class="detail-row">
           <span class="detail-label">活动联系人电话:</span>
-          <span class="detail-value">{{ activityDetail.contactInfo }}</span>
+          <span class="detail-value">{{ activityDetail.activityContactPhone }}</span>
         </div>
         
         <div class="detail-row">
@@ -68,7 +68,7 @@
         
         <div class="detail-row">
           <span class="detail-label">活动地址:</span>
-          <span class="detail-value">{{ activityDetail.address }}</span>
+          <span class="detail-value">{{ activityDetail.activityAddress }}</span>
         </div>
         
         <div class="detail-row" v-if="activityDetail.cancelReason">
@@ -85,41 +85,84 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 import { Close } from '@element-plus/icons-vue';
+import { getActivityDetail } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
 const router = useRouter();
 const route = useRoute();
 
+// 加载状态
+const loading = ref(false);
+
 // 活动详情数据
 const activityDetail = ref({
-  id: 1,
-  title: '2024年秋季普法',
-  publisher: '张三',
-  publishTime: '2019-03-15 10:29:30',
-  status: '已开始',
-  registrationCount: 200,
-  activityType: '农业专家讲座',
-  description: '武汉法务专家普法宣传关于政策解读',
-  contactPerson: '李四',
-  contactInfo: '13000000000',
-  startTime: '2019-12-12 10:29:30',
-  endTime: '2019-12-12 11:29:30',
-  address: '湖北省武汉市汉南区农耕4楼102会议室',
-  cancelReason: '因恶劣天气原因,暂取消这次活动'
+  id: undefined as string | undefined,
+  activityTitle: '',
+  publisher: '',
+  publishTime: '',
+  activityStatus: '',
+  enrollCount: 0,
+  activityType: '',
+  activitySummary: '',
+  activityContact: '',
+  activityContactPhone: '',
+  startTime: '',
+  endTime: '',
+  activityAddress: '',
+  cancelReason: ''
 });
 
 /** 获取活动详情 */
-const getActivityDetail = async () => {
+const fetchActivityDetail = async () => {
+  const activityId = route.query.id;
+  if (!activityId) {
+    ElMessage.error('缺少活动ID');
+    router.go(-1);
+    return;
+  }
+  
+  loading.value = true;
   try {
-    const activityId = route.query.id;
-    console.log('获取活动详情，ID:', activityId);
+    console.log('详情页获取活动详情，ID:', activityId);
+    // 响应拦截器已处理，response 直接是后端返回数据，如果成功则 response.code === 200
+    const response: any = await getActivityDetail(activityId as string);
     
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // 这里可以根据ID获取不同的数据
-    // 目前使用模拟数据
+    if (response && response.code === 200) {
+      const data = response.data;
+      
+      if (!data) {
+        ElMessage.error('获取活动详情失败：数据为空');
+        return;
+      }
+      
+      // 将接口返回的数据赋值给详情
+      activityDetail.value = {
+        id: data.id,
+        activityTitle: data.activityTitle || '',
+        publisher: data.organizerName || data.authorName || data.publishUser || '未知',
+        publishTime: data.publishTime || '',
+        activityStatus: data.activityStatus || '',
+        enrollCount: data.enrollCount || 0,
+        activityType: data.activityType || '',
+        activitySummary: data.activitySummary || '',
+        activityContact: data.activityContact || '',
+        activityContactPhone: data.activityContactPhone || '',
+        startTime: data.startTime || '',
+        endTime: data.endTime || '',
+        activityAddress: data.activityAddress || '',
+        cancelReason: data.cancelReason || ''
+      };
+      
+      console.log('活动详情加载成功:', activityDetail.value);
+    } else {
+      ElMessage.error(response?.msg || '获取活动详情失败');
+      router.go(-1);
+    }
   } catch (error) {
+    console.error('获取活动详情失败:', error);
     ElMessage.error('获取活动详情失败，请稍后重试');
+    router.go(-1);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -130,7 +173,7 @@ const goBack = () => {
 
 // 页面加载时获取详情数据
 onMounted(() => {
-  getActivityDetail();
+  fetchActivityDetail();
 });
 </script>
 

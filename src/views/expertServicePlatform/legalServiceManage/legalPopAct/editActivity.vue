@@ -21,11 +21,12 @@
         :rules="formRules" 
         label-width="140px"
         class="edit-form"
+        v-loading="loading"
       >
         <!-- 普法活动标题 -->
-        <el-form-item label="普法活动标题" prop="title" required>
+        <el-form-item label="普法活动标题" prop="activityTitle" required>
           <el-input 
-            v-model="formData.title" 
+            v-model="formData.activityTitle" 
             placeholder="请输入标题内容" 
             maxlength="30"
             show-word-limit
@@ -34,9 +35,9 @@
         </el-form-item>
         
         <!-- 普法简介 -->
-        <el-form-item label="普法简介" prop="description" required>
+        <el-form-item label="普法简介" prop="activitySummary" required>
           <el-input
-            v-model="formData.description"
+            v-model="formData.activitySummary"
             type="textarea"
             :rows="4"
             placeholder="请输入简介"
@@ -60,9 +61,9 @@
         </el-form-item>
         
         <!-- 普法活动地址 -->
-        <el-form-item label="普法活动地址" prop="address" required>
+        <el-form-item label="普法活动地址" prop="activityAddress" required>
           <el-input 
-            v-model="formData.address" 
+            v-model="formData.activityAddress" 
             placeholder="请输入普法活动地址" 
             maxlength="30"
             show-word-limit
@@ -100,13 +101,13 @@
         </el-form-item>
         
         <!-- 普法活动联系人 -->
-        <el-form-item label="普法活动联系人" prop="contactPerson" required>
-          <el-input v-model="formData.contactPerson" placeholder="请输入联系人" clearable />
+        <el-form-item label="普法活动联系人" prop="activityContact" required>
+          <el-input v-model="formData.activityContact" placeholder="请输入联系人" clearable />
         </el-form-item>
         
         <!-- 联系人电话 -->
-        <el-form-item label="联系人电话" prop="contactInfo" required>
-          <el-input v-model="formData.contactInfo" placeholder="请输入联系电话" clearable />
+        <el-form-item label="联系人电话" prop="activityContactPhone" required>
+          <el-input v-model="formData.activityContactPhone" placeholder="请输入联系电话" clearable />
         </el-form-item>
 
         <!-- 表单操作按钮 -->
@@ -123,6 +124,10 @@ import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
+import { 
+  getActivityDetail, 
+  editActivity 
+} from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
 const router = useRouter();
 const route = useRoute();
@@ -137,34 +142,36 @@ const { legal_popularize_activity_type } = toRefs<any>(
 const formRef = ref();
 // 保存状态
 const saving = ref(false);
+// 加载状态
+const loading = ref(false);
 
 // 表单数据
-const formData = ref({
-  id: 1,
-  title: '技术培训会议',
-  description: '本次技术培训会议将邀请行业专家为大家讲解最新的农业技术发展趋势，包括智能农业、精准农业等前沿技术的应用。',
-  activityType: '专家讲座',
-  address: '湖北省武汉市汉南区农耕4楼会议室',
-  startTime: '2019-12-12 10:29:30',
-  endTime: '2019-12-12 11:29:30',
-  contactPerson: '张三',
-  contactInfo: '13888888888'
-});
+        const formData = ref({
+          id: undefined as string | undefined,
+          activityTitle: '',
+          activitySummary: '',
+          activityType: '',
+          activityAddress: '',
+          startTime: '',
+          endTime: '',
+          activityContact: '',
+          activityContactPhone: ''
+        });
 
 // 表单验证规则
 const formRules = {
-  title: [
+  activityTitle: [
     { required: true, message: '请输入普法活动标题,最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
   ],
-  description: [
+  activitySummary: [
     { required: true, message: '请输入简介,最多支持60个汉字', trigger: 'blur' },
     { min: 1, max: 60, message: '简介长度在 1 到 60 个字符', trigger: 'blur' }
   ],
   activityType: [
     { required: true, message: '请选择普法活动类型', trigger: 'change' }
   ],
-  address: [
+  activityAddress: [
     { required: true, message: '请输入普法活动地址,最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '地址长度在 1 到 30 个字符', trigger: 'blur' }
   ],
@@ -174,40 +181,82 @@ const formRules = {
   endTime: [
     { required: true, message: '请选择结束时间', trigger: 'change' }
   ],
-  contactPerson: [
+  activityContact: [
     { required: true, message: '请输入联系人姓名', trigger: 'blur' },
     { min: 2, max: 20, message: '姓名长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  contactInfo: [
+  activityContactPhone: [
     { required: true, message: '请输入联系人手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ]
 };
 
 /** 获取活动详情 */
-const getActivityDetail = async () => {
+const fetchActivityDetail = async () => {
+  const activityId = route.query.id;
+  if (!activityId) {
+    ElMessage.error('缺少活动ID');
+    router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    return;
+  }
+  
+  loading.value = true;
   try {
-    const activityId = route.query.id;
     console.log('获取活动详情，ID:', activityId);
+    // 响应拦截器已处理，response 直接是后端返回数据，如果成功则 response.code === 200
+    const response: any = await getActivityDetail(activityId as string);
     
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 300));
+    console.log('活动详情接口返回:', response);
     
-    // 这里可以根据ID获取不同的数据
-    // 目前使用模拟数据
+    if (response && response.code === 200) {
+      const data = response.data;
+      
+      console.log('活动详情数据:', data);
+      
+      if (!data) {
+        ElMessage.error('获取活动详情失败：数据为空');
+        return;
+      }
+      
+      // 将接口返回的数据赋值给表单
+      formData.value = {
+        id: data.id,
+        activityTitle: data.activityTitle || '',
+        activitySummary: data.activitySummary || '',
+        activityType: data.activityType || '',
+        activityAddress: data.activityAddress || '',
+        startTime: data.startTime || '',
+        endTime: data.endTime || '',
+        activityContact: data.activityContact || '',
+        activityContactPhone: data.activityContactPhone || ''
+      };
+      
+      console.log('表单数据赋值完成:', formData.value);
+    } else {
+      console.error('接口返回失败:', response);
+      ElMessage.error(response?.msg || '获取活动详情失败');
+      router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    }
   } catch (error) {
+    console.error('获取活动详情失败:', error);
     ElMessage.error('获取活动详情失败，请稍后重试');
+    router.push('/expertServicePlatform/legalServiceManage/activityManage');
+  } finally {
+    loading.value = false;
   }
 };
 
 /** 发布活动 */
 const handlePublish = async () => {
+  // 表单验证
+  if (!formRef.value) return;
+  
   try {
-    // 表单验证
-    await formRef.value.validate();
+    const valid = await formRef.value.validate();
+    if (!valid) return;
     
     await ElMessageBox.confirm(
-      '确定要发布此普法活动吗？发布后用户将可以看到此活动。',
+      '确定要保存并发布此普法活动吗？',
       '系统提示',
       {
         confirmButtonText: '确定',
@@ -218,17 +267,35 @@ const handlePublish = async () => {
     
     saving.value = true;
     
-    // 模拟发布请求
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 构建提交数据 - 字段对应关系
+    const submitData = {
+      id: formData.value.id,                                  // 活动ID（必需）
+      activityTitle: formData.value.activityTitle,            // 活动标题
+      activitySummary: formData.value.activitySummary,        // 活动简介
+      activityType: formData.value.activityType,              // 活动类型
+      activityAddress: formData.value.activityAddress,        // 活动地址
+      startTime: formData.value.startTime,                    // 开始时间
+      endTime: formData.value.endTime,                        // 结束时间
+      activityContact: formData.value.activityContact,        // 联系人
+      activityContactPhone: formData.value.activityContactPhone // 联系方式
+    };
     
-    ElMessage.success('普法活动发布成功');
+    console.log('提交修改数据:', submitData);
     
-    // 返回列表页面
-    router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    // 调用编辑接口 - 响应拦截器已处理，response 直接是后端返回数据
+    const response: any = await editActivity(submitData);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('普法活动修改成功');
+      // 返回列表页面
+      router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    } else {
+      ElMessage.error(response?.msg || '修改失败，请稍后重试');
+    }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('发布失败:', error);
-      ElMessage.error('发布失败，请稍后重试');
+      console.error('保存失败:', error);
+      ElMessage.error('保存失败，请稍后重试');
     }
   } finally {
     saving.value = false;
@@ -237,7 +304,9 @@ const handlePublish = async () => {
 
 // 页面加载时获取详情数据
 onMounted(() => {
-  getActivityDetail();
+  console.log('编辑页面已挂载，准备获取详情');
+  console.log('路由参数:', route.query);
+  fetchActivityDetail();
 });
 </script>
 

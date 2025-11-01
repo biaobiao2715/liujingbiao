@@ -23,9 +23,9 @@
         class="add-form"
       >
         <!-- 普法活动标题 -->
-        <el-form-item label="普法活动标题" prop="title" required>
+        <el-form-item label="普法活动标题" prop="activityTitle" required>
           <el-input 
-            v-model="formData.title" 
+            v-model="formData.activityTitle" 
             placeholder="请输入标题内容" 
             maxlength="30"
             show-word-limit
@@ -34,9 +34,9 @@
         </el-form-item>
         
         <!-- 普法简介 -->
-        <el-form-item label="普法简介" prop="description" required>
+        <el-form-item label="普法简介" prop="activitySummary" required>
           <el-input
-            v-model="formData.description"
+            v-model="formData.activitySummary"
             type="textarea"
             :rows="4"
             placeholder="请输入简介"
@@ -60,9 +60,9 @@
         </el-form-item>
         
         <!-- 普法活动地址 -->
-        <el-form-item label="普法活动地址" prop="address" required>
+        <el-form-item label="普法活动地址" prop="activityAddress" required>
           <el-input 
-            v-model="formData.address" 
+            v-model="formData.activityAddress" 
             placeholder="请输入普法活动地址" 
             maxlength="30"
             show-word-limit
@@ -100,13 +100,13 @@
         </el-form-item>
         
         <!-- 普法活动联系人 -->
-        <el-form-item label="普法活动联系人" prop="contactPerson" required>
-          <el-input v-model="formData.contactPerson" placeholder="请输入联系人" clearable />
+        <el-form-item label="普法活动联系人" prop="activityContact" required>
+          <el-input v-model="formData.activityContact" placeholder="请输入联系人" clearable />
         </el-form-item>
         
         <!-- 联系人电话 -->
-        <el-form-item label="联系人电话" prop="contactInfo" required>
-          <el-input v-model="formData.contactInfo" placeholder="请输入联系电话" clearable />
+        <el-form-item label="联系人电话" prop="activityContactPhone" required>
+          <el-input v-model="formData.activityContactPhone" placeholder="请输入联系电话" clearable />
         </el-form-item>
 
         <!-- 表单操作按钮 -->
@@ -123,6 +123,7 @@ import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
+import { addActivity } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -139,30 +140,30 @@ const saving = ref(false);
 
 // 表单数据
 const formData = ref({
-  title: '',
-  description: '',
+  activityTitle: '',
+  activitySummary: '',
   activityType: '',
-  address: '',
+  activityAddress: '',
   startTime: '',
   endTime: '',
-  contactPerson: '',
-  contactInfo: ''
+  activityContact: '',
+  activityContactPhone: ''
 });
 
 // 表单验证规则
 const formRules = {
-  title: [
+  activityTitle: [
     { required: true, message: '请输入普法活动标题,最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
   ],
-  description: [
+  activitySummary: [
     { required: true, message: '请输入简介,最多支持60个汉字', trigger: 'blur' },
     { min: 1, max: 60, message: '简介长度在 1 到 60 个字符', trigger: 'blur' }
   ],
   activityType: [
     { required: true, message: '请选择普法活动类型', trigger: 'change' }
   ],
-  address: [
+  activityAddress: [
     { required: true, message: '请输入普法活动地址,最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '地址长度在 1 到 30 个字符', trigger: 'blur' }
   ],
@@ -172,11 +173,11 @@ const formRules = {
   endTime: [
     { required: true, message: '请选择结束时间', trigger: 'change' }
   ],
-  contactPerson: [
+  activityContact: [
     { required: true, message: '请输入联系人姓名', trigger: 'blur' },
     { min: 2, max: 20, message: '姓名长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  contactInfo: [
+  activityContactPhone: [
     { required: true, message: '请输入联系人手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ]
@@ -184,9 +185,12 @@ const formRules = {
 
 /** 发布活动 */
 const handlePublish = async () => {
+  // 表单验证
+  if (!formRef.value) return;
+  
   try {
-    // 表单验证
-    await formRef.value.validate();
+    const valid = await formRef.value.validate();
+    if (!valid) return;
     
     await ElMessageBox.confirm(
       '确定要发布此普法活动吗？发布后用户将可以看到此活动。',
@@ -200,13 +204,30 @@ const handlePublish = async () => {
     
     saving.value = true;
     
-    // 模拟发布请求
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 构建提交数据 - 字段对应关系
+    const submitData = {
+      activityTitle: formData.value.activityTitle,            // 活动标题
+      activitySummary: formData.value.activitySummary,        // 活动简介
+      activityType: formData.value.activityType,              // 活动类型
+      activityAddress: formData.value.activityAddress,        // 活动地址
+      startTime: formData.value.startTime,                    // 开始时间
+      endTime: formData.value.endTime,                        // 结束时间
+      activityContact: formData.value.activityContact,        // 联系人
+      activityContactPhone: formData.value.activityContactPhone // 联系方式
+    };
     
-    ElMessage.success('普法活动发布成功');
+    console.log('提交数据:', submitData);
     
-    // 返回列表页面
-    router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    // 调用新增接口 - 响应拦截器已处理，response 直接是后端返回数据
+    const response: any = await addActivity(submitData);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('普法活动发布成功');
+      // 返回列表页面
+      router.push('/expertServicePlatform/legalServiceManage/activityManage');
+    } else {
+      ElMessage.error(response?.msg || '发布失败，请稍后重试');
+    }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('发布失败:', error);
@@ -217,15 +238,14 @@ const handlePublish = async () => {
   }
 };
 
-// 页面加载时的初始化
-onMounted(() => {
-  // 设置默认值
-  const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  
-  formData.value.startTime = now.toISOString().slice(0, 19).replace('T', ' ');
-  formData.value.endTime = tomorrow.toISOString().slice(0, 19).replace('T', ' ');
-});
+// 页面加载时的初始化（可选）
+// onMounted(() => {
+//   // 如需设置默认时间，可取消注释
+//   // const now = new Date();
+//   // const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+//   // formData.value.startTime = now.toISOString().slice(0, 19).replace('T', ' ');
+//   // formData.value.endTime = tomorrow.toISOString().slice(0, 19).replace('T', ' ');
+// });
 </script>
 
 <style scoped lang="scss">

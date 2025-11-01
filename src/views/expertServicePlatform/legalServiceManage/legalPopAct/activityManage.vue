@@ -12,13 +12,13 @@
       <!-- 搜索条件 -->
       <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
         <!-- 普法活动标题搜索框 -->
-        <el-form-item label="普法活动标题" prop="title">
-          <el-input v-model="queryParams.title" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
+        <el-form-item label="普法活动标题" prop="activityTitle">
+          <el-input v-model="queryParams.activityTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         
         <!-- 所属状态下拉框 -->
-        <el-form-item label="所属状态" prop="status">
-          <el-select v-model="queryParams.status" placeholder="请选择" filterable clearable>
+        <el-form-item label="所属状态" prop="activityStatus">
+          <el-select v-model="queryParams.activityStatus" placeholder="请选择" filterable clearable>
             <el-option label="请选择" value="请选择" />
             <el-option 
               v-for="item in legal_popularize_status" 
@@ -59,10 +59,6 @@
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
-          <!-- <el-button v-throttle type="text" @click="toggleSearch">
-            {{ showSearch ? '收起' : '展开' }}
-            <el-icon><ArrowUp v-if="showSearch" /><ArrowDown v-else /></el-icon>
-          </el-button> -->
         </el-form-item>
       </el-form>
 
@@ -97,18 +93,18 @@
         </el-table-column>
         
         <!-- 普法活动标题 -->
-        <el-table-column label="普法活动标题" align="center" prop="title" :show-overflow-tooltip="true" min-width="200">
+        <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
             <router-link :to="'/expertServicePlatform/legalServiceManage/activityDetail?id=' + scope.row.id + '&type=view'" class="link-type">
-              <span>{{ scope.row.title }}</span>
+              <span>{{ scope.row.activityTitle }}</span>
             </router-link>
           </template>
         </el-table-column>
         
         <!-- 普法活动地址 -->
-        <el-table-column label="普法活动地址" align="center" prop="address" :show-overflow-tooltip="true" min-width="250">
+        <el-table-column label="普法活动地址" align="center" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
           <template #default="scope">
-            <span>{{ scope.row.address }}</span>
+            <span>{{ scope.row.activityAddress }}</span>
           </template>
         </el-table-column>
         
@@ -120,23 +116,23 @@
         </el-table-column>
         
         <!-- 联系人 -->
-        <el-table-column label="联系人" align="center" prop="contactPerson" width="100">
+        <el-table-column label="联系人" align="center" prop="activityContact" width="100">
           <template #default="scope">
-            <span>{{ scope.row.contactPerson }}</span>
+            <span>{{ scope.row.activityContact }}</span>
           </template>
         </el-table-column>
         
         <!-- 联系方式 -->
-        <el-table-column label="联系方式" align="center" prop="contactInfo" width="120">
+        <el-table-column label="联系方式" align="center" prop="activityContactPhone" width="120">
           <template #default="scope">
-            <span>{{ scope.row.contactInfo }}</span>
+            <span>{{ scope.row.activityContactPhone }}</span>
           </template>
         </el-table-column>
         
         <!-- 报名人数 -->
-        <el-table-column label="报名人数" align="center" prop="registrationCount" width="100">
+        <el-table-column label="报名人数" align="center" prop="enrollCount" width="100">
           <template #default="scope">
-            <span>{{ scope.row.registrationCount || 0 }}</span>
+            <span>{{ scope.row.enrollCount || 0 }}</span>
           </template>
         </el-table-column>
         
@@ -147,18 +143,11 @@
           </template>
         </el-table-column>
         
-        <!-- 浏览量 -->
-        <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
-          <template #default="scope">
-            <span>{{ scope.row.viewCount || 0 }}</span>
-          </template>
-        </el-table-column>
-        
         <!-- 状态 -->
-        <el-table-column label="状态" align="center" prop="status" width="100">
+        <el-table-column label="状态" align="center" prop="activityStatus" width="100">
           <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status }}
+            <el-tag :type="getStatusType(scope.row.activityStatus)">
+              {{ getDictLabel(legal_popularize_status, scope.row.activityStatus) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -170,7 +159,7 @@
               <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
               <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
               <el-button 
-                v-if="scope.row.status === '待开始'" 
+                v-if="scope.row.activityStatus === '1'" 
                 v-throttle 
                 type="warning" 
                 size="small" 
@@ -179,7 +168,7 @@
                 取消活动
               </el-button>
               <el-button 
-                v-if="scope.row.status === '已取消' || scope.row.status === '已结束'" 
+                v-if="scope.row.activityStatus === '4' || scope.row.activityStatus === '3'" 
                 v-throttle 
                 type="danger" 
                 size="small" 
@@ -211,7 +200,12 @@ import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
-import { ArrowUp, ArrowDown } from '@element-plus/icons-vue';
+import { 
+  getActivityList, 
+  deleteActivity, 
+  cancelActivity,
+  type ActivityListQuery 
+} from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -225,8 +219,8 @@ const { legal_popularize_activity_type, legal_popularize_status } = toRefs<any>(
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  title: '', // 活动标题
-  status: '', // 状态
+  activityTitle: '', // 活动标题
+  activityStatus: '', // 状态
   activityType: '', // 活动类型
   startTime: '', // 开始时间
   endTime: '' // 结束时间
@@ -253,91 +247,60 @@ const selectedRows = ref([]);
 const getList = async () => {
   loading.value = true;
   try {
-    // 模拟数据，实际开发时替换为真实API调用
-    const mockData = {
-      rows: [
-        {
-          id: 1,
-          title: '技术培训会议',
-          activityType: '专家讲座',
-          startTime: '2019-12-12 10:29:30',
-          endTime: '2019-12-12 11:29:30',
-          address: '湖北省武汉市汉南区农耕4楼会议室',
-          contactPerson: '张三',
-          contactInfo: '13888888888',
-          registrationCount: 200,
-          publishTime: '2019/12/12 10:29',
-          viewCount: 1550,
-          status: '待开始'
-        },
-        {
-          id: 2,
-          title: '技术培训会议',
-          activityType: '普法培训',
-          startTime: '2019-12-12 10:29:30',
-          endTime: '2019-12-12 11:29:30',
-          address: '湖北省武汉市汉南区农耕4楼会议室',
-          contactPerson: '王五',
-          contactInfo: '13888888888',
-          registrationCount: 200,
-          publishTime: '2019/12/10 10:29',
-          viewCount: 1981,
-          status: '已结束'
-        },
-        {
-          id: 3,
-          title: '法律知识普及讲座',
-          activityType: '法律咨询',
-          startTime: '2019-12-15 14:00:00',
-          endTime: '2019-12-15 16:00:00',
-          address: '湖北省武汉市汉南区法律服务中心',
-          contactPerson: '李四',
-          contactInfo: '13999999999',
-          registrationCount: 150,
-          publishTime: '2019/12/13 09:30',
-          viewCount: 1200,
-          status: '进行中'
-        },
-        {
-          id: 4,
-          title: '农业政策解读会',
-          activityType: '政策解读',
-          startTime: '2019-12-20 09:00:00',
-          endTime: '2019-12-20 12:00:00',
-          address: '湖北省武汉市汉南区农业局会议室',
-          contactPerson: '赵六',
-          contactInfo: '13777777777',
-          registrationCount: 80,
-          publishTime: '2019/12/18 15:20',
-          viewCount: 800,
-          status: '已取消'
-        }
-      ],
-      total: 4
+    // 构建查询参数
+    const params: ActivityListQuery = {
+      pageNum: queryParams.value.pageNum,
+      pageSize: queryParams.value.pageSize,
+      activityTitle: queryParams.value.activityTitle || undefined,
+      activityStatus: queryParams.value.activityStatus === '请选择' ? undefined : queryParams.value.activityStatus,
+      activityType: queryParams.value.activityType === '请选择' ? undefined : queryParams.value.activityType,
+      startTime: queryParams.value.startTime || undefined,
+      endTime: queryParams.value.endTime || undefined
     };
     
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // 调用真实API - 响应拦截器已处理，直接访问 rows 和 total
+    const response: any = await getActivityList(params);
     
-    tableData.value = mockData.rows;
-    total.value = mockData.total;
+    console.log('API返回数据:', response);
+    
+    // 参考商品管理的写法，直接访问 response.rows 和 response.total
+    if (response.code === 200) {
+      tableData.value = response.rows || [];
+      total.value = response.total || 0;
+      console.log('表格数据:', tableData.value);
+      console.log('总数:', total.value);
+    } else {
+      tableData.value = [];
+      total.value = 0;
+      ElMessage.error(response.msg || '获取数据失败');
+    }
   } catch (error) {
+    console.error('获取普法活动列表失败:', error);
     ElMessage.error('获取普法活动列表失败，请稍后重试');
+    tableData.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
 };
 
+/** 获取字典标签 */
+const getDictLabel = (dict: any, value: string) => {
+  const item = dict?.value?.find((item: any) => item.value === value);
+  return item?.label || value;
+};
+
 /** 获取状态标签类型 */
 const getStatusType = (status: string) => {
+  // 1-待开始 2-进行中 3-已结束 4-已取消
   switch (status) {
-    case '待开始':
+    case '1':
       return 'primary';
-    case '进行中':
+    case '2':
       return 'success';
-    case '已结束':
+    case '3':
       return 'danger';
-    case '已取消':
+    case '4':
       return 'warning';
     default:
       return 'info';
@@ -362,14 +325,13 @@ const handleQuery = () => {
 const handleReset = () => {
   queryFormRef.value?.resetFields();
   dateRange.value = ['', ''];
+  queryParams.value.activityTitle = '';
+  queryParams.value.activityStatus = '';
+  queryParams.value.activityType = '';
   queryParams.value.startTime = '';
   queryParams.value.endTime = '';
+  queryParams.value.pageNum = 1;
   handleQuery();
-};
-
-/** 切换搜索显示 */
-const toggleSearch = () => {
-  showSearch.value = !showSearch.value;
 };
 
 // 表格选择变化事件
@@ -384,26 +346,47 @@ const handleAdd = () => {
 };
 
 /** 删除按钮事件 */
-const handleDelete = () => {
-  if (selectedIds.value.length === 0) {
+const handleDelete = async () => {
+  const ids = selectedIds.value.slice();
+  
+  if (ids.length === 0) {
     ElMessage.warning('请先选择要删除的活动');
     return;
   }
   
-  ElMessageBox.confirm(
-    `确定要删除选中的${selectedIds.value.length}个活动吗？`,
-    '系统提示',
-    {
+  const tip = `确定要删除选中的 ${ids.length} 个活动吗？删除后将无法恢复。`;
+  
+  try {
+    await ElMessageBox.confirm(tip, '删除确认', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
+    });
+    
+    loading.value = true;
+    
+    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
+    const response: any = await deleteActivity(ids);
+    
+    if (response && response.code === 200) {
+      ElMessage.success(`成功删除 ${ids.length} 个活动`);
+      // 刷新并清空选择
+      await getList();
+      selectedIds.value = [];
+      selectedRows.value = [];
+    } else {
+      ElMessage.error(response?.msg || '删除失败，请重试');
     }
-  ).then(() => {
-    ElMessage.success(`成功删除${selectedIds.value.length}个活动`);
-    getList();
-  }).catch(() => {
-    ElMessage.info('已取消删除');
-  });
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除活动失败:', error);
+      ElMessage.error('删除失败，请稍后重试');
+    } else {
+      ElMessage.info('删除操作已取消');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 /** 编辑按钮事件 */
@@ -423,39 +406,65 @@ const handleView = (row: any) => {
 };
 
 /** 取消活动事件 */
-const handleCancelActivity = (row: any) => {
-  ElMessageBox.confirm(
-    `确定要取消活动"${row.title}"吗？`,
-    '系统提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+const handleCancelActivity = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要取消活动"${row.activityTitle}"吗？取消后将无法恢复。`,
+      '取消活动确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    
+    // 调用取消活动API - 响应拦截器已处理，response 直接是后端返回数据
+    const response: any = await cancelActivity(row.id);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('活动取消成功');
+      // 重新加载列表
+      await getList();
+    } else {
+      ElMessage.error(response?.msg || '取消活动失败，请稍后重试');
     }
-  ).then(() => {
-    ElMessage.success('活动取消成功');
-    getList();
-  }).catch(() => {
-    ElMessage.info('已取消操作');
-  });
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('取消活动失败:', error);
+      ElMessage.error('取消活动失败，请稍后重试');
+    }
+  }
 };
 
 /** 单个删除事件 */
-const handleDeleteSingle = (row: any) => {
-  ElMessageBox.confirm(
-    `确定要删除活动"${row.title}"吗？`,
-    '系统提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+const handleDeleteSingle = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除活动"${row.activityTitle}"吗？删除后将无法恢复。`,
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    
+    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
+    const response: any = await deleteActivity([row.id]);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('删除成功');
+      // 重新加载列表
+      await getList();
+    } else {
+      ElMessage.error(response?.msg || '删除活动失败，请稍后重试');
     }
-  ).then(() => {
-    ElMessage.success('删除成功');
-    getList();
-  }).catch(() => {
-    ElMessage.info('已取消删除');
-  });
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除活动失败:', error);
+      ElMessage.error('删除活动失败，请稍后重试');
+    }
+  }
 };
 
 // 页面加载时获取列表数据
