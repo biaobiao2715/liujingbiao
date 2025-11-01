@@ -1,4 +1,10 @@
-<!-- src/views/expertServicePlatform/knowledgeBaseManage/index.vue -->
+<!--
+  标题: enterprise/index.vue
+  功能: 知识库列表
+  说明: 用于知识库列表查询
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-10-15
+-->
 <template>
   <div class="kb-management">
     <!-- 搜索条件 -->

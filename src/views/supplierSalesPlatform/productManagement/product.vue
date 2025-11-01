@@ -1,3 +1,10 @@
+<!--
+  标题: enterprise/index.vue
+  功能: 商品列表
+  说明: 用于商品列表查询
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-10-15
+-->
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->

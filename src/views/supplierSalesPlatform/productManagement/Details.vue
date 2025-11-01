@@ -1,3 +1,10 @@
+<!--
+  标题: enterprise/index.vue
+  功能: 商品详情
+  说明: 用于商品详情查询
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-10-15
+-->
 <template>
   <div class="supplier-edit-details">
     <el-form :model="formData" label-width="140px">

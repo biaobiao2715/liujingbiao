@@ -1,3 +1,10 @@
+<!--
+  标题: enterprise/index.vue
+  功能: 知识库编辑
+  说明: 用于知识库编辑
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-10-15
+-->
 <template>
   <div class="kb-edit">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="form-wrap">
