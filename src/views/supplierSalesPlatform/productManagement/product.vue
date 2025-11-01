@@ -524,7 +524,7 @@ function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | numbe
 }
 
 // 弹窗相关事件
-const handleAdd = () => openDialog('edit', null, '新增商品');
+const handleAdd = () => openDialog('edit', null, '新增商品', 'edit');
 const openEdit = (row: any) => openDialog('edit', row.id, '商品编辑', 'edit');
 const openCopy = (row: any) => openDialog('copy', row.id, '复制商品', 'edit');
 const openDetails = (row: any) => openDialog('view', row.id, '商品详情', 'details');
