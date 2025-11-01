@@ -66,7 +66,7 @@
         <el-table-column prop="goodsPrice" label="销售价" align="center">
           <template #default="scope">
             <span v-if="operateMode === 'view'">{{ formatPrice(scope.row.goodsPrice) }}¥</span>
-            <div v-if="operateMode === 'edit'" style="display: flex; align-items: center; gap: 8px;">
+            <div v-if="operateMode === 'edit'" style="display: flex; align-items: center; gap: 8px">
               <el-input
                 v-model="scope.row.goodsPrice"
                 type="number"
@@ -167,10 +167,10 @@ const isPriceModified = (index: number): boolean => {
   const currentRow = tableList.value[index];
   const originalRow = originalTableList.value[index];
   if (!currentRow || !originalRow) return false;
-  
+
   const currentPrice = Number(currentRow.goodsPrice);
   const originalPrice = Number(originalRow.goodsPrice);
-  
+
   return currentPrice !== originalPrice;
 };
 
@@ -186,22 +186,22 @@ const submitForm = async () => {
   const modifiedRows = tableList.value.filter((currentRow, index) => {
     const originalRow = originalTableList.value[index];
     if (!originalRow) return false;
-    
+
     // 比较价格是否发生变化
     const currentPrice = Number(currentRow.goodsPrice);
     const originalPrice = Number(originalRow.goodsPrice);
-    
+
     return currentPrice !== originalPrice;
   });
-  
+
   // 如果没有修改的行，提示用户
   if (modifiedRows.length === 0) {
     ElMessage.warning('没有价格变更，无需保存');
     return;
   }
-  
+
   console.log('修改的数据行:', modifiedRows);
-  
+
   const saveData = {
     id: formData.value.id,
     hnGoodsSpecificationDataList: modifiedRows.map((spec) => ({
@@ -210,9 +210,9 @@ const submitForm = async () => {
       goodsPrice: spec.goodsPrice || 0
     }))
   };
-  
+
   console.log('提交的数据:', saveData);
-  
+
   const response = await updateGoodsPrice(saveData);
   if (response && response.code === 200) {
     ElMessage.success(`成功修改 ${modifiedRows.length} 条价格数据`);

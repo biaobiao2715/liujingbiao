@@ -72,26 +72,6 @@ const total = ref(0);
 const loading = ref(false);
 const queryFormRef = ref();
 
-// 模拟数据（实际应从接口获取）
-const mockData = [
-  {
-    customerName: '张三',
-    customerNumber: 'KH202509301200000010',
-    customerType: '农户',
-    purchaseType: '种子',
-    contact: '15627263868',
-    entryTime: '2025-09-30 16:10:56'
-  },
-  {
-    customerName: '李四',
-    customerNumber: 'KH202509301200000009',
-    customerType: '合作社',
-    purchaseType: '农资农具',
-    contact: '13268498678',
-    entryTime: '2025-09-29 16:10:56'
-  }
-];
-
 /** 查询客户列表 */
 const getList = () => {
   loading.value = true;

@@ -272,7 +272,6 @@ const emit = defineEmits<{
   (e: 'success'): void;
   (e: 'cancel'): void;
   // 兼容旧事件
-  (e: 'getListChange'): void;
 }>();
 
 // ==========================
@@ -410,7 +409,6 @@ const submitForm = () => {
       ElMessage.success('新增成功');
     }
     emit('success');
-    emit('getListChange'); // 兼容旧事件
   });
 };
 
@@ -575,39 +573,6 @@ const onKeypressDigits = (e: KeyboardEvent) => {
 };
 
 // ==========================
-// 初始化（根据 props 加载数据）
-// ==========================
-const initByProps = async () => {
-  operateMode.value = props.type;
-  refForm.value?.resetFields?.();
-  hnGoodsFilesList.value = [];
-  hnGoodsSpecificationDataList.value = [{ goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', status: 1 }];
-
-  if (props.id) {
-    const detailResponse = await goodsId(String(props.id));
-    if (detailResponse.code === 200) {
-      const data = detailResponse.data;
-      if (props.type === 'copy') {
-        delete data.id;
-        delete data.enterpriseId;
-        delete data.goodsCode;
-      }
-      formData.value = { ...data };
-      if (data.sysOssLists && data.sysOssLists.length > 0) {
-        hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
-          name: file.originalName || '商品主图',
-          url: file.url,
-          fileType: '1',
-          ossId: file.ossId,
-          path: file.url
-        }));
-        hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
-      }
-    }
-  }
-};
-
-// ==========================
 // 生命周期
 // ==========================
 onMounted(async () => {
@@ -624,7 +589,34 @@ onMounted(async () => {
   functionOptions.value = functionList;
 
   // 根据 props 初始化
-  await initByProps();
+  operateMode.value = props.type;
+  refForm.value?.resetFields?.();
+  hnGoodsFilesList.value = [];
+  hnGoodsSpecificationDataList.value = [{ goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', status: 1 }];
+
+  if (props.id) {
+    const detailResponse = await goodsId(String(props.id));
+    if (detailResponse.code === 200) {
+      const data = detailResponse.data;
+      if (props.type === 'copy') {
+        delete data.id;
+        delete data.enterpriseId; //企业ID
+        delete data.goodsCode; //商品编码
+        delete data.goodsSales; //销售量
+      }
+      formData.value = { ...data };
+      if (data.sysOssLists && data.sysOssLists.length > 0) {
+        hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
+          name: file.originalName || '商品主图',
+          url: file.url,
+          fileType: '1',
+          ossId: file.ossId,
+          path: file.url
+        }));
+        hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
+      }
+    }
+  }
 });
 </script>
 

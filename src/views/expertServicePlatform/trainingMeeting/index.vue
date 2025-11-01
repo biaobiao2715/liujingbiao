@@ -1,0 +1,241 @@
+<!--
+  标题: enterprise/index.vue
+  功能: 专家培训会议
+  说明: 用于专家培训会议管理，包括查询、编辑等操作
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-10-15
+-->
+<template>
+  <div class="meeting-management">
+    <!-- 搜索条件 -->
+    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="110">
+      <el-form-item label="所属类别" prop="category">
+        <el-select v-model="queryParams.category" placeholder="请选择" clearable>
+          <el-option v-for="item in meeting_type" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="发布人" prop="publisher">
+        <el-input v-model="queryParams.publisher" placeholder="请输入发布人姓名" clearable />
+      </el-form-item>
+      <el-form-item label="会议标题" prop="meetingTitle">
+        <el-input v-model="queryParams.meetingTitle" placeholder="请输入会议标题" clearable />
+      </el-form-item>
+      <el-form-item label="报名状态" prop="signUpStatus">
+        <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
+          <el-option v-for="item in signUpStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="所属状态" prop="belongStatus">
+        <el-select v-model="queryParams.belongStatus" placeholder="请选择" clearable>
+          <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="发布时间" prop="publishTime">
+        <el-date-picker
+          v-model="queryParams.publishTime"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <!-- 表格展示 -->
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+      <el-table-column type="index" label="序号" width="55" align="center" />
+      <el-table-column label="会议开始时间" align="center" prop="startTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.startTime }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="会议结束时间" align="center" prop="endTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.endTime }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="会议标题" align="center" prop="meetingTitle" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="会议地址" align="center" prop="meetingAddress" min-width="180" :show-overflow-tooltip="true" />
+      <el-table-column label="所属分类" align="center" prop="category" min-width="100">
+        <template #default="scope">
+          <dict-tag :options="meeting_type" :value="scope.row.category" />
+        </template>
+      </el-table-column>
+      <el-table-column label="联系方式" align="center" prop="contact" min-width="120" />
+      <el-table-column label="报名状态" align="center" prop="signUpStatus" min-width="80">
+        <template #default="scope">
+          <dict-tag :options="meeting_status" :value="scope.row.signUpStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.publishTime }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" prop="status" min-width="80">
+        <template #default="scope">
+          <span :style="getStatusStyle(scope.row.status)">
+            {{ getStatusLabel(scope.row.status) }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="100">
+        <template #default="scope">
+          <el-button type="primary" @click="handleView(scope.row)">查看</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页 -->
+    <div class="flex-center pagination">
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+    </div>
+
+    <el-dialog
+      class="dialog-preview"
+      :title="dlgTitle"
+      v-model="dlgPreviewVisible"
+      :before-close="cancelDlg"
+      :close-on-click-modal="true"
+      :destroy-on-close="true"
+      append-to-body
+      width="80%"
+    >
+      <Details :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
+import { listcultivateExperts } from '@/api/expertServicePlatform/trainingMeeting/index';
+import Details from './Details.vue';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { meeting_status, meeting_type } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type'));
+
+const signUpStatusOptions = [
+  { value: '0', label: '未报名' },
+  { value: '1', label: '已报名' }
+];
+
+// 搜索表单数据
+const queryParams = ref({
+  pageNum: 1,
+  pageSize: 10,
+  category: '',
+  publishTime: [],
+  publisher: '',
+  meetingTitle: '',
+  signUpStatus: '',
+  belongStatus: ''
+});
+
+// 表格数据
+const tableData = ref([]);
+const total = ref(0);
+const loading = ref(true);
+const queryFormRef = ref();
+// 对话框相关状态
+const dlgPreviewVisible = ref(false);
+const dlgTitle = ref('');
+const isReadonly = ref(false);
+const selectID = ref<string | number>('');
+const selectType = ref<'view' | 'edit' | 'audit'>('view');
+
+/** 查询企业列表 */
+const getList = () => {
+  loading.value = true;
+  const { publishTime, ...rest } = queryParams.value as any;
+  const [publishStartTime, publishEndTime] = Array.isArray(publishTime) ? publishTime : [];
+  const params = { ...rest, ...(publishStartTime && publishEndTime ? { publishStartTime, publishEndTime } : {}) };
+
+  listcultivateExperts(params).then((res) => {
+    tableData.value = res.rows;
+    total.value = res.total;
+    loading.value = false;
+  });
+};
+
+// 查询按钮事件
+const handleSearch = () => {
+  queryParams.value.pageNum = 1;
+  getList();
+};
+
+/** 搜索按钮操作 */
+const handleQuery = () => {
+  queryParams.value.pageNum = 1;
+  getList();
+};
+/** 重置按钮操作 */
+const handleReset = () => {
+  queryFormRef.value?.resetFields();
+  handleQuery();
+};
+
+// 打开对话框：审核/查看/编辑
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  selectID.value = row.id;
+  selectType.value = type;
+  isReadonly.value = type === 'view';
+  dlgTitle.value = type === 'audit' ? '企业审核' : type === 'edit' ? '企业编辑' : '企业详情';
+  dlgPreviewVisible.value = true;
+};
+
+// 关闭对话框
+const cancelDlg = () => {
+  dlgPreviewVisible.value = false;
+};
+
+// 子组件刷新回调
+const refreshData = () => {
+  dlgPreviewVisible.value = false;
+  getList();
+};
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
+
+onMounted(() => {
+  getList();
+});
+
+const getStatusLabel = (status: string) => {
+  if (status === '0') return '待开始';
+  if (status === '1') return '已结束';
+  if (status === '2') return '已开始';
+  return '';
+};
+const getStatusStyle = (status: string) => {
+  if (status === '0') return 'color:#1890ff;';
+  if (status === '1') return 'color:#ff4d4f;';
+  if (status === '2') return 'color:#faad14;';
+  return '';
+};
+
+const handleView = (row: any) => {
+  selectID.value = row.id;
+  selectType.value = 'view';
+  dlgTitle.value = '会议详情';
+  dlgPreviewVisible.value = true;
+};
+</script>
+
+<style scoped lang="scss">
+.meeting-management {
+  padding: 24px;
+}
+.pagination {
+  margin-top: 24px;
+  justify-content: end;
+}
+</style>
