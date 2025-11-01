@@ -15,9 +15,10 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="产品保障">
-            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
+            <!-- <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
-            </el-select>
+            </el-select> -->
+            <el-tag type="info" v-for="item in formData.goodssEnsureName" :key="item" :closeable="false" style="margin-right: 5px">{{ item }}</el-tag>
           </el-form-item>
         </el-col>
         <el-col :span="8">

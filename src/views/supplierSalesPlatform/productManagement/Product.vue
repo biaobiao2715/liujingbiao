@@ -114,8 +114,8 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:business:query']" type="primary" @click="openDetails(scope.row, 'view')">详情</el-button>
-          <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetails(scope.row, 'edit')">价格设定</el-button>
+          <el-button v-throttle v-hasPermi="['system:business:query']" type="primary" @click="openDetails(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetailsEdit(scope.row)">价格设定</el-button>
           <el-button v-throttle v-hasPermi="['system:business:edit']" type="primary" @click="openEdit(scope.row)">编辑</el-button>
           <el-button v-throttle v-hasPermi="['system:business:add']" type="primary" @click="openCopy(scope.row)">复制商品</el-button>
           <el-button v-throttle v-hasPermi="['system:goods:setWarnings']" type="primary" @click="openWarnDialog(scope.row)">设置预警</el-button>
@@ -154,15 +154,13 @@
         <template #default>
           <component
             :is="
-              dialog.type === 'edit'
+              dialog.constants === 'edit'
                 ? EditDialog
-                : dialog.type === 'view'
+                : dialog.constants === 'details'
                   ? DetailsDialog
-                  : dialog.type === 'price'
+                  : dialog.constants === 'productPrice'
                     ? ProductPriceDialog
-                    : dialog.type === 'copy'
-                      ? EditDialog
-                      : null
+                    : null
             "
             :id="dialog.id"
             :type="dialog.type"
@@ -185,6 +183,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import router from '@/router';
 import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings } from '@/api/supplier/productManagement/product';
+import { constants } from 'buffer';
 
 // 异步引入弹窗组件
 const EditDialog = defineAsyncComponent(() => import('./Edit.vue'));
@@ -221,7 +220,8 @@ const dialog = reactive({
   visible: false,
   type: '', // 'edit' | 'view' | 'price'
   id: null,
-  title: ''
+  title: '',
+  constants: ''
 });
 
 // 设置预警 弹窗显隐与提交状态
@@ -508,19 +508,21 @@ const onKeypressDigits = (e: KeyboardEvent) => {
 };
 
 // 打开弹窗方法
-function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | number | null = null, title = '') {
+function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | number | null = null, title = '', constants = '') {
   dialog.type = type;
   dialog.id = id;
   dialog.title = title;
   dialog.visible = true;
+  dialog.constants = constants;
 }
 
 // 弹窗相关事件
 const handleAdd = () => openDialog('edit', null, '新增商品');
-const openEdit = (row: any) => openDialog('edit', row.id, '商品编辑');
-const openCopy = (row: any) => openDialog('copy', row.id, '复制商品');
-const openDetails = (row: any, type: 'view' | 'edit') => openDialog('view', row.id, type === 'edit' ? '价格设定' : '商品详情');
-const onPriceHistory = () => openDialog('price', null, '商品价格调整历史');
+const openEdit = (row: any) => openDialog('edit', row.id, '商品编辑', 'edit');
+const openCopy = (row: any) => openDialog('copy', row.id, '复制商品', 'edit');
+const openDetails = (row: any) => openDialog('view', row.id, '商品详情', 'details');
+const openDetailsEdit = (row: any) => openDialog('edit', row.id, '商品价格设定', 'details');
+const onPriceHistory = () => openDialog('price', null, '商品价格调整历史', 'productPrice');
 const onDialogSuccess = () => {
   dialog.visible = false;
   getList();
