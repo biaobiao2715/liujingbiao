@@ -1,14 +1,5 @@
-<!--
-  标题: edit.vue
-  功能: 新增/编辑共用页
-  说明: 用于知识库文章的新增与编辑
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
--->
 <template>
   <div class="kb-edit">
-    <el-page-header @back="handleBack" :content="id ? '编辑知识库' : '新增知识库'" />
-
     <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="form-wrap">
       <el-row :gutter="20">
         <el-col :span="12">
@@ -21,13 +12,25 @@
           <el-form-item label="文章类别" prop="articleType">
             <el-select v-model="form.articleType" placeholder="请选择" clearable filterable style="width: 100%">
               <el-option v-for="d in article_type" :key="d.value" :label="d.label" :value="String(d.value)" />
-            </el-select> </el-form-item
-        ></el-col>
-
+            </el-select>
+          </el-form-item>
+        </el-col>
         <el-col :span="12"></el-col>
         <el-col :span="24">
           <el-form-item label="正文编辑" prop="articleContent">
-            <editor v-model="form.articleContent" :min-height="192" />
+            <div style="display: flex">
+              <!-- 目录区 -->
+              <div style="width: 220px; margin-right: 24px; background: #fafafa; border-radius: 6px; padding: 16px">
+                <div style="font-weight: bold; margin-bottom: 12px">文章目录</div>
+                <div v-for="item in tocList" :key="item.id" :style="{ marginLeft: item.tag === 'H2' ? '16px' : item.tag === 'H3' ? '32px' : '0' }">
+                  <a href="javascript:;" @click="scrollTo(item.id)" style="color: #409eff">{{ item.text }}</a>
+                </div>
+              </div>
+              <!-- 编辑器区 -->
+              <div style="flex: 1">
+                <Editor v-model="form.articleContent" :height="500" :minHeight="500" />
+              </div>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -58,7 +61,6 @@
               <img src="@/assets/images/register1.svg" class="el-icon-view" />
               <span style="height: 16px; line-height: 16px">预览</span>
             </el-button>
-
             <el-button v-throttle text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
               <img src="@/assets/images/register4.svg" class="el-icon-view" />
               <span style="height: 16px; line-height: 16px">删除</span>
@@ -74,31 +76,30 @@
           <el-form-item label="启用状态" prop="articleStatus">
             <el-select v-model="form.articleStatus" placeholder="请选择" clearable filterable style="width: 100%">
               <el-option v-for="d in article_status" :key="d.value" :label="d.label" :value="String(d.value)" />
-            </el-select> </el-form-item
-        ></el-col>
+            </el-select>
+          </el-form-item>
+        </el-col>
       </el-row>
 
       <div class="btns">
-        <!-- <el-button v-throttle type="primary" @click="submit('0')">保存草稿</el-button> -->
         <el-button v-throttle type="primary" @click="submit()">发布</el-button>
-        <el-button v-throttle @click="handleBack">返回</el-button>
+        <el-button v-throttle @click="emitCancel">返回</el-button>
       </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-const router = useRouter();
-const route = useRoute();
-const { id } = route.query;
+
+const props = defineProps<{ id?: string | number }>();
+const emit = defineEmits(['success', 'cancel']);
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
 const article_status = computed(() => [
-  // { value: '0', label: '草稿' },
   { value: '2', label: '已启用' },
   { value: '3', label: '已禁用' }
 ]);
@@ -106,11 +107,11 @@ const form = ref<any>({
   articleTitle: '',
   articleType: '',
   articleContent: '',
-  articleStatus: '2' // 默认草稿
+  articleStatus: '2'
 });
 const formRef = ref();
-const fileListtable = ref<Array<any>>([]); // 附件列表
-
+const fileListtable = ref<Array<any>>([]);
+const tocList = ref([]); // 目录列表
 const rules = {
   articleTitle: [
     { required: true, message: '请输入文章标题', trigger: 'blur' },
@@ -121,7 +122,31 @@ const rules = {
   articleStatus: [{ required: true, message: '请选择文章状态', trigger: 'change' }]
 };
 
-const handleBack = () => router.back();
+const emitCancel = () => emit('cancel');
+
+// 监听内容变化，自动生成目录
+watch(
+  () => form.value.articleContent,
+  (val) => {
+    const div = document.createElement('div');
+    div.innerHTML = val;
+    const headings = div.querySelectorAll('h1, h2, h3');
+    tocList.value = Array.from(headings).map((el, idx) => ({
+      text: el.innerText,
+      tag: el.tagName,
+      id: `toc-${idx}`
+    }));
+    Array.from(headings).forEach((el, idx) => (el.id = `toc-${idx}`));
+  }
+);
+
+function scrollTo(id: string) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  console.log(id, 'sssdf', el);
+}
 
 const submit = async () => {
   await formRef.value?.validate();
@@ -129,17 +154,16 @@ const submit = async () => {
     ...form.value,
     ossVoList: fileListtable.value
   };
-  const api = id ? updateArticle : addArticle;
+  const api = props.id ? updateArticle : addArticle;
   const res = await api(payload);
   if ((res?.code ?? 200) === 200) {
-    ElMessage.success(id ? '保存成功' : '新增成功');
-    handleBack();
+    ElMessage.success(props.id ? '保存成功' : '新增成功');
+    emit('success');
   } else {
     ElMessage.error(res?.msg ?? '操作失败');
   }
 };
 
-// 替换原 beforeUpload：按文件类型分别限制大小（图片10MB、视频500MB、文档100MB），并校验格式
 const validateFile = (file: File) => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const imageExt = ['jpg', 'jpeg', 'png'];
@@ -161,7 +185,6 @@ const validateFile = (file: File) => {
   return true;
 };
 
-// 处理文件选择：先校验格式与大小，再上传
 const handleChange = (file: any) => {
   if (!validateFile(file.raw)) return;
   proxy?.$modal.loading('正在上传附件，请稍候...');
@@ -186,25 +209,22 @@ const handleChange = (file: any) => {
     .finally(() => proxy?.$modal.closeLoading());
 };
 
-// 预览文件
 const previewFile = async (file: any) => {
   try {
     const response = await fetch(file.url);
     const blob = await response.blob();
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = file.fileName; // 设置文件名
+    link.download = file.fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(link.href); // 释放 URL 对象
+    URL.revokeObjectURL(link.href);
   } catch (error) {
     console.error('下载失败', error);
   }
-  console.log('预览文件:', file);
 };
 
-// 删除文件
 const removeFile = (file: any) => {
   const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
   if (index !== -1) {
@@ -213,8 +233,8 @@ const removeFile = (file: any) => {
 };
 
 onMounted(async () => {
-  if (id) {
-    const res = await getArticle(Number(id));
+  if (props.id) {
+    const res = await getArticle(Number(props.id));
     if ((res?.code ?? 500) === 200) {
       form.value = {
         ...form.value,
@@ -257,5 +277,12 @@ onMounted(async () => {
 
 .h20 {
   height: 20px;
+}
+
+.toc-container {
+  cursor: pointer;
+  width: 120px;
+  height: 200px;
+  background-color: #b42020;
 }
 </style>

@@ -1,10 +1,3 @@
-<!--
-  标题: details.vue
-  功能: 知识库文章详情
-  说明: 展示标题、作者、发布时间、类别、封面、正文与附件下载
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
--->
 <template>
   <div class="kb-detail">
     <div class="header">
@@ -34,61 +27,109 @@
 
     <div v-if="imgList.length" class="attachments">
       <div class="section-title">附件</div>
+      <el-divider />
       <el-table :data="imgList" border>
-        <el-table-column prop="typeText" label="附件类型" width="120" align="center" />
-        <el-table-column prop="name" label="附件名称" />
-        <el-table-column prop="sizeText" label="文件大小" width="140" align="center" />
-        <el-table-column label="操作" width="120" align="center">
+        <el-table-column prop="typeText" label="类型" width="100" align="center">
+          <template #default="scope">{{ scope.row.fileSuffixDisplay }}</template>
+        </el-table-column>
+        <el-table-column prop="originalName" label="文件名称">
+          <template #default="scope">{{ scope.row.originalName }}</template>
+        </el-table-column>
+        <el-table-column prop="sizeText" label="文件大小" width="140" align="center">
+          <template #default="scope">{{ scope.row.sizeText || '--' }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="140" align="center">
           <template #default="scope">
-            <el-button v-throttle type="primary" text @click="previewFile(scope.row)">下载</el-button>
+            <el-button v-throttle type="primary" text @click="downloadFile(scope.row)">下载</el-button>
           </template>
         </el-table-column>
       </el-table>
+    </div>
+    <div class="btns" style="margin-top: 16px; text-align: center">
+      <el-button v-throttle @click="emitCancel">关闭</el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
-import { useRoute } from 'vue-router';
 import { View, Star } from '@element-plus/icons-vue';
 import { getArticle } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
-const route = useRoute();
+const props = defineProps<{ id?: string | number }>();
+const emit = defineEmits(['cancel']);
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
 const form = ref<any>({});
-const imgList = ref<Array<{ name: string; url: string; size?: number; sizeText?: string; type?: string; typeText?: string }>>([]);
+const imgList = ref<Array<any>>([]);
 
-const previewFile = async (file: any) => {
+const buildAttachments = (data: any) => {
+  const files = data?.commonRelevanceFilesVos || [];
+  imgList.value = files.map((item: any) => {
+    const remote = (item.remoteOssVos && item.remoteOssVos[0]) || {};
+    let fileSize = 0;
+    try {
+      if (remote.ext1) {
+        const meta = typeof remote.ext1 === 'string' ? JSON.parse(remote.ext1) : remote.ext1;
+        fileSize = Number(meta?.fileSize) || 0;
+      }
+    } catch {
+      fileSize = 0;
+    }
+    const suffix = (remote.fileSuffix || '').replace(/^\./, '').toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'webp'].includes(suffix);
+    return {
+      raw: item,
+      url: remote.url || remote.name || '',
+      originalName: remote.originalName || remote.name || '',
+      fileSuffix: remote.fileSuffix || suffix,
+      fileSuffixDisplay: suffix ? suffix.replace(/^\./, '') : '--',
+      fileSize,
+      sizeText: formatSize(fileSize),
+      isImage,
+      remote
+    };
+  });
+};
+
+const downloadFile = async (row: any) => {
   try {
-    const response = await fetch(file.url);
+    const response = await fetch(row.url);
     const blob = await response.blob();
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = file.fileName; // 设置文件名
+    link.download = row.fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(link.href); // 释放 URL 对象
+    URL.revokeObjectURL(link.href);
   } catch (error) {
-    // console.error('下载失败', error);
+    console.error('下载失败', error);
   }
-  // console.log('预览文件:', file);
 };
 
+const formatSize = (bytes: number) => {
+  if (!bytes || bytes === 0) return '--';
+  const kb = 1024;
+  const mb = kb * 1024;
+  if (bytes >= mb) return (bytes / mb).toFixed(2) + ' MB';
+  if (bytes >= kb) return (bytes / kb).toFixed(2) + ' KB';
+  return bytes + ' B';
+};
+
+const emitCancel = () => emit('cancel');
+
 onMounted(async () => {
-  const id = route.query?.id;
-  if (!id) {
+  if (!props.id) {
     ElMessage.error('缺少文章ID');
     return;
   }
-
-  const res = await getArticle(id as string);
+  const res = await getArticle(props.id as string);
   const data = res?.data ?? res ?? {};
   form.value = data;
-  // buildAttachments(data);
+  buildAttachments(data);
 });
 </script>
 
@@ -164,5 +205,20 @@ onMounted(async () => {
   font-weight: 600;
   margin: 8px 0;
   color: #333;
+}
+.thumb {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.thumb-nonimg {
+  width: 80px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7fa;
+  color: #909399;
+  border-radius: 4px;
 }
 </style>

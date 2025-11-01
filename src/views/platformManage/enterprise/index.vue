@@ -23,7 +23,7 @@
           <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="审核时间">
+      <el-form-item label="审核时间" prop="reviewTime">
         <el-date-picker
           v-model="queryParams.reviewTime"
           type="datetimerange"
@@ -168,29 +168,14 @@ const isReadonly = ref(false);
 const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'edit' | 'audit'>('view');
 
-/** 规范化审核时间上传 */
-const buildReviewTimePayload = () => {
-  const rt = queryParams.value.reviewTime;
-  if (Array.isArray(rt) && rt.length === 2 && rt[0] && rt[1]) {
-    return {
-      reviewStartTime: `${rt[0]} 00:00:00`,
-      reviewEndTime: `${rt[1]} 23:59:59`
-    };
-  }
-  return {
-    reviewStartTime: undefined,
-    reviewEndTime: undefined
-  };
-};
-
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  baseEnterpriseInfoList({
-    ...queryParams.value,
-    reviewTime: undefined,
-    ...buildReviewTimePayload()
-  }).then((res) => {
+  const { reviewTime, ...rest } = queryParams.value as any;
+  const [reviewStartTime, reviewEndTime] = Array.isArray(reviewTime) ? reviewTime : [];
+  const params = { ...rest, ...(reviewStartTime && reviewEndTime ? { reviewStartTime, reviewEndTime } : {}) };
+
+  baseEnterpriseInfoList(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
@@ -211,8 +196,6 @@ const handleQuery = () => {
 /** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
-  // 强制清除日期范围
-  queryParams.value.reviewTime = [];
   handleQuery();
 };
 
@@ -223,14 +206,6 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   isReadonly.value = type === 'view';
   dlgTitle.value = type === 'audit' ? '企业审核' : type === 'edit' ? '企业编辑' : '企业详情';
   dlgPreviewVisible.value = true;
-};
-
-const isPendingReview = (row) => {
-  return row.reviewStatus == 0;
-};
-
-const isReviewProcessed = (row) => {
-  return !(row.reviewStatus == 0);
 };
 
 // 关闭对话框

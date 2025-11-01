@@ -1,11 +1,4 @@
-<!--
-  标题: enterprise/index.vue
-  功能: 知识库管理
-  说明: 用于知识库文章管理，包括查询、添加、编辑、删除等操作
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
--->
-
+<!-- src/views/expertServicePlatform/knowledgeBaseManage/index.vue -->
 <template>
   <div class="kb-management">
     <!-- 搜索条件 -->
@@ -18,7 +11,6 @@
       <el-form-item label="文章标题" prop="articleTitle">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-
       <el-form-item label="启用状态" prop="articleStatus">
         <el-select v-model="queryParams.articleStatus" placeholder="请选择" clearable>
           <el-option label="启用" value="2" />
@@ -37,7 +29,6 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
@@ -50,13 +41,13 @@
         <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增知识库</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleEnableBatch">启用</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleEnableBatch">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleDisableBatch">禁用</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleDisableBatch">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleDeleteBatch">删除</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:delete']" type="primary" @click="handleDeleteBatch">删除</el-button>
       </el-col>
       <right-toolbar :show-search="showSearch" @query-table="getList" />
     </el-row>
@@ -93,11 +84,27 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="400" fixed="right">
         <template #default="scope">
-          <el-button v-throttle type="primary" text @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-if="String(scope.row.articleStatus) === '2'" v-throttle type="primary" text @click="handleEnable(scope.row)">启用</el-button>
-          <el-button v-if="String(scope.row.articleStatus) === '2'" v-throttle type="primary" text @click="handleDisable(scope.row)">禁用</el-button>
+          <el-button v-throttle v-hasPermi="['system:article:edit']" type="primary" text @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button
+            v-if="scope.row.articleStatus == '3'"
+            v-throttle
+            v-hasPermi="['system:article:enableAndDisabled']"
+            type="primary"
+            text
+            @click="handleEnable(scope.row)"
+            >启用</el-button
+          >
+          <el-button
+            v-if="scope.row.articleStatus == '2'"
+            v-throttle
+            v-hasPermi="['system:article:enableAndDisabled']"
+            type="primary"
+            text
+            @click="handleDisable(scope.row)"
+            >禁用</el-button
+          >
           <el-button v-throttle v-hasPermi="['system:article:query']" type="primary" text @click="handleView(scope.row)">查看</el-button>
-          <el-button v-throttle type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
+          <el-button v-throttle v-hasPermi="['system:article:delete']" type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -105,17 +112,48 @@
     <div class="flex-end pagination">
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
+
+    <!-- 方案B弹窗：父级统一控制，异步引入，销毁关闭 -->
+    <el-dialog
+      v-model="dialog.visible"
+      :title="dialog.type === 'add' ? '新增知识库' : dialog.type === 'edit' ? '编辑知识库' : '查看知识库'"
+      width="80%"
+      destroy-on-close
+      :close-on-click-modal="false"
+      @close="dialog.type = ''"
+    >
+      <Suspense>
+        <template #default>
+          <component
+            :is="dialog.type === 'view' ? DetailsDialog : EditDialog"
+            :id="dialog.id"
+            @success="onDialogSuccess"
+            @cancel="dialog.visible = false"
+          />
+        </template>
+        <template #fallback>
+          <el-skeleton :rows="6" animated />
+        </template>
+      </Suspense>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onActivated, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
-import router from '@/router';
+import { ref, onMounted, onActivated, getCurrentInstance, type ComponentInternalInstance, computed, defineAsyncComponent, Suspense } from 'vue';
 import { useRoute } from 'vue-router';
 import { listArticles, delArticle, changeArticleStatus } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
+// 弹窗控制
+const dialog = ref({
+  visible: false,
+  type: '', // 'add' | 'edit' | 'view'
+  id: null
+});
+const EditDialog = defineAsyncComponent(() => import('./edit.vue'));
+const DetailsDialog = defineAsyncComponent(() => import('./details.vue'));
 // 搜索表单
 const queryParams = ref({
   pageNum: 1,
@@ -137,10 +175,6 @@ const queryFormRef = ref();
 const selectedIds = ref<(string | number)[]>([]);
 const selectedRows = ref<any[]>([]);
 
-// 路由
-const route = useRoute();
-const isKeepAlive = computed(() => route.meta?.keepAlive === true);
-
 // 映射
 const getEnableStatusText = (s: any) => {
   const map: Record<string, string> = { '2': '启用', '3': '禁用' };
@@ -157,7 +191,6 @@ const getList = async () => {
       publishStartTime: queryParams.value.publishTime?.[0],
       publishEndTime: queryParams.value.publishTime?.[1]
     });
-    // 兼容 rows/total 或 data.total/list
     tableData.value = res?.rows ?? res?.data?.list ?? [];
     total.value = res?.total ?? res?.data?.total ?? 0;
   } finally {
@@ -213,7 +246,6 @@ const changeStatusConfirm = async (ids: (string | number)[], articleStatus: stri
   try {
     await ElMessageBox.confirm(msg, '提示', { type: 'warning' });
   } catch {
-    // 用户取消
     return;
   }
   try {
@@ -235,7 +267,6 @@ const deleteConfirm = async (ids: (string | number)[]) => {
   try {
     await ElMessageBox.confirm(`确定删除选中的 ${ids.length} 条数据吗？`, '提示', { type: 'warning' });
   } catch {
-    // 用户取消
     return;
   }
   try {
@@ -253,16 +284,25 @@ const deleteConfirm = async (ids: (string | number)[]) => {
   }
 };
 
-const handleAdd = () => router.push({ path: '/expertServicePlatform/knowledgeBaseManage/edit' });
-const handleEdit = (row: any) => router.push({ path: '/expertServicePlatform/knowledgeBaseManage/edit', query: { id: row.id } });
-const handleView = (row: any) => router.push({ path: '/expertServicePlatform/knowledgeBaseManage/details', query: { id: row.id } });
+// 方案B弹窗控制
+const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
+  dialog.value = { visible: true, type, id: id ?? null };
+};
+const handleAdd = () => openDialog('add');
+const handleEdit = (row: any) => openDialog('edit', row.id);
+const handleView = (row: any) => openDialog('view', row.id);
+
+const onDialogSuccess = () => {
+  dialog.value.visible = false;
+  getList();
+};
 
 // 生命周期
 onMounted(() => {
-  if (!isKeepAlive.value) getList();
+  getList();
 });
 onActivated(() => {
-  if (isKeepAlive.value) getList();
+  getList();
 });
 </script>
 
