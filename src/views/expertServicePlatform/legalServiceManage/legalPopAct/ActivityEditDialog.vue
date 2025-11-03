@@ -65,26 +65,32 @@
         <div class="time-range">
           <div class="time-item">
             <label class="time-label">开始时间:</label>
-            <el-date-picker
-              v-model="formData.startTime"
-              type="datetime"
-              placeholder="选择开始时间"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              style="width: 200px"
-              clearable
-            />
+            <el-form-item prop="startTime" style="margin-bottom: 0;">
+              <el-date-picker
+                v-model="formData.startTime"
+                type="datetime"
+                placeholder="选择开始时间"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                style="width: 200px"
+                clearable
+                @change="handleStartTimeChange"
+              />
+            </el-form-item>
           </div>
           <span class="time-separator">-</span>
           <div class="time-item">
             <label class="time-label">结束时间:</label>
-            <el-date-picker
-              v-model="formData.endTime"
-              type="datetime"
-              placeholder="选择结束时间"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              style="width: 200px"
-              clearable
-            />
+            <el-form-item prop="endTime" style="margin-bottom: 0;">
+              <el-date-picker
+                v-model="formData.endTime"
+                type="datetime"
+                placeholder="选择结束时间"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                style="width: 200px"
+                clearable
+                @change="handleEndTimeChange"
+              />
+            </el-form-item>
           </div>
         </div>
       </el-form-item>
@@ -98,6 +104,8 @@
       <el-form-item label="联系人电话" prop="activityContactPhone" required>
         <el-input v-model="formData.activityContactPhone" placeholder="请输入联系电话" clearable />
       </el-form-item>
+      
+
 
       <!-- 表单操作按钮 -->
       <div class="form-actions">
@@ -146,7 +154,7 @@ const loading = ref(false);
 
 // 表单数据
 const formData = ref({
-  id: undefined as string | undefined,
+  id: undefined as string | number | undefined,
   activityTitle: '',
   activitySummary: '',
   activityType: '',
@@ -154,7 +162,9 @@ const formData = ref({
   startTime: '',
   endTime: '',
   activityContact: '',
-  activityContactPhone: ''
+  activityContactPhone: '',
+  activityStatus: '1', // 活动状态：1-待开始 2-进行中 3-已结束 99-已取消
+  publishTime: '' // 发布时间
 });
 
 // 表单验证规则
@@ -175,10 +185,66 @@ const formRules = {
     { min: 1, max: 30, message: '地址长度在 1 到 30 个字符', trigger: 'blur' }
   ],
   startTime: [
-    { required: true, message: '请选择开始时间', trigger: 'change' }
+    { required: true, message: '请选择开始时间', trigger: 'change' },
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请选择开始时间'));
+          return;
+        }
+        
+        // 检查开始时间格式
+        if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+          callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
+          return;
+        }
+        
+        // 如果结束时间已选择，则校验开始时间必须小于结束时间
+        if (formData.value.endTime) {
+          const startDate = new Date(value);
+          const endDate = new Date(formData.value.endTime);
+          
+          if (startDate >= endDate) {
+            callback(new Error('开始时间必须早于结束时间'));
+            return;
+          }
+        }
+        
+        callback();
+      },
+      trigger: ['change', 'blur']
+    }
   ],
   endTime: [
-    { required: true, message: '请选择结束时间', trigger: 'change' }
+    { required: true, message: '请选择结束时间', trigger: 'change' },
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback(new Error('请选择结束时间'));
+          return;
+        }
+        
+        // 检查结束时间格式
+        if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+          callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
+          return;
+        }
+        
+        // 如果开始时间已选择，则校验结束时间必须大于开始时间
+        if (formData.value.startTime) {
+          const startDate = new Date(formData.value.startTime);
+          const endDate = new Date(value);
+          
+          if (endDate <= startDate) {
+            callback(new Error('结束时间必须晚于开始时间'));
+            return;
+          }
+        }
+        
+        callback();
+      },
+      trigger: ['change', 'blur']
+    }
   ],
   activityContact: [
     { required: true, message: '请输入联系人姓名', trigger: 'blur' },
@@ -192,21 +258,32 @@ const formRules = {
 
 /** 获取活动详情 */
 const fetchActivityDetail = async () => {
-  if (!props.id) return;
+  if (!props.id) {
+    console.error('【错误】活动ID为空，无法获取详情');
+    ElMessage.error('活动ID不存在');
+    return;
+  }
+  
+  console.log('【开始】获取活动详情，ID:', props.id, '类型:', typeof props.id);
   
   loading.value = true;
   try {
     const response: any = await getActivityDetail(props.id);
     
+    console.log('【接口返回】获取活动详情响应:', response);
+    
     if (response && response.code === 200) {
       const data = response.data;
       
       if (!data) {
+        console.error('【错误】后端返回数据为空');
         ElMessage.error('获取活动详情失败：数据为空');
         return;
       }
       
-      // 将接口返回的数据赋值给表单
+      console.log('【后端数据】原始数据:', data);
+      
+      // 字段名已经统一，直接赋值
       formData.value = {
         id: data.id,
         activityTitle: data.activityTitle || '',
@@ -216,13 +293,18 @@ const fetchActivityDetail = async () => {
         startTime: data.startTime || '',
         endTime: data.endTime || '',
         activityContact: data.activityContact || '',
-        activityContactPhone: data.activityContactPhone || ''
+        activityContactPhone: data.activityContactPhone || '',
+        activityStatus: data.activityStatus || '1', // 默认待开始
+        publishTime: data.publishTime || '' // 发布时间
       };
+      
+      console.log('【成功】活动详情数据回显:', formData.value);
     } else {
+      console.error('【错误】接口返回失败:', response);
       ElMessage.error(response?.msg || '获取活动详情失败');
     }
   } catch (error) {
-    console.error('获取活动详情失败:', error);
+    console.error('【异常】获取活动详情失败:', error);
     ElMessage.error('获取活动详情失败，请稍后重试');
   } finally {
     loading.value = false;
@@ -249,8 +331,8 @@ const handleSubmit = async () => {
     
     saving.value = true;
     
-    // 构建提交数据
-    const submitData = {
+    // 构建提交数据（参考普法内容和商品部分的写法）
+    const submitData: any = {
       ...(props.type === 'edit' ? { id: formData.value.id } : {}),
       activityTitle: formData.value.activityTitle,
       activitySummary: formData.value.activitySummary,
@@ -259,12 +341,19 @@ const handleSubmit = async () => {
       startTime: formData.value.startTime,
       endTime: formData.value.endTime,
       activityContact: formData.value.activityContact,
-      activityContactPhone: formData.value.activityContactPhone
+      activityContactPhone: formData.value.activityContactPhone,
+      activityStatus: formData.value.activityStatus, // 活动状态（新增时默认为1-待开始）
+      publishTime: formData.value.publishTime // 发布时间
     };
+    
+    console.log('提交数据:', submitData);
+    console.log('操作类型:', props.type);
     
     // 调用对应的接口
     const api = props.type === 'add' ? addActivity : editActivity;
     const response: any = await api(submitData);
+    
+    console.log('接口返回:', response);
     
     if (response && response.code === 200) {
       ElMessage.success(props.type === 'add' ? '普法活动发布成功' : '普法活动修改成功');
@@ -287,10 +376,48 @@ const emitCancel = () => {
   emit('cancel');
 };
 
-// 页面加载时的处理
-onMounted(() => {
-  if (props.type === 'edit' && props.id) {
-    fetchActivityDetail();
+/** 开始时间改变事件 */
+const handleStartTimeChange = () => {
+  // 当开始时间改变时，如果已有结束时间，则重新校验结束时间
+  if (formData.value.endTime && formRef.value) {
+    formRef.value.validateField('endTime');
+  }
+};
+
+/** 结束时间改变事件 */
+const handleEndTimeChange = () => {
+  // 当结束时间改变时，如果已有开始时间，则重新校验开始时间
+  if (formData.value.startTime && formRef.value) {
+    formRef.value.validateField('startTime');
+  }
+};
+
+/** 获取当前时间（格式：YYYY-MM-DD HH:mm:ss） */
+const getCurrentDateTime = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+// 页面加载时的处理（参考商品部分的写法）
+onMounted(async () => {
+  // 重置表单状态
+  formRef.value?.resetFields?.();
+  
+  // 如果是编辑模式且有 ID，则加载活动详情
+  if ((props.type === 'edit' || props.type === 'view') && props.id) {
+    await fetchActivityDetail();
+  } else if (props.type === 'add') {
+    // 新增模式：设置默认值
+    formData.value.activityStatus = '1'; // 默认待开始
+    formData.value.publishTime = getCurrentDateTime(); // 默认当前时间
+    console.log('【新增模式】活动状态默认设置为：待开始(1)');
+    console.log('【新增模式】发布时间默认设置为：', formData.value.publishTime);
   }
 });
 </script>
@@ -311,12 +438,12 @@ onMounted(() => {
 // 时间范围样式
 .time-range {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   
   .time-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     
     .time-label {
@@ -324,6 +451,12 @@ onMounted(() => {
       color: #606266;
       font-weight: 500;
       white-space: nowrap;
+      line-height: 32px;
+    }
+    
+    // 移除嵌套 form-item 的额外边距
+    .el-form-item {
+      margin-bottom: 0 !important;
     }
   }
   
@@ -332,6 +465,7 @@ onMounted(() => {
     font-size: 16px;
     font-weight: 500;
     margin: 0 8px;
+    line-height: 32px;
   }
 }
 

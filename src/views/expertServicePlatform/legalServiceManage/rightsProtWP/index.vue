@@ -19,7 +19,6 @@
         <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="paperStatus">
           <el-select v-model="queryParams.paperStatus" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="请选择" />
             <el-option 
               v-for="item in legal_popularize_status" 
               :key="item.value" 
@@ -260,7 +259,8 @@ import { useRouter } from 'vue-router';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
-  updateWhitePaperStatus,
+  enableWhitePaper,
+  disableWhitePaper,
   updateWhitePaperVersion,
   type WhitePaperListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
@@ -359,27 +359,28 @@ const getStatusLabel = (status: string | number) => {
 const getList = () => {
   loading.value = true;
   
-  // 参考普法内容管理的写法，准备查询参数
   const [startTime, endTime] = dateRange.value || [];
   
   const params: any = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
-    ...(queryParams.value.paperTitle ? { paperTitle: queryParams.value.paperTitle } : {}),
-    ...(queryParams.value.paperStatus && queryParams.value.paperStatus !== '请选择' ? 
-        { paperStatus: queryParams.value.paperStatus } : {}),
-    ...(startTime && endTime ? { startTime, endTime } : {})
   };
   
-  // 过滤空字符串参数
-  Object.keys(params).forEach(key => {
-    if (params[key] === '' || params[key] === undefined) {
-      delete params[key];
-    }
-  });
+  // 添加搜索条件
+  if (queryParams.value.paperTitle) {
+    params.paperTitle = queryParams.value.paperTitle;
+  }
+  if (queryParams.value.paperStatus) {
+    params.paperStatus = queryParams.value.paperStatus;
+  }
+  if (startTime && endTime) {
+    params.startTime = startTime;
+    params.endTime = endTime;
+  }
   
-  // 调用真实API，参考普法内容管理的写法
   getWhitePaperList(params).then((res: any) => {
+    console.log('响应数据:', res);
+    
     if (res && res.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
@@ -389,10 +390,68 @@ const getList = () => {
       ElMessage.error(res?.msg || '获取数据失败');
     }
   }).catch((error: any) => {
-    console.error('获取维权白皮书列表失败:', error);
-    tableData.value = [];
-    total.value = 0;
-    ElMessage.error('获取维权白皮书列表失败，请稍后重试');
+    console.error('错误类型:', typeof error);
+    console.error('错误内容:', error);
+    
+    // 如果是后端接口未实现，使用模拟数据（临时方案）
+    console.warn('⚠️ 使用模拟数据显示页面');
+    
+    // 模拟数据（字段名与后端接口一致）
+    const mockData = {
+      rows: [
+        {
+          id: '1',
+          paperTitle: '2025年种子法修订解读',
+          createTime: '2025-01-15 10:00:00',
+          viewCount: 1550,
+          downloadCount: 988,
+          paperStatus: '2', // 2-启用
+          currentVersion: 'V1.0'
+        },
+        {
+          id: '2',
+          paperTitle: '农业知识产权保护指南',
+          createTime: '2025-01-10 14:30:00',
+          viewCount: 1200,
+          downloadCount: 350,
+          paperStatus: '2', // 2-启用
+          currentVersion: 'V2.1'
+        },
+        {
+          id: '3',
+          paperTitle: '种子维权白皮书',
+          createTime: '2024-12-20 09:15:00',
+          viewCount: 980,
+          downloadCount: 280,
+          paperStatus: '3', // 3-禁用
+          currentVersion: 'V1.5'
+        },
+        {
+          id: '4',
+          paperTitle: '农产品质量安全法规汇编',
+          createTime: '2024-12-15 16:45:00',
+          viewCount: 750,
+          downloadCount: 150,
+          paperStatus: '3', // 3-禁用
+          currentVersion: 'V1.0'
+        },
+        {
+          id: '5',
+          paperTitle: '农业补贴政策白皮书2025',
+          createTime: '2024-12-10 11:20:00',
+          viewCount: 2100,
+          downloadCount: 420,
+          paperStatus: '2', // 2-启用
+          currentVersion: 'V3.0'
+        }
+      ],
+      total: 5
+    };
+    
+    tableData.value = mockData.rows;
+    total.value = mockData.total;
+    
+    ElMessage.warning('当前使用模拟数据展示，请联系后端开发人员确认接口状态');
   }).finally(() => {
     loading.value = false;
   });
@@ -468,8 +527,8 @@ const handleEnable = async () => {
     
     loading.value = true;
     
-    // 调用启用API - 状态值 2 表示启用
-    const response: any = await updateWhitePaperStatus({ ids, status: '2' });
+    // 调用启用API
+    const response: any = await enableWhitePaper(ids);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功启用${ids.length}个白皮书`);
@@ -514,8 +573,8 @@ const handleDisable = async () => {
     
     loading.value = true;
     
-    // 调用停用API - 状态值 3 表示禁用
-    const response: any = await updateWhitePaperStatus({ ids, status: '3' });
+    // 调用停用API
+    const response: any = await disableWhitePaper(ids);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功停用${ids.length}个白皮书`);
@@ -651,9 +710,9 @@ const handleStatusChange = async (row: any, status: string) => {
       }
     );
     
-    // 调用状态更新API - "启用"对应状态值 2，"禁用"对应状态值 3
-    const statusValue = status === '启用' ? '2' : '3';
-    const response: any = await updateWhitePaperStatus({ ids: [row.id], status: statusValue });
+    // 调用对应的API
+    const api = status === '启用' ? enableWhitePaper : disableWhitePaper;
+    const response: any = await api([row.id]);
     
     if (response && response.code === 200) {
       ElMessage.success(`${status}成功`);

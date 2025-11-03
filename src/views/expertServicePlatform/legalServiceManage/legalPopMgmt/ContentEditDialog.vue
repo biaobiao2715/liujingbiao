@@ -15,9 +15,9 @@
               v-model="formData.contentTitle" 
               placeholder="请输入标题内容" 
               maxlength="30"
+              show-word-limit
               clearable
             />
-            <div class="form-tip">请输入标题，最多支持30个汉字</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -39,9 +39,9 @@
               :rows="3" 
               placeholder="请输入简介"
               maxlength="60"
+              show-word-limit
               clearable
             />
-            <div class="form-tip">请输入简介，最多支持60个汉字</div>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -500,59 +500,6 @@ onMounted(() => {
   padding: 20px 0;
 }
 
-// 表单提示文字
-.form-tip {
-  color: #f56c6c;
-  font-size: 12px;
-  line-height: 1.5;
-  margin-top: 4px;
-}
-
-// 表单样式优化
-:deep(.el-form) {
-  .el-form-item {
-    margin-bottom: 22px;
-    
-    // 必填星号样式
-    .el-form-item__label {
-      &::before {
-        color: #f56c6c;
-        margin-right: 4px;
-      }
-    }
-  }
-  
-  // 输入框样式
-  .el-input__inner,
-  .el-textarea__inner {
-    border-color: #dcdfe6;
-    
-    &:focus {
-      border-color: #409eff;
-    }
-    
-    &::placeholder {
-      color: #c0c4cc;
-    }
-  }
-  
-  // 选择框样式
-  .el-select {
-    .el-input__inner {
-      border-color: #dcdfe6;
-    }
-  }
-  
-  // 文本域样式
-  .el-textarea {
-    .el-textarea__inner {
-      resize: none;
-      font-family: inherit;
-      line-height: 1.6;
-    }
-  }
-}
-
 // 编辑器容器 - 左右布局
 .editor-container {
   display: flex;
@@ -783,28 +730,19 @@ onMounted(() => {
 @media (max-width: 768px) {
   .editor-container {
     flex-direction: column;
-    min-height: 600px;
-  }
-  
-  .editor-wrapper {
-    border-right: none;
-    border-bottom: 1px solid #dcdfe6;
   }
   
   .toc-sidebar {
     width: 100%;
     min-width: 100%;
     max-height: 300px;
-    border-top: 1px solid #dcdfe6;
     
-    .toc-content {
-      max-height: 240px;
+    .toc-list {
+      max-height: 200px;
     }
   }
   
   .form-actions {
-    flex-direction: column;
-    
     .el-button {
       width: 100%;
     }
@@ -822,16 +760,13 @@ onMounted(() => {
 // 中等屏幕优化
 @media (min-width: 769px) and (max-width: 1024px) {
   .toc-sidebar {
-    width: 220px;
-    min-width: 220px;
+    width: 200px;
+    min-width: 200px;
+    padding: 16px;
   }
-}
-
-// 大屏幕优化
-@media (min-width: 1440px) {
-  .toc-sidebar {
-    width: 300px;
-    min-width: 300px;
+  
+  .editor-container {
+    gap: 16px;
   }
 }
 </style>

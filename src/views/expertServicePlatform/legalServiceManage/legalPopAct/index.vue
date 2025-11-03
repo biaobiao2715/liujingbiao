@@ -409,7 +409,9 @@ const getDialogTitle = () => {
 
 /** 打开弹窗 */
 const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
+  console.log('【弹窗】打开弹窗，类型:', type, 'ID:', id, 'ID类型:', typeof id);
   dialog.value = { visible: true, type, id: id ?? null };
+  console.log('【弹窗】弹窗配置:', dialog.value);
 };
 
 /** 新增按钮事件 */
@@ -463,6 +465,15 @@ const handleDelete = async () => {
 
 /** 编辑按钮事件 */
 const handleEdit = (row: any) => {
+  console.log('【编辑】点击编辑按钮，行数据:', row);
+  console.log('【编辑】活动ID:', row.id, '类型:', typeof row.id);
+  console.log('【编辑】活动标题:', row.activityTitle);
+  
+  if (!row.id) {
+    ElMessage.error('活动ID不存在，无法编辑');
+    return;
+  }
+  
   openDialog('edit', row.id);
 };
 
@@ -480,18 +491,40 @@ const onDialogSuccess = () => {
 /** 取消活动事件 */
 const handleCancelActivity = async (row: any) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要取消活动"${row.activityTitle}"吗？取消后将无法恢复。`,
-      '取消活动确认',
+    // 先让用户输入取消原因
+    const { value: cancelReason } = await ElMessageBox.prompt(
+      `请输入取消活动"${row.activityTitle}"的原因：`,
+      '取消活动',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning',
+        inputPlaceholder: '请输入取消原因',
+        inputType: 'textarea',
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return '请输入取消原因';
+          }
+          if (value.length < 5) {
+            return '取消原因至少5个字符';
+          }
+          if (value.length > 200) {
+            return '取消原因不能超过200个字符';
+          }
+          return true;
+        },
+        inputErrorMessage: '请输入有效的取消原因'
       }
     );
     
-    // 调用取消活动API - 响应拦截器已处理，response 直接是后端返回数据
-    const response: any = await cancelActivity(row.id);
+    if (!cancelReason || cancelReason.trim() === '') {
+      ElMessage.warning('请输入取消原因');
+      return;
+    }
+    
+    loading.value = true;
+    
+    // 调用取消活动API，传递取消原因
+    const response: any = await cancelActivity(row.id, cancelReason.trim());
     
     if (response && response.code === 200) {
       ElMessage.success('活动取消成功');
@@ -505,6 +538,8 @@ const handleCancelActivity = async (row: any) => {
       console.error('取消活动失败:', error);
       ElMessage.error('取消活动失败，请稍后重试');
     }
+  } finally {
+    loading.value = false;
   }
 };
 

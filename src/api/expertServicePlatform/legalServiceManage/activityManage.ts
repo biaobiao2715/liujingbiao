@@ -8,8 +8,8 @@ import { AxiosPromise } from 'axios';
 export interface ActivityListQuery {
   pageNum: number;
   pageSize: number;
-  title?: string; // 活动标题
-  status?: string; // 状态
+  activityTitle?: string; // 活动标题
+  activityStatus?: string; // 状态
   activityType?: string; // 活动类型
   startTime?: string; // 开始时间
   endTime?: string; // 结束时间
@@ -28,17 +28,17 @@ export interface ActivityListResponse {
 // 普法活动项接口（列表项）
 export interface ActivityItem {
   id: number;
-  title: string; // 活动标题
+  activityTitle: string; // 活动标题
   activityType: string; // 活动类型
   startTime: string; // 开始时间
   endTime: string; // 结束时间
-  address: string; // 活动地址
-  contactPerson: string; // 联系人
-  contactInfo: string; // 联系方式
-  registrationCount?: number; // 报名人数
+  activityAddress: string; // 活动地址
+  activityContact: string; // 联系人
+  activityContactPhone: string; // 联系方式
+  enrollCount?: number; // 报名人数
   publishTime?: string; // 发布时间
   viewCount?: number; // 浏览量
-  status: string; // 状态
+  activityStatus: string; // 状态
   createTime?: string;
   updateTime?: string;
 }
@@ -83,7 +83,7 @@ export function getActivityList(query: ActivityListQuery): AxiosPromise<Activity
  */
 export function getActivityDetail(id: string | number): AxiosPromise<ActivityDetailResponse> {
   return request({
-    url: `/skill-server/law/activity/${id}`,
+    url: `/skill-server/law/activity/detail/${id}`,
     method: 'get'
   });
 }
@@ -115,18 +115,23 @@ export function editActivity(data: any): AxiosPromise<any> {
  */
 export function deleteActivity(ids: (string | number)[]): AxiosPromise<any> {
   return request({
-    url: `/skill-server/law/activity/${ids.join(',')}`,
+    url: `/skill-server/law/activity/remove/${ids.join(',')}`,
     method: 'delete'
   });
 }
 
 /**
  * 取消普法活动
+ * @param id 活动ID
+ * @param cancelReason 取消原因（必填）
  */
-export function cancelActivity(id: string | number): AxiosPromise<any> {
+export function cancelActivity(id: string | number, cancelReason: string): AxiosPromise<any> {
   return request({
     url: `/skill-server/law/activity/cancel/${id}`,
-    method: 'put'
+    method: 'put',
+    params: {
+      cancelReason
+    }
   });
 }
 

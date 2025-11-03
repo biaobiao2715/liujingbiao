@@ -49,13 +49,14 @@ export interface WhitePaperListResponse {
 export interface WhitePaperDetail extends WhitePaperItem {
   content?: string; // 内容
   attachment?: string; // 附件
-  sysOssLists?: Array<{
+  ossVoList?: Array<{
     ossId: number;
     fileName?: string;
     originalName?: string;
     fileSuffix?: string;
-    size?: number;
+    fileSize?: string;
     url?: string;
+    version?: string;
   }>;
 }
 
@@ -71,7 +72,7 @@ export interface WhitePaperDetailResponse {
  */
 export function getWhitePaperList(query: WhitePaperListQuery): AxiosPromise<WhitePaperListResponse> {
   return request({
-    url: 'skill-server/whitePaper/list',
+    url: '/skill-server/skill/whitePaper/list',
     method: 'get',
     params: query
   });
@@ -82,7 +83,7 @@ export function getWhitePaperList(query: WhitePaperListQuery): AxiosPromise<Whit
  */
 export function getWhitePaperDetail(id: string | number): AxiosPromise<WhitePaperDetailResponse> {
   return request({
-    url: `/skill-server/law/whitePaper/${id}`,
+    url: `/skill-server/skill/whitePaper/${id}`,
     method: 'get'
   });
 }
@@ -92,7 +93,7 @@ export function getWhitePaperDetail(id: string | number): AxiosPromise<WhitePape
  */
 export function addWhitePaper(data: any): AxiosPromise<any> {
   return request({
-    url: '/skill-server/law/whitePaper',
+    url: '/skill-server/skill/whitePaper',
     method: 'post',
     data: data
   });
@@ -103,7 +104,7 @@ export function addWhitePaper(data: any): AxiosPromise<any> {
  */
 export function editWhitePaper(data: any): AxiosPromise<any> {
   return request({
-    url: '/skill-server/law/whitePaper',
+    url: '/skill-server/skill/whitePaper',
     method: 'put',
     data: data
   });
@@ -114,19 +115,28 @@ export function editWhitePaper(data: any): AxiosPromise<any> {
  */
 export function deleteWhitePaper(ids: (string | number)[]): AxiosPromise<any> {
   return request({
-    url: `/skill-server/law/whitePaper/${ids.join(',')}`,
+    url: `/skill-server/skill/whitePaper/${ids.join(',')}`,
     method: 'delete'
   });
 }
 
 /**
- * 更新白皮书状态（启用/禁用）
+ * 启用白皮书
  */
-export function updateWhitePaperStatus(data: { ids: (string | number)[]; status: string }): AxiosPromise<any> {
+export function enableWhitePaper(ids: (string | number)[]): AxiosPromise<any> {
   return request({
-    url: '/skill-server/law/whitePaper/status',
-    method: 'put',
-    data: data
+    url: `/skill-server/skill/whitePaper/enable/${ids.join(',')}`,
+    method: 'put'
+  });
+}
+
+/**
+ * 禁用白皮书
+ */
+export function disableWhitePaper(ids: (string | number)[]): AxiosPromise<any> {
+  return request({
+    url: `/skill-server/skill/whitePaper/disable/${ids.join(',')}`,
+    method: 'put'
   });
 }
 
@@ -135,7 +145,7 @@ export function updateWhitePaperStatus(data: { ids: (string | number)[]; status:
  */
 export function updateWhitePaperVersion(data: { id: string | number; version: string }): AxiosPromise<any> {
   return request({
-    url: '/skill-server/law/whitePaper/version',
+    url: '/skill-server/skill/whitePaper/version',
     method: 'put',
     data: data
   });
