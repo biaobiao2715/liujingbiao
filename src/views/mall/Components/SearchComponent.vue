@@ -41,7 +41,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, toRaw } from 'vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 

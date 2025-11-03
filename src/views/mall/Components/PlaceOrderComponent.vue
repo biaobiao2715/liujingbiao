@@ -50,9 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
 const addAddressDialogVisible = ref(false);
+
 const selectAddressDialogVisible = ref(false);
 
 const newAddressForm = ref({

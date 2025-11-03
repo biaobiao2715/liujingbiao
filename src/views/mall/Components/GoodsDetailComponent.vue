@@ -47,7 +47,12 @@
             <el-button @click="operateOrder(1)">加入比价</el-button>
             <el-button @click="operateOrder(2)">加入收藏</el-button>
             <el-button type="success" @click="operateOrder(3)">立即下单</el-button>
-            <el-button type="primary" @click="operateOrder(4)">电话沟通</el-button>
+            <el-tooltip placement="top">
+              <template #content>
+                <div>联系电话：{{ goods?.hnBaseEnterpriseInfo?.phoneNumber }}</div>
+              </template>
+              <el-button type="primary" @click="operateOrder(4)">电话沟通</el-button>
+            </el-tooltip>
             <el-button type="danger" @click="operateOrder(5)">我要举报</el-button>
           </div>
         </div>
@@ -81,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './PlaceOrderComponent.vue';
@@ -148,7 +153,24 @@ const operateOrder = (type: number) => {
       console.log('加入比价');
       break;
     case 2:
-      console.log('加入收藏');
+      console.log(goods.value.hnGoodsSpecificationDataList, baseInfo.currentSpec);
+      // 检查当前规格是否存在
+      if (!baseInfo.currentSpec) {
+        ElMessage.error('请选择商品规格');
+        return;
+      }
+      addToFavorites({
+        favoriteType: 1,
+        favoriteGoogsBo: {
+          googsId: props.goodsId, // 商品ID
+          googsPrice: Number(goods.value.hnGoodsSpecificationDataList.filter((spec) => spec.id === baseInfo.currentSpec)[0].goodsPrice || 0), // 商品价格
+          goodsSpecificationId: baseInfo.currentSpec // 规格
+        }
+      }).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('加入收藏成功');
+        }
+      });
       break;
     case 3:
       console.log('立即下单');
@@ -217,7 +239,7 @@ const getHotGoods = async () => {
 };
 
 // 分组数组，每组groupSize个
-function groupArray(array: any[], groupSize: number = 5): any[][] {
+const groupArray = (array: any[], groupSize: number = 5) => {
   return array.reduce((result, item, index) => {
     const groupIndex = Math.floor(index / groupSize); // 计算当前对象属于第几组
     if (!result[groupIndex]) {
@@ -226,7 +248,7 @@ function groupArray(array: any[], groupSize: number = 5): any[][] {
     result[groupIndex].push(item); // 将对象添加到对应组
     return result;
   }, []);
-}
+};
 
 defineExpose({
   getGoodsDetail

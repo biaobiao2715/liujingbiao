@@ -8,25 +8,24 @@
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods.sysOssLists[0]?.url" width="100" class="goods-image" />
+    <img :src="goods?.sysOssLists?.[0].url" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
-        <div class="goods-price">{{ goods.hnGoodsSpecificationDataList[0].goodsPrice }}元起</div>
-        <div class="goods-volume">{{ goods.goodsSales }}件已售</div>
+        <div class="goods-price">{{ goods?.hnGoodsSpecificationDataList?.[0].goodsPrice }}元起</div>
+        <div class="goods-volume">{{ goods?.goodsSales }}件已售</div>
       </div>
-      <div class="goods-title">{{ goods.goodsName }}</div>
+      <div class="goods-title">{{ goods?.goodsName }}</div>
       <div class="flex-between mt-12">
         <div class="goods-tags">
-          <el-tag v-for="tag in goods.goodssEnsureName" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
+          <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
         </div>
-        <div class="goods-location">{{ goods.hnBaseEnterpriseInfo.province }}</div>
+        <div class="goods-location">{{ goods?.hnBaseEnterpriseInfo?.province }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
 const emit = defineEmits(['clickGoods']);
 // 接收外部传入的商品信息
 const props = defineProps({
