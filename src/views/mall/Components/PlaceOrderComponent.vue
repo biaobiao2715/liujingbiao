@@ -24,20 +24,10 @@
   <!-- 选择收货地址 Dialog -->
   <el-dialog v-model="selectAddressDialogVisible" title="选择地址">
     <el-radio-group v-model="selectedAddress">
-      <el-radio
-        v-for="(address, index) in addressList"
-        :key="index"
-        :label="address"
-      >
-        <div>
-          <strong>收货人姓名：</strong>{{ address.name }}
-        </div>
-        <div>
-          <strong>收货人电话：</strong>{{ address.phone }}
-        </div>
-        <div>
-          <strong>收货地址：</strong>{{ address.fullAddress }}
-        </div>
+      <el-radio v-for="(address, index) in addressList" :key="index" :label="address">
+        <div><strong>收货人姓名：</strong>{{ address.name }}</div>
+        <div><strong>收货人电话：</strong>{{ address.phone }}</div>
+        <div><strong>收货地址：</strong>{{ address.fullAddress }}</div>
       </el-radio>
     </el-radio-group>
     <div class="dialog-footer">
@@ -53,15 +43,9 @@
       <el-link type="primary" @click="selectAddressDialogVisible = true">切换地址</el-link>
       <el-link type="primary" @click="addAddressDialogVisible = true">新建地址</el-link>
     </div>
-    <div>
-      <strong>收货人姓名：</strong>{{ selectedAddress.name }}
-    </div>
-    <div>
-      <strong>收货人电话：</strong>{{ selectedAddress.phone }}
-    </div>
-    <div>
-      <strong>收货地址：</strong>{{ selectedAddress.fullAddress }}
-    </div>
+    <div><strong>收货人姓名：</strong>{{ selectedAddress.name }}</div>
+    <div><strong>收货人电话：</strong>{{ selectedAddress.phone }}</div>
+    <div><strong>收货地址：</strong>{{ selectedAddress.fullAddress }}</div>
   </div>
 </template>
 
@@ -75,7 +59,7 @@ const newAddressForm = ref({
   name: '',
   phone: '',
   region: [],
-  detail: '',
+  detail: ''
 });
 
 const regionOptions = ref([
@@ -88,10 +72,10 @@ const regionOptions = ref([
         label: '深圳市',
         children: [
           { value: '福田区', label: '福田区' },
-          { value: '罗湖区', label: '罗湖区' },
-        ],
-      },
-    ],
+          { value: '罗湖区', label: '罗湖区' }
+        ]
+      }
+    ]
   },
   {
     value: '湖北省',
@@ -100,30 +84,28 @@ const regionOptions = ref([
       {
         value: '武汉市',
         label: '武汉市',
-        children: [
-          { value: '光谷区', label: '光谷区' },
-        ],
-      },
-    ],
-  },
+        children: [{ value: '光谷区', label: '光谷区' }]
+      }
+    ]
+  }
 ]);
 
 const addressList = ref([
   {
     name: '张三',
     phone: '186 **** 8868',
-    fullAddress: '广东省深圳市福田区亮亮路15号亮亮小区2号楼502号',
+    fullAddress: '广东省深圳市福田区亮亮路15号亮亮小区2号楼502号'
   },
   {
     name: '萌萌',
     phone: '189 **** 1698',
-    fullAddress: '广东省深圳市罗湖区萌萌大道29号萌萌小区8号楼805号',
+    fullAddress: '广东省深圳市罗湖区萌萌大道29号萌萌小区8号楼805号'
   },
   {
     name: '小雪',
     phone: '189 **** 1698',
-    fullAddress: '湖北省武汉市光谷中心木木路126号木木小区5号楼1503号',
-  },
+    fullAddress: '湖北省武汉市光谷中心木木路126号木木小区5号楼1503号'
+  }
 ]);
 
 const selectedAddress = ref(addressList.value[0]);
@@ -133,7 +115,7 @@ const handleAddAddress = () => {
   addressList.value.push({
     name: newAddressForm.value.name,
     phone: newAddressForm.value.phone,
-    fullAddress,
+    fullAddress
   });
   addAddressDialogVisible.value = false;
 };

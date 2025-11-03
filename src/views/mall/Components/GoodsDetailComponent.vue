@@ -1,67 +1,82 @@
 <template>
-  <div class="goods-detail flex gap-24" v-loading="loading">
-    <!-- 商品图片 -->
-    <div class="goods-image">
-      <!-- 当前展示的图片 -->
-      <el-image :src="baseInfo.currentImage" fit="contain" />
-      <!-- 所有图片 -->
-      <div class="img-list flex-center gap-12">
-        <el-image
-          v-for="(img, index) in goods?.sysOssLists"
-          :key="index"
-          :src="img.url"
-          fit="contain"
-          style="width: 60px; cursor: pointer"
-          @click="baseInfo.currentImage = img.url"
-        />
-      </div>
-    </div>
-
-    <!-- 商品信息 -->
-    <div class="goods-info">
-      <hdiv>{{ goods?.goodsName }}</hdiv>
-      <div>价格：{{ baseInfo.totalPrice + ' 元' }}</div>
-      <div>发货地址：{{ baseInfo.address }}</div>
-
-      <!-- 规格选择 -->
-      <el-form>
-        <el-form-item label="规格选择">
-          <el-select v-model="baseInfo.currentSpec" placeholder="请选择规格" @change="updateTotalPrice">
-            <el-option
-              v-for="spec in goods?.hnGoodsSpecificationDataList"
-              :key="spec.id"
-              :label="spec.goodsSpecificationValue + ' ' + spec.goodsSpecification"
-              :value="spec.id"
+  <div class="goods-detail-container">
+    <div class="goods-detail" v-loading="loading" v-show="!showOrder">
+      <div class="base-info flex gap-12">
+        <!-- 商品图片 -->
+        <div class="goods-image">
+          <!-- 当前展示的图片 -->
+          <el-image :src="baseInfo.currentImage" fit="contain" />
+          <!-- 所有图片 -->
+          <div class="img-list flex-center gap-12">
+            <el-image
+              v-for="(img, index) in goods?.sysOssLists"
+              :key="index"
+              :src="img.url"
+              fit="contain"
+              style="width: 60px; cursor: pointer"
+              @click="baseInfo.currentImage = img.url"
             />
-          </el-select>
-        </el-form-item>
-      </el-form>
-
-      <!-- 购买数量 -->
-      <el-input-number v-model="baseInfo.quantity" :min="1" label="购买数量" @change="updateTotalPrice" />
-
-      <!-- 操作按钮 -->
-      <div class="actions">
-        <el-button type="primary" @click="addToCart">加入收藏夹</el-button>
-        <el-button type="success" @click="placeOrder">立即下单</el-button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 同类商品 -->
-  <div class="related-goods">
-    <h3>同类商品</h3>
-    <el-carousel :interval="5000" arrow="always">
-      <el-carousel-item v-for="(group, groupIndex) in groupedRelatedGoods" :key="groupIndex">
-        <div class="goods-group">
-          <div v-for="(item, itemIndex) in group" :key="itemIndex" class="goods-item">
-            <el-image :src="item.image" fit="contain" />
-            <p>{{ item.name }}</p>
-            <p>价格：{{ item.price }}</p>
           </div>
         </div>
-      </el-carousel-item>
-    </el-carousel>
+
+        <!-- 商品信息 -->
+        <div class="goods-info">
+          <hdiv>{{ goods?.goodsName }}</hdiv>
+          <div>价格：{{ baseInfo.totalPrice + ' 元' }}</div>
+          <div>发货地址：{{ baseInfo.address }}</div>
+
+          <!-- 规格选择 -->
+          <el-form>
+            <el-form-item label="规格选择">
+              <el-select v-model="baseInfo.currentSpec" placeholder="请选择规格" @change="updateTotalPrice">
+                <el-option
+                  v-for="spec in goods?.hnGoodsSpecificationDataList"
+                  :key="spec.id"
+                  :label="spec.goodsSpecificationValue + ' ' + spec.goodsSpecification"
+                  :value="spec.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-form>
+
+          <!-- 购买数量 -->
+          <el-input-number v-model="baseInfo.quantity" :min="1" label="购买数量" @change="updateTotalPrice" />
+
+          <!-- 操作按钮 -->
+          <div class="actions flex-center-between gap-12">
+            <el-button @click="operateOrder(1)">加入比价</el-button>
+            <el-button @click="operateOrder(2)">加入收藏</el-button>
+            <el-button type="success" @click="operateOrder(3)">立即下单</el-button>
+            <el-button type="primary" @click="operateOrder(4)">电话沟通</el-button>
+            <el-button type="danger" @click="operateOrder(5)">我要举报</el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 同类商品 -->
+      <div class="mb-24 mt-24">
+        <el-card :title="'同类商品推荐'">
+          <el-carousel :interval="5000" arrow="always">
+            <el-carousel-item v-for="(group, groupIndex) in groupedRelatedGoods" :key="groupIndex">
+              <div class="flex">
+                <GoodsItemComponent v-for="(item, itemIndex) in group" :key="itemIndex" :goods="item" :style="{ width: 'calc(20% - 12px)' }" />
+              </div>
+            </el-carousel-item>
+          </el-carousel>
+        </el-card>
+      </div>
+
+      <!-- 详情部分 -->
+      <div class="editor-hot flex">
+        <Editor v-model="goods.goodsDetail" :readOnly="true" />
+        <div class="hot-goods">
+          <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" :style="{ width: '200px' }" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 下单组件 -->
+    <PlaceOrderComponent ref="placeOrderRef" v-if="showOrder" />
   </div>
 </template>
 
@@ -69,10 +84,21 @@
 import { ref } from 'vue';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
 import type { Goods } from '../mall';
+import PlaceOrderComponent from './PlaceOrderComponent.vue';
+import GoodsItemComponent from './GoodsItemComponent.vue';
+import Editor from '@/components/Editor/index.vue';
 
-const goods = ref<Goods>();
+const props = defineProps<{
+  goodsId: number;
+}>();
+
+const goods = ref<Goods>({});
 
 const loading = ref(true); // 加载状态
+
+const placeOrderRef = ref();
+
+const showOrder = ref(false);
 
 // 需要经过处理得到的数据
 const baseInfo = reactive<{
@@ -89,20 +115,18 @@ const baseInfo = reactive<{
   quantity: 1 // 购买数量,
 });
 
-const relatedGoods = ref([
-  { image: 'path/to/image1.jpg', name: '商品1', price: '20.00元' },
-  { image: 'path/to/image2.jpg', name: '商品2', price: '20.00元' },
-  { image: 'path/to/image3.jpg', name: '商品3', price: '20.00元' },
-  { image: 'path/to/image4.jpg', name: '商品4', price: '20.00元' },
-  { image: 'path/to/image5.jpg', name: '商品5', price: '20.00元' },
-  { image: 'path/to/image6.jpg', name: '商品6', price: '20.00元' }
-]);
+const groupedRelatedGoods = ref([]); // 同类商品
 
-const groupedRelatedGoods = ref([]);
+const hotGoods = ref([]); // 最热商品
 
-const getGoodsDetail = async (goodsId: number) => {
-  loading.value = true;
-  const res = await goodsDetail(goodsId);
+onMounted(async () => {
+  await getGoodsDetail();
+  await getRelatedGoods();
+  await getHotGoods();
+});
+
+const getGoodsDetail = async () => {
+  const res = await goodsDetail(props.goodsId);
   if (res.code === 200) {
     goods.value = res.data;
 
@@ -114,16 +138,30 @@ const getGoodsDetail = async (goodsId: number) => {
     const hnBaseEnterpriseInfo = goods.value.hnBaseEnterpriseInfo; // 企业信息
     // 发货地址
     baseInfo.address = hnBaseEnterpriseInfo.province + hnBaseEnterpriseInfo.city + hnBaseEnterpriseInfo.district + hnBaseEnterpriseInfo.signUpAddress;
-    loading.value = false;
   }
 };
 
-const addToCart = () => {
-  //   console.log('加入收藏夹', selectedSpec.value, quantity.value);
-};
-
-const placeOrder = () => {
-  //   console.log('立即下单', selectedSpec.value, quantity.value);
+// 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
+const operateOrder = (type: number) => {
+  switch (type) {
+    case 1:
+      console.log('加入比价');
+      break;
+    case 2:
+      console.log('加入收藏');
+      break;
+    case 3:
+      console.log('立即下单');
+      break;
+    case 4:
+      console.log('电话沟通');
+      break;
+    case 5:
+      console.log('我要举报');
+      break;
+    default:
+      break;
+  }
 };
 
 // 获取商品价格区间，返回最低-最高价格
@@ -144,15 +182,51 @@ const updateTotalPrice = () => {
   baseInfo.totalPrice = (parseFloat(spec.goodsSpecificationValue) * baseInfo.quantity).toFixed(2);
 };
 
-// 分组同类商品，每组5个
-groupedRelatedGoods.value = relatedGoods.value.reduce((result, item, index) => {
-  const groupIndex = Math.floor(index / 5);
-  if (!result[groupIndex]) {
-    result[groupIndex] = [];
+// 获取同类商品
+const getRelatedGoods = async () => {
+  const res = await goodsList({
+    pageNum: 1,
+    pageSize: 9999,
+    id: goods.value.id,
+    sortManner: '3', // 价格最低
+    goodsCategoryId: goods.value.goodsCategoryId,
+    provinceCode: goods.value.hnBaseEnterpriseInfo.provinceCode,
+    cityCode: goods.value.hnBaseEnterpriseInfo.cityCode,
+    districtCode: goods.value.hnBaseEnterpriseInfo.districtCode
+  });
+  if (res.code === 200) {
+    groupedRelatedGoods.value = groupArray(res.rows);
+    loading.value = false;
   }
-  result[groupIndex].push(item);
-  return result;
-}, []);
+};
+
+// 获取最热商品
+const getHotGoods = async () => {
+  const res = await goodsList({
+    pageNum: 1,
+    pageSize: 5,
+    sortManner: '0', // 销量最高
+    goodsCategoryId: goods.value.goodsCategoryId,
+    provinceCode: goods.value.hnBaseEnterpriseInfo.provinceCode,
+    cityCode: goods.value.hnBaseEnterpriseInfo.cityCode,
+    districtCode: goods.value.hnBaseEnterpriseInfo.districtCode
+  });
+  if (res.code === 200) {
+    hotGoods.value = res.rows;
+  }
+};
+
+// 分组数组，每组groupSize个
+function groupArray(array: any[], groupSize: number = 5): any[][] {
+  return array.reduce((result, item, index) => {
+    const groupIndex = Math.floor(index / groupSize); // 计算当前对象属于第几组
+    if (!result[groupIndex]) {
+      result[groupIndex] = []; // 初始化组
+    }
+    result[groupIndex].push(item); // 将对象添加到对应组
+    return result;
+  }, []);
+}
 
 defineExpose({
   getGoodsDetail
@@ -160,11 +234,9 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
-// filepath: /Users/lichunlei/Desktop/公司项目/grain_sales_web/src/views/mall/Components/GoodsDetailComponent.vue
 .goods-detail {
   .goods-image {
     width: 400px;
-    max-height: 300px;
   }
 
   .goods-info {
@@ -173,8 +245,6 @@ defineExpose({
     gap: 10px;
 
     .actions {
-      display: flex;
-      gap: 10px;
     }
   }
 

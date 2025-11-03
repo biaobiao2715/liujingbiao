@@ -7,7 +7,7 @@
 -->
 
 <template>
-  <div class="goods-item" @click="handleClick">
+  <div class="goods-item" :style="style" @click="handleClick">
     <img :src="goods.sysOssLists[0]?.url" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
@@ -40,6 +40,10 @@ const props = defineProps({
       tags: [],
       location: ''
     })
+  },
+  style: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -55,7 +59,6 @@ const handleClick = (item) => {
 
 <style scoped lang="scss">
 .goods-item {
-  width: calc(20% - 16px);
   display: flex;
   flex-direction: column;
   padding: 10px;

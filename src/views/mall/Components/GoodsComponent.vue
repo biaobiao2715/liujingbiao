@@ -5,7 +5,13 @@
       <SearchComponent @searchChange="getSearchInfo" />
       <!-- 商品组件 -->
       <div class="goods-list mt-24" v-loading="loading">
-        <GoodsItemComponent v-for="item in goodsData" :key="item.id" :goods="item" @clickGoods="handleClick(item.id)" />
+        <GoodsItemComponent
+          v-for="item in goodsData"
+          :key="item.id"
+          :goods="item"
+          :style="{ width: 'calc(20% - 16px)' }"
+          @clickGoods="handleClick(item.id)"
+        />
       </div>
 
       <!-- 分页组件 -->
@@ -19,7 +25,7 @@
     </div>
 
     <!-- 商品详情组件 -->
-    <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" />
+    <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" :goodsId="goodsId" />
   </div>
 </template>
 
@@ -36,6 +42,8 @@ const goodsDetailRef = ref(null); // 商品详情组件引用
 const loading = ref(false); // 加载状态
 
 const goodsData = ref([]); // 商品列表数据
+
+const goodsId = ref(); // 点击的商品id
 
 const total = ref(0); // 总页数
 
@@ -108,11 +116,12 @@ const fetchGoodsList = async () => {
 
 // 点击商品时触发方法
 const handleClick = (id: string) => {
+  goodsId.value = id;
   showDetail.value = true;
   // 调用商品详情组件的方法获取商品详情
-  setTimeout(() => {
-    goodsDetailRef.value?.getGoodsDetail(id);
-  }, 1000);
+  // setTimeout(() => {
+  //   goodsDetailRef.value?.getGoodsDetail(id);
+  // }, 1000);
 };
 </script>
 
