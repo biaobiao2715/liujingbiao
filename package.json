@@ -46,7 +46,8 @@
     "vue-json-pretty": "2.4.0",
     "vue-router": "4.5.0",
     "vue-types": "6.0.0",
-    "vxe-table": "4.13.7"
+    "vxe-table": "4.13.7",
+    "mitt": "^3.0.0"
   },
   "devDependencies": {
     "@iconify/json": "^2.2.276",
