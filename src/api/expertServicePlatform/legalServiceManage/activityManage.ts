@@ -8,8 +8,8 @@ import { AxiosPromise } from 'axios';
 export interface ActivityListQuery {
   pageNum: number;
   pageSize: number;
-  activityTitle?: string; // 活动标题
-  activityStatus?: string; // 状态
+  title?: string; // 活动标题
+  status?: string; // 状态
   activityType?: string; // 活动类型
   startTime?: string; // 开始时间
   endTime?: string; // 结束时间
@@ -27,22 +27,18 @@ export interface ActivityListResponse {
 
 // 普法活动项接口（列表项）
 export interface ActivityItem {
-  id: string;
-  activityNo?: string; // 活动编号
-  activityTitle: string; // 活动标题
+  id: number;
+  title: string; // 活动标题
   activityType: string; // 活动类型
-  activityStatus: string; // 活动状态
-  activitySummary?: string; // 活动简介
-  activityContent?: string; // 活动内容
-  activityAddress: string; // 活动地址
-  activityContact: string; // 联系人
-  activityContactPhone: string; // 联系电话
   startTime: string; // 开始时间
   endTime: string; // 结束时间
-  enrollCount?: number; // 报名人数
+  address: string; // 活动地址
+  contactPerson: string; // 联系人
+  contactInfo: string; // 联系方式
+  registrationCount?: number; // 报名人数
   publishTime?: string; // 发布时间
-  publishUser?: string; // 发布人
-  cancelReason?: string; // 取消原因
+  viewCount?: number; // 浏览量
+  status: string; // 状态
   createTime?: string;
   updateTime?: string;
 }
@@ -56,13 +52,19 @@ export interface ActivityDetailResponse {
 
 // 普法活动详情接口
 export interface ActivityDetail extends ActivityItem {
-  enrollList?: any[]; // 报名列表
-  avatar?: string; // 头像
-  tenantId?: string; // 租户ID
-  createBy?: number;
-  createDept?: number;
-  updateBy?: number;
-  sortOrder?: number;
+  activityContent?: string; // 活动内容
+  activityDescription?: string; // 活动描述
+  maxParticipants?: number; // 最大参与人数
+  organizerId?: number; // 组织者ID
+  organizerName?: string; // 组织者名称
+  sysOssLists?: Array<{
+    ossId: number;
+    fileName?: string;
+    originalName?: string;
+    fileSuffix?: string;
+    size?: number;
+    url?: string;
+  }>;
 }
 
 /**
@@ -81,7 +83,7 @@ export function getActivityList(query: ActivityListQuery): AxiosPromise<Activity
  */
 export function getActivityDetail(id: string | number): AxiosPromise<ActivityDetailResponse> {
   return request({
-    url: `/skill-server/law/activity/detail/${id}`,
+    url: `/skill-server/law/activity/${id}`,
     method: 'get'
   });
 }
@@ -113,7 +115,7 @@ export function editActivity(data: any): AxiosPromise<any> {
  */
 export function deleteActivity(ids: (string | number)[]): AxiosPromise<any> {
   return request({
-    url: `/skill-server/law/activity/remove/${ids.join(',')}`,
+    url: `/skill-server/law/activity/${ids.join(',')}`,
     method: 'delete'
   });
 }

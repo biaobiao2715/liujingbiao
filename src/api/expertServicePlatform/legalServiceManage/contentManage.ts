@@ -94,7 +94,7 @@ export function getContentList(query: ContentListQuery): AxiosPromise<ContentLis
  */
 export function getContentDetail(id: number): AxiosPromise<ContentDetailResponse> {
   return request({
-    url: `/skill-server/law/content/detail/${id}`,
+    url: `/skill-server/law/content/${id}`,
     method: 'get'
   });
 }

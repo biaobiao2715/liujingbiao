@@ -21,7 +21,7 @@
           <el-select v-model="queryParams.activityStatus" placeholder="请选择" filterable clearable>
             <el-option label="请选择" value="请选择" />
             <el-option 
-              v-for="item in legal_popularize_status" 
+              v-for="item in legal_popularize_activity_status" 
               :key="item.value" 
               :label="item.label" 
               :value="item.value" 
@@ -65,10 +65,10 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
-          <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle type="danger" @click="handleDelete">删除</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawActivity:remove']" type="danger" @click="handleDelete">删除</el-button>
         </el-col>
         <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
@@ -111,7 +111,7 @@
         <!-- 所属类型 -->
         <el-table-column label="所属类型" align="center" prop="activityType" width="120">
           <template #default="scope">
-            <span>{{ scope.row.activityType }}</span>
+            <dict-tag :options="legal_popularize_activity_type" :value="scope.row.activityType" />
           </template>
         </el-table-column>
         
@@ -147,7 +147,7 @@
         <el-table-column label="状态" align="center" prop="activityStatus" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.activityStatus)">
-              {{ getDictLabel(legal_popularize_status, scope.row.activityStatus) }}
+              <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
             </el-tag>
           </template>
         </el-table-column>
@@ -156,11 +156,28 @@
         <el-table-column label="操作" align="center" width="280">
           <template #default="scope">
             <div class="operation-buttons">
-              <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
               <el-button 
-                v-if="scope.row.activityStatus === '1'" 
                 v-throttle 
+                v-hasPermi="['skill:lawActivity:edit']" 
+                type="primary" 
+                size="small" 
+                @click="handleEdit(scope.row)"
+              >
+                编辑
+              </el-button>
+              <el-button 
+                v-throttle 
+                v-hasPermi="['skill:lawActivity:query']" 
+                type="info" 
+                size="small" 
+                @click="handleView(scope.row)"
+              >
+                查看
+              </el-button>
+              <el-button 
+                v-if="String(scope.row.activityStatus) === '1'" 
+                v-throttle 
+                v-hasPermi="['skill:lawActivity:edit']" 
                 type="warning" 
                 size="small" 
                 @click="handleCancelActivity(scope.row)"
@@ -168,8 +185,9 @@
                 取消活动
               </el-button>
               <el-button 
-                v-if="scope.row.activityStatus === '4' || scope.row.activityStatus === '3'" 
+                v-if="String(scope.row.activityStatus) === '99' || String(scope.row.activityStatus) === '3'" 
                 v-throttle 
+                v-hasPermi="['skill:lawActivity:remove']" 
                 type="danger" 
                 size="small" 
                 @click="handleDeleteSingle(scope.row)"
@@ -192,11 +210,36 @@
         />
       </div>
     </div>
+
+    <!-- 弹窗：新增/编辑/查看 -->
+    <el-dialog
+      v-model="dialog.visible"
+      :title="getDialogTitle()"
+      width="80%"
+      destroy-on-close
+      :close-on-click-modal="false"
+      @close="dialog.type = ''"
+    >
+      <Suspense>
+        <template #default>
+          <component
+            :is="dialog.type === 'view' ? ActivityDetailDialog : ActivityEditDialog"
+            :id="dialog.id"
+            :type="dialog.type"
+            @success="onDialogSuccess"
+            @cancel="dialog.visible = false"
+          />
+        </template>
+        <template #fallback>
+          <el-skeleton :rows="6" animated />
+        </template>
+      </Suspense>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
@@ -207,12 +250,16 @@ import {
   type ActivityListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
+// 弹窗组件异步加载（首字母大写）
+const ActivityEditDialog = defineAsyncComponent(() => import('./ActivityEditDialog.vue'));
+const ActivityDetailDialog = defineAsyncComponent(() => import('./ActivityDetailDialog.vue'));
+
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
-const { legal_popularize_activity_type, legal_popularize_status } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_activity_type', 'legal_popularize_status')
+const { legal_popularize_activity_type, legal_popularize_activity_status } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_activity_type', 'legal_popularize_activity_status')
 );
 
 // 搜索表单数据
@@ -243,6 +290,13 @@ const selectedIds = ref([]);
 // 选中的行数据数组
 const selectedRows = ref([]);
 
+// 弹窗控制
+const dialog = ref({
+  visible: false,
+  type: '', // 'add' | 'edit' | 'view'
+  id: null as string | number | null
+});
+
 /** 获取普法活动列表 */
 const getList = async () => {
   loading.value = true;
@@ -252,8 +306,8 @@ const getList = async () => {
       pageNum: queryParams.value.pageNum,
       pageSize: queryParams.value.pageSize,
       activityTitle: queryParams.value.activityTitle || undefined,
-      activityStatus: queryParams.value.activityStatus === '请选择' ? undefined : queryParams.value.activityStatus,
-      activityType: queryParams.value.activityType === '请选择' ? undefined : queryParams.value.activityType,
+      activityStatus: (queryParams.value.activityStatus === '请选择' || !queryParams.value.activityStatus) ? undefined : queryParams.value.activityStatus,
+      activityType: (queryParams.value.activityType === '请选择' || !queryParams.value.activityType) ? undefined : queryParams.value.activityType,
       startTime: queryParams.value.startTime || undefined,
       endTime: queryParams.value.endTime || undefined
     };
@@ -285,23 +339,26 @@ const getList = async () => {
 };
 
 /** 获取字典标签 */
-const getDictLabel = (dict: any, value: string) => {
-  const item = dict?.value?.find((item: any) => item.value === value);
+const getDictLabel = (dict: any, value: string | number) => {
+  // 宽松比较，兼容字符串和数字类型
+  const item = dict?.value?.find((item: any) => String(item.value) === String(value));
   return item?.label || value;
 };
 
 /** 获取状态标签类型 */
-const getStatusType = (status: string) => {
-  // 1-待开始 2-进行中 3-已结束 4-已取消
-  switch (status) {
+const getStatusType = (status: string | number) => {
+  // 普法活动状态：1-待开始 2-进行中 3-已结束 99-已取消
+  // 转换为字符串进行比较，兼容数字和字符串类型
+  const statusStr = String(status);
+  switch (statusStr) {
     case '1':
-      return 'primary';
+      return 'primary';  // 待开始 - 蓝色
     case '2':
-      return 'success';
+      return 'success';  // 进行中 - 绿色
     case '3':
-      return 'danger';
-    case '4':
-      return 'warning';
+      return 'danger';   // 已结束 - 红色
+    case '99':
+      return 'warning';  // 已取消 - 橙色
     default:
       return 'info';
   }
@@ -340,9 +397,24 @@ const handleSelectionChange = (selection: any[]) => {
   selectedRows.value = selection;
 };
 
+/** 弹窗标题 */
+const getDialogTitle = () => {
+  const map: Record<string, string> = {
+    'add': '新增普法活动',
+    'edit': '编辑普法活动',
+    'view': '查看普法活动'
+  };
+  return map[dialog.value.type] || '';
+};
+
+/** 打开弹窗 */
+const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
+  dialog.value = { visible: true, type, id: id ?? null };
+};
+
 /** 新增按钮事件 */
 const handleAdd = () => {
-  router.push('/expertServicePlatform/legalServiceManage/addActivity');
+  openDialog('add');
 };
 
 /** 删除按钮事件 */
@@ -391,18 +463,18 @@ const handleDelete = async () => {
 
 /** 编辑按钮事件 */
 const handleEdit = (row: any) => {
-  router.push({
-    path: '/expertServicePlatform/legalServiceManage/editActivity',
-    query: { id: row.id }
-  });
+  openDialog('edit', row.id);
 };
 
 /** 查看按钮事件 */
 const handleView = (row: any) => {
-  router.push({
-    path: '/expertServicePlatform/legalServiceManage/activityDetail',
-    query: { id: row.id, type: 'view' }
-  });
+  openDialog('view', row.id);
+};
+
+/** 弹窗成功回调 */
+const onDialogSuccess = () => {
+  dialog.value.visible = false;
+  getList();
 };
 
 /** 取消活动事件 */
