@@ -73,7 +73,7 @@
 
       <!-- 详情部分 -->
       <div class="editor-hot flex">
-        <Editor v-model="goods.goodsDetail" :readOnly="true" />
+        <Editor v-model="goods.goodsDetail" :readOnly="true" :showToolbar="false" />
         <div class="hot-goods">
           <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" :style="{ width: '200px' }" />
         </div>

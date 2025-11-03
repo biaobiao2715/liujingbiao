@@ -47,7 +47,9 @@ const props = defineProps({
   /* 上传文件大小限制(MB) */
   fileSize: propTypes.number.def(5),
   /* 类型（base64格式、url格式） */
-  type: propTypes.string.def('url')
+  type: propTypes.string.def('url'),
+  // 是否展示工具栏
+  showToolbar: propTypes.bool.def(true)
 });
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -65,30 +67,32 @@ const options = ref<any>({
   debug: 'warn',
   modules: {
     // 工具栏配置
-    toolbar: {
-      container: [
-        ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线
-        ['blockquote', 'code-block'], // 引用  代码块
-        [{ list: 'ordered' }, { list: 'bullet' }], // 有序、无序列表
-        [{ indent: '-1' }, { indent: '+1' }], // 缩进
-        [{ size: ['small', false, 'large', 'huge'] }], // 字体大小
-        [{ header: [1, 2, 3, 4, 5, 6, false] }], // 标题
-        [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
-        [{ align: [] }], // 对齐方式
-        ['clean'], // 清除文本格式
-        ['link', 'image', 'video'] // 链接、图片、视频
-      ],
-      handlers: {
-        image: (value: boolean) => {
-          if (value) {
-            // 调用element图片上传
-            uploadRef.value.click();
-          } else {
-            Quill.format('image', true);
+    toolbar: props.showToolbar
+      ? {
+          container: [
+            ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线
+            ['blockquote', 'code-block'], // 引用  代码块
+            [{ list: 'ordered' }, { list: 'bullet' }], // 有序、无序列表
+            [{ indent: '-1' }, { indent: '+1' }], // 缩进
+            [{ size: ['small', false, 'large', 'huge'] }], // 字体大小
+            [{ header: [1, 2, 3, 4, 5, 6, false] }], // 标题
+            [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
+            [{ align: [] }], // 对齐方式
+            ['clean'], // 清除文本格式
+            ['link', 'image', 'video'] // 链接、图片、视频
+          ],
+          handlers: {
+            image: (value: boolean) => {
+              if (value) {
+                // 调用element图片上传
+                uploadRef.value.click();
+              } else {
+                Quill.format('image', true);
+              }
+            }
           }
         }
-      }
-    }
+      : false
   },
   placeholder: '请输入内容',
   readOnly: props.readOnly
