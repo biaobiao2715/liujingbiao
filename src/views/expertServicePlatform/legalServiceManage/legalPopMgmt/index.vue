@@ -14,7 +14,7 @@
         <!-- 普法类型搜索框 -->
         <el-form-item label="普法类型" prop="contentType">
           <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
-            <el-option label="全部" value="" />
+            <el-option label="请选择" value="" />
             <el-option 
               v-for="item in legal_popularize_type" 
               :key="item.value" 
@@ -41,7 +41,7 @@
         <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="contentStatus">
           <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
-            <el-option label="全部" value="" />
+            <el-option label="请选择" value="" />
             <el-option label="启用" value="3" />
             <el-option label="禁用" value="2" />
           </el-select>
@@ -62,16 +62,16 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
-          <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawContent:add']" type="primary" @click="handleAdd">新增</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle type="success" @click="handleEnable">启用</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="success" @click="handleEnable">启用</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle type="warning" @click="handleDisable">停用</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="warning" @click="handleDisable">停用</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle type="danger" @click="handleDelete">删除</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawContent:remove']" type="danger" @click="handleDelete">删除</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-tag type="info">共 {{ total }} 条数据</el-tag>
@@ -141,11 +141,28 @@
         <el-table-column label="操作" align="center" width="280" fixed="right">
           <template #default="scope">
             <div class="operation-buttons">
-              <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+              <el-button 
+                v-throttle 
+                v-hasPermi="['skill:lawContent:edit']" 
+                type="primary" 
+                size="small" 
+                @click="handleEdit(scope.row)"
+              >
+                编辑
+              </el-button>
+              <el-button 
+                v-throttle 
+                v-hasPermi="['skill:lawContent:query']" 
+                type="info" 
+                size="small" 
+                @click="handleView(scope.row)"
+              >
+                查看
+              </el-button>
               <el-button 
                 v-if="scope.row.status === '启用'" 
                 v-throttle 
+                v-hasPermi="['skill:lawContent:edit']" 
                 type="warning" 
                 size="small" 
                 @click="handleStatusChange(scope.row, '2')"
@@ -155,6 +172,7 @@
               <el-button 
                 v-if="scope.row.status === '禁用'" 
                 v-throttle 
+                v-hasPermi="['skill:lawContent:edit']" 
                 type="success" 
                 size="small" 
                 @click="handleStatusChange(scope.row, '3')"
@@ -164,6 +182,7 @@
               <el-button 
                 v-if="scope.row.status === '禁用'" 
                 v-throttle 
+                v-hasPermi="['skill:lawContent:remove']" 
                 type="danger" 
                 size="small" 
                 @click="handleDeleteSingle(scope.row)"
@@ -186,11 +205,36 @@
         />
       </div>
     </div>
+
+    <!-- 弹窗：新增/编辑/查看 -->
+    <el-dialog
+      v-model="dialog.visible"
+      :title="getDialogTitle()"
+      width="80%"
+      destroy-on-close
+      :close-on-click-modal="false"
+      @close="dialog.type = ''"
+    >
+      <Suspense>
+        <template #default>
+          <component
+            :is="dialog.type === 'view' ? ContentDetailDialog : ContentEditDialog"
+            :id="dialog.id"
+            :type="dialog.type"
+            @success="onDialogSuccess"
+            @cancel="dialog.visible = false"
+          />
+        </template>
+        <template #fallback>
+          <el-skeleton :rows="6" animated />
+        </template>
+      </Suspense>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { 
@@ -198,6 +242,10 @@ import {
   editContent,
   deleteContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+
+// 弹窗组件异步加载（首字母大写）
+const ContentEditDialog = defineAsyncComponent(() => import('./ContentEditDialog.vue'));
+const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as any;
@@ -237,6 +285,13 @@ const showSearch = ref(true);
 const selectedIds = ref([]);
 // 选中的行数据数组
 const selectedRows = ref([]);
+
+// 弹窗控制
+const dialog = ref({
+  visible: false,
+  type: '', // 'add' | 'edit' | 'view'
+  id: null as string | number | null
+});
 
 /** 获取普法内容列表 */
 const getList = () => {
@@ -336,9 +391,24 @@ const handleSelectionChange = (selection: any[]) => {
   selectedRows.value = selection;
 };
 
+/** 弹窗标题 */
+const getDialogTitle = () => {
+  const map: Record<string, string> = {
+    'add': '新增普法内容',
+    'edit': '编辑普法内容',
+    'view': '查看普法内容'
+  };
+  return map[dialog.value.type] || '';
+};
+
+/** 打开弹窗 */
+const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
+  dialog.value = { visible: true, type, id: id ?? null };
+};
+
 /** 新增按钮事件 */
 const handleAdd = () => {
-  router.push('/expertServicePlatform/legalServiceManage/addContent');
+  openDialog('add');
 };
 
 /** 启用按钮事件 */
@@ -513,19 +583,18 @@ const handleEdit = (row: any) => {
     ElMessage.warning('数据ID缺失，无法编辑');
     return;
   }
-  console.log('📝 点击编辑按钮, ID:', row.id);
-  router.push({
-    path: '/expertServicePlatform/legalServiceManage/editContent',
-    query: { id: row.id }
-  });
+  openDialog('edit', row.id);
 };
 
 /** 查看按钮事件 */
 const handleView = (row: any) => {
-  router.push({
-    path: '/expertServicePlatform/legalServiceManage/contentDetail',
-    query: { id: row.id, type: 'view' }
-  });
+  openDialog('view', row.id);
+};
+
+/** 弹窗成功回调 */
+const onDialogSuccess = () => {
+  dialog.value.visible = false;
+  getList();
 };
 
 /** 状态变更事件 */
