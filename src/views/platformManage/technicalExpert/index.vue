@@ -72,8 +72,22 @@
                 <el-link type="primary" @click="openToggleDialog(scope.row)">
                   {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
                 </el-link>
-                <el-button type="primary" v-hasPermi="['system:baseTechExpertInfo:list']" @click="handleEdit(scope.row, 'view')">查看</el-button>
-                <el-button type="primary" v-hasPermi="['system:baseEnterpriseInfo:edit']" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+                <el-button
+                  v-throttle
+                  type="primary"
+                  v-if="scope.row.reviewStatus !== '0'"
+                  v-hasPermi="['system:baseTechExpertInfo:list']"
+                  @click="handleEdit(scope.row, 'view')"
+                  >查看</el-button
+                >
+                <el-button
+                  v-throttle
+                  v-if="scope.row.reviewStatus === '0'"
+                  type="primary"
+                  v-hasPermi="['system:baseEnterpriseInfo:edit']"
+                  @click="handleEdit(scope.row, 'audit')"
+                  >审核</el-button
+                >
                 <!-- <el-link
                   type="primary"
                   v-if="scope.row.reviewStatus !== '0'"

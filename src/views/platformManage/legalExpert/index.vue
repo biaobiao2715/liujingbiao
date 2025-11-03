@@ -77,8 +77,22 @@
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
             <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-button type="primary" v-hasPermi="['system:baseLegalExpertInfo:query']" @click="handleEdit(scope.row, 'view')">查看</el-button>
-              <el-button type="primary" v-hasPermi="['system:baseLegalExpertInfo:process']" @click="handleEdit(scope.row, 'audit')">审核</el-button>
+              <el-button
+                v-throttle
+                type="primary"
+                v-if="scope.row.reviewStatus !== '0'"
+                v-hasPermi="['system:baseLegalExpertInfo:query']"
+                @click="handleEdit(scope.row, 'view')"
+                >查看</el-button
+              >
+              <el-button
+                v-throttle
+                v-if="scope.row.reviewStatus === '0'"
+                type="primary"
+                v-hasPermi="['system:baseLegalExpertInfo:process']"
+                @click="handleEdit(scope.row, 'audit')"
+                >审核</el-button
+              >
               <!-- <el-link
                 type="primary"
                 v-if="scope.row.reviewStatus === '0'"
