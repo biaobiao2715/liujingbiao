@@ -58,29 +58,18 @@ const emit = defineEmits<{
   (e: 'nextStep'): void;
 }>();
 
-// 响应式处理
-watch(
-  () => props.command,
-  (newCommand) => {
-    if (newCommand) {
-      console.log('接收到命令:', newCommand);
-      selectMenu(newCommand);
-    }
-  },
-  { immediate: true }
-);
 // 菜单项
-const menuItems = [
+const menuItems = ref([
   { id: 1, title: '我的订单', component: 'order' },
   { id: 2, title: '我的收藏', component: 'collection' },
   { id: 3, title: '我的提问', component: 'question' },
   { id: 4, title: '地址管理', component: 'address' },
   { id: 5, title: '我发布的需求', component: 'demand' },
   { id: 6, title: '我参与的', component: 'participated' }
-];
+]);
 
 // 当前选中的组件
-const selectedComponent = ref(menuItems[0].component);
+const selectedComponent = ref(menuItems.value[0].component);
 // 动态标题
 const currentTitle = computed(() => {
   const map: Record<string, string> = {
@@ -101,11 +90,23 @@ function goBack() {
 
 // 切换菜单
 function selectMenu(val: any) {
-  const selectedMenu = menuItems.find((item) => item.component === val);
+  const selectedMenu = menuItems.value.find((item) => item.component === val);
   if (selectedMenu) {
     selectedComponent.value = selectedMenu.component;
   }
 }
+
+// 响应式处理
+watch(
+  () => props.command,
+  (newCommand) => {
+    if (newCommand) {
+      console.log('接收到命令:', newCommand);
+      selectMenu(newCommand);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped lang="scss">

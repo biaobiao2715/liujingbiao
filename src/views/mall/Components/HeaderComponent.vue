@@ -11,7 +11,7 @@
     <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button>
     <el-button type="primary" @click="handleLogout">退出登录</el-button>
 
-    <el-dropdown @command="handleCommand" v-hasPermi="['system:into:myCenter']">
+    <el-dropdown @command="handleCommand" v-hasPermi="['system:into:myCenter']" style="margin-left: 12px">
       <el-button> 个人中心<i class="el-icon-arrow-down el-icon--right"></i> </el-button>
       <template #dropdown>
         <el-dropdown-menu class="dropdown-menu">

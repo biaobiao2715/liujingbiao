@@ -188,9 +188,7 @@ import { ref, getCurrentInstance, toRefs, onMounted, onActivated, defineAsyncCom
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
-import router from '@/router';
-import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings } from '@/api/supplier/productManagement/product';
-import { constants } from 'buffer';
+import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings, goodsExport } from '@/api/supplier/productManagement/product';
 
 // 异步引入弹窗组件
 const EditDialog = defineAsyncComponent(() => import('./Edit.vue'));
@@ -462,6 +460,29 @@ const performStatusUpdate = async (toStatus: '1' | '0') => {
 const handleShelf = () => performStatusUpdate('1'); //上架
 const handleUnshelf = () => performStatusUpdate('0'); //下架
 
+// 导出
+const handleExport = () => {
+  const ids = selectedIds.value.slice();
+
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  const fileName = `商品管理_${year}-${month}-${day}.xlsx`;
+  // 解构查询参数
+  const { pageNum, pageSize, ...daochu } = queryParams.value;
+
+  // 构造导出参数
+  const params =
+    ids.length > 0
+      ? { ids: ids.join(',') } // 只导出选中的商品
+      : { ...daochu }; // 导出当前查询条件下的全部商品
+
+  // 调用下载方法
+  proxy.download('/grain-sales/goods/export', params, fileName);
+};
+
 // 金额格式化：¥ 前缀 + 千分位 + 两位小数
 const formatCNY = (n: number) => `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -491,11 +512,6 @@ const getSalesPrice = (row: any) => {
   // 规格里没取到有效价，回退到行级销售价/价格字段
   const fallback = Number(row?.salesPrice ?? row?.price);
   return Number.isFinite(fallback) ? formatCNY(fallback) : '--';
-};
-
-// 导出
-const handleExport = () => {
-  proxy?.download('/grain-sales/goods/export', { ...queryParams.value }, `goods_${new Date().getTime()}.xlsx`);
 };
 
 // 仅允许数字输入的通用方法

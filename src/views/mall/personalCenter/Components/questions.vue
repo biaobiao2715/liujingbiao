@@ -10,18 +10,24 @@
     <div class="title">我的提问</div>
     <el-divider />
 
-    <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
+    <!-- 问题统计与红色回复数 -->
     <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已提问${total}条`" />
-    <!-- 表格：加边框与紧凑尺寸 -->
+
+    <!-- 表格 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column prop="receiverName" label="我的提问" align="center" />
-      <el-table-column prop="receiverPhone" label="发布时间" align="center" />
+      <el-table-column prop="questionTitle" label="我的提问" align="center" />
+      <el-table-column prop="publishTime" label="发布时间" align="center">
+        <template #default="scope">
+          <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="160" align="center">
         <template #default="{ row }">
           <div class="ops">
-            <el-button link type="danger" @click="onDelete(row)">关闭</el-button>
-            <el-button link type="primary" @click="onEdit(row)">查看</el-button>
+            <el-button v-if="row.questionStatus !== '99'" link type="danger" class="btn-red" @click="onDelete(row)">关闭</el-button>
+            <el-button link type="primary" class="btn-blue" @click="onEdit(row)">查看</el-button>
+            <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
           </div>
         </template>
       </el-table-column>
@@ -31,39 +37,33 @@
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
-    <!-- 新增：详情弹窗 -->
+    <!-- 详情弹窗 -->
     <el-dialog v-model="detailVisible" width="80%" destroy-on-close :close-on-click-modal="false" class="question-detail-dialog" title="详情">
       <div v-loading="detailLoading" class="detail-body">
         <!-- 我的问题 -->
         <div class="section">
           <el-divider content-position="left"><div class="section-title">我的问题</div></el-divider>
           <div class="question-item">
-            <div class="q-time">{{ currentQuestion?.createTime }}</div>
-            <div class="q-content">{{ currentQuestion?.content }}</div>
-            <div class="q-images" v-if="currentQuestion?.images?.length">
-              <el-image
-                v-for="(img, i) in currentQuestion!.images"
-                :key="i"
-                :src="img"
-                :preview-src-list="currentQuestion!.images"
-                fit="cover"
-                class="q-img"
-              />
+            <div class="q-time">{{ currentQuestion?.publishTime }}</div>
+            <div class="q-title">{{ currentQuestion?.questionTitle }}</div>
+            <div class="q-content">{{ currentQuestion?.questionContent }}</div>
+            <div class="q-images" v-if="imageList.length">
+              <el-image v-for="(img, i) in imageList.slice(0, 6)" :key="i" :src="img" :preview-src-list="imageList" fit="cover" class="q-img" />
             </div>
           </div>
         </div>
 
-        <!-- 专家回复 -->
+        <!-- 专家回复倒序展示 -->
         <div class="section">
           <el-divider content-position="left"><div class="section-title">专家回复</div></el-divider>
           <el-empty v-if="!replyList.length && !detailLoading" description="暂无回复" />
           <div v-else>
-            <div class="reply-item" v-for="item in replyList" :key="item.id">
+            <div class="reply-item" v-for="item in replyListSorted" :key="item.id">
               <div class="meta">
-                <span class="meta-date">{{ item.createTime }}</span>
-                <span class="meta-user">{{ item.expertName || '系统' }}</span>
+                <span class="meta-date">{{ item.replyTime }}</span>
+                <span class="meta-user">{{ item.expertType === '1' ? '技术专家' : item.expertType === '2' ? '法务专家' : '专家' }}</span>
               </div>
-              <div class="content">{{ item.content }}</div>
+              <div class="content">{{ item.answerContent }}</div>
             </div>
           </div>
         </div>
@@ -75,30 +75,19 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import {
-  Address,
-  userAddressList,
-  userAddressAdd,
-  userAddressUpdate,
-  userAddressDelete,
-  userAddressSetDefault
-} from '@/api/mall/personalCenter/addressManagement';
+  listStyle,
+  questionList,
+  questionStop,
+  questionDetail,
+  HnQuestionVo,
+  HnAnswerVo,
+  HnCommonRelevanceFilesVo,
+  RemoteFile
+} from '@/api/mall/personalCenter/questions';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-// 新增：详情相关类型与状态
-interface QuestionDetail {
-  id: number | string;
-  content: string;
-  createTime: string;
-  images?: string[];
-}
-interface ReplyItem {
-  id: number | string;
-  content: string;
-  createTime: string;
-  expertName?: string;
-}
-// 列表 & 分页
 const loading = ref(false);
-const tableData = ref<Address[]>([]);
+const tableData = ref<listStyle[]>([]);
 const total = ref(0);
 const queryParams = reactive({
   pageNum: 1,
@@ -106,49 +95,75 @@ const queryParams = reactive({
 });
 const detailVisible = ref(false);
 const detailLoading = ref(false);
-const currentQuestion = ref<QuestionDetail | null>(null);
-const replyList = ref<ReplyItem[]>([]);
+const currentQuestion = ref<HnQuestionVo | null>(null);
+const replyList = ref<HnAnswerVo[]>([]);
+const imageList = ref<string[]>([]);
+
+// 专家回复倒序
+const replyListSorted = computed(() => {
+  return [...replyList.value].sort((a, b) => ((b.replyTime || '') > (a.replyTime || '') ? 1 : -1));
+});
+
 // 生命周期
 onMounted(() => {
   getList();
 });
 
-// 方法
+// 获取列表
 const getList = async () => {
   loading.value = true;
   try {
-    const res: any = await userAddressList({ pageNum: queryParams.pageNum, pageSize: queryParams.pageSize });
+    const res: any = await questionList(queryParams);
     if (res?.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
-      const def = tableData.value.find((x) => x.isDefault === '1');
     }
   } finally {
     loading.value = false;
   }
 };
 
-// 替换：查看 => 打开详情弹窗并加载回复列表
+// 查看详情
 const onEdit = (row: any) => {
-  currentQuestion.value = {
-    id: row.id,
-    // 这里用列表里的字段回显；按你的真实字段替换
-    content: row.receiverName, // 问题内容
-    createTime: row.receiverPhone, // 发布时间（占位）
-    images: row.images || row.attachments || [] // 图片数组
-  };
-  detailVisible.value = true;
+  detailLoading.value = true;
+  questionDetail(row.id)
+    .then((res: any) => {
+      if (res?.code === 200) {
+        currentQuestion.value = res.data || null;
+        replyList.value = res.data?.hnAnswerVoList || [];
+        // 图片附件最多6张
+        imageList.value = [];
+        if (res.data?.hnCommonRelevanceFilesVos?.length) {
+          res.data.hnCommonRelevanceFilesVos.forEach((file: HnCommonRelevanceFilesVo) => {
+            if (file.fileType === '0' && file.remoteOssVos?.length) {
+              file.remoteOssVos.forEach((img: RemoteFile) => {
+                if (img.url) imageList.value.push(img.url);
+              });
+            }
+          });
+        }
+        detailVisible.value = true;
+      }
+    })
+    .finally(() => {
+      detailLoading.value = false;
+    });
 };
 
-const onDelete = async (row: Address) => {
+// 关闭问题
+const onDelete = async (row: listStyle) => {
   await ElMessageBox.confirm('确定关闭该提问吗？', '提示', { type: 'warning' });
-  // const res: any = await questionClose(row.id);
-  // if (res?.code === 200) {
-  //   ElMessage.success('关闭成功');
-  //   // 若删除的是默认，清空默认标记
-  //   getList();
-  // }
+  const res: any = await questionStop(row.id);
+  if (res?.code === 200) {
+    ElMessage.success('关闭成功');
+    getList();
+  }
 };
+
+// 获取每条问题的回复数
+function getReplyCount(row: any) {
+  return Array.isArray(row.hnAnswerVoList) ? row.hnAnswerVoList.length : row.replyCount || 0;
+}
 </script>
 
 <style scoped>
@@ -159,6 +174,15 @@ const onDelete = async (row: Address) => {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 6px;
+}
+.reply-count {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+.count-red {
+  color: #e53935;
+  font-weight: bold;
+  font-size: 18px;
 }
 /* 表单容器增加描边与圆角，间距更紧凑 */
 .address-form {
@@ -188,15 +212,44 @@ const onDelete = async (row: Address) => {
   padding: 8px 12px;
 }
 
-/* 操作按钮间距 */
-.ops :deep(.el-button + .el-button) {
-  margin-left: 12px;
-}
-
-.flex-center.pagination {
-  margin-top: 16px;
-  justify-content: end;
+/* 操作按钮间距和样式 */
+.ops {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-red {
+  color: #e53935 !important;
+  font-weight: bold;
+  text-decoration: none !important;
+}
+.btn-red:hover {
+  color: #b71c1c !important;
+  background: none !important;
+}
+.btn-blue {
+  color: #1976d2 !important;
+  font-weight: bold;
+  text-decoration: none !important;
+}
+.btn-blue:hover {
+  color: #0d47a1 !important;
+  background: none !important;
+}
+/* 红色圆角回复数 */
+.reply-badge {
+  display: inline-block;
+  min-width: 22px;
+  height: 22px;
+  line-height: 22px;
+  background: #e53935;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 /* 新增：详情弹窗样式 */

@@ -1,24 +1,5 @@
 import request from '@/utils/request';
 
-export interface Address {
-  id?: number;
-  receiverName: string;
-  receiverPhone: string;
-  provinceCode?: string;
-  province?: string;
-  cityCode?: string;
-  city?: string;
-  regionCode?: string;
-  region?: string;
-  detailAddress: string;
-  isDefault: '0' | '1';
-  tag?: string;
-  userId?: number;
-  createTime?: string;
-  updateTime?: string;
-  regionPath?: [string?, string?, string?];
-}
-
 /**
  * 地址管理接口
  */
@@ -78,3 +59,22 @@ export const userAddressDelete = (id: any) => {
     method: 'delete'
   });
 };
+
+export interface Address {
+  id?: number;
+  receiverName: string;
+  receiverPhone: string;
+  provinceCode?: string;
+  province?: string;
+  cityCode?: string;
+  city?: string;
+  regionCode?: string;
+  region?: string;
+  detailAddress: string;
+  isDefault: '0' | '1';
+  tag?: string;
+  userId?: number;
+  createTime?: string;
+  updateTime?: string;
+  regionPath?: [string?, string?, string?];
+}

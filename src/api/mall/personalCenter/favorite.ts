@@ -1,6 +1,50 @@
 // src/api/mall/favorite.ts
 import request from '@/utils/request';
 
+// 查询商品信息列表
+export function favoriteList(query?: any) {
+  return request({
+    url: 'grain-sales/favoriteGoogs/list',
+    method: 'get',
+    params: query
+  });
+}
+
+/**
+ * 删除收藏商品信息
+ * @param data
+ */
+export const favoriteDelete = (id: any) => {
+  return request({
+    url: 'grain-sales/favoriteGoogs/' + id,
+    method: 'delete'
+  });
+};
+
+/**
+ * 收藏文章接口
+ */
+
+// 查询文章信息列表
+export function favoriteArticleList(query?: any) {
+  return request({
+    url: 'skill-server/articleFavorite/list',
+    method: 'get',
+    params: query
+  });
+}
+
+/**
+ * 删除收藏文章信息
+ * @param data
+ */
+export const favoriteArticleDelete = (id: any) => {
+  return request({
+    url: 'skill-server/articleFavorite/' + id,
+    method: 'delete'
+  });
+};
+
 export type FavoriteType = '1' | '2' | '3'; // 1商品 2企业 3文章
 
 export interface FavoriteItem {
@@ -49,51 +93,3 @@ export interface FavoriteItem {
   articleTitle?: string;
   articleCover?: string;
 }
-
-/**
- * 收藏商品接口
- */
-
-// 查询商品信息列表
-export function favoriteList(query?: any) {
-  return request({
-    url: 'grain-sales/favoriteGoogs/list',
-    method: 'get',
-    params: query
-  });
-}
-
-/**
- * 删除收藏商品信息
- * @param data
- */
-export const favoriteDelete = (id: any) => {
-  return request({
-    url: 'grain-sales/favoriteGoogs/' + id,
-    method: 'delete'
-  });
-};
-
-/**
- * 收藏文章接口
- */
-
-// 查询文章信息列表
-export function favoriteArticleList(query?: any) {
-  return request({
-    url: 'skill-server/articleFavorite/list',
-    method: 'get',
-    params: query
-  });
-}
-
-/**
- * 删除收藏文章信息
- * @param data
- */
-export const favoriteArticleDelete = (id: any) => {
-  return request({
-    url: 'skill-server/articleFavorite/' + id,
-    method: 'delete'
-  });
-};
