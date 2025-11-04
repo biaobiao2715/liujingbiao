@@ -753,7 +753,7 @@ onMounted(async () => {
   // 获取router路由参数
   const route = useRoute();
   const { phoneNumber, type } = route.query;
-  idType.value = type || null;
+  idType.value = type;
   if (phoneNumber) {
     const phone = Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber;
     const arr: any = await isAccountExist(phone);
