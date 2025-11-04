@@ -33,7 +33,7 @@
           </el-form-item>
 
           <el-form-item label="企业经营范围">
-            <el-input v-model="formData.businessScope" type="textarea" disabled></el-input>
+            <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">

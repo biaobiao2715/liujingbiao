@@ -128,7 +128,7 @@ const rules = {
     {
       validator: (rule, value) => {
         if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
-          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+          return new Error('密码需包含:大写字母、小写字母、数字、符号,且长度不少于8位');
         }
         return true;
       },

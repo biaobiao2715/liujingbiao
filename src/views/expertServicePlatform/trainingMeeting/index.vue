@@ -50,24 +50,24 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="会议开始时间" align="center" prop="startTime" min-width="160">
+      <el-table-column label="会议开始时间" align="center" prop="meetingStartTime" min-width="160">
         <template #default="scope">
-          <span>{{ scope.row.startTime }}</span>
+          <span>{{ scope.row.meetingStartTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议结束时间" align="center" prop="endTime" min-width="160">
+      <el-table-column label="会议结束时间" align="center" prop="meetingEndTime" min-width="160">
         <template #default="scope">
-          <span>{{ scope.row.endTime }}</span>
+          <span>{{ scope.row.meetingEndTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议标题" align="center" prop="meetingTitle" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="会议标题" align="center" prop="meetingName" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column label="会议地址" align="center" prop="meetingAddress" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column label="所属分类" align="center" prop="category" min-width="100">
+      <el-table-column label="所属分类" align="center" prop="meetingType" min-width="100">
         <template #default="scope">
-          <dict-tag :options="meeting_type" :value="scope.row.category" />
+          <dict-tag :options="meeting_type" :value="scope.row.meetingType" />
         </template>
       </el-table-column>
-      <el-table-column label="联系方式" align="center" prop="contact" min-width="120" />
+      <el-table-column label="联系方式" align="center" prop="meetingPhone" min-width="120" />
       <el-table-column label="报名状态" align="center" prop="signUpStatus" min-width="80">
         <template #default="scope">
           <dict-tag :options="meeting_status" :value="scope.row.signUpStatus" />
@@ -78,10 +78,10 @@
           <span>{{ scope.row.publishTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" min-width="80">
+      <el-table-column label="状态" align="center" prop="meetingStatus" min-width="80">
         <template #default="scope">
-          <span :style="getStatusStyle(scope.row.status)">
-            {{ getStatusLabel(scope.row.status) }}
+          <span :style="getStatusStyle(scope.row.meetingStatus)">
+            {{ getStatusLabel(scope.row.meetingStatus) }}
           </span>
         </template>
       </el-table-column>
@@ -114,7 +114,7 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { listcultivateExperts } from '@/api/expertServicePlatform/trainingMeeting/index';
+import { listHnMeetingCultivate } from '@/api/expertServicePlatform/trainingMeeting/index';
 import Details from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -156,7 +156,7 @@ const getList = () => {
   const [publishStartTime, publishEndTime] = Array.isArray(publishTime) ? publishTime : [];
   const params = { ...rest, ...(publishStartTime && publishEndTime ? { publishStartTime, publishEndTime } : {}) };
 
-  listcultivateExperts(params).then((res) => {
+  listHnMeetingCultivate(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;

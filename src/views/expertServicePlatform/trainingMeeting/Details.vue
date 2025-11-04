@@ -118,21 +118,9 @@ const getStatusLabel = (status: string) => {
 
 // 获取详情数据
 const fetchDetail = async () => {
-  const res = await getcultivateExpert(props.id);
+  const res = await getcultivateExpert({ id: props.id, isView: true });
   // 会议基础信息
-  meetingData.value = {
-    meetingTitle: res.data.meetingTitle,
-    publisher: res.data.publisher,
-    publishTime: res.data.publishTime,
-    status: res.data.status,
-    signUpCount: res.data.signUpCount,
-    categoryLabel: res.data.categoryLabel,
-    recorder: res.data.recorder,
-    startTime: res.data.startTime,
-    endTime: res.data.endTime,
-    meetingAddress: res.data.meetingAddress,
-    notice: res.data.notice
-  };
+  meetingData.value = res.data;
   // 专家人员列表
   expertList.value = (res.data.expertList || []).map((item) => ({
     expertCode: item.expertCode,

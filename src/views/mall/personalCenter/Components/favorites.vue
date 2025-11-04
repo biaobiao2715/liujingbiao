@@ -24,7 +24,7 @@
         </el-input>
       </div>
 
-      <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
+      <el-tabs v-model="state.activeTab" @tab-change="onTabChange" :loading="state.loading">
         <el-tab-pane v-for="(item, index) in tabList" :key="index" :label="item.label" :name="item.value" />
       </el-tabs>
 
@@ -161,13 +161,18 @@ function reload() {
   };
   unifiedFavoriteList(query)
     .then((res: any) => {
-      const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];
-      const total = res?.total ?? res?.data?.total ?? rows.length ?? 0;
+      const rows = res.rows || [];
+      const total = res.total || 0;
       state.list = rows || [];
       state.total = Number(total) || 0;
     })
+    .catch(() => {
+      // 调用失败时清空数据
+      state.list = [];
+      state.total = 0;
+    })
     .finally(() => {
-      state.loading = false;
+      // state.loading = false;
     });
 }
 

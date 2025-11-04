@@ -374,26 +374,17 @@ const FormRulesarr: FormRules = {
   signUpCapital: [
     { required: true, message: '注册资本不能为空', trigger: 'blur' },
     {
-      validator: (rule: any, value: any, callback: any) => {
+      validator: (rule, value, callback) => {
         if (!value || value.trim() === '') {
           callback(new Error('注册资本不能为空'));
           return;
         }
-
-        // 验证是否为有效数字
-        const numRegex = /^\d+(\.\d{1,2})?$/;
-        if (!numRegex.test(value)) {
-          callback(new Error('请输入有效的数字，支持最多两位小数'));
+        // 支持中文、数字、金额单位（如万元、人民币等）
+        const capitalRegex = /^[\u4e00-\u9fa5a-zA-Z0-9（）()万元人民币. ]+$/;
+        if (!capitalRegex.test(value)) {
+          callback(new Error('注册资本格式不正确，可填写中文或数字及金额单位'));
           return;
         }
-
-        // 验证数值范围
-        const numValue = parseFloat(value);
-        if (numValue <= 0) {
-          callback(new Error('注册资本必须大于0'));
-          return;
-        }
-
         callback();
       },
       trigger: 'blur'
@@ -571,7 +562,7 @@ const FormRulesarr: FormRules = {
     {
       validator: (rule, value) => {
         if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
-          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+          return new Error('密码需包含:大写字母、小写字母、数字、符号,且长度不少于8位');
         }
         return true;
       },
