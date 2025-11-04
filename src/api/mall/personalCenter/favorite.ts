@@ -2,11 +2,11 @@
 import request from '@/utils/request';
 
 // 查询商品信息列表
-export function unifiedFavoriteList(query?: any) {
+export function unifiedFavoriteList(data?: any) {
   return request({
     url: 'skill-server/skill/list',
-    method: 'get',
-    params: query
+    method: 'post',
+    data
   });
 }
 
@@ -21,13 +21,14 @@ export function skillFavoriteAdd(data?: any) {
 }
 
 /**
- * 删除收藏商品信息
+ * 取消收藏商品信息
  * @param data
  */
-export const favoriteDelete = (id: any) => {
+export const favoriteDelete = (data: any) => {
   return request({
-    url: 'grain-sales/favoriteGoogs/' + id,
-    method: 'delete'
+    url: 'skill-server/skill/favorite',
+    method: 'post',
+    data
   });
 };
 

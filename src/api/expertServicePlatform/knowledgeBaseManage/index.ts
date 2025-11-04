@@ -1,4 +1,100 @@
 /**
+ * 查询文章列表
+ * GET skill-server/article/list
+ * @param params ArticleQuery 查询参数（含分页与时间范围）
+ */
+export function listArticles(params: ArticleQuery) {
+  return request({
+    url: 'skill-server/article/list',
+    method: 'get',
+    params
+  });
+}
+
+/**
+ * 获取文章详情
+ * GET skill-server/article/{id}
+ * @param id number|string 文章id
+ */
+export function getArticle(id: number | string) {
+  return request({
+    url: `skill-server/article/${id}`,
+    method: 'get'
+  });
+}
+
+/**
+ * 新增文章
+ * POST skill-server/article
+ * @param data ArticleDTO 文章数据
+ */
+export function addArticle(data: ArticleDTO) {
+  return request({
+    url: 'skill-server/article',
+    method: 'post',
+    data
+  });
+}
+
+/**
+ * 更新文章
+ * PUT skill-server/article/{id}
+ * @param data ArticleDTO 文章数据（需包含 id）
+ */
+export function updateArticle(data: ArticleDTO) {
+  return request({
+    url: `skill-server/article`,
+    method: 'put',
+    data
+  });
+}
+
+/**
+ * 删除文章（支持批量）
+ * DELETE skill-server/article/{id,id2,...}
+ * @param ids number|string|Array<number|string> 单个id或id数组
+ */
+export function delArticle(ids: Array<number | string> | number | string) {
+  const idStr = Array.isArray(ids) ? ids.join(',') : ids;
+  return request({
+    url: `skill-server/article/${idStr}`,
+    method: 'delete'
+  });
+}
+
+/**
+ * 批量修改文章状态（启用/禁用）
+ * PUT skill-server/article/status
+ * @param data { ids: number[]; articleStatus: 2|3 }
+ */
+export function changeArticleStatus(ids: ChangeStatusPayload) {
+  const idStr = Array.isArray(ids) ? ids.join(',') : ids;
+  return request({
+    url: `skill-server/article/enableAndDisabled/${idStr}`,
+    method: 'get'
+  });
+}
+
+/**
+ * 图片上传方法
+ * @param data - 包含文件的对象，需包含 `file` 属性
+ * @returns 图片上传结果的 Promise
+ */
+export const ossUploadImage = (data: { file: File }) => {
+  const formData = new FormData();
+  formData.append('file', data.file);
+
+  return request({
+    url: '/resource/oss/upload',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+
+/**
  * 知识库文章接口
  * 模块说明：
  * - 列表查询、详情、增改、删除、批量状态修改（启用/禁用）
@@ -70,99 +166,3 @@ export interface ChangeStatusPayload {
   ids: Array<number | string>;
   articleStatus: string | number; // 2 启用, 3 禁用
 }
-
-/**
- * 查询文章列表
- * GET skill-server/article/list
- * @param params ArticleQuery 查询参数（含分页与时间范围）
- */
-export function listArticles(params: ArticleQuery) {
-  return request({
-    url: 'skill-server/article/list',
-    method: 'get',
-    params
-  });
-}
-
-/**
- * 获取文章详情
- * GET skill-server/article/{id}
- * @param id number|string 文章id
- */
-export function getArticle(id: number | string) {
-  return request({
-    url: `skill-server/article/${id}`,
-    method: 'get'
-  });
-}
-
-/**
- * 新增文章
- * POST skill-server/article
- * @param data ArticleDTO 文章数据
- */
-export function addArticle(data: ArticleDTO) {
-  return request({
-    url: 'skill-server/article',
-    method: 'post',
-    data
-  });
-}
-
-/**
- * 更新文章
- * PUT skill-server/article/{id}
- * @param data ArticleDTO 文章数据（需包含 id）
- */
-export function updateArticle(data: ArticleDTO) {
-  return request({
-    url: `skill-server/article`,
-    method: 'put',
-    data
-  });
-}
-
-/**
- * 删除文章（支持批量）
- * DELETE skill-server/article/{id,id2,...}
- * @param ids number|string|Array<number|string> 单个id或id数组
- */
-export function delArticle(ids: Array<number | string> | number | string) {
-  const idStr = Array.isArray(ids) ? ids.join(',') : ids;
-  return request({
-    url: `skill-server/article/${idStr}`,
-    method: 'delete'
-  });
-}
-
-/**
- * 批量修改文章状态（启用/禁用）
- * PUT skill-server/article/status
- * @param data { ids: number[]; articleStatus: 2|3 }
- */
-export function changeArticleStatus(data: ChangeStatusPayload) {
-  return request({
-    url: 'skill-server/article/status',
-    method: 'put',
-    data
-  });
-}
-
-/**
- * 图片上传方法
- * @param data - 包含文件的对象，需包含 `file` 属性
- * @returns 图片上传结果的 Promise
- */
-export const ossUploadImage = (data: { file: File }) => {
-  const formData = new FormData();
-  formData.append('file', data.file);
-
-  return request({
-    url: '/resource/oss/upload',
-    method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-};

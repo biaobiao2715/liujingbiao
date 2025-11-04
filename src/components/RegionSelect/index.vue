@@ -3,6 +3,7 @@
     v-model="regionValue"
     filterable
     clearable
+    :disabled="disabled"
     :options="options"
     :props="{
       value: 'value',
@@ -24,6 +25,10 @@ const props = defineProps({
   modelValue: {
     type: Array as () => string[],
     default: () => []
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 const regionValue = ref<string[]>([]);

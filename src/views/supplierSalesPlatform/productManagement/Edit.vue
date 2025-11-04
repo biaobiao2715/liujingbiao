@@ -228,7 +228,13 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="上架时间" prop="launchTime">
-          <el-date-picker v-model="formData.launchTime" value-format="YYYY-MM-DD HH:mm:ss" type="datetime" placeholder="请选择日期时间" />
+          <el-date-picker
+            v-model="formData.launchTime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            type="datetime"
+            placeholder="请选择日期时间"
+            style="width: 100%"
+          />
         </el-form-item>
       </div>
 

@@ -133,7 +133,7 @@ onMounted(async () => {
     ElMessage.error('缺少文章ID');
     return;
   }
-  const res = await getArticle(props.id as string);
+  const res = await getArticle(props.id);
   const data = res?.data ?? res ?? {};
   form.value = data;
   buildAttachments(data);

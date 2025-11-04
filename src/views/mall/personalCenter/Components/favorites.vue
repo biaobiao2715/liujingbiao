@@ -10,7 +10,14 @@
     <el-card shadow="never" class="fav-card">
       <div class="header">
         <div class="title">我的收藏夹</div>
-        <el-input v-model="state.query.googsName" placeholder="搜索收藏名称/编号" class="search" clearable @clear="reload" @keyup.enter="reload">
+        <el-input
+          v-model="state.queryParams.googsName"
+          placeholder="搜索收藏名称/编号"
+          class="search"
+          clearable
+          @clear="reload"
+          @keyup.enter="reload"
+        >
           <template #append>
             <el-button @click="reload" :loading="state.loading" icon="Search">搜索</el-button>
           </template>
@@ -66,7 +73,7 @@
             </el-card>
           </div>
 
-          <!-- 文章收藏 -->
+          <!-- 文章收藏 /培训课程/普法内容-->
           <div v-else class="grid goods-grid">
             <el-card
               v-for="item in state.list"
@@ -76,13 +83,13 @@
               shadow="hover"
               :body-style="{ padding: '12px' }"
             >
-              <div class="goods">
-                <img class="li-img" :src="item.articleCover || defaultImg" alt="文章图片" />
-                <div class="name" :title="item.articleTitle || item.googsName">
-                  {{ item.articleTitle || item.googsName || '-' }}
+              <div class="goods article">
+                <img class="li-img" :src="getArticleCover(item)" alt="封面图片" />
+                <div class="name" :title="getArticleTitle(item)">
+                  {{ getArticleTitle(item) }}
                 </div>
                 <div class="flex-between">
-                  <div class="author">作者： {{ item.articleAuthor }}</div>
+                  <div class="author">{{ getArticleAuthor(item) }}</div>
                   <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
@@ -133,7 +140,9 @@ const state = reactive({
   opLoadingId: 0 as number | 0,
   query: {
     pageNum: 1,
-    pageSize: 10,
+    pageSize: 10
+  },
+  queryParams: {
     googsName: ''
   }
 });
@@ -146,7 +155,10 @@ function onTabChange(name: string | number) {
 
 function reload() {
   state.loading = true;
-  const query = { ...state.query, favoriteType: state.activeTab };
+  const query = {
+    favoriteType: state.activeTab,
+    pageQuery: state.query
+  };
   unifiedFavoriteList(query)
     .then((res: any) => {
       const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];
@@ -169,7 +181,20 @@ function onUnfav(item: FavoriteItem) {
     .then(async () => {
       state.opLoadingId = item.id as number;
       // 商品/文章/普法/培训均可用同一个删除接口
-      await favoriteDelete(item.id as number);
+      const arr: any = { favoriteType: state.activeTab };
+      if (state.activeTab === '1') {
+        arr.favoriteGoogsBo = { ...item };
+      }
+      if (state.activeTab === '3') {
+        arr.favoriteArticleBo = { ...item };
+      }
+      if (state.activeTab === '4') {
+        arr.hnCourseFavoriteBo = { ...item };
+      }
+      if (state.activeTab === '5') {
+        arr.hnLawFavoriteBo = { ...item };
+      }
+      await favoriteDelete(arr);
       ElMessage.success('已取消收藏');
       reload();
     })
@@ -224,6 +249,23 @@ const specificationText = (specId: unknown) => {
   const hit = list.find((v: any) => String(v?.dictValue ?? v?.value ?? v?.id) === String(specId));
   return hit?.dictLabel ?? hit?.label ?? '';
 };
+
+// 优化：不同类型收藏内容字段兼容处理
+function getArticleCover(item: any) {
+  // 文章、课程、普法内容等可能字段不同
+  return item.articleCover || item.courseCover || item.contentCover || defaultImg;
+}
+function getArticleTitle(item: any) {
+  return item.articleTitle || item.courseTitle || item.contentTitle || '-';
+}
+function getArticleAuthor(item: any) {
+  return (
+    (item.articleAuthor && `作者：${item.articleAuthor}`) ||
+    (item.courseAuthor && `作者：${item.courseAuthor}`) ||
+    (item.contentAuthor && `作者：${item.contentAuthor}`) ||
+    ''
+  );
+}
 
 onMounted(() => {
   reload();

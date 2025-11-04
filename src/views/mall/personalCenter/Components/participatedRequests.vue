@@ -19,7 +19,7 @@
 
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
         <el-tab-pane label="培训会议" name="1" />
-        <el-tab-pane label="普法会议" name="3" />
+        <el-tab-pane label="普法活动" name="2" />
       </el-tabs>
 
       <el-skeleton :loading="state.loading" animated :throttle="200" :count="1">
@@ -33,40 +33,8 @@
         <template #default>
           <el-empty v-if="state.list.length === 0" description="暂无收藏" />
 
-          <!-- 商品收藏：固定 5 列 -->
-          <div v-if="state.activeTab === '1'" class="grid goods-grid">
-            <el-card
-              v-for="item in state.list"
-              @click="goDetail(item)"
-              :key="item.id"
-              class="goods-item"
-              shadow="hover"
-              :body-style="{ padding: '12px' }"
-            >
-              <div class="goods">
-                <img class="li-img" :src="item.googsImageUrl || defaultImg" alt="商品图片" />
-                <div class="flex-between">
-                  <div>{{ getPrice(item.googsPrice, item.spread) }} {{ specificationText(item.goodsSpecificationId) }}</div>
-                  <div>{{ priceDelta(item.spread) }}</div>
-                </div>
-                <div class="flex-between">
-                  <div class="name-ellipsis">{{ item.googsName }}</div>
-                  <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
-                </div>
-                <div class="flex-between meta-line">
-                  <div>
-                    <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px">{{
-                      vs.attributeName
-                    }}</el-tag>
-                  </div>
-                  <div class="addr-ellipsis">{{ item.address }}</div>
-                </div>
-              </div>
-            </el-card>
-          </div>
-
           <!-- 文章收藏 -->
-          <div v-else class="grid goods-grid">
+          <div class="grid goods-grid">
             <el-card
               v-for="item in state.list"
               @click="goDetail(item)"
@@ -76,15 +44,16 @@
               :body-style="{ padding: '12px' }"
             >
               <div class="article">
-                <img class="li-img" :src="item.googsImage || defaultImg" alt="商品图片" />
+                <img class="li-img" :src="item.activityEnrollList[0].activityImage || defaultImg" alt="商品图片" />
                 <div class="info">
                   <div class="name" :title="item.articleTitle || item.googsName">
                     {{ item.articleTitle || item.googsName || '-' }}
                   </div>
-                  <div>作者： {{ item.createBy }}</div>
-                  <div class="actions">
-                    <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消收藏 </el-button>
+                  <div class="flex-between meta-line">
+                    <div>作者： {{ item.createBy }}</div>
+                    <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消报名 </el-button>
                   </div>
+                  <div>作者： {{ item.createBy }}</div>
                 </div>
               </div>
             </el-card>
@@ -118,7 +87,7 @@ const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
 const router = useRouter();
 const state = reactive({
-  activeTab: '1', // 1=商品 3=文章
+  activeTab: '1', // 1=培训会议 3=普法活动
   list: [] as FavoriteItem[],
   total: 0,
   loading: false,
@@ -144,7 +113,7 @@ function onTabChange(name: string | number) {
 
 function reload() {
   state.loading = true;
-  const query = { ...state.query, categoryType: state.activeTab === '1' ? 1 : 2 };
+  const query = { ...state.query, categoryType: state.activeTab };
   participateCategoryList(query)
     .then((res: any) => {
       const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];

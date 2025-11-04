@@ -3,6 +3,7 @@
     <el-cascader
       v-model="selectedCategory"
       :options="categorieList"
+      :disabled="disabled"
       clearable
       :props="{
         value: 'id',
@@ -35,6 +36,10 @@ const props = defineProps({
   modelValue: {
     type: Array as () => string[],
     default: () => []
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 
