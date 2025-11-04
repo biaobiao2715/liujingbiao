@@ -270,7 +270,6 @@ const fetchContentDetail = async () => {
       ElMessage.error(response?.msg || '获取内容详情失败');
     }
   } catch (error) {
-    console.error('获取内容详情失败:', error);
     ElMessage.error('获取内容详情失败，请稍后重试');
   } finally {
     loading.value = false;
@@ -320,7 +319,6 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('操作失败:', error);
       ElMessage.error('操作失败，请稍后重试');
     }
   } finally {
@@ -359,7 +357,6 @@ watch(
         };
       });
     } catch (error) {
-      console.error('生成目录失败:', error);
       tocList.value = [];
     }
   },
@@ -381,7 +378,7 @@ const scrollToHeading = (id: string) => {
       }
     }
   } catch (error) {
-    console.error('滚动失败:', error);
+    // 静默处理错误
   }
 };
 
@@ -440,7 +437,6 @@ const handleFileChange = async (file: any) => {
       ElMessage.error(response?.msg || '上传失败，请重试');
     }
   } catch (error) {
-    console.error('附件上传失败:', error);
     ElMessage.error('上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
@@ -461,7 +457,6 @@ const handlePreviewFile = async (file: any) => {
     URL.revokeObjectURL(link.href);
     ElMessage.success('文件下载成功');
   } catch (error) {
-    console.error('文件下载失败:', error);
     ElMessage.error('文件下载失败，请重试');
   }
 };

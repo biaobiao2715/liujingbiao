@@ -61,7 +61,6 @@
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:whitePaper:remove']" type="danger" @click="handleDelete">删除</el-button>
         </el-col>
-        <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
 
       <!-- 表格展示 -->
@@ -147,17 +146,17 @@
                 更新版本
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '2' || scope.row.paperStatus === '启用'" 
+                v-if="String(scope.row.paperStatus) === '1' || scope.row.paperStatus === '启用'" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:edit']" 
                 type="warning" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '禁用')"
+                @click="handleStatusChange(scope.row, '停用')"
               >
-                禁用
+                停用
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '3' || scope.row.paperStatus === '禁用'" 
+                v-if="String(scope.row.paperStatus) === '0' || scope.row.paperStatus === '停用' || scope.row.paperStatus === '禁用'" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:edit']" 
                 type="success" 
@@ -167,7 +166,7 @@
                 启用
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '3' || scope.row.paperStatus === '禁用'" 
+                v-if="String(scope.row.paperStatus) === '0' || scope.row.paperStatus === '停用' || scope.row.paperStatus === '禁用'" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:remove']" 
                 type="danger" 
@@ -240,7 +239,7 @@
           <el-input v-model="versionDialog.currentVersion" disabled />
         </el-form-item>
         <el-form-item label="新版本号" prop="version">
-          <el-input v-model="versionForm.version" placeholder="请输入新版本号，如：V2.0" clearable />
+          <el-input v-model="versionForm.version" placeholder="请输入新版本号，如：1.0" clearable />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -255,21 +254,20 @@
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { useRouter } from 'vue-router';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
   enableWhitePaper,
   disableWhitePaper,
-  updateWhitePaperVersion,
+  editWhitePaper,
+  getWhitePaperDetail,
   type WhitePaperListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 
-// 弹窗组件异步加载（首字母大写）
+// 弹窗组件异步加载
 const WhitePaperEditDialog = defineAsyncComponent(() => import('./WhitePaperEditDialog.vue'));
 const WhitePaperDetailDialog = defineAsyncComponent(() => import('./WhitePaperDetailDialog.vue'));
 
-const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
@@ -314,6 +312,7 @@ const versionDialog = ref({
   visible: false,
   currentVersion: '',
   rowId: null as string | number | null,
+  rowData: null as any, // 保存当前行的完整数据
   loading: false
 });
 
@@ -325,18 +324,17 @@ const versionForm = ref({
 const versionRules = {
   version: [
     { required: true, message: '请输入新版本号', trigger: 'blur' },
-    { pattern: /^V\d+\.\d+(\.\d+)?$/, message: '版本号格式不正确，如：V2.0', trigger: 'blur' }
+    { pattern: /^\d+(\.\d+)?$/, message: '版本号格式不正确，只能输入数字，例如：1.0', trigger: 'blur' }
   ]
 };
 
 /** 获取状态标签类型 */
 const getStatusType = (status: string | number) => {
-  // 白皮书状态：2-启用 3-禁用
-  // 转换为字符串进行比较，兼容数字和字符串类型
+  // 白皮书状态：0停用 1启用（根据API文档）
   const statusStr = String(status);
-  if (statusStr === '2' || statusStr === '启用') {
+  if (statusStr === '1' || statusStr === '启用') {
     return 'success';
-  } else if (statusStr === '3' || statusStr === '禁用') {
+  } else if (statusStr === '0' || statusStr === '停用' || statusStr === '禁用') {
     return 'danger';
   }
   return 'info';
@@ -344,14 +342,13 @@ const getStatusType = (status: string | number) => {
 
 /** 获取状态标签文字 */
 const getStatusLabel = (status: string | number) => {
-  // 白皮书状态：2-启用 3-禁用
+  // 白皮书状态：0停用 1启用（根据API文档）
   const statusStr = String(status);
-  if (statusStr === '2') {
+  if (statusStr === '1') {
     return '启用';
-  } else if (statusStr === '3') {
-    return '禁用';
+  } else if (statusStr === '0') {
+    return '停用';
   }
-  // 如果后端返回的是文本，直接返回
   return status;
 };
 
@@ -359,28 +356,17 @@ const getStatusLabel = (status: string | number) => {
 const getList = () => {
   loading.value = true;
   
-  const [startTime, endTime] = dateRange.value || [];
+  const [beginTime, endTime] = dateRange.value || [];
   
-  const params: any = {
+  const params: WhitePaperListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
+    ...(queryParams.value.paperTitle ? { paperTitle: queryParams.value.paperTitle } : {}),
+    ...(queryParams.value.paperStatus ? { paperStatus: queryParams.value.paperStatus } : {}),
+    ...(beginTime && endTime ? { beginTime, endTime } : {})
   };
   
-  // 添加搜索条件
-  if (queryParams.value.paperTitle) {
-    params.paperTitle = queryParams.value.paperTitle;
-  }
-  if (queryParams.value.paperStatus) {
-    params.paperStatus = queryParams.value.paperStatus;
-  }
-  if (startTime && endTime) {
-    params.startTime = startTime;
-    params.endTime = endTime;
-  }
-  
   getWhitePaperList(params).then((res: any) => {
-    console.log('响应数据:', res);
-    
     if (res && res.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
@@ -389,69 +375,10 @@ const getList = () => {
       total.value = 0;
       ElMessage.error(res?.msg || '获取数据失败');
     }
-  }).catch((error: any) => {
-    console.error('错误类型:', typeof error);
-    console.error('错误内容:', error);
-    
-    // 如果是后端接口未实现，使用模拟数据（临时方案）
-    console.warn('⚠️ 使用模拟数据显示页面');
-    
-    // 模拟数据（字段名与后端接口一致）
-    const mockData = {
-      rows: [
-        {
-          id: '1',
-          paperTitle: '2025年种子法修订解读',
-          createTime: '2025-01-15 10:00:00',
-          viewCount: 1550,
-          downloadCount: 988,
-          paperStatus: '2', // 2-启用
-          currentVersion: 'V1.0'
-        },
-        {
-          id: '2',
-          paperTitle: '农业知识产权保护指南',
-          createTime: '2025-01-10 14:30:00',
-          viewCount: 1200,
-          downloadCount: 350,
-          paperStatus: '2', // 2-启用
-          currentVersion: 'V2.1'
-        },
-        {
-          id: '3',
-          paperTitle: '种子维权白皮书',
-          createTime: '2024-12-20 09:15:00',
-          viewCount: 980,
-          downloadCount: 280,
-          paperStatus: '3', // 3-禁用
-          currentVersion: 'V1.5'
-        },
-        {
-          id: '4',
-          paperTitle: '农产品质量安全法规汇编',
-          createTime: '2024-12-15 16:45:00',
-          viewCount: 750,
-          downloadCount: 150,
-          paperStatus: '3', // 3-禁用
-          currentVersion: 'V1.0'
-        },
-        {
-          id: '5',
-          paperTitle: '农业补贴政策白皮书2025',
-          createTime: '2024-12-10 11:20:00',
-          viewCount: 2100,
-          downloadCount: 420,
-          paperStatus: '2', // 2-启用
-          currentVersion: 'V3.0'
-        }
-      ],
-      total: 5
-    };
-    
-    tableData.value = mockData.rows;
-    total.value = mockData.total;
-    
-    ElMessage.warning('当前使用模拟数据展示，请联系后端开发人员确认接口状态');
+  }).catch(() => {
+    ElMessage.error('获取维权白皮书列表失败，请稍后重试');
+    tableData.value = [];
+    total.value = 0;
   }).finally(() => {
     loading.value = false;
   });
@@ -541,7 +468,6 @@ const handleEnable = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('启用白皮书失败:', error);
       ElMessage.error('启用失败，请稍后重试');
     } else {
       ElMessage.info('已取消启用');
@@ -587,7 +513,6 @@ const handleDisable = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('停用白皮书失败:', error);
       ElMessage.error('停用失败，请稍后重试');
     } else {
       ElMessage.info('已取消停用');
@@ -631,7 +556,6 @@ const handleDelete = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除白皮书失败:', error);
       ElMessage.error('删除失败，请稍后重试');
     } else {
       ElMessage.info('删除操作已取消');
@@ -662,6 +586,7 @@ const handleUpdateVersion = (row: any) => {
   versionDialog.value.visible = true;
   versionDialog.value.currentVersion = row.currentVersion || 'V1.0';
   versionDialog.value.rowId = row.id;
+  versionDialog.value.rowData = row; // 保存当前行的完整数据
   versionForm.value.version = '';
 };
 
@@ -672,25 +597,66 @@ const handleVersionUpdate = async () => {
   try {
     await versionFormRef.value.validate();
     
+    if (!versionDialog.value.rowId) {
+      ElMessage.error('缺少白皮书ID');
+      return;
+    }
+    
     versionDialog.value.loading = true;
     
-    // 调用版本更新 API
-    const response: any = await updateWhitePaperVersion({ 
-      id: versionDialog.value.rowId as string | number, 
-      version: versionForm.value.version 
-    });
+    // 先获取白皮书详情，获取完整的参数
+    const detailResponse: any = await getWhitePaperDetail(versionDialog.value.rowId);
     
-    if (response && response.code === 200) {
-      ElMessage.success('版本更新成功');
-      versionDialog.value.visible = false;
-      getList();
+    if (detailResponse && detailResponse.code === 200 && detailResponse.data) {
+      const detailData = detailResponse.data;
+      
+      // 构建OSS附件列表
+      const ossVoList = detailData.ossVoList && Array.isArray(detailData.ossVoList) 
+        ? detailData.ossVoList.map((item: any) => ({
+            ossId: item.ossId,
+            fileName: item.fileName,
+            originalName: item.originalName,
+            fileSuffix: item.fileSuffix,
+            url: item.url,
+            version: item.version || versionForm.value.version // 使用新版本号
+          }))
+        : [];
+      
+      // 调用编辑接口，传递原有参数和新版本号
+      const submitData: any = {
+        params: {
+          key: {
+            id: versionDialog.value.rowId,
+            paperTitle: detailData.paperTitle || '',
+            remark: detailData.remark || '',
+            currentVersion: versionForm.value.version // 新版本号
+          }
+        },
+        ossVoList: ossVoList
+      };
+      
+      const response: any = await editWhitePaper(submitData);
+      
+      if (response && response.code === 200) {
+        ElMessage.success('版本更新成功');
+        versionDialog.value.visible = false;
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '版本更新失败，请重试');
+      }
     } else {
-      ElMessage.error(response?.msg || '版本更新失败，请重试');
+      ElMessage.error(detailResponse?.msg || '获取白皮书详情失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('版本更新失败:', error);
-      ElMessage.error('版本更新失败，请稍后重试');
+      // 处理特定的错误信息
+      if (error?.response?.data?.msg) {
+        ElMessage.error(error.response.data.msg);
+      } else if (error?.msg) {
+        ElMessage.error(error.msg);
+      } else {
+        ElMessage.error('版本更新失败，请稍后重试');
+      }
     }
   } finally {
     versionDialog.value.loading = false;
@@ -722,7 +688,6 @@ const handleStatusChange = async (row: any, status: string) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('状态变更失败:', error);
       ElMessage.error(`${status}失败，请稍后重试`);
     } else {
       ElMessage.info('已取消操作');
@@ -755,7 +720,6 @@ const handleDeleteSingle = async (row: any) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除白皮书失败:', error);
       ElMessage.error('删除白皮书失败，请稍后重试');
     } else {
       ElMessage.info('已取消删除');

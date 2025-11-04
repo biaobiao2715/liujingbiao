@@ -73,10 +73,6 @@
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:lawContent:remove']" type="danger" @click="handleDelete">删除</el-button>
         </el-col>
-        <el-col :span="1.5">
-          <el-tag type="info">共 {{ total }} 条数据</el-tag>
-        </el-col>
-        <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
 
       <!-- 表格展示 -->
@@ -236,24 +232,20 @@
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { useRouter } from 'vue-router';
 import { 
   getContentList, 
   editContent,
   deleteContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 
-// 弹窗组件异步加载（首字母大写）
+// 弹窗组件异步加载
 const ContentEditDialog = defineAsyncComponent(() => import('./ContentEditDialog.vue'));
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
 
-const router = useRouter();
 const { proxy } = getCurrentInstance() as any;
 const { legal_popularize_type, legal_pop_content_status } = toRefs<any>(
   proxy?.useDict('legal_popularize_type', 'legal_pop_content_status')
 );
-
-// 字典由后端提供：legal_popularize_type、legal_pop_content_status
 
 // 搜索表单数据
 const queryParams = ref({
@@ -297,26 +289,21 @@ const dialog = ref({
 const getList = () => {
   loading.value = true;
   
-  // 准备查询参数，参考商品管理的写法
   const { title, dateRange: _, ...rest } = queryParams.value as any;
   const [startTime, endTime] = dateRange.value || [];
   
   const params: any = {
     ...rest,
-    // 将title映射为contentTitle（后端接口使用contentTitle作为查询参数）
     ...(title ? { contentTitle: title } : {}),
-    // 日期范围处理
     ...(startTime && endTime ? { startTime, endTime } : {})
   };
   
-  // 过滤空字符串参数
   Object.keys(params).forEach(key => {
     if (params[key] === '') {
       delete params[key];
     }
   });
   
-  // 调用API接口
   getContentList(params).then((res: any) => {
     if (res && res.code === 200) {
       const processedData = (res.rows || []).map((item: any) => {
@@ -327,20 +314,14 @@ const getList = () => {
           statusText = '禁用';
         }
         
-        // 处理浏览量和下载量：正确映射后端字段
-        // 检查后端可能使用的字段名（viewCount/view_count/downloadCount/download_count）
         const viewCount = item.viewCount ?? item.view_count ?? 0;
         const downloadCount = item.downloadCount ?? item.download_count ?? 0;
         
         return {
           ...item,
-          // 确保状态字段正确映射
           status: statusText,
-          // 保留原始数据
           publishTime: item.publishTime || item.createTime || '-',
-          // 处理浏览量：确保正确显示数值
           viewCount: viewCount != null && viewCount !== '' ? Number(viewCount) : 0,
-          // 处理下载量：确保正确显示数值
           downloadCount: downloadCount != null && downloadCount !== '' ? Number(downloadCount) : 0
         };
       });
@@ -351,8 +332,7 @@ const getList = () => {
       ElMessage.error(res?.msg || '获取普法内容列表失败');
     }
     loading.value = false;
-  }).catch((error) => {
-    console.error('获取普法内容列表失败:', error);
+  }).catch(() => {
     ElMessage.error('获取普法内容列表失败，请稍后重试');
     loading.value = false;
   });
@@ -443,13 +423,12 @@ const handleEnable = () => {
     }
   )
     .then(() => {
-      // 批量启用 - 使用正确的数据格式
       const enableData = {
-        contentTitle: 'batch_enable', // 批量操作标识（随意值）
-        contentType: 'batch', // 批量操作标识（随意值）
-        contentSummary: 'batch_operation', // 批量操作标识（随意值）
-        ids: selectedIds.value, // 内容ID数组
-        contentStatus: '3' // 3表示已启用
+        contentTitle: 'batch_enable',
+        contentType: 'batch',
+        contentSummary: 'batch_operation',
+        ids: selectedIds.value,
+        contentStatus: '3'
       };
 
       editContent(enableData)
@@ -457,33 +436,26 @@ const handleEnable = () => {
           if (response.code === 200) {
             ElMessage.success(`成功启用 ${selectedIds.value.length} 条内容`);
             getList();
-            // 清空选中状态
             selectedIds.value = [];
             selectedRows.value = [];
           } else {
             ElMessage.error(response.msg || '启用操作失败');
           }
         })
-        .catch((error) => {
-          console.error('启用操作失败:', error);
+        .catch(() => {
           ElMessage.error('启用操作失败，请稍后重试');
         });
     })
-    .catch(() => {
-      // 用户取消操作
-    });
+    .catch(() => {});
 };
 
 /** 停用按钮事件 */
 const handleDisable = () => {
-  // 如果没有选择内容，则提示用户选择
   if (selectedIds.value.length === 0) {
     ElMessage.warning('请先选择要停用的内容');
     return;
   }
 
-  // 检查目标内容是否都是启用状态（停用操作只能对启用状态的内容进行）
-  // 状态：'3'-启用 '2'-禁用
   const invalidRows = selectedRows.value.filter((row: any) => {
     const status = row.contentStatus || row.status;
     return status === '2' || status === '禁用' || status === 2;
@@ -494,7 +466,6 @@ const handleDisable = () => {
     return;
   }
 
-  // 弹窗确认
   ElMessageBox.confirm(
     '是否确认禁用？', 
     '操作确认', 
@@ -506,13 +477,12 @@ const handleDisable = () => {
     }
   )
     .then(() => {
-      // 批量停用 - 使用正确的数据格式
       const disableData = {
-        contentTitle: 'batch_disable', // 批量操作标识（随意值）
-        contentType: 'batch', // 批量操作标识（随意值）
-        contentSummary: 'batch_operation', // 批量操作标识（随意值）
-        ids: selectedIds.value, // 内容ID数组
-        contentStatus: '2' // 2表示已禁用
+        contentTitle: 'batch_disable',
+        contentType: 'batch',
+        contentSummary: 'batch_operation',
+        ids: selectedIds.value,
+        contentStatus: '2'
       };
 
       editContent(disableData)
@@ -520,21 +490,17 @@ const handleDisable = () => {
           if (response.code === 200) {
             ElMessage.success(`成功停用 ${selectedIds.value.length} 条内容`);
             getList();
-            // 清空选中状态
             selectedIds.value = [];
             selectedRows.value = [];
           } else {
             ElMessage.error(response.msg || '停用操作失败');
           }
         })
-        .catch((error) => {
-          console.error('停用操作失败:', error);
+        .catch(() => {
           ElMessage.error('停用操作失败，请稍后重试');
         });
     })
-    .catch(() => {
-      // 用户取消操作
-    });
+    .catch(() => {});
 };
 
 /** 删除按钮事件 */
@@ -544,7 +510,6 @@ const handleDelete = async () => {
     return;
   }
   
-  // 检查是否有启用状态的内容
   const hasEnabledItems = selectedRows.value.some(row => row.status === '启用');
   if (hasEnabledItems) {
     ElMessage.warning('只能删除已停用的内容，请先停用后再删除');

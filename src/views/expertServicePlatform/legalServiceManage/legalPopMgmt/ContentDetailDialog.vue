@@ -16,9 +16,6 @@
         <div class="publish-time">发布时间: {{ detailData.publishTime || '-' }}</div>
       </div>
       <div class="meta-right">
-        <el-tag :type="detailData.status === '启用' ? 'success' : 'danger'">
-          {{ detailData.status || '-' }}
-        </el-tag>
         <div class="stats">
           <span class="stat-item">
             <el-icon><View /></el-icon>
@@ -38,19 +35,11 @@
     <!-- 内容详细信息 -->
     <div class="content-details">
       <div class="detail-row">
-        <span class="detail-label">普法类别:</span>
-        <span class="detail-value">
-          <dict-tag :options="legal_popularize_type" :value="detailData.contentType" />
-        </span>
-      </div>
-      
-      <div class="detail-row">
-        <span class="detail-label">内容简介:</span>
         <span class="detail-value">{{ detailData.contentSummary || '-' }}</span>
       </div>
       
       <div class="detail-row content-row">
-        <span class="detail-label">正文内容:</span>
+        <!-- <span class="detail-label">正文内容:</span> -->
         <div class="detail-content" v-html="detailData.contentContent || '-'"></div>
       </div>
 
@@ -59,12 +48,7 @@
         <span class="detail-label">附件列表:</span>
         <div class="attachments-list">
           <el-table :data="detailData.attachments" border>
-            <el-table-column label="附件名称" prop="fileName" />
-            <el-table-column label="文件大小" prop="size" width="120" align="center">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.size) }}
-              </template>
-            </el-table-column>
+            <el-table-column label="附件名称" prop="originalName" :show-overflow-tooltip="true" />
             <el-table-column label="操作" width="120" align="center">
               <template #default="scope">
                 <el-button type="primary" size="small" text @click="handleDownload(scope.row)">
@@ -77,10 +61,6 @@
       </div>
     </div>
 
-    <!-- 底部按钮 -->
-    <div class="dialog-footer">
-      <el-button @click="emitCancel">关闭</el-button>
-    </div>
   </div>
 </template>
 
@@ -181,7 +161,6 @@ const fetchContentDetail = async () => {
       ElMessage.error(response?.msg || '获取内容详情失败');
     }
   } catch (error) {
-    console.error('获取内容详情失败:', error);
     ElMessage.error('获取内容详情失败，请稍后重试');
   } finally {
     loading.value = false;

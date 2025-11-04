@@ -6,83 +6,64 @@
 -->
 <template>
   <div class="whitepaper-detail-dialog" v-loading="loading">
-    <!-- 白皮书元信息 -->
-    <div class="paper-meta">
-      <div class="meta-left">
-        <div class="publish-info">
-          <span class="publish-time">发布时间: {{ detailData.publishTime || '-' }}</span>
-          <span class="version-tag">
-            <el-tag type="primary">{{ detailData.version || 'V1.0' }}</el-tag>
-          </span>
-        </div>
-      </div>
-      <div class="meta-right">
-        <el-tag :type="detailData.status === '启用' ? 'success' : 'danger'">
-          {{ detailData.status || '-' }}
-        </el-tag>
-        <div class="stats">
-          <span class="stat-item">
-            <el-icon><View /></el-icon>
-            浏览: {{ detailData.viewCount || 0 }}
-          </span>
-          <span class="stat-item">
-            <el-icon><Download /></el-icon>
-            下载: {{ detailData.downloadCount || 0 }}
-          </span>
-        </div>
-      </div>
+    <!-- 标题 -->
+    <div class="paper-title">
+      <h2>{{ detailData.paperTitle || '维权白皮书' }}</h2>
     </div>
 
-    <!-- 分割线 -->
-    <el-divider />
-
-    <!-- 白皮书详细信息 -->
-    <div class="paper-details">
-      <div class="detail-row" v-if="detailData.summary">
-        <span class="detail-label">简介:</span>
-        <span class="detail-value">{{ detailData.summary }}</span>
+    <!-- 附件部分 -->
+    <div class="attachment-section">
+      <div class="section-header">
+        <el-icon><Paperclip /></el-icon>
+        <span class="section-title">附件</span>
       </div>
-      
-      <div class="detail-row content-row">
-        <span class="detail-label">正文内容:</span>
-        <div class="detail-content" v-html="detailData.content || '-'"></div>
-      </div>
-
-      <!-- 附件列表 -->
-      <div class="detail-row" v-if="detailData.attachments && detailData.attachments.length > 0">
-        <span class="detail-label">附件列表:</span>
-        <div class="attachments-list">
-          <el-table :data="detailData.attachments" border>
-            <el-table-column label="附件名称" prop="fileName" />
-            <el-table-column label="文件大小" prop="size" width="120" align="center">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.size) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="150" align="center">
-              <template #default="scope">
-                <el-button type="primary" size="small" text @click="handleDownload(scope.row)">
-                  下载
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </div>
+      <el-table :data="currentAttachments" border style="width: 100%">
+        <el-table-column label="附件类型" width="120" align="center">
+          <template #default>
+            <el-icon class="file-icon"><Document /></el-icon>
+          </template>
+        </el-table-column>
+        <el-table-column label="更新时间" prop="updateTime" width="180" align="center" />
+        <el-table-column label="附件名称" prop="originalName" :show-overflow-tooltip="true" min-width="200" />
+        <el-table-column label="版本号" prop="version" width="120" align="center" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="scope">
+            <el-button type="primary" link @click="handleDownload(scope.row)">
+              下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
 
-    <!-- 底部按钮 -->
-    <div class="dialog-footer">
-      <el-button @click="emitCancel">关闭</el-button>
+    <!-- 历史版本部分 -->
+    <div class="history-section">
+      <div class="section-header">
+        <el-icon><FolderOpened /></el-icon>
+        <span class="section-title">历史版本</span>
+      </div>
+      <el-table :data="historyVersions" border style="width: 100%">
+        <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
+        <el-table-column label="历史版本" prop="version" width="120" align="center" />
+        <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="scope">
+            <el-button type="primary" link @click="handleDownloadHistory(scope.row)">
+              下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, getCurrentInstance } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { View, Download } from '@element-plus/icons-vue';
-// import { getWhitePaperDetail } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
+import { Paperclip, Document, FolderOpened } from '@element-plus/icons-vue';
+import { getWhitePaperDetail } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -92,30 +73,49 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 // 加载状态
 const loading = ref(false);
 
 // 详情数据
 const detailData = ref({
   id: undefined as number | string | undefined,
-  title: '',
-  status: '',
-  version: '',
-  summary: '',
-  content: '',
-  publishTime: '',
-  viewCount: 0,
-  downloadCount: 0,
-  attachments: [] as any[]
+  paperTitle: '',
+  ossVoList: [] as any[],
+  historyVersionsList: [] as any[],
+  updateTime: '',
+  currentVersion: ''
 });
 
-/** 格式化文件大小 */
-const formatFileSize = (bytes: number): string => {
-  if (!bytes) return '-';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-};
+// 当前附件列表（从ossVoList获取）
+const currentAttachments = computed(() => {
+  if (!detailData.value.ossVoList || !Array.isArray(detailData.value.ossVoList)) {
+    return [];
+  }
+  return detailData.value.ossVoList.map((item: any) => ({
+    ossId: item.ossId,
+    originalName: item.originalName || item.fileName || '',
+    updateTime: item.updateTime || detailData.value.updateTime || '',
+    version: item.version || detailData.value.currentVersion || '',
+    url: item.url || ''
+  }));
+});
+
+// 历史版本列表
+const historyVersions = computed(() => {
+  if (!detailData.value.historyVersionsList || !Array.isArray(detailData.value.historyVersionsList)) {
+    return [];
+  }
+  return detailData.value.historyVersionsList.map((item: any) => ({
+    ...item,
+    updateTime: item.updateTime || item.createTime || '',
+    version: item.version || '',
+    remark: item.remark || '',
+    ossId: item.ossId,
+    url: item.url || ''
+  }));
+});
 
 /** 获取白皮书详情 */
 const fetchWhitePaperDetail = async () => {
@@ -126,62 +126,53 @@ const fetchWhitePaperDetail = async () => {
   
   loading.value = true;
   try {
-    // TODO: 替换为真实API调用
-    // const response: any = await getWhitePaperDetail(props.id);
+    const response: any = await getWhitePaperDetail(props.id);
     
-    // 模拟数据
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const mockData = {
-      id: props.id,
-      title: '2025年XXX通告',
-      status: '启用',
-      version: 'V1.0',
-      summary: '这是一份维权白皮书的简介说明，包含了重要的法律法规和政策解读。',
-      content: '<p>这是维权白皮书的详细内容...</p><p>包含了完整的法律条文和案例分析。</p>',
-      publishTime: '2019-12-12 10:29:30',
-      viewCount: 1550,
-      downloadCount: 988,
-      attachments: [
-        {
-          fileName: '维权白皮书附件.pdf',
-          size: 1024000,
-          url: 'https://example.com/file1.pdf'
-        }
-      ]
-    };
-    
-    detailData.value = {
-      id: mockData.id,
-      title: mockData.title || '',
-      status: mockData.status || '',
-      version: mockData.version || '',
-      summary: mockData.summary || '',
-      content: mockData.content || '',
-      publishTime: mockData.publishTime || '',
-      viewCount: mockData.viewCount || 0,
-      downloadCount: mockData.downloadCount || 0,
-      attachments: mockData.attachments || []
-    };
-  } catch (error) {
-    console.error('获取白皮书详情失败:', error);
-    ElMessage.error('获取白皮书详情失败，请稍后重试');
+    if (response && response.code === 200 && response.data) {
+      const data = response.data;
+      
+      detailData.value = {
+        id: data.id,
+        paperTitle: data.paperTitle || '',
+        ossVoList: data.ossVoList || [],
+        historyVersionsList: data.historyVersionsList || [],
+        updateTime: data.updateTime || data.createTime || '',
+        currentVersion: data.currentVersion || ''
+      };
+    } else {
+      ElMessage.error(response?.msg || '获取白皮书详情失败');
+    }
+  } catch (error: any) {
+    ElMessage.error(error?.msg || '获取白皮书详情失败，请稍后重试');
   } finally {
     loading.value = false;
   }
 };
 
-/** 下载附件 */
+/** 下载当前附件 */
 const handleDownload = (file: any) => {
-  if (file.url) {
+  if (file.ossId) {
+    // 使用OSS下载接口
+    (proxy as any)?.$download?.oss(file.ossId);
+  } else if (file.url) {
+    // 备用方案：直接打开URL
     window.open(file.url, '_blank');
   } else {
     ElMessage.warning('附件链接不存在');
   }
 };
 
-/** 关闭弹窗 */
-const emitCancel = () => {
-  emit('cancel');
+/** 下载历史版本附件 */
+const handleDownloadHistory = (version: any) => {
+  if (version.ossId) {
+    // 使用OSS下载接口
+    (proxy as any)?.$download?.oss(version.ossId);
+  } else if (version.url) {
+    // 备用方案：直接打开URL
+    window.open(version.url, '_blank');
+  } else {
+    ElMessage.warning('附件链接不存在');
+  }
 };
 
 // 页面加载时获取详情数据
@@ -192,134 +183,94 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .whitepaper-detail-dialog {
-  padding: 20px;
+  padding: 24px;
+  min-height: 400px;
 }
 
-// 白皮书元信息区域
-.paper-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+// 标题部分
+.paper-title {
+  text-align: center;
+  margin-bottom: 32px;
   
-  .meta-left {
-    .publish-info {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      
-      .publish-time {
-        font-size: 14px;
-        color: #606266;
-      }
-    }
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #303133;
   }
+}
+
+// 附件部分
+.attachment-section {
+  margin-bottom: 32px;
   
-  .meta-right {
+  .section-header {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     gap: 8px;
+    margin-bottom: 16px;
     
-    .stats {
-      display: flex;
-      gap: 16px;
-      
-      .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 14px;
-        color: #606266;
-        
-        .el-icon {
-          font-size: 16px;
-        }
-      }
-    }
-  }
-}
-
-// 白皮书详细信息
-.paper-details {
-  .detail-row {
-    display: flex;
-    margin-bottom: 20px;
-    line-height: 1.8;
-    
-    &.content-row {
-      flex-direction: column;
-    }
-    
-    .detail-label {
-      min-width: 100px;
-      font-weight: 600;
+    .el-icon {
+      font-size: 18px;
       color: #606266;
-      flex-shrink: 0;
     }
     
-    .detail-value {
-      flex: 1;
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
       color: #303133;
-      word-break: break-all;
+    }
+  }
+  
+  .file-icon {
+    font-size: 24px;
+    color: #409eff;
+  }
+}
+
+// 历史版本部分
+.history-section {
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    
+    .el-icon {
+      font-size: 18px;
+      color: #606266;
     }
     
-    .detail-content {
-      margin-top: 8px;
-      padding: 16px;
-      background-color: #f5f7fa;
-      border-radius: 4px;
-      min-height: 200px;
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
       color: #303133;
-      line-height: 1.8;
-      
-      :deep(img) {
-        max-width: 100%;
-        height: auto;
-      }
-    }
-    
-    .attachments-list {
-      flex: 1;
-      margin-top: 8px;
     }
   }
 }
 
-// 底部按钮
-.dialog-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
-  
-  .el-button {
-    min-width: 100px;
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .paper-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    
-    .meta-right {
-      align-items: flex-start;
+// 表格样式
+:deep(.el-table) {
+  .el-table__header {
+    th {
+      background-color: #fafafa;
+      color: #606266;
+      font-weight: 600;
     }
   }
   
-  .paper-details {
-    .detail-row {
-      flex-direction: column;
-      
-      .detail-label {
-        margin-bottom: 4px;
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
       }
     }
   }
+}
+
+// 按钮样式
+:deep(.el-button--link) {
+  padding: 0;
+  font-size: 14px;
 }
 </style>
-

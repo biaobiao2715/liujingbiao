@@ -25,22 +25,33 @@ export interface ActivityListResponse {
   total: number;
 }
 
-// 普法活动项接口（列表项）
+// 普法活动项接口（列表项）- 与后端返回字段保持一致
 export interface ActivityItem {
-  id: number;
-  activityTitle: string; // 活动标题
-  activityType: string; // 活动类型
-  startTime: string; // 开始时间
-  endTime: string; // 结束时间
-  activityAddress: string; // 活动地址
-  activityContact: string; // 联系人
-  activityContactPhone: string; // 联系方式
-  enrollCount?: number; // 报名人数
+  id?: number; // 活动id
+  tenantId?: string; // 租户编号
+  activityNo?: string; // 活动编号
+  activityTitle?: string; // 活动标题
+  activityType?: string; // 活动类型
+  activitySummary?: string; // 活动简介
+  activityContent?: string; // 活动详情
+  activityAddress?: string; // 活动地址
+  activityContact?: string; // 活动联系人
+  activityContactPhone?: string; // 活动联系人电话
+  startTime?: string; // 开始时间
+  endTime?: string; // 结束时间
   publishTime?: string; // 发布时间
-  viewCount?: number; // 浏览量
-  activityStatus: string; // 状态
-  createTime?: string;
-  updateTime?: string;
+  cancelReason?: string; // 取消原因
+  activityStatus?: string; // 活动状态 (0:草稿, 1:待开始, 2:进行中, 3:已结束, 99:已取消)
+  sortOrder?: number; // 排序
+  createDept?: number; // 创建部门
+  createBy?: number; // 创建者
+  createTime?: string; // 创建时间
+  updateBy?: number; // 更新者
+  updateTime?: string; // 更新时间
+  enrollCount?: number; // 报名人数
+  publishUser?: string; // 发布人
+  avatar?: number; // 发布人头像
+  enrollList?: Array<any>; // 报名人员列表
 }
 
 // 普法活动详情响应接口
@@ -112,25 +123,37 @@ export function editActivity(data: any): AxiosPromise<any> {
 
 /**
  * 删除普法活动
+ * @param ids 活动ID数组（array[integer]类型，通过Path参数传递）
+ * API: DELETE /law/activity/remove/{ids}
+ * 示例: DELETE /law/activity/remove/1,2,3
  */
 export function deleteActivity(ids: (string | number)[]): AxiosPromise<any> {
+  // 确保ids是数组，并且转换为字符串数组（用于URL拼接）
+  const idsArray = Array.isArray(ids) ? ids : [ids];
+  // 将ID数组转为逗号分隔的字符串，作为Path参数
+  const idsString = idsArray.map(id => String(id)).join(',');
+  
   return request({
-    url: `/skill-server/law/activity/remove/${ids.join(',')}`,
+    url: `/skill-server/law/activity/remove/${idsString}`,
     method: 'delete'
   });
 }
 
 /**
  * 取消普法活动
- * @param id 活动ID
- * @param cancelReason 取消原因（必填）
+ * @param id 活动ID（integer类型，通过Path参数传递）
+ * @param cancelReason 取消原因（必填，通过Query参数传递）
+ * API: PUT /law/activity/cancel/{id}?cancelReason=xxx
  */
 export function cancelActivity(id: string | number, cancelReason: string): AxiosPromise<any> {
+  // 确保id是字符串或数字
+  const activityId = String(id);
+  
   return request({
-    url: `/skill-server/law/activity/cancel/${id}`,
+    url: `/skill-server/law/activity/cancel/${activityId}`,
     method: 'put',
     params: {
-      cancelReason
+      cancelReason: cancelReason.trim()
     }
   });
 }

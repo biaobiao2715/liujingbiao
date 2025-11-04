@@ -159,4 +159,3 @@ export function updateContentStatus(data: {
     data: data
   });
 }
-

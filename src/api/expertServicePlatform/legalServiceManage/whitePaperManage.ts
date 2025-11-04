@@ -9,8 +9,8 @@ export interface WhitePaperListQuery {
   pageNum: number;
   pageSize: number;
   paperTitle?: string; // 白皮书标题
-  paperStatus?: string; // 状态: 2-启用 3-禁用
-  startTime?: string; // 开始时间
+  paperStatus?: string; // 状态: 0停用 1启用
+  beginTime?: string; // 开始时间
   endTime?: string; // 结束时间
   orderByColumn?: string; // 排序列
   isAsc?: string; // 排序的方向desc或者asc
@@ -23,7 +23,7 @@ export interface WhitePaperItem {
   paperNo?: string;
   paperTitle: string; // 白皮书标题
   paperType?: string; // 白皮书类型
-  paperStatus: string; // 状态: 2-启用 3-禁用
+  paperStatus: string; // 状态: 0停用 1启用
   currentVersion: string; // 当前版本
   remark?: string; // 备注
   sortOrder?: number;

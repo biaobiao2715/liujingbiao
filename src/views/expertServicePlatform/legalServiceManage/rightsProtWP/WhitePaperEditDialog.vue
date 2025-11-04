@@ -19,52 +19,70 @@
       </el-form-item>
 
       <!-- 上传附件 -->
-      <el-form-item label="上传附件" required>
+      <el-form-item label="上传附件" prop="attachment" required>
         <div class="attachment-section">
           <el-upload
             action="#"
             :auto-upload="false"
-            accept=".jpg,.jpeg,.png,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
+            accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
             :show-file-list="false"
             :on-change="handleFileChange"
+            :limit="10"
+            :on-exceed="handleExceed"
           >
-            <el-button type="primary">
+            <el-button type="primary" plain>
               <el-icon class="el-icon--left"><Upload /></el-icon>
               添加附件
             </el-button>
+            <template #tip>
+              <div class="upload-tip">支持格式：PDF、Word、Excel、PPT、TXT，单个文件最大100MB，最多上传10个文件</div>
+            </template>
           </el-upload>
-          <div class="upload-tip">请上传一个附件</div>
         </div>
       </el-form-item>
 
       <!-- 附件列表 -->
       <el-form-item label="" v-if="attachmentList.length > 0">
-        <el-table :data="attachmentList" border class="attachment-table">
+        <el-table :data="attachmentList" border stripe class="attachment-table">
           <el-table-column type="index" label="序号" width="80" align="center" />
           <el-table-column label="附件类型" prop="fileType" width="120" align="center">
             <template #default="scope">
-              <span>{{ scope.row.fileType }}</span>
+              <el-tag size="small">{{ scope.row.fileType }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="附件名称" prop="fileName" align="center" :show-overflow-tooltip="true" />
+          <el-table-column label="附件名称" prop="originalName" align="left" :show-overflow-tooltip="true" min-width="200">
+            <template #default="scope">
+              <el-link :href="scope.row.url" target="_blank" :underline="false">
+                <el-icon><Document /></el-icon>
+                {{ scope.row.originalName }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column label="附件大小" prop="fileSize" width="120" align="center" />
-          <el-table-column label="版本号" prop="version" width="120" align="center">
+          <el-table-column label="版本号" prop="version" width="200" align="center">
             <template #default="scope">
               <el-input 
                 v-model="scope.row.version" 
                 placeholder="请输入版本号" 
                 clearable
                 size="small"
+                @blur="validateVersion(scope.row)"
               />
-              <div v-if="!scope.row.version" class="version-tip">请输入版本号</div>
+              <div v-if="scope.row.versionError" class="version-tip">{{ scope.row.versionError }}</div>
+              <div v-else-if="!scope.row.version" class="version-tip">请输入版本号</div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="180" align="center">
+          <el-table-column label="操作" width="200" align="center">
             <template #default="scope">
+              <el-button type="primary" link size="small" @click="handlePreviewFile(scope.row)">
+                <el-icon><View /></el-icon>
+                预览
+              </el-button>
               <el-button type="primary" link size="small" @click="handleReplaceFile(scope.row)">
-                替换上传
+                替换
               </el-button>
               <el-button type="danger" link size="small" @click="handleRemoveFile(scope.row)">
+                <el-icon><Delete /></el-icon>
                 删除
               </el-button>
             </template>
@@ -87,17 +105,19 @@
       <!-- 表单操作按钮 -->
       <div class="form-actions">
         <el-button type="primary" @click="handleSubmit" :loading="saving">
-          发 布
+          {{ props.type === 'add' ? '发布' : '保存' }}
         </el-button>
+        <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, getCurrentInstance } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Upload } from '@element-plus/icons-vue';
+import { Upload, View, Delete, Document } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { 
   getWhitePaperDetail, 
@@ -115,6 +135,8 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 // 表单引用
 const formRef = ref();
 // 保存状态
@@ -129,7 +151,7 @@ const formData = ref({
   remark: ''
 });
 
-// 附件列表
+  // 附件列表
 const attachmentList = ref<Array<{
   ossId?: number;
   fileName: string;
@@ -139,14 +161,27 @@ const attachmentList = ref<Array<{
   url: string;
   fileSize: string;
   version: string;
+  versionError?: string;
   uid?: string;
 }>>([]);
 
 // 表单验证规则
 const rules = {
   paperTitle: [
-    { required: true, message: '请输入白皮书标题', trigger: 'blur' },
-    { min: 2, max: 30, message: '标题长度在 2 到 30 个字符', trigger: 'blur' }
+    { required: true, message: '请输入标题内容，最多支持30个汉字', trigger: 'blur' },
+    { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
+  ],
+  attachment: [
+    {
+      validator: (_rule: any, _value: any, callback: any) => {
+        if (attachmentList.value.length === 0) {
+          callback(new Error('请上传一个附件'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
   ]
 };
 
@@ -169,66 +204,133 @@ const getFileTypeName = (suffix: string): string => {
     'xlsx': 'Excel表格',
     'ppt': 'PPT演示',
     'pptx': 'PPT演示',
-    'txt': '文本文档',
-    'jpg': '图片',
-    'jpeg': '图片',
-    'png': '图片'
+    'txt': '文本文档'
   };
   return typeMap[suffix.toLowerCase()] || '文档';
 };
 
-/** 文件变化处理 */
-const handleFileChange = async (file: any) => {
-  const rawFile = file.raw;
+/** 文件验证 */
+const validateFile = (file: File): boolean => {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+
+  if (!docExt.includes(ext)) {
+    ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件`);
+    return false;
+  }
+
+  const MB = 1024 * 1024;
+  const limit = 100 * MB;
+  if (file.size > limit) {
+    ElMessage.error('文档文件最大100MB');
+    return false;
+  }
   
-  // 验证文件大小（100MB）
-  const maxSize = 100 * 1024 * 1024;
-  if (rawFile.size > maxSize) {
-    ElMessage.error('文件大小不能超过100MB');
+  return true;
+};
+
+/** 文件个数超出限制 */
+const handleExceed = () => {
+  ElMessage.warning('最多只能上传10个附件');
+};
+
+// 上传状态标记，防止重复上传
+const uploadingFiles = ref<Set<string>>(new Set());
+
+/** 处理文件上传 */
+const handleFileChange = async (file: any, fileList: any) => {
+  // 确保 file 对象存在
+  if (!file) {
+    ElMessage.error('文件对象不存在');
     return;
   }
   
-  // 验证文件类型
-  const allowedTypes = ['.jpg', '.jpeg', '.png', '.pdf', '.ppt', '.pptx', '.doc', '.docx', '.xls', '.xlsx', '.txt'];
-  const fileName = rawFile.name.toLowerCase();
-  const isValidType = allowedTypes.some(type => fileName.endsWith(type));
-  if (!isValidType) {
-    ElMessage.error('不支持的文件类型');
+  // 获取实际文件对象（el-upload 可能返回 file 或 file.raw）
+  const rawFile = file.raw || file;
+  
+  if (!rawFile) {
+    ElMessage.error('无法获取文件对象');
     return;
+  }
+  
+  // 生成文件唯一标识，防止重复上传
+  const fileKey = `${rawFile.name}_${rawFile.size}_${rawFile.lastModified}`;
+  
+  // 检查是否正在上传
+  if (uploadingFiles.value.has(fileKey)) {
+    return;
+  }
+  
+  // 检查是否已经上传过（根据文件名和大小判断）
+  const isDuplicate = attachmentList.value.some(
+    item => item.originalName === rawFile.name && item.fileSize === formatFileSize(rawFile.size)
+  );
+  if (isDuplicate) {
+    ElMessage.warning('该文件已上传，请勿重复上传');
+    return;
+  }
+  
+  // 验证文件
+  if (!validateFile(rawFile)) {
+    return;
+  }
+  
+  // 检查是否超过限制
+  if (attachmentList.value.length >= 10) {
+    ElMessage.warning('最多只能上传10个附件');
+    return;
+  }
+  
+  // 标记为正在上传
+  uploadingFiles.value.add(fileKey);
+  
+  // 显示加载提示
+  if ((proxy as any)?.$modal) {
+    (proxy as any).$modal.loading('正在上传附件，请稍候...');
   }
   
   try {
-    loading.value = true;
+    const response = await ossUploadImage({ file: rawFile });
     
-    // 调用OSS上传接口
-    const response: any = await ossUploadImage(rawFile);
-    
-    if (response && response.code === 200 && response.data) {
+    if (response && response.code === 200 && response.data?.ossId) {
       const ossData = response.data;
-      const fileSuffix = ossData.originalName.split('.').pop() || '';
+      // 从文件名获取后缀
+      const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
       
       // 添加到附件列表
       attachmentList.value.push({
         ossId: ossData.ossId,
-        fileName: ossData.fileName,
-        originalName: ossData.originalName,
+        fileName: ossData.fileName || ossData.originalName || rawFile.name,
+        originalName: rawFile.name,
         fileType: getFileTypeName(fileSuffix),
         fileSuffix: fileSuffix,
         url: ossData.url,
         fileSize: formatFileSize(rawFile.size),
         version: '',
-        uid: file.uid
+        versionError: '',
+        uid: file.uid || Date.now() + Math.random()
       });
       
-      ElMessage.success('文件上传成功');
+      // 触发表单验证更新
+      formRef.value?.validateField('attachment');
+      
+      ElMessage.success('附件上传成功');
     } else {
-      ElMessage.error(response?.msg || '文件上传失败');
+      const errorMsg = (response as any)?.msg || (response as any)?.data?.msg || '上传失败，请重试';
+      ElMessage.error(errorMsg);
+      console.error('上传失败:', response);
     }
-  } catch (error) {
-    console.error('文件上传失败:', error);
-    ElMessage.error('文件上传失败，请稍后重试');
+  } catch (error: any) {
+    console.error('上传附件异常:', error);
+    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '上传失败，请重试';
+    ElMessage.error(errorMsg);
   } finally {
-    loading.value = false;
+    // 移除上传标记
+    uploadingFiles.value.delete(fileKey);
+    // 关闭加载提示
+    if ((proxy as any)?.$modal) {
+      (proxy as any).$modal.closeLoading();
+    }
   }
 };
 
@@ -236,34 +338,28 @@ const handleFileChange = async (file: any) => {
 const handleReplaceFile = async (row: any) => {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
+  input.accept = '.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
   
   input.onchange = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    // 验证文件大小
-    const maxSize = 100 * 1024 * 1024;
-    if (file.size > maxSize) {
-      ElMessage.error('文件大小不能超过100MB');
-      return;
-    }
+    if (!validateFile(file)) return;
+    
+    (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
     
     try {
-      loading.value = true;
+      const response = await ossUploadImage({ file: file });
       
-      // 调用OSS上传接口
-      const response: any = await ossUploadImage(file);
-      
-      if (response && response.code === 200 && response.data) {
+      if (response.code === 200 && response.data?.ossId) {
         const ossData = response.data;
-        const fileSuffix = ossData.originalName.split('.').pop() || '';
+        const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
         
         // 更新附件信息
         Object.assign(row, {
           ossId: ossData.ossId,
           fileName: ossData.fileName,
-          originalName: ossData.originalName,
+          originalName: file.name,
           fileType: getFileTypeName(fileSuffix),
           fileSuffix: fileSuffix,
           url: ossData.url,
@@ -275,60 +371,110 @@ const handleReplaceFile = async (row: any) => {
         ElMessage.error(response?.msg || '文件上传失败');
       }
     } catch (error) {
-      console.error('文件上传失败:', error);
       ElMessage.error('文件上传失败，请稍后重试');
     } finally {
-      loading.value = false;
+      (proxy as any)?.$modal?.closeLoading();
     }
   };
   
   input.click();
 };
 
-/** 删除附件 */
-const handleRemoveFile = (row: any) => {
-  const index = attachmentList.value.findIndex(item => item.uid === row.uid || item.ossId === row.ossId);
-  if (index > -1) {
-    attachmentList.value.splice(index, 1);
-    ElMessage.success('删除成功');
+/** 验证版本号格式 */
+const validateVersion = (row: any) => {
+  if (!row.version) {
+    row.versionError = '';
+    return;
   }
+  
+  // 验证是否为数字类型（支持小数，如 1.0）
+  const versionPattern = /^\d+(\.\d+)?$/;
+  if (!versionPattern.test(row.version)) {
+    row.versionError = '版本号只能输入数字，例如：1.0';
+  } else {
+    row.versionError = '';
+  }
+};
+
+/** 预览文件 */
+const handlePreviewFile = (file: any) => {
+  if (file.url) {
+    window.open(file.url, '_blank');
+  } else {
+    ElMessage.warning('文件链接不存在');
+  }
+};
+
+/** 删除附件 */
+const handleRemoveFile = (file: any) => {
+  ElMessageBox.confirm('确定要删除该附件吗？', '删除确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(() => {
+      const index = attachmentList.value.findIndex(
+        (item) => item.uid === file.uid || item.ossId === file.ossId
+      );
+      if (index !== -1) {
+        attachmentList.value.splice(index, 1);
+        // 触发表单验证更新
+        formRef.value?.validateField('attachment');
+        ElMessage.success('附件删除成功');
+      }
+    })
+    .catch(() => {
+      // 用户取消删除
+    });
 };
 
 /** 获取白皮书详情 */
 const fetchWhitePaperDetail = async () => {
-  if (!props.id) return;
+  if (!props.id) {
+    ElMessage.error('白皮书ID不存在');
+    return;
+  }
   
   loading.value = true;
   try {
     const response: any = await getWhitePaperDetail(props.id);
     
-    if (response && response.code === 200 && response.data) {
+    if (response && response.code === 200) {
       const data = response.data;
       
-      formData.value = {
+      if (!data) {
+        ElMessage.error('获取白皮书详情失败：数据为空');
+        return;
+      }
+      
+      // 将接口返回的数据赋值给表单
+    formData.value = {
         id: data.id,
         paperTitle: data.paperTitle || '',
         remark: data.remark || ''
       };
       
-      // 加载附件列表
-      if (data.ossVoList && data.ossVoList.length > 0) {
-        attachmentList.value = data.ossVoList.map((item: any) => ({
+      // 加载附件数据
+      if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
+        attachmentList.value = data.ossVoList.map((item: any, index: number) => ({
           ossId: item.ossId,
-          fileName: item.fileName,
-          originalName: item.originalName,
-          fileType: getFileTypeName(item.fileSuffix),
-          fileSuffix: item.fileSuffix,
-          url: item.url,
-          fileSize: item.fileSize || '',
-          version: item.version || ''
+          fileName: item.fileName || item.originalName,
+          originalName: item.originalName || item.fileName,
+          fileType: getFileTypeName(item.fileSuffix || ''),
+          fileSuffix: item.fileSuffix || '',
+          url: item.url || '',
+          fileSize: item.fileSize || '--',
+          version: item.version || '',
+          versionError: '',
+          uid: item.ossId || Date.now() + index
         }));
+      } else {
+        attachmentList.value = [];
       }
     } else {
-      ElMessage.error(response?.msg || '获取详情失败');
+      ElMessage.error(response?.msg || '获取白皮书详情失败');
     }
   } catch (error) {
-    console.error('获取白皮书详情失败:', error);
     ElMessage.error('获取白皮书详情失败，请稍后重试');
   } finally {
     loading.value = false;
@@ -343,20 +489,36 @@ const handleSubmit = async () => {
     const valid = await formRef.value.validate();
     if (!valid) return;
     
-    // 验证附件
-    if (attachmentList.value.length === 0) {
-      ElMessage.warning('请至少上传一个附件');
+    // 验证附件（通过表单验证规则）
+    const attachmentValid = await new Promise((resolve) => {
+      formRef.value?.validateField('attachment', (valid: boolean) => {
+        resolve(valid);
+      });
+    });
+    if (!attachmentValid) {
       return;
     }
     
     // 验证版本号
-    const hasEmptyVersion = attachmentList.value.some(item => !item.version);
+    const hasEmptyVersion = attachmentList.value.some(item => !item.version || !item.version.trim());
     if (hasEmptyVersion) {
       ElMessage.warning('请为所有附件填写版本号');
       return;
     }
     
-    const confirmMsg = '确定要发布此维权白皮书吗？发布后用户将可以查看此内容。';
+    // 验证版本号格式
+    const hasInvalidVersion = attachmentList.value.some(item => {
+      validateVersion(item);
+      return item.versionError;
+    });
+    if (hasInvalidVersion) {
+      ElMessage.warning('请检查版本号格式，版本号只能输入数字（例如：1.0）');
+      return;
+    }
+    
+    const confirmMsg = props.type === 'add' 
+      ? '确定要发布此维权白皮书吗？发布后用户将可以查看此内容。'
+      : '确定要保存并发布此维权白皮书吗？';
     
     await ElMessageBox.confirm(confirmMsg, '系统提示', {
       confirmButtonText: '确定',
@@ -376,45 +538,68 @@ const handleSubmit = async () => {
       version: item.version
     }));
     
-    // 构建提交数据
+    // 构建提交数据 - 按照API文档结构：params.key 和 ossVoList
     const submitData: any = {
-      paperTitle: formData.value.paperTitle,
-      remark: formData.value.remark || '',
+      params: {
+        key: {
+          ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
+          paperTitle: formData.value.paperTitle?.trim(),
+          remark: formData.value.remark || ''
+        }
+      },
       ossVoList: ossVoList
     };
-    
-    if (props.type === 'edit' && formData.value.id) {
-      submitData.id = formData.value.id;
-    }
-    
-    console.log('提交数据:', submitData);
     
     // 调用对应的接口
     const api = props.type === 'add' ? addWhitePaper : editWhitePaper;
     const response: any = await api(submitData);
     
     if (response && response.code === 200) {
-      ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '维权白皮书修改成功');
-      emit('success');
+    ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '维权白皮书修改成功');
+    emit('success');
     } else {
       ElMessage.error(response?.msg || '操作失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('操作失败:', error);
+      // 处理特定的错误信息
+      if (error?.response?.data?.msg) {
+        ElMessage.error(error.response.data.msg);
+      } else if (error?.msg) {
+        ElMessage.error(error.msg);
+      } else {
       ElMessage.error('操作失败，请稍后重试');
+      }
     }
   } finally {
     saving.value = false;
   }
 };
 
-// 页面加载时的处理
-onMounted(() => {
-  if (props.type === 'edit' && props.id) {
-    fetchWhitePaperDetail();
-  }
-});
+/** 取消 */
+const emitCancel = () => {
+  emit('cancel');
+};
+
+// 监听 props.id 变化，确保弹窗打开时加载数据
+watch(
+  () => [props.id, props.type],
+  ([newId, newType]) => {
+    if ((newType === 'edit' || newType === 'view') && newId) {
+      fetchWhitePaperDetail();
+    } else if (newType === 'add') {
+      // 新增模式：重置表单
+      formData.value = {
+        id: undefined,
+        paperTitle: '',
+        remark: ''
+      };
+      attachmentList.value = [];
+      formRef.value?.resetFields?.();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped lang="scss">
@@ -434,11 +619,14 @@ onMounted(() => {
 .attachment-section {
   width: 100%;
   
-  .upload-tip {
-    color: #f56c6c;
-    font-size: 12px;
-    line-height: 1.5;
+  :deep(.el-upload__tip) {
     margin-top: 8px;
+    
+    .upload-tip {
+      color: #909399;
+      font-size: 12px;
+      line-height: 1.5;
+    }
   }
 }
 
@@ -475,8 +663,7 @@ onMounted(() => {
   gap: 12px;
   
   .el-button {
-    min-width: 120px;
-    padding: 12px 30px;
+    min-width: 100px;
   }
 }
 
@@ -492,6 +679,7 @@ onMounted(() => {
 // 优化表单布局
 :deep(.el-form-item__label) {
   font-weight: 500;
+  color: #606266;
 }
 
 :deep(.el-form-item) {

@@ -70,7 +70,6 @@
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:lawActivity:remove']" type="danger" @click="handleDelete">删除</el-button>
         </el-col>
-        <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
 
       <!-- 表格展示 -->
@@ -214,7 +213,9 @@
     <!-- 弹窗：新增/编辑/查看 -->
     <el-dialog
       v-model="dialog.visible"
-      :title="getDialogTitle()"
+      :title="dialog.type === 'view' ? '' : getDialogTitle()"
+      :show-header="dialog.type !== 'view'"
+      :class="{ 'no-header-border': dialog.type === 'view' }"
       width="80%"
       destroy-on-close
       :close-on-click-modal="false"
@@ -242,7 +243,6 @@
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { useRouter } from 'vue-router';
 import { 
   getActivityList, 
   deleteActivity, 
@@ -250,11 +250,10 @@ import {
   type ActivityListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
-// 弹窗组件异步加载（首字母大写）
+// 弹窗组件异步加载
 const ActivityEditDialog = defineAsyncComponent(() => import('./ActivityEditDialog.vue'));
 const ActivityDetailDialog = defineAsyncComponent(() => import('./ActivityDetailDialog.vue'));
 
-const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
@@ -312,37 +311,23 @@ const getList = async () => {
       endTime: queryParams.value.endTime || undefined
     };
     
-    // 调用真实API - 响应拦截器已处理，直接访问 rows 和 total
     const response: any = await getActivityList(params);
     
-    console.log('API返回数据:', response);
-    
-    // 参考商品管理的写法，直接访问 response.rows 和 response.total
     if (response.code === 200) {
       tableData.value = response.rows || [];
       total.value = response.total || 0;
-      console.log('表格数据:', tableData.value);
-      console.log('总数:', total.value);
     } else {
       tableData.value = [];
       total.value = 0;
       ElMessage.error(response.msg || '获取数据失败');
     }
   } catch (error) {
-    console.error('获取普法活动列表失败:', error);
     ElMessage.error('获取普法活动列表失败，请稍后重试');
     tableData.value = [];
     total.value = 0;
   } finally {
     loading.value = false;
   }
-};
-
-/** 获取字典标签 */
-const getDictLabel = (dict: any, value: string | number) => {
-  // 宽松比较，兼容字符串和数字类型
-  const item = dict?.value?.find((item: any) => String(item.value) === String(value));
-  return item?.label || value;
 };
 
 /** 获取状态标签类型 */
@@ -409,9 +394,7 @@ const getDialogTitle = () => {
 
 /** 打开弹窗 */
 const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
-  console.log('【弹窗】打开弹窗，类型:', type, 'ID:', id, 'ID类型:', typeof id);
   dialog.value = { visible: true, type, id: id ?? null };
-  console.log('【弹窗】弹窗配置:', dialog.value);
 };
 
 /** 新增按钮事件 */
@@ -439,8 +422,8 @@ const handleDelete = async () => {
     
     loading.value = true;
     
-    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
-    const response: any = await deleteActivity(ids);
+    const numericIds = ids.map(id => Number(id));
+    const response: any = await deleteActivity(numericIds);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功删除 ${ids.length} 个活动`);
@@ -453,7 +436,6 @@ const handleDelete = async () => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除活动失败:', error);
       ElMessage.error('删除失败，请稍后重试');
     } else {
       ElMessage.info('删除操作已取消');
@@ -465,15 +447,10 @@ const handleDelete = async () => {
 
 /** 编辑按钮事件 */
 const handleEdit = (row: any) => {
-  console.log('【编辑】点击编辑按钮，行数据:', row);
-  console.log('【编辑】活动ID:', row.id, '类型:', typeof row.id);
-  console.log('【编辑】活动标题:', row.activityTitle);
-  
   if (!row.id) {
     ElMessage.error('活动ID不存在，无法编辑');
     return;
   }
-  
   openDialog('edit', row.id);
 };
 
@@ -491,6 +468,11 @@ const onDialogSuccess = () => {
 /** 取消活动事件 */
 const handleCancelActivity = async (row: any) => {
   try {
+    if (!row.id) {
+      ElMessage.error('活动ID不存在，无法取消');
+      return;
+    }
+    
     // 先让用户输入取消原因
     const { value: cancelReason } = await ElMessageBox.prompt(
       `请输入取消活动"${row.activityTitle}"的原因：`,
@@ -523,8 +505,8 @@ const handleCancelActivity = async (row: any) => {
     
     loading.value = true;
     
-    // 调用取消活动API，传递取消原因
-    const response: any = await cancelActivity(row.id, cancelReason.trim());
+    const activityId = Number(row.id);
+    const response: any = await cancelActivity(activityId, cancelReason.trim());
     
     if (response && response.code === 200) {
       ElMessage.success('活动取消成功');
@@ -535,7 +517,6 @@ const handleCancelActivity = async (row: any) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('取消活动失败:', error);
       ElMessage.error('取消活动失败，请稍后重试');
     }
   } finally {
@@ -546,6 +527,11 @@ const handleCancelActivity = async (row: any) => {
 /** 单个删除事件 */
 const handleDeleteSingle = async (row: any) => {
   try {
+    if (!row.id) {
+      ElMessage.error('活动ID不存在，无法删除');
+      return;
+    }
+    
     await ElMessageBox.confirm(
       `确定要删除活动"${row.activityTitle}"吗？删除后将无法恢复。`,
       '删除确认',
@@ -556,8 +542,9 @@ const handleDeleteSingle = async (row: any) => {
       }
     );
     
-    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
-    const response: any = await deleteActivity([row.id]);
+    const activityId = Number(row.id);
+    const ids = [activityId];
+    const response: any = await deleteActivity(ids);
     
     if (response && response.code === 200) {
       ElMessage.success('删除成功');
@@ -568,7 +555,6 @@ const handleDeleteSingle = async (row: any) => {
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除活动失败:', error);
       ElMessage.error('删除活动失败，请稍后重试');
     }
   }
@@ -743,6 +729,18 @@ onMounted(() => {
     .el-button + .el-button {
       margin-left: 0;
     }
+  }
+}
+
+// 查看模式下隐藏弹窗分隔线
+:deep(.el-dialog.no-header-border) {
+  .el-dialog__header {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .el-dialog__body {
+    padding-top: 20px !important;
   }
 }
 </style>
