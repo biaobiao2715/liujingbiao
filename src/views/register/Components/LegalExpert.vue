@@ -29,11 +29,14 @@
                   accept=".jpg,.jpeg,.gif,.png,.pdf"
                 >
                   <div class="upload-content">
-                    <img src="@/assets/images/register3.svg" class="step-icon" />
-                    <div class="upload-text">
-                      <span>点击或将文件拖拽到这里上传</span>
-                      <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                    <div v-if="!diplomaUrl">
+                      <img src="@/assets/images/register3.svg" class="step-icon" />
+                      <div class="upload-text">
+                        <span>点击或将文件拖拽到这里上传</span>
+                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                      </div>
                     </div>
+                    <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
                   </div>
                 </el-upload>
               </div>
@@ -51,12 +54,16 @@
                   :show-file-list="false"
                   :on-change="handlePhotoChange"
                   accept=".jpg,.jpeg,.gif,.png"
+                  drag
                 >
-                  <div class="upload-content" style="padding: 20px 20px 10px">
-                    <img src="@/assets/images/register3.svg" class="step-icon" />
-                    <div class="upload-text">
-                      <p>上传照片</p>
+                  <div class="upload-content">
+                    <div v-if="!photoUrl">
+                      <img src="@/assets/images/register3.svg" class="step-icon" />
+                      <div class="upload-text">
+                        <p>上传照片</p>
+                      </div>
                     </div>
+                    <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
                   </div>
                 </el-upload>
                 <span class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</span>
@@ -156,11 +163,15 @@
           >
             <el-table-column prop="index" label="序号" width="80" />
             <el-table-column prop="name" label="附件名" />
-            <el-table-column prop="remark" label="备注" />
+            <el-table-column prop="remark" label="备注">
+              <template #default="scope">
+                <el-input v-model="scope.row.remark" placeholder="请输入"></el-input>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="150">
               <template #default="scope">
                 <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
-                <el-button v-throttle type="primary" v-if="scope.row.fileType !== '1'" link @click="deleteQualification(scope.$index)"
+                <el-button v-throttle type="primary" v-if="scope.row.fileType === '99'" link @click="deleteQualification(scope.$index)"
                   >删除</el-button
                 >
               </template>
@@ -559,7 +570,7 @@ const handleDiplomaChange = (file: any) => {
     file: file.raw
   })
     .then(async (res) => {
-      diplomaUrl.value = res.data.ossId;
+      diplomaUrl.value = res.data.url;
       const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
       if (findDiploma) {
         findDiploma.name = res?.data?.fileName;
@@ -599,7 +610,7 @@ const handleDiplomaChange = (file: any) => {
 const handlePhotoChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
-      photoUrl.value = res.data.ossId;
+      photoUrl.value = res.data.url;
       const findImage = qualificationList.value.find((item) => item.fileType === '0');
       if (findImage) {
         findImage.name = res?.data?.fileName;
@@ -753,9 +764,6 @@ onMounted(async () => {
         --el-border-color: #108c58;
         border: 1px dashed var(--el-border-color);
         border-radius: 6px;
-        :deep(.el-upload-dragger) {
-          height: 150px;
-        }
         .upload-content {
           display: flex;
           flex-direction: column;
@@ -764,6 +772,7 @@ onMounted(async () => {
           width: 100%;
           border-radius: 6px;
           background-color: var(--bg-color);
+          padding: 29px 0px;
           cursor: pointer;
           .upload-text {
             margin-top: 10px;
@@ -799,6 +808,7 @@ onMounted(async () => {
       }
     }
   }
+
   .next-step-container {
     display: flex;
     justify-content: center;
@@ -811,5 +821,17 @@ onMounted(async () => {
       border-radius: 10px;
     }
   }
+}
+// 使用深度选择器确保样式能够穿透到Element UI组件内部
+.upload-container ::v-deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
+}
+.upload-image {
+  width: 100%;
+  height: 150px;
 }
 </style>

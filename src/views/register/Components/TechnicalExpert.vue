@@ -30,11 +30,14 @@
                     :before-upload="beforeUpload"
                   >
                     <div class="upload-content">
-                      <img src="@/assets/images/register3.svg" class="step-icon" />
-                      <div class="upload-text">
-                        <span>点击或将文件拖拽到这里上传</span>
-                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                      <div v-if="!diplomaUrl">
+                        <img src="@/assets/images/register3.svg" class="step-icon" />
+                        <div class="upload-text">
+                          <span>点击或将文件拖拽到这里上传</span>
+                          <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                        </div>
                       </div>
+                      <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
                     </div>
                   </el-upload>
                 </div>
@@ -52,12 +55,16 @@
                     :show-file-list="false"
                     :on-change="handlePhotoChange"
                     accept=".jpg,.jpeg,.gif,.png"
+                    drag
                   >
-                    <div class="upload-content" style="padding: 20px">
-                      <img src="@/assets/images/register3.svg" class="step-icon" />
-                      <div class="upload-text">
-                        <p>上传照片</p>
+                    <div class="upload-content">
+                      <div v-if="!photoUrl">
+                        <img src="@/assets/images/register3.svg" class="step-icon" />
+                        <div class="upload-text">
+                          <p>上传照片</p>
+                        </div>
                       </div>
+                      <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
                     </div>
                   </el-upload>
                   <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</p>
@@ -206,7 +213,7 @@
             <el-table-column label="操作" width="150">
               <template #default="scope">
                 <el-button v-throttle type="primary" link @click="previewQualification(scope.row)">下载</el-button>
-                <el-button v-throttle type="primary" v-if="scope.row.fileType !== '1'" link @click="deleteQualification(scope.$index)"
+                <el-button v-throttle type="primary" v-if="scope.row.fileType === '99'" link @click="deleteQualification(scope.$index)"
                   >删除</el-button
                 >
               </template>
@@ -279,14 +286,12 @@ import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/technicalExpert/types';
 import { ocrUploadImage, uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
-import { useRegisterDataStore } from '@/store/modules/registerData';
 import { FormRules } from 'element-plus';
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { technicalExpertInfoRegister } from '@/api/register/technicalExpert'; //注册接口
 import { isAccountExist } from '@/api/login'; //账号获取详情信息
 const emit = defineEmits(['nextStep']); // 定义事件
-const { setRegisterData } = useRegisterDataStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目前直接传null】,qyId【企业或者供应商id】,jszjId【技术专家id】,fwzjId【法务专家id】  如果响应的二次入驻的页面有对应的id存在，就传对应的id就行
 enum idTypeEnum {
@@ -613,7 +618,7 @@ const handleDiplomaChange = (file: any) => {
   uploadImage({ file: file.raw })
     .then((res) => {
       if (res.code === 200 && res.data?.ossId) {
-        diplomaUrl.value = res.data.ossId;
+        diplomaUrl.value = res.data.url;
         const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
         if (findDiploma) {
           findDiploma.name = res?.data?.fileName;
@@ -661,7 +666,7 @@ const deleteQualification = (index: number) => {
 const handlePhotoChange = (file: any) => {
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
-      photoUrl.value = res.data.ossId;
+      photoUrl.value = res.data.url;
       const findPhoto = qualificationList.value.find((item) => item.fileType === '0');
       if (findPhoto) {
         findPhoto.name = res?.data?.fileName;
@@ -833,23 +838,14 @@ const previewQualification = async (file: any) => {
     .upload-container {
       width: 100%;
       .upload-box {
-        --bg-color: #fafdfc;
         width: 100%;
-        --el-fill-color-blank: var(--bg-color);
-        --el-border-color: #108c58;
-        border: 1px dashed var(--el-border-color);
-        border-radius: 6px;
-        :deep(.el-upload-dragger) {
-          height: 150px;
-        }
         .upload-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
           width: 100%;
-          border-radius: 6px;
-          background-color: var(--bg-color);
+          text-align: center;
+          background: #fafdfc;
+          border-radius: 4px 4px 4px 4px;
+          border: 1px solid #108c58;
+          padding: 29px 0;
           cursor: pointer;
           .upload-text {
             margin-top: 10px;
@@ -871,6 +867,10 @@ const previewQualification = async (file: any) => {
       }
     }
 
+    .upload-image {
+      width: 100%;
+      height: 150px;
+    }
     .qualification-list {
       padding: 0 16px 10px;
       .qualification-header {
@@ -897,5 +897,13 @@ const previewQualification = async (file: any) => {
       border-radius: 10px;
     }
   }
+}
+// 使用深度选择器确保样式能够穿透到Element UI组件内部
+.upload-container ::v-deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
 }
 </style>
