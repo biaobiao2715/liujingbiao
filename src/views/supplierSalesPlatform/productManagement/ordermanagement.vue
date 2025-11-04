@@ -3,9 +3,9 @@
 功能：			订单管理页面
 说明:         
 当前版本：	1.0
-开发信息：	Created by 张峰 2025-10-27
-修改人信息：张峰     2025-10-27
-修改内容：订单管理
+开发信息：	Created by 张峰 2025-10-31
+修改人信息：张峰     2025-10-31
+修改内容：订单管理发货弹窗
  -->
 <template>
   <div class="supplier-management">
@@ -32,7 +32,7 @@
       <!-- 价格调整日期 -->
       <el-form-item label="下单时间">
         <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
-          start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
+          start-placeholder="开始日期" end-placeholder="结束日期" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -109,11 +109,13 @@
       <el-table-column label="操作" align="center" width="200">
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
-            <el-link type="primary" @click="handleView(scope.row)">查看</el-link>
-            <el-link type="primary" @click="handleShip(scope.row)" v-if="scope.row.orderStatus === '1'">
+            <el-link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-link>
+            <el-link type="primary" @click="handleShip(scope.row)" v-hasPermi="['grain:hnSalesOrder:edit']"
+              v-if="scope.row.orderStatus === '1'">
               发货
             </el-link>
-            <el-link type="danger" @click="handleCancel(scope.row)" v-if="scope.row.orderStatus === '1'">
+            <el-link type="danger" @click="handleCancel(scope.row)" v-hasPermi="['grain:hnSalesOrder:cancelSalesOrder']"
+              v-if="scope.row.orderStatus === '1'">
               取消订单
             </el-link>
           </div>
@@ -127,6 +129,76 @@
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" :loading="cancelloading" @click="cancelorder">确 定</el-button>
         </span>
+      </template>
+    </el-dialog>
+
+    <!-- 发货 -->
+    <el-dialog v-model="shipmentVisible" title="订单发货" width="600px">
+      <span style="display:inline-block;padding-bottom: 10px; color: #abaeb5; font-weight: 700;">商品信息</span>
+      <el-table :data="[rowdata]" border style="width: 100%">
+        <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
+          <template #default="{ row }">
+            {{ row.goodsName || '-' }}
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="goodsPrice" label="单价" width="220">
+          <template #default="{ row }">
+            {{ row.goodsPrice ? Number(row.goodsPrice).toFixed(2) : '0.00' }}
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="goodsQuantity" label="数量" align="center">
+          <template #default="{ row }">
+            {{ row.goodsQuantity || 0 }}
+          </template>
+        </el-table-column>
+
+        <!--  小计：数量 × 单价 -->
+        <el-table-column label="小计" align="center">
+          <template #default="{ row }">
+            {{ ((Number(row.goodsPrice) || 0) * (Number(row.goodsQuantity) || 0)).toFixed(2) }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <span
+        style="display:inline-block;padding-bottom: 10px;padding-top: 5px; color: #abaeb5; font-weight: 800;">配送信息</span>
+      <el-form :model="shipmentForm" ref="shipmentFormFormRef" :rules="shipmentRules" label-width="100px">
+        <el-form-item label="配送方式：" prop="deliveryOptions">
+          <el-select v-model="shipmentForm.deliveryOptions" placeholder="请选择配送方式" @change="handleDeliveryOptionChange">
+            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="收货人姓名：" prop="receiverName">
+          <el-input v-model="rowdata.receiverName" maxlength="11" disabled></el-input>
+        </el-form-item>
+
+        <el-form-item label="收货人电话：" prop="receiverPhone">
+          <el-input v-model="rowdata.receiverPhone" maxlength="11" disabled></el-input>
+        </el-form-item>
+
+        <el-form-item label="收货地址：" prop="areaCodes">
+          <span style="color: #abaeb5;">{{ getFullAddress(rowdata) }}</span>
+        </el-form-item>
+      </el-form>
+      <template v-if="logisticsVisible">
+        <span
+          style="display:inline-block;padding-bottom: 10px;padding-top: 5px; color: #abaeb5; font-weight: 700;">物流信息</span>
+        <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
+          <el-form-item label="快递公司：" prop="deliveryCompany">
+            <el-input v-model="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+          </el-form-item>
+
+          <el-form-item label="物流单号：" prop="deliverySn">
+            <el-input v-model="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
+          </el-form-item>
+        </el-form>
+      </template>
+      <template #footer>
+        <el-button @click="shipmentVisible = false">取消</el-button>
+        <el-button type="primary" :loading="shipmentloading" @click="shipmentInfo">保存</el-button>
       </template>
     </el-dialog>
     <!-- 分页 -->
@@ -145,7 +217,7 @@ import { ElMessage } from 'element-plus';
 import axios from 'axios';
 import router from '@/router';
 // 确保引入 axios
-import { getorderList,cancelorderapi } from '@/api/supplier/productManagement/ordermanagement';
+import { getorderList, cancelorderapi, modifypersonnel } from '@/api/supplier/productManagement/ordermanagement';
 // import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 
 
@@ -175,7 +247,7 @@ const loading = ref(false); // 加载中
 
 const queryFormRef = ref(); // 查询表单ref
 
-const dateRange = ref<string[]>([]); // 价格调整日期范围
+const dateRange = ref<[DateModelType, DateModelType]>(['', '']); // 价格调整日期范围
 
 const selectedRows = ref([]); // 选中的表格数据
 
@@ -184,7 +256,15 @@ const activeTab = ref('all');
 
 const cancelobj = ref() //取消订单row
 
-const cancelloading =ref(false) //取消loading
+const cancelloading = ref(false) //取消loading
+
+const shipmentVisible = ref(false) //发货弹窗
+const shipmentloading = ref(false) //发货确认loading
+const logisticsVisible = ref(false) //是否展示物流信息
+const shipmentFormFormRef = ref(null)
+const logisticsFormFormRef = ref(null)
+/* 发货的row */
+const rowdata = ref()
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -194,24 +274,93 @@ const queryParams = ref({
   orderStatus: '', //订单状态
   goodsName: '', //商品名称
   receiverName: '', // 收货人名字
-  endTime: '', // 下单结束时间
-  startTime: '' // 下单开始时间
 });
-
+/* 发货配送信息 */
+const shipmentForm = ref({
+  deliveryOptions: '', //配送方式
+})
+/* 物流信息 */
+const logisticsForm = ref({
+  deliveryCompany: '',//快递公司
+  deliverySn: '',//物流单号
+})
+const options = ref([
+  {
+    value: '1',
+    label: '同城自提',
+  },
+  {
+    value: '2',
+    label: '快递',
+  },
+])
 onMounted(() => {
   getTableData();
   getProductBrandList();
 });
+// 监听配送方式变化
+const handleDeliveryOptionChange = (value) => {
+  console.log('配送方式', value);
 
-// 处理日期选择事件
-const handleSelectDate = (val: string[]) => {
-  queryParams.value.startTime = val?.[0] || '';
-  queryParams.value.endTime = val?.[1] || '';
+  if (value === '1') {
+    // 如果选择的是同城自提，隐藏物流信息
+    logisticsForm.value.deliveryCompany = '';
+    logisticsForm.value.deliverySn = '';
+    logisticsVisible.value = false; // 隐藏物流信息
+  } else if (value === '2') {
+    // 如果选择的是快递，显示物流信息
+    logisticsForm.value.deliveryCompany = '';
+    logisticsForm.value.deliverySn = '';
+    logisticsVisible.value = true; // 显示物流信息
+  }
 };
+// 处理日期选择事件
+// const handleSelectDate = (val: string[]) => {
+//   queryParams.value.beginCreateTime = val?.[0] || '';
+//   queryParams.value.endCreateTime = val?.[1] || '';
+// };
+/* 发货表单校验 */
+const shipmentRules = {
+  deliveryOptions: [
+    { required: true, message: '请选择配送方式', trigger: 'change' },
+  ],
+}
+/* 发货物流校验 */
+const logisticsRules = {
+  deliveryCompany: [{ required: true, message: '请输入快递公司', trigger: 'blur' }],
+  deliverySn: [
+    { required: true, message: '请输入物流单号', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        const patterns = {
+          '圆通快递': /^YT\d{13}$/,
+          '中通快递': /^7353\d{10}$/,
+          '申通快递': /^77203\d{10}$/,
+          '韵达快递': /^(43415\d{10}|31250\d{10})$/,
+          '极兔快递': /^JT\d{13}$/,
+          '京东快递': /^JD[A-Za-z]{1,2}\d{12}$/,
+          '德邦快递': /^DPK\d{12}$/,
+          '德邦物流': /^DPL\d{12}$/,
+          '顺丰快递': /^SF\d{13}$/,
+          'EMS': /^(E\d{10}CS|\d{13})$/,
+          '跨越速运': /^KYE\d{7}$/,
+        };
 
+        const company = logisticsForm.value.deliveryCompany;
+        if (patterns[company] && !patterns[company].test(value)) {
+          callback(new Error('物流单号格式不正确'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+
+}
 /** 搜索按钮操作 */
 const handleQuery = () => {
-  queryParams.value.pageNum = 1;
+  // queryParams.value.pageNum = 1;
   getTableData();
 };
 
@@ -225,10 +374,8 @@ const handleReset = () => {
     orderStatus: '', //订单状态
     goodsName: '', //商品名称
     receiverName: '', // 收货人名字
-    endTime: '', // 下单结束时间
-    startTime: '' // 下单开始时间
   };
-  dateRange.value = [];
+  dateRange.value = ['', ''];
   getTableData();
 };
 const handleTabChange = (tabName: string) => {
@@ -289,10 +436,12 @@ const handleTabChange = (tabName: string) => {
 
 // 获取销售订单列表
 const getTableData = async () => {
+  console.log('dateRange.value',dateRange.value);
+  
   loading.value = true;
   console.log('订单列表数据:');
   try {
-    const res: any = await getorderList(queryParams.value);
+    const res: any = await getorderList(proxy?.addDateRange(queryParams.value, dateRange.value,'CreateTime'));
     if (res.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
@@ -362,7 +511,12 @@ const handleView = (row: any) => {
 /** 发货操作 */
 const handleShip = (row: any) => {
   console.log('发货订单:', row);
+  /* 保存row */
+  rowdata.value = row
   // 这里可以打开发货对话框或跳转到发货页面
+  shipmentVisible.value = true
+  /* 重置配送方式 */
+  shipmentForm.value.deliveryOptions = ''
 };
 
 /** 取消订单 */
@@ -374,12 +528,12 @@ const handleCancel = (row: any) => {
 /* 确定取消 */
 const cancelorder = async () => {
   console.log('cancelobj.value', cancelobj.value);
-  cancelloading.value=true
-  let params={
-    goodsSpecificationId:Number(cancelobj.value.goodsSpecificationId),
-    goodsQuantity:Number(cancelobj.value.goodsQuantity),
-    id:Number(cancelobj.value.id),
-    orderStatus:"99"
+  cancelloading.value = true
+  let params = {
+    goodsSpecificationId: Number(cancelobj.value.goodsSpecificationId),
+    goodsQuantity: Number(cancelobj.value.goodsQuantity),
+    id: Number(cancelobj.value.id),
+    orderStatus: "99"
   }
   try {
     await cancelorderapi(params)
@@ -387,8 +541,8 @@ const cancelorder = async () => {
     ElMessage.success('取消成功')
   } catch (error) {
     ElMessage.error(error)
-  }finally{
-    cancelloading.value=false
+  } finally {
+    cancelloading.value = false
     dialogVisible.value = false
   }
 }
@@ -396,7 +550,38 @@ const cancelorder = async () => {
 // const handleSelectionChange = (rows) => {
 //   selectedRows.value = rows;
 // };
+/* 发货信息修改 */
+const shipmentInfo = async () => {
+  try {
+    // 先校验配送方式
+    const shipmentValid = await shipmentFormFormRef.value.validate();
+    if (!shipmentValid) return;
+    if (shipmentForm.value.deliveryOptions === '2') {
+      const valid = await logisticsFormFormRef.value.validate(); // 校验物流信息
+      if (!valid) return; // 校验不通过，终止操作
+    }
+    shipmentloading.value = true
+    let params = {
+      id: rowdata.value.id,
+      orderStatus: "2",
+      deliveryOptions: shipmentForm.value.deliveryOptions,
+    }
+    // 如果选择的是快递，追加物流信息
+    if (shipmentForm.value.deliveryOptions === '2') {
+      params['deliveryCompany'] = logisticsForm.value.deliveryCompany.trim();
+      params['deliverySn'] = logisticsForm.value.deliverySn.trim();
+    }
 
+    await modifypersonnel(params);
+    shipmentVisible.value = false
+    getTableData(); //更新列表
+    ElMessage.success('发货成功');
+  } catch (error) {
+    ElMessage.error(error)
+  } finally {
+    shipmentloading.value = false
+  }
+}
 onMounted(() => {
   getTableData();
 });

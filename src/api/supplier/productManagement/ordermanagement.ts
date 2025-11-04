@@ -5,11 +5,11 @@
 import request from '@/utils/request';
 
 // 获取销售订单列表  查询订单
-export function getorderList(data: any) {
+export function getorderList(query: any) {
   return request({
     url: '/grain-sales/order/list',
     method: 'get',
-    params: data
+    params: query
   });
 }
 // 获取订单信息详细信息
@@ -27,7 +27,7 @@ export function cancelorderapi(data:any) {
     data:data
   });
 }
-/* 取消订单 */
+/* 修改人员信息与发货 */
 export function modifypersonnel(data:any) {
   return request({
     url: `/grain-sales/order`,
