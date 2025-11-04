@@ -6,7 +6,7 @@ import request from '@/utils/request';
 export function orderList(query?: any) {
   console.log(query);
   return request({
-    url: 'grain-sales//order/page',
+    url: 'grain-sales/order/page',
     method: 'get',
     params: query
   });

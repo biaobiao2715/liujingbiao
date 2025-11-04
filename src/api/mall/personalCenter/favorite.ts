@@ -2,7 +2,7 @@
 import request from '@/utils/request';
 
 // 查询商品信息列表
-export function favoriteList(query?: any) {
+export function unifiedFavoriteList(query?: any) {
   return request({
     url: 'grain-sales/favoriteGoogs/list',
     method: 'get',
@@ -21,31 +21,7 @@ export const favoriteDelete = (id: any) => {
   });
 };
 
-/**
- * 收藏文章接口
- */
-
-// 查询文章信息列表
-export function favoriteArticleList(query?: any) {
-  return request({
-    url: 'skill-server/articleFavorite/list',
-    method: 'get',
-    params: query
-  });
-}
-
-/**
- * 删除收藏文章信息
- * @param data
- */
-export const favoriteArticleDelete = (id: any) => {
-  return request({
-    url: 'skill-server/articleFavorite/' + id,
-    method: 'delete'
-  });
-};
-
-export type FavoriteType = '1' | '2' | '3'; // 1商品 2企业 3文章
+export type FavoriteType = '1' | '2' | '3' | '4' | '5'; // 1商品 2企业 3文章 4普法内容 5培训课程
 
 export interface FavoriteItem {
   // 审计

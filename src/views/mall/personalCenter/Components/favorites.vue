@@ -18,8 +18,7 @@
       </div>
 
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
-        <el-tab-pane label="收藏商品" name="1" />
-        <el-tab-pane label="收藏文章" name="3" />
+        <el-tab-pane v-for="(item, index) in tabList" :key="index" :label="item.label" :name="item.value" />
       </el-tabs>
 
       <el-skeleton :loading="state.loading" animated :throttle="200" :count="1">
@@ -110,17 +109,22 @@
 <script setup lang="ts">
 import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
-import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { FavoriteItem } from '@/api/mall/personalCenter/favorite';
-import { favoriteList, favoriteDelete, favoriteArticleList, favoriteArticleDelete } from '@/api/mall/personalCenter/favorite';
+import { unifiedFavoriteList, favoriteDelete, FavoriteItem } from '@/api/mall/personalCenter/favorite';
 import { StarFilled } from '@element-plus/icons-vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 本地占位图（可根据实际资源调整路径）
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
-const router = useRouter();
+// Tab 列表
+const tabList = [
+  { label: '收藏商品', value: '1' },
+  { label: '收藏文章', value: '3' },
+  { label: '普法内容', value: '4' },
+  { label: '培训课程', value: '5' }
+];
+
 const state = reactive({
   activeTab: '1', // 1=商品 3=文章
   list: [] as FavoriteItem[],
@@ -134,10 +138,6 @@ const state = reactive({
   }
 });
 
-onMounted(() => {
-  reload();
-});
-
 function onTabChange(name: string | number) {
   state.activeTab = String(name);
   state.query.pageNum = 1;
@@ -146,16 +146,11 @@ function onTabChange(name: string | number) {
 
 function reload() {
   state.loading = true;
-  const query = { ...state.query };
-  // 根据 Tab 选择对应接口
-  const req = state.activeTab === '1' ? favoriteList(query) : favoriteArticleList(query);
-
-  req
+  const query = { ...state.query, type: state.activeTab };
+  unifiedFavoriteList(query)
     .then((res: any) => {
-      // 兼容 ruoyi 分页返回 { rows, total } 或 PageResult 格式
       const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];
       const total = res?.total ?? res?.data?.total ?? rows.length ?? 0;
-
       state.list = rows || [];
       state.total = Number(total) || 0;
     })
@@ -173,12 +168,8 @@ function onUnfav(item: FavoriteItem) {
   })
     .then(async () => {
       state.opLoadingId = item.id as number;
-      // 根据 Tab 选择对应删除接口
-      if (state.activeTab === '1') {
-        await favoriteDelete(item.id as number);
-      } else {
-        await favoriteArticleDelete(item.id as number);
-      }
+      // 商品/文章/普法/培训均可用同一个删除接口
+      await favoriteDelete(item.id as number);
       ElMessage.success('已取消收藏');
       reload();
     })
@@ -187,13 +178,12 @@ function onUnfav(item: FavoriteItem) {
 
 // 跳转详情（按你项目实际路由调整）
 function goDetail(item: FavoriteItem) {
+  const id = item.id;
   if (state.activeTab === '1') {
     // 商品详情
-    const id = item.id;
     // router.push(`/mall/goods/detail/${id}`);
   } else {
     // 文章详情
-    const id = item.id;
     // router.push(`/platform/article/detail/${id}`);
   }
 }
@@ -234,6 +224,10 @@ const specificationText = (specId: unknown) => {
   const hit = list.find((v: any) => String(v?.dictValue ?? v?.value ?? v?.id) === String(specId));
   return hit?.dictLabel ?? hit?.label ?? '';
 };
+
+onMounted(() => {
+  reload();
+});
 </script>
 
 <style scoped>

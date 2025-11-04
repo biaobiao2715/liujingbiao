@@ -30,11 +30,20 @@
               <div style="flex: 1">
                 <Editor v-model="form.articleContent" :height="500" :minHeight="500" />
               </div>
-              <!-- 目录区 -->
-              <div style="width: 220px; margin-right: 24px; background: #fafafa; border-radius: 6px; padding: 16px">
-                <div style="font-weight: bold; margin-bottom: 12px">文章目录</div>
-                <div v-for="item in tocList" :key="item.id" :style="{ marginLeft: item.tag === 'H2' ? '16px' : item.tag === 'H3' ? '32px' : '0' }">
-                  <a href="javascript:;" @click="scrollTo(item.id)" style="color: #409eff">{{ item.text }}</a>
+              <!-- 文章目录 -->
+              <div class="toc-sidebar">
+                <div class="toc-header">文章目录</div>
+                <div class="toc-content">
+                  <div v-if="tocList.length > 0" class="toc-list">
+                    <div v-for="item in tocList" :key="item.id" :class="['toc-item', `toc-level-${item.level}`]" @click="scrollTo(item.id)">
+                      <span class="toc-text">{{ item.text }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="toc-empty">
+                    <el-icon class="empty-icon"><Document /></el-icon>
+                    <p class="empty-text">暂无目录</p>
+                    <p class="empty-tip">使用标题格式编辑内容后将自动生成目录</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -138,12 +147,16 @@ watch(
     const div = document.createElement('div');
     div.innerHTML = val;
     const headings = div.querySelectorAll('h1, h2, h3');
-    tocList.value = Array.from(headings).map((el, idx) => ({
-      text: el.innerText,
-      tag: el.tagName,
-      id: `toc-${idx}`
-    }));
-    Array.from(headings).forEach((el, idx) => (el.id = `toc-${idx}`));
+    tocList.value = Array.from(headings).map((el, idx) => {
+      el.id = `toc-${idx}`; // 给标题加 id
+      return {
+        text: el.innerText,
+        tag: el.tagName,
+        id: el.id
+      };
+    });
+    // 把加了 id 的内容写回编辑器
+    form.value.articleContent = div.innerHTML;
   }
 );
 
@@ -292,5 +305,132 @@ onMounted(async () => {
   width: 120px;
   height: 200px;
   background-color: #b42020;
+}
+
+// 文章目录侧边栏 - 右侧
+.toc-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+
+  .toc-header {
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #303133;
+    background: #ebebeb;
+    border-bottom: 1px solid #dcdfe6;
+    text-align: center;
+  }
+
+  .toc-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #c0c4cc;
+      border-radius: 3px;
+
+      &:hover {
+        background-color: #909399;
+      }
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: #e4e7ed;
+    }
+  }
+
+  .toc-list {
+    max-height: none;
+  }
+
+  .toc-item {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #606266;
+    font-size: 13px;
+    line-height: 1.5;
+    position: relative;
+
+    &:hover {
+      background-color: #e4e7ed;
+      color: #409eff;
+    }
+
+    &:active {
+      background-color: #d9dcdf;
+    }
+
+    .toc-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    // 不同层级的缩进
+    &.toc-level-1 {
+      font-weight: 600;
+      font-size: 13px;
+      color: #303133;
+      padding-left: 10px;
+    }
+
+    &.toc-level-2 {
+      padding-left: 20px;
+      font-size: 12px;
+    }
+
+    &.toc-level-3 {
+      padding-left: 30px;
+      font-size: 12px;
+      color: #909399;
+    }
+
+    &.toc-level-4,
+    &.toc-level-5,
+    &.toc-level-6 {
+      padding-left: 40px;
+      font-size: 12px;
+      color: #a8abb2;
+    }
+  }
+
+  .toc-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #909399;
+
+    .empty-icon {
+      font-size: 36px;
+      color: #c0c4cc;
+      margin-bottom: 12px;
+    }
+
+    .empty-text {
+      font-size: 13px;
+      color: #909399;
+      margin: 8px 0 4px;
+    }
+
+    .empty-tip {
+      font-size: 11px;
+      color: #c0c4cc;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0 10px;
+    }
+  }
 }
 </style>

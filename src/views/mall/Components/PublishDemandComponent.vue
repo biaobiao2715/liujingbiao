@@ -34,7 +34,7 @@ const emit = defineEmits(['submitSuccess']);
 
 const form = reactive({
   id: undefined,
-  demandCategoryId: '',
+  demandCategoryId: '' as any,
   demandDescription: '',
   quantity: '',
   deliveryDay: '',
@@ -48,7 +48,7 @@ const form = reactive({
 });
 
 const formRef = ref<ElFormInstance>();
-
+const isEdit = computed(() => !!form.id);
 const dialogVisible = ref(false);
 
 const rules = ref({
@@ -66,7 +66,7 @@ const handleCategoryChange = (value: string) => {
 // 处理地址选择变化
 const handleAreaChange = (val: any) => {
   console.log(val);
-  form.region = val ? toRaw(val.regionPath) : [];
+  form.region = val.regionPath;
   form.deliveryProvinceCode = val.provinceCode;
   form.deliveryProvince = val.province;
   form.deliveryCityCode = val.cityCode;

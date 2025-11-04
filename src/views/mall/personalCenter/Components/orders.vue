@@ -15,9 +15,9 @@
       使用 v-model 与查询参数 orderStatus 绑定，去除额外状态变量
       点击 Tab 时触发 getList 拉取对应状态的数据
     -->
-    <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-click="getList">
-      <el-tab-pane label="全部" name="0"></el-tab-pane>
-      <el-tab-pane v-for="value in order_status" :key="value.id" :label="value.label" :name="value.value"></el-tab-pane>
+    <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-change="onTabChange">
+      <el-tab-pane label="全部" name="0" key="0"></el-tab-pane>
+      <el-tab-pane v-for="value in order_status" :key="value.value" :label="value.label" :name="value.value"></el-tab-pane>
     </el-tabs>
 
     <el-table :data="tabList" style="width: 100%">
@@ -25,8 +25,8 @@
         <template v-slot="scope">
           <div style="display: flex">
             <!-- 图片增加兜底，避免空值报错 -->
-            <img class="table-img" :src="scope.row.orderItems?.goodsPic || ''" />
-            <span style="margin-left: 10px">{{ scope.row.orderItems?.goodsName }}</span>
+            <img class="table-img" :src="scope.row.orderItems[0]?.goodsPic || ''" />
+            <span style="margin-left: 10px">{{ scope.row.orderItems[0]?.goodsName }}</span>
           </div>
         </template>
       </el-table-column>
@@ -87,22 +87,26 @@ const loading = ref(false); // 表格/页面加载状态
 // 查询参数（订单状态: 0全部，1待发货，2待收货，3已完成，4已取消）
 const queryParams = ref({
   pageNum: 1,
-  pageSize: 20,
+  pageSize: 10,
   orderStatus: '0'
 });
+
+const onTabChange = (name: string | number) => {
+  queryParams.value.pageNum = 1;
+  queryParams.value.orderStatus = String(name);
+  if (String(name) === '0') {
+    // 当 orderStatus 为 '0' 时不传递该字段
+    delete queryParams.value.orderStatus;
+  }
+  getList();
+};
 
 // 拉取列表
 const getList = async () => {
   loading.value = true;
   proxy?.$modal.loading('正在加载，请稍候...');
   try {
-    // 当 orderStatus 为 '0' 时不传递该字段
-    const requestParams = {
-      pageNum: queryParams.value.pageNum,
-      pageSize: queryParams.value.pageSize,
-      ...(queryParams.value.orderStatus !== '0' && { orderStatus: queryParams.value.orderStatus })
-    };
-    const res = await orderList(requestParams);
+    const res = await orderList(queryParams.value);
     if (res.code === 200) {
       // 成功赋值，兜底空值
       tabList.value = res.rows || [];
@@ -160,7 +164,7 @@ const confirmReceipt = async (orderId: number) => {
 
 // 首次进入/挂载拉取数据
 onMounted(() => {
-  getList();
+  onTabChange('0');
 });
 </script>
 
