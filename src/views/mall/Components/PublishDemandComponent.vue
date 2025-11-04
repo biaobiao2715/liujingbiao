@@ -60,6 +60,7 @@ const rules = ref({
 
 // 处理分类变化
 const handleCategoryChange = (value: string) => {
+  console.log('3333', value);
   form.demandCategoryId = value;
 };
 
@@ -80,6 +81,7 @@ const openDialog = (formData: any) => {
   // 初始化表单数据
   dialogVisible.value = true;
   Object.assign(form, formData);
+  form.region = [form.deliveryProvinceCode || '', form.deliveryCityCode || '', form.deliveryDistrictCode || ''];
   // 重置表单验证状态
   setTimeout(() => {
     formRef.value.resetFields();
@@ -91,7 +93,7 @@ const handleSubmit = () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        const formData = { ...form, demandCategoryId: form.demandCategoryId[form.demandCategoryId.length - 1] };
+        const formData = { ...form, demandCategoryId: form.demandCategoryId[form.demandCategoryId.length - 1], demandStatus: '1' };
         const res = await (form.id ? updatePurchaseDemand(formData) : addPurchaseDemand(formData));
         if (res.code == 200) {
           ElMessage.success(form.id ? '修改成功' : '发布成功');

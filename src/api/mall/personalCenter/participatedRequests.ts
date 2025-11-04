@@ -4,7 +4,7 @@ import request from '@/utils/request';
 // 查询我参与的信息列表
 export function participateCategoryList(query?: any) {
   return request({
-    url: 'grain-sales/participateCategory/list',
+    url: 'skill-server/participateCategory/list',
     method: 'get',
     params: query
   });
@@ -16,7 +16,7 @@ export function participateCategoryList(query?: any) {
  */
 export const participateCategoryPost = (data: any) => {
   return request({
-    url: 'grain-sales/participateCategory',
+    url: 'skill-server/participateCategory',
     method: 'post',
     data
   });

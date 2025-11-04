@@ -121,8 +121,8 @@ const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
 const tabList = [
   { label: '收藏商品', value: '1' },
   { label: '收藏文章', value: '3' },
-  { label: '普法内容', value: '4' },
-  { label: '培训课程', value: '5' }
+  { label: '培训课程', value: '4' },
+  { label: '普法内容', value: '5' }
 ];
 
 const state = reactive({
@@ -146,7 +146,7 @@ function onTabChange(name: string | number) {
 
 function reload() {
   state.loading = true;
-  const query = { ...state.query, type: state.activeTab };
+  const query = { ...state.query, favoriteType: state.activeTab };
   unifiedFavoriteList(query)
     .then((res: any) => {
       const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];

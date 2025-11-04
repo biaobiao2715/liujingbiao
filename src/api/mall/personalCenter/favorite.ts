@@ -4,9 +4,19 @@ import request from '@/utils/request';
 // 查询商品信息列表
 export function unifiedFavoriteList(query?: any) {
   return request({
-    url: 'grain-sales/favoriteGoogs/list',
+    url: 'skill-server/skill/list',
     method: 'get',
     params: query
+  });
+}
+
+// skill-server/skill/favorite
+// 新增收藏
+export function skillFavoriteAdd(data?: any) {
+  return request({
+    url: 'skill-server/skill/favorite',
+    method: 'post',
+    data
   });
 }
 

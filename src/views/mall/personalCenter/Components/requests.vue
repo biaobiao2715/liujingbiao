@@ -62,9 +62,9 @@
       </el-table-column>
       <el-table-column label="操作" width="220" align="center">
         <template #default="{ row }">
-          <el-button link type="primary" @click="onEdit(row)">修改</el-button>
-          <el-button link type="primary" @click="onComplete(row)">完成</el-button>
-          <el-button link type="danger" @click="onDelete(row)">关闭</el-button>
+          <el-button link v-if="row.demandStatus === '1'" type="primary" @click="onEdit(row)">修改</el-button>
+          <el-button link v-if="row.demandStatus === '1'" type="primary" @click="onComplete(row)">完成</el-button>
+          <el-button link v-if="row.demandStatus === '1'" type="danger" @click="onDelete(row)">关闭</el-button>
           <el-button link type="primary" @click="onDetails(row)">查看</el-button>
         </template>
       </el-table-column>
@@ -242,19 +242,27 @@ const onContact = (row: any) => {
 };
 
 const onDelete = async (row: HnPurchaseDemandVo) => {
-  await ElMessageBox.confirm('确定关闭该需求吗？', '提示', { type: 'warning' });
+  await ElMessageBox.confirm('是否关闭该需求吗？', '提示', { type: 'warning' });
   // TODO: 调用关闭接口
-  const res: any = await hnSupplierSupplyDelete(row.id);
+  const arr = {
+    ...row,
+    demandStatus: '99' // 标记为关闭
+  };
+  const res: any = await hnPurchaseDemandPut(arr);
   if (res?.code === 200) {
-    ElMessage.success('关闭成功');
+    ElMessage.success('操作成功');
     getList();
   }
 };
 
 const onComplete = async (row: HnPurchaseDemandVo) => {
-  await ElMessageBox.confirm('确定将该需求标记为完成吗？', '提示', { type: 'success' });
+  await ElMessageBox.confirm('是否将该需求标记为完成吗？', '提示', { type: 'success' });
   // TODO: 调用完成接口
-  const res: any = await hnPurchaseDemandPut(row.id);
+  const arr = {
+    ...row,
+    demandStatus: '4' // 标记为完成
+  };
+  const res: any = await hnPurchaseDemandPut(arr);
   if (res?.code === 200) {
     ElMessage.success('操作成功');
     getList();
