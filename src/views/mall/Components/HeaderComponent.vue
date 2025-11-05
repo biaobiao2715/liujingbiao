@@ -21,6 +21,8 @@
           <el-dropdown-item command="address">地址管理</el-dropdown-item>
           <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
           <el-dropdown-item command="participated">我参与的</el-dropdown-item>
+          <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
+          <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>

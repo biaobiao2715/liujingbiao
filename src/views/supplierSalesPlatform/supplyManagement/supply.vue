@@ -78,7 +78,7 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="备注：" prop="demandCategoryId">
-              <el-input v-model="quoteForm.demandDescription" placeholder="请输入" maxlength="100" show-word-limit />
+              <el-input v-model="quoteForm.demandDescription" placeholder="请输入" autosize type="textarea" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -89,13 +89,13 @@
 
           <el-col :span="12">
             <el-form-item label="库存：" prop="quantity">
-              <el-input v-model="quoteForm.quantity" placeholder="请输入" maxlength="100" show-word-limit />
+              <el-input v-model="quoteForm.quantity" placeholder="请输入" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
             <el-form-item label="可交付周期/天：" prop="deliveryDay">
-              <el-input v-model="quoteForm.deliveryDay" placeholder="请输入可交付时间" maxlength="100" show-word-limit />
+              <el-input v-model="quoteForm.deliveryDay" placeholder="请输入可交付时间" />
             </el-form-item>
           </el-col>
 
