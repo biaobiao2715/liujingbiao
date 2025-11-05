@@ -18,22 +18,22 @@
         <el-col :span="6" v-for="(course, index) in courseList" :key="index">
           <el-card shadow="hover">
             <div class="course-item" @click="handleClick('courseDetail', course)">
-              <img :src="course.image" class="course-image" />
+              <img :src="course.cultivateCoverId" class="course-image" />
               <div class="hot flex-center">
                 <div class="views flex-center gap-2">
                   <el-icon size="20"><View /></el-icon>
-                  <span>{{ course.views }}</span>
+                  <span>{{ course.pageViews }}</span>
                 </div>
                 <div class="collection flex-center gap-2">
                   <el-icon size="20" v-if="!course.isCollected"><Star /></el-icon>
                   <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-                  <span>{{ course.collection }}</span>
+                  <span>{{ course.collectCount }}</span>
                 </div>
               </div>
               <div class="course-info">
-                <div class="course-title">{{ course.title }}</div>
-                <div class="course-type">{{ course.type }}</div>
-                <div class="course-time">{{ '发布时间 ' + course.time }}</div>
+                <div class="course-title">{{ course.cultivateName }}</div>
+                <div class="course-type">{{ course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
+                <div class="course-time">{{ '发布时间 ' + course.publishTime }}</div>
               </div>
             </div>
           </el-card>
@@ -52,78 +52,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { courseCultivateList, meetingCultivateList } from '@/api/mall/expert';
+
 const emit = defineEmits(['detailChange']);
 const tabsList = [
   { label: '培训课程', value: 'course' },
   { label: '培训会议', value: 'meeting' }
 ];
+
 const activeTab = ref('course');
-const courseList = ref([
-  {
-    image: 'https://img2.baidu.com/it/u=3422222822,2922422222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=375',
-    title: '黄芩的种植方法和时间',
-    type: '技术课程',
-    views: 1234,
-    collection: 89,
-    isCollected: false,
-    time: '2019-11-02 12:23:00'
-  },
-  {
-    image: 'https://img2.baidu.com/it/u=3422222822,2922422222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=375',
-    title: '黄芩的种植方法和时间',
-    type: '技术课程',
-    views: 1234,
-    collection: 24,
-    isCollected: true,
-    time: '2019-11-02 12:23:00'
-  },
-  {
-    image: 'https://img2.baidu.com/it/u=3422222822,2922422222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=375',
-    title: '黄芩的种植方法和时间',
-    type: '技术课程',
-    views: 1234,
-    collection: 24,
-    isCollected: true,
-    time: '2019-11-02 12:23:00'
-  },
-  {
-    image: 'https://img2.baidu.com/it/u=3422222822,2922422222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=375',
-    title: '黄芩的种植方法和时间',
-    type: '技术课程',
-    views: 1234,
-    collection: 24,
-    isCollected: true,
-    time: '2019-11-02 12:23:00'
-  },
-  {
-    image: 'https://img2.baidu.com/it/u=3422222822,2922422222&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=375',
-    title: '黄芩的种植方法和时间',
-    type: '技术课程',
-    views: 1234,
-    collection: 24,
-    isCollected: true,
-    time: '2019-11-02 12:23:00'
-  }
-]);
-const meetingList = ref([
-  {
-    id: 1,
-    title: '2015年将在北京市海淀区组织一次培训会议',
-    date: '2025-10-30',
-    location: '北京市海淀区'
-  },
-  {
-    id: 2,
-    title: '2025年将在上海市浦东新区组织一次培训会议',
-    date: '2025-11-15',
-    location: '上海市浦东新区'
-  }
-]);
+const courseList = ref([]);
+const meetingList = ref([]);
+
+// 页面加载时调用接口
+onMounted(() => {
+  fetchCourseList();
+  fetchMeetingList();
+});
+
+// 获取培训课程列表
+const fetchCourseList = async () => {
+  const response = await courseCultivateList({});
+  courseList.value = response.rows || [];
+};
+
+// 获取培训会议列表
+const fetchMeetingList = async () => {
+  const response = await meetingCultivateList({});
+
+  meetingList.value = response.rows || [];
+  console.log(meetingList.value);
+};
 
 // 点击课程或会议时触发方法，传递课程或会议数据
 const handleClick = (type: string, course: any) => {
-  emit('detailChange', { type, data: course });
+  // emit('detailChange', { type, data: course });
 };
 </script>
 
