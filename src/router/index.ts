@@ -78,6 +78,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/mall/index.vue'),
         name: 'Index',
         meta: { title: '商城', icon: 'dashboard' }
+      },
+      {
+        path: '/mall/price-heatmap',
+        component: () => import('@/views/mall/Components/AboutMarketComponents/PriceHeatmapPage.vue'),
+        name: 'PriceHeatmap',
+        meta: { title: '区域价格差异热力图', icon: 'dashboard' }
       }
     ]
   },
