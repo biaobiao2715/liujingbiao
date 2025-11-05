@@ -25,8 +25,14 @@
       <el-skeleton :loading="state.loading" animated :throttle="200" :count="1">
         <template #template>
           <div class="grid">
-            <el-skeleton-item variant="image" style="width: 240px; height: 160px" />
-            <el-skeleton-item variant="p" style="width: 60%" />
+            <el-skeleton-item variant="image" style="width: 240px; height: 240px" />
+            <div style="padding: 14px">
+              <el-skeleton-item variant="h3" style="width: 50%" />
+              <div style="display: flex; align-items: center; justify-items: space-between; margin-top: 16px; height: 16px">
+                <el-skeleton-item variant="text" style="margin-right: 16px" />
+                <el-skeleton-item variant="text" style="width: 30%" />
+              </div>
+            </div>
           </div>
         </template>
 
@@ -44,7 +50,7 @@
               :body-style="{ padding: '12px' }"
             >
               <div class="article">
-                <img class="li-img" :src="item.activityEnrollList[0].activityImage || defaultImg" alt="商品图片" />
+                <img class="li-img" :src="item.activityImage || defaultImg" alt="商品图片" />
                 <div class="info">
                   <div class="name" :title="item.articleTitle || item.googsName">
                     {{ item.articleTitle || item.googsName || '-' }}
@@ -82,10 +88,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { participateCategoryList, participateCategoryPost, FavoriteItem } from '@/api/mall/personalCenter/participatedRequests';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 本地占位图（可根据实际资源调整路径）
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
-const router = useRouter();
 const state = reactive({
   activeTab: '1', // 1=培训会议 3=普法活动
   list: [] as FavoriteItem[],
@@ -135,7 +139,9 @@ function onUnfav(item: FavoriteItem) {
   })
     .then(async () => {
       state.opLoadingId = item.id as number;
-      await participateCategoryPost(item.id as number);
+      await participateCategoryPost({
+        ...item
+      });
       ElMessage.success('已取消收藏');
       reload();
     })
@@ -154,42 +160,6 @@ function goDetail(item: FavoriteItem) {
     // router.push(`/platform/article/detail/${id}`);
   }
 }
-
-// 金额格式化（￥可按需添加）
-const formatMoney = (v: number) => v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-// 转数字的安全工具：空/无效返回 null
-const toNumber = (v: unknown): number | null => {
-  if (v === '' || v === null || v === undefined) return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-};
-
-// price 为收藏时价格，spread 为与当前价格的差价（当前价 - 收藏价）
-// spread 为空时按 0 处理，返回“当前价格”的格式化字符串
-const getPrice = (price: unknown, spread: unknown) => {
-  const base = toNumber(price);
-  if (base === null) return '';
-  const deltaNum = toNumber(spread);
-  const delta = deltaNum === null ? 0 : deltaNum;
-  const current = base + delta;
-  return formatMoney(current);
-};
-
-// 价格变动信息：比收藏时涨/降/持平
-const priceDelta = (spread: unknown) => {
-  const n = toNumber(spread) ?? 0;
-  const dir = n > 0 ? `比收藏时涨${formatMoney(n)}元` : n < 0 ? `比收藏时降${formatMoney(-n)}元` : '';
-  return dir;
-};
-
-// 规格值文本
-const specificationText = (specId: unknown) => {
-  const list = goods_specification.value || [];
-  if (!list.length || specId === null || specId === undefined || specId === '') return '';
-  const hit = list.find((v: any) => String(v?.dictValue ?? v?.value ?? v?.id) === String(specId));
-  return hit?.dictLabel ?? hit?.label ?? '';
-};
 </script>
 
 <style scoped>

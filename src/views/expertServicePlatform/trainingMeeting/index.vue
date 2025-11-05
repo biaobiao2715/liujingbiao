@@ -22,11 +22,11 @@
       </el-form-item>
       <el-form-item label="报名状态" prop="signUpStatus">
         <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
-          <el-option v-for="item in signUpStatusOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="所属状态" prop="belongStatus">
-        <el-select v-model="queryParams.belongStatus" placeholder="请选择" clearable>
+      <el-form-item label="所属状态" prop="meetingStatus">
+        <el-select v-model="queryParams.meetingStatus" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -68,9 +68,9 @@
         </template>
       </el-table-column>
       <el-table-column label="联系方式" align="center" prop="meetingPhone" min-width="120" />
-      <el-table-column label="报名状态" align="center" prop="signUpStatus" min-width="80">
+      <el-table-column label="报名状态" align="center" prop="enrollStatus" min-width="80">
         <template #default="scope">
-          <dict-tag :options="meeting_status" :value="scope.row.signUpStatus" />
+          <dict-tag :options="enroll_status" :value="scope.row.enrollStatus" />
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
@@ -80,9 +80,7 @@
       </el-table-column>
       <el-table-column label="状态" align="center" prop="meetingStatus" min-width="80">
         <template #default="scope">
-          <span :style="getStatusStyle(scope.row.meetingStatus)">
-            {{ getStatusLabel(scope.row.meetingStatus) }}
-          </span>
+          <dict-tag :options="meeting_status" :value="scope.row.meetingStatus" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="100">
@@ -118,12 +116,7 @@ import { listHnMeetingCultivate } from '@/api/expertServicePlatform/trainingMeet
 import Details from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { meeting_status, meeting_type } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type'));
-
-const signUpStatusOptions = [
-  { value: '0', label: '未报名' },
-  { value: '1', label: '已报名' }
-];
+const { meeting_status, meeting_type, enroll_status } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type', 'enroll_status'));
 
 // 搜索表单数据
 const queryParams = ref({
@@ -134,7 +127,7 @@ const queryParams = ref({
   publisher: '',
   meetingTitle: '',
   signUpStatus: '',
-  belongStatus: ''
+  meetingStatus: ''
 });
 
 // 表格数据

@@ -9,15 +9,15 @@
   <div class="customer-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="客户编码" prop="customerNumber">
-        <el-input v-model="queryParams.customerNumber" placeholder="请输入客户编码" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="客户编码" prop="customerNo">
+        <el-input v-model="queryParams.customerNo" placeholder="请输入客户编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="客户名称" prop="customerName">
         <el-input v-model="queryParams.customerName" placeholder="请输入客户名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="客户类型" prop="customerType">
         <el-select v-model="queryParams.customerType" placeholder="全部" clearable>
-          <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in purchaser_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -30,10 +30,10 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="客户名称" align="center" prop="customerName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="客户编码" align="center" prop="customerNumber" width="210" />
+      <el-table-column label="客户编码" align="center" prop="customerNo" width="210" />
       <el-table-column label="客户类型" align="center" prop="customerType" width="100">
         <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.creditLevel" />
+          <dict-tag :options="purchaser_type" :value="scope.row.customerType" />
         </template>
       </el-table-column>
       <el-table-column label="购买类型" align="center" prop="purchaseType" width="120" />
@@ -54,14 +54,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated } from 'vue';
-import { goodsList } from '@/api/supplier/customerManagement/index';
+import { customerList } from '@/api/supplier/customerManagement/index';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
+const { purchaser_type } = toRefs<any>(proxy?.useDict('purchaser_type'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  customerNumber: '',
+  customerNo: '',
   customerName: '',
   customerType: ''
 });
@@ -79,7 +79,7 @@ const getList = () => {
   const [reviewStartTime, reviewEndTime] = Array.isArray(reviewTime) ? reviewTime : [];
   const params = { ...rest, ...(reviewStartTime && reviewEndTime ? { reviewStartTime, reviewEndTime } : {}) };
 
-  goodsList(params).then((res) => {
+  customerList(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;

@@ -1,30 +1,29 @@
 /**
- * 商品接口
+ * 客户接口
  */
 
 import request from '@/utils/request';
-// 查询商品信息列表
-export function goodsList(query?: any) {
-  console.log(query);
+// 查询客户信息列表
+export function customerList(data?: any) {
   return request({
-    url: '/grain-sales/goods/list',
-    method: 'get',
-    params: query
+    url: '/grain-sales/customerManage/list',
+    method: 'post',
+    data: data
   });
 }
 
-// 获取商品信息详细信息
-export function goodsId(id?: string) {
+// 获取客户信息详细信息
+export function customerId(id?: string) {
   return request({
-    url: `/grain-sales/goods/${id}`,
+    url: `/grain-sales/customerManage/${id}`,
     method: 'get'
   });
 }
 
-// 导出商品信息列表
-export function goodsExport(data?: any) {
+// 导出客户信息列表
+export function customerExport(data?: any) {
   return request({
-    url: '/grain-sales/goods/export',
+    url: '/grain-sales/customerManage/export',
     method: 'post',
     data: data
   });

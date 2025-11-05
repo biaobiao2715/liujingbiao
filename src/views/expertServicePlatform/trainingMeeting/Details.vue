@@ -8,37 +8,31 @@
 <template>
   <div class="meeting-details">
     <!-- 标题与基本信息 -->
-    <h2 class="meeting-title">{{ meetingData.meetingTitle }}</h2>
+    <h2 class="meeting-title">{{ meetingData.meetingName }}</h2>
     <div class="flex-between">
       <div>
-        <span>发布人：{{ meetingData.publisher }}</span>
+        <span>发布人：{{ meetingData.meetingContact }}</span>
         <span style="margin-left: 40px">发布时间：{{ meetingData.publishTime }}</span>
       </div>
-      <div>
-        <span style="float: right"
-          >会议状态：<b>{{ getStatusLabel(meetingData.status) }}</b></span
-        >
-        <span style="float: right; margin-right: 40px"
-          >报名人数：<b>{{ meetingData.signUpCount }}</b></span
-        >
+      <div style="display: flex">
+        <div style="display: flex; margin-right: 40px">
+          <div>会议状态：</div>
+          <dict-text :options="meeting_status" :value="meetingData.meetingStatus" />
+        </div>
+
+        <div>报名人数：{{ meetingData.enrollCount }}人</div>
       </div>
     </div>
 
     <el-divider />
 
     <div class="meeting-info">
-      <div>会议主题：{{ meetingData.meetingTitle }}</div>
-      <div>会议联系人：{{ meetingData.recorder }}</div>
-      <div>会议类别：{{ meetingData.categoryLabel }}</div>
-      <div>
-        <span>会议时间：{{ meetingData.startTime }} 至 {{ meetingData.endTime }}</span>
-      </div>
-      <div>
-        <span>会议地址：{{ meetingData.meetingAddress }}</span>
-      </div>
-      <div>
-        <span>取消原因：{{ meetingData.notice }}</span>
-      </div>
+      <div>会议主题：{{ meetingData.meetingName }}</div>
+      <div>会议联系人：{{ meetingData.meetingContact }}</div>
+      <div style="display: flex">会议类别： <dict-text :options="meeting_type" :value="meetingData.meetingType" /></div>
+      <div>会议时间：{{ meetingData.meetingStartTime }} 至 {{ meetingData.meetingEndTime }}</div>
+      <div>会议地址：{{ meetingData.meetingAddress }}</div>
+      <div v-if="meetingData.cancelReason">取消原因：{{ meetingData.cancelReason }}</div>
     </div>
 
     <!-- 参会专家人员信息 -->
@@ -49,16 +43,20 @@
         <el-table-column prop="expertCode" label="专家编码" align="center" />
         <el-table-column prop="expertType" label="专家类型" align="center" />
         <el-table-column prop="expertName" label="专家姓名" align="center" />
-        <el-table-column prop="expertGender" label="专家性别" align="center" />
-        <el-table-column prop="expertPhone" label="专家联系电话" align="center" />
+        <el-table-column prop="expertSex" label="专家性别" align="center">
+          <template #default="scope">
+            <dict-tag :options="sys_user_sex" :value="scope.row.expertSex" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="contactPhone" label="专家联系电话" align="center" />
       </el-table>
       <div class="pagination">
-        <el-pagination
-          v-model:current-page="expertPage.pageNum"
-          v-model:page-size="expertPage.pageSize"
+        <pagination
+          v-show="expertPage.total > 0"
+          v-model:page="expertPage.pageNum"
+          v-model:limit="expertPage.pageSize"
           :total="expertPage.total"
-          layout="prev, pager, next, jumper"
-          @current-change="handleExpertPage"
+          @pagination="getexpertList"
         />
       </div>
     </div>
@@ -72,12 +70,12 @@
         <el-table-column prop="signUpPhone" label="报名人联系电话" align="center" />
       </el-table>
       <div class="pagination">
-        <el-pagination
-          v-model:current-page="signUpPage.pageNum"
-          v-model:page-size="signUpPage.pageSize"
+        <pagination
+          v-show="signUpPage.total > 0"
+          v-model:page="signUpPage.pageNum"
+          v-model:limit="signUpPage.pageSize"
           :total="signUpPage.total"
-          layout="prev, pager, next, jumper"
-          @current-change="handleSignUpPage"
+          @pagination="getsignUpList"
         />
       </div>
     </div>
@@ -86,69 +84,56 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getcultivateExpert } from '@/api/expertServicePlatform/trainingMeeting/index';
+import { getcultivateExpert, activityEnrollList, cultivateExpertList } from '@/api/expertServicePlatform/trainingMeeting/index';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { meeting_status, meeting_type, sys_user_sex } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type', 'sys_user_sex'));
 
 // 接收父组件传参
 const props = defineProps<{ id: string | number; type: string }>();
 
 const meetingData = ref({
-  meetingTitle: '',
-  publisher: '',
-  publishTime: '',
-  status: '',
-  signUpCount: 0,
-  categoryLabel: '',
-  recorder: '',
-  startTime: '',
-  endTime: '',
+  meetingCode: '',
+  meetingName: '',
+  meetingType: '',
   meetingAddress: '',
-  notice: ''
+  meetingStartTime: '',
+  meetingEndTime: '',
+  meetingContact: '',
+  meetingPhone: '',
+  meetingContent: '',
+  meetingStatus: '',
+  publishTime: '',
+  cancelReason: '',
+  enrollCount: 0,
+  experts: []
 });
 const expertList = ref([]);
 const expertPage = ref({ pageNum: 1, pageSize: 5, total: 0 });
 const signUpList = ref([]);
 const signUpPage = ref({ pageNum: 1, pageSize: 5, total: 0 });
 
-const getStatusLabel = (status: string) => {
-  if (status === '0') return '待开始';
-  if (status === '1') return '已结束';
-  if (status === '2') return '已开始';
-  return '';
+// 专家人员列表
+const getexpertList = () => {
+  cultivateExpertList({ foreignId: props.id }).then((res: any) => {
+    expertList.value = res.rows;
+    expertPage.value.total = res.total;
+  });
+};
+// 报名人员列表
+const getsignUpList = () => {
+  activityEnrollList({ foreignId: props.id }).then((res: any) => {
+    signUpList.value = res.rows;
+    signUpPage.value.total = res.total;
+  });
 };
 
-// 获取详情数据
-const fetchDetail = async () => {
+onMounted(async () => {
   const res = await getcultivateExpert({ id: props.id, isView: true });
   // 会议基础信息
   meetingData.value = res.data;
-  // 专家人员列表
-  expertList.value = (res.data.expertList || []).map((item) => ({
-    expertCode: item.expertCode,
-    expertType: item.expertType === '0' ? '技术专家' : item.expertType === '1' ? '法务专家' : '',
-    expertName: item.expertName,
-    expertGender: item.expertSex === '0' ? '男' : item.expertSex === '1' ? '女' : '未知',
-    expertPhone: item.contactPhone
-  }));
-  expertPage.value.total = expertList.value.length;
-  // 报名人员列表
-  signUpList.value = (res.data.signUpList || []).map((item) => ({
-    signUpName: item.signUpName,
-    signUpPhone: item.signUpPhone
-  }));
-  signUpPage.value.total = signUpList.value.length;
-};
 
-const handleExpertPage = (page: number) => {
-  expertPage.value.pageNum = page;
-  // 如需分页可在此处处理
-};
-const handleSignUpPage = (page: number) => {
-  signUpPage.value.pageNum = page;
-  // 如需分页可在此处处理
-};
-
-onMounted(() => {
-  fetchDetail();
+  getexpertList();
+  getsignUpList();
 });
 </script>
 
