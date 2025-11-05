@@ -18,33 +18,35 @@
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
       <el-form-item class="search-bar-btns">
-        <el-button v-throttle type="primary" @click="getTableData">查询</el-button>
+        <el-button v-throttle v-hasPermi="['grain:HnPurchaseDemand:purchaseList']" type="primary" @click="getTableData">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
     <!-- 表格 -->
     <el-table :data="tableData" border style="width: 100%" v-loading="loading">
-      <el-table-column type="index" label="序号" width="60" />
-      <el-table-column prop="name" label="客户名称" width="120" />
-      <el-table-column prop="categoryName" label="采购类型" width="180" />
-      <el-table-column prop="quantity" label="采购数量" width="100">
+      <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table-column prop="name" label="客户名称" width="120" align="center" />
+      <el-table-column prop="categoryName" label="采购类型" width="180" align="center" />
+      <el-table-column prop="quantity" label="采购数量" width="100" align="center">
         <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
       </el-table-column>
-      <el-table-column prop="deliveryDay" label="交付时间/天" width="100" />
-      <el-table-column prop="purchaseRegion" label="采购区域" width="180">
+      <el-table-column prop="deliveryDay" label="交付时间/天" width="100" align="center" />
+      <el-table-column prop="purchaseRegion" label="采购区域" width="180" align="center">
         <template #default="{ row }">
           {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="demandDescription" label="采购说明" min-width="180" />
-      <el-table-column prop="publishTime" label="发布时间" width="160">
+      <el-table-column prop="demandDescription" label="采购说明" min-width="180" align="center" />
+      <el-table-column prop="publishTime" label="发布时间" width="160" align="center">
         <template #default="{ row }">
           {{ proxy.parseTime(row.publishTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="120">
+      <el-table-column label="操作" width="120" align="center">
         <template #default="scope">
-          <el-button v-throttle type="primary" size="small" @click="handleQuote(scope.row)">立即报价</el-button>
+          <el-button v-throttle v-hasPermi="['grain:hnPurchaseQuote:add']" text type="primary" size="small" @click="handleQuote(scope.row)"
+            >立即报价</el-button
+          >
         </template>
       </el-table-column>
     </el-table>

@@ -62,10 +62,22 @@
       </el-table-column>
       <el-table-column label="操作" width="220" align="center">
         <template #default="{ row }">
-          <el-button link v-if="row.demandStatus === '1'" type="primary" @click="onEdit(row)">修改</el-button>
-          <el-button link v-if="row.demandStatus === '1'" type="primary" @click="onComplete(row)">完成</el-button>
-          <el-button link v-if="row.demandStatus === '1'" type="danger" @click="onDelete(row)">关闭</el-button>
-          <el-button link type="primary" @click="onDetails(row)">查看</el-button>
+          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onEdit(row)"
+            >修改</el-button
+          >
+          <el-button
+            link
+            v-if="row.demandStatus === '1'"
+            v-throttle
+            v-hasPermi="['grain:HnPurchaseDemand:edit']"
+            type="primary"
+            @click="onComplete(row)"
+            >完成</el-button
+          >
+          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="danger" @click="onDelete(row)"
+            >关闭</el-button
+          >
+          <el-button link v-throttle v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" @click="onDetails(row)">查看</el-button>
         </template>
       </el-table-column>
     </el-table>
