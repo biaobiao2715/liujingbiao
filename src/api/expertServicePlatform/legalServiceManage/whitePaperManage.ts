@@ -93,7 +93,7 @@ export function getWhitePaperDetail(id: string | number): AxiosPromise<WhitePape
  */
 export function addWhitePaper(data: any): AxiosPromise<any> {
   return request({
-    url: '/skill-server/skill/whitePaper',
+    url: '/skill-server/skill/whitePaper/add',
     method: 'post',
     data: data
   });
@@ -104,7 +104,7 @@ export function addWhitePaper(data: any): AxiosPromise<any> {
  */
 export function editWhitePaper(data: any): AxiosPromise<any> {
   return request({
-    url: '/skill-server/skill/whitePaper',
+    url: '/skill-server/skill/whitePaper/edit',
     method: 'put',
     data: data
   });

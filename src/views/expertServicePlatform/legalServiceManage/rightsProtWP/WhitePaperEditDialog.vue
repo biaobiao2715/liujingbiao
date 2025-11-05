@@ -110,14 +110,59 @@
         <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
+
+    <!-- 附件部分（仅编辑模式显示） -->
+    <div v-if="props.type === 'edit' && currentAttachments.length > 0" class="attachment-info-section">
+      <div class="section-header">
+        <el-icon><Paperclip /></el-icon>
+        <span class="section-title">附件</span>
+      </div>
+      <el-table :data="currentAttachments" border style="width: 100%">
+        <el-table-column label="附件类型" width="120" align="center">
+          <template #default>
+            <el-icon class="file-icon"><Document /></el-icon>
+          </template>
+        </el-table-column>
+        <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
+        <el-table-column label="附件名称" prop="originalName" :show-overflow-tooltip="true" min-width="200" />
+        <el-table-column label="版本号" prop="version" width="120" align="center" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="scope">
+            <el-button type="primary" link @click="handleDownloadAttachment(scope.row)">
+              下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 历史版本部分（仅编辑模式显示） -->
+    <div v-if="props.type === 'edit' && historyVersions.length > 0" class="history-section">
+      <div class="section-header">
+        <el-icon><FolderOpened /></el-icon>
+        <span class="section-title">历史版本</span>
+      </div>
+      <el-table :data="historyVersions" border style="width: 100%">
+        <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
+        <el-table-column label="历史版本" prop="version" width="120" align="center" />
+        <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="scope">
+            <el-button type="primary" link @click="handleDownloadHistory(scope.row)">
+              下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, getCurrentInstance } from 'vue';
+import { ref, onMounted, watch, getCurrentInstance, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Upload, View, Delete, Document } from '@element-plus/icons-vue';
+import { Upload, View, Delete, Document, Paperclip, FolderOpened } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { 
   getWhitePaperDetail, 
@@ -148,10 +193,11 @@ const loading = ref(false);
 const formData = ref({
   id: undefined as number | string | undefined,
   paperTitle: '',
-  remark: ''
+  remark: '',
+  attachment: '' // 用于表单验证的虚拟字段
 });
 
-  // 附件列表
+  // 附件列表（用于编辑的表单）
 const attachmentList = ref<Array<{
   ossId?: number;
   fileName: string;
@@ -164,6 +210,44 @@ const attachmentList = ref<Array<{
   versionError?: string;
   uid?: string;
 }>>([]);
+
+// 当前附件列表（已发布的附件，仅编辑模式显示）
+const detailData = ref({
+  ossVoList: [] as any[],
+  historyVersionsList: [] as any[],
+  updateTime: '',
+  currentVersion: ''
+});
+
+// 当前附件列表（计算属性）
+const currentAttachments = computed(() => {
+  if (!detailData.value.ossVoList || !Array.isArray(detailData.value.ossVoList)) {
+    return [];
+  }
+  return detailData.value.ossVoList.map((item: any) => ({
+    ossId: item.ossId,
+    originalName: item.originalName || item.fileName || '',
+    updateTime: item.updateTime || detailData.value.updateTime || '',
+    version: item.version || detailData.value.currentVersion || '',
+    url: item.url || '',
+    fileSuffix: item.fileSuffix || ''
+  }));
+});
+
+// 历史版本列表（计算属性）
+const historyVersions = computed(() => {
+  if (!detailData.value.historyVersionsList || !Array.isArray(detailData.value.historyVersionsList)) {
+    return [];
+  }
+  return detailData.value.historyVersionsList.map((item: any) => ({
+    ...item,
+    updateTime: item.updateTime || item.createTime || '',
+    version: item.versionNo || item.version || '', // 使用 versionNo（API文档中的字段名）
+    remark: item.remark || '',
+    ossId: item.ossId,
+    url: item.url || ''
+  }));
+});
 
 // 表单验证规则
 const rules = {
@@ -180,7 +264,7 @@ const rules = {
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ]
 };
@@ -311,6 +395,8 @@ const handleFileChange = async (file: any, fileList: any) => {
         uid: file.uid || Date.now() + Math.random()
       });
       
+      // 更新表单数据触发验证
+      formData.value.attachment = 'has_attachment';
       // 触发表单验证更新
       formRef.value?.validateField('attachment');
       
@@ -418,6 +504,8 @@ const handleRemoveFile = (file: any) => {
       );
       if (index !== -1) {
         attachmentList.value.splice(index, 1);
+        // 更新表单数据触发验证
+        formData.value.attachment = attachmentList.value.length > 0 ? 'has_attachment' : '';
         // 触发表单验证更新
         formRef.value?.validateField('attachment');
         ElMessage.success('附件删除成功');
@@ -426,6 +514,32 @@ const handleRemoveFile = (file: any) => {
     .catch(() => {
       // 用户取消删除
     });
+};
+
+/** 下载附件（附件部分） */
+const handleDownloadAttachment = (file: any) => {
+  if (file.ossId) {
+    // 使用OSS下载接口
+    (proxy as any)?.$download?.oss(file.ossId);
+  } else if (file.url) {
+    // 备用方案：直接打开URL
+    window.open(file.url, '_blank');
+  } else {
+    ElMessage.warning('附件链接不存在');
+  }
+};
+
+/** 下载历史版本 */
+const handleDownloadHistory = (version: any) => {
+  if (version.ossId) {
+    // 使用OSS下载接口
+    (proxy as any)?.$download?.oss(version.ossId);
+  } else if (version.url) {
+    // 备用方案：直接打开URL
+    window.open(version.url, '_blank');
+  } else {
+    ElMessage.warning('附件链接不存在');
+  }
 };
 
 /** 获取白皮书详情 */
@@ -451,10 +565,19 @@ const fetchWhitePaperDetail = async () => {
     formData.value = {
         id: data.id,
         paperTitle: data.paperTitle || '',
-        remark: data.remark || ''
+        remark: data.remark || '',
+        attachment: data.ossVoList && data.ossVoList.length > 0 ? 'has_attachment' : ''
       };
       
-      // 加载附件数据
+      // 保存详情数据（用于显示附件和历史版本）
+      detailData.value = {
+        ossVoList: data.ossVoList || [],
+        historyVersionsList: data.historyVersionsList || [],
+        updateTime: data.updateTime || data.createTime || '',
+        currentVersion: data.currentVersion || ''
+      };
+      
+      // 加载附件数据（用于编辑）
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
         attachmentList.value = data.ossVoList.map((item: any, index: number) => ({
           ossId: item.ossId,
@@ -551,14 +674,20 @@ const handleSubmit = async () => {
     };
     
     // 调用对应的接口
+    // 新增时调用 POST /skill-server/skill/whitePaper
+    // 编辑时调用 PUT /skill-server/skill/whitePaper
     const api = props.type === 'add' ? addWhitePaper : editWhitePaper;
+    console.log('调用接口:', props.type === 'add' ? '新增' : '编辑', '提交数据:', submitData);
+    
     const response: any = await api(submitData);
     
     if (response && response.code === 200) {
-    ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '维权白皮书修改成功');
-    emit('success');
+      ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '维权白皮书修改成功');
+      emit('success');
     } else {
-      ElMessage.error(response?.msg || '操作失败');
+      const errorMsg = response?.msg || response?.message || '操作失败，请重试';
+      ElMessage.error(errorMsg);
+      console.error('接口返回错误:', response);
     }
   } catch (error: any) {
     if (error !== 'cancel') {
@@ -592,7 +721,8 @@ watch(
       formData.value = {
         id: undefined,
         paperTitle: '',
-        remark: ''
+        remark: '',
+        attachment: ''
       };
       attachmentList.value = [];
       formRef.value?.resetFields?.();
@@ -684,6 +814,103 @@ watch(
 
 :deep(.el-form-item) {
   margin-bottom: 24px;
+}
+
+// 附件信息部分（编辑模式显示）
+.attachment-info-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e4e7ed;
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    
+    .el-icon {
+      font-size: 18px;
+      color: #606266;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #303133;
+    }
+  }
+  
+  .file-icon {
+    font-size: 24px;
+    color: #409eff;
+  }
+  
+  :deep(.el-table) {
+    .el-table__header {
+      th {
+        background-color: #fafafa;
+        color: #606266;
+        font-weight: 600;
+      }
+    }
+    
+    .el-table__body {
+      tr {
+        &:hover {
+          background-color: #f5f7fa;
+        }
+      }
+    }
+  }
+}
+
+// 历史版本部分
+.history-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e4e7ed;
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    
+    .el-icon {
+      font-size: 18px;
+      color: #606266;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #303133;
+    }
+  }
+  
+  :deep(.el-table) {
+    .el-table__header {
+      th {
+        background-color: #fafafa;
+        color: #606266;
+        font-weight: 600;
+      }
+    }
+    
+    .el-table__body {
+      tr {
+        &:hover {
+          background-color: #f5f7fa;
+        }
+      }
+    }
+  }
+}
+
+// 按钮样式
+:deep(.el-button--link) {
+  padding: 0;
+  font-size: 14px;
 }
 </style>
 

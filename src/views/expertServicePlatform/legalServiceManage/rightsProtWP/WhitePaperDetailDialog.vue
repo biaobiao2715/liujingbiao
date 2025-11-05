@@ -110,7 +110,7 @@ const historyVersions = computed(() => {
   return detailData.value.historyVersionsList.map((item: any) => ({
     ...item,
     updateTime: item.updateTime || item.createTime || '',
-    version: item.version || '',
+    version: item.versionNo || item.version || '', // 使用 versionNo（API文档中的字段名）
     remark: item.remark || '',
     ossId: item.ossId,
     url: item.url || ''
