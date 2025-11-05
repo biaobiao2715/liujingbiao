@@ -6,25 +6,25 @@
       </template>
 
       <div class="essat-list">
-        <div class="essay" v-for="(article, index) in articles" :key="index" @click="handleClick(article)">
+        <div class="essay" v-for="(article, index) in articleList" :key="index" @click="handleDetail(article)">
           <div class="essay-title">
-            {{ article.title }}
-            <el-tag type="primary">{{ article.category }}</el-tag>
+            {{ article.articleTitle }}
+            <el-tag type="primary">{{ getArticleType(article.articleType) }}</el-tag>
           </div>
-
+          <!-- articleCover 封面url -->
           <div class="essay-content">
-            <p>{{ article.content }}</p>
+            <p>{{ article.articleContent }}</p>
             <div class="essay-footer flex-center gap-12">
               <div class="views flex-center gap-2">
                 <el-icon size="20"><View /></el-icon>
-                <span>{{ article.views }}</span>
+                <span>{{ article.viewCount }}</span>
               </div>
               <div class="collection flex-center gap-2">
                 <el-icon size="20" v-if="!article.isCollected"><Star /></el-icon>
                 <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-                <span>{{ article.collection }}</span>
+                <span>{{ article.favoriteCount }}</span>
               </div>
-              <div>{{ article.date }}</div>
+              <div>{{ article.publishTime }}</div>
             </div>
           </div>
         </div>
@@ -35,32 +35,43 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { listArticles } from '@/api/expertServicePlatform/knowledgeBaseManage';
 
 const emit = defineEmits(['detailChange']);
 
-const articles = ref([
-  {
-    title: '黄芩的种植方法和时间',
-    content: '黄芩是一种常见的中药材，具有深厚的药用历史和广泛的应用价值，在中国分布广泛，主要产于东北、华北及西北地区，我们一起来看看。',
-    category: '农技',
-    views: 1234,
-    collection: 89,
-    isCollected: false,
-    date: '2019-11-02 12:23:00'
-  },
-  {
-    title: '黄芩的种植方法和时间',
-    content: '黄芩是一种常见的中药材，具有深厚的药用历史和广泛的应用价值，在中国分布广泛，主要产于东北、华北及西北地区，我们一起来看看。',
-    category: '农技',
-    views: 1234,
-    collection: 24,
-    isCollected: true,
-    date: '2019-11-02 12:23:00'
-  }
-]);
+const articleList = ref();
 
-const handleClick = (article: any) => {
-  emit('detailChange', { type: 'essayDetail', data: article });
+onMounted(() => {
+  getArticleList();
+});
+
+const getArticleList = async () => {
+  const res = await listArticles({
+    pageNum: 1,
+    pageSize: 999
+  });
+  articleList.value = res.rows || [];
+};
+
+// 获取文章类型
+
+// 文章类型：1种子技术类 2农资农具技术类 99其他
+
+const getArticleType = (type: string) => {
+  switch (type) {
+    case '1':
+      return '种子技术类';
+    case '2':
+      return '农资农具技术类';
+    case '99':
+      return '其他';
+    default:
+      return '未知';
+  }
+};
+
+const handleDetail = (article: any) => {
+  emit('detailChange', { type: 'essayDetail', id: article.id });
 };
 </script>
 

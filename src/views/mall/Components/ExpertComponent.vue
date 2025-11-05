@@ -21,9 +21,9 @@
     <!-- 文章详情 -->
     <EssayDetailComponent v-if="showArea === 'essayDetail'" />
     <!-- 课程详情 -->
-    <CourseDetailComponent v-if="showArea === 'courseDetail'" />
+    <CourseDetailComponent v-if="showArea === 'courseDetail'" :id="id" />
     <!-- 会议详情 -->
-    <MeetingDetailComponent v-if="showArea === 'meetingDetail'" />
+    <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
   </div>
 </template>
 
@@ -44,8 +44,12 @@ type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meet
 
 const showArea = ref('area');
 
-const showDetail = (incomeData: { type: showAreaType; data: any }) => {
+const id = ref(null);
+
+// 展示对应的详情组件
+const showDetail = (incomeData: { type: showAreaType; id: string }) => {
   console.log(incomeData);
+  id.value = incomeData.id;
   showArea.value = incomeData.type;
 };
 </script>

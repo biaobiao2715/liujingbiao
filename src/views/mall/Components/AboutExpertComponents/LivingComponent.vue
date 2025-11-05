@@ -9,9 +9,8 @@
   <div class="living-component">
     <el-card>
       <template #header>
-        <div class="card-header flex-center gap-16">
+        <div class="card-header flex-center gap-24">
           <span>在线直播</span>
-          <!-- 替换为 el-segmented -->
           <el-segmented v-model="value" :options="options" />
         </div>
       </template>

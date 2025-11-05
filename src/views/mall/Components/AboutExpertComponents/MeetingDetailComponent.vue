@@ -8,51 +8,72 @@
 
 <template>
   <div class="metting-detail-container">
-    <div class="title">{{ detail.title }}</div>
+    <div class="title">{{ detail?.title }}</div>
     <!-- 课程描述 -->
     <div class="description flex-center gap-24 mt-24 mb-24">
       <!-- 头像 -->
-      <img :src="detail.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail.name }}</div>
-      <div>{{ '发布时间：  ' + detail.createTime }}</div>
-      <el-tag type="primary">{{ detail.tyle }}</el-tag>
+      <img :src="detail?.avatar" width="40" />
+      <div>{{ '发布人：  ' + detail?.createBy }}</div>
+      <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
+      <el-tag type="primary">{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</el-tag>
       <div class="status">
-        会议状态：<el-tag>{{ detail.status }}</el-tag>
+        会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
-      <div>报名人数：{{ detail.participantCount }}</div>
-      <el-button type="primary" @click="handleApply">立即报名</el-button>
+      <div>报名人数：{{ detail?.enrollCount }}</div>
+      <el-button type="primary" @click="handleApply" v-if="detail?.meetingStatus === '1'">立即报名</el-button>
     </div>
 
     <!-- 分割线 -->
     <el-divider></el-divider>
     <!-- 详细信息 -->
     <div class="detail">
-      <div>会议主题：{{ detail.title }}</div>
-      <div>会议联系人：{{ detail.contact }}</div>
-      <div>会议类别：{{ detail.type }}</div>
-      <div>会议时间：{{ detail.date }}</div>
-      <div>会议地点：{{ detail.location }}</div>
-      <div v-if="detail.status === 'canceled'">取消原因：{{ detail.cancelReason }}</div>
+      <div>会议主题：{{ detail?.meetingName }}</div>
+      <div>会议联系人：{{ detail?.meetingContact }}</div>
+      <div>会议类别：{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</div>
+      <div>会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
+      <div>会议地点：{{ detail?.meetingAddress }}</div>
+      <div v-if="detail?.status === '99'">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-const detail = ref({
-  title: '技术培训会议',
-  avatar: '/path/to/avatar.jpg',
-  name: '李春雷',
-  createTime: '2025-10-29 12:00:00',
-  tyle: '技术知识',
-  status: 'upcoming', // upcoming, ongoing, completed, canceled
-  participantCount: 45,
-  contact: '李四',
-  type: '技术知识',
-  date: '2019-12-12 10:29:00 至 2019-12-12 11:29:00',
-  location: '湖北省武汉市汉南区农耕4楼102会议室',
-  cancelReason: '因恶劣天气原因，暂取消这次活动'
+import { meetingDetail } from '@/api/mall/expert';
+
+const props = defineProps({
+  id: {
+    type: String,
+    required: true
+  }
 });
+
+const detail = ref();
+
+onMounted(() => {
+  // 根据传入的ID获取课程详情
+  meetingDetail({ id: props.id }).then((res) => {
+    detail.value = res.data || {};
+  });
+});
+
+// 会议状态 会议状态（0：草稿 1：待开始 2：进行中 3：已结束 99：已取消）
+const getMeetingStatus = (status: string) => {
+  switch (status) {
+    case '0':
+      return '草稿';
+    case '1':
+      return '待开始';
+    case '2':
+      return '进行中';
+    case '3':
+      return '已结束';
+    case '99':
+      return '已取消';
+    default:
+      return '未知状态';
+  }
+};
 
 // 报名
 const handleApply = () => {};

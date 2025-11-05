@@ -1,14 +1,14 @@
 <!--
   标题: GoodsItemComponent.vue
   功能: 每个商品的展示组件
-  说明: 接收商品信息并展示，点击商品触发方法
+  说明: 每个商品的展示组件，点击商品触发点击事件
   当前版本: 1.1
   开发信息: Created by 李春雷 2025-10-28
 -->
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods?.url" width="100" class="goods-image" />
+    <img :src="goods?.url || goods?.ossurls" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
         <div class="goods-price">{{ goods?.goodsPrice }}元起</div>

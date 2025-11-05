@@ -78,10 +78,28 @@ export function courseCultivateList(data: any) {
   });
 }
 
+// 培训课程详情
+export function courseDetail(data: any) {
+  return request({
+    url: 'skill-server/courseCultivate/queryDetail',
+    method: 'get',
+    params: data
+  });
+}
+
 // 培训会议信息列表
 export function meetingCultivateList(data: any) {
   return request({
     url: 'skill-server/HnMeetingCultivate/list',
+    method: 'get',
+    params: data
+  });
+}
+
+// 培训会议详情
+export function meetingDetail(data: any) {
+  return request({
+    url: 'skill-server/HnMeetingCultivate/queryDetail',
     method: 'get',
     params: data
   });

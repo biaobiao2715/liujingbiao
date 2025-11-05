@@ -17,9 +17,9 @@
       <el-row :gutter="12" v-if="activeTab === 'course'">
         <el-col :span="6" v-for="(course, index) in courseList" :key="index">
           <el-card shadow="hover">
-            <div class="course-item" @click="handleClick('courseDetail', course)">
+            <div class="course-item" @click="handleDetail('courseDetail', course.id)">
               <img :src="course.cultivateCoverId" class="course-image" />
-              <div class="hot flex-center">
+              <div class="hot flex-center gap-12">
                 <div class="views flex-center gap-2">
                   <el-icon size="20"><View /></el-icon>
                   <span>{{ course.pageViews }}</span>
@@ -32,7 +32,7 @@
               </div>
               <div class="course-info">
                 <div class="course-title">{{ course.cultivateName }}</div>
-                <div class="course-type">{{ course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
+                <div class="course-type">{{ '课程类型 ' + course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
                 <div class="course-time">{{ '发布时间 ' + course.publishTime }}</div>
               </div>
             </div>
@@ -42,8 +42,8 @@
       </el-row>
       <!-- 会议 -->
       <div class="meeting-list" v-else>
-        <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleClick('meetingDetail', meeting)">
-          <div class="meeting-title">{{ meeting.title }}</div>
+        <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleDetail('meetingDetail', meeting.id)">
+          <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
         </div>
         <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" />
       </div>
@@ -85,9 +85,14 @@ const fetchMeetingList = async () => {
   console.log(meetingList.value);
 };
 
+// 拼接成类似于：2025年12月30日将会在中山XXXX，举行农户XXX会议 然后返回
+const getMeetingDescription = (meeting: any) => {};
+
 // 点击课程或会议时触发方法，传递课程或会议数据
-const handleClick = (type: string, course: any) => {
-  // emit('detailChange', { type, data: course });
+const handleDetail = (type: string, id: string) => {
+  console.log(id);
+  
+  emit('detailChange', { type, id });
 };
 </script>
 
