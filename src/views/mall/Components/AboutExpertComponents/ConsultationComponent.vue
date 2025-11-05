@@ -3,39 +3,31 @@
   <div class="consultation-container">
     <el-card>
       <template #header>
-        <div class="header">
-          <div class="title">专家咨询</div>
+        <div class="flex-center-between">
+          <div class="flex-center gap-24">
+            <div class="title">专家咨询</div>
+            <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" />
+          </div>
           <el-button type="text" @click="toggleExpand">
-            <span v-if="isExpanded">▲</span>
-            <span v-else>▼</span>
+            <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
+            <el-icon v-else size="32"><ArrowDownBold /></el-icon>
           </el-button>
         </div>
-
-        <el-tabs v-model="activeTab" @tab-change="switchTab">
-          <el-tab-pane v-for="tab in tabs" :key="tab" :label="tab" :name="tab"></el-tab-pane>
-        </el-tabs>
       </template>
 
-      <div class="content flex gap-12" :class="{ expanded: isExpanded }">
-        <el-card v-for="expert in filteredExperts" :key="expert.id" class="expert-item" shadow="hover">
-          <div class="title-info flex-center" @click="handleDetail(expert)">
-            <!-- <img :src="expert.avatar" alt="专家头像" class="avatar" /> -->
-            <div class="avatar flex-center">
-              <el-icon size="32"><User /></el-icon>
-            </div>
-            <div class="name">{{ expert.name }} · {{ expert.specialty }}</div>
-          </div>
-          <div class="hot flex gap-12">
-            <div class="hot-tag flex-center">
-              <div>1120</div>
-              <div>咨询量</div>
-            </div>
-            <div class="hot-tag flex-center">
-              <div>2102</div>
-              <div>回复量</div>
+      <div class="content flex gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
+        <el-card v-for="expert in expertList" :key="expert.id" class="expert-item" shadow="hover">
+          <div class="title-info flex gap-12" @click="handleDetail(expert)">
+            <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
+            <div>
+              <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
+              <div class="flex gap-24 mt-12">
+                <el-statistic title="咨询量" :value="expert.questionCount" />
+                <el-statistic title="回复量" :value="expert.answerCount" />
+              </div>
             </div>
           </div>
-          <div class="description">{{ expert.description }}</div>
+          <div class="description">{{ expert.expertInfo }}</div>
           <div class="flex-center-center">
             <el-button @click="handleConsultation(expert)">立即咨询</el-button>
           </div>
@@ -43,7 +35,7 @@
       </div>
     </el-card>
     <!-- 专家详情弹窗 -->
-    <ExpertDetailComponent ref="expertDetailRef"></ExpertDetailComponent>
+    <ExpertDetailComponent ref="expertDetailRef" @submitSuccess="handleChange"></ExpertDetailComponent>
     <!-- 咨询专家弹窗 -->
     <AskExpertComponent ref="askExpertRef"></AskExpertComponent>
   </div>
@@ -53,80 +45,82 @@
 import { ref } from 'vue';
 import AskExpertComponent from './AskExpertComponent.vue';
 import ExpertDetailComponent from './ExpertDetailComponent.vue';
+import { technologyExpertList, legalExpertList } from '@/api/mall/expert';
 
-const tabs = ['热门专家', '技术专家', '法务专家'];
-const activeTab = ref(tabs[0]);
+const options = [
+  { label: '技术专家', value: 'technology' },
+  { label: '法务专家', value: 'legal' }
+];
+const activeTab = ref('technology');
+
 const isExpanded = ref(false);
+
 const askExpertRef = ref(null);
+
 const expertDetailRef = ref(null);
-const experts = ref([
-  {
-    id: 1,
-    name: '张三',
-    specialty: '热门专家',
-    description:
-      '专家简介XXX，男，出生于XXXX年，湖北省高级农艺师，毕业于XXXXXX，XX学历，XXXX年参加工作，从业年限XXXX年，目前就职于XXXXXX。主要从事全县XXXXX推广工作',
-    avatar: 'path/to/avatar1.jpg'
-  },
-  {
-    id: 2,
-    name: '李四',
-    specialty: '技术专家',
-    description:
-      '专家简介XXX，男，出生于XXXX年，湖北省高级农艺师，毕业于XXXXXX，XX学历，XXXX年参加工作，从业年限XXXX年，目前就职于XXXXXX。主要从事全县XXXXX推广工作',
-    avatar: 'path/to/avatar1.jpg'
-  }
-]);
 
-const filteredExperts = ref(experts.value);
+const expertList = ref([]);
 
-const switchTab = (tab: string) => {
-  activeTab.value = tab;
-  // 根据 tab 切换专家数据
-  filteredExperts.value = experts.value.filter((expert) => expert.specialty.includes(tab));
+const expertLoading = ref(false);
+
+onMounted(() => {
+  getTechnologyExpertList();
+});
+
+const handleChange = async () => {
+  expertLoading.value = true;
+  activeTab.value === 'technology' ? await getTechnologyExpertList() : await getLegalExpertList();
+  expertLoading.value = false;
 };
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
 };
 
+// 技术专家列表（无租户）
+const getTechnologyExpertList = async () => {
+  const res = await technologyExpertList({});
+  if (res.code === 200) {
+    expertList.value = res.rows;
+  }
+};
+
+// 法律专家列表（无租户）
+const getLegalExpertList = async () => {
+  const res = await legalExpertList({});
+  if (res.code === 200) {
+    expertList.value = res.rows;
+  }
+};
+
+// 获取头像url
+const getAvatarUrl = (imgList) => {
+  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo.url;
+};
+
 // 处理立即咨询按钮点击
 const handleConsultation = (expert) => {
   // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
   console.log('咨询专家:', expert, askExpertRef.value);
-  askExpertRef.value?.openDialog(expert.id);
+  askExpertRef.value?.openDialog(expert.id, activeTab.value === 'technology' ? '1' : '2');
 };
 
 // 处理查看详情按钮点击
 const handleDetail = (expert) => {
   console.log('查看专家详情:', expert, expertDetailRef.value);
-  expertDetailRef.value?.openDialog(expert.id);
+  expertDetailRef.value?.openDialog(expert.id, activeTab.value);
 };
 </script>
 
 <style scoped lang="scss">
 .consultation-container {
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    .title {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .el-tabs {
-      flex-grow: 1;
-      margin-left: 10px;
-    }
-
-    .el-button {
-      font-size: 16px;
-      padding: 0;
-    }
+  .title {
+    font-size: 20px;
+    font-weight: bold;
   }
 
   .content {
+    min-height: 200px;
     transition: max-height 0.3s ease;
 
     &.expanded {
@@ -138,8 +132,6 @@ const handleDetail = (expert) => {
       margin-bottom: 10px;
       cursor: pointer;
       .title-info {
-        display: flex;
-        align-items: center;
         font-size: 16px;
         font-weight: bold;
         margin-bottom: 5px;

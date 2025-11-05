@@ -73,7 +73,8 @@ const props = defineProps({
 });
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'uploadSuccess']);
+
 const number = ref(0);
 const uploadList = ref<any[]>([]);
 const dialogImageUrl = ref('');
@@ -111,10 +112,12 @@ watch(
           itemData = { name: item, url: item };
         } else {
           // 此处name使用ossId 防止删除出现重名
-          itemData = { name: item.ossId, url: item.url, ossId: item.ossId };
+          // itemData = { name: item.ossId, url: item.url, ossId: item.ossId };
+          itemData = { ...item, name: item.ossId };
         }
         return itemData;
       });
+      emit('uploadSuccess', fileList.value);
     } else {
       fileList.value = [];
       return [];
@@ -193,6 +196,7 @@ const handleDelete = (file: UploadFile): boolean => {
     delOss(ossId);
     fileList.value.splice(findex, 1);
     emit('update:modelValue', listToString(fileList.value));
+    // emit('uploadSuccess', fileList.value);
     return false;
   }
   return true;
@@ -205,6 +209,7 @@ const uploadedSuccessfully = () => {
     uploadList.value = [];
     number.value = 0;
     emit('update:modelValue', listToString(fileList.value));
+    // emit('uploadSuccess', fileList.value);
     proxy?.$modal.closeLoading();
   }
 };

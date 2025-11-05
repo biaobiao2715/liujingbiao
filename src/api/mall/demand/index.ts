@@ -44,3 +44,21 @@ export function hotRecommendationList(data: any) {
     params: data
   });
 }
+
+// 好物推荐
+export function greatGoodsRecommendList(data: any) {
+  return request({
+    url: 'grain-sales/hnSupplierSupply/greatGoodsRecommend',
+    method: 'get',
+    params: data
+  });
+}
+
+// 供需大厅列表
+export function supplyHallList(data: any) {
+  return request({
+    url: 'grain-sales/hnSupplierSupply/supplyHallList',
+    method: 'get',
+    params: data
+  });
+}

@@ -282,4 +282,8 @@ defineExpose({
     }
   }
 }
+
+::v-deep .editor {
+  width: calc(100% - 200px);
+}
 </style>

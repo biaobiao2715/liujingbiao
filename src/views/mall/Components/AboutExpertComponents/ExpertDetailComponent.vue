@@ -6,26 +6,24 @@
   开发信息: Created by 李春雷 2025-10-29
 -->
 <template>
-  <el-dialog v-model="dialogVisible" class="expert-detail-card">
+  <el-dialog v-model="dialogVisible" width="60%" title="专家详情" class="expert-detail-card">
     <!-- 专家信息 -->
     <div class="expert-info">
-      <el-row>
-        <el-col :span="6">
-          <el-avatar shape="square" size="large" :src="expert.avatar"></el-avatar>
-        </el-col>
-        <el-col :span="18">
-          <div>{{ expert.name }} - {{ expert.specialty }}</div>
-          <div>{{ expert.introduction }}</div>
-          <el-row>
-            <el-col :span="12">
-              <el-statistic title="咨询量" :value="expert.consultationCount" />
-            </el-col>
-            <el-col :span="12">
-              <el-statistic title="回复量" :value="expert.replyCount" />
-            </el-col>
-          </el-row>
-        </el-col>
-      </el-row>
+      <div class="flex gap-12">
+        <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
+        <div>
+          <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
+          <div class="flex gap-24 mt-12">
+            <el-statistic title="咨询量" :value="expert.questionCount" />
+            <el-statistic title="回复量" :value="expert.answerCount" />
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <span>专家简介：</span>
+        <span>{{ expert.expertInfo }}</span>
+      </div>
     </div>
 
     <!-- 专家问答 -->
@@ -42,34 +40,55 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { technologyExpertDetail, legalExpertDetail, questionList } from '@/api/mall/expert';
 
 const dialogVisible = ref(false);
 
 const expertId = ref<string | null>(null);
 
-const expert = ref({
-  name: '张三',
-  specialty: 'XXX专业',
-  introduction: '湖北省高级农艺师，主要从事全县农技推广工作。',
-  consultationCount: 1000,
-  replyCount: 2000,
-  avatar: '/path/to/expert-avatar.jpg',
-  qaList: [
-    {
-      question: '种植玉米需要预防的病虫害有哪些？',
-      answer: '玉米常发病虫害有炭疽病、叶枯病、疫病等。'
-    },
-    {
-      question: '如何提高玉米产量？',
-      answer: '合理施肥、科学灌溉、病虫害防治是关键。'
-    }
-  ]
-});
+const expert = ref();
 
 // 打开专家详情弹窗
-const openDialog = (id: string) => {
-  dialogVisible.value = true;
+const openDialog = async (id: string, type: string) => {
   expertId.value = id;
+  type === 'technology' ? await getTechnologyExpertDetail() : await getLegalExpertDetail();
+  await getQuestionList();
+  dialogVisible.value = true;
+};
+
+// 获取技术专家详情
+const getTechnologyExpertDetail = async () => {
+  const res = await technologyExpertDetail(expertId.value);
+  if (res.code === 200) {
+    expert.value = res.data;
+  }
+};
+
+// 获取法务专家详情
+const getLegalExpertDetail = async () => {
+  const res = await legalExpertDetail(expertId.value);
+  if (res.code === 200) {
+    expert.value = res.data;
+  }
+};
+
+// 获取问答列表
+const getQuestionList = async () => {
+  const res = await questionList({
+    expertId: expertId.value,
+    isAsc: 'desc',
+    orderByColumn: 'latestAnswerTime'
+  });
+  if (res.code === 200) {
+    expert.value.qaList = res.data;
+  }
+};
+
+// 获取头像url
+const getAvatarUrl = (imgList) => {
+  console.log(imgList);
+
+  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo.url;
 };
 
 defineExpose({

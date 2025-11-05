@@ -10,15 +10,15 @@
           <el-card class="qa-card" shadow="hover">
             <div class="qa-question">
               <div class="qa-icon question-icon">问</div>
-              <div class="qa-question-text">{{ item.question }}</div>
+              <div class="qa-question-text">{{ item.questionContent }}</div>
             </div>
             <div class="qa-answer">
               <div class="qa-icon answer-icon">答</div>
-              <div class="qa-answer-text">{{ item.answer }}</div>
+              <div class="qa-answer-text">{{ item.hnAnswerVoList[0].answerContent }}</div>
             </div>
             <div class="qa-info">
-              全部{{ item.info }}条信息
-              <span class="qa-update-time">更新于{{ item.updateTime }}</span>
+              全部{{ item.hnAnswerVoList.length }}条信息
+              <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
             </div>
           </el-card>
         </el-col>
@@ -30,32 +30,31 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { ElCard, ElRow, ElCol } from 'element-plus';
+import { questionList } from '@/api/mall/expert';
 
 const emit = defineEmits(['detailChange']);
 
-const qaList = ref([
-  {
-    question: '豆角，10月19日昨晚上用联苯虫螨腈杀...',
-    answer: '建议：1.立即补喷20%联苯虫螨腈+5%...',
-    info: 1,
-    updateTime: '2025-10-21 17:00:30'
-  },
-  {
-    question: '豆角，10月19日昨晚上用联苯虫螨腈杀...',
-    answer: '建议：1.立即补喷20%联苯虫螨腈+5%...',
-    info: 1,
-    updateTime: '2025-10-21 17:00:30'
-  },
-  {
-    question: '豆角，10月19日昨晚上用联苯虫螨腈杀...',
-    answer: '建议：1.立即补喷20%联苯虫螨腈+5%...',
-    info: 1,
-    updateTime: '2025-10-21 17:00:30'
-  }
-]);
+const qaList = ref();
+
+onMounted(() => {
+  getQuestionList();
+});
 
 const handleClick = (item) => {
   emit('detailChange', { type: 'qaDetail', data: item });
+};
+
+// 获取问答列表
+const getQuestionList = async () => {
+  try {
+    const res = await questionList({
+      orderBy: 'desc',
+      orderByColumn: 'latestAnswerTime'
+    });
+    qaList.value = res.rows || [];
+  } catch (error) {
+    console.error('获取问答列表失败:', error);
+  }
 };
 </script>
 <style scoped lang="scss">

@@ -1,90 +1,122 @@
 <template>
-  <div>
-    <!-- 筛选条件 -->
-    <el-form :model="queryParams" inline :label-width="80">
-      <el-form-item label="区域">
-        <RegionSelect v-model="region" />
-      </el-form-item>
-      <el-form-item label="商品分类">
-        <GoodsCategorySelect v-model="category" />
-      </el-form-item>
-      <el-form-item>
-        <el-button v-throttle type="primary" @click="handleOpenDialog()" style="margin: 0">发布采购需求</el-button>
-      </el-form-item>
-    </el-form>
-    <!-- 数据表格 -->
-    <el-table :data="tableList" style="width: 100%">
-      <el-table-column prop="categoryName" label="发布类型" width="200"></el-table-column>
-      <el-table-column prop="region" label="配送范围"></el-table-column>
-      <el-table-column prop="demandDescription" label="备注"></el-table-column>
-      <el-table-column prop="quantity" label="库存" width="100"></el-table-column>
-      <el-table-column prop="views" label="询问次数" width="100"></el-table-column>
-      <el-table-column prop="publishTime" label="发布时间" width="150"></el-table-column>
-      <el-table-column label="操作" width="150">
-        <template #default="scope">
-          <el-button type="text" @click="contact(scope.row)">立即联系</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 分页 -->
-    <pagination
-      v-show="queryParams.total > 0"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      :total="queryParams.total"
-      @pagination="getDemandList"
-    />
-
-    <!-- 采购需求弹窗 -->
-    <PublishDemandComponent ref="publishDemandRef" @submitSuccess="getDemandList"></PublishDemandComponent>
-
-    <!-- 展示供应商联系信息 -->
-    <el-dialog title="供应商联系信息" v-model="contactVisible" width="400px">
-      <el-form :model="contactForm" label-width="100">
-        <el-form-item label="供应商名称">
-          <div>{{ contactForm.name }}</div>
+  <div class="demand-component">
+    <div class="content" v-show="!showDetail">
+      <!-- 筛选条件 -->
+      <el-form :model="queryParams" inline :label-width="80">
+        <el-form-item label="区域">
+          <RegionSelect v-model="region" @regionChange="handleRegionChange" />
         </el-form-item>
-        <el-form-item label="联系人">
-          <div>{{ contactForm.contactPerson }}</div>
+        <el-form-item label="商品分类">
+          <GoodsCategorySelect v-model="category" @categoryChange="handleCategoryChange" />
         </el-form-item>
-        <el-form-item label="联系电话">
-          <div>{{ contactForm.contactPhone }}</div>
+        <el-form-item>
+          <el-button v-throttle @click="resetQuery">重置</el-button>
+          <el-button v-throttle type="primary" @click="getDemandList">查询</el-button>
+          <el-button v-throttle type="primary" @click="handleOpenDialog()">发布采购需求</el-button>
         </el-form-item>
       </el-form>
-    </el-dialog>
+      <!-- 数据表格 -->
+      <el-table :data="tableList" style="width: 100%" v-loading="loading">
+        <el-table-column prop="categoryName" label="发布类型" width="200"></el-table-column>
+        <el-table-column prop="region" label="配送范围" width="200">
+          <template #default="scope">
+            <div v-for="value in scope.row.deliveryAddresses?.split(',')" :key="value">
+              {{ value }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="supplyDescription" label="备注" width="300" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="stock" label="库存"></el-table-column>
+        <!-- <el-table-column prop="views" label="询问次数" width="100"></el-table-column> -->
+        <el-table-column prop="createTime" label="发布时间" width="200"></el-table-column>
+        <el-table-column label="操作" width="150">
+          <template #default="scope">
+            <el-button type="text" @click="contact(scope.row)">立即联系</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!-- 分页 -->
+      <pagination
+        v-show="queryParams.total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :total="queryParams.total"
+        @pagination="getDemandList"
+      />
 
-    <!-- 热销推荐 -->
-    <h3>热销推荐</h3>
-    <el-carousel :interval="5000" height="180px">
-      <el-carousel-item v-for="(group, index) in groupArray(hotRecommendations, 5)" :key="index">
-        <div class="recommendation-grid">
-          <GoodsItemComponent v-for="item in group" :key="item.id" :goods="item" />
-        </div>
-      </el-carousel-item>
-    </el-carousel>
+      <!-- 采购需求弹窗 -->
+      <PublishDemandComponent ref="publishDemandRef" @submitSuccess="getDemandList"></PublishDemandComponent>
 
-    <!-- 好物推荐 -->
-    <h3>好物推荐</h3>
-    <el-carousel :interval="5000" height="180px">
-      <el-carousel-item v-for="(group, index) in groupArray(goodRecommendations, 5)" :key="index">
-        <div class="recommendation-grid">
-          <GoodsItemComponent v-for="item in group" :key="item.id" :goods="item" />
-        </div>
-      </el-carousel-item>
-    </el-carousel>
+      <!-- 展示供应商联系信息 -->
+      <el-dialog title="供应商联系信息" v-model="contactVisible" width="400px">
+        <el-form :model="contactForm" label-width="100">
+          <el-form-item label="供应商名称">
+            <div>{{ contactForm.companyName }}</div>
+          </el-form-item>
+          <el-form-item label="联系人">
+            <div>{{ contactForm.loginUserName }}</div>
+          </el-form-item>
+          <el-form-item label="联系电话">
+            <div>{{ contactForm.phoneNumber }}</div>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+
+      <!-- 热销推荐 -->
+      <h3>热销推荐</h3>
+      <el-carousel :interval="5000" v-if="hotRecommendations.length > 0">
+        <el-carousel-item v-for="(group, index) in groupArray(hotRecommendations, 5)" :key="index">
+          <div class="recommendation-grid flex gap-12">
+            <HotGoodsComponent
+              v-for="item in group"
+              :key="item.id"
+              :goods="item"
+              style="width: calc(20% - 10px)"
+              @clickGoods="handleClick(item.id)"
+            />
+          </div>
+        </el-carousel-item>
+      </el-carousel>
+
+      <el-empty v-else></el-empty>
+
+      <!-- 好物推荐 -->
+      <h3>好物推荐</h3>
+      <el-carousel :interval="5000" v-if="goodRecommendations.length > 0">
+        <el-carousel-item v-for="(group, index) in groupArray(goodRecommendations, 5)" :key="index">
+          <div class="recommendation-grid flex gap-12">
+            <HotGoodsComponent
+              v-for="item in group"
+              :key="item.id"
+              :goods="item"
+              style="width: calc(20% - 12px)"
+              @clickGoods="handleClick(item.id)"
+            />
+          </div>
+        </el-carousel-item>
+      </el-carousel>
+      <el-empty v-else></el-empty>
+    </div>
+
+    <!-- 商品详情组件 -->
+    <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" :goodsId="goodsId" />
   </div>
 </template>
 
 <script setup lang="ts">
-import GoodsItemComponent from './GoodsItemComponent.vue';
+// import GoodsItemComponent from './GoodsItemComponent.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import PublishDemandComponent from './PublishDemandComponent.vue';
-import { purchaseList, hotRecommendationList } from '@/api/mall/demand';
+import HotGoodsComponent from './HotGoodsComponent.vue';
+import GoodsDetailComponent from './GoodsDetailComponent.vue';
+import { supplyHallList, hotRecommendationList, greatGoodsRecommendList } from '@/api/mall/demand';
 
 const publishDemandRef = ref();
 
 const tableList = ref([]);
+
+const loading = ref(false);
 
 const category = ref([]);
 
@@ -92,17 +124,26 @@ const region = ref([]);
 
 const contactVisible = ref(false);
 
+const showDetail = ref(false); // 是否显示商品详情
+
+const goodsDetailRef = ref(null); // 商品详情组件引用
+
+const goodsId = ref(); // 商品ID
+
 const contactForm = ref({
-  supplierName: '',
-  contactName: '',
-  phone: ''
+  companyName: '',
+  loginUserName: '',
+  phoneNumber: ''
 });
 
 const queryParams = reactive({
   total: 0,
   pageNum: 1,
   pageSize: 10,
-  type: ''
+  provinceCode: '',
+  cityCode: '',
+  districtCode: '',
+  supplyCategoryId: ''
 });
 
 const hotRecommendations = ref([]);
@@ -112,18 +153,51 @@ const goodRecommendations = ref([]);
 onMounted(() => {
   getDemandList();
   getHotGoodsList();
+  getGoodGoodsList();
 });
+
+// 重置筛选条件
+const resetQuery = () => {
+  category.value = [];
+  region.value = [];
+  queryParams.pageNum = 1;
+  queryParams.pageSize = 10;
+  queryParams.supplyCategoryId = '';
+  queryParams.provinceCode = '';
+  queryParams.cityCode = '';
+  queryParams.districtCode = '';
+  getDemandList();
+};
+
+// 区域选择
+const handleRegionChange = (val: any) => {
+  queryParams.provinceCode = val.provinceCode || '';
+  queryParams.cityCode = val.cityCode || '';
+  queryParams.districtCode = val.regionCode || '';
+};
+
+// 分类选择
+const handleCategoryChange = (value: string[]) => {
+  queryParams.supplyCategoryId = value[value?.length - 1];
+};
 
 // 获取采购需求列表
 const getDemandList = async () => {
-  const res = await purchaseList(queryParams.value);
+  loading.value = true;
+  console.log(category.value);
+
+  const res = await supplyHallList({
+    ...queryParams
+    // supplyCategoryId: category.value[category.value?.length - 1]
+  });
   if (res.code === 200) {
     tableList.value = res.rows || [];
     queryParams.total = res.total || 0;
+    loading.value = false;
   }
 };
 
-// 获取商品列表
+// 热销推荐
 const getHotGoodsList = async () => {
   const res = await hotRecommendationList({
     pageNum: 1,
@@ -132,6 +206,23 @@ const getHotGoodsList = async () => {
   if (res.code === 200) {
     hotRecommendations.value = res.rows || [];
   }
+};
+
+// 好物推荐
+const getGoodGoodsList = async () => {
+  const res = await greatGoodsRecommendList({
+    pageNum: 1,
+    pageSize: 9999
+  });
+  if (res.code === 200) {
+    goodRecommendations.value = res.rows || [];
+  }
+};
+
+// 点击商品
+const handleClick = (id: string) => {
+  goodsId.value = id;
+  showDetail.value = true;
 };
 
 // 打开新增需求弹窗
@@ -153,20 +244,15 @@ const groupArray = (array: any[], groupSize: number = 5) => {
       result[groupIndex] = []; // 初始化组
     }
     result[groupIndex].push(item); // 将对象添加到对应组
+    console.log(result);
+
     return result;
   }, []);
 };
 </script>
 
 <style scoped lang="scss">
-.el-button {
-  margin-bottom: 20px;
-}
-
 .recommendation-grid {
-  display: flex;
-  justify-content: flex-start;
-  gap: 20px;
 }
 
 .recommendation-item {
