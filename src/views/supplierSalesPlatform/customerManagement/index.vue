@@ -37,10 +37,10 @@
         </template>
       </el-table-column>
       <el-table-column label="购买类型" align="center" prop="purchaseType" width="120" />
-      <el-table-column label="联系方式" align="center" prop="contact" width="150" />
-      <el-table-column label="录入时间" align="center" prop="entryTime" min-width="160">
+      <el-table-column label="联系方式" align="center" prop="mobile" width="150" />
+      <el-table-column label="录入时间" align="center" prop="updateTime" min-width="160">
         <template #default="scope">
-          <span>{{ scope.row.entryTime }}</span>
+          {{ proxy.parseTime(scope.row.updateTime) }}
         </template>
       </el-table-column>
     </el-table>
@@ -59,11 +59,11 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { purchaser_type } = toRefs<any>(proxy?.useDict('purchaser_type'));
 // 搜索表单数据
 const queryParams = ref({
+  customerNo: undefined,
+  customerName: undefined,
+  customerType: undefined,
   pageNum: 1,
-  pageSize: 10,
-  customerNo: '',
-  customerName: '',
-  customerType: ''
+  pageSize: 10
 });
 
 // 表格数据
@@ -75,11 +75,7 @@ const queryFormRef = ref();
 /** 查询客户列表 */
 const getList = () => {
   loading.value = true;
-  const { reviewTime, ...rest } = queryParams.value as any;
-  const [reviewStartTime, reviewEndTime] = Array.isArray(reviewTime) ? reviewTime : [];
-  const params = { ...rest, ...(reviewStartTime && reviewEndTime ? { reviewStartTime, reviewEndTime } : {}) };
-
-  customerList(params).then((res) => {
+  customerList(queryParams.value).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;

@@ -14,10 +14,10 @@
             </div>
             <div class="qa-answer">
               <div class="qa-icon answer-icon">答</div>
-              <div class="qa-answer-text">{{ item.hnAnswerVoList[0].answerContent }}</div>
+              <div class="qa-answer-text">{{ item.hnAnswerVoList[0]?.answerContent }}</div>
             </div>
             <div class="qa-info">
-              全部{{ item.hnAnswerVoList.length }}条信息
+              全部{{ item.hnAnswerVoList?.length }}条信息
               <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
             </div>
           </el-card>

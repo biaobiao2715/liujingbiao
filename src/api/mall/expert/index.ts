@@ -68,3 +68,21 @@ export function stopQuestion(id: string) {
     method: 'delete'
   });
 }
+
+// 培训课程列表
+export function courseCultivateList(data: any) {
+  return request({
+    url: 'skill-server/courseCultivate/list',
+    method: 'get',
+    params: data
+  });
+}
+
+// 培训会议信息列表
+export function meetingCultivateList(data: any) {
+  return request({
+    url: 'skill-server/HnMeetingCultivate/list',
+    method: 'get',
+    params: data
+  });
+}

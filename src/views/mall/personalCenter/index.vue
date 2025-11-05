@@ -28,6 +28,8 @@
           <addressManagement v-if="selectedComponent === 'address'" />
           <requests v-if="selectedComponent === 'demand'" />
           <participatedRequests v-if="selectedComponent === 'participated'" />
+          <myReport v-if="selectedComponent === 'myReport'" />
+          <varietyIdentification v-if="selectedComponent === 'varietyIdentification'" />
         </div>
       </el-col>
     </el-row>
@@ -45,6 +47,8 @@ import addressManagement from './Components/addressManagement.vue';
 import questions from './Components/questions.vue';
 import requests from './Components/requests.vue';
 import participatedRequests from './Components/participatedRequests.vue';
+import myReport from './Components/myReport.vue';
+import varietyIdentification from './Components/varietyIdentification.vue';
 
 interface Props {
   command?: string | number | object;
@@ -65,7 +69,9 @@ const menuItems = ref([
   { id: 3, title: '我的提问', component: 'question' },
   { id: 4, title: '地址管理', component: 'address' },
   { id: 5, title: '我发布的需求', component: 'demand' },
-  { id: 6, title: '我参与的', component: 'participated' }
+  { id: 6, title: '我参与的', component: 'participated' },
+  { id: 7, title: '我的举报', component: 'myReport' },
+  { id: 8, title: '品种识别记录', component: 'varietyIdentification' }
 ]);
 
 // 当前选中的组件
@@ -78,7 +84,9 @@ const currentTitle = computed(() => {
     question: '我的提问',
     address: '地址管理',
     demand: '我发布的需求',
-    participated: '我参与的'
+    participated: '我参与的',
+    myReport: '我的举报',
+    varietyIdentification: '品种识别记录'
   };
   return map[selectedComponent.value] || '我的订单';
 });

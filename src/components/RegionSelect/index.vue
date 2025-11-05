@@ -5,12 +5,9 @@
     clearable
     :disabled="disabled"
     :options="options"
-    :props="{
-      value: 'value',
-      label: 'label',
-      children: 'children'
-    }"
-    placeholder="请选择区域"
+    :props="propsCascader"
+    :show-all-levels="props.showAllLevels"
+    :placeholder="props.placeholder"
     @change="handleChange"
   ></el-cascader>
 </template>
@@ -26,11 +23,37 @@ const props = defineProps({
     type: Array as () => string[],
     default: () => []
   },
+  //是否禁用
   disabled: {
     type: Boolean,
     default: false
+  },
+  //是否多选
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  //是否选择任意一级选项
+  checkStrictly: {
+    type: Boolean,
+    default: false
+  },
+  // 是否仅显示最后一级
+  showAllLevels: {
+    type: Boolean,
+    default: true
+  },
+  // 占位符
+  placeholder: {
+    type: String,
+    default: '请选择区域'
   }
 });
+
+const propsCascader = {
+  multiple: props.multiple,
+  checkStrictly: props.checkStrictly
+};
 const regionValue = ref<string[]>([]);
 
 watch(

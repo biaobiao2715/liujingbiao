@@ -20,7 +20,7 @@
       <el-tab-pane v-for="value in order_status" :key="value.value" :label="value.label" :name="value.value"></el-tab-pane>
     </el-tabs>
 
-    <el-table :data="tabList" style="width: 100%">
+    <el-table v-loading="loading" :data="tabList" style="width: 100%">
       <el-table-column prop="goodsName" label="商品信息" width="200" :show-overflow-tooltip="true">
         <template v-slot="scope">
           <div style="display: flex">
@@ -104,7 +104,7 @@ const onTabChange = (name: string | number) => {
 // 拉取列表
 const getList = async () => {
   loading.value = true;
-  proxy?.$modal.loading('正在加载，请稍候...');
+
   try {
     const res = await orderList(queryParams.value);
     if (res.code === 200) {
@@ -115,7 +115,6 @@ const getList = async () => {
   } catch (error) {
     // 可根据需要增加错误提示
   } finally {
-    proxy?.$modal.closeLoading();
     loading.value = false;
   }
 };

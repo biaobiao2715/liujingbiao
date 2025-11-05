@@ -74,12 +74,8 @@
           </el-table-column>
           <el-table-column label="操作" width="200" align="center">
             <template #default="scope">
-              <el-button type="primary" link size="small" @click="handlePreviewFile(scope.row)">
-                <el-icon><View /></el-icon>
-                预览
-              </el-button>
               <el-button type="primary" link size="small" @click="handleReplaceFile(scope.row)">
-                替换
+                重新上传
               </el-button>
               <el-button type="danger" link size="small" @click="handleRemoveFile(scope.row)">
                 <el-icon><Delete /></el-icon>
@@ -123,7 +119,6 @@
             <el-icon class="file-icon"><Document /></el-icon>
           </template>
         </el-table-column>
-        <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
         <el-table-column label="附件名称" prop="originalName" :show-overflow-tooltip="true" min-width="200" />
         <el-table-column label="版本号" prop="version" width="120" align="center" />
         <el-table-column label="操作" width="120" align="center">
@@ -216,7 +211,8 @@ const detailData = ref({
   ossVoList: [] as any[],
   historyVersionsList: [] as any[],
   updateTime: '',
-  currentVersion: ''
+  currentVersion: '',
+  paperStatus: ''  // 保存原有的状态，用于编辑时保持状态
 });
 
 // 当前附件列表（计算属性）
@@ -227,7 +223,6 @@ const currentAttachments = computed(() => {
   return detailData.value.ossVoList.map((item: any) => ({
     ossId: item.ossId,
     originalName: item.originalName || item.fileName || '',
-    updateTime: item.updateTime || detailData.value.updateTime || '',
     version: item.version || detailData.value.currentVersion || '',
     url: item.url || '',
     fileSuffix: item.fileSuffix || ''
@@ -574,7 +569,8 @@ const fetchWhitePaperDetail = async () => {
         ossVoList: data.ossVoList || [],
         historyVersionsList: data.historyVersionsList || [],
         updateTime: data.updateTime || data.createTime || '',
-        currentVersion: data.currentVersion || ''
+        currentVersion: data.currentVersion || '',
+        paperStatus: data.paperStatus || '1'  // 保存原有状态，如果没有则默认为启用
       };
       
       // 加载附件数据（用于编辑）
@@ -651,27 +647,63 @@ const handleSubmit = async () => {
     
     saving.value = true;
     
-    // 构建OSS附件列表
-    const ossVoList = attachmentList.value.map(item => ({
-      ossId: item.ossId,
-      fileName: item.fileName,
-      originalName: item.originalName,
-      fileSuffix: item.fileSuffix,
-      url: item.url,
-      version: item.version
-    }));
+    // 构建OSS附件列表（按照API文档结构）
+    const ossVoList = attachmentList.value.map(item => {
+      const ossItem: any = {
+        ossId: item.ossId || 0,
+        fileName: item.fileName || item.originalName || '',
+        originalName: item.originalName || '',
+        fileSuffix: item.fileSuffix || '',
+        url: item.url || '',
+        ext1: '',
+        createTime: '',
+        createBy: 0,
+        service: ''
+      };
+      return ossItem;
+    });
     
-    // 构建提交数据 - 按照API文档结构：params.key 和 ossVoList
+    // 获取当前版本号（从附件列表中取第一个附件的版本号，所有附件版本号应该一致）
+    const currentVersion = attachmentList.value.length > 0 
+      ? attachmentList.value[0].version 
+      : detailData.value.currentVersion || '';
+    
+    // 获取所属状态：新增时默认为"启用"（1），编辑时保持原有状态或默认为"启用"
+    const paperStatus = props.type === 'add' 
+      ? '1'  // 新增时默认启用
+      : (detailData.value.paperStatus || '1');  // 编辑时保持原有状态，如果没有则默认启用
+    
+    // 构建提交数据 - 按照实际API期望的数据结构（扁平化结构）
     const submitData: any = {
+      createDept: 0,
+      createBy: 0,
+      createTime: '',
+      updateBy: 0,
+      updateTime: '',
       params: {
-        key: {
-          ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
-          paperTitle: formData.value.paperTitle?.trim(),
-          remark: formData.value.remark || ''
-        }
+        '': {}
       },
-      ossVoList: ossVoList
+      ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : { id: 0 }),
+      paperNo: '',
+      paperTitle: formData.value.paperTitle?.trim() || '',
+      paperType: '',
+      paperStatus: paperStatus,  // 默认启用状态
+      currentVersion: currentVersion || '',
+      remark: formData.value.remark || '',
+      sortOrder: 0,
+      beginTime: '',
+      endTime: '',
+      ossVoList: ossVoList,
+      ids: [0],
+      historyVersionsList: []
     };
+    
+    // 调试日志：打印提交的数据结构
+    console.log('提交数据详情:', {
+      type: props.type,
+      submitData: submitData,
+      ossVoListCount: ossVoList.length
+    });
     
     // 调用对应的接口
     // 新增时调用 POST /skill-server/skill/whitePaper

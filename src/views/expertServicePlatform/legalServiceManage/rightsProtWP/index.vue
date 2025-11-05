@@ -234,17 +234,28 @@
       destroy-on-close
       :close-on-click-modal="false"
     >
-      <el-form ref="versionFormRef" :model="versionForm" :rules="versionRules" label-width="100px">
-        <el-form-item label="当前版本">
-          <el-input v-model="versionDialog.currentVersion" disabled />
-        </el-form-item>
-        <el-form-item label="新版本号" prop="version">
-          <el-input v-model="versionForm.version" placeholder="请输入新版本号，如：1.0" clearable />
-        </el-form-item>
-      </el-form>
+      <div class="version-update-content">
+        <div class="upload-tip">选择文件直接进行上传</div>
+        <el-upload
+          ref="uploadRef"
+          action="#"
+          :auto-upload="false"
+          accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
+          :show-file-list="false"
+          :on-change="handleVersionFileChange"
+          :limit="1"
+        >
+          <el-button type="primary" :loading="versionDialog.uploading">
+            <el-icon class="el-icon--left"><Upload /></el-icon>
+            选择文件
+          </el-button>
+          <template #tip>
+            <div class="upload-tip-text">支持格式：PDF、Word、Excel、PPT、TXT，单个文件最大100MB</div>
+          </template>
+        </el-upload>
+      </div>
       <template #footer>
         <el-button @click="versionDialog.visible = false">取消</el-button>
-        <el-button type="primary" @click="handleVersionUpdate" :loading="versionDialog.loading">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -254,6 +265,8 @@
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Upload } from '@element-plus/icons-vue';
+import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
@@ -313,20 +326,11 @@ const versionDialog = ref({
   currentVersion: '',
   rowId: null as string | number | null,
   rowData: null as any, // 保存当前行的完整数据
-  loading: false
+  loading: false,
+  uploading: false
 });
 
-const versionFormRef = ref();
-const versionForm = ref({
-  version: ''
-});
-
-const versionRules = {
-  version: [
-    { required: true, message: '请输入新版本号', trigger: 'blur' },
-    { pattern: /^\d+(\.\d+)?$/, message: '版本号格式不正确，只能输入数字，例如：1.0', trigger: 'blur' }
-  ]
-};
+const uploadRef = ref();
 
 /** 获取状态标签类型 */
 const getStatusType = (status: string | number) => {
@@ -587,79 +591,119 @@ const handleUpdateVersion = (row: any) => {
   versionDialog.value.currentVersion = row.currentVersion || 'V1.0';
   versionDialog.value.rowId = row.id;
   versionDialog.value.rowData = row; // 保存当前行的完整数据
-  versionForm.value.version = '';
+  versionDialog.value.uploading = false;
 };
 
-/** 确认更新版本 */
-const handleVersionUpdate = async () => {
-  if (!versionFormRef.value) return;
+/** 文件验证 */
+const validateVersionFile = (file: File): boolean => {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+
+  if (!docExt.includes(ext)) {
+    ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件`);
+    return false;
+  }
+
+  const MB = 1024 * 1024;
+  const limit = 100 * MB;
+  if (file.size > limit) {
+    ElMessage.error('文档文件最大100MB');
+    return false;
+  }
+  
+  return true;
+};
+
+/** 处理版本更新文件上传 */
+const handleVersionFileChange = async (file: any) => {
+  if (!file) {
+    ElMessage.error('文件对象不存在');
+    return;
+  }
+  
+  const rawFile = file.raw || file;
+  if (!rawFile) {
+    ElMessage.error('无法获取文件对象');
+    return;
+  }
+  
+  // 验证文件
+  if (!validateVersionFile(rawFile)) {
+    return;
+  }
+  
+  if (!versionDialog.value.rowId) {
+    ElMessage.error('缺少白皮书ID');
+    return;
+  }
+  
+  versionDialog.value.uploading = true;
+  
+  // 显示加载提示
+  if ((proxy as any)?.$modal) {
+    (proxy as any).$modal.loading('正在上传文件，请稍候...');
+  }
   
   try {
-    await versionFormRef.value.validate();
+    // 上传文件到OSS
+    const uploadResponse = await ossUploadImage({ file: rawFile });
     
-    if (!versionDialog.value.rowId) {
-      ElMessage.error('缺少白皮书ID');
-      return;
-    }
-    
-    versionDialog.value.loading = true;
-    
-    // 先获取白皮书详情，获取完整的参数
-    const detailResponse: any = await getWhitePaperDetail(versionDialog.value.rowId);
-    
-    if (detailResponse && detailResponse.code === 200 && detailResponse.data) {
-      const detailData = detailResponse.data;
+    if (uploadResponse && uploadResponse.code === 200 && uploadResponse.data?.ossId) {
+      const ossData = uploadResponse.data;
+      const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
       
-      // 构建OSS附件列表
-      const ossVoList = detailData.ossVoList && Array.isArray(detailData.ossVoList) 
-        ? detailData.ossVoList.map((item: any) => ({
-            ossId: item.ossId,
-            fileName: item.fileName,
-            originalName: item.originalName,
-            fileSuffix: item.fileSuffix,
-            url: item.url,
-            version: item.version || versionForm.value.version // 使用新版本号
-          }))
-        : [];
+      // 计算新版本号（当前版本号 + 0.1）
+      const currentVersion = versionDialog.value.currentVersion || '1.0';
+      const versionParts = currentVersion.split('.');
+      const majorVersion = parseInt(versionParts[0]) || 1;
+      const minorVersion = parseInt(versionParts[1]) || 0;
+      const newVersion = `${majorVersion}.${minorVersion + 1}`;
       
-      // 调用编辑接口，传递原有参数和新版本号
+      // 构建OSS附件列表，使用新上传的文件
+      const ossVoList = [{
+        ossId: ossData.ossId,
+        fileName: ossData.fileName || ossData.originalName || rawFile.name,
+        originalName: rawFile.name,
+        fileSuffix: fileSuffix,
+        url: ossData.url,
+        version: newVersion
+      }];
+      
+      // 构建提交数据 - 只传新版本号和新附件
       const submitData: any = {
-        params: {
-          key: {
-            id: versionDialog.value.rowId,
-            paperTitle: detailData.paperTitle || '',
-            remark: detailData.remark || '',
-            currentVersion: versionForm.value.version // 新版本号
-          }
-        },
-        ossVoList: ossVoList
+        id: versionDialog.value.rowId,
+        currentVersion: newVersion,
+        ossVoList: ossVoList,
+        isUpdate: true  // 后端使用，标识为版本更新操作
       };
       
+      // 调用编辑接口更新版本
       const response: any = await editWhitePaper(submitData);
       
       if (response && response.code === 200) {
-        ElMessage.success('版本更新成功');
+        ElMessage.success('上传成功');
         versionDialog.value.visible = false;
-        getList();
+        await getList();
       } else {
         ElMessage.error(response?.msg || '版本更新失败，请重试');
       }
     } else {
-      ElMessage.error(detailResponse?.msg || '获取白皮书详情失败');
+      const errorMsg = (uploadResponse as any)?.msg || (uploadResponse as any)?.data?.msg || '上传失败，请重试';
+      ElMessage.error(errorMsg);
     }
   } catch (error: any) {
-    if (error !== 'cancel') {
-      // 处理特定的错误信息
-      if (error?.response?.data?.msg) {
-        ElMessage.error(error.response.data.msg);
-      } else if (error?.msg) {
-        ElMessage.error(error.msg);
-      } else {
-        ElMessage.error('版本更新失败，请稍后重试');
-      }
-    }
+    console.error('版本更新异常:', error);
+    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '上传失败，请重试';
+    ElMessage.error(errorMsg);
   } finally {
-    versionDialog.value.loading = false;
+    versionDialog.value.uploading = false;
+    if ((proxy as any)?.$modal) {
+      (proxy as any).$modal.closeLoading();
+    }
+    // 清空上传组件
+    if (uploadRef.value) {
+      uploadRef.value.clearFiles();
+    }
   }
 };
 
@@ -890,6 +934,27 @@ onMounted(() => {
     .el-button + .el-button {
       margin-left: 0;
     }
+  }
+}
+
+// 版本更新弹窗样式
+.version-update-content {
+  padding: 20px 0;
+  
+  .upload-tip {
+    margin-bottom: 16px;
+    color: #606266;
+    font-size: 14px;
+  }
+  
+  .upload-tip-text {
+    margin-top: 8px;
+    color: #909399;
+    font-size: 12px;
+  }
+  
+  :deep(.el-upload) {
+    display: block;
   }
 }
 </style>

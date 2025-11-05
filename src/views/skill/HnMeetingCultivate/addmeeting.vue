@@ -51,8 +51,10 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="会议时间" prop="meetingStartTime" :required="true">
-                            <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD HH:mm"
-                                range-separator=" - " start-placeholder="开始日期" end-placeholder="结束日期"
+                            <el-date-picker v-model="dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm"
+                                format="YYYY-MM-DD HH:mm"
+                                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+                                range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间"
                                 @change="handleSelectDate" :disabled="isView" />
                         </el-form-item>
                     </el-col>
@@ -127,13 +129,14 @@
 
 
             <!-- 报名的专家 -->
-            <div v-if="isView" style="margin-top: 50px; font-size: 16px; font-weight: 700; margin-bottom: 10px;">报名参加会议人员信息
-                <span style="color:#666;font-size: 14px; " >(报名人数：{{ registrantsNumber }}人)</span>
+            <div v-if="isView" style="margin-top: 50px; font-size: 16px; font-weight: 700; margin-bottom: 10px;">
+                报名参加会议人员信息
+                <span style="color:#666;font-size: 14px; ">(报名人数：{{ registrantsNumber }}人)</span>
             </div>
-            <el-table  v-if="isView" ref="tableRef" :data="registration" border v-loading="registrationloading" style="table-layout: fixed">
+            <el-table v-if="isView" ref="tableRef" :data="registration" border v-loading="registrationloading"
+                style="table-layout: fixed">
                 <el-table-column type="index" label="序号" width="55" align="center" />
-                <el-table-column label="报名人姓名" align="center" prop="expertName"
-                    :show-overflow-tooltip="true">
+                <el-table-column label="报名人姓名" align="center" prop="expertName" :show-overflow-tooltip="true">
                     <template #default="scope">
                         <span>{{ scope.row.enrollUserNickName || '-' }}</span>
                     </template>
@@ -144,9 +147,9 @@
                     </template>
                 </el-table-column>
             </el-table>
-            <div  v-if="isView" class="flex-center pagination">
-                <pagination v-show="registrationTotal > 0" :page="registrationParams.pageNum" :limit="registrationParams.pageSize" :total="registrationTotal"
-                    @pagination="getRegistrationInfo" />
+            <div v-if="isView" class="flex-center pagination">
+                <pagination v-show="registrationTotal > 0" :page="registrationParams.pageNum"
+                    :limit="registrationParams.pageSize" :total="registrationTotal" @pagination="getRegistrationInfo" />
             </div>
             <!-- 底部按钮 -->
             <div style="text-align: right; margin-top: 20px;">
@@ -261,7 +264,7 @@ const selectionMap = ref(new Map());
 const registration = ref() //报名的专家信息
 const registrationloading = ref(false)
 const registrationTotal = ref()
-const registrantsNumber=ref(0) //报名人数
+const registrantsNumber = ref(0) //报名人数
 const form = ref({
     meetingName: '', //会议标题
     meetingType: '', //会议类型
@@ -367,8 +370,8 @@ watch(() => props.data, async (val) => {
 })
 /* 报名信息 */
 const getRegistrationInfo = async (id) => {
-    console.log('props.data',props.data);
-    
+    console.log('props.data', props.data);
+
     registrationloading.value = true;
     registrationParams.value.foreignId = id
     try {
@@ -376,7 +379,7 @@ const getRegistrationInfo = async (id) => {
         if (res.code === 200) {
             registration.value = res.rows || [];
             registrationTotal.value = res.total || 0
-            registrantsNumber.value =res.rows.length || 0
+            registrantsNumber.value = res.rows.length || 0
             console.log('报名信息获取成功:', registration.value);
         } else {
             ElMessage.error(res.msg || '获取报名信息失败');

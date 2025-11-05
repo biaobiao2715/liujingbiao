@@ -9,42 +9,45 @@
   <div class="procurement-management">
     <!-- 搜索栏 -->
     <el-form :model="queryParams" :label-width="80" inline class="search-bar">
-      <el-form-item label="采购类型">
-        <!-- 优化为数组类型，支持多级选择 -->
+      <el-form-item label="发布类型">
         <GoodsCategorySelect v-model="queryParams.demandCategoryId" @categoryChange="handleCategoryChange" />
       </el-form-item>
-      <el-form-item label="采购区域">
-        <!-- 优化为数组类型，支持多级选择 -->
+      <el-form-item label="发布区域">
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
       <el-form-item class="search-bar-btns">
-        <el-button v-throttle type="primary" @click="getTableData">查询</el-button>
+        <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:list']" type="primary" @click="getTableData">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
+
+    <!-- 操作按钮 -->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:add']" type="primary" @click="handleAdd">发布</el-button>
+      </el-col>
+    </el-row>
     <!-- 表格 -->
     <el-table :data="tableData" border style="width: 100%" v-loading="loading">
-      <el-table-column type="index" label="序号" width="60" />
-      <el-table-column prop="name" label="客户名称" width="120" />
-      <el-table-column prop="categoryName" label="采购类型" width="180" />
-      <el-table-column prop="quantity" label="采购数量" width="100">
-        <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
-      </el-table-column>
-      <el-table-column prop="deliveryDay" label="交付时间/天" width="100" />
-      <el-table-column prop="purchaseRegion" label="采购区域" width="180">
+      <el-table-column type="index" label="序号" width="60" align="center" />
+      <el-table-column prop="categoryName" label="发布类型" width="180" align="center" />
+      <el-table-column prop="purchaseRegion" label="发布区域" width="180" align="center">
         <template #default="{ row }">
-          {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
+          {{ [row.province, row.city, row.district].filter(Boolean).join(' - ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="demandDescription" label="采购说明" min-width="180" />
-      <el-table-column prop="publishTime" label="发布时间" width="160">
-        <template #default="{ row }">
-          {{ proxy.parseTime(row.publishTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="120">
+      <el-table-column prop="supplyDescription" label="发布说明" min-width="180" align="center" />
+      <el-table-column label="操作" width="200" align="center">
         <template #default="scope">
-          <el-button v-throttle type="primary" size="small" @click="handleQuote(scope.row)">立即报价</el-button>
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" text size="small" @click="handleDetail(scope.row)"
+            >详情</el-button
+          >
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:edit']" type="primary" text size="small" @click="handleEdit(scope.row)"
+            >编辑</el-button
+          >
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:remove']" type="primary" text size="small" @click="handleDelete(scope.row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -59,64 +62,43 @@
       />
     </div>
 
-    <!-- 立即报价弹窗 -->
-    <el-dialog v-model="quoteDialogVisible" width="80%" title="立即报价" :close-on-click-modal="false">
-      <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="120px">
-        <el-divider content-position="left"> <span class="detail-title">采购信息</span> </el-divider>
-        <el-row :gutter="20" class="detail-form">
-          <el-col :span="12">
-            <el-form-item label="客户名称：" prop="name">
-              <el-input v-model="quoteForm.name" placeholder="请输入" maxlength="100" show-word-limit disabled />
-            </el-form-item>
-            <el-form-item label="采购类型：" prop="demandCategoryId">
-              <GoodsCategorySelect v-model="quoteForm.demandCategoryId" :disabled="true" />
-            </el-form-item>
-            <el-form-item label="采购区域：" prop="region">
-              <RegionSelect v-model="quoteForm.region" :disabled="true" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="发布时间：" prop="publishTime">
-              <el-date-picker
-                v-model="quoteForm.publishTime"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                type="datetime"
-                placeholder="请选择日期时间"
-                disabled
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="交付时间/天：" prop="deliveryDay">
-              <el-input v-model="quoteForm.deliveryDay" placeholder="请输入" maxlength="100" show-word-limit disabled />
-            </el-form-item>
-            <el-form-item label="采购数量：" prop="quantity">
-              <el-input v-model="quoteForm.quantity" placeholder="请输入" maxlength="100" show-word-limit disabled />
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="24">
-            <el-form-item label="采购说明：" prop="demandDescription">
-              <el-input v-model="quoteForm.demandDescription" placeholder="请输入" maxlength="100" show-word-limit disabled />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-divider content-position="left"> <span class="detail-title">供给信息</span></el-divider>
-
+    <!-- 发布/编辑/详情弹窗 -->
+    <el-dialog
+      v-model="quoteDialogVisible"
+      width="80%"
+      :title="dialogMode === 'detail' ? '供给需求详情' : dialogMode === 'edit' ? '编辑供给需求' : '发布供给需求'"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="120px" :disabled="dialogMode === 'detail'">
         <el-row :gutter="20">
           <el-col :span="24">
-            <el-form-item label="报价说明" prop="supplyDescription">
-              <el-input v-model="quoteForm.supplyDescription" type="textarea" placeholder="请输入报价说明" />
+            <el-form-item label="供给类型：" prop="demandCategoryId">
+              <GoodsCategorySelect v-model="quoteForm.demandCategoryId" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="联系人" prop="supplyContact">
-              <el-input v-model="quoteForm.supplyContact" placeholder="请输入联系人" /> </el-form-item
-          ></el-col>
-          <el-col :span="12">
-            <el-form-item label="联系电话" prop="supplyPhone">
-              <el-input v-model="quoteForm.supplyPhone" placeholder="请输入联系电话" />
+          <el-col :span="24">
+            <el-form-item label="备注：" prop="demandCategoryId">
+              <el-input v-model="quoteForm.demandDescription" placeholder="请输入" autosize type="textarea" />
             </el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="配送范围：" prop="region">
+              <RegionSelect v-model="quoteForm.region" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="库存：" prop="quantity">
+              <el-input v-model="quoteForm.quantity" placeholder="请输入" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="可交付周期/天：" prop="deliveryDay">
+              <el-input v-model="quoteForm.deliveryDay" placeholder="请输入可交付时间" />
+            </el-form-item>
+          </el-col>
+
           <el-col :span="12">
             <el-form-item label="报价/元" prop="supplyPrice">
               <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" />
@@ -125,9 +107,12 @@
         </el-row>
 
         <!-- 操作按钮 -->
-        <el-row type="flex" justify="center" :gutter="5">
+        <el-row type="flex" justify="center" :gutter="5" v-if="dialogMode !== 'detail'">
           <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" @click="submitQuote">提交</el-button></el-col>
+          <el-col :span="3"><el-button type="primary" @click="submitQuote">提交发布</el-button></el-col>
+        </el-row>
+        <el-row type="flex" justify="center" :gutter="5" v-else>
+          <el-col :span="3"><el-button @click="quoteDialogVisible = false">关闭</el-button></el-col>
         </el-row>
       </el-form>
     </el-dialog>
@@ -138,7 +123,13 @@
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 // 采购需求相关接口
-import { hnPurchaseDemandPurchaseList, hnPurchaseQuotePost } from '@/api/supplier/supplyManagement/procurement';
+import {
+  hnSupplierSupplyList,
+  hnSupplierSupplyId,
+  hnSupplierSupplyPost,
+  hnSupplierSupplyPut,
+  hnSupplierSupplyDelete
+} from '@/api/supplier/supplyManagement/supply';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 表格数据及分页
@@ -160,7 +151,7 @@ const queryParams = ref({
 
 // 报价弹窗相关
 const quoteDialogVisible = ref(false); // 弹窗显示状态
-const quoteFormRef = ref(); // 表单ref
+const quoteFormRef = ref();
 const quoteForm = ref({
   id: '', // 需求ID
   name: '', // 客户名称
@@ -181,6 +172,7 @@ const quoteForm = ref({
   supplyPhone: '', // 联系电话
   supplyPrice: '' // 报价
 });
+const dialogMode = ref<'add' | 'edit' | 'detail'>('add'); // 弹窗模式
 
 // 报价表单校验规则
 const quoteFormRules = {
@@ -233,7 +225,7 @@ const getTableData = async () => {
         : '',
       region: ''
     };
-    const res = await hnPurchaseDemandPurchaseList(arr);
+    const res = await hnSupplierSupplyList(arr);
     if (res.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
@@ -256,39 +248,97 @@ const handleReset = () => {
 };
 
 /**
- * 打开报价弹窗并初始化表单
- * @param row 当前行数据
+ * 新增供给需求
  */
-const handleQuote = (row: any) => {
+const handleAdd = () => {
+  dialogMode.value = 'add';
   quoteForm.value = {
-    ...row,
+    id: '',
+    name: '',
+    demandCategoryId: '',
+    demandDescription: '',
+    quantity: '',
+    deliveryDay: '',
+    deliveryProvinceCode: '',
+    deliveryProvince: '',
+    deliveryCityCode: '',
+    deliveryCity: '',
+    deliveryDistrictCode: '',
+    deliveryDistrict: '',
+    publishTime: '',
+    region: [],
     supplyDescription: '',
     supplyContact: '',
     supplyPhone: '',
-    supplyPrice: '',
-    region: [row.deliveryProvinceCode || '', row.deliveryCityCode || '', row.deliveryDistrictCode || '']
+    supplyPrice: ''
   };
   quoteDialogVisible.value = true;
 };
 
 /**
- * 提交报价
+ * 编辑供给需求
+ */
+const handleEdit = async (row: any) => {
+  dialogMode.value = 'edit';
+  // 获取详情数据
+  const res = await hnSupplierSupplyId(row.id);
+  if (res.code === 200) {
+    quoteForm.value = {
+      ...res.data,
+      region: [res.data.deliveryProvinceCode, res.data.deliveryCityCode, res.data.deliveryDistrictCode]
+    };
+    quoteDialogVisible.value = true;
+  }
+};
+
+/**
+ * 查看详情
+ */
+const handleDetail = async (row: any) => {
+  dialogMode.value = 'detail';
+  const res = await hnSupplierSupplyId(row.id);
+  if (res.code === 200) {
+    quoteForm.value = {
+      ...res.data,
+      region: [res.data.deliveryProvinceCode, res.data.deliveryCityCode, res.data.deliveryDistrictCode]
+    };
+    quoteDialogVisible.value = true;
+  }
+};
+
+/**
+ * 删除供给需求
+ */
+const handleDelete = async (row: any) => {
+  await hnSupplierSupplyDelete(row.id);
+  ElMessage.success('删除成功');
+  getTableData();
+};
+
+/**
+ * 提交发布/编辑
  */
 const submitQuote = () => {
   quoteFormRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      // 构造提交参数
-      const arr = {
-        demandId: quoteForm.value.id,
-        quoteRemarks: quoteForm.value.supplyDescription,
-        contactPerson: quoteForm.value.supplyContact,
-        contactPhone: quoteForm.value.supplyPhone,
-        unitPrice: Number(quoteForm.value.supplyPrice)
-      };
-      await hnPurchaseQuotePost(arr);
-      ElMessage.success('报价提交成功');
-      quoteDialogVisible.value = false;
+    if (!valid) return;
+    const params = {
+      ...quoteForm.value,
+      demandCategoryId: Array.isArray(quoteForm.value.demandCategoryId)
+        ? quoteForm.value.demandCategoryId[quoteForm.value.demandCategoryId.length - 1]
+        : quoteForm.value.demandCategoryId,
+      deliveryProvinceCode: quoteForm.value.region[0] || '',
+      deliveryCityCode: quoteForm.value.region[1] || '',
+      deliveryDistrictCode: quoteForm.value.region[2] || ''
+    };
+    if (dialogMode.value === 'add') {
+      await hnSupplierSupplyPost(params);
+      ElMessage.success('发布成功');
+    } else if (dialogMode.value === 'edit') {
+      await hnSupplierSupplyPut(params);
+      ElMessage.success('修改成功');
     }
+    quoteDialogVisible.value = false;
+    getTableData();
   });
 };
 
