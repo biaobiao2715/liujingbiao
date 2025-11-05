@@ -3,7 +3,7 @@
     <el-dialog :title="isEdit ? '修改采购需求' : '发布采购需求'" v-model="dialogVisible" width="600px">
       <el-form :model="form" ref="formRef" :rules="rules" label-width="120px">
         <el-form-item label="采购类目" required prop="demandCategoryId">
-          <GoodsCategorySelect v-model="form.demandCategoryId" @categoryChange="handleCategoryChange" />
+          <GoodsCategorySelect v-model="form.demandCategoryId" :emitPath="false" @categoryChange="handleCategoryChange" />
         </el-form-item>
         <el-form-item label="区域" required prop="region">
           <RegionSelect v-model="form.region" @regionChange="handleAreaChange" style="width: 100%" />
@@ -60,7 +60,7 @@ const rules = ref({
 
 // 处理分类变化
 const handleCategoryChange = (value: string) => {
-  console.log('3333', value);
+  console.log('form before:', value);
   form.demandCategoryId = value;
 };
 
@@ -81,11 +81,14 @@ const openDialog = (formData: any) => {
   // 初始化表单数据
   dialogVisible.value = true;
   Object.assign(form, formData);
-  form.region = [form.deliveryProvinceCode || '', form.deliveryCityCode || '', form.deliveryDistrictCode || ''];
-  // 重置表单验证状态
-  setTimeout(() => {
-    formRef.value.resetFields();
-  }, 500);
+  if (formData) {
+    form.region = [form.deliveryProvinceCode || '', form.deliveryCityCode || '', form.deliveryDistrictCode || ''];
+  } else {
+    // 重置表单验证状态
+    setTimeout(() => {
+      formRef.value.resetFields();
+    }, 500);
+  }
 };
 
 // 提交表单
@@ -93,7 +96,10 @@ const handleSubmit = () => {
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       try {
-        const formData = { ...form, demandCategoryId: form.demandCategoryId[form.demandCategoryId.length - 1], demandStatus: '1' };
+        const formData = {
+          ...form,
+          demandStatus: '1'
+        };
         const res = await (form.id ? updatePurchaseDemand(formData) : addPurchaseDemand(formData));
         if (res.code == 200) {
           ElMessage.success(form.id ? '修改成功' : '发布成功');

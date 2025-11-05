@@ -3,15 +3,12 @@
     <el-cascader
       v-model="selectedCategory"
       :options="categorieList"
-      :disabled="disabled"
+      :disabled="props.disabled"
       clearable
-      :props="{
-        value: 'id',
-        label: 'categoryName',
-        children: 'children'
-      }"
+      :props="propsCascader"
+      :show-all-levels="props.showAllLevels"
+      :placeholder="props.placeholder"
       @change="handleCategoryChange"
-      placeholder="请选择分类"
     />
   </div>
 </template>
@@ -37,11 +34,46 @@ const props = defineProps({
     type: Array as () => string[],
     default: () => []
   },
+  //是否禁用
   disabled: {
     type: Boolean,
     default: false
+  },
+  //是否多选
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  //是否选择任意一级选项
+  checkStrictly: {
+    type: Boolean,
+    default: false
+  },
+  // 是否仅显示最后一级
+  showAllLevels: {
+    type: Boolean,
+    default: true
+  },
+  // 占位符
+  placeholder: {
+    type: String,
+    default: '请选择区域'
+  },
+  // 是否只返回最后一级分类id
+  emitPath: {
+    type: Boolean,
+    default: true
   }
 });
+
+const propsCascader = {
+  multiple: props.multiple,
+  checkStrictly: props.checkStrictly,
+  emitPath: props.emitPath,
+  value: 'id',
+  label: 'categoryName',
+  children: 'children'
+};
 
 const categorieList = ref<Category[]>([]); // 商品分类列表
 
@@ -50,6 +82,7 @@ const selectedCategory = ref<string[]>([]); // 当前选择的分类
 watch(
   () => props.modelValue,
   (newValue) => {
+    console.log('props.modelValue:', newValue);
     selectedCategory.value = newValue;
   },
   { immediate: true } // 初始化时立即同步
@@ -69,7 +102,7 @@ const fetchCategories = async () => {
 
 // 通知父组件分类变化
 const handleCategoryChange = (value: string[]) => {
-  console.log('选择的分类:', value);
+  // console.log('选择的分类:', value);
   // 触发自定义事件通知父组件
   emit('categoryChange', value);
 };
