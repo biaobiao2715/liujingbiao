@@ -83,7 +83,7 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="配送范围：" prop="region">
-              <RegionSelect v-model="quoteForm.region" style="width: 100%" />
+              <RegionSelect v-model="quoteForm.region" :checkStrictly="true" :multiple="true" placeholder="请选择配送范围" style="width: 100%" />
             </el-form-item>
           </el-col>
 

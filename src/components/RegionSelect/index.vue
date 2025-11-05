@@ -78,23 +78,62 @@ const options = computed(() => {
   return formatData('86') || [];
 });
 
-const handleChange = (val: string[] | undefined) => {
+const handleChange = (val: string[] | string[][] | undefined) => {
   if (!val) {
     emits('regionChange', undefined);
     return;
   }
 
-  const [provinceCode, cityCode, districtCode] = val || [];
+  // 多选情况
+  if (props.multiple && Array.isArray(val) && Array.isArray(val[0])) {
+    const result = (val as string[][]).map((item) => {
+      const [provinceCode, cityCode, districtCode] = item;
+      return {
+        regionPath: item,
+        provinceCode: provinceCode || '',
+        cityCode: cityCode || '',
+        regionCode: districtCode || '',
+        province: areaData['86'][provinceCode] || '',
+        city: areaData[provinceCode]?.[cityCode] || '',
+        region: areaData[cityCode]?.[districtCode] || ''
+      };
+    });
+    emits('regionChange', result);
+    return;
+  }
+
+  // 单选或任意一级
+  const path = val as string[];
+  // 仅显示最后一级时，path 可能只有一个元素
+  const provinceCode = path[0] || '';
+  const cityCode = path[1] || '';
+  const districtCode = path[2] || '';
+
+  // 判断选中级别
+  let province = '',
+    city = '',
+    region = '';
+  if (path.length === 1) {
+    province = areaData['86'][provinceCode] || '';
+  } else if (path.length === 2) {
+    province = areaData['86'][provinceCode] || '';
+    city = areaData[provinceCode]?.[cityCode] || '';
+  } else if (path.length === 3) {
+    province = areaData['86'][provinceCode] || '';
+    city = areaData[provinceCode]?.[cityCode] || '';
+    region = areaData[cityCode]?.[districtCode] || '';
+  }
 
   const arr = {
-    regionPath: val || [],
-    provinceCode: provinceCode || '',
-    cityCode: cityCode || '',
-    regionCode: districtCode || '',
-    province: areaData['86'][provinceCode] || '',
-    city: areaData[provinceCode]?.[cityCode] || '',
-    region: areaData[cityCode]?.[districtCode] || ''
+    regionPath: path,
+    provinceCode,
+    cityCode,
+    regionCode: districtCode,
+    province,
+    city,
+    region
   };
+
   emits('regionChange', arr);
 };
 </script>

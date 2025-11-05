@@ -41,12 +41,12 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:business:add']" type="primary" @click="handleAdd">新增商品</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:add']" type="primary" @click="handleAdd">新增商品</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           v-throttle
-          v-hasPermi="['system:business:delete']"
+          v-hasPermi="['system:goods:delete']"
           type="primary"
           @click="handleDelete"
           :loading="actionLoading === 'delete'"
@@ -58,7 +58,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          v-hasPermi="['system:business:onAndShelves']"
+          v-hasPermi="['system:goods:onAndShelves']"
           type="primary"
           @click="handleShelf"
           :loading="actionLoading === 'shelf'"
@@ -71,7 +71,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          v-hasPermi="['system:business:onAndShelves']"
+          v-hasPermi="['system:goods:onAndShelves']"
           type="primary"
           @click="handleUnshelf"
           :loading="actionLoading === 'unshelf'"
@@ -81,7 +81,7 @@
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:business:export']" type="primary" @click="handleExport">导出</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:export']" type="primary" @click="handleExport">导出</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
@@ -121,10 +121,10 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="500">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:business:query']" type="primary" @click="openDetails(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:query']" type="primary" @click="openDetails(scope.row)">详情</el-button>
           <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetailsEdit(scope.row)">价格设定</el-button>
-          <el-button v-throttle v-hasPermi="['system:business:edit']" type="primary" @click="openEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle v-hasPermi="['system:business:add']" type="primary" @click="openCopy(scope.row)">复制商品</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:edit']" type="primary" @click="openEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:add']" type="primary" @click="openCopy(scope.row)">复制商品</el-button>
           <el-button v-throttle v-hasPermi="['system:goods:setWarnings']" type="primary" @click="openWarnDialog(scope.row)">设置预警</el-button>
         </template>
       </el-table-column>
