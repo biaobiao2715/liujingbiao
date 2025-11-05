@@ -5,7 +5,7 @@
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-31
 修改人信息：张峰     2025-11-4
-修改内容：新增，编辑，详情，取消，删除会议
+修改内容：时间查询支持到分钟
  -->
 <template>
     <div class="supplier-management">
@@ -15,8 +15,10 @@
                 <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
             </el-form-item>
             <el-form-item label="发布时间">
-                <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
-                    start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
+                <el-date-picker v-model="dateRange" type="datetimerange" value-format="YYYY-MM-DD HH:mm"
+                    format="YYYY-MM-DD HH:mm"
+                    :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+                    range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" @change="handleSelectDate" />
             </el-form-item>
             <el-form-item label="发布人">
                 <el-input v-model="queryParams.createBy" placeholder="请输入发布人" clearable />
@@ -39,9 +41,10 @@
         </el-form>
 
         <div class="mb-12">
-            <el-button v-throttle type="primary"  v-hasPermi="['skill:HnMeetingCultivate:add']" @click="handleAdd">新增</el-button>
-            <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:remove']" :disabled="selectedRows.length == 0"
-                @click="handleBatchDelete(selectedRows)">删除</el-button>
+            <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:add']"
+                @click="handleAdd">新增</el-button>
+            <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:remove']"
+                :disabled="selectedRows.length == 0" @click="handleBatchDelete(selectedRows)">删除</el-button>
         </div>
         <!-- 表格展示 -->
         <el-table :data="tableData" border v-loading="loading" style="width: 100%"
@@ -116,7 +119,8 @@
                     <div style="display: flex; justify-content: space-evenly; align-items: center">
                         <!-- 待开始 -->
                         <template v-if="scope.row.meetingStatus === '1'">
-                            <el-link v-hasPermi="['skill:HnMeetingCultivate:edit']" type="primary" :disabled="editLoading" @click="handleEdit(scope.row)">
+                            <el-link v-hasPermi="['skill:HnMeetingCultivate:edit']" type="primary"
+                                :disabled="editLoading" @click="handleEdit(scope.row)">
                                 <span v-if="editLoading && currentLoadingId === scope.row.id">加载中...</span>
                                 <span v-else>编辑</span>
                             </el-link>
@@ -124,8 +128,10 @@
                                 <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
                                 <span v-else>查看</span>
                             </el-link>
-                            <el-link v-hasPermi="['skill:HnMeetingCultivate:cancel']" type="primary" @click="handleCancelMeeting(scope.row)">取消会议</el-link>
-                            <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
+                            <el-link v-hasPermi="['skill:HnMeetingCultivate:cancel']" type="primary"
+                                @click="handleCancelMeeting(scope.row)">取消会议</el-link>
+                            <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger"
+                                @click="handleDelete(scope.row)">删除</el-link>
                         </template>
 
                         <!-- 进行中、已结束、已取消 -->
@@ -134,7 +140,8 @@
                                 <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
                                 <span v-else>查看</span>
                             </el-link>
-                            <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
+                            <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger"
+                                @click="handleDelete(scope.row)">删除</el-link>
                         </template>
                     </div>
                 </template>
