@@ -132,18 +132,18 @@
     </div>
 
     <!-- 历史版本部分（仅编辑模式显示） -->
-    <div v-if="props.type === 'edit' && historyVersions.length > 0" class="history-section">
+    <div v-if="props.type === 'edit'" class="history-section">
       <div class="section-header">
         <el-icon><FolderOpened /></el-icon>
         <span class="section-title">历史版本</span>
       </div>
-      <el-table :data="historyVersions" border style="width: 100%">
+      <el-table :data="historyVersions" border style="width: 100%" empty-text="暂无历史版本">
         <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
         <el-table-column label="历史版本" prop="version" width="120" align="center" />
         <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleDownloadHistory(scope.row)">
+            <el-button type="primary" link @click="handleDownloadHistory(scope.row)" :disabled="!scope.row.ossId">
               下载
             </el-button>
           </template>
@@ -159,6 +159,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, Paperclip, FolderOpened } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { listByIds } from '@/api/system/oss';
 import { 
   getWhitePaperDetail, 
   addWhitePaper,
@@ -209,39 +210,151 @@ const attachmentList = ref<Array<{
 // 当前附件列表（已发布的附件，仅编辑模式显示）
 const detailData = ref({
   ossVoList: [] as any[],
+  latestFiles: [] as any[], // 最新附件（后端可能返回此字段）
   historyVersionsList: [] as any[],
   updateTime: '',
   currentVersion: '',
   paperStatus: ''  // 保存原有的状态，用于编辑时保持状态
 });
 
-// 当前附件列表（计算属性）
-const currentAttachments = computed(() => {
-  if (!detailData.value.ossVoList || !Array.isArray(detailData.value.ossVoList)) {
-    return [];
+// 当前附件列表（用于只读显示的附件信息，需要从OSS获取详细信息）
+const currentAttachments = ref<Array<{
+  ossId: number | string;
+  originalName: string;
+  fileType: string;
+  version: string;
+  url: string;
+  fileSuffix: string;
+}>>([]);
+
+// 加载当前附件详细信息（从OSS获取）
+const loadCurrentAttachments = async () => {
+  const attachments = detailData.value.latestFiles && detailData.value.latestFiles.length > 0
+    ? detailData.value.latestFiles
+    : (detailData.value.ossVoList || []);
+  
+  if (!Array.isArray(attachments) || attachments.length === 0) {
+    currentAttachments.value = [];
+    return;
   }
-  return detailData.value.ossVoList.map((item: any) => ({
-    ossId: item.ossId,
-    originalName: item.originalName || item.fileName || '',
-    version: item.version || detailData.value.currentVersion || '',
-    url: item.url || '',
-    fileSuffix: item.fileSuffix || ''
-  }));
-});
+  
+  const ossIds = attachments.map((item: any) => item.ossId).filter(Boolean);
+  
+  if (ossIds.length === 0) {
+    currentAttachments.value = [];
+    return;
+  }
+  
+  try {
+    const ossIdsStr = ossIds.join(',');
+    const ossResponse: any = await listByIds(ossIdsStr);
+    
+    const ossMap = new Map();
+    if (ossResponse && ossResponse.data && Array.isArray(ossResponse.data)) {
+      ossResponse.data.forEach((oss: any) => {
+        ossMap.set(String(oss.ossId), oss);
+      });
+    }
+    
+    currentAttachments.value = attachments.map((item: any) => {
+      const ossInfo = ossMap.get(String(item.ossId)) || {};
+      
+      // 计算文件大小
+      let fileSize = '--';
+      try {
+        if (ossInfo.ext1) {
+          const meta = typeof ossInfo.ext1 === 'string' ? JSON.parse(ossInfo.ext1) : ossInfo.ext1;
+          if (meta?.fileSize) {
+            const sizeBytes = Number(meta.fileSize);
+            if (sizeBytes > 0) {
+              const kb = 1024;
+              const mb = kb * 1024;
+              if (sizeBytes >= mb) {
+                fileSize = (sizeBytes / mb).toFixed(2) + ' MB';
+              } else if (sizeBytes >= kb) {
+                fileSize = (sizeBytes / kb).toFixed(2) + ' KB';
+              } else {
+                fileSize = sizeBytes + ' B';
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('解析文件大小失败:', e);
+      }
+      
+      return {
+        ossId: item.ossId,
+        originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || '',
+        fileType: getFileTypeName(ossInfo.fileSuffix || item.fileSuffix || ''),
+        version: item.versionNo || item.version || detailData.value.currentVersion || '',
+        url: ossInfo.url || item.url || '',
+        fileSuffix: ossInfo.fileSuffix || item.fileSuffix || ''
+      };
+    });
+  } catch (error) {
+    console.error('获取OSS文件信息失败:', error);
+    currentAttachments.value = attachments.map((item: any) => ({
+      ossId: item.ossId,
+      originalName: item.originalName || '',
+      fileType: getFileTypeName(item.fileSuffix || ''),
+      version: item.versionNo || item.version || detailData.value.currentVersion || '',
+      url: item.url || '',
+      fileSuffix: item.fileSuffix || ''
+    }));
+  }
+};
 
 // 历史版本列表（计算属性）
 const historyVersions = computed(() => {
-  if (!detailData.value.historyVersionsList || !Array.isArray(detailData.value.historyVersionsList)) {
+  // 处理 null 或 undefined 的情况
+  const list = detailData.value.historyVersionsList;
+  if (!list || (list !== null && !Array.isArray(list))) {
     return [];
   }
-  return detailData.value.historyVersionsList.map((item: any) => ({
-    ...item,
-    updateTime: item.updateTime || item.createTime || '',
-    version: item.versionNo || item.version || '', // 使用 versionNo（API文档中的字段名）
-    remark: item.remark || '',
-    ossId: item.ossId,
-    url: item.url || ''
-  }));
+  // 如果 list 是 null，返回空数组
+  if (list === null) {
+    return [];
+  }
+  // 确保是数组且不为空
+  if (!Array.isArray(list) || list.length === 0) {
+    return [];
+  }
+  
+  // 调试日志：打印原始历史版本数据
+  console.log('历史版本原始数据:', list);
+  
+  return list.map((item: any, index: number) => {
+    // 尝试多种可能的版本号字段名
+    const version = item.versionNo 
+      || item.version 
+      || item.versionNum
+      || item.currentVersion
+      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].version)
+      || '';
+    
+    // 调试日志：打印每个历史版本项的字段
+    if (index === 0) {
+      console.log('历史版本项字段示例:', {
+        item,
+        versionNo: item.versionNo,
+        version: item.version,
+        versionNum: item.versionNum,
+        currentVersion: item.currentVersion,
+        ossVoList: item.ossVoList,
+        finalVersion: version
+      });
+    }
+    
+    return {
+      ...item,
+      updateTime: item.updateTime || item.createTime || '',
+      version: version, // 使用多种可能的字段名
+      remark: item.remark || '',
+      ossId: item.ossId,
+      url: item.url || ''
+    };
+  });
 });
 
 // 表单验证规则
@@ -565,28 +678,113 @@ const fetchWhitePaperDetail = async () => {
       };
       
       // 保存详情数据（用于显示附件和历史版本）
+      // 处理 historyVersionsList：如果后端返回 null，转换为空数组；如果是数组，直接使用
+      const historyVersionsList = data.historyVersionsList === null 
+        ? [] 
+        : (Array.isArray(data.historyVersionsList) ? data.historyVersionsList : []);
+      
       detailData.value = {
         ossVoList: data.ossVoList || [],
-        historyVersionsList: data.historyVersionsList || [],
+        latestFiles: data.latestFiles || [], // 最新附件
+        historyVersionsList: historyVersionsList, // 确保是数组类型
         updateTime: data.updateTime || data.createTime || '',
         currentVersion: data.currentVersion || '',
         paperStatus: data.paperStatus || '1'  // 保存原有状态，如果没有则默认为启用
       };
       
-      // 加载附件数据（用于编辑）
-      if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
-        attachmentList.value = data.ossVoList.map((item: any, index: number) => ({
-          ossId: item.ossId,
-          fileName: item.fileName || item.originalName,
-          originalName: item.originalName || item.fileName,
-          fileType: getFileTypeName(item.fileSuffix || ''),
-          fileSuffix: item.fileSuffix || '',
-          url: item.url || '',
-          fileSize: item.fileSize || '--',
-          version: item.version || '',
-          versionError: '',
-          uid: item.ossId || Date.now() + index
-        }));
+      // 调试日志：打印历史版本数据
+      console.log('历史版本数据:', {
+        original: data.historyVersionsList,
+        processed: historyVersionsList,
+        length: historyVersionsList.length
+      });
+      
+      // 加载当前附件详细信息（用于只读显示）
+      await loadCurrentAttachments();
+      
+      // 加载附件数据（用于编辑）- 优先使用latestFiles，其次使用ossVoList
+      const attachmentsForEdit = (data.latestFiles && data.latestFiles.length > 0) 
+        ? data.latestFiles 
+        : (data.ossVoList || []);
+      
+      if (attachmentsForEdit && Array.isArray(attachmentsForEdit) && attachmentsForEdit.length > 0) {
+        // 收集所有ossId，批量获取文件信息
+        const ossIds = attachmentsForEdit.map((item: any) => item.ossId).filter(Boolean);
+        
+        if (ossIds.length > 0) {
+          try {
+            // 批量获取OSS文件信息
+            const ossIdsStr = ossIds.join(',');
+            const ossResponse: any = await listByIds(ossIdsStr);
+            
+            // 创建ossId到文件信息的映射
+            const ossMap = new Map();
+            if (ossResponse && ossResponse.data && Array.isArray(ossResponse.data)) {
+              ossResponse.data.forEach((oss: any) => {
+                ossMap.set(String(oss.ossId), oss);
+              });
+            }
+            
+            // 映射附件数据，关联OSS文件信息
+            attachmentList.value = attachmentsForEdit.map((item: any, index: number) => {
+              const ossInfo = ossMap.get(String(item.ossId)) || {};
+              
+              // 计算文件大小（从ext1中解析，或使用默认值）
+              let fileSize = '--';
+              try {
+                if (ossInfo.ext1) {
+                  const meta = typeof ossInfo.ext1 === 'string' ? JSON.parse(ossInfo.ext1) : ossInfo.ext1;
+                  if (meta?.fileSize) {
+                    const sizeBytes = Number(meta.fileSize);
+                    if (sizeBytes > 0) {
+                      const kb = 1024;
+                      const mb = kb * 1024;
+                      if (sizeBytes >= mb) {
+                        fileSize = (sizeBytes / mb).toFixed(2) + ' MB';
+                      } else if (sizeBytes >= kb) {
+                        fileSize = (sizeBytes / kb).toFixed(2) + ' KB';
+                      } else {
+                        fileSize = sizeBytes + ' B';
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                console.warn('解析文件大小失败:', e);
+              }
+              
+              return {
+                ossId: item.ossId,
+                fileName: ossInfo.fileName || item.fileName || '',
+                originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || '',
+                fileType: getFileTypeName(ossInfo.fileSuffix || item.fileSuffix || ''),
+                fileSuffix: ossInfo.fileSuffix || item.fileSuffix || '',
+                url: ossInfo.url || item.url || '',
+                fileSize: fileSize,
+                version: item.versionNo || item.version || '',
+                versionError: '',
+                uid: item.ossId || Date.now() + index
+              };
+            });
+          } catch (error) {
+            console.error('获取OSS文件信息失败:', error);
+            // 如果获取OSS信息失败，使用原始数据
+            attachmentList.value = attachmentsForEdit.map((item: any, index: number) => ({
+              ossId: item.ossId,
+              fileName: item.fileName || '',
+              originalName: item.originalName || item.fileName || '',
+              fileType: getFileTypeName(item.fileSuffix || ''),
+              fileSuffix: item.fileSuffix || '',
+              url: item.url || '',
+              fileSize: '--',
+              version: item.versionNo || item.version || '',
+              versionError: '',
+              uid: item.ossId || Date.now() + index
+            }));
+          }
+        } else {
+          attachmentList.value = [];
+        }
       } else {
         attachmentList.value = [];
       }
@@ -683,7 +881,7 @@ const handleSubmit = async () => {
       params: {
         '': {}
       },
-      ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : { id: 0 }),
+      ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}), // 新增时不传id
       paperNo: '',
       paperTitle: formData.value.paperTitle?.trim() || '',
       paperType: '',
