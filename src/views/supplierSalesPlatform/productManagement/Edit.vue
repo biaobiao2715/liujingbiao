@@ -352,7 +352,6 @@ const formData = ref<HnGoodsVo>({
   goodsInfo: '',
   goodsDetail: '',
   goodsAlert: '',
-  imagePathMain: '',
   status: '1',
   launchTime: '',
   goodsEnsureIds: [] as Array<string | number>,
@@ -655,22 +654,47 @@ onMounted(async () => {
     if (detailResponse.code === 200) {
       const data = detailResponse.data;
       if (props.type === 'copy') {
-        delete data.id;
-        delete data.enterpriseId; //企业ID
-        delete data.goodsCode; //商品编码
-        delete data.goodsSales; //销售量
-      }
-      formData.value = { ...data };
-      if (data.sysOssLists && data.sysOssLists.length > 0) {
-        hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
-          name: file.originalName || '商品主图',
-          url: file.url,
-          fileType: '1',
-          ossId: file.ossId,
-          path: file.url
+        // 复制商品时，清除唯一标识和敏感字段，主图和规格不带入，仅保留基础信息
+        formData.value.goodsName = data.goodsName || '';
+        formData.value.goodsCode = ''; // 商品编码清空，复制时由后端生成
+        formData.value.goodsCategoryId = data.goodsCategoryId || '';
+        formData.value.goodsBrandId = data.goodsBrandId || '';
+        formData.value.goodsInfo = data.goodsInfo || '';
+        formData.value.goodsDetail = data.goodsDetail || '';
+        formData.value.goodsAlert = data.goodsAlert || '';
+        formData.value.status = data.status || '1';
+        // launchTime赋值为当前时间
+        const now = new Date();
+        const pad = (n: number) => (n < 10 ? '0' + n : n);
+        formData.value.launchTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        formData.value.goodsEnsureIds = data.goodsEnsureIds || [];
+        formData.value.goodsAbilityIds = data.goodsAbilityIds || [];
+        formData.value.goodsSpecification = data.goodsSpecification || '';
+        formData.value.imageList = [];
+        hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList.map((item: any) => ({
+          goodsSpecification: item.goodsSpecification || '',
+          goodsSpecificationValue: item.goodsSpecificationValue || '',
+          goodsPrice: item.goodsPrice || '',
+          goodsStock: item.goodsStock || '',
+          goodsWeight: item.goodsWeight || '',
+          status: item.status || 1
         }));
-        hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
+      } else {
+        // 编辑/查看时直接赋值
+        formData.value = { ...data };
+        if (data.sysOssLists && data.sysOssLists.length > 0) {
+          hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
+        }
       }
+
+      // 主图和规格数据不带入
+      hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
+        name: file.originalName || '商品主图',
+        url: file.url,
+        fileType: '1',
+        ossId: file.ossId,
+        path: file.url
+      }));
     }
   }
 });

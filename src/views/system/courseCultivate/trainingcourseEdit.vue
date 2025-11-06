@@ -48,7 +48,16 @@
                     </div>
 
                     <!-- 文章目录 -->
-                    <div class="toc-sidebar">
+                     <TocSidebar 
+                        :content="formData.cultivateContent"
+                        editor-container=".w-e-text-container"
+                        :auto-scroll="true" 
+                         @toc-click="handleTocClick"
+                        @active-change="handleActiveChange"
+                         @content-update="handleContentUpdate"
+                        ref="tocSidebarRef"
+                    />
+                    <!-- <div class="toc-sidebar">
                         <div class="toc-header">文章目录</div>
                         <div class="toc-content">
                             <div v-if="tocList.length > 0" class="toc-list">
@@ -65,7 +74,7 @@
                                 <p class="empty-tip">使用标题格式编辑内容后将自动生成目录</p>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </el-form-item>
 
@@ -148,6 +157,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import TocSidebar from '@/components/Tocsidebar/index.vue'
 
 const props = defineProps<{
     id?: string | number | null;
@@ -158,7 +168,7 @@ const emit = defineEmits<{
     (e: 'success'): void;
     (e: 'cancel'): void;
 }>();
-
+const tocSidebarRef = ref()
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
@@ -345,152 +355,23 @@ const handleSubmit = async () => {
         saving.value = false;
     }
 };
+/** 处理目录点击事件 */
+const handleTocClick = (item: any) => {
+    // 可以在这里添加额外的逻辑
+}
 
+/** 处理激活状态变化 */
+const handleActiveChange = (id: string) => {
+    // 可以在这里添加额外的逻辑
+}
+const handleContentUpdate = (updatedContent: string) => {
+  formData.value.cultivateContent = updatedContent;
+}
 /** 取消 */
 const emitCancel = () => {
     emit('cancel');
 };
-/** 生成唯一ID */
-const generateUniqueId = (text: string, index: number) => {
-    // 使用文本内容和索引生成唯一ID
-    const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
-    return `heading-${cleanText}-${index}-${Date.now()}`;
-};
-/** 增强的目录生成函数 - 为标题添加锚点 */
-const generateTocWithAnchors = (content: string): { toc: any[], updatedContent: string } => {
-    if (!content) {
-        return { toc: [], updatedContent: content };
-    }
 
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
-        const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-
-        const toc = Array.from(headings).map((el, idx) => {
-            const tagName = el.tagName.toUpperCase();
-            const level = parseInt(tagName.substring(1));
-            const text = el.textContent?.trim() || `标题${idx + 1}`;
-
-            // 生成唯一 ID
-            let id = el.id;
-            if (!id || !id.startsWith('heading-')) {
-                id = generateUniqueId(text, idx);
-                el.id = id;
-            }
-
-            return {
-                id: id,
-                text: text,
-                tag: tagName,
-                level: level
-            };
-        });
-
-        return {
-            toc: toc,
-            updatedContent: doc.documentElement.innerHTML
-        };
-    } catch (error) {
-        console.error('生成目录失败:', error);
-        return { toc: [], updatedContent: content };
-    }
-};
-/** 监听内容变化，自动生成文章目录 */
-watch(
-    () => formData.value.cultivateContent,
-    (newContent) => {
-        if (!newContent) {
-            tocList.value = [];
-            return;
-        }
-
-        try {
-            const { toc, updatedContent } = generateTocWithAnchors(newContent);
-            tocList.value = toc;
-
-            // 如果内容有更新（添加了ID），则更新编辑器内容
-            // 注意：这里需要谨慎处理，避免循环触发
-            if (updatedContent !== newContent) {
-                // 使用 nextTick 避免无限循环
-                nextTick(() => {
-                    formData.value.cultivateContent = updatedContent;
-                });
-            }
-        } catch (error) {
-            console.error('生成目录失败:', error);
-            tocList.value = [];
-        }
-    },
-    { immediate: true, deep: true }
-);
-
-/** 滚动到指定标题位置 */
-const scrollToHeading = async (id: string) => {
-    try {
-        // 等待DOM更新
-        await nextTick();
-
-        let targetElement = null;
-
-        // 方法1：在富文本编辑器中查找
-        const editorContainer = document.querySelector('.w-e-text-container');
-        if (editorContainer) {
-            // 尝试在编辑器的iframe或shadow DOM中查找
-            const iframe = editorContainer.querySelector('iframe');
-            if (iframe && iframe.contentDocument) {
-                targetElement = iframe.contentDocument.getElementById(id);
-            }
-            
-            // 如果没有找到，在编辑器容器本身查找
-            if (!targetElement) {
-                targetElement = editorContainer.querySelector(`[id="${id}"]`);
-            }
-        }
-
-        // 方法2：在整个页面中查找
-        if (!targetElement) {
-            targetElement = document.getElementById(id);
-        }
-
-        // 方法3：通过数据属性查找（备用方案）
-        if (!targetElement) {
-            const elementsWithDataId = document.querySelectorAll(`[data-heading-id="${id}"]`);
-            if (elementsWithDataId.length > 0) {
-                targetElement = elementsWithDataId[0];
-            }
-        }
-
-        if (targetElement) {
-            
-            // 确保元素可见
-            targetElement.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center',
-                inline: 'nearest'
-            });
-
-            // 添加高亮效果
-            targetElement.classList.add('heading-highlight');
-            setTimeout(() => {
-                targetElement.classList.remove('heading-highlight');
-            }, 2000);
-
-        } else {
-            console.warn('未找到对应的标题元素:', id);
-            ElMessage.info('正在定位标题位置，请稍后重试或保存内容后重试');
-            
-            // 备用方案：通过文本内容查找
-            const tocItem = tocList.value.find(item => item.id === id);
-            if (tocItem) {
-                ElMessage.info(`正在定位: ${tocItem.text}`);
-            }
-        }
-    } catch (error) {
-        console.error('滚动失败:', error);
-        ElMessage.error('跳转失败，请稍后重试');
-    }
-};
 
 /** 文件大小格式化 */
 const formatFileSize = (bytes: number): string => {
