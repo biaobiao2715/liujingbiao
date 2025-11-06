@@ -472,8 +472,11 @@ const fetchGoodsList = async () => {
 
 
 onMounted(() => {
-  loadFromLocalStorage();
-  // 如果有商品id，获取当前商品详情
+  // 清空本地存储的对比列表，确保每次进入都是空列表
+  compareGoodsList.value = [];
+  saveToLocalStorage();
+  
+  // 如果有商品id，获取当前商品详情（仅用于作为基准商品，不添加到对比列表）
   if (goodsIdFromRoute.value) {
     fetchCurrentGoods();
   }
