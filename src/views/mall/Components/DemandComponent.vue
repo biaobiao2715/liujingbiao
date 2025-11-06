@@ -1,6 +1,6 @@
 <template>
   <div class="demand-component">
-    <div class="content" v-show="!showDetail">
+    <div class="content">
       <!-- 筛选条件 -->
       <el-form :model="queryParams" inline :label-width="80">
         <el-form-item label="区域">

@@ -6,7 +6,7 @@
   import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import * as echarts from 'echarts'
   import type { ECharts } from 'echarts'
-  import chinaGeoJson from './中华人民共和国.json'
+  import chinaGeoJson from './chinaMap.json'
   
   interface MapDataItem {
     name: string

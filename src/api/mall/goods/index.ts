@@ -11,7 +11,7 @@ export function goodsList(data: any) {
 }
 
 // 商品详情
-export function goodsDetail(id: number) {
+export function goodsDetail(id: number | string) {
   return request({
     url: `grain-sales/mall/${id}`,
     method: 'get'
@@ -31,6 +31,33 @@ export function productSalesStatistics() {
   return request({
     url: `grain-sales/mall/productSalesStatistics/`,
     method: 'get'
+  });
+}
+//下单
+export function productOrder(data: any) {
+  return request({
+    url: '/order',
+    method: 'post',
+    data: data
+  });
+}
+
+// 加入收藏夹
+
+export function favorite(data: any) {
+  return request({
+    url: 'skill-server/skill/favorite',
+    method: 'post',
+    data: data
+  });
+}
+
+//获取对比商品列表
+export function goodsCompareList(data: any) {
+  return request({
+    url: 'grain-sales/mall/list',
+    method: 'get',
+    params: data
   });
 }
 

@@ -1,28 +1,26 @@
 <template>
   <div class="goods-container">
-    <div v-show="!showDetail">
-      <!-- 查询组件 -->
-      <SearchComponent @searchChange="getSearchInfo" />
-      <!-- 商品组件 -->
-      <div class="goods-list mt-24" v-loading="loading">
-        <GoodsItemComponent
-          v-for="item in goodsData"
-          :key="item.id"
-          :goods="item"
-          :style="{ width: 'calc(20% - 16px)' }"
-          @clickGoods="handleClick(item.id)"
-        />
-      </div>
-
-      <!-- 分页组件 -->
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :total="total"
-        @pagination="fetchGoodsList"
+    <!-- 查询组件 -->
+    <SearchComponent @searchChange="getSearchInfo" />
+    <!-- 商品组件 -->
+    <div class="goods-list mt-24" v-loading="loading">
+      <GoodsItemComponent
+        v-for="item in goodsData"
+        :key="item.id"
+        :goods="item"
+        :style="{ width: 'calc(20% - 16px)' }"
+        @clickGoods="handleClick(item.id)"
       />
     </div>
+
+    <!-- 分页组件 -->
+    <pagination
+      v-show="total > 0"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
+      :total="total"
+      @pagination="fetchGoodsList"
+    />
 
     <!-- 商品详情组件 -->
     <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" :goodsId="goodsId" />
@@ -118,10 +116,6 @@ const fetchGoodsList = async () => {
 const handleClick = (id: string) => {
   goodsId.value = id;
   showDetail.value = true;
-  // 调用商品详情组件的方法获取商品详情
-  // setTimeout(() => {
-  //   goodsDetailRef.value?.getGoodsDetail(id);
-  // }, 1000);
 };
 </script>
 

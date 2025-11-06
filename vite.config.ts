@@ -27,8 +27,10 @@ export default defineConfig(({ mode, command }) => {
           // target: 'http://192.168.2.132:8080',
             // target: 'http://192.168.2.12:8080', // 后端接口
           // target: 'http://192.168.2.30:8080', // 后端接口  周全
-           target: 'http://192.168.2.249:8080', // 后端接口  马春洋
+          //  target: 'http://192.168.2.249:8080', // 后端接口  马春洋
           // target: 'http://192.168.2.11:8080', // 后端接口
+          target: 'http://192.168.2.253:8080', // 后端接口 赵波
+
           changeOrigin: true,
           ws: true,
           rewrite: (path) => path.replace(new RegExp('^' + env.VITE_APP_BASE_API), '')
