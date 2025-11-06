@@ -33,7 +33,7 @@
       </el-table-column>
     </el-table>
 
-    <div class="flex-center pagination">
+    <div class="flex-end pagination">
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
