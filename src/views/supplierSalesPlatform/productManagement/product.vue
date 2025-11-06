@@ -531,7 +531,7 @@ const onKeypressDigits = (e: KeyboardEvent) => {
 };
 
 // 打开弹窗方法
-function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | number | null = null, title = '', constants = '') {
+function openDialog(type: 'edit' | 'view' | 'price' | 'copy' | 'add', id: string | number | null = null, title = '', constants = '') {
   dialog.type = type;
   dialog.id = id;
   dialog.title = title;
@@ -540,7 +540,7 @@ function openDialog(type: 'edit' | 'view' | 'price' | 'copy', id: string | numbe
 }
 
 // 弹窗相关事件
-const handleAdd = () => openDialog('edit', null, '新增商品', 'edit');
+const handleAdd = () => openDialog('add', null, '新增商品', 'edit');
 const openEdit = (row: any) => openDialog('edit', row.id, '商品编辑', 'edit');
 const openCopy = (row: any) => openDialog('copy', row.id, '复制商品', 'edit');
 const openDetails = (row: any) => openDialog('view', row.id, '商品详情', 'details');

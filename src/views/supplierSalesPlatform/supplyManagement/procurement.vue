@@ -106,22 +106,22 @@
 
         <el-row :gutter="20">
           <el-col :span="24">
-            <el-form-item label="报价说明" prop="supplyDescription">
-              <el-input v-model="quoteForm.supplyDescription" type="textarea" placeholder="请输入报价说明" />
+            <el-form-item label="报价说明" prop="quoteRemarks">
+              <el-input v-model="quoteForm.quoteRemarks" type="textarea" placeholder="请输入报价说明" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="联系人" prop="supplyContact">
-              <el-input v-model="quoteForm.supplyContact" placeholder="请输入联系人" /> </el-form-item
+            <el-form-item label="联系人" prop="contactPerson">
+              <el-input v-model="quoteForm.contactPerson" placeholder="请输入联系人" /> </el-form-item
           ></el-col>
           <el-col :span="12">
-            <el-form-item label="联系电话" prop="supplyPhone">
-              <el-input v-model="quoteForm.supplyPhone" placeholder="请输入联系电话" />
+            <el-form-item label="联系电话" prop="contactPhone">
+              <el-input v-model="quoteForm.contactPhone" placeholder="请输入联系电话" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="报价/元" prop="supplyPrice">
-              <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" />
+            <el-form-item label="报价/元" prop="unitPrice">
+              <el-input v-model="quoteForm.unitPrice" placeholder="请输入报价/元" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -178,23 +178,23 @@ const quoteForm = ref({
   deliveryDistrict: '', // 区县名称
   publishTime: '', // 发布时间
   region: [], // 区域数组
-  supplyDescription: '', // 报价说明
-  supplyContact: '', // 联系人
-  supplyPhone: '', // 联系电话
-  supplyPrice: '' // 报价
+  quoteRemarks: '', // 报价说明
+  contactPerson: '', // 联系人
+  contactPhone: '', // 联系电话
+  unitPrice: '' // 报价
 });
 
 // 报价表单校验规则
 const quoteFormRules = {
-  supplyDescription: [
+  quoteRemarks: [
     { required: true, message: '请输入报价说明', trigger: 'blur' },
     { max: 200, message: '超出输入限制，请简阐述', trigger: 'blur' }
   ],
-  supplyContact: [
+  contactPerson: [
     { required: true, message: '请输入姓名', trigger: 'blur' },
     { max: 50, message: '联系人最多50字符', trigger: 'blur' }
   ],
-  supplyPhone: [
+  contactPhone: [
     { required: true, message: '请输入联系电话', trigger: 'blur' },
     {
       pattern: /^1[3-9]\d{9}$/,
@@ -202,7 +202,7 @@ const quoteFormRules = {
       trigger: 'blur'
     }
   ],
-  supplyPrice: [
+  unitPrice: [
     { required: true, message: '请输入报价/元', trigger: 'blur' },
     {
       validator: (_rule: any, value: any, callback: any) => {
@@ -264,10 +264,10 @@ const handleReset = () => {
 const handleQuote = (row: any) => {
   quoteForm.value = {
     ...row,
-    supplyDescription: '',
-    supplyContact: '',
-    supplyPhone: '',
-    supplyPrice: '',
+    quoteRemarks: '',
+    contactPerson: '',
+    contactPhone: '',
+    unitPrice: '',
     region: [row.deliveryProvinceCode || '', row.deliveryCityCode || '', row.deliveryDistrictCode || '']
   };
   quoteDialogVisible.value = true;
@@ -282,10 +282,10 @@ const submitQuote = () => {
       // 构造提交参数
       const arr = {
         demandId: quoteForm.value.id,
-        quoteRemarks: quoteForm.value.supplyDescription,
-        contactPerson: quoteForm.value.supplyContact,
-        contactPhone: quoteForm.value.supplyPhone,
-        unitPrice: Number(quoteForm.value.supplyPrice)
+        quoteRemarks: quoteForm.value.quoteRemarks,
+        contactPerson: quoteForm.value.contactPerson,
+        contactPhone: quoteForm.value.contactPhone,
+        unitPrice: Number(quoteForm.value.unitPrice)
       };
       await hnPurchaseQuotePost(arr);
       ElMessage.success('报价提交成功');
