@@ -10,7 +10,7 @@
 
       <el-scrollbar height="200px" @end-reached="loadMore">
         <div class="data-list">
-          <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type">
+          <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div class="point"></div>
             <div>{{ item.activityTitle || item.paperTitle }}</div>
           </div>
@@ -25,6 +25,8 @@ import { ref } from 'vue';
 import { getContentList } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { getActivityList } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 import { getWhitePaperList } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
+
+const emit = defineEmits(['detailChange']);
 
 const loading = ref(false);
 
@@ -80,6 +82,11 @@ const getDataList = async () => {
 const loadMore = () => {
   console.log('-=-=-=-=-=');
   getDataList();
+};
+
+const handleDetail = (id: string) => {
+  console.log(id);
+  emit('detailChange', { type: 'lawContentDetail', id });
 };
 </script>
 

@@ -24,6 +24,8 @@
     <CourseDetailComponent v-if="showArea === 'courseDetail'" :id="id" />
     <!-- 会议详情 -->
     <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
+    <!-- 普法内容详情 -->
+    <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
   </div>
 </template>
 
@@ -39,8 +41,9 @@ import CourseMeetingComponent from './AboutExpertComponents/CourseMeetingCompone
 import CourseDetailComponent from './AboutExpertComponents/CourseDetailComponent.vue'; // 课程详情组件
 import MeetingDetailComponent from './AboutExpertComponents/MeetingDetailComponent.vue'; // 会议详情组件
 import LivingComponent from './AboutExpertComponents/LivingComponent.vue'; // 直播组件
+import LawContentDetailComponent from './AboutExpertComponents/LawContentDetailComponent.vue'; // 普法内容详情组件
 
-type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meetingDetail' | 'livingDetail';
+type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meetingDetail' | 'livingDetail' | 'lawContentDetail';
 
 const showArea = ref('area');
 

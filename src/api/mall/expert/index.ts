@@ -104,3 +104,12 @@ export function meetingDetail(data: any) {
     params: data
   });
 }
+
+// 普法活动报名
+export function activityApply(data: any) {
+  return request({
+    url: 'skill-server/participateCategory/add',
+    method: 'post',
+    data: data
+  });
+}
