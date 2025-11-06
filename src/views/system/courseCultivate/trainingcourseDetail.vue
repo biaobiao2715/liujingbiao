@@ -54,32 +54,8 @@
             <!-- 正文内容区域 - 添加目录和内容左右布局 -->
             <div class="detail-row content-row">
                 <span class="detail-label">正文内容:</span>
-                <div class="content-with-toc">
-                    <!-- 文章目录 -->
-                    <div class="toc-sidebar">
-                        <!-- <div class="toc-header">文章目录</div> -->
-                        <div class="toc-content">
-                            <div v-if="tocList.length > 0" class="toc-list">
-                                <div v-for="item in tocList" :key="item.id"
-                                    :class="['toc-item', `toc-level-${item.level}`]" @click="scrollToHeading(item.id)">
-                                    <span class="toc-text">{{ item.text }}</span>
-                                </div>
-                            </div>
-                            <div v-else class="toc-empty">
-                                <el-icon class="empty-icon">
-                                    <Document />
-                                </el-icon>
-                                <p class="empty-text">暂无目录</p>
-                                <p class="empty-tip">文章内容没有标题格式</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 正文内容 -->
-                    <div class="detail-content-wrapper">
-                        <div class="detail-content" ref="contentRef" v-html="processedContent"></div>
-                    </div>
-                </div>
+                <ContentWithToc :content="detailData.cultivateContent"
+                    ref="contentWithTocRef" />
             </div>
             <!-- 主图 -->
             <div class="detail-row">
@@ -117,11 +93,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, nextTick, watch  } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, nextTick, watch } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Download, Star } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail } from '@/api/system/courseCultivate';
+import ContentWithToc from '@/components/ContentWithToc/index.vue'
 
 const props = defineProps<{
     id?: string | number | null;
@@ -137,7 +114,7 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { cultivate_type, cultivate_status } = toRefs<any>(
     (proxy as any)?.useDict('cultivate_type', 'cultivate_status')
 );
-
+const contentWithTocRef =ref(null)
 // 加载状态
 const loading = ref(false);
 // 内容DOM引用
@@ -170,108 +147,8 @@ const detailData = ref({
     url: '', //主图
     srcList: [], //预览
 });
-/** 生成唯一ID */
-const generateUniqueId = (text: string, index: number) => {
-    const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
-    return `heading-${cleanText}-${index}-${Date.now()}`;
-};
 
-/** 处理内容 - 为标题添加ID并生成目录 */
-const processContent = (content: string) => {
-    if (!content) {
-        processedContent.value = '';
-        tocList.value = [];
-        return;
-    }
 
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
-        const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-
-        const toc = Array.from(headings).map((el, idx) => {
-            const tagName = el.tagName.toUpperCase();
-            const level = parseInt(tagName.substring(1));
-            const text = el.textContent?.trim() || `标题${idx + 1}`;
-
-            // 生成唯一 ID
-            let id = el.id;
-            if (!id || !id.startsWith('heading-')) {
-                id = generateUniqueId(text, idx);
-                el.id = id;
-            }
-
-            return {
-                id: id,
-                text: text,
-                tag: tagName,
-                level: level
-            };
-        });
-
-        // 更新目录列表
-        tocList.value = toc;
-        // 更新处理后的内容
-        processedContent.value = doc.documentElement.innerHTML;
-
-    } catch (error) {
-        console.error('处理内容失败:', error);
-        processedContent.value = content;
-        tocList.value = [];
-    }
-};
-
-/** 滚动到指定标题位置 */
-const scrollToHeading = async (id: string) => {
-    console.log('尝试滚动到标题:', id);
-    
-    try {
-        // 等待DOM更新
-        await nextTick();
-
-        let targetElement = null;
-
-        // 在内容区域中查找标题元素
-        if (contentRef.value) {
-            targetElement = contentRef.value.querySelector(`#${id}`);
-        }
-
-        // 如果没找到，在整个文档中查找
-        if (!targetElement) {
-            targetElement = document.getElementById(id);
-        }
-
-        if (targetElement) {
-            console.log('找到目标元素:', targetElement);
-            
-            // 平滑滚动到目标位置
-            targetElement.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center',
-                inline: 'nearest'
-            });
-
-            // 添加高亮效果
-            targetElement.classList.add('heading-highlight');
-            setTimeout(() => {
-                targetElement.classList.remove('heading-highlight');
-            }, 2000);
-
-        } else {
-            console.warn('未找到对应的标题元素:', id);
-            ElMessage.info('正在定位标题位置...');
-            
-            // 显示正在定位的标题文本
-            const tocItem = tocList.value.find(item => item.id === id);
-            if (tocItem) {
-                ElMessage.info(`正在定位: ${tocItem.text}`);
-            }
-        }
-    } catch (error) {
-        console.error('滚动失败:', error);
-        ElMessage.error('跳转失败，请稍后重试');
-    }
-};
 /** 格式化文件大小 */
 const formatFileSize = (bytes: number): string => {
     if (!bytes) return '-';
@@ -327,7 +204,6 @@ const fetchContentDetail = async () => {
                 url: data.imageFile ? data.imageFile.url : '',
                 srcList: [data.imageFile ? data.imageFile.url : '']
             };
-             processContent(data.cultivateContent || '');
         } else {
             ElMessage.error(response?.msg || '获取内容详情失败');
         }
@@ -591,7 +467,7 @@ onMounted(() => {
                         padding-left: 12px;
                         background: #f8f9fa;
                         border: 1px solid #e9ecef;
-                        
+
                         &:hover {
                             background: linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%);
                             color: #0050b3;
@@ -604,7 +480,7 @@ onMounted(() => {
                         font-size: 14px;
                         font-weight: 600;
                         margin-left: 8px;
-                        
+
                         &:hover {
                             background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
                             color: #389e0d;
@@ -617,7 +493,7 @@ onMounted(() => {
                         font-size: 13px;
                         color: #595959;
                         margin-left: 16px;
-                        
+
                         &:hover {
                             background: linear-gradient(135deg, #fff7e6 0%, #ffd591 100%);
                             color: #d46b08;
@@ -632,7 +508,7 @@ onMounted(() => {
                         font-size: 12px;
                         color: #8c8c8c;
                         margin-left: 24px;
-                        
+
                         &:hover {
                             background: linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%);
                             color: #722ed1;
