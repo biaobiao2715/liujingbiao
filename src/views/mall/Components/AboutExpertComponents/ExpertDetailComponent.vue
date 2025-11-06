@@ -10,19 +10,19 @@
     <!-- 专家信息 -->
     <div class="expert-info">
       <div class="flex gap-12">
-        <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
+        <el-avatar :src="getAvatarUrl(expertDetail.hnBaseRegisterFolderVoList)" />
         <div>
-          <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
+          <div>{{ expertDetail.expertName }} - {{ expertDetail.technicalQualification }}</div>
           <div class="flex gap-24 mt-12">
-            <el-statistic title="咨询量" :value="expert.questionCount" />
-            <el-statistic title="回复量" :value="expert.answerCount" />
+            <el-statistic title="咨询量" :value="expertDetail.questionCount" />
+            <el-statistic title="回复量" :value="expertDetail.answerCount" />
           </div>
         </div>
       </div>
 
       <div class="mt-12">
         <span>专家简介：</span>
-        <span>{{ expert.expertInfo }}</span>
+        <span>{{ expertDetail.expertInfo }}</span>
       </div>
     </div>
 
@@ -30,8 +30,8 @@
     <div class="expert-qa">
       <h4>专家问答</h4>
       <el-collapse>
-        <el-collapse-item v-for="(qa, index) in expert.qaList" :key="index" :title="qa.question">
-          <p>{{ qa.answer }}</p>
+        <el-collapse-item v-for="(qa, index) in qaList" :key="index" :title="qa.questionContent">
+          <div v-for="value in qa.hnAnswerVoList" :key="value.answerId">{{ value.answerContent }}</div>
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -46,7 +46,8 @@ const dialogVisible = ref(false);
 
 const expertId = ref<string | null>(null);
 
-const expert = ref();
+const expertDetail = ref();
+const qaList = ref([]);
 
 // 打开专家详情弹窗
 const openDialog = async (id: string, type: string) => {
@@ -60,7 +61,7 @@ const openDialog = async (id: string, type: string) => {
 const getTechnologyExpertDetail = async () => {
   const res = await technologyExpertDetail(expertId.value);
   if (res.code === 200) {
-    expert.value = res.data;
+    expertDetail.value = res.data;
   }
 };
 
@@ -68,7 +69,7 @@ const getTechnologyExpertDetail = async () => {
 const getLegalExpertDetail = async () => {
   const res = await legalExpertDetail(expertId.value);
   if (res.code === 200) {
-    expert.value = res.data;
+    expertDetail.value = res.data;
   }
 };
 
@@ -80,7 +81,7 @@ const getQuestionList = async () => {
     orderByColumn: 'latestAnswerTime'
   });
   if (res.code === 200) {
-    expert.value.qaList = res.data;
+    qaList.value = res.rows || [];
   }
 };
 

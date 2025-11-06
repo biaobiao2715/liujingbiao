@@ -52,7 +52,7 @@
           </el-form-item>
 
           <el-form-item label="营业执照">
-            <img :src="urlImage" width="200" alt="营业执照" />
+            <img :src="urlImage" height="200px" width="200px" alt="营业执照" />
           </el-form-item>
         </el-col>
       </el-row>

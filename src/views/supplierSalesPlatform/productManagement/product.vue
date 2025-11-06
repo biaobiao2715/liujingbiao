@@ -132,7 +132,7 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
     <!-- 设置预警值弹窗 -->

@@ -17,28 +17,28 @@
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator=","  :value="servicecount" title="总服务次数"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.serviceCount" title="总服务次数"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator=","  :value="servicetime" title="总时长"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.serviceDuration" title="总时长(分钟)"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator=","  :value="consultingcount" title="总咨询量"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.totalConsultations" title="总咨询量"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator=","  :value="replycount" title="总回复量"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.totalReplies" title="总回复量"></el-statistic>
               </div>
             </el-card>
           </el-col>
@@ -47,15 +47,15 @@
       <!-- 查询区域 -->
       <div class="mb-[10px]">
         <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
-          <el-form-item label="专家类型" prop="expertName">
-            <el-select v-model="queryParams.reviewStatus" placeholder="请选择专家类型" filterable clearable>
-              <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-form-item label="专家类型" prop="expertType">
+            <el-select v-model="queryParams.expertType" placeholder="请选择专家类型" filterable clearable>
+              <el-option v-for="dict in expert_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
-          <el-form-item label="专家姓名" prop="expertNumber">
-            <el-input v-model="queryParams.expertNumber" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
+          <el-form-item label="专家姓名" prop="expertName">
+            <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="专家编号" prop="reviewStatus">
+          <el-form-item label="专家编号" prop="expertNumber">
             <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <!-- <el-form-item label="入驻时间">
@@ -83,74 +83,81 @@
         </div>
       </div>
       <!-- 列表区域 -->
-      <el-table ref="tableRef" v-loading="loading" border
-        :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
-        style="width: 100%">
+      <el-table ref="tableRef" v-loading="loading" border :data="expertList" style="width: 100%">
         <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
           <template #default="scope">
             <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="expertName" label="专家类型" min-width="100" align="center" />
-        <el-table-column label="专家姓名" min-width="140" align="center">
+        <el-table-column prop="expertType" label="专家类型" min-width="100" align="center">
           <template #default="scope">
-            <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
+            <dict-tag :options="expert_type" :value="scope.row.expertType" />
           </template>
         </el-table-column>
-        <el-table-column prop="phoneNumber" label="专家编码" min-width="130" align="center" />
-        <el-table-column prop="registrationTime" label="服务次数" min-width="160" align="center" />
-        <el-table-column prop="registrationTime" label="服务时长" min-width="160" align="center" />
-        <el-table-column prop="registrationTime" label="总咨询量" min-width="160" align="center" />
-        <el-table-column prop="registrationTime" label="总回复量" min-width="160" align="center" />
-        <!-- <el-table-column label="操作" align="center" width="200">
+        <el-table-column label="专家姓名" min-width="140" align="center" prop="expertName">
           <template #default="scope">
-            <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-link type="primary" v-if="scope.row.reviewStatus === '1'"
-                @click="handleEdit(scope.row, 'view')">查看</el-link>
-              <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
-                @click="handleEdit(scope.row, 'audit')">审核</el-link>
-              <el-link type="primary" v-if="scope.row.reviewStatus === '0'"
-                @click="handleEdit(scope.row, 'edit')">编辑</el-link>
-            </div>
+            <span>{{ scope.row.expertName || '-' }}</span>
           </template>
-        </el-table-column> -->
+        </el-table-column>
+        <el-table-column prop="expertNumber" label="专家编码" min-width="130" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.expertNumber || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="serviceCount" label="服务次数" min-width="160" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.serviceCount || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="serviceDuration" label="服务时长" min-width="160" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.serviceDuration || '-' }}分钟</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="totalConsultations" label="总咨询量" min-width="160" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.totalConsultations || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="totalReplies" label="总回复量" min-width="160" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.totalReplies || '-' }}</span>
+          </template>
+        </el-table-column>
       </el-table>
 
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        :total="total" @pagination="handleQuery" />
+        v-model:total="total" @pagination="handleQuery" />
     </el-card>
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
 import { ref } from 'vue';
-import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
-import { getLegalExpertList, reviewStatusMap } from '@/api/platform/legalExpert';
+import { getqueryExpertStaticData,getexpertTotalStaticData } from '@/api/platformManage/dataanalysis';
 import router from '@/router';
 import dayjs from 'dayjs';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
-const expertList = ref<LegalExpertList[]>([]);
+const { expert_type } = toRefs<any>(proxy?.useDict('expert_type'));
+const expertList = ref([]);
 const loading = ref(false);
 const total = ref(0);
-const servicecount = ref(126560) //总服务次数
-const servicetime = ref(8846) //总时长
-const consultingcount = ref(6560) //总咨询量
-const replycount = ref(1102) //总回复量
+const staticdata = ref({})
 const queryFormRef = ref<ElFormInstance>();
 const tableRef = ref<ElTableInstance>();
 
 const registrationTime = ref<Array<string>>([]);
 
-const queryParams = ref<LegalExpertListRequest>({
+const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   expertName: '',
   expertNumber: '',
-  reviewStartTime: '',
-  reviewEndTime: '',
-  reviewStatus: ''
+  expertType: '', //专家类型
+  today: false, //是否只查询今天的数据
+  yesterday: false, //是否只查询昨天的数据
+  thisWeek: false, //是否只查询本周的数据
 });
 const timeButtons = [
   { label: '昨日', value: 'yesterday' },
@@ -158,49 +165,171 @@ const timeButtons = [
   { label: '本周', value: 'week' }
 ];
 const activeTime = ref('');
+/** 构建最终的查询参数 - 只传递为true的参数 */
+const buildFinalParams = () => {
+  const params = {
+    pageNum: queryParams.value.pageNum,
+    pageSize: queryParams.value.pageSize,
+    expertName: queryParams.value.expertName,
+    expertNumber: queryParams.value.expertNumber,
+    expertType: queryParams.value.expertType,
+  };
+  
+  // 只添加为true的时间参数
+  if (queryParams.value.today) {
+    params['today'] = true;
+  }
+  if (queryParams.value.yesterday) {
+    params['yesterday'] = true;
+  }
+  if (queryParams.value.thisWeek) {
+    params['thisWeek'] = true;
+  }
+  
+  return params;
+};
+/** 重置所有时间参数为false */
+const resetTimeParams = () => {
+  queryParams.value.today = false;
+  queryParams.value.yesterday = false;
+  queryParams.value.thisWeek = false;
+};
 
-// 选择时间段按钮逻辑
+/** 根据日期判断对应的时间按钮 */
+const getTimeButtonByDate = (startDate: string, endDate: string): string => {
+  const start = dayjs(startDate);
+  const end = dayjs(endDate);
+  const now = dayjs();
+  
+  // 检查是否是今天
+  if (start.format('YYYY-MM-DD') === now.format('YYYY-MM-DD') && 
+      end.format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
+    return 'today';
+  }
+  
+  // 检查是否是昨天
+  const yesterday = now.subtract(1, 'day');
+  if (start.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD') && 
+      end.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD')) {
+    return 'yesterday';
+  }
+  
+  // 检查是否是本周
+  const weekStart = now.startOf('week');
+  const weekEnd = now.endOf('week');
+  if (start.format('YYYY-MM-DD') === weekStart.format('YYYY-MM-DD') && 
+      end.format('YYYY-MM-DD') === weekEnd.format('YYYY-MM-DD')) {
+    return 'week';
+  }
+  
+  return ''; // 自定义日期范围
+};
+/** 处理时间按钮选择 */
 const handleTimeSelect = (type: string) => {
   activeTime.value = type;
-
-  let start, end;
+  
+  // 重置所有时间参数
+  resetTimeParams();
+  
   const now = dayjs();
-
+  let start, end;
+  
   switch (type) {
     case 'yesterday':
-      start = now.subtract(1, 'day').format('YYYY-MM-DD HH:mm:ss');
-      end = start;
+      queryParams.value.yesterday = true;
+      start = now.subtract(1, 'day').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+      end = now.subtract(1, 'day').endOf('day').format('YYYY-MM-DD HH:mm:ss');
       break;
     case 'today':
-      start = now.format('YYYY-MM-DD HH:mm:ss');
-      end = start;
+      queryParams.value.today = true;
+      start = now.startOf('day').format('YYYY-MM-DD HH:mm:ss');
+      end = now.endOf('day').format('YYYY-MM-DD HH:mm:ss');
       break;
     case 'week':
+      queryParams.value.thisWeek = true;
       start = now.startOf('week').format('YYYY-MM-DD HH:mm:ss');
       end = now.endOf('week').format('YYYY-MM-DD HH:mm:ss');
       break;
+    default:
+      start = '';
+      end = '';
   }
+  
   registrationTime.value = [start, end];
-  handleSelectDate([start, end]);
   handleQuery(); // 自动执行查询
-}
+};
+
+const handleSelectDate = (val: Array<string>) => {
+    if (val && val.length === 2) {
+    // 根据选择的日期判断对应的时间按钮
+    const buttonType = getTimeButtonByDate(val[0], val[1]);
+    activeTime.value = buttonType;
+    
+    // 重置所有时间参数
+    resetTimeParams();
+    
+    // 根据按钮类型设置对应的时间参数
+    if (buttonType === 'today') {
+      queryParams.value.today = true;
+    } else if (buttonType === 'yesterday') {
+      queryParams.value.yesterday = true;
+    } else if (buttonType === 'week') {
+      queryParams.value.thisWeek = true;
+    }
+    // 如果是自定义日期范围，所有时间参数保持false
+  } else {
+    // 清空选择时，重置状态
+    activeTime.value = '';
+    resetTimeParams();
+  }
+  
+  handleQuery();
+};
 const getList = () => {
   loading.value = true;
-  getLegalExpertList(queryParams.value)
+   const finalParams = buildFinalParams();
+  console.log('最终查询参数:', finalParams);
+  getqueryExpertStaticData(finalParams)
     .then((res) => {
-      expertList.value = res?.rows || [];
-      total.value = res.total || 0;
+      expertList.value = res?.data.records || [];
+      total.value = res.data.total || 0;
     })
     .finally(() => {
       loading.value = false;
     });
 };
-// 保证手动选日期也能清除按钮激活状态
-watch(registrationTime, (val) => {
-  if (!val?.length) {
-    activeTime.value = '';
+
+/* 查询专家知道静态数据总量 */
+const getstaticData = async ()=>{
+  try {
+   let res= await getexpertTotalStaticData()
+    staticdata.value = res.data || {}
+  } catch (error) {
+    ElMessage.error(error || '查询失败')
   }
-});
+}
+/** 监听日期选择器变化，同步按钮状态 */
+watch(registrationTime, (newVal) => {
+  if (!newVal || newVal.length !== 2) {
+    activeTime.value = '';
+    resetTimeParams();
+    return;
+  }
+  
+  // 当日期选择器值变化时，自动判断对应的时间按钮
+  const buttonType = getTimeButtonByDate(newVal[0], newVal[1]);
+  activeTime.value = buttonType;
+  
+  // 重置并设置对应的时间参数
+  resetTimeParams();
+  if (buttonType === 'today') {
+    queryParams.value.today = true;
+  } else if (buttonType === 'yesterday') {
+    queryParams.value.yesterday = true;
+  } else if (buttonType === 'week') {
+    queryParams.value.thisWeek = true;
+  }
+}, { deep: true });
 // 搜索
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -211,35 +340,27 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   registrationTime.value = [];
-  queryParams.value.expertName = '';
-  queryParams.value.expertNumber = '';
-  queryParams.value.reviewStartTime = '';
-  queryParams.value.reviewEndTime = '';
-  queryParams.value.reviewStatus = '';
+  activeTime.value = '';
+  
+  // 重置查询参数
   queryParams.value.pageNum = 1;
   queryParams.value.pageSize = 10;
+  queryParams.value.expertName = '';
+  queryParams.value.expertNumber = '';
+  queryParams.value.expertType = '';
+  
+  // 重置时间参数
+  resetTimeParams();
+  
   handleQuery();
 };
 
-const handleSelectDate = (val: Array<string>) => {
-  queryParams.value.reviewStartTime = val?.[0] || '';
-  queryParams.value.reviewEndTime = val?.[1] || '';
-};
 
-// 操作
-const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  // TODO: 跳转编辑页面或弹出编辑弹窗携带type参数
-  router.push({
-    path: '/platform/legalExpert/details',
-    query: {
-      id: row.id,
-      type
-    }
-  });
-};
+
 // 页面首次加载时执行
 onMounted(() => {
   handleTimeSelect('today'); // 默认选中今日
+  getstaticData()
 });
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {

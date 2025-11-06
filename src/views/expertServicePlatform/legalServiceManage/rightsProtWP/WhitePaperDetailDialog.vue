@@ -83,17 +83,24 @@ const detailData = ref({
   id: undefined as number | string | undefined,
   paperTitle: '',
   ossVoList: [] as any[],
+  latestFiles: [] as any[], // 最新附件（后端可能返回此字段）
   historyVersionsList: [] as any[],
   updateTime: '',
   currentVersion: ''
 });
 
-// 当前附件列表（从ossVoList获取）
+// 当前附件列表（优先使用latestFiles，其次使用ossVoList）
 const currentAttachments = computed(() => {
-  if (!detailData.value.ossVoList || !Array.isArray(detailData.value.ossVoList)) {
+  // 优先使用latestFiles（最新附件），如果没有则使用ossVoList
+  const attachments = detailData.value.latestFiles && detailData.value.latestFiles.length > 0
+    ? detailData.value.latestFiles
+    : (detailData.value.ossVoList || []);
+  
+  if (!Array.isArray(attachments) || attachments.length === 0) {
     return [];
   }
-  return detailData.value.ossVoList.map((item: any) => ({
+  
+  return attachments.map((item: any) => ({
     ossId: item.ossId,
     originalName: item.originalName || item.fileName || '',
     updateTime: item.updateTime || detailData.value.updateTime || '',
@@ -107,14 +114,41 @@ const historyVersions = computed(() => {
   if (!detailData.value.historyVersionsList || !Array.isArray(detailData.value.historyVersionsList)) {
     return [];
   }
-  return detailData.value.historyVersionsList.map((item: any) => ({
-    ...item,
-    updateTime: item.updateTime || item.createTime || '',
-    version: item.versionNo || item.version || '', // 使用 versionNo（API文档中的字段名）
-    remark: item.remark || '',
-    ossId: item.ossId,
-    url: item.url || ''
-  }));
+  
+  // 调试日志：打印原始历史版本数据
+  console.log('详情页历史版本原始数据:', detailData.value.historyVersionsList);
+  
+  return detailData.value.historyVersionsList.map((item: any, index: number) => {
+    // 尝试多种可能的版本号字段名
+    const version = item.versionNo 
+      || item.version 
+      || item.versionNum
+      || item.currentVersion
+      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].version)
+      || '';
+    
+    // 调试日志：打印每个历史版本项的字段
+    if (index === 0) {
+      console.log('详情页历史版本项字段示例:', {
+        item,
+        versionNo: item.versionNo,
+        version: item.version,
+        versionNum: item.versionNum,
+        currentVersion: item.currentVersion,
+        ossVoList: item.ossVoList,
+        finalVersion: version
+      });
+    }
+    
+    return {
+      ...item,
+      updateTime: item.updateTime || item.createTime || '',
+      version: version, // 使用多种可能的字段名
+      remark: item.remark || '',
+      ossId: item.ossId,
+      url: item.url || ''
+    };
+  });
 });
 
 /** 获取白皮书详情 */
@@ -131,11 +165,17 @@ const fetchWhitePaperDetail = async () => {
     if (response && response.code === 200 && response.data) {
       const data = response.data;
       
+      // 处理 historyVersionsList：如果后端返回 null，转换为空数组；如果是数组，直接使用
+      const historyVersionsList = data.historyVersionsList === null 
+        ? [] 
+        : (Array.isArray(data.historyVersionsList) ? data.historyVersionsList : []);
+      
       detailData.value = {
         id: data.id,
         paperTitle: data.paperTitle || '',
         ossVoList: data.ossVoList || [],
-        historyVersionsList: data.historyVersionsList || [],
+        latestFiles: data.latestFiles || [], // 最新附件
+        historyVersionsList: historyVersionsList, // 确保是数组类型
         updateTime: data.updateTime || data.createTime || '',
         currentVersion: data.currentVersion || ''
       };

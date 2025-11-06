@@ -249,7 +249,17 @@ const getList = () => {
   
   getMessageList(params).then((res: any) => {
     if (res && res.code === 200) {
-      tableData.value = res.rows || [];
+      // 映射API返回的字段到页面显示的字段
+      const rows = (res.rows || []).map((item: any) => ({
+        ...item,
+        // 兼容字段映射：API返回字段 -> 页面显示字段
+        messageContent: item.questionContent || item.messageContent || '', // 问题内容 -> 留言内容
+        messageTime: item.publishTime || item.messageTime || '', // 发布时间 -> 留言时间
+        replyTime: item.latestAnswerTime || item.replyTime || '', // 最新回答时间 -> 回复时间
+        // 根据问题状态判断回复状态：1已回答 表示已回复，0待回答或99已关闭表示未回复
+        replyStatus: item.questionStatus === '1' ? '1' : (item.replyStatus || '0') // 问题状态 -> 回复状态
+      }));
+      tableData.value = rows;
       total.value = res.total || 0;
     } else {
       tableData.value = [];

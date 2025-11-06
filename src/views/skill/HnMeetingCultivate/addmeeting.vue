@@ -148,8 +148,8 @@
                 </el-table-column>
             </el-table>
             <div v-if="isView" class="flex-center pagination">
-                <pagination v-show="registrationTotal > 0" :page="registrationParams.pageNum"
-                    :limit="registrationParams.pageSize" :total="registrationTotal" @pagination="getRegistrationInfo" />
+                <pagination v-show="registrationTotal > 0" v-model:page="registrationParams.pageNum"
+                    v-model:limit="registrationParams.pageSize" v-model:total="registrationTotal" @pagination="getRegistrationInfo" />
             </div>
             <!-- 底部按钮 -->
             <div style="text-align: right; margin-top: 20px;">
@@ -221,7 +221,7 @@
             </el-table-column>
         </el-table>
         <div class="flex-center pagination">
-            <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total"
+            <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" v-model:total="total"
                 @pagination="getexpert" />
         </div>
         <template #footer>

@@ -10,7 +10,7 @@
     <!-- 搜索栏 -->
     <el-form :model="queryParams" :label-width="80" inline class="search-bar">
       <el-form-item label="发布类型">
-        <GoodsCategorySelect v-model="queryParams.demandCategoryId" @categoryChange="handleCategoryChange" />
+        <GoodsCategorySelect v-model="queryParams.supplyCategoryId" :emitPath="false" @categoryChange="handleCategoryChange" />
       </el-form-item>
       <el-form-item label="发布区域">
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
@@ -69,39 +69,51 @@
       :title="dialogMode === 'detail' ? '供给需求详情' : dialogMode === 'edit' ? '编辑供给需求' : '发布供给需求'"
       :close-on-click-modal="false"
     >
-      <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="120px" :disabled="dialogMode === 'detail'">
+      <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="140px" :disabled="dialogMode === 'detail'">
         <el-row :gutter="20">
           <el-col :span="24">
-            <el-form-item label="供给类型：" prop="demandCategoryId">
-              <GoodsCategorySelect v-model="quoteForm.demandCategoryId" />
+            <el-form-item label="供给类型：" prop="supplyCategoryId">
+              <GoodsCategorySelect
+                :emitPath="false"
+                v-model="quoteForm.supplyCategoryId"
+                @categoryChange="handleCategoryForm"
+                :disabled="dialogMode === 'edit'"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="备注：" prop="demandCategoryId">
-              <el-input v-model="quoteForm.demandDescription" placeholder="请输入" autosize type="textarea" />
+            <el-form-item label="备注：" prop="supplyDescription">
+              <el-input v-model="quoteForm.supplyDescription" placeholder="请输入" autosize type="textarea" :disabled="dialogMode === 'edit'" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="配送范围：" prop="region">
-              <RegionSelect v-model="quoteForm.region" :checkStrictly="true" :multiple="true" placeholder="请选择配送范围" style="width: 100%" />
+            <el-form-item label="配送范围：" prop="supplierSupplyDeliveryBos">
+              <RegionSelect
+                v-model="quoteForm.supplierSupplyDeliveryBos"
+                :multiple="true"
+                placeholder="请选择配送范围"
+                :disabled="dialogMode === 'edit'"
+                @regionChange="supplierSupplyDeliveryBosForm"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="库存：" prop="quantity">
-              <el-input v-model="quoteForm.quantity" placeholder="请输入" />
+            <el-form-item label="库存：" prop="stock">
+              <el-input v-model="quoteForm.stock" placeholder="请输入" :disabled="dialogMode === 'detail'" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <el-form-item label="可交付周期/天：" prop="deliveryDay">
-              <el-input v-model="quoteForm.deliveryDay" placeholder="请输入可交付时间" />
+            <el-form-item label="可交付周期/天：" prop="deliveryDays">
+              <el-input v-model="quoteForm.deliveryDays" placeholder="请输入可交付时间" :disabled="dialogMode === 'edit'" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
             <el-form-item label="报价/元" prop="supplyPrice">
-              <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" />
+              <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" :disabled="dialogMode === 'detail'" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -110,9 +122,6 @@
         <el-row type="flex" justify="center" :gutter="5" v-if="dialogMode !== 'detail'">
           <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
           <el-col :span="3"><el-button type="primary" @click="submitQuote">提交发布</el-button></el-col>
-        </el-row>
-        <el-row type="flex" justify="center" :gutter="5" v-else>
-          <el-col :span="3"><el-button @click="quoteDialogVisible = false">关闭</el-button></el-col>
         </el-row>
       </el-form>
     </el-dialog>
@@ -136,10 +145,12 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const tableData = ref([]); // 采购需求列表
 const loading = ref(false); // 加载状态
 const total = ref(0); // 总条数
+// 配送范围地址列表
+const addresList = ref([]);
 
 // 搜索参数，采购类型和区域均为数组，支持多级选择
 const queryParams = ref({
-  demandCategoryId: [] as any[], // 采购类型（多级选择，数组）
+  supplyCategoryId: [] as any[], // 采购类型（多级选择，数组）
   region: [] as any[], // 采购区域（多级选择，数组）
   deliveryDistrictCode: '', // 区县编码
   deliveryCityCode: '', // 城市编码
@@ -155,40 +166,54 @@ const quoteFormRef = ref();
 const quoteForm = ref({
   id: '', // 需求ID
   name: '', // 客户名称
-  demandCategoryId: '' as any, // 采购类型
-  demandDescription: '', // 采购说明
-  quantity: '', // 采购数量
-  deliveryDay: '', // 交付时间
-  deliveryProvinceCode: '', // 省份编码
-  deliveryProvince: '', // 省份名称
-  deliveryCityCode: '', // 城市编码
-  deliveryCity: '', // 城市名称
-  deliveryDistrictCode: '', // 区县编码
-  deliveryDistrict: '', // 区县名称
+  supplyCategoryId: '' as any, // 供给类型
+  supplyDescription: '', // 采购说明
+  stock: '', // 采购数量
+  deliveryDays: '', // 交付时间
   publishTime: '', // 发布时间
   region: [], // 区域数组
-  supplyDescription: '', // 报价说明
   supplyContact: '', // 联系人
   supplyPhone: '', // 联系电话
-  supplyPrice: '' // 报价
+  supplyPrice: '', // 报价
+  supplierSupplyDeliveryBos: [] as any[] // 配送范围
 });
 const dialogMode = ref<'add' | 'edit' | 'detail'>('add'); // 弹窗模式
 
 // 报价表单校验规则
 const quoteFormRules = {
   supplyDescription: [
-    { required: true, message: '请输入报价说明', trigger: 'blur' },
+    { required: true, message: '请输入备注', trigger: 'blur' },
     { max: 200, message: '超出输入限制，请简阐述', trigger: 'blur' }
   ],
-  supplyContact: [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
-    { max: 50, message: '联系人最多50字符', trigger: 'blur' }
-  ],
-  supplyPhone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' },
+  supplyCategoryId: [{ required: true, message: '请选择供给类型', trigger: 'blur' }],
+  supplierSupplyDeliveryBos: [{ required: true, message: '请选择配送范围', trigger: 'blur' }],
+  stock: [
+    { required: true, message: '请输入库存', trigger: 'blur' },
     {
-      pattern: /^1[3-9]\d{9}$/,
-      message: '请输入正确的手机号（11位数字，首位为1，第二位为3-9）',
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value || isNaN(value)) {
+          callback(new Error('请输入有效的库存'));
+        } else if (!Number.isInteger(Number(value)) || Number(value) <= 0) {
+          callback(new Error('库存需为大于0的整数'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  deliveryDays: [
+    { required: true, message: '请输入可交付周期/天', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value || isNaN(value)) {
+          callback(new Error('请输入有效的可交付周期'));
+        } else if (!Number.isInteger(Number(value)) || Number(value) <= 0) {
+          callback(new Error('可交付周期需为大于0的整数'));
+        } else {
+          callback();
+        }
+      },
       trigger: 'blur'
     }
   ],
@@ -220,9 +245,6 @@ const getTableData = async () => {
     // 只取最后一级分类和区域
     const arr = {
       ...queryParams.value,
-      demandCategoryId: queryParams.value.demandCategoryId?.length
-        ? queryParams.value.demandCategoryId[queryParams.value.demandCategoryId.length - 1]
-        : '',
       region: ''
     };
     const res = await hnSupplierSupplyList(arr);
@@ -239,7 +261,7 @@ const getTableData = async () => {
  * 重置筛选条件
  */
 const handleReset = () => {
-  queryParams.value.demandCategoryId = [];
+  queryParams.value.supplyCategoryId = [];
   queryParams.value.region = [];
   queryParams.value.deliveryDistrictCode = '';
   queryParams.value.deliveryCityCode = '';
@@ -255,22 +277,16 @@ const handleAdd = () => {
   quoteForm.value = {
     id: '',
     name: '',
-    demandCategoryId: '',
-    demandDescription: '',
-    quantity: '',
-    deliveryDay: '',
-    deliveryProvinceCode: '',
-    deliveryProvince: '',
-    deliveryCityCode: '',
-    deliveryCity: '',
-    deliveryDistrictCode: '',
-    deliveryDistrict: '',
+    supplyCategoryId: '',
+    supplyDescription: '',
+    deliveryDays: '',
     publishTime: '',
     region: [],
-    supplyDescription: '',
     supplyContact: '',
     supplyPhone: '',
-    supplyPrice: ''
+    supplyPrice: '',
+    stock: '',
+    supplierSupplyDeliveryBos: []
   };
   quoteDialogVisible.value = true;
 };
@@ -283,10 +299,19 @@ const handleEdit = async (row: any) => {
   // 获取详情数据
   const res = await hnSupplierSupplyId(row.id);
   if (res.code === 200) {
+    console.log('编辑数据:', res.data.supplierSupplyDeliveryVos);
+    const arr = Array.isArray(res.data.supplierSupplyDeliveryVos)
+      ? res.data.supplierSupplyDeliveryVos.map((item: any) => [
+          item?.deliveryProvinceCode ?? '',
+          item?.deliveryCityCode ?? '',
+          item?.deliveryAreaCode ?? ''
+        ])
+      : [];
     quoteForm.value = {
       ...res.data,
-      region: [res.data.deliveryProvinceCode, res.data.deliveryCityCode, res.data.deliveryDistrictCode]
+      supplierSupplyDeliveryBos: JSON.parse(JSON.stringify(arr))
     };
+    console.log('编辑数据:', arr);
     quoteDialogVisible.value = true;
   }
 };
@@ -300,7 +325,9 @@ const handleDetail = async (row: any) => {
   if (res.code === 200) {
     quoteForm.value = {
       ...res.data,
-      region: [res.data.deliveryProvinceCode, res.data.deliveryCityCode, res.data.deliveryDistrictCode]
+      supplierSupplyDeliveryBos: Array.isArray(res.data.supplierSupplyDeliveryBos)
+        ? res.data.supplierSupplyDeliveryBos.map((item: any) => [item.deliveryProvinceCode, item.deliveryCityCode, item.deliveryAreaCode])
+        : []
     };
     quoteDialogVisible.value = true;
   }
@@ -310,9 +337,13 @@ const handleDetail = async (row: any) => {
  * 删除供给需求
  */
 const handleDelete = async (row: any) => {
-  await hnSupplierSupplyDelete(row.id);
-  ElMessage.success('删除成功');
-  getTableData();
+  await ElMessageBox.confirm('是否删除该供给需求吗？', '提示', { type: 'warning' });
+
+  const res: any = await hnSupplierSupplyDelete(row.id);
+  if (res?.code === 200) {
+    ElMessage.success('删除成功');
+    getTableData();
+  }
 };
 
 /**
@@ -321,19 +352,21 @@ const handleDelete = async (row: any) => {
 const submitQuote = () => {
   quoteFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
-    const params = {
-      ...quoteForm.value,
-      demandCategoryId: Array.isArray(quoteForm.value.demandCategoryId)
-        ? quoteForm.value.demandCategoryId[quoteForm.value.demandCategoryId.length - 1]
-        : quoteForm.value.demandCategoryId,
-      deliveryProvinceCode: quoteForm.value.region[0] || '',
-      deliveryCityCode: quoteForm.value.region[1] || '',
-      deliveryDistrictCode: quoteForm.value.region[2] || ''
-    };
+    let params;
     if (dialogMode.value === 'add') {
+      params = {
+        ...quoteForm.value,
+        supplierSupplyDeliveryBos: addresList.value
+      };
       await hnSupplierSupplyPost(params);
       ElMessage.success('发布成功');
     } else if (dialogMode.value === 'edit') {
+      // 编辑时只允许修改库存和报价
+      params = {
+        id: quoteForm.value.id,
+        stock: quoteForm.value.stock,
+        supplyPrice: quoteForm.value.supplyPrice
+      };
       await hnSupplierSupplyPut(params);
       ElMessage.success('修改成功');
     }
@@ -347,7 +380,11 @@ const submitQuote = () => {
  * @param value 选中的类型数组
  */
 const handleCategoryChange = (value: any) => {
-  queryParams.value.demandCategoryId = Array.isArray(value) ? value : [value];
+  queryParams.value.supplyCategoryId = value;
+};
+
+const handleCategoryForm = (value: any) => {
+  quoteForm.value.supplyCategoryId = value;
 };
 
 /**
@@ -357,11 +394,23 @@ const handleCategoryChange = (value: any) => {
 const handleAreaChange = (val: any) => {
   queryParams.value.region = Array.isArray(val.regionPath) ? val.regionPath : [val.regionPath];
   queryParams.value.deliveryProvinceCode = val.provinceCode;
-  // queryParams.value.deliveryProvince = val.province;
   queryParams.value.deliveryCityCode = val.cityCode;
-  // queryParams.value.deliveryCity = val.city;
   queryParams.value.deliveryDistrictCode = val.regionCode;
-  // queryParams.value.deliveryDistrict = val.region;
+};
+
+// 配送范围
+const supplierSupplyDeliveryBosForm = (val: any[], result: any[]) => {
+  // 始终同步全部配送范围
+  quoteForm.value.supplierSupplyDeliveryBos = val;
+  addresList.value = result.map((item) => ({
+    deliveryProvinceCode: item.provinceCode,
+    deliveryProvince: item.province || '',
+    deliveryCityCode: item.cityCode || '',
+    deliveryCity: item.city || '',
+    deliveryAreaCode: item.regionCode || '',
+    deliveryArea: item.region || ''
+  }));
+  // console.log('配送范围变化:', val, result);
 };
 
 // 页面初始化

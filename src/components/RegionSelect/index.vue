@@ -98,7 +98,8 @@ const handleChange = (val: string[] | string[][] | undefined) => {
         region: areaData[cityCode]?.[districtCode] || ''
       };
     });
-    emits('regionChange', result);
+
+    emits('regionChange', val, result);
     return;
   }
 

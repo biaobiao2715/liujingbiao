@@ -38,32 +38,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { getQuestionDetail } from '@/api/mall/expert';
 
 const questionImages = ['/path/to/image1.jpg', '/path/to/image2.jpg', '/path/to/image3.jpg', '/path/to/image4.jpg'];
 
-const answers = ref([
-  {
-    avatar: '/path/to/expert-avatar.jpg',
-    name: '肖新明·技术员',
-    time: '2025-10-21 10:20:30',
-    suggestions: [
-      '建议：1. 立即补喷20%联苯虫螨腈+5%甲维盐（各30mL/桶水）复配，间隔6-7天再喷一次，杀大龄虫并延长持效；',
-      '2. 花期，采摘前7天停用，对花安全；',
-      '3. 加展透助剂并选下午后20°C以上时细喷雾，提高触杀效果。'
-    ]
-  },
-  {
-    avatar: '/path/to/expert-avatar.jpg',
-    name: '肖新明·技术员',
-    time: '2025-10-21 09:30:30',
-    suggestions: [
-      '建议：1. 立即补喷20%联苯虫螨腈+5%甲维盐（各30mL/桶水）复配，间隔6-7天再喷一次，杀大龄虫并延长持效；',
-      '2. 花期，采摘前7天停用，对花安全；',
-      '3. 加展透助剂并选下午后20°C以上时细喷雾，提高触杀效果。'
-    ]
-  }
-]);
-
+const answers = ref([]);
 </script>
 
 <style scoped lang="scss">
