@@ -97,9 +97,6 @@
       </el-carousel>
       <el-empty v-else></el-empty>
     </div>
-
-    <!-- 商品详情组件 -->
-    <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" :goodsId="goodsId" />
   </div>
 </template>
 
@@ -109,7 +106,7 @@ import RegionSelect from '@/components/RegionSelect/index.vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import PublishDemandComponent from './PublishDemandComponent.vue';
 import HotGoodsComponent from './HotGoodsComponent.vue';
-import GoodsDetailComponent from './GoodsDetailComponent.vue';
+import { useRouter } from 'vue-router';
 import { supplyHallList, hotRecommendationList, greatGoodsRecommendList } from '@/api/mall/demand';
 
 const publishDemandRef = ref();
@@ -124,11 +121,7 @@ const region = ref([]);
 
 const contactVisible = ref(false);
 
-const showDetail = ref(false); // 是否显示商品详情
-
-const goodsDetailRef = ref(null); // 商品详情组件引用
-
-const goodsId = ref(); // 商品ID
+const router = useRouter();
 
 const contactForm = ref({
   companyName: '',
@@ -221,8 +214,11 @@ const getGoodGoodsList = async () => {
 
 // 点击商品
 const handleClick = (id: string) => {
-  goodsId.value = id;
-  showDetail.value = true;
+  // 跳转到商品详情页面
+  router.push({
+    path: '/mall/goods-detail',
+    query: { id: id }
+  });
 };
 
 // 打开新增需求弹窗

@@ -8,7 +8,7 @@
       <span>Hi, 张三，您好，欢迎来到XXX</span>
     </div>
     <!-- 进入后台管理 -->
-    <!-- <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button> -->
+    <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button>
     <el-button type="primary" @click="handleLogout">退出登录</el-button>
 
     <el-dropdown @command="handleCommand" v-hasPermi="['system:into:myCenter']" style="margin-left: 12px">
@@ -34,7 +34,9 @@
 </template>
 
 <script setup lang="ts">
-import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge } from 'element-plus';
+import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge, ElMessageBox } from 'element-plus';
+import { useRouter } from 'vue-router';
+import { Bell } from '@element-plus/icons-vue';
 import { eventBus } from '@/utils/eventBus';
 import { useUserStore } from '@/store/modules/user';
 

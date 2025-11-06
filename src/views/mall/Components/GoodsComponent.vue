@@ -21,9 +21,6 @@
       :total="total"
       @pagination="fetchGoodsList"
     />
-
-    <!-- 商品详情组件 -->
-    <GoodsDetailComponent v-if="showDetail" ref="goodsDetailRef" :goodsId="goodsId" />
   </div>
 </template>
 
@@ -31,17 +28,12 @@
 import SearchComponent from './SearchComponent.vue'; // 分类组件
 import GoodsItemComponent from './GoodsItemComponent.vue';
 import { goodsList } from '@/api/mall/goods/index';
-import GoodsDetailComponent from './GoodsDetailComponent.vue';
+import { useRouter } from 'vue-router';
 
-const showDetail = ref(false); // 是否显示商品详情
-
-const goodsDetailRef = ref(null); // 商品详情组件引用
-
+const router = useRouter();
 const loading = ref(false); // 加载状态
 
 const goodsData = ref([]); // 商品列表数据
-
-const goodsId = ref(); // 点击的商品id
 
 const total = ref(0); // 总页数
 
@@ -114,8 +106,11 @@ const fetchGoodsList = async () => {
 
 // 点击商品时触发方法
 const handleClick = (id: string) => {
-  goodsId.value = id;
-  showDetail.value = true;
+  // 跳转到商品详情页面
+  router.push({
+    path: '/mall/goods-detail',
+    query: { id: id }
+  });
 };
 </script>
 

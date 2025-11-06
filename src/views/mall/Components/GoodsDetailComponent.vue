@@ -1,21 +1,13 @@
 <template>
   <div class="goods-detail-container">
-    <!-- 比价选择页面 -->
-    <CompareGoodsPage v-if="showComparePage" :goodsId="goodsIdFromRoute as number | string" @startCompare="handleStartCompare" />
-
-    <!-- 比价详情组件 -->
-    <CompareGoodsComponent v-else-if="showCompare" ref="compareGoodsRef" />
-
-    <!-- 商品详情 -->
-    <template v-else>
-      <!-- 面包屑导航 -->
-      <el-breadcrumb separator=">" class="breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item v-for="(item, index) in breadcrumbItems" :key="index">
-          <span v-if="index === breadcrumbItems.length - 1">{{ item }}</span>
-          <span v-else>{{ item }}</span>
-        </el-breadcrumb-item>
-      </el-breadcrumb>
+    <!-- 面包屑导航 -->
+    <el-breadcrumb separator=">" class="breadcrumb">
+      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item v-for="(item, index) in breadcrumbItems" :key="index">
+        <span v-if="index === breadcrumbItems.length - 1">{{ item }}</span>
+        <span v-else>{{ item }}</span>
+      </el-breadcrumb-item>
+    </el-breadcrumb>
 
     <div class="goods-detail" v-loading="loading" v-show="!showOrder">
       <div class="base-info flex gap-20">
@@ -23,13 +15,19 @@
         <div class="goods-image">
           <!-- 当前展示的图片 -->
           <div class="main-image">
-          <el-image :src="baseInfo.currentImage" fit="contain" />
+            <el-image :src="baseInfo.currentImage" fit="contain" />
           </div>
-          <!-- 所有图片 -->
-          <div class="img-list flex gap-12">
-            <el-image v-for="(img, index) in goods?.sysOssLists" :key="index" :src="img.url" fit="cover"
-              class="thumbnail" :class="{ active: baseInfo.currentImage === img.url }"
-              @click="baseInfo.currentImage = img.url" />
+          <!-- 缩略图区域 -->
+          <div class="thumbnails-wrapper">
+            <button class="thumbnails-btn thumbnails-btn-left" @click="scrollThumbnails('left')">‹</button>
+            <div class="thumbnails-container" ref="thumbnailsContainerRef">
+              <div class="thumbnails" ref="thumbnailsRef">
+                <el-image v-for="(img, index) in goods?.sysOssLists" :key="index" :src="img.url" fit="cover"
+                  class="thumbnail" :class="{ active: baseInfo.currentImage === img.url }"
+                  @click="baseInfo.currentImage = img.url" />
+              </div>
+            </div>
+            <button class="thumbnails-btn thumbnails-btn-right" @click="scrollThumbnails('right')">›</button>
           </div>
         </div>
 
@@ -41,18 +39,10 @@
               <h1 class="goods-title">{{ goods?.goodsName }}</h1>
               <!-- 商品属性标签 -->
               <div class="goods-tags">
-                <el-tag
-                  v-for="tag in goods?.goodssEnsureName"
-                  :key="tag"
-                  class="attribute-tag"
-                >
+                <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" class="attribute-tag">
                   {{ tag }}
                 </el-tag>
-                <el-tag
-                  v-for="tag in goods?.goodsAbilityName"
-                  :key="tag"
-                  class="attribute-tag"
-                >
+                <el-tag v-for="tag in goods?.goodsAbilityName" :key="tag" class="attribute-tag">
                   {{ tag }}
                 </el-tag>
               </div>
@@ -79,48 +69,34 @@
 
           <!-- 规格选择 -->
           <div class="spec-section">
-            <div class="spec-label">规格选择</div>
-            <div class="spec-buttons">
-              <el-button
-                  v-for="spec in goods?.hnGoodsSpecificationDataList"
-                  :key="spec.id"
-                :class="{ 'spec-active': baseInfo.currentSpec === spec.id }"
-                class="spec-button"
-                @click="selectSpec(spec.id)"
-              >
-                {{ spec.goodsSpecificationValue }} {{ spec.goodsSpecification }}
+            <div class="spec-title">规格选择</div>
+            <div class="spec-grid">
+              <div v-for="spec in goods?.hnGoodsSpecificationDataList" :key="spec.id"
+                :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
+                @click="selectSpec(spec.id)">
+                {{ spec.goodsSpecificationValue }}{{ spec.goodsSpecification }}
                 <el-icon v-if="baseInfo.currentSpec === spec.id" class="spec-check-icon">
                   <Check />
                 </el-icon>
-              </el-button>
+              </div>
             </div>
-            <div v-if="goods?.hnGoodsSpecificationDataList && goods.hnGoodsSpecificationDataList.length > 4" class="view-more-specs">
-              <el-link type="success" :underline="false">
-                查看其他{{ goods.hnGoodsSpecificationDataList.length - 4 }}个规格
-                <el-icon><ArrowDown /></el-icon>
-              </el-link>
+            <div v-if="goods?.hnGoodsSpecificationDataList && goods.hnGoodsSpecificationDataList.length > 3"
+              class="view-more-specs">
+              <a href="#" class="spec-link">查看其他{{ goods.hnGoodsSpecificationDataList.length - 3 }}个规格</a>
             </div>
           </div>
 
           <!-- 购买数量 -->
           <div class="quantity-section">
-            <span class="quantity-label">购买数量</span>
+            <div class="quantity-title">购买数量</div>
             <el-input-number v-model="baseInfo.quantity" :min="1" @change="updateTotalPrice" />
           </div>
 
           <!-- 操作按钮 -->
-          <div class="actions">
-            <div class="compare-link" @click="operateOrder(1)">
-              <div class="vs-icon">VS</div>
-              <span class="compare-text">加入比价</span>
-            </div>
-            <el-button class="favorite-btn" @click="operateOrder(2)">
-              <el-icon>
-                <ShoppingCart />
-              </el-icon>
-              加入收藏夹
-            </el-button>
-            <el-button class="buy-btn" @click="operateOrder(3)">立即下单</el-button>
+          <div class="action-buttons">
+            <button class="btn btn-compare" @click="operateOrder(1)">加入比价</button>
+            <button class="btn btn-favorite" @click="operateOrder(2)">加入收藏夹</button>
+            <button class="btn btn-buy" @click="operateOrder(3)">立即下单</button>
           </div>
         </div>
       </div>
@@ -131,49 +107,57 @@
         <div class="similar-goods-list">
           <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
             class="similar-goods-item" />
-              </div>
+        </div>
       </div>
 
       <!-- 详情部分 -->
       <div class="detail-section">
-      <div class="editor-hot flex">
-          <div class="detail-content-wrapper">
-            <div class="section-title">商品详情</div>
-            <div class="detail-content">
-              <!-- 顶部大图 -->
-              <div v-if="detailImages.length > 0" class="detail-hero-image">
-                <el-image :src="detailImages[0]" fit="cover" />
-              </div>
+        <div class="info-recommend-wrapper">
+          <!-- 商品详情 -->
+          <div class="product-info">
+            <h2 class="section-title">商品详情</h2>
+            <div class="info-images">
+              <!-- 第一张大图 -->
+              <div v-if="detailImages.length > 0" class="info-image-large"></div>
 
               <!-- 文本描述 -->
-              <div class="detail-text">{{ detailText }}</div>
+              <div class="info-text">{{ detailText }}</div>
 
-              <!-- 图片网格 -->
-              <div v-if="detailImages.length > 1" class="detail-image-gallery">
-                <div class="gallery-left">
-                  <el-image v-if="detailImages[1]" :src="detailImages[1]" fit="cover" />
+              <!-- 图片行 -->
+              <div class="info-image-rows-wrapper">
+                <!-- 顶部行：两个大图并排 -->
+                <div class="info-image-row info-image-row-top">
+                  <div v-if="detailImages.length > 1" class="info-image-large"></div>
+                  <div v-if="detailImages.length > 2" class="info-image-large"></div>
                 </div>
-                <div class="gallery-right">
-                  <el-image v-if="detailImages[2]" :src="detailImages[2]" fit="cover" />
-                  <el-image v-if="detailImages[3]" :src="detailImages[3]" fit="cover" />
+                <!-- 底部行 -->
+                <div class="info-image-row info-image-row-bottom">
+                  <div class="info-image-bottom-left">
+                    <div v-if="detailImages.length > 3" class="info-image-small"></div>
+                  </div>
+                  <div class="info-image-bottom-right">
+                    <div v-if="detailImages.length > 4" class="info-image-small"></div>
+                    <div v-if="detailImages.length > 5" class="info-image-small"></div>
+                  </div>
                 </div>
               </div>
 
               <!-- 底部大图 -->
-              <div v-if="detailImages.length > 4" class="detail-bottom-image">
-                <el-image :src="detailImages[4]" fit="cover" />
-              </div>
+              <div v-if="detailImages.length > 6" class="info-image-large-bottom"></div>
 
-              <!-- 底部三张小图 -->
-              <div v-if="detailImages.length > 5" class="detail-bottom-grid">
-                <el-image v-for="(img, index) in detailImages.slice(5, 8)" :key="index" :src="img" fit="cover"
-                  class="grid-item" />
+              <!-- 三张网格图 -->
+              <div v-if="detailImages.length > 7" class="info-image-grid">
+                <div v-for="(img, index) in detailImages.slice(7, 10)" :key="index" class="info-image-item"></div>
               </div>
             </div>
           </div>
-        <div class="hot-goods">
-            <div class="hot-title">热门推荐</div>
-            <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" class="hot-goods-item" />
+
+          <!-- 热门推荐 -->
+          <div class="hot-recommendations">
+            <h2 class="section-title">热门推荐</h2>
+            <div class="recommendation-list">
+              <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" class="hot-goods-item" />
+            </div>
           </div>
         </div>
       </div>
@@ -181,7 +165,6 @@
 
     <!-- 下单组件 -->
     <PlaceOrderComponent ref="placeOrderRef" v-if="showOrder" />
-    </template>
   </div>
 </template>
 
@@ -194,8 +177,6 @@ import { goodsList, goodsDetail } from '@/api/mall/goods/index';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
-import CompareGoodsPage from './AboutCompareComponents/CompareGoodsPage.vue';
-import CompareGoodsComponent from './AboutCompareComponents/CompareGoodsComponent.vue';
 import { Star, ArrowDown, Check, ShoppingCart } from '@element-plus/icons-vue';
 
 const props = defineProps<{
@@ -220,10 +201,6 @@ const loading = ref(true); // 加载状态
 const placeOrderRef = ref();
 
 const showOrder = ref(false);
-const showComparePage = ref(false);
-const showCompare = ref(false);
-const compareGoodsRef = ref();
-const allCompareGoodsList = ref<any[]>([]);
 
 // 需要经过处理得到的数据
 const baseInfo = reactive<{
@@ -245,6 +222,30 @@ const groupedRelatedGoods = ref([]); // 同类商品
 const hotGoods = ref([]); // 最热商品
 
 const addressCollapse = ref(false); // 地址折叠状态
+
+// 缩略图滚动相关
+const thumbnailsRef = ref<HTMLElement | null>(null);
+const thumbnailsContainerRef = ref<HTMLElement | null>(null);
+let thumbnailScrollPosition = 0;
+const thumbnailScrollStep = 100; // 每次滚动的距离（像素）
+
+// 缩略图滚动
+const scrollThumbnails = (direction: 'left' | 'right') => {
+  if (!thumbnailsRef.value || !thumbnailsContainerRef.value) return;
+
+  const thumbnailWidth = 90 + 10; // 90px宽度 + 10px间距
+
+  if (direction === 'left') {
+    thumbnailScrollPosition = Math.max(0, thumbnailScrollPosition - thumbnailScrollStep);
+  } else {
+    const maxScroll = Math.max(0, thumbnailsRef.value.scrollWidth - thumbnailsContainerRef.value.offsetWidth);
+    thumbnailScrollPosition = Math.min(maxScroll, thumbnailScrollPosition + thumbnailScrollStep);
+  }
+
+  if (thumbnailsRef.value) {
+    thumbnailsRef.value.style.transform = `translateX(-${thumbnailScrollPosition}px)`;
+  }
+};
 
 // 面包屑导航项
 const breadcrumbItems = ref<string[]>([]);
@@ -274,7 +275,7 @@ const selectSpec = (specId: number) => {
 onMounted(async () => {
   // 确保商品ID存在后再加载数据
   if (goodsIdFromRoute.value) {
-  await getGoodsDetail();
+    await getGoodsDetail();
   } else {
     ElMessage.error('缺少商品ID');
     loading.value = false;
@@ -291,24 +292,24 @@ const getGoodsDetail = async () => {
   loading.value = true;
   try {
     const res = await goodsDetail(id);
-  if (res.code === 200) {
+    if (res.code === 200) {
       if (!res.data) {
         ElMessage.error('商品不存在');
         loading.value = false;
         return;
       }
-      
-    goods.value = res.data;
 
-    // 处理商品详情数据
+      goods.value = res.data;
+
+      // 处理商品详情数据
       if (goods.value.sysOssLists && goods.value.sysOssLists.length > 0) {
         baseInfo.currentImage = goods.value.sysOssLists[0]?.url || ''; // 默认展示第一张图片
       }
 
-    baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
+      baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
-    const hnBaseEnterpriseInfo = goods.value.hnBaseEnterpriseInfo; // 企业信息
-    // 发货地址
+      const hnBaseEnterpriseInfo = goods.value.hnBaseEnterpriseInfo; // 企业信息
+      // 发货地址
       if (hnBaseEnterpriseInfo) {
         const addressParts = [];
         if (hnBaseEnterpriseInfo.province) addressParts.push(hnBaseEnterpriseInfo.province);
@@ -338,17 +339,17 @@ const getGoodsDetail = async () => {
 // 更新面包屑导航
 const updateBreadcrumb = () => {
   const items: string[] = [];
-  
+
   // 如果有商品分类名称，添加到面包屑
   if (goods.value?.goodsCategoryName) {
     items.push(goods.value.goodsCategoryName);
   }
-  
+
   // 商品名称作为最后一项
   if (goods.value?.goodsName) {
     items.push(goods.value.goodsName);
   }
-  
+
   breadcrumbItems.value = items;
 };
 
@@ -356,12 +357,16 @@ const updateBreadcrumb = () => {
 const operateOrder = (type: number) => {
   switch (type) {
     case 1:
-        // 加入比价 - 显示比价选择页面
-        if (!goods.value) {
-          ElMessage.warning('商品信息加载中，请稍候');
-          return;
-        }
-        showComparePage.value = true;
+      // 加入比价 - 跳转到比价选择页面
+      if (!goods.value) {
+        ElMessage.warning('商品信息加载中，请稍候');
+        return;
+      }
+      // 跳转到比价页面，传递商品id
+      router.push({
+        path: '/mall/compare-goods',
+        query: { id: goods.value.id }
+      });
       break;
     case 2:
       console.log(goods.value.hnGoodsSpecificationDataList, baseInfo.currentSpec);
@@ -402,8 +407,8 @@ const getInitPrice = (specs) => {
   if (specs && specs.length > 0) {
     const prices = specs.map((spec) => parseFloat(spec.goodsPrice || 0)).filter(p => p > 0);
     if (prices.length > 0) {
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
       return minPrice === maxPrice ? `${minPrice.toFixed(2)}` : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
     }
   }
@@ -431,17 +436,17 @@ const getRelatedGoods = async () => {
     return;
   }
   try {
-  const res = await goodsList({
-    pageNum: 1,
-    pageSize: 9999,
-    id: goods.value.id,
-    sortManner: '3', // 价格最低
-    goodsCategoryId: goods.value.goodsCategoryId,
+    const res = await goodsList({
+      pageNum: 1,
+      pageSize: 9999,
+      id: goods.value.id,
+      sortManner: '3', // 价格最低
+      goodsCategoryId: goods.value.goodsCategoryId,
       provinceCode: goods.value.hnBaseEnterpriseInfo?.provinceCode,
       cityCode: goods.value.hnBaseEnterpriseInfo?.cityCode,
       districtCode: goods.value.hnBaseEnterpriseInfo?.districtCode
-  });
-  if (res.code === 200) {
+    });
+    if (res.code === 200) {
       groupedRelatedGoods.value = groupArray(res.rows || []);
     }
   } catch (error) {
@@ -455,16 +460,16 @@ const getHotGoods = async () => {
     return;
   }
   try {
-  const res = await goodsList({
-    pageNum: 1,
-    pageSize: 5,
-    sortManner: '0', // 销量最高
-    goodsCategoryId: goods.value.goodsCategoryId,
+    const res = await goodsList({
+      pageNum: 1,
+      pageSize: 5,
+      sortManner: '0', // 销量最高
+      goodsCategoryId: goods.value.goodsCategoryId,
       provinceCode: goods.value.hnBaseEnterpriseInfo?.provinceCode,
       cityCode: goods.value.hnBaseEnterpriseInfo?.cityCode,
       districtCode: goods.value.hnBaseEnterpriseInfo?.districtCode
-  });
-  if (res.code === 200) {
+    });
+    if (res.code === 200) {
       hotGoods.value = res.rows || [];
     }
   } catch (error) {
@@ -484,13 +489,6 @@ const groupArray = (array: any[], groupSize: number = 5) => {
   }, []);
 };
 
-// 处理开始对比事件
-const handleStartCompare = (compareList: any[]) => {
-  allCompareGoodsList.value = compareList;
-  showComparePage.value = false;
-  showCompare.value = true;
-};
-
 defineExpose({
   getGoodsDetail
 });
@@ -498,40 +496,61 @@ defineExpose({
 
 <style scoped lang="scss">
 .goods-detail-container {
-  padding: 20px 210px;
-  background-color: #F6F7FB ;
+  background-color: #f5f5f5;
+  min-height: 100vh;
 
   .breadcrumb {
-    margin-bottom: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px 20px;
+    color: #999;
     font-size: 14px;
-    color: #606266;
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
+    background-color: #f5f5f5;
+
+    :deep(.el-breadcrumb__item) {
+      .el-breadcrumb__inner {
+        color: #999;
+
+        &.is-link {
+          color: #999;
+          text-decoration: none;
+
+          &:hover {
+            color: #4CAF50;
+          }
+        }
+      }
+    }
   }
 }
 
 .goods-detail {
-  padding: 20px;
-  max-width: 1494px;
+  max-width: 1200px;
   margin: 0 auto;
-  background-color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
   .base-info {
-    margin-bottom: 40px;
+    background: white;
+    padding: 20px;
+    margin-bottom: 0;
+    display: flex;
+    gap: 30px;
   }
 
   .goods-image {
-    width: 540px;
+    width: 400px;
     flex-shrink: 0;
 
     .main-image {
       width: 100%;
-      height: 540px;
-      border: 1px solid #ebeef5;
-      border-radius: 4px;
+      height: 400px;
+      border-radius: 8px;
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
+      position: relative;
 
       :deep(.el-image) {
         width: 100%;
@@ -539,25 +558,71 @@ defineExpose({
       }
     }
 
-    .img-list {
+    .thumbnails-wrapper {
+      position: relative;
+    }
+
+    .thumbnails-container {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .thumbnails {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      transition: transform 0.3s ease;
+    }
 
-      .thumbnail {
-        width: 124px;
-        height: 124px;
-        border: 2px solid #ebeef5;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s;
+    .thumbnail {
+      width: 90px;
+      height: 90px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.3s;
 
-        &.active {
-          border-color: #67c23a;
-        }
+      &.active {
+        border-color: #4CAF50;
+      }
 
-        &:hover {
-          border-color: #67c23a;
-        }
+      &:hover {
+        border-color: #4CAF50;
+      }
+    }
+
+    .thumbnails-btn {
+      position: absolute;
+      top: 0;
+      width: 20px;
+      height: 90px;
+      background-color: rgba(0, 0, 0, 0.4);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+      z-index: 10;
+
+      &.thumbnails-btn-left {
+        left: 0;
+        border-radius: 4px 0 0 4px;
+      }
+
+      &.thumbnails-btn-right {
+        right: 0;
+        border-radius: 0 4px 4px 0;
+      }
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+
+      &:active {
+        background-color: rgba(0, 0, 0, 0.8);
       }
     }
   }
@@ -568,58 +633,67 @@ defineExpose({
     flex-direction: column;
     gap: 20px;
 
-      .title-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 20px;
-        margin-bottom: 16px;
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 0;
 
-        .title-left {
-          flex: 1;
+      .title-left {
+        flex: 1;
 
-          .goods-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #303133;
-            margin: 0 0 12px 0;
-            line-height: 1.4;
-          }
+        .goods-title {
+          font-size: 24px;
+          font-weight: bold;
+          color: #000;
+          margin: 0 0 15px 0;
+          line-height: 1.4;
+        }
 
-          .goods-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+        .goods-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 0;
 
-            .attribute-tag {
-              border: 1px solid #a8d8a8;
-              background-color: transparent;
-              color: #909399;
-              font-size: 12px;
-              padding: 2px 8px;
-              border-radius: 2px;
-              margin: 0;
-            }
+          .attribute-tag {
+            padding: 4px 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin: 0;
           }
         }
+      }
 
       .title-actions {
         display: flex;
         gap: 16px;
         flex-shrink: 0;
+        align-items: flex-start;
+        padding-top: 0;
 
         .action-link {
           cursor: pointer;
           transition: color 0.3s;
+          text-decoration: none;
+          background: none;
+          border: none;
+          padding: 0;
+          font-family: inherit;
+          line-height: 1.5;
 
           &.phone-link {
             color: #FFA113;
-            font-size: 16px;
+            font-size: 14px;
           }
 
           &.report-link {
             color: #EF4D0B;
-            font-size: 16px;
+            font-size: 14px;
           }
 
           &:hover {
@@ -630,230 +704,168 @@ defineExpose({
     }
 
     .price-section {
-      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-      background-image: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgba(255, 255, 255, 0.1) 10px,
-        rgba(255, 255, 255, 0.1) 20px
-      );
-      padding: 16px 20px;
-      border-radius: 4px;
-      margin-bottom: 20px;
 
       .price {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: bold;
-        color: #ff6b00;
+        color: #e53935;
       }
     }
 
     .shipping-address {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
       font-size: 14px;
-      color: #303133;
+      color: #333;
 
       .label {
-        color: #606266;
-        flex-shrink: 0;
+        color: #333;
       }
 
       .address-text {
-        flex-shrink: 0;
-        max-width: 100%;
+        color: #666;
       }
 
       .address-icon {
         cursor: pointer;
-        color: #909399;
+        color: #666;
         transition: transform 0.3s;
-        flex-shrink: 0;
         margin-left: 4px;
 
         &:hover {
-          color: #67c23a;
+          color: #4CAF50;
         }
       }
     }
 
     .spec-section {
-      .spec-label {
+
+      .spec-title {
         font-size: 14px;
-        color: #606266;
-        margin-bottom: 12px;
+        color: #666;
+        margin-bottom: 10px;
       }
 
-      .spec-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
+      .spec-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 10px;
+      }
 
-        .spec-button {
-          border: 1px solid #dcdfe6;
-          background-color: #fff;
-          color: #606266;
-          padding: 8px 16px;
-          border-radius: 4px;
-          transition: all 0.3s;
-          position: relative;
+      .spec-item {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        position: relative;
+        transition: all 0.3s;
 
-          &:hover {
-            border-color: #67c23a;
-            color: #67c23a;
-          }
+        &:hover {
+          border-color: #4CAF50;
+        }
 
-          &.spec-active {
-            border-color: #67c23a;
-            border-width: 2px;
-            color: #67c23a;
-            background-color: #f0f9ff;
+        &.selected {
+          background-color: #4CAF50;
+          color: white;
+          border-color: #4CAF50;
 
-            .spec-check-icon {
-              position: absolute;
-              bottom: 2px;
-              right: 2px;
-              font-size: 14px;
-              color: #67c23a;
-            }
+          .spec-check-icon {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 14px;
+            color: white;
           }
         }
       }
 
-      .view-more-specs {
-        margin-top: 12px;
-        font-size: 13px;
+      .spec-link {
+        color: #2196F3;
+        font-size: 14px;
+        text-decoration: none;
 
-        :deep(.el-link) {
-          color: #67c23a;
-
-          .el-icon {
-            margin-left: 4px;
-            font-size: 12px;
-          }
+        &:hover {
+          text-decoration: underline;
         }
       }
     }
 
     .quantity-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      margin-bottom: 20px;
 
-      .quantity-label {
+      .quantity-title {
         font-size: 14px;
-        color: #606266;
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      :deep(.el-input-number) {
+        width: auto;
       }
     }
 
-    .actions {
+    .action-buttons {
       display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 20px;
+      gap: 15px;
 
-      .compare-link {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 16px;
-        border: 1px solid #dcdfe6;
+      .btn {
+        padding: 12px 30px;
         border-radius: 4px;
-        background-color: #fff;
+        font-size: 16px;
         cursor: pointer;
+        border: none;
         transition: all 0.3s;
+      }
 
-        .vs-icon {
-          width: 28px;
-          height: 28px;
-          border: 1px solid #dcdfe6;
-          border-radius: 2px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: bold;
-          color: #909399;
-        }
-
-        .compare-text {
-          color: #909399;
-          font-size: 14px;
-        }
+      .btn-compare {
+        background: white;
+        border: 1px solid #ddd;
+        color: #666;
 
         &:hover {
-          border-color: #67c23a;
-
-          .vs-icon {
-            border-color: #67c23a;
-            color: #67c23a;
-          }
-
-          .compare-text {
-            color: #67c23a;
-          }
+          border-color: #4CAF50;
+          color: #4CAF50;
         }
       }
 
-      .favorite-btn {
-        width: 160px;
-        height: 50px;
-        background: rgba(16, 140, 88, 0.1);
-        border-radius: 2px;
-        border: 1px solid #108C58;
-        color: #108C58;
-        font-size: 20px;
-        padding: 0;
+      .btn-favorite {
+        background: #4CAF50;
+        color: white;
 
         &:hover {
-          background: rgba(16, 140, 88, 0.15);
-          border-color: #108C58;
-        }
-
-        .el-icon {
-          margin-right: 4px;
+          background: #45a049;
         }
       }
 
-      .buy-btn {
-        width: 160px;
-        height: 50px;
-        background: #108C58;
-        border-radius: 2px;
-        border: 1px solid #108C58;
-        color: #FFFFFF;
-        font-size: 20px;
-        padding: 0;
+      .btn-buy {
+        background: #ff9800;
+        color: white;
 
         &:hover {
-          background: #0e7a4a;
-          border-color: #0e7a4a;
+          background: #f57c00;
         }
       }
     }
   }
 
   .similar-goods-section {
-    margin: 40px 0;
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
 
     .section-title {
       font-size: 18px;
       font-weight: bold;
-      color: #303133;
-      padding: 12px 0;
-      border-bottom: 1px solid #ebeef5;
       margin-bottom: 20px;
+      color: #000;
     }
 
     .similar-goods-list {
       display: flex;
-      gap: 16px;
+      gap: 15px;
       overflow-x: auto;
-      padding-bottom: 10px;
 
       .similar-goods-item {
         flex-shrink: 0;
@@ -878,130 +890,154 @@ defineExpose({
   }
 
   .detail-section {
-    margin-top: 40px;
+    margin-top: 20px;
 
-    .editor-hot {
-      gap: 20px;
-
-      .detail-content-wrapper {
-        flex: 1;
-        min-width: 0;
-
-        .section-title {
-          font-size: 18px;
-          font-weight: bold;
-          color: #303133;
-          padding: 12px 0;
-          border-bottom: 1px solid #ebeef5;
-          margin-bottom: 20px;
-        }
-
-        .detail-content {
-          .detail-hero-image {
-            width: 100%;
-            margin-bottom: 24px;
-            border-radius: 4px;
-            overflow: hidden;
-
-            :deep(.el-image) {
-              width: 100%;
-              height: auto;
-              max-height: 600px;
-            }
-          }
-
-          .detail-text {
-            font-size: 14px;
-            line-height: 1.8;
-            color: #606266;
-            margin-bottom: 24px;
-            white-space: pre-wrap;
-            word-break: break-word;
-          }
-
-          .detail-image-gallery {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-
-            .gallery-left {
-              flex: 2;
-              border-radius: 4px;
-              overflow: hidden;
-
-              :deep(.el-image) {
-                width: 100%;
-                height: 100%;
-                min-height: 300px;
-              }
-            }
-
-            .gallery-right {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-
-              :deep(.el-image) {
-                width: 100%;
-                flex: 1;
-                min-height: 140px;
-                border-radius: 4px;
-                overflow: hidden;
-              }
-            }
-          }
-
-          .detail-bottom-image {
-            width: 100%;
-            margin-top: 24px;
-            margin-bottom: 24px;
-            border-radius: 4px;
-            overflow: hidden;
-
-            :deep(.el-image) {
-              width: 100%;
-              height: auto;
-              max-height: 500px;
-            }
-          }
-
-          .detail-bottom-grid {
+    .info-recommend-wrapper {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
       display: flex;
-            gap: 12px;
-            margin-top: 24px;
+      gap: 20px;
+    }
 
-            .grid-item {
-              flex: 1;
-              border-radius: 4px;
-              overflow: hidden;
-              min-height: 200px;
+    .product-info {
+      flex: 0 0 70%;
+      padding: 0;
+      margin-bottom: 0;
 
-              :deep(.el-image) {
-                width: 100%;
-                height: 100%;
-              }
-            }
-          }
+      .section-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .info-images {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .info-image-large {
+        width: 100%;
+        height: 300px;
+        background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 4px;
+      }
+
+      .info-image-large-bottom {
+        width: 100%;
+        height: 300px;
+        background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 4px;
+      }
+
+      .info-text {
+        line-height: 1.8;
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 14px;
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+      }
+
+      .info-image-rows-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .info-image-row-top {
+        display: flex;
+        gap: 10px;
+
+        .info-image-large {
+          flex: 1;
+          height: 200px;
         }
       }
 
-      .hot-goods {
-        width: 240px;
-        flex-shrink: 0;
+      .info-image-row-bottom {
+        display: flex;
+        gap: 10px;
+      }
 
-        .hot-title {
-          font-size: 16px;
-          font-weight: bold;
-          color: #303133;
-          padding: 12px 0;
-          border-bottom: 1px solid #ebeef5;
-          margin-bottom: 16px;
-        }
+      .info-image-bottom-left {
+        flex: 1;
 
-        .hot-goods-item {
-          margin-bottom: 16px;
+        .info-image-small {
+          width: 100%;
+          height: 250px;
+          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          border-radius: 4px;
         }
+      }
+
+      .info-image-bottom-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .info-image-small {
+          width: 100%;
+          height: 120px;
+          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          border-radius: 4px;
+        }
+      }
+
+      .info-image-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+
+        .info-image-item {
+          width: 100%;
+          padding-bottom: 100%;
+          position: relative;
+          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          border-radius: 4px;
+        }
+      }
+    }
+
+    .hot-recommendations {
+      flex: 0 0 30%;
+      padding: 0;
+
+      .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .recommendation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .hot-goods-item {
+        width: 100%;
+        min-width: auto;
       }
     }
   }

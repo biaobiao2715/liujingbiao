@@ -1,10 +1,7 @@
 <template>
   <div class="compare-goods-page">
-    <!-- 比价详情页面 -->
-    <CompareGoodsComponent v-if="showCompareDetail" :compareList="allCompareGoodsList" />
-
     <!-- 对比商品选择页 -->
-    <div v-else class="page-content">
+    <div class="page-content">
       <!-- 左侧：商品列表 -->
       <div class="goods-list-section">
         <!-- 筛选/排序区域 -->
@@ -134,18 +131,10 @@ import { Close } from '@element-plus/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { goodsCompareList, goodsDetail, comparePrices } from '@/api/mall/goods/index';
 import RegionSelect from '@/components/RegionSelect/index.vue';
-import CompareGoodsComponent from './CompareGoodsComponent.vue';
 import type { Goods } from '../../mall';
 
 const route = useRoute();
 const router = useRouter();
-
-const emit = defineEmits<{
-  startCompare: [compareList: any[]];
-}>();
-
-const showCompareDetail = ref(false);
-const allCompareGoodsList = ref<any[]>([]);
 
 const props = defineProps<{
   goodsId?: number | string;
@@ -364,18 +353,16 @@ const startCompare = async () => {
     console.log('比价响应结果:', res);
     
     if (res && res.code === 200) {
-      // 保存并显示对比详情页
+      // 保存并跳转到对比详情页
       saveToLocalStorage();
-      // 构建完整的对比商品列表（包含当前商品和对比商品）
-      const fullCompareList: any[] = [];
-      if (currentGoods.value) {
-        fullCompareList.push(currentGoods.value);
-      }
-      fullCompareList.push(...compareGoodsList.value);
-      allCompareGoodsList.value = fullCompareList;
-      showCompareDetail.value = true;
-      // 触发事件，通知父组件
-      emit('startCompare', fullCompareList);
+      // 跳转到对比详情页，传递商品列表数据
+      router.push({
+        path: '/mall/compare-detail',
+        query: {
+          id: params.id,
+          compareIds: compareIds.join(',')
+        }
+      });
     } else {
       ElMessage.error(res?.msg || '获取比价数据失败');
     }

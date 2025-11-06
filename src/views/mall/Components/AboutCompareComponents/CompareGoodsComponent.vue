@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { goodsDetail, comparePrices } from '@/api/mall/goods/index';
 import type { Goods } from '../../mall';
@@ -38,7 +38,6 @@ interface CompareGoodsItem extends Partial<Goods> {
 
 const props = defineProps<{
   goodsList?: CompareGoodsItem[];
-  compareList?: any[];
 }>();
 
 const route = useRoute();
@@ -122,20 +121,8 @@ const loadCompareDataFromRoute = async () => {
 };
 
 onMounted(() => {
-  // 优先使用 props.compareList
-  if (props.compareList && props.compareList.length > 0) {
-    compareGoodsList.value = props.compareList.map((goods: any) => {
-      // 处理价格显示
-      const price = goods.hnGoodsSpecificationDataList?.[0]?.goodsPrice || '0';
-      return {
-        ...goods,
-        price: price.toString(),
-        location: goods.hnBaseEnterpriseInfo?.province
-      };
-    });
-    saveToLocalStorage();
-  } else if (props.goodsList && props.goodsList.length > 0) {
-    // 其次使用 props.goodsList
+  // 如果传入了商品列表，使用传入的列表
+  if (props.goodsList && props.goodsList.length > 0) {
     compareGoodsList.value = props.goodsList.map(goods => {
       // 处理价格显示
       const price = goods.hnGoodsSpecificationDataList?.[0]?.goodsPrice || '0';
@@ -151,22 +138,6 @@ onMounted(() => {
     loadCompareDataFromRoute();
   }
 });
-
-// 监听 props.compareList 变化
-watch(() => props.compareList, (newList) => {
-  if (newList && newList.length > 0) {
-    compareGoodsList.value = newList.map((goods: any) => {
-      // 处理价格显示
-      const price = goods.hnGoodsSpecificationDataList?.[0]?.goodsPrice || '0';
-      return {
-        ...goods,
-        price: price.toString(),
-        location: goods.hnBaseEnterpriseInfo?.province
-      };
-    });
-    saveToLocalStorage();
-  }
-}, { immediate: true });
 
 defineExpose({
   addGoods,
