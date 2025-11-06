@@ -41,14 +41,14 @@
             </div>
           </el-card>
         </el-col>
-        <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" />
+        <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
       </el-row>
       <!-- 会议 -->
       <div class="meeting-list" v-else>
         <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleDetail('meetingDetail', meeting.id)">
           <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
         </div>
-        <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" />
+        <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" class="margin-center" />
       </div>
     </el-card>
   </div>
@@ -96,7 +96,6 @@ const getMeetingDescription = (meeting: any) => {
 // 点击课程或会议时触发方法，传递课程或会议数据
 const handleDetail = (type: string, id: string) => {
   console.log(id);
-
   emit('detailChange', { type, id });
 };
 </script>
@@ -113,7 +112,7 @@ const handleDetail = (type: string, id: string) => {
       cursor: pointer;
     }
     .meeting-title:hover {
-     color: var(--el-color-primary);
+      color: var(--el-color-primary);
     }
   }
 }

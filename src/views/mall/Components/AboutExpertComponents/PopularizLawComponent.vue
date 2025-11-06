@@ -12,7 +12,7 @@
         <div class="data-list">
           <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div class="point"></div>
-            <div>{{ item.activityTitle || item.paperTitle }}</div>
+            <div>{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
           </div>
         </div>
       </el-scrollbar>
@@ -31,11 +31,11 @@ const emit = defineEmits(['detailChange']);
 const loading = ref(false);
 
 const tabsList = [
-  { label: '国家政策法规', value: 'policy' },
-  { label: '普法活动', value: 'activity' },
-  { label: '普法白皮书', value: 'whitepaper' }
+  { label: '国家政策法规', value: 'policyDetail' },
+  { label: '普法活动', value: 'lawContentDetail' },
+  { label: '普法白皮书', value: 'whitepaperDetail' }
 ];
-const activeTab = ref('policy');
+const activeTab = ref('policyDetail');
 
 const dataList = ref([]);
 const pageNum = ref(1);
@@ -47,7 +47,6 @@ onMounted(() => {
 });
 
 const handleTabChange = (tab: any) => {
-  console.log('当前选中的标签:', tab);
   resetData();
   getDataList();
 };
@@ -62,9 +61,9 @@ const getDataList = async () => {
   if (!hasMore.value) return;
   loading.value = true;
   try {
-    const res: any = await (activeTab.value === 'policy'
+    const res: any = await (activeTab.value === 'policyDetail'
       ? getContentList({ pageNum: pageNum.value, pageSize })
-      : activeTab.value === 'activity'
+      : activeTab.value === 'lawContentDetail'
         ? getActivityList({ pageNum: pageNum.value, pageSize })
         : getWhitePaperList({ pageNum: pageNum.value, pageSize }));
     if (res.code === 200) {
@@ -85,8 +84,7 @@ const loadMore = () => {
 };
 
 const handleDetail = (id: string) => {
-  console.log(id);
-  emit('detailChange', { type: 'lawContentDetail', id });
+  emit('detailChange', { type: activeTab.value, id });
 };
 </script>
 

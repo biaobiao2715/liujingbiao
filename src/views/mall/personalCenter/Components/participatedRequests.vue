@@ -51,7 +51,7 @@
                     {{ getTitle(item) }}
                   </div>
                   <div class="flex-between meta-line">
-                    <dict-text :options="meeting_type" :value="getType(item)" />
+                    <dict-text :options="state.activeTab == '1' ? meeting_type : legal_popularize_activity_type" :value="getType(item)" />
                     <el-button type="primary" @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消报名 </el-button>
                   </div>
                   <div>{{ getTime(item) }}</div>
@@ -82,7 +82,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { participateCategoryList, participateCategoryPost, FavoriteItem } from '@/api/mall/personalCenter/participatedRequests';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { meeting_type } = toRefs<any>(proxy?.useDict('meeting_type'));
+const { meeting_type, legal_popularize_activity_type } = toRefs<any>(proxy?.useDict('meeting_type', 'legal_popularize_activity_type'));
 
 // 本地占位图（可根据实际资源调整路径）
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
@@ -136,8 +136,9 @@ function onUnfav(item: any) {
       state.opLoadingId = item.id as number;
       await participateCategoryPost({
         categoryType: state.activeTab,
-        // activityEnrollList
-        ...item
+        id: item.id,
+        activityType: item.activityType,
+        activityEnrollBo: item
       });
       ElMessage.success('已取消收藏');
       reload();

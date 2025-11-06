@@ -105,6 +105,10 @@
   gap: 24px;
 }
 
+.margin-center {
+  margin: 0 auto;
+}
+
 // 覆盖详情的form表单样式（去除input等组件的边框）
 .detail-form {
   .el-input__wrapper,

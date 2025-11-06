@@ -44,7 +44,14 @@
       </el-table-column>
       <el-table-column label="操作" width="120" align="center">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['grain:hnPurchaseQuote:add']" text type="primary" size="small" @click="handleQuote(scope.row)"
+          <el-button
+            v-if="scope.row.hasQuote == '0'"
+            v-throttle
+            v-hasPermi="['grain:hnPurchaseQuote:add']"
+            text
+            type="primary"
+            size="small"
+            @click="handleQuote(scope.row)"
             >立即报价</el-button
           >
         </template>
@@ -271,6 +278,7 @@ const handleQuote = (row: any) => {
     region: [row.deliveryProvinceCode || '', row.deliveryCityCode || '', row.deliveryDistrictCode || '']
   };
   quoteDialogVisible.value = true;
+  quoteFormRef.value.clearValidate(); // 清除校验状态
 };
 
 /**
@@ -289,6 +297,7 @@ const submitQuote = () => {
       };
       await hnPurchaseQuotePost(arr);
       ElMessage.success('报价提交成功');
+      getTableData();
       quoteDialogVisible.value = false;
     }
   });

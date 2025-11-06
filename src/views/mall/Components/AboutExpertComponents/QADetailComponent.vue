@@ -2,33 +2,33 @@
   <el-card class="qa-detail-card">
     <!-- 问题部分 -->
     <div class="qa-question">
-      <div class="question-title">豆角，10月19日昨晚用联苯虫螨腈杀虫剂喷药...</div>
+      <div class="question-title">{{ answers?.questionContent }}</div>
       <div class="question-images">
-        <div class="image-item" v-for="image in questionImages" :key="image">
-          <img :src="image" alt="问题图片" />
+        <div class="image-item" v-for="image in answers?.hnCommonRelevanceFilesVos" :key="image">
+          <div v-for="item in image.remoteOssVos" :key="item">
+            <img :src="item.url" width="120" />
+          </div>
         </div>
       </div>
       <div class="question-info">
-        <span>广西采购商</span>
-        <span>提问于2025-10-20 10:00:30</span>
+        <span>{{ '提问人 ' + answers?.questionUser }}</span>
+        <span>{{ '提问于 ' + answers?.publishTime }}</span>
       </div>
     </div>
 
     <!-- 回答部分 -->
     <div class="qa-answer">
       <el-scrollbar class="answer-scroll">
-        <div class="answer-item" v-for="(answer, index) in answers" :key="index">
+        <div class="answer-item" v-for="(answer, index) in answers?.hnAnswerVoList" :key="index">
           <div class="expert-info">
-            <img class="expert-avatar" :src="answer.avatar" alt="专家头像" />
+            <!-- <img class="expert-avatar" :src="answer.avatar" /> -->
             <div class="expert-details">
               <span>{{ answer.name }}</span>
               <span>{{ answer.time }}</span>
             </div>
           </div>
           <div class="answer-content">
-            <div v-for="(suggestion, idx) in answer.suggestions" :key="idx">
-              {{ suggestion }}
-            </div>
+            {{ answer.answerContent }}
           </div>
         </div>
       </el-scrollbar>
@@ -40,9 +40,28 @@
 import { ref } from 'vue';
 import { getQuestionDetail } from '@/api/mall/expert';
 
+const props = defineProps({
+  id: {
+    type: String,
+    required: true
+  }
+});
 const questionImages = ['/path/to/image1.jpg', '/path/to/image2.jpg', '/path/to/image3.jpg', '/path/to/image4.jpg'];
 
-const answers = ref([]);
+const answers = ref();
+
+onMounted(() => {
+  fetchQuestionDetail();
+});
+
+// 获取问答详情
+const fetchQuestionDetail = async () => {
+  const response = await getQuestionDetail(props.id);
+  if (response.code === 200) {
+    answers.value = response.data;
+  }
+  console.log(answers.value);
+};
 </script>
 
 <style scoped lang="scss">
