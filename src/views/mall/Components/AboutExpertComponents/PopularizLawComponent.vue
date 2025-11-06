@@ -12,7 +12,7 @@
         <div class="data-list">
           <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div class="point"></div>
-            <div>{{ item.activityTitle || item.paperTitle }}</div>
+            <div>{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
           </div>
         </div>
       </el-scrollbar>
@@ -47,7 +47,6 @@ onMounted(() => {
 });
 
 const handleTabChange = (tab: any) => {
-  console.log('当前选中的标签:', tab);
   resetData();
   getDataList();
 };

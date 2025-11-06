@@ -1,6 +1,6 @@
 <template>
   <div class="expert-container">
-    <div class="show-area" v-if="showArea === 'area'">
+    <div class="show-area" v-show="showArea === 'area'">
       <!-- 专家咨询 -->
       <ConsultationComponent @detailChange="showDetail" />
       <!-- 专家问答 -->
@@ -16,21 +16,30 @@
       <!-- 直播 -->
       <LivingComponent @detailChange="showDetail" />
     </div>
-    <!-- 问答详情 -->
-    <QADetailComponent v-if="showArea === 'qaDetail'" />
-    <!-- 文章详情 -->
-    <EssayDetailComponent v-if="showArea === 'essayDetail'" />
-    <!-- 课程详情 -->
-    <CourseDetailComponent v-if="showArea === 'courseDetail'" :id="id" />
-    <!-- 会议详情 -->
-    <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
-    <!-- 普法内容详情 -->
-    <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
+    <div v-show="showArea !== 'area'">
+      <!-- 面包屑导航 -->
+      <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
+        <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">专家专区</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item>
+      </el-breadcrumb>
+      <!-- 问答详情 -->
+      <QADetailComponent v-if="showArea === 'qaDetail'" :id="id" />
+      <!-- 文章详情 -->
+      <EssayDetailComponent v-if="showArea === 'essayDetail'" :id="id" />
+      <!-- 课程详情 -->
+      <CourseDetailComponent v-if="showArea === 'courseDetail'" :id="id" />
+      <!-- 会议详情 -->
+      <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
+      <!-- 普法内容详情 -->
+      <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { ArrowRight } from '@element-plus/icons-vue';
+
 import ConsultationComponent from './AboutExpertComponents/ConsultationComponent.vue'; // 咨询组件
 import QAComponent from './AboutExpertComponents/QAComponent.vue'; // 问答组件
 import EssayComponent from './AboutExpertComponents/EssayComponent.vue'; // 文章组件
@@ -46,12 +55,30 @@ import LawContentDetailComponent from './AboutExpertComponents/LawContentDetailC
 type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meetingDetail' | 'livingDetail' | 'lawContentDetail';
 
 const showArea = ref('area');
-
+// const secondTitle=ref(); // 二级菜单名称 根据showAreaType判断
 const id = ref(null);
+
+const secondTitle = computed(() => {
+  switch (showArea.value) {
+    case 'qaDetail':
+      return '问答详情';
+    case 'essayDetail':
+      return '文章详情';
+    case 'courseDetail':
+      return '课程详情';
+    case 'meetingDetail':
+      return '会议详情';
+    case 'livingDetail':
+      return '直播详情';
+    case 'lawContentDetail':
+      return '普法内容详情';
+    default:
+      return '';
+  }
+});
 
 // 展示对应的详情组件
 const showDetail = (incomeData: { type: showAreaType; id: string }) => {
-  console.log(incomeData);
   id.value = incomeData.id;
   showArea.value = incomeData.type;
 };

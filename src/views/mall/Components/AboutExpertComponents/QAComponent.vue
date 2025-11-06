@@ -3,10 +3,16 @@
   <div class="qa-container">
     <el-card>
       <template #header>
-        <div class="qa-title">专家问答</div>
+        <div class="flex-center-between">
+          <div class="qa-title">专家问答</div>
+          <el-button type="text" @click="toggleExpand">
+            <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
+            <el-icon v-else size="32"><ArrowDownBold /></el-icon>
+          </el-button>
+        </div>
       </template>
       <el-row :gutter="20">
-        <el-col :span="8" v-for="(item, index) in qaList" :key="index" @click="handleClick(item)">
+        <el-col :span="8" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 3">
           <el-card class="qa-card" shadow="hover">
             <div class="qa-question">
               <div class="qa-icon question-icon">问</div>
@@ -36,12 +42,19 @@ const emit = defineEmits(['detailChange']);
 
 const qaList = ref();
 
+const isExpanded = ref(false);
+
 onMounted(() => {
   getQuestionList();
 });
 
-const handleClick = (item) => {
-  emit('detailChange', { type: 'qaDetail', data: item });
+const handleDetail = (id: string) => {
+  console.log(id);
+  emit('detailChange', { type: 'qaDetail', id });
+};
+
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value;
 };
 
 // 获取问答列表

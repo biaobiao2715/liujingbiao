@@ -20,7 +20,9 @@
         会议状态：<el-tag>{{ getActivityStatus(detail?.activityStatus) }}</el-tag>
       </div>
       <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button type="primary" @click="handleApply" v-if="detail?.activityStatus === '1'">立即报名</el-button>
+      <el-button :type="detail?.isEnrolled === '1' ? 'info' : 'primary'" @click="handleApply" v-if="detail?.activityStatus === '1'">{{
+        detail?.isEnrolled === '1' ? '取消报名' : '立即报名'
+      }}</el-button>
     </div>
 
     <!-- 分割线 -->
@@ -53,11 +55,15 @@ const detail = ref();
 
 onMounted(() => {
   // 根据传入的ID获取课程详情
-  getActivityDetail(props.id).then((res) => {
-    console.log(res);
-    detail.value = res.data || {};
-  });
+  fetchActivityDetail();
 });
+// 获取活动详情
+const fetchActivityDetail = async () => {
+  const res = await getActivityDetail(props.id);
+  if (res.code === 200) {
+    detail.value = res.data || {};
+  }
+};
 
 // 会议状态 会议状态（0：草稿 1：待开始 2：进行中 3：已结束 99：已取消）
 const getActivityStatus = (status: string) => {
@@ -79,12 +85,21 @@ const getActivityStatus = (status: string) => {
 
 // 报名
 const handleApply = async () => {
-  const res = await activityApply({ id: props.id, categoryType: '2', activityEnrollBo: { ...detail.value } });
-  if (res.code === 200) {
-    ElMessage.success('报名成功');
-  } else {
-    ElMessage.error(res.msg || '报名失败');
-  }
+  ElMessageBox.confirm(`确认${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      const res = await activityApply({ id: props.id, categoryType: '2', activityEnrollBo: { ...detail.value } });
+      if (res.code === 200) {
+        ElMessage.success(`${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}成功`);
+        fetchActivityDetail();
+      } else {
+        ElMessage.error(res.msg || `${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}失败`);
+      }
+    })
+    .catch(() => {});
 };
 </script>
 
