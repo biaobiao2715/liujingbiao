@@ -58,8 +58,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { to as tos } from 'await-to-js';
 import { ElInput, ElCheckbox, ElButton } from 'element-plus';
-import { isAccountExist, login, getTenantList } from '@/api/login';
+import { isAccountExist, login, getTenantList, getInfo } from '@/api/login';
+import { useUserStore } from '@/store/modules/user';
 import { setToken } from '@/utils/auth';
 import { UserFilled, Lock } from '@element-plus/icons-vue';
 import { sendSmsCode } from '@/api/register/accountRegiser';
@@ -144,7 +146,7 @@ const handleLogin = async () => {
       grantType: activeTab.value === 'account' ? 'password' : 'sms',
       clientId: import.meta.env.VITE_APP_CLIENT_ID
     })
-      .then((res: any) => {
+      .then(async (res: any) => {
         ElMessage.success('登录成功');
         // 存储 token
         setToken(res.data.access_token);
@@ -162,11 +164,18 @@ const handleLogin = async () => {
           // 未选择记住密码时清除本地存储
           localStorage.removeItem('rememberedAccount');
         }
-        // 登录成功后，跳转到首页
-        router.push('/mall/index');
+        // 判断当前用户类型
+        const { data }: any = await getInfo();
+
+        if (data.tenantType === '1') {
+          router.push('/mall/index'); // 采购商用户
+        } else if (data.tenantType === '99') {
+          ElMessage.error('未知身份，请联系管理员');
+        } else {
+          router.push('/index'); // 其他用户
+        }
       })
       .catch((err) => {
-        // ElMessage.error('登录失败');
         console.error('登录失败', err);
       });
   } catch (err) {

@@ -10,7 +10,10 @@
   <div class="course-meeting-container">
     <el-card>
       <template #header>
-        <el-segmented v-model="activeTab" :options="tabsList" />
+        <div class="flex-center gap-24">
+          <div class="card-header">专家课程</div>
+          <el-segmented v-model="activeTab" :options="tabsList" />
+        </div>
       </template>
 
       <!-- 课程 -->
@@ -86,12 +89,14 @@ const fetchMeetingList = async () => {
 };
 
 // 拼接成类似于：2025年12月30日将会在中山XXXX，举行农户XXX会议 然后返回
-const getMeetingDescription = (meeting: any) => {};
+const getMeetingDescription = (meeting: any) => {
+  return `${meeting.meetingStartTime}将会在${meeting.meetingAddress}，举行${meeting.meetingName}会议`;
+};
 
 // 点击课程或会议时触发方法，传递课程或会议数据
 const handleDetail = (type: string, id: string) => {
   console.log(id);
-  
+
   emit('detailChange', { type, id });
 };
 </script>
@@ -99,6 +104,22 @@ const handleDetail = (type: string, id: string) => {
 <style scoped lang="scss">
 .course-meeting-container {
   margin-bottom: 24px;
+}
+
+.meeting-list {
+  .meeting-item {
+    .meeting-title {
+      padding: 12px;
+      cursor: pointer;
+    }
+    .meeting-title:hover {
+     color: var(--el-color-primary);
+    }
+  }
+}
+.card-header {
+  font-size: 20px;
+  font-weight: bold;
 }
 .course-item {
   height: 220px;

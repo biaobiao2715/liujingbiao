@@ -37,7 +37,7 @@
     <!-- 专家详情弹窗 -->
     <ExpertDetailComponent ref="expertDetailRef" @submitSuccess="handleChange"></ExpertDetailComponent>
     <!-- 咨询专家弹窗 -->
-    <AskExpertComponent ref="askExpertRef"></AskExpertComponent>
+    <AskExpertComponent ref="askExpertRef" @submitSuccess="handleChange"></AskExpertComponent>
   </div>
 </template>
 
@@ -101,13 +101,11 @@ const getAvatarUrl = (imgList) => {
 // 处理立即咨询按钮点击
 const handleConsultation = (expert) => {
   // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
-  console.log('咨询专家:', expert, askExpertRef.value);
   askExpertRef.value?.openDialog(expert.id, activeTab.value === 'technology' ? '1' : '2');
 };
 
 // 处理查看详情按钮点击
 const handleDetail = (expert) => {
-  console.log('查看专家详情:', expert, expertDetailRef.value);
   expertDetailRef.value?.openDialog(expert.id, activeTab.value);
 };
 </script>
