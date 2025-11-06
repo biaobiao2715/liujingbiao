@@ -12,7 +12,7 @@
         </div>
       </template>
       <el-row :gutter="20">
-        <el-col :span="8" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 3">
+        <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 3">
           <el-card class="qa-card" shadow="hover">
             <div class="qa-question">
               <div class="qa-icon question-icon">问</div>
@@ -132,4 +132,8 @@ const getQuestionList = async () => {
   float: right;
   color: #999;
 }
+
+// ::v-deep .el-col {
+//   margin-bottom: 12px;
+// }
 </style>

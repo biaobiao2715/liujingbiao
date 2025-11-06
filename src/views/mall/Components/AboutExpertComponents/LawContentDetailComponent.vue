@@ -91,7 +91,7 @@ const handleApply = async () => {
     type: 'warning'
   })
     .then(async () => {
-      const res = await activityApply({ id: props.id, categoryType: '2', activityEnrollBo: { ...detail.value } });
+      const res = await activityApply({ id: props.id, categoryType: '2', activityType: '1', activityEnrollBo: { ...detail.value } });
       if (res.code === 200) {
         ElMessage.success(`${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}成功`);
         fetchActivityDetail();

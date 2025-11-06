@@ -11,7 +11,7 @@
         </div>
       </div>
       <div class="question-info">
-        <span>{{ answers?.questionUser }}</span>
+        <span>{{ '提问人 ' + answers?.questionUser }}</span>
         <span>{{ '提问于 ' + answers?.publishTime }}</span>
       </div>
     </div>
@@ -21,16 +21,14 @@
       <el-scrollbar class="answer-scroll">
         <div class="answer-item" v-for="(answer, index) in answers?.hnAnswerVoList" :key="index">
           <div class="expert-info">
-            <img class="expert-avatar" :src="answer.avatar" />
+            <!-- <img class="expert-avatar" :src="answer.avatar" /> -->
             <div class="expert-details">
               <span>{{ answer.name }}</span>
               <span>{{ answer.time }}</span>
             </div>
           </div>
           <div class="answer-content">
-            <div v-for="(suggestion, idx) in answer.suggestions" :key="idx">
-              {{ suggestion }}
-            </div>
+            {{ answer.answerContent }}
           </div>
         </div>
       </el-scrollbar>
