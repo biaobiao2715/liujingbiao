@@ -147,7 +147,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .compare-goods-container {
-  padding: 20px;
+  padding:  20px 70px;
   background: #fff;
 
   .breadcrumb {

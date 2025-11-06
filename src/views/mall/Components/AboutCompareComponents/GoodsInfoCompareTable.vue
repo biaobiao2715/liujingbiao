@@ -1,6 +1,8 @@
 <template>
   <div class="compare-table-section">
-    <div class="section-title">|商品信息</div>
+    <div class="section-title">
+      <span class="title-bar"></span>商品信息
+    </div>
     <el-table :data="tableData" border class="compare-table">
       <el-table-column prop="label" label="对比项" width="120" fixed="left" />
       <el-table-column
@@ -159,6 +161,9 @@ watch(
 <style lang="scss" scoped>
 .compare-table-section {
   margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   .section-title {
     font-size: 18px;
@@ -166,16 +171,87 @@ watch(
     color: #303133;
     margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #409eff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .title-bar {
+      width: 2px;
+      height: 14px;
+      background: #108C58;
+      border-radius: 4px 4px 4px 4px;
+      flex-shrink: 0;
+    }
   }
 
   .compare-table {
     width: 100%;
+    margin: 0 auto;
+
+    :deep(.el-table__body-wrapper) {
+      .el-table__body {
+        tr {
+          // 只给第一列添加背景色
+          td:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          // 所有单元格内容居中
+          td {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    :deep(.el-table__header-wrapper) {
+      .el-table__header {
+        tr {
+          // 表头第一列也添加背景色
+          th:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          // 表头内容居中
+          th {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    // 固定列的表头也需要设置
+    :deep(.el-table__fixed-header-wrapper) {
+      .el-table__header {
+        tr {
+          th:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          th {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    // 固定列的内容也需要居中
+    :deep(.el-table__fixed-body-wrapper) {
+      .el-table__body {
+        tr {
+          td {
+            text-align: center;
+          }
+        }
+      }
+    }
 
     .tags-cell {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      justify-content: center;
 
       .tag-item {
         margin: 0;
@@ -186,6 +262,7 @@ watch(
     .normal-cell {
       padding: 4px 0;
       line-height: 1.5;
+      text-align: center;
 
       .no-data {
         color: #c0c4cc;

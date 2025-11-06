@@ -174,7 +174,13 @@
     </div>
 
     <!-- 下单组件 -->
-    <PlaceOrderComponent ref="placeOrderRef" v-if="showOrder" />
+    <PlaceOrderComponent
+      v-model="showOrder"
+      :goods="goods"
+      :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity"
+      @submit="handleOrderSubmit"
+    />
   </div>
 </template>
 
@@ -467,7 +473,16 @@ const operateOrder = (type: number) => {
       });
       break;
     case 3:
-      console.log('立即下单');
+      // 立即下单 - 显示下单弹窗
+      if (!goods.value) {
+        ElMessage.warning('商品信息加载中，请稍候');
+        return;
+      }
+      if (!baseInfo.currentSpec) {
+        ElMessage.error('请选择商品规格');
+        return;
+      }
+      showOrder.value = true;
       break;
     case 4:
       console.log('电话沟通');
@@ -507,6 +522,12 @@ const updateTotalPrice = () => {
     // 只显示单价，不显示区间
     baseInfo.totalPrice = price.toFixed(2);
   }
+};
+
+// 处理订单提交
+const handleOrderSubmit = (orderData: any) => {
+  console.log('订单数据:', orderData);
+  // TODO: 调用提交订单API
 };
 
 // 获取同类商品
