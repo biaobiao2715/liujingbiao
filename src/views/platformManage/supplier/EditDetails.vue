@@ -80,28 +80,28 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="法人姓名">
-              <el-input v-model="formData.legalPerson.contactUserName"></el-input>
+              <el-input v-model="contactF.contactUserName"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="证件号码">
-              <el-input v-model="formData.legalPerson.contactIdCard"></el-input>
+              <el-input v-model="contactF.contactIdCard"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="证件类型">
-              <el-input v-model="formData.legalPerson.contactUserType"></el-input>
+              <el-input v-model="idType"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="联系电话">
-              <el-input v-model="formData.legalPerson.contactPhone"></el-input>
+              <el-input v-model="contactF.contactPhone"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <!-- 联系人信息 -->
         <FormHeader title="联系人信息" />
-        <el-row :gutter="20" v-for="(contact, index) in formData.contacts || []" :key="index">
+        <el-row :gutter="20" v-for="(contact, index) in contactZ || []" :key="index">
           <el-col :span="12">
             <el-form-item :label="'联系人' + (index + 1)">
               <el-input v-model="contact.contactUserName"></el-input>
@@ -288,6 +288,16 @@ const formData = ref<SupplierDetails>({
     contactIdCard: ''
   }
 });
+
+const contactZ = ref([]); // 自然人
+const contactF = ref({
+  // 法人联系人信息
+  contactUserType: '',
+  contactUserName: '',
+  contactIdCard: '',
+  contactPhone: ''
+});
+const idType = ref('身份认证');
 const getSupplierDetails = async () => {
   if (formData.value.id) {
     loading.value = true;
@@ -303,6 +313,17 @@ const getSupplierDetails = async () => {
       //  营业执照
       formData.value.licenseImage = formData.value.folders?.find((folder) => folder.fileType === '1')?.ossInfo?.url || '';
       formData.value.enterpriseType = '供应商'; //固定死
+
+      if (response.data?.contacts?.length > 0) {
+        response.data.contacts.forEach((element) => {
+          // console.log('33', element);
+          if (element.contactUserType == 1) {
+            contactF.value = element;
+          } else {
+            contactZ.value.push(element);
+          }
+        });
+      }
     } catch (error) {
       console.error('获取供应商详情失败', error);
     } finally {

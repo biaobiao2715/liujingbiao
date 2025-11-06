@@ -16,7 +16,7 @@
     <!-- 表格 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column prop="questionTitle" label="我的提问" align="center" />
+      <el-table-column prop="questionContent" label="我的提问" align="center" />
       <el-table-column prop="publishTime" label="发布时间" align="center">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>

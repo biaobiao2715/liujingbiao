@@ -1,9 +1,10 @@
 <!--
-  标题: enterprise/index.vue
+  文件: productManagement/Edit.vue
   功能: 商品编辑
-  说明: 用于商品编辑
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
+  说明: 用于商品编辑页面
+  版本: 1.0
+  作者: 刘景彪
+  创建日期: 2025-10-15
 -->
 <template>
   <div class="supplier-edit-details">
@@ -144,6 +145,25 @@
           </div>
 
           <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
+            <el-table-column prop="goodsWeight" label="KG(计重)" align="center">
+              <template #header>
+                <span class="required">KG(计重)</span>
+              </template>
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.goodsWeight"
+                  placeholder="请输入KG(计重)"
+                  type="number"
+                  :min="0"
+                  :max="999999"
+                  @input="(val) => onInputPrice(val, scope.row)"
+                  :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsWeight }"
+                />
+                <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsWeight">
+                  {{ scope.row.errors.goodsWeight }}
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column prop="goodsSpecificationValue" label="单位" align="center">
               <template #header>
                 <span class="required">
@@ -175,6 +195,7 @@
                   type="number"
                   :min="0"
                   :max="999999"
+                  @input="(val) => onInputPrice(val, scope.row)"
                   :disabled="operateMode == 'edit' ? (scope.row.id ? true : false) : false"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 />
@@ -318,7 +339,9 @@ const dialogImageUrl = ref('');
 // ==========================
 // 表格数据 & 表单数据
 // ==========================
-const hnGoodsSpecificationDataList = ref<any[]>([{ goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', status: 1 }]);
+const hnGoodsSpecificationDataList = ref<any[]>([
+  { goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', goodsWeight: '', status: 1 }
+]);
 
 // 表单数据
 const formData = ref<HnGoodsVo>({
@@ -340,7 +363,6 @@ const formData = ref<HnGoodsVo>({
 
 // ==========================
 // 表单校验（与 UI 规则一致）
-// 注：库存预警为“正整数”
 // ==========================
 const FormRulesarr: FormRules = {
   goodsName: [
@@ -406,6 +428,7 @@ const submitForm = () => {
       ...formData.value,
       hnGoodsFilesList: hnGoodsFilesList.value,
       hnGoodsSpecificationDataList: hnGoodsSpecificationDataList.value.map((spec) => ({
+        goodsWeight: spec.goodsWeight,
         goodsSpecification: spec.goodsSpecification,
         goodsSpecificationValue: spec.goodsSpecificationValue,
         goodsPrice: parseFloat(spec.goodsPrice),
@@ -516,6 +539,7 @@ const addTableCell = () => {
     goodsSpecificationValue: '',
     goodsPrice: '',
     goodsStock: '',
+    goodsWeight: '',
     status: 1
   });
 };
@@ -527,7 +551,9 @@ const removeTableCell = (index: number) => {
 
 // 单行校验/整表校验
 const validateContact = (contact: any) => {
-  const errorsValue: { goodsSpecificationValue?: string; goodsPrice?: string; goodsStock?: string } = {};
+  const errorsValue: { goodsWeight?: string; goodsSpecificationValue?: string; goodsPrice?: string; goodsStock?: string } = {};
+  if (!contact.goodsWeight || contact.goodsWeight.trim() === '') errorsValue.goodsWeight = '请输入商品重量';
+  if (!contact.goodsWeight) errorsValue.goodsWeight = '请输入商品重量';
   if (!contact.goodsSpecificationValue || contact.goodsSpecificationValue.trim() === '') errorsValue.goodsSpecificationValue = '请输入单位规格';
   if (!contact.goodsPrice) errorsValue.goodsPrice = '请输入销售价';
   else if (isNaN(contact.goodsPrice) || parseFloat(contact.goodsPrice) <= 0) errorsValue.goodsPrice = '销售价必须为大于0的数字';
@@ -560,6 +586,21 @@ const updateTableGoodsSpecification = (selected: string) => {
 };
 const toggleStatus = (row: any) => {
   row.status = row.status === 1 ? 0 : 1;
+};
+
+const onInputPrice = (val: string, row: any) => {
+  // 只允许数字和小数点，且最多两位小数
+  let s = val
+    .replace(/[^\d.]/g, '') // 只保留数字和小数点
+    .replace(/^0+(\d)/, '$1') // 去除多余前导0
+    .replace(/\.{2,}/g, '.') // 只保留第一个小数点
+    .replace('.', '$#$')
+    .replace(/\./g, '')
+    .replace('$#$', '.'); // 只保留第一个小数点
+  if (s.indexOf('.') > -1) {
+    s = s.replace(/^(\-)*(\d+)\.(\d\d).*$/, '$1$2.$3'); // 保留两位小数
+  }
+  row.goodsPrice = s;
 };
 
 // ==========================
@@ -605,7 +646,9 @@ onMounted(async () => {
   operateMode.value = props.type;
   refForm.value?.resetFields?.();
   hnGoodsFilesList.value = [];
-  hnGoodsSpecificationDataList.value = [{ goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', status: 1 }];
+  hnGoodsSpecificationDataList.value = [
+    { goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', goodsWeight: '', status: 1 }
+  ];
 
   if (props.id) {
     const detailResponse = await goodsId(String(props.id));

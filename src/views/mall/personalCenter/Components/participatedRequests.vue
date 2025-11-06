@@ -10,11 +10,6 @@
     <el-card shadow="never" class="fav-card">
       <div class="header">
         <div class="title">我参与的</div>
-        <el-input v-model="state.query.googsName" placeholder="搜索会议名称/编号" class="search" clearable @clear="reload" @keyup.enter="reload">
-          <template #append>
-            <el-button @click="reload" :loading="state.loading" icon="Search">搜索</el-button>
-          </template>
-        </el-input>
       </div>
 
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
@@ -50,16 +45,16 @@
               :body-style="{ padding: '12px' }"
             >
               <div class="article">
-                <img class="li-img" :src="item.activityImage || defaultImg" alt="商品图片" />
+                <img class="li-img" :src="getArticleCover(item)" alt="商品图片" />
                 <div class="info">
-                  <div class="name" :title="item.articleTitle || item.googsName">
-                    {{ item.articleTitle || item.googsName || '-' }}
+                  <div class="name">
+                    {{ getTitle(item) }}
                   </div>
                   <div class="flex-between meta-line">
-                    <div>作者： {{ item.createBy }}</div>
-                    <el-button type="danger" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消报名 </el-button>
+                    <dict-text :options="meeting_type" :value="getType(item)" />
+                    <el-button type="primary" @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消报名 </el-button>
                   </div>
-                  <div>作者： {{ item.createBy }}</div>
+                  <div>{{ getTime(item) }}</div>
                 </div>
               </div>
             </el-card>
@@ -67,7 +62,7 @@
         </template>
       </el-skeleton>
 
-      <div class="pager">
+      <!-- <div class="pager">
         <pagination
           v-if="state.total > 0"
           v-model:page="state.query.pageNum"
@@ -75,7 +70,7 @@
           :total="state.total"
           @pagination="reload"
         />
-      </div>
+      </div> -->
     </el-card>
   </div>
 </template>
@@ -87,6 +82,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { participateCategoryList, participateCategoryPost, FavoriteItem } from '@/api/mall/personalCenter/participatedRequests';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { meeting_type } = toRefs<any>(proxy?.useDict('meeting_type'));
+
 // 本地占位图（可根据实际资源调整路径）
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
 const state = reactive({
@@ -97,10 +94,7 @@ const state = reactive({
   opLoadingId: 0 as number | 0,
   query: {
     pageNum: 1,
-    pageSize: 20,
-    googsName: '',
-    orderByColumn: 'createTime',
-    isAsc: 'desc' as 'asc' | 'desc'
+    pageSize: 10
   }
 });
 
@@ -119,19 +113,21 @@ function reload() {
   const query = { ...state.query, categoryType: state.activeTab };
   participateCategoryList(query)
     .then((res: any) => {
-      const rows = res?.rows ?? res?.data?.records ?? res?.data ?? [];
-      const total = res?.total ?? res?.data?.total ?? rows.length ?? 0;
+      const rows = res.rows[0].activityEnrollList || [];
       state.list = rows || [];
-      state.total = Number(total) || 0;
+    })
+    .catch(() => {
+      // 调用失败时清空数据
+      state.list = [];
     })
     .finally(() => {
       state.loading = false;
     });
 }
 
-function onUnfav(item: FavoriteItem) {
+function onUnfav(item: any) {
   if (!item?.id) return;
-  ElMessageBox.confirm(`确定要取消收藏“${item.googsName || item.articleTitle || ''}”吗？`, '取消收藏确认', {
+  ElMessageBox.confirm(`确定要取消收藏“${item.meetingCultivateVo?.meetingName || item.lawActivityVo?.activityTitle || ''}”吗？`, '取消收藏确认', {
     type: 'warning',
     confirmButtonText: '确定',
     cancelButtonText: '再想想'
@@ -139,6 +135,8 @@ function onUnfav(item: FavoriteItem) {
     .then(async () => {
       state.opLoadingId = item.id as number;
       await participateCategoryPost({
+        categoryType: state.activeTab,
+        // activityEnrollList
         ...item
       });
       ElMessage.success('已取消收藏');
@@ -158,6 +156,19 @@ function goDetail(item: FavoriteItem) {
     const id = item.id;
     // router.push(`/platform/article/detail/${id}`);
   }
+}
+
+function getArticleCover(item: any) {
+  return item.articleTitle || defaultImg;
+}
+function getTitle(item: any) {
+  return item.meetingCultivateVo?.meetingName || item.lawActivityVo?.activityTitle || '-';
+}
+function getType(item: any) {
+  return item.meetingCultivateVo?.meetingType || item.lawActivityVo?.activityType || '-';
+}
+function getTime(item: any) {
+  return item.meetingCultivateVo?.publishTime || item.lawActivityVo?.publishTime || '-';
 }
 </script>
 
@@ -220,7 +231,8 @@ function goDetail(item: FavoriteItem) {
 }
 .meta-line {
   color: #909399;
-  font-size: 12px;
+  font-size: 16px;
+  margin: 8px 0;
 }
 
 /* 图片比例统一 */
