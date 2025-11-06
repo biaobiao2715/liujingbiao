@@ -74,6 +74,7 @@
                 <div class="attachment-title">附件上传</div>
                 <el-upload action="#" :auto-upload="false"
                     accept=".png,.jpg,.MP4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt" :show-file-list="false"
+                    :limit="1"
                     :on-change="handleFileChange">
                     <el-button type="primary" plain>
                         <el-icon class="el-icon--left">
@@ -145,7 +146,7 @@ import { ref, onMounted, getCurrentInstance, toRefs, watch } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
-import { getcourseCultivatequeryDetail,courseCultivateadd ,courseCultivateupdate } from '@/api/system/courseCultivate';
+import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
 const props = defineProps<{
@@ -248,17 +249,44 @@ const fetchContentDetail = async () => {
                 cultivateStatus: data.cultivateStatus || '',
                 cultivateContent: data.cultivateContent || ''
             };
-
+            // 回显主图数据
+            if (data.imageFile && data.imageFile.ossId) {
+                fileList.value = [{
+                    name: data.imageFile.originalName,
+                    url: data.imageFile.url,
+                    ossId: data.imageFile.ossId,
+                    uid: Date.now().toString() // 生成一个临时 uid
+                }];
+            } else {
+                fileList.value = [];
+            }
             // 加载附件数据
             if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
-                attachmentList.value = data.ossVoList.map((item: any) => ({
-                    ossId: item.ossId,
-                    fileName: item.fileName || item.originalName,
-                    originalName: item.originalName || item.fileName,
-                    fileSuffix: item.fileSuffix,
-                    url: item.url,
-                    fileSize: item.fileSize || '--'
-                }));
+                attachmentList.value = data.ossVoList.map((item: any) => {
+                    let fileSize = '--';
+
+                    // 解析 ext1 字段获取文件大小
+                    if (item.ext1) {
+                        try {
+                            const ext1Obj = JSON.parse(item.ext1);
+                            if (ext1Obj.fileSize) {
+                                fileSize = formatFileSize(ext1Obj.fileSize);
+                            }
+                        } catch (error) {
+                            console.error('解析 ext1 失败:', error);
+                            // 如果解析失败，可以尝试从其他字段获取或保持默认值
+                        }
+                    }
+
+                    return {
+                        ossId: item.ossId,
+                        fileName: item.fileName || item.originalName,
+                        originalName: item.originalName || item.fileName,
+                        fileSuffix: item.fileSuffix,
+                        url: item.url,
+                        fileSize: fileSize
+                    };
+                });
             } else {
                 attachmentList.value = [];
             }
@@ -322,7 +350,52 @@ const handleSubmit = async () => {
 const emitCancel = () => {
     emit('cancel');
 };
+/** 生成唯一ID */
+const generateUniqueId = (text: string, index: number) => {
+    // 使用文本内容和索引生成唯一ID
+    const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
+    return `heading-${cleanText}-${index}-${Date.now()}`;
+};
+/** 增强的目录生成函数 - 为标题添加锚点 */
+const generateTocWithAnchors = (content: string): { toc: any[], updatedContent: string } => {
+    if (!content) {
+        return { toc: [], updatedContent: content };
+    }
 
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+        const toc = Array.from(headings).map((el, idx) => {
+            const tagName = el.tagName.toUpperCase();
+            const level = parseInt(tagName.substring(1));
+            const text = el.textContent?.trim() || `标题${idx + 1}`;
+
+            // 生成唯一 ID
+            let id = el.id;
+            if (!id || !id.startsWith('heading-')) {
+                id = generateUniqueId(text, idx);
+                el.id = id;
+            }
+
+            return {
+                id: id,
+                text: text,
+                tag: tagName,
+                level: level
+            };
+        });
+
+        return {
+            toc: toc,
+            updatedContent: doc.documentElement.innerHTML
+        };
+    } catch (error) {
+        console.error('生成目录失败:', error);
+        return { toc: [], updatedContent: content };
+    }
+};
 /** 监听内容变化，自动生成文章目录 */
 watch(
     () => formData.value.cultivateContent,
@@ -333,45 +406,89 @@ watch(
         }
 
         try {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newContent;
-            const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            const { toc, updatedContent } = generateTocWithAnchors(newContent);
+            tocList.value = toc;
 
-            tocList.value = Array.from(headings).map((el, idx) => {
-                const tagName = el.tagName.toUpperCase();
-                const level = parseInt(tagName.substring(1)); // H1 -> 1, H2 -> 2, etc.
-
-                return {
-                    id: `toc-heading-${idx}`,
-                    text: el.textContent?.trim() || '无标题',
-                    tag: tagName,
-                    level: level
-                };
-            });
+            // 如果内容有更新（添加了ID），则更新编辑器内容
+            // 注意：这里需要谨慎处理，避免循环触发
+            if (updatedContent !== newContent) {
+                // 使用 nextTick 避免无限循环
+                nextTick(() => {
+                    formData.value.cultivateContent = updatedContent;
+                });
+            }
         } catch (error) {
             console.error('生成目录失败:', error);
             tocList.value = [];
         }
     },
-    { immediate: true }
+    { immediate: true, deep: true }
 );
 
 /** 滚动到指定标题位置 */
-const scrollToHeading = (id: string) => {
-    // 在实际的富文本编辑器内容中查找对应的标题元素
-    // 由于编辑器可能在 iframe 或 shadow DOM 中，这里提供一个通用的实现
+const scrollToHeading = async (id: string) => {
     try {
-        const editorElement = document.querySelector('.editor-wrapper');
-        if (editorElement) {
-            const targetElement = editorElement.querySelector(`#${id}`);
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                ElMessage.info('正在编辑中，目录跳转功能将在保存后生效');
+        // 等待DOM更新
+        await nextTick();
+
+        let targetElement = null;
+
+        // 方法1：在富文本编辑器中查找
+        const editorContainer = document.querySelector('.w-e-text-container');
+        if (editorContainer) {
+            // 尝试在编辑器的iframe或shadow DOM中查找
+            const iframe = editorContainer.querySelector('iframe');
+            if (iframe && iframe.contentDocument) {
+                targetElement = iframe.contentDocument.getElementById(id);
+            }
+            
+            // 如果没有找到，在编辑器容器本身查找
+            if (!targetElement) {
+                targetElement = editorContainer.querySelector(`[id="${id}"]`);
+            }
+        }
+
+        // 方法2：在整个页面中查找
+        if (!targetElement) {
+            targetElement = document.getElementById(id);
+        }
+
+        // 方法3：通过数据属性查找（备用方案）
+        if (!targetElement) {
+            const elementsWithDataId = document.querySelectorAll(`[data-heading-id="${id}"]`);
+            if (elementsWithDataId.length > 0) {
+                targetElement = elementsWithDataId[0];
+            }
+        }
+
+        if (targetElement) {
+            
+            // 确保元素可见
+            targetElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+
+            // 添加高亮效果
+            targetElement.classList.add('heading-highlight');
+            setTimeout(() => {
+                targetElement.classList.remove('heading-highlight');
+            }, 2000);
+
+        } else {
+            console.warn('未找到对应的标题元素:', id);
+            ElMessage.info('正在定位标题位置，请稍后重试或保存内容后重试');
+            
+            // 备用方案：通过文本内容查找
+            const tocItem = tocList.value.find(item => item.id === id);
+            if (tocItem) {
+                ElMessage.info(`正在定位: ${tocItem.text}`);
             }
         }
     } catch (error) {
         console.error('滚动失败:', error);
+        ElMessage.error('跳转失败，请稍后重试');
     }
 };
 

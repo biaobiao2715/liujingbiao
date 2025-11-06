@@ -203,7 +203,7 @@
     </el-dialog>
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total"
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" v-model:total="total"
         @pagination="getTableData" />
     </div>
   </div>

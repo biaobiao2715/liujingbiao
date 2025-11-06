@@ -54,7 +54,7 @@
         <!-- 操作按钮 -->
         <el-row :gutter="10" class="mb8">
             <el-col :span="1.5">
-                <el-button v-throttle type="primary"
+                <el-button v-throttle type="primary" v-hasPermi="['skill:courseCultivate:add']"
                     @click="handleAdd">新增</el-button>
             </el-col>
             <el-col :span="1.5">
@@ -66,10 +66,10 @@
                     @click="handleDisable">停用</el-button>
             </el-col>
             <el-col :span="1.5">
-                <el-button v-throttle type="danger"
+                <el-button v-throttle type="danger" v-hasPermi="['skill:courseCultivate:remove']"
                     @click="handleDelete">删除</el-button>
             </el-col>
-            <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
+            <!-- <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar> -->
         </el-row>
 
         <!-- 表格展示 -->
@@ -122,7 +122,7 @@
             <el-table-column label="操作" align="center" width="280" fixed="right">
                 <template #default="scope">
                     <div class="operation-buttons">
-                        <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">
+                        <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)" v-hasPermi="['skill:courseCultivate:edit']">
                             编辑
                         </el-button>
                         <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">
@@ -136,7 +136,7 @@
                             @click="handleStatusChange(scope.row, '1')">
                             启用
                         </el-button>
-                        <el-button v-throttle type="danger" size="small" @click="handleDeleteSingle(scope.row)">
+                        <el-button v-throttle type="danger" size="small" @click="handleDeleteSingle(scope.row)" v-hasPermi="['skill:courseCultivate:remove']">
                             删除
                         </el-button>
                     </div>
@@ -145,8 +145,8 @@
         </el-table>
 
         <!-- 分页 -->
-        <div class="flex-center pagination">
-            <Pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total"
+        <div class="pagination">
+            <Pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" v-model:total="total"
                 @pagination="getList" />
         </div>
 
@@ -155,7 +155,7 @@
             :close-on-click-modal="false" @close="dialog.type = ''">
             <Suspense>
                 <template #default>
-                    <component :is="dialog.type === 'view' ? ContentDetailDialog : TrainingcourseEdit" :id="dialog.id"
+                    <component :is="dialog.type === 'view' ? TrainingcourseDetail : TrainingcourseEdit" :id="dialog.id"
                         :type="dialog.type" @success="onDialogSuccess" @cancel="dialog.visible = false" />
                 </template>
                 <template #fallback>
@@ -170,13 +170,10 @@
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
-import {
-    deleteContent
-} from '@/api/expertServicePlatform/legalServiceManage/contentManage';
-import { getCourseCultivateList,updateStatus } from '@/api/system/courseCultivate';
+import { getCourseCultivateList,updateStatus,courseCultivatedelete} from '@/api/system/courseCultivate';
 // // 弹窗组件异步加载（首字母大写）
 const TrainingcourseEdit = defineAsyncComponent(() => import('./trainingcourseEdit.vue'));
-// const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
+const TrainingcourseDetail = defineAsyncComponent(() => import('./trainingcourseDetail.vue'));
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as any;
@@ -443,7 +440,7 @@ const handleDelete = async () => {
             }
         );
 
-        await deleteContent(selectedIds.value);
+        await courseCultivatedelete(selectedIds.value);
 
         ElMessage.success(`成功删除 ${selectedIds.value.length} 条内容`);
         getList();
@@ -523,7 +520,7 @@ const handleDeleteSingle = async (row: any) => {
             }
         );
 
-        await deleteContent([row.id]);
+        await courseCultivatedelete([row.id]);
 
         ElMessage.success('删除成功');
         getList();

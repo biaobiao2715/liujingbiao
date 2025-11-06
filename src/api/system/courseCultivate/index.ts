@@ -40,3 +40,10 @@ export function courseCultivateupdate(data: any) {
     data:data,
   });
 }
+/* 删除 */
+export function courseCultivatedelete(ids: any) {
+  return request({
+    url: `/skill-server/courseCultivate/${ids.join(',')}`,
+    method: 'delete',
+  });
+}

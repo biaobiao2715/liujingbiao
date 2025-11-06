@@ -43,7 +43,7 @@
         <div class="mb-12">
             <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:add']"
                 @click="handleAdd">新增</el-button>
-            <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:remove']"
+            <el-button v-throttle type="danger" v-hasPermi="['skill:HnMeetingCultivate:remove']"
                 :disabled="selectedRows.length == 0" @click="handleBatchDelete(selectedRows)">删除</el-button>
         </div>
         <!-- 表格展示 -->
@@ -149,7 +149,7 @@
         </el-table>
         <!-- 分页 -->
         <div class="flex-center pagination">
-            <pagination v-show="total > 0" :page="queryParams.pageNum" :limit="queryParams.pageSize" :total="total"
+            <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" v-model:total="total"
                 @pagination="getTableData" />
         </div>
     </div>

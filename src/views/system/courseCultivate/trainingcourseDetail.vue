@@ -8,355 +8,834 @@
 修改内容：查看培训课程
  -->
 <template>
-  <div class="content-detail-dialog" v-loading="loading">
-    <!-- 文章元信息 -->
-    <div class="article-meta">
-      <div class="meta-left">
-        <div class="author-info">
-          <el-avatar :size="48">{{ (detailData.author || '作者').slice(0, 1) }}</el-avatar>
-          <span class="author-name">发布人: {{ detailData.author || '未知' }}</span>
+    <div class="content-detail-dialog" v-loading="loading">
+        <!-- 文章元信息 -->
+        <div class="article-meta">
+            <div class="meta-left">
+                <div class="author-info">
+                    <el-avatar :size="48" :src="detailData.avatar">{{ detailData.avatar }}</el-avatar>
+                    <span class="author-name">发布人: {{ detailData.author || '未知' }}</span>
+                </div>
+                <div class="publish-time">发布时间: {{ detailData.publishTime || '-' }}</div>
+            </div>
+            <div class="meta-right">
+                <el-tag :type="detailData.status === '启用' ? 'success' : 'danger'">
+                    {{ detailData.status || '-' }}
+                </el-tag>
+                <div class="stats">
+                    <span class="stat-item">
+                        <el-icon>
+                            <View />
+                        </el-icon>
+                        浏览: {{ detailData.pageViews || 0 }}
+                    </span>
+                    <span class="stat-item">
+                        <el-icon>
+                            <Star />
+                        </el-icon>
+                        收藏量: {{ detailData.collectCount || 0 }}
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="publish-time">发布时间: {{ detailData.publishTime || '-' }}</div>
-      </div>
-      <div class="meta-right">
-        <el-tag :type="detailData.status === '启用' ? 'success' : 'danger'">
-          {{ detailData.status || '-' }}
-        </el-tag>
-        <div class="stats">
-          <span class="stat-item">
-            <el-icon><View /></el-icon>
-            浏览: {{ detailData.viewCount || 0 }}
-          </span>
-          <span class="stat-item">
-            <el-icon><Download /></el-icon>
-            下载: {{ detailData.downloadCount || 0 }}
-          </span>
+
+        <!-- 分割线 -->
+        <el-divider />
+
+        <!-- 内容详细信息 -->
+        <div class="content-details">
+            <div class="detail-row">
+                <span class="detail-label">培训课程类别:</span>
+                <span class="detail-value">
+                    <dict-tag :options="cultivate_type" :value="detailData.cultivateType" />
+                </span>
+            </div>
+
+            <!-- 正文内容区域 - 添加目录和内容左右布局 -->
+            <div class="detail-row content-row">
+                <span class="detail-label">正文内容:</span>
+                <div class="content-with-toc">
+                    <!-- 文章目录 -->
+                    <div class="toc-sidebar">
+                        <!-- <div class="toc-header">文章目录</div> -->
+                        <div class="toc-content">
+                            <div v-if="tocList.length > 0" class="toc-list">
+                                <div v-for="item in tocList" :key="item.id"
+                                    :class="['toc-item', `toc-level-${item.level}`]" @click="scrollToHeading(item.id)">
+                                    <span class="toc-text">{{ item.text }}</span>
+                                </div>
+                            </div>
+                            <div v-else class="toc-empty">
+                                <el-icon class="empty-icon">
+                                    <Document />
+                                </el-icon>
+                                <p class="empty-text">暂无目录</p>
+                                <p class="empty-tip">文章内容没有标题格式</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 正文内容 -->
+                    <div class="detail-content-wrapper">
+                        <div class="detail-content" ref="contentRef" v-html="processedContent"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 主图 -->
+            <div class="detail-row">
+                <span class="detail-label">主图:</span>
+                <div class="demo-image__preview">
+                    <el-image style="width: 100px; height: 100px" :src="detailData.url"
+                        :preview-src-list="detailData.srcList">
+                    </el-image>
+                </div>
+            </div>
+            <!-- 附件列表 -->
+            <div class="detail-row" v-if="detailData.attachments && detailData.attachments.length > 0">
+                <span class="detail-label">附件列表:</span>
+                <div class="attachments-list">
+                    <el-table :data="detailData.attachments" border>
+                        <el-table-column label="附件名称" prop="originalName" />
+                        <el-table-column label="文件大小" prop="fileSize" width="120" align="center"></el-table-column>
+                        <el-table-column label="操作" width="120" align="center">
+                            <template #default="scope">
+                                <el-button type="primary" size="small" text @click="handleDownload(scope.row)">
+                                    下载
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- 分割线 -->
-    <el-divider />
-
-    <!-- 内容详细信息 -->
-    <div class="content-details">
-      <div class="detail-row">
-        <span class="detail-label">普法类别:</span>
-        <span class="detail-value">
-          <dict-tag :options="legal_popularize_type" :value="detailData.contentType" />
-        </span>
-      </div>
-      
-      <div class="detail-row">
-        <span class="detail-label">内容简介:</span>
-        <span class="detail-value">{{ detailData.contentSummary || '-' }}</span>
-      </div>
-      
-      <div class="detail-row content-row">
-        <span class="detail-label">正文内容:</span>
-        <div class="detail-content" v-html="detailData.contentContent || '-'"></div>
-      </div>
-
-      <!-- 附件列表 -->
-      <div class="detail-row" v-if="detailData.attachments && detailData.attachments.length > 0">
-        <span class="detail-label">附件列表:</span>
-        <div class="attachments-list">
-          <el-table :data="detailData.attachments" border>
-            <el-table-column label="附件名称" prop="fileName" />
-            <el-table-column label="文件大小" prop="size" width="120" align="center">
-              <template #default="scope">
-                {{ formatFileSize(scope.row.size) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="120" align="center">
-              <template #default="scope">
-                <el-button type="primary" size="small" text @click="handleDownload(scope.row)">
-                  下载
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+        <!-- 底部按钮 -->
+        <div class="dialog-footer">
+            <el-button @click="emitCancel">关闭</el-button>
         </div>
-      </div>
     </div>
-
-    <!-- 底部按钮 -->
-    <div class="dialog-footer">
-      <el-button @click="emitCancel">关闭</el-button>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, nextTick, watch  } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { View, Download } from '@element-plus/icons-vue';
-import { getContentDetail } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { View, Download, Star } from '@element-plus/icons-vue';
+import { getcourseCultivatequeryDetail } from '@/api/system/courseCultivate';
 
 const props = defineProps<{
-  id?: string | number | null;
+    id?: string | number | null;
 }>();
 
 const emit = defineEmits<{
-  (e: 'cancel'): void;
+    (e: 'cancel'): void;
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 使用字典数据
-const { legal_popularize_type } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type')
+const { cultivate_type, cultivate_status } = toRefs<any>(
+    (proxy as any)?.useDict('cultivate_type', 'cultivate_status')
 );
 
 // 加载状态
 const loading = ref(false);
+// 内容DOM引用
+const contentRef = ref<HTMLElement>();
+// 文章目录列表
+const tocList = ref<Array<{
+    id: string;
+    text: string;
+    tag: string;
+    level: number;
+}>>([]);
+// 处理后的内容（添加了ID）
+const processedContent = ref('');
 
 // 详情数据
 const detailData = ref({
-  id: undefined as number | undefined,
-  contentNo: '',
-  contentTitle: '',
-  contentType: '',
-  contentSummary: '',
-  contentContent: '',
-  contentStatus: '',
-  publishTime: '',
-  viewCount: 0,
-  downloadCount: 0,
-  author: '',
-  status: '',
-  attachments: [] as any[]
+    id: undefined as number | undefined,
+    contentNo: '',
+    contentTitle: '',
+    cultivateType: '',
+    cultivateContent: '',
+    cultivateStatus: '',
+    publishTime: '',
+    pageViews: 0,
+    collectCount: 0,
+    author: '',
+    avatar: '',
+    status: '',
+    attachments: [] as any[],
+    url: '', //主图
+    srcList: [], //预览
 });
+/** 生成唯一ID */
+const generateUniqueId = (text: string, index: number) => {
+    const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
+    return `heading-${cleanText}-${index}-${Date.now()}`;
+};
 
+/** 处理内容 - 为标题添加ID并生成目录 */
+const processContent = (content: string) => {
+    if (!content) {
+        processedContent.value = '';
+        tocList.value = [];
+        return;
+    }
+
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+        const toc = Array.from(headings).map((el, idx) => {
+            const tagName = el.tagName.toUpperCase();
+            const level = parseInt(tagName.substring(1));
+            const text = el.textContent?.trim() || `标题${idx + 1}`;
+
+            // 生成唯一 ID
+            let id = el.id;
+            if (!id || !id.startsWith('heading-')) {
+                id = generateUniqueId(text, idx);
+                el.id = id;
+            }
+
+            return {
+                id: id,
+                text: text,
+                tag: tagName,
+                level: level
+            };
+        });
+
+        // 更新目录列表
+        tocList.value = toc;
+        // 更新处理后的内容
+        processedContent.value = doc.documentElement.innerHTML;
+
+    } catch (error) {
+        console.error('处理内容失败:', error);
+        processedContent.value = content;
+        tocList.value = [];
+    }
+};
+
+/** 滚动到指定标题位置 */
+const scrollToHeading = async (id: string) => {
+    console.log('尝试滚动到标题:', id);
+    
+    try {
+        // 等待DOM更新
+        await nextTick();
+
+        let targetElement = null;
+
+        // 在内容区域中查找标题元素
+        if (contentRef.value) {
+            targetElement = contentRef.value.querySelector(`#${id}`);
+        }
+
+        // 如果没找到，在整个文档中查找
+        if (!targetElement) {
+            targetElement = document.getElementById(id);
+        }
+
+        if (targetElement) {
+            console.log('找到目标元素:', targetElement);
+            
+            // 平滑滚动到目标位置
+            targetElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+
+            // 添加高亮效果
+            targetElement.classList.add('heading-highlight');
+            setTimeout(() => {
+                targetElement.classList.remove('heading-highlight');
+            }, 2000);
+
+        } else {
+            console.warn('未找到对应的标题元素:', id);
+            ElMessage.info('正在定位标题位置...');
+            
+            // 显示正在定位的标题文本
+            const tocItem = tocList.value.find(item => item.id === id);
+            if (tocItem) {
+                ElMessage.info(`正在定位: ${tocItem.text}`);
+            }
+        }
+    } catch (error) {
+        console.error('滚动失败:', error);
+        ElMessage.error('跳转失败，请稍后重试');
+    }
+};
 /** 格式化文件大小 */
 const formatFileSize = (bytes: number): string => {
-  if (!bytes) return '-';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    if (!bytes) return '-';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 };
 
 /** 获取内容详情 */
 const fetchContentDetail = async () => {
-  if (!props.id) {
-    ElMessage.error('缺少内容ID');
-    return;
-  }
-  
-  loading.value = true;
-  try {
-    const response: any = await getContentDetail(props.id as number);
-    
-    if (response && response.code === 200) {
-      const data = response.data;
-      
-      if (!data) {
-        ElMessage.error('获取内容详情失败：数据为空');
+    if (!props.id) {
+        ElMessage.error('缺少内容ID');
         return;
-      }
-      
-      // 状态映射
-      let statusText = '未知';
-      if (data.contentStatus === '3' || data.contentStatus === 3) {
-        statusText = '启用';
-      } else if (data.contentStatus === '2' || data.contentStatus === 2) {
-        statusText = '禁用';
-      }
-      
-      // 将接口返回的数据赋值给详情
-      detailData.value = {
-        id: data.id,
-        contentNo: data.contentNo || '',
-        contentTitle: data.contentTitle || '',
-        contentType: data.contentType || '',
-        contentSummary: data.contentSummary || '',
-        contentContent: data.contentContent || '',
-        contentStatus: data.contentStatus || '',
-        publishTime: data.publishTime || '',
-        viewCount: data.viewCount || 0,
-        downloadCount: data.downloadCount || 0,
-        author: data.authorName || data.author || '未知',
-        status: statusText,
-        attachments: data.sysOssLists || []
-      };
-    } else {
-      ElMessage.error(response?.msg || '获取内容详情失败');
     }
-  } catch (error) {
-    console.error('获取内容详情失败:', error);
-    ElMessage.error('获取内容详情失败，请稍后重试');
-  } finally {
-    loading.value = false;
-  }
-};
 
+    loading.value = true;
+    try {
+        const response: any = await getcourseCultivatequeryDetail({ id: props.id as number, isView: true });
+
+        if (response && response.code === 200) {
+            const data = response.data;
+
+            if (!data) {
+                ElMessage.error('获取内容详情失败：数据为空');
+                return;
+            }
+
+            // 状态映射
+            let statusText = '';
+            if (data.cultivateStatus === '1' || data.cultivateStatus === 1) {
+                statusText = '启用';
+            } else if (data.cultivateStatus === '2' || data.cultivateStatus === 2) {
+                statusText = '禁用';
+            } else if (data.cultivateStatus === '0' || data.cultivateStatus === 0) {
+                statusText = '草稿';
+            }
+
+            // 将接口返回的数据赋值给详情
+            detailData.value = {
+                id: data.id,
+                contentNo: data.contentNo || '',
+                contentTitle: data.contentTitle || '',
+                cultivateType: data.cultivateType || '',
+                cultivateContent: data.cultivateContent || '',
+                cultivateStatus: data.cultivateStatus || '',
+                publishTime: data.publishTime || '',
+                pageViews: data.pageViews || 0,
+                collectCount: data.collectCount || 0,
+                author: data.createName || '未知',
+                avatar: data.avatar || '未知',
+                status: statusText,
+                attachments: processAttachmentList(data.ossVoList || []),
+                url: data.imageFile ? data.imageFile.url : '',
+                srcList: [data.imageFile ? data.imageFile.url : '']
+            };
+             processContent(data.cultivateContent || '');
+        } else {
+            ElMessage.error(response?.msg || '获取内容详情失败');
+        }
+    } catch (error) {
+        console.error('获取内容详情失败:', error);
+        ElMessage.error('获取内容详情失败，请稍后重试');
+    } finally {
+        loading.value = false;
+    }
+};
+/** 处理附件列表，解析文件大小 */
+const processAttachmentList = (attachments: any[]): any[] => {
+    if (!attachments || !Array.isArray(attachments)) {
+        return [];
+    }
+
+    return attachments.map((item: any) => {
+        let fileSize = '--';
+        let fileSuffix = item.fileSuffix || '';
+
+        // 解析 ext1 字段获取文件大小
+        if (item.ext1) {
+            try {
+                const ext1Obj = JSON.parse(item.ext1);
+                if (ext1Obj.fileSize !== undefined && ext1Obj.fileSize !== null) {
+                    fileSize = formatFileSize(Number(ext1Obj.fileSize));
+                }
+
+                // 如果有 contentType，可以从中提取文件类型
+                if (ext1Obj.contentType) {
+                    fileSuffix = ext1Obj.contentType;
+                }
+            } catch (error) {
+                console.error('解析附件 ext1 失败:', error, item.ext1);
+            }
+        }
+
+        return {
+            ...item,
+            fileName: item.fileName || item.originalName,
+            originalName: item.originalName || item.fileName,
+            fileSuffix: fileSuffix,
+            fileSize: fileSize
+        };
+    });
+};
 /** 下载附件 */
-const handleDownload = (file: any) => {
-  if (file.url) {
-    window.open(file.url, '_blank');
-  } else {
-    ElMessage.warning('附件链接不存在');
-  }
+const handleDownload = async (file: any) => {
+    console.log('file', file);
+    try {
+        const response = await fetch(file.url);
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = file.originalName || file.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+        ElMessage.success('文件下载成功');
+    } catch (error) {
+        ElMessage.error('文件下载失败，请重试');
+
+    };
+    // if (file.url) {
+    //     window.open(file.url, '_blank');
+    // } else {
+    //     ElMessage.warning('附件链接不存在');
+    // }
 };
 
 /** 关闭弹窗 */
 const emitCancel = () => {
-  emit('cancel');
+    emit('cancel');
 };
 
 // 页面加载时获取详情数据
 onMounted(() => {
-  fetchContentDetail();
+    fetchContentDetail();
 });
 </script>
 
 <style scoped lang="scss">
 .content-detail-dialog {
-  padding: 20px;
+    padding: 20px;
 }
 
 // 文章元信息区域
 .article-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  
-  .meta-left {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 24px;
-    
-    .author-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      
-      .author-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: #303133;
-      }
-    }
-    
-    .publish-time {
-      font-size: 14px;
-      color: #909399;
-    }
-  }
-  
-  .meta-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    
-    .stats {
-      display: flex;
-      gap: 16px;
-      
-      .stat-item {
+    margin-bottom: 20px;
+
+    .meta-left {
         display: flex;
         align-items: center;
-        gap: 4px;
-        font-size: 14px;
-        color: #606266;
-        
-        .el-icon {
-          font-size: 16px;
+        gap: 24px;
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .author-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #303133;
+            }
         }
-      }
+
+        .publish-time {
+            font-size: 14px;
+            color: #909399;
+        }
     }
-  }
+
+    .meta-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+
+        .stats {
+            display: flex;
+            gap: 16px;
+
+            .stat-item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 14px;
+                color: #606266;
+
+                .el-icon {
+                    font-size: 16px;
+                }
+            }
+        }
+    }
 }
 
 // 内容详细信息
 .content-details {
-  .detail-row {
-    display: flex;
-    margin-bottom: 20px;
-    line-height: 1.8;
-    
-    &.content-row {
-      flex-direction: column;
+    .detail-row {
+        display: flex;
+        margin-bottom: 20px;
+        line-height: 1.8;
+
+        &.content-row {
+            flex-direction: column;
+        }
+
+        .detail-label {
+            min-width: 100px;
+            font-weight: 600;
+            color: #606266;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #303133;
+            word-break: break-all;
+        }
+
+        // 内容与目录布局 - 目录在左，内容在右
+        .content-with-toc {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            margin-top: 8px;
+
+            // 目录侧边栏 - 左侧
+            .toc-sidebar {
+                width: 280px;
+                min-width: 280px;
+                background: #f5f5f5;
+                border-radius: 8px;
+                border: 1px solid #dcdfe6;
+                display: flex;
+                flex-direction: column;
+                order: 1; // 确保目录在左边
+
+                .toc-header {
+                    padding: 16px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #303133;
+                    background: linear-gradient(135deg, #f0f2f5 0%, #e4e7ed 100%);
+                    border-bottom: 1px solid #dcdfe6;
+                    text-align: center;
+                    border-radius: 8px 8px 0 0;
+                }
+
+                .toc-content {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 16px;
+
+                    &::-webkit-scrollbar {
+                        width: 6px;
+                    }
+
+                    &::-webkit-scrollbar-thumb {
+                        background-color: #c0c4cc;
+                        border-radius: 3px;
+
+                        &:hover {
+                            background-color: #909399;
+                        }
+                    }
+
+                    &::-webkit-scrollbar-track {
+                        background-color: #e4e7ed;
+                    }
+                }
+
+                .toc-list {
+                    max-height: none;
+                }
+
+                .toc-item {
+                    padding: 10px 12px;
+                    margin-bottom: 6px;
+                    border-radius: 6px;
+                    cursor: pointer; // 鼠标手型效果
+                    transition: all 0.3s ease;
+                    color: #606266;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    position: relative;
+                    border-left: 3px solid transparent;
+
+                    &:hover {
+                        background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+                        color: #1890ff;
+                        border-left-color: #1890ff;
+                        transform: translateX(4px);
+                        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+                    }
+
+                    &:active {
+                        background: linear-gradient(135deg, #d6e4ff 0%, #adc6ff 100%);
+                        transform: translateX(2px);
+                    }
+
+                    .toc-text {
+                        display: block;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        transition: all 0.3s ease;
+                    }
+
+                    // 不同层级的缩进和样式
+                    &.toc-level-1 {
+                        font-weight: 700;
+                        font-size: 15px;
+                        color: #1f2d3d;
+                        padding-left: 12px;
+                        background: #f8f9fa;
+                        border: 1px solid #e9ecef;
+                        
+                        &:hover {
+                            background: linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%);
+                            color: #0050b3;
+                            border-left-color: #0050b3;
+                        }
+                    }
+
+                    &.toc-level-2 {
+                        padding-left: 24px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        margin-left: 8px;
+                        
+                        &:hover {
+                            background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+                            color: #389e0d;
+                            border-left-color: #389e0d;
+                        }
+                    }
+
+                    &.toc-level-3 {
+                        padding-left: 36px;
+                        font-size: 13px;
+                        color: #595959;
+                        margin-left: 16px;
+                        
+                        &:hover {
+                            background: linear-gradient(135deg, #fff7e6 0%, #ffd591 100%);
+                            color: #d46b08;
+                            border-left-color: #d46b08;
+                        }
+                    }
+
+                    &.toc-level-4,
+                    &.toc-level-5,
+                    &.toc-level-6 {
+                        padding-left: 48px;
+                        font-size: 12px;
+                        color: #8c8c8c;
+                        margin-left: 24px;
+                        
+                        &:hover {
+                            background: linear-gradient(135deg, #f9f0ff 0%, #d3adf7 100%);
+                            color: #722ed1;
+                            border-left-color: #722ed1;
+                        }
+                    }
+                }
+
+                .toc-empty {
+                    text-align: center;
+                    padding: 60px 20px;
+                    color: #909399;
+
+                    .empty-icon {
+                        font-size: 36px;
+                        color: #c0c4cc;
+                        margin-bottom: 12px;
+                    }
+
+                    .empty-text {
+                        font-size: 14px;
+                        color: #909399;
+                        margin: 8px 0 4px;
+                    }
+
+                    .empty-tip {
+                        font-size: 12px;
+                        color: #c0c4cc;
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 0 10px;
+                    }
+                }
+            }
+
+            // 内容区域 - 右侧
+            .detail-content-wrapper {
+                flex: 1;
+                min-width: 0;
+                order: 2; // 确保内容在右边
+            }
+
+            .detail-content {
+                padding: 24px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                min-height: 500px;
+                color: #303133;
+                line-height: 1.8;
+                border: 1px solid #e8e8e8;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+                :deep(img) {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                :deep(h1),
+                :deep(h2),
+                :deep(h3),
+                :deep(h4),
+                :deep(h5),
+                :deep(h6) {
+                    margin-top: 1.5em;
+                    margin-bottom: 0.8em;
+                    color: #1f2d3d;
+                    transition: all 0.3s ease;
+                    cursor: pointer; // 标题也添加手型效果
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    margin-left: -12px;
+                    margin-right: -12px;
+
+                    &:hover {
+                        background: linear-gradient(135deg, #f0f7ff 0%, #e6f7ff 100%);
+                        transform: translateX(4px);
+                    }
+                }
+
+                :deep(h1) {
+                    font-size: 2em;
+                    border-bottom: 3px solid #1890ff;
+                    padding-bottom: 0.4em;
+                    background: linear-gradient(135deg, #f6ffed 0%, #f0fff3 100%);
+                }
+
+                :deep(h2) {
+                    font-size: 1.6em;
+                    border-left: 4px solid #52c41a;
+                    padding-left: 0.8em;
+                    background: linear-gradient(135deg, #f6ffed 0%, #f0fff3 100%);
+                }
+
+                :deep(h3) {
+                    font-size: 1.3em;
+                    border-left: 3px solid #faad14;
+                    padding-left: 0.6em;
+                    background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
+                }
+
+                :deep(h4) {
+                    font-size: 1.1em;
+                    border-left: 2px solid #722ed1;
+                    padding-left: 0.5em;
+                    background: linear-gradient(135deg, #f9f0ff 0%, #f0e6ff 100%);
+                }
+
+                :deep(p) {
+                    margin-bottom: 1.2em;
+                    text-align: justify;
+                }
+
+                :deep(ul),
+                :deep(ol) {
+                    margin: 1em 0;
+                    padding-left: 2em;
+                }
+
+                :deep(li) {
+                    margin-bottom: 0.5em;
+                }
+
+                :deep(blockquote) {
+                    border-left: 4px solid #1890ff;
+                    background: #f0f7ff;
+                    padding: 1em 1.5em;
+                    margin: 1.5em 0;
+                    border-radius: 0 8px 8px 0;
+                }
+
+                :deep(table) {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 1.5em 0;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                }
+
+                :deep(th),
+                :deep(td) {
+                    border: 1px solid #e8e8e8;
+                    padding: 12px;
+                    text-align: left;
+                }
+
+                :deep(th) {
+                    background: #fafafa;
+                    font-weight: 600;
+                }
+
+                :deep(tr:nth-child(even)) {
+                    background: #fafafa;
+                }
+            }
+        }
+
+        .attachments-list {
+            flex: 1;
+            margin-top: 8px;
+        }
     }
-    
-    .detail-label {
-      min-width: 100px;
-      font-weight: 600;
-      color: #606266;
-      flex-shrink: 0;
-    }
-    
-    .detail-value {
-      flex: 1;
-      color: #303133;
-      word-break: break-all;
-    }
-    
-    .detail-content {
-      margin-top: 8px;
-      padding: 16px;
-      background-color: #f5f7fa;
-      border-radius: 4px;
-      min-height: 200px;
-      color: #303133;
-      line-height: 1.8;
-      
-      :deep(img) {
-        max-width: 100%;
-        height: auto;
-      }
-    }
-    
-    .attachments-list {
-      flex: 1;
-      margin-top: 8px;
-    }
-  }
 }
 
 // 底部按钮
 .dialog-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
-  
-  .el-button {
-    min-width: 100px;
-  }
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e4e7ed;
+
+    .el-button {
+        min-width: 100px;
+    }
 }
 
 // 响应式设计
 @media (max-width: 768px) {
-  .article-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    
-    .meta-left {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
+    .article-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+
+        .meta-left {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .meta-right {
+            align-items: flex-start;
+        }
     }
-    
-    .meta-right {
-      align-items: flex-start;
+
+    .content-details {
+        .detail-row {
+            flex-direction: column;
+
+            .detail-label {
+                margin-bottom: 4px;
+            }
+        }
     }
-  }
-  
-  .content-details {
-    .detail-row {
-      flex-direction: column;
-      
-      .detail-label {
-        margin-bottom: 4px;
-      }
-    }
-  }
 }
 </style>
-
