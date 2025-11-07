@@ -152,6 +152,7 @@ import { ref, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Location, Close, Check } from '@element-plus/icons-vue';
 import { userAddressList, userAddressAdd, userAddressUpdate, type Address } from '@/api/mall/personalCenter/addressManagement';
+import { productOrder } from '@/api/mall/goods/index';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 
 const props = defineProps<{
@@ -497,7 +498,7 @@ const handleSaveAddress = async () => {
 };
 
 // 提交订单
-const handleSubmitOrder = () => {
+const handleSubmitOrder = async () => {
   if (!selectedAddress.value) {
     ElMessage.warning('请选择收货地址');
     return;
@@ -508,15 +509,49 @@ const handleSubmitOrder = () => {
     return;
   }
 
-  const orderData = {
-    address: selectedAddress.value,
-    items: orderItems.value,
-    totalAmount: totalAmount.value
-  };
+  if (!props.goods || !props.selectedSpecId) {
+    ElMessage.warning('商品信息不完整');
+    return;
+  }
 
-  emit('submit', orderData);
-  ElMessage.success('订单提交成功');
-  handleClose();
+  const spec = props.goods.hnGoodsSpecificationDataList?.find(s => s.id === props.selectedSpecId);
+  if (!spec) {
+    ElMessage.warning('商品规格信息不存在');
+    return;
+  }
+
+  try {
+    const orderData = {
+      totalAmount: totalAmount.value,
+      enterpriseId: props.goods.enterpriseId || props.goods.hnBaseEnterpriseInfo?.id,
+      receiverName: selectedAddress.value.receiverName,
+      receiverPhone: selectedAddress.value.receiverPhone,
+      receiverProvinceCode: selectedAddress.value.provinceCode,
+      receiverProvince: selectedAddress.value.province,
+      receiverCityCode: selectedAddress.value.cityCode,
+      receiverCity: selectedAddress.value.city,
+      receiverRegionCode: selectedAddress.value.regionCode,
+      receiverRegion: selectedAddress.value.region,
+      receiverDetailAddress: selectedAddress.value.detailAddress,
+      note: '', // 备注，可以后续添加输入框
+      goodsId: props.goods.id,
+      goodsSpecificationId: props.selectedSpecId,
+      goodsPrice: parseFloat(String(spec.goodsPrice || 0)),
+      goodsQuantity: props.quantity || 1
+    };
+
+    const res = await productOrder(orderData);
+    if (res.code === 200) {
+      ElMessage.success('订单提交成功');
+      emit('submit', orderData);
+      handleClose();
+    } else {
+      ElMessage.error(res.msg || '订单提交失败');
+    }
+  } catch (error) {
+    console.error('提交订单失败:', error);
+    ElMessage.error('订单提交失败');
+  }
 };
 
 // 关闭弹窗
