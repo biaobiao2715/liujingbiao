@@ -46,9 +46,7 @@ const props = defineProps({
   }
 });
 
-onMounted(() => {
-  console.log('商品信息:', props.goods);
-});
+onMounted(() => {});
 
 // 点击商品时触发方法
 const handleClick = (item) => {

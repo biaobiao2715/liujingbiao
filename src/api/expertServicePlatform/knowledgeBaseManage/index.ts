@@ -10,6 +10,17 @@ export function listArticles(params: ArticleQuery) {
     params
   });
 }
+/**
+ * 新增文章浏览量
+ * POST skill-server/article/addViewRecords/{id}
+ * @param id number|string 文章id
+ */
+export function addViewRecords(id: number | string) {
+  return request({
+    url: `skill-server/article/addViewRecords/${id}`,
+    method: 'get'
+  });
+}
 
 /**
  * 获取文章详情
