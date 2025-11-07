@@ -16,19 +16,11 @@
         <el-input v-model="queryParams.goodsName" placeholder="请输入商品名称" clearable />
       </el-form-item>
       <el-form-item label="商品品牌">
-        <el-select v-model="queryParams.goodsBrandName" filterable clearable placeholder="请选择或搜索商品品牌">
-          <el-option v-for="item in productBrandList" :key="item.id" :label="item.attributeName" :value="item.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="商品规格">
-        <el-select v-model="queryParams.goodsSpecificationId" filterable clearable placeholder="请选择或搜索商品规格">
-          <el-option v-for="item in goods_specification" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
+        <el-input v-model="queryParams.goodsBrandName" placeholder="请输入商品品牌" clearable />
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="价格调整日期">
-        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
-          start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
+        <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -59,7 +51,11 @@
       <!-- <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column> -->
       <!-- <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column> -->
       <el-table-column label="调整人" align="center" prop="createBy"> </el-table-column>
-      <el-table-column label="价格调整日期" align="center" prop="changeTime" width="160"> </el-table-column>
+      <el-table-column label="价格调整日期" align="center" prop="changeTime" width="160">
+        <template #default="scope">
+          {{ formatDate(scope.row.changeTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="100" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
@@ -88,14 +84,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { getGoodsPriceHistoryList, exportGoodsPriceHistory, getGoodsPriceHistoryDetail } from '@/api/supplier/productManagement/productPrice';
-import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 import PriceDetailDialog from './PriceDetailDialog.vue';
-
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
-
-const productBrandList = ref([]); // 商品品牌列表
 
 const tableData = ref([]); // 表格数据
 
@@ -103,7 +92,7 @@ const total = ref(0); // 总条数
 
 const loading = ref(false); // 加载中
 
-const dateRange = ref<string[]>([]); // 价格调整日期范围
+const selectedDate = ref<string>(''); // 价格调整日期
 
 const selectedRows = ref([]); // 选中的表格数据
 
@@ -124,20 +113,23 @@ const queryParams = ref({
   goodsBrandName: '', //商品品牌
   goodsName: '', //商品名称
   goodsCode: '', //商品编码
-  goodsSpecificationId: '', //商品规格ID
-  startTime: '', // 价格调整开始日期
-  endTime: '' // 价格调整结束日期
+  changeTime: '' // 价格调整日期
 });
 
 onMounted(() => {
   getTableData();
-  getProductBrandList();
 });
 
 // 处理日期选择事件
-const handleSelectDate = (val: string[]) => {
-  queryParams.value.startTime = val?.[0] || '';
-  queryParams.value.endTime = val?.[1] || '';
+const handleSelectDate = (val: string) => {
+  queryParams.value.changeTime = val || '';
+};
+
+// 格式化日期，只显示年月日
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
+  // 如果包含时间，只取日期部分
+  return dateStr.split(' ')[0];
 };
 
 /** 搜索按钮操作 */
@@ -154,11 +146,9 @@ const handleReset = () => {
     goodsBrandName: '', //商品品牌
     goodsName: '', //商品名称
     goodsCode: '', //商品编码
-    startTime: '', // 价格调整开始日期
-    endTime: '', // 价格调整结束日期
-    goodsSpecificationId: '' //商品规格ID
+    changeTime: '' // 价格调整日期
   };
-  dateRange.value = [];
+  selectedDate.value = '';
   getTableData();
 };
 
@@ -212,23 +202,6 @@ const getTableData = () => {
   }
 };
 
-//  获取商品品牌列表
-const getProductBrandList = async () => {
-  loading.value = true;
-  try {
-    const res = await getProductAttributesList({
-      attributeType: 0,
-      pageNum: 1,
-      pageSize: 9999
-    });
-    if (res.code === 200) {
-      productBrandList.value = res.rows || [];
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
 // 处理表格复选框选择事件
 const handleSelectionChange = (rows) => {
   selectedRows.value = rows;
@@ -276,11 +249,6 @@ const fetchDetailData = async () => {
     detailLoading.value = false;
   }
 };
-
-onMounted(() => {
-  getTableData();
-  getProductBrandList();
-});
 
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {
