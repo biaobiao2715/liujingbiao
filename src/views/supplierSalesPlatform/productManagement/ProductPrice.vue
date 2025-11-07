@@ -20,7 +20,8 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="价格调整日期">
-        <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="handleSelectDate" />
+        <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期"
+          @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -70,21 +71,19 @@
     </div>
 
     <!-- 价格调整明细弹窗 -->
-    <PriceDetailDialog 
-      v-model="detailDialogVisible" 
-      :data="detailData"
-      :total="detailTotal"
-      :loading="detailLoading"
+    <PriceDetailDialog v-model="detailDialogVisible" :data="detailData" :total="detailTotal" :loading="detailLoading"
       :query-params="detailQueryParams"
-      @pagination="(pagination) => { detailQueryParams.pageNum = pagination.page; detailQueryParams.pageSize = pagination.limit; fetchDetailData(); }"
-    />
+      @pagination="(pagination) => { detailQueryParams.pageNum = pagination.page; detailQueryParams.pageSize = pagination.limit; fetchDetailData(); }" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { getGoodsPriceHistoryList, exportGoodsPriceHistory, getGoodsPriceHistoryDetail } from '@/api/supplier/productManagement/productPrice';
+import { ref, getCurrentInstance } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
+import { getGoodsPriceHistoryList, getGoodsPriceHistoryDetail } from '@/api/supplier/productManagement/productPrice';
 import PriceDetailDialog from './PriceDetailDialog.vue';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const tableData = ref([]); // 表格数据
 
@@ -153,34 +152,19 @@ const handleReset = () => {
 };
 
 // 导出按钮操作
-const handleExport = async () => {
+const handleExport = () => {
   if (selectedRows.value.length === 0) {
     ElMessage.error('请先选择要导出的数据');
     return;
   }
-  loading.value = true;
   const goodsIds = selectedRows.value.map((row) => row.goodsId);
-  try {
-    const res: any = await exportGoodsPriceHistory({ ids: goodsIds.join(',') });
-    if (res) {
-      // 创建 Blob 对象
-      const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = '商品价格调整历史.xlsx';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href); // 释放 URL 对象
-    } else {
-      ElMessage.error('导出失败，未返回有效数据');
-    }
-  } catch (error) {
-    console.error('导出失败:', error);
-    ElMessage.error('导出失败，请稍后重试');
-  } finally {
-    loading.value = false;
-  }
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const fileName = `商品价格调整历史_${year}-${month}-${day}.xlsx`;
+  const params = { ids: goodsIds.join(',') };
+  proxy.download('/grain-sales/goodsPriceHistory/export', params, fileName);
 };
 
 // 获取商品价格历史列表
@@ -223,7 +207,7 @@ const fetchDetailData = async () => {
   if (!selectedDetailId.value) {
     return;
   }
-  
+
   detailLoading.value = true;
   try {
     const params = {
