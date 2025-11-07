@@ -21,7 +21,7 @@
                     range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" @change="handleSelectDate" />
             </el-form-item>
             <el-form-item label="发布人">
-                <el-input v-model="queryParams.createBy" placeholder="请输入发布人" clearable />
+                <el-input v-model="queryParams.publishUse" placeholder="请输入发布人" clearable />
             </el-form-item>
             <el-form-item label="所属类型">
                 <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类别">
@@ -236,7 +236,7 @@ const queryParams = ref({
     pageSize: 10,
     meetingType: '', //会议类别
     publishTime: '', //发布时间
-    createBy: '', //发布人
+    publishUse: '', //发布人
     meetingStatus: '', //会议状态
     meetingName: '', // 会议标题
     meetingEndTime: '', // 会议结束时间
@@ -283,7 +283,7 @@ const handleReset = () => {
         pageSize: 10,
         meetingType: '', //会议类别
         publishTime: '', //发布时间
-        createBy: '', //发布人
+        publishUse: '', //发布人
         meetingStatus: '', //会议状态
         meetingName: '', // 会议标题
         meetingEndTime: '', // 会议结束时间

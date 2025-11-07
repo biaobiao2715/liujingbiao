@@ -530,9 +530,9 @@ const cancelorder = async () => {
   console.log('cancelobj.value', cancelobj.value);
   cancelloading.value = true
   let params = {
-    goodsSpecificationId: Number(cancelobj.value.goodsSpecificationId),
-    goodsQuantity: Number(cancelobj.value.goodsQuantity),
-    id: Number(cancelobj.value.id),
+    goodsSpecificationId: cancelobj.value.goodsSpecificationId,
+    goodsQuantity: cancelobj.value.goodsQuantity,
+    id:cancelobj.value.id,
     orderStatus: "99"
   }
   try {

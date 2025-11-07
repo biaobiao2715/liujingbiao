@@ -27,8 +27,8 @@
                     range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间" @change="handleSelectDate" />
             </el-form-item>
             <!-- 发布人 -->
-            <el-form-item label="发布人" prop="createBy">
-                <el-input v-model="queryParams.createBy" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+            <el-form-item label="发布人" prop="publishUse">
+                <el-input v-model="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
             </el-form-item>
             <!-- 所属状态下拉框 -->
             <el-form-item label="所属状态" prop="cultivateStatus">
@@ -63,7 +63,7 @@
             </el-col>
             <el-col :span="1.5">
                 <el-button v-throttle type="warning"
-                    @click="handleDisable">停用</el-button>
+                    @click="handleDisable">禁用</el-button>
             </el-col>
             <el-col :span="1.5">
                 <el-button v-throttle type="danger" v-hasPermi="['skill:courseCultivate:remove']"
@@ -188,7 +188,7 @@ const queryParams = ref({
     pageNum: 1,
     pageSize: 10,
     cultivateType: '', //所属类别
-    createBy: '', // 发布人
+    publishUse: '', // 发布人
     cultivateStatus: '', // 所属状态
     publishStartTime: '', // 发布开始时间
     publishEndTime: '', // 发布结束时间
@@ -262,7 +262,7 @@ const handleReset = () => {
         pageNum: 1,
         pageSize: 10,
         cultivateType: '', //所属类别
-        createBy: '', // 发布人
+        publishUse: '', // 发布人
         cultivateStatus: '', // 所属状态
         publishStartTime: '', // 发布开始时间
         publishEndTime: '', // 发布结束时间
@@ -363,7 +363,7 @@ const handleDisable = () => {
     }
 
     // 检查目标内容是否都是启用状态（停用操作只能对启用状态的内容进行）
-    // 状态：'3'-启用 '2'-禁用
+    // 状态：'1'-启用 '2'-禁用
     const invalidRows = selectedRows.value.filter((row: any) => {
         const status = row.cultivateStatus;
         return status === '2' || status === '禁用' || status === 2;
@@ -422,7 +422,7 @@ const handleDelete = async () => {
     }
 
     // 检查是否有启用状态的内容
-    const hasEnabledItems = selectedRows.value.some(row => row.status === '启用');
+    const hasEnabledItems = selectedRows.value.some(row => row.cultivateStatus == '1');
     if (hasEnabledItems) {
         ElMessage.warning('只能删除已停用的内容，请先停用后再删除');
         return;
@@ -508,6 +508,9 @@ const handleStatusChange = async (row: any, newStatus: string) => {
 
 /** 单个删除事件 */
 const handleDeleteSingle = async (row: any) => {
+      if (row.cultivateStatus == '1'){
+        return ElMessage.warning('请禁用后再删除')
+    }
     try {
         await ElMessageBox.confirm(
             '是否确认删除？删除后将无法恢复！',
