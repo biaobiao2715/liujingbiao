@@ -27,15 +27,8 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="价格调整日期">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          range-separator=" - "
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="handleSelectDate"
-        />
+        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
+          start-placeholder="开始日期" end-placeholder="结束日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -47,12 +40,15 @@
       <el-button v-throttle type="primary" @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
     </div>
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%"
+      @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
         <template #default="scope">
-          <router-link :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
+          <router-link
+            :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'"
+            class="link-type">
             <span>{{ scope.row.goodsCode }}</span>
           </router-link>
         </template>
@@ -60,29 +56,40 @@
       <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
       <el-table-column label="商品品牌" align="center" prop="goodsBrandName"> </el-table-column>
       <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="210"> </el-table-column>
-      <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column>
-      <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column>
-      <el-table-column label="调整人" align="center" prop="createName"> </el-table-column>
-      <el-table-column label="价格调整日期" align="center" prop="createTime" width="160"> </el-table-column>
+      <!-- <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column> -->
+      <!-- <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column> -->
+      <el-table-column label="调整人" align="center" prop="createBy"> </el-table-column>
+      <el-table-column label="价格调整日期" align="center" prop="changeTime" width="160"> </el-table-column>
+      <el-table-column label="操作" align="center" width="100" fixed="right">
+        <template #default="scope">
+          <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :total="total"
-        @pagination="getTableData"
-      />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+        :total="total" @pagination="getTableData" />
     </div>
+
+    <!-- 价格调整明细弹窗 -->
+    <PriceDetailDialog 
+      v-model="detailDialogVisible" 
+      :data="detailData"
+      :total="detailTotal"
+      :loading="detailLoading"
+      :query-params="detailQueryParams"
+      @pagination="(pagination) => { detailQueryParams.pageNum = pagination.page; detailQueryParams.pageSize = pagination.limit; fetchDetailData(); }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { getGoodsPriceHistoryList, exportGoodsPriceHistory } from '@/api/supplier/productManagement/productPrice';
+import { getGoodsPriceHistoryList, exportGoodsPriceHistory, getGoodsPriceHistoryDetail } from '@/api/supplier/productManagement/productPrice';
 import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
+import PriceDetailDialog from './PriceDetailDialog.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -96,11 +103,19 @@ const total = ref(0); // 总条数
 
 const loading = ref(false); // 加载中
 
-const queryFormRef = ref(); // 查询表单ref
-
 const dateRange = ref<string[]>([]); // 价格调整日期范围
 
 const selectedRows = ref([]); // 选中的表格数据
+
+const detailDialogVisible = ref(false); // 价格调整明细弹窗显示状态
+const selectedDetailId = ref<number | string | null>(null); // 选中的详情ID
+const detailData = ref<any[]>([]); // 价格调整明细数据
+const detailTotal = ref(0); // 价格调整明细总数
+const detailLoading = ref(false); // 价格调整明细加载状态
+const detailQueryParams = ref({
+  pageNum: 1,
+  pageSize: 10
+}); // 价格调整明细分页参数
 
 // 搜索表单数据
 const queryParams = ref({
@@ -214,19 +229,57 @@ const getProductBrandList = async () => {
   }
 };
 
-// 查询按钮事件
-const onQuery = () => {
-  console.log('查询表单数据:', queryParams.value);
-  getTableData();
-};
-
 // 处理表格复选框选择事件
 const handleSelectionChange = (rows) => {
   selectedRows.value = rows;
 };
 
+// 查看操作
+const handleView = async (row: any) => {
+  selectedDetailId.value = row.goodsId;
+  detailQueryParams.value = {
+    pageNum: 1,
+    pageSize: 10
+  };
+  await fetchDetailData();
+  detailDialogVisible.value = true;
+};
+
+// 获取价格调整明细数据
+const fetchDetailData = async () => {
+  if (!selectedDetailId.value) {
+    return;
+  }
+  
+  detailLoading.value = true;
+  try {
+    const params = {
+      id: selectedDetailId.value,
+      pageNum: detailQueryParams.value.pageNum,
+      pageSize: detailQueryParams.value.pageSize
+    };
+    const res = await getGoodsPriceHistoryDetail(params);
+    if (res.code === 200) {
+      detailData.value = res.rows || [];
+      detailTotal.value = res.total || 0;
+    } else {
+      ElMessage.error(res.msg || '获取价格调整明细失败');
+      detailData.value = [];
+      detailTotal.value = 0;
+    }
+  } catch (error) {
+    console.error('获取价格调整明细失败:', error);
+    ElMessage.error('获取价格调整明细失败');
+    detailData.value = [];
+    detailTotal.value = 0;
+  } finally {
+    detailLoading.value = false;
+  }
+};
+
 onMounted(() => {
   getTableData();
+  getProductBrandList();
 });
 
 // 每次页面激活时执行（从缓存中恢复）

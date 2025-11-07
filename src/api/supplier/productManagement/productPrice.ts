@@ -28,10 +28,14 @@ export function exportGoodsPriceHistory(data: any) {
 /**
  * 获取商品价格修改历史记录详情
  */
-export function getGoodsPriceHistoryDetail(id: number) {
+export function getGoodsPriceHistoryDetail(params: { id:  number|string; pageNum: number; pageSize: number }) {
   return request({
-    url: `/grain-sales/goodsPriceHistory/${id}`,
-    method: 'get'
+    url: `/grain-sales/goodsPriceHistory/hnGoodsPriceHistorDetail/${params.id}`,
+    method: 'get',
+    params: {
+      pageNum: params.pageNum,
+      pageSize: params.pageSize
+    }
   });
 }
 

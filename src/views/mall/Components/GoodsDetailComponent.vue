@@ -3,10 +3,7 @@
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb">
       <el-breadcrumb-item :to="{ path: '/mall/index' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item 
-        v-for="(item, index) in breadcrumbItems" 
-        :key="index"
-      >
+      <el-breadcrumb-item v-for="(item, index) in breadcrumbItems" :key="index">
         {{ item }}
       </el-breadcrumb-item>
     </el-breadcrumb>
@@ -16,56 +13,30 @@
         <!-- 商品图片 -->
         <div class="goods-image">
           <!-- 轮播图主图 -->
-          <el-carousel
-            v-if="goods?.sysOssLists && goods.sysOssLists.length > 0"
-            ref="carouselRef"
-            height="400px"
-            :initial-index="currentImageIndex"
-            @change="handleCarouselChange"
-            indicator-position="none"
-            arrow="hover"
-            :interval="3000"
-            :autoplay="(goods?.sysOssLists?.length ?? 0) > 1"
-            class="main-carousel"
-          >
-            <el-carousel-item
-              v-for="(img, index) in goods?.sysOssLists"
-              :key="index"
-            >
+          <el-carousel v-if="goods?.sysOssLists && goods.sysOssLists.length > 0" ref="carouselRef" height="400px"
+            :initial-index="currentImageIndex" @change="handleCarouselChange" indicator-position="none" arrow="hover"
+            :interval="3000" :autoplay="(goods?.sysOssLists?.length ?? 0) > 1" class="main-carousel">
+            <el-carousel-item v-for="(img, index) in goods?.sysOssLists" :key="index">
               <el-image :src="img.url" fit="contain" class="carousel-image" />
             </el-carousel-item>
           </el-carousel>
-          
+
           <!-- 缩略图区域 -->
           <div class="thumbnails-wrapper">
-            <button 
-              class="thumbnails-btn thumbnails-btn-left" 
-              @click="scrollThumbnails('left')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
-            >
+            <button class="thumbnails-btn thumbnails-btn-left" @click="scrollThumbnails('left')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1">
               ‹
             </button>
             <div class="thumbnails-container">
               <div class="thumbnails">
-                <div
-              v-for="(img, index) in goods?.sysOssLists"
-              :key="index"
-                  class="thumbnail" 
-                  :class="{ active: currentImageIndex === index }"
-                  @click="handleThumbnailClick(index)"
-                >
-                  <el-image 
-              :src="img.url"
-                    fit="cover"
-                  />
+                <div v-for="(img, index) in goods?.sysOssLists" :key="index" class="thumbnail"
+                  :class="{ active: currentImageIndex === index }" @click="handleThumbnailClick(index)">
+                  <el-image :src="img.url" fit="cover" />
                 </div>
               </div>
             </div>
-            <button 
-              class="thumbnails-btn thumbnails-btn-right" 
-              @click="scrollThumbnails('right')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
-            >
+            <button class="thumbnails-btn thumbnails-btn-right" @click="scrollThumbnails('right')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1">
               ›
             </button>
           </div>
@@ -79,10 +50,10 @@
               <h1 class="goods-title">{{ goods?.goodsName }}</h1>
               <!-- 商品属性标签 -->
               <div class="goods-tags">
-                <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" class="attribute-tag">
+                <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" class="attribute-tag ensure-tag">
                   {{ tag }}
                 </el-tag>
-                <el-tag v-for="tag in goods?.goodsAbilityName" :key="tag" class="attribute-tag">
+                <el-tag v-for="tag in goods?.goodsAbilityName" :key="tag" class="attribute-tag ability-tag">
                   {{ tag }}
                 </el-tag>
               </div>
@@ -101,45 +72,41 @@
           <!-- 发货地址 -->
           <div class="shipping-address">
             <span class="label">发货地址</span>
-            <el-select 
-              v-model="selectedAddressId" 
-              placeholder="请选择发货地址"
-              class="address-select"
-              @change="handleAddressChange"
-            >
-                <el-option
-                v-for="addr in addressList"
-                :key="addr.id"
-                :label="getAddressDisplayText(addr)"
-                :value="addr.id"
-                />
-              </el-select>
+            <el-select v-model="selectedAddressId" placeholder="请选择发货地址" class="address-select"
+              @change="handleAddressChange">
+              <el-option v-for="addr in addressList" :key="addr.id" :label="getAddressDisplayText(addr)"
+                :value="addr.id" />
+            </el-select>
           </div>
 
           <!-- 规格选择 -->
           <div class="spec-section">
             <div class="spec-title">规格选择</div>
-            <div class="spec-grid">
-              <div v-for="spec in displayedSpecs" :key="spec.id"
-                :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
-                @click="selectSpec(spec.id)">
-                {{ spec.goodsSpecificationValue }}{{ spec.goodsSpecification }}
-                <el-icon v-if="baseInfo.currentSpec === spec.id" class="spec-check-icon">
-                  <Check />
-                </el-icon>
+            <div class="spec-content">
+              <div class="spec-grid">
+                <div v-for="spec in displayedSpecs" :key="spec.id"
+                  :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
+                  @click="selectSpec(spec.id)">
+                  {{ spec.goodsSpecificationValue }}{{ spec.goodsSpecification }}
+                  <el-icon v-if="baseInfo.currentSpec === spec.id" class="spec-check-icon">
+                    <Check />
+                  </el-icon>
+                </div>
               </div>
-            </div>
-            <div v-if="hasMoreSpecs" class="view-more-specs">
-              <a href="#" class="spec-link" @click.prevent="showAllSpecs = !showAllSpecs">
-                {{ showAllSpecs ? '收起规格' : `查看其他${remainingSpecsCount}个规格` }}
-              </a>
+              <div v-if="hasMoreSpecs" class="view-more-specs">
+                <a href="#" class="spec-link" @click.prevent="showAllSpecs = !showAllSpecs">
+                  {{ showAllSpecs ? '收起规格' : `查看其他${remainingSpecsCount}个规格` }}
+                </a>
+              </div>
             </div>
           </div>
 
           <!-- 购买数量 -->
           <div class="quantity-section">
             <div class="quantity-title">购买数量</div>
-            <el-input-number v-model="baseInfo.quantity" :min="1" @change="updateTotalPrice" />
+            <div class="quantity-content">
+              <el-input-number v-model="baseInfo.quantity" :min="1" @change="updateTotalPrice" />
+            </div>
           </div>
 
           <!-- 操作按钮 -->
@@ -155,13 +122,8 @@
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
         <div class="similar-goods-list">
-          <GoodsItemComponent 
-            v-for="(item, index) in groupedRelatedGoods.flat()" 
-            :key="index" 
-            :goods="item"
-            class="similar-goods-item"
-            @clickGoods="handleSimilarGoodsClick(item.id)"
-          />
+          <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
+            class="similar-goods-item" @clickGoods="handleSimilarGoodsClick(item.id)" />
               </div>
       </div>
 
@@ -176,14 +138,8 @@
                 <!-- 文本内容 -->
                 <div v-if="item.type === 'text'" class="detail-text" v-html="item.content"></div>
                 <!-- 图片 -->
-                <el-image 
-                  v-else-if="item.type === 'image'" 
-                  :src="item.src" 
-                  fit="contain"
-                  class="detail-image"
-                  :preview-src-list="imageList"
-                  :initial-index="item.index"
-                />
+                <el-image v-else-if="item.type === 'image'" :src="item.src" fit="contain" class="detail-image"
+                  :preview-src-list="imageList" :initial-index="item.index" />
               </template>
             </div>
             <div v-else class="empty-detail">暂无商品详情</div>
@@ -193,13 +149,8 @@
           <div class="hot-recommendations">
             <h2 class="section-title">热门推荐</h2>
             <div class="recommendation-list">
-              <GoodsItemComponent 
-                v-for="(item, index) in hotGoods" 
-                :key="index" 
-                :goods="item" 
-                class="hot-goods-item"
-                @clickGoods="handleSimilarGoodsClick(item.id)"
-              />
+              <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" class="hot-goods-item"
+                @clickGoods="handleSimilarGoodsClick(item.id)" />
             </div>
           </div>
         </div>
@@ -207,14 +158,8 @@
     </div>
 
     <!-- 下单组件 -->
-    <PlaceOrderComponent
-      v-model="showOrder"
-      :goods="goods"
-      :selected-spec-id="baseInfo.currentSpec"
-      :quantity="baseInfo.quantity"
-      :selected-address-id="selectedAddressId"
-      @submit="handleOrderSubmit"
-    />
+    <PlaceOrderComponent v-model="showOrder" :goods="goods" :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity" :selected-address-id="selectedAddressId" @submit="handleOrderSubmit" />
   </div>
 </template>
 
@@ -352,11 +297,11 @@ const parseGoodsDetail = (html: string) => {
 
   const items: DetailItem[] = [];
   const images: string[] = [];
-  
+
   // 创建临时DOM元素来解析HTML
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = html;
-  
+
   // 递归处理节点，按顺序提取文本和图片
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -370,7 +315,7 @@ const parseGoodsDetail = (html: string) => {
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
-      
+
       if (element.tagName === 'IMG') {
         // 图片节点
         const imgSrc = (element as HTMLImageElement).src || (element as HTMLImageElement).getAttribute('src');
@@ -439,12 +384,12 @@ const parseGoodsDetail = (html: string) => {
       }
     }
   };
-  
+
   // 遍历所有顶级节点
   Array.from(tempDiv.childNodes).forEach(node => {
     processNode(node);
   });
-  
+
   // 如果没有解析到内容，使用原始HTML作为文本
   if (items.length === 0) {
     items.push({
@@ -452,7 +397,7 @@ const parseGoodsDetail = (html: string) => {
       content: html
     });
   }
-  
+
   parsedDetail.value = items;
   imageList.value = images;
 };
@@ -502,25 +447,25 @@ const getGoodsDetail = async () => {
 
     goods.value = res.data;
 
-    // 解析商品详情HTML内容
-    if (goods.value.goodsDetail) {
-      parseGoodsDetail(goods.value.goodsDetail);
-    } else {
-      parsedDetail.value = [];
-      imageList.value = [];
-    }
+      // 解析商品详情HTML内容
+      if (goods.value.goodsDetail) {
+        parseGoodsDetail(goods.value.goodsDetail);
+      } else {
+        parsedDetail.value = [];
+        imageList.value = [];
+      }
 
 
     // 处理商品详情数据
-    if (goods.value.sysOssLists?.length) {
-      currentImageIndex.value = 0;
-    }
+      if (goods.value.sysOssLists?.length) {
+        currentImageIndex.value = 0;
+      }
 
     baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
       // 生成面包屑导航
       updateBreadcrumb();
-      
+
       // 获取地址列表
       await fetchAddressList();
 
@@ -655,8 +600,8 @@ const getInitPrice = (specs: any[]) => {
   if (!prices.length) return '0.00';
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
-  return minPrice === maxPrice 
-    ? minPrice.toFixed(2) 
+  return minPrice === maxPrice
+    ? minPrice.toFixed(2)
     : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
 };
 
@@ -701,7 +646,7 @@ const fetchGoodsList = async (params: {
   excludeId?: number;
 }) => {
   if (!goods.value?.id) return null;
-  
+
   const enterpriseInfo = goods.value.hnBaseEnterpriseInfo;
   const res = await goodsList({
     pageNum: 1,
@@ -985,6 +930,28 @@ defineExpose({
             color: #666;
             margin: 0;
           }
+
+          .ensure-tag {
+            font-size: 13px;
+            color: #F23255;
+            height: 21px;
+            padding: 5px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          }
+
+          .ability-tag {
+            font-size: 13px;
+            color: #FF7B00;
+            height: 21px;
+            padding: 0 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          }
         }
       }
 
@@ -1025,9 +992,9 @@ defineExpose({
     .price-section {
 
       .price {
-        font-size: 28px;
+        font-size: 30px;
         font-weight: bold;
-        color: #e53935;
+        color: #EF4D0B;
       }
     }
 
@@ -1036,11 +1003,12 @@ defineExpose({
       color: #333;
       display: flex;
       align-items: center;
-      gap: 8px;
+      margin-bottom: 20px;
 
       .label {
         color: #333;
         flex-shrink: 0;
+        width: 80px;
       }
 
       .address-select {
@@ -1056,17 +1024,27 @@ defineExpose({
     }
 
     .spec-section {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
 
       .spec-title {
         font-size: 14px;
         color: #666;
-        margin-bottom: 10px;
+        flex-shrink: 0;
+        width: 80px;
+        margin-bottom: 0;
+        line-height: 40px;
+      }
+
+      .spec-content {
+        flex: 1;
       }
 
       .spec-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+        gap: 10px;
         margin-bottom: 10px;
       }
 
@@ -1129,12 +1107,20 @@ defineExpose({
     }
 
     .quantity-section {
+      display: flex;
+      align-items: center;
       margin-bottom: 20px;
 
       .quantity-title {
         font-size: 14px;
         color: #666;
-        margin-bottom: 10px;
+        flex-shrink: 0;
+        width: 80px;
+        margin-bottom: 0;
+      }
+
+      .quantity-content {
+        flex: 1;
       }
 
       :deep(.el-input-number) {
@@ -1300,7 +1286,7 @@ defineExpose({
             object-fit: contain;
           }
         }
-        
+
         .empty-detail {
           color: #999;
           text-align: center;
