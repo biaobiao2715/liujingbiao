@@ -159,9 +159,9 @@ const handleExport = async () => {
     return;
   }
   loading.value = true;
-  const ids = selectedRows.value.map((row) => row.id);
+  const goodsIds = selectedRows.value.map((row) => row.goodsId);
   try {
-    const res: any = await exportGoodsPriceHistory({ ids: ids.join() });
+    const res: any = await exportGoodsPriceHistory({ ids: goodsIds.join(',') });
     if (res) {
       // 创建 Blob 对象
       const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
