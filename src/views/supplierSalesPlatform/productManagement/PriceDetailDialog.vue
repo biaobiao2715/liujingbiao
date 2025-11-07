@@ -89,12 +89,12 @@ const formatPrice = (price: any, specificationName?: string) => {
     return '-';
   }
   const formattedPrice = priceNum.toFixed(2);
-  // 如果有规格单位，拼接单位（如"元/只"、"元/斤"）
+  // 如果有规格单位，拼接单位（如"元/件"、"元/斤"）
   if (specificationName) {
-    // 从规格名称中提取单位（如"只(计数)"中的"只"）
-    const unitMatch = specificationName.match(/([只两斤袋克千克])/);
-    if (unitMatch) {
-      return `${formattedPrice}元/${unitMatch[1]}`;
+    // 去掉括号及其内容，提取单位（如"件(计数)" -> "件"）
+    const unit = specificationName.replace(/\([^)]*\)/g, '').trim();
+    if (unit) {
+      return `${formattedPrice}元/${unit}`;
     }
     return `${formattedPrice}元`;
   }
