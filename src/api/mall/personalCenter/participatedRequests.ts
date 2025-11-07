@@ -16,7 +16,7 @@ export function participateCategoryList(query?: any) {
  */
 export const participateCategoryPost = (data: any) => {
   return request({
-    url: 'skill-server/participateCategory',
+    url: 'skill-server/participateCategory/add',
     method: 'post',
     data
   });

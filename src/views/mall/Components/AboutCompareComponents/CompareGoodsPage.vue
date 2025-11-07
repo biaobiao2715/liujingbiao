@@ -178,7 +178,7 @@ const queryParams = reactive({
   goodsName: undefined,
   goodsBrandName: undefined,
   goodsAbilityName: undefined,
-  sortManner: undefined,
+  sortManner: '0', // 默认传0（对比列表）
   provinceCode: undefined as string | undefined,
   cityCode: undefined as string | undefined,
   districtCode: undefined as string | undefined,
@@ -220,10 +220,10 @@ const handleAreaChange = (val: any) => {
 const toggleSortType = () => {
   if (filterState.sortType === '最新') {
     filterState.sortType = '';
-    queryParams.sortManner = undefined;
+    queryParams.sortManner = '0'; // 取消选择时，恢复默认值0
   } else {
     filterState.sortType = '最新';
-    queryParams.sortManner = '1';
+    queryParams.sortManner = '1'; // 选择最新时传1
   }
   queryParams.pageNum = 1;
   fetchGoodsList();
@@ -438,10 +438,8 @@ const fetchGoodsList = async () => {
       }
     }
 
-    // 传递排序方式
-    if (queryParams.sortManner) {
-      params.sortManner = queryParams.sortManner;
-    }
+    // 传递排序方式（默认传0，选择最新传1）
+    params.sortManner = queryParams.sortManner || '0';
 
     // 传递价格范围
     if (queryParams.minPrice) {
@@ -472,8 +470,11 @@ const fetchGoodsList = async () => {
 
 
 onMounted(() => {
-  loadFromLocalStorage();
-  // 如果有商品id，获取当前商品详情
+  // 清空本地存储的对比列表，确保每次进入都是空列表
+  compareGoodsList.value = [];
+  saveToLocalStorage();
+  
+  // 如果有商品id，获取当前商品详情（仅用于作为基准商品，不添加到对比列表）
   if (goodsIdFromRoute.value) {
     fetchCurrentGoods();
   }

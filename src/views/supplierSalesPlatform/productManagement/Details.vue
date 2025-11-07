@@ -71,6 +71,7 @@
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
         </el-table-column>
+        <el-table-column prop="goodsWeight" label="KG(计重)" width="220" align="center"> </el-table-column>
         <el-table-column prop="goodsPrice" label="销售价" align="center">
           <template #default="scope">
             <span v-if="operateMode === 'view'">{{ formatPrice(scope.row.goodsPrice) }}¥</span>

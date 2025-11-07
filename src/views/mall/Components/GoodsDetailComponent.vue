@@ -2,10 +2,12 @@
   <div class="goods-detail-container">
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item v-for="(item, index) in breadcrumbItems" :key="index">
-        <span v-if="index === breadcrumbItems.length - 1">{{ item }}</span>
-        <span v-else>{{ item }}</span>
+      <el-breadcrumb-item :to="{ path: '/mall/index' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item 
+        v-for="(item, index) in breadcrumbItems" 
+        :key="index"
+      >
+        {{ item }}
       </el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -13,21 +15,59 @@
       <div class="base-info flex gap-20">
         <!-- 商品图片 -->
         <div class="goods-image">
-          <!-- 当前展示的图片 -->
-          <div class="main-image">
-            <el-image :src="baseInfo.currentImage" fit="contain" />
-          </div>
+          <!-- 轮播图主图 -->
+          <el-carousel
+            v-if="goods?.sysOssLists && goods.sysOssLists.length > 0"
+            ref="carouselRef"
+            height="400px"
+            :initial-index="currentImageIndex"
+            @change="handleCarouselChange"
+            indicator-position="none"
+            arrow="hover"
+            :interval="3000"
+            :autoplay="(goods?.sysOssLists?.length ?? 0) > 1"
+            class="main-carousel"
+          >
+            <el-carousel-item
+              v-for="(img, index) in goods?.sysOssLists"
+              :key="index"
+            >
+              <el-image :src="img.url" fit="contain" class="carousel-image" />
+            </el-carousel-item>
+          </el-carousel>
+          
           <!-- 缩略图区域 -->
           <div class="thumbnails-wrapper">
-            <button class="thumbnails-btn thumbnails-btn-left" @click="scrollThumbnails('left')">‹</button>
-            <div class="thumbnails-container" ref="thumbnailsContainerRef">
-              <div class="thumbnails" ref="thumbnailsRef">
-                <el-image v-for="(img, index) in goods?.sysOssLists" :key="index" :src="img.url" fit="cover"
-                  class="thumbnail" :class="{ active: baseInfo.currentImage === img.url }"
-                  @click="baseInfo.currentImage = img.url" />
+            <button 
+              class="thumbnails-btn thumbnails-btn-left" 
+              @click="scrollThumbnails('left')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+            >
+              ‹
+            </button>
+            <div class="thumbnails-container">
+              <div class="thumbnails">
+                <div
+              v-for="(img, index) in goods?.sysOssLists"
+              :key="index"
+                  class="thumbnail" 
+                  :class="{ active: currentImageIndex === index }"
+                  @click="handleThumbnailClick(index)"
+                >
+                  <el-image 
+              :src="img.url"
+                    fit="cover"
+                  />
+                </div>
               </div>
             </div>
-            <button class="thumbnails-btn thumbnails-btn-right" @click="scrollThumbnails('right')">›</button>
+            <button 
+              class="thumbnails-btn thumbnails-btn-right" 
+              @click="scrollThumbnails('right')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+            >
+              ›
+            </button>
           </div>
         </div>
 
@@ -61,17 +101,26 @@
           <!-- 发货地址 -->
           <div class="shipping-address">
             <span class="label">发货地址</span>
-            <span class="address-text">{{ baseInfo.address }}</span>
-            <el-icon class="address-icon" @click="addressCollapse = !addressCollapse">
-              <ArrowDown />
-            </el-icon>
+            <el-select 
+              v-model="selectedAddressId" 
+              placeholder="请选择发货地址"
+              class="address-select"
+              @change="handleAddressChange"
+            >
+                <el-option
+                v-for="addr in addressList"
+                :key="addr.id"
+                :label="getAddressDisplayText(addr)"
+                :value="addr.id"
+                />
+              </el-select>
           </div>
 
           <!-- 规格选择 -->
           <div class="spec-section">
             <div class="spec-title">规格选择</div>
             <div class="spec-grid">
-              <div v-for="spec in goods?.hnGoodsSpecificationDataList" :key="spec.id"
+              <div v-for="spec in displayedSpecs" :key="spec.id"
                 :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
                 @click="selectSpec(spec.id)">
                 {{ spec.goodsSpecificationValue }}{{ spec.goodsSpecification }}
@@ -80,9 +129,10 @@
                 </el-icon>
               </div>
             </div>
-            <div v-if="goods?.hnGoodsSpecificationDataList && goods.hnGoodsSpecificationDataList.length > 3"
-              class="view-more-specs">
-              <a href="#" class="spec-link">查看其他{{ goods.hnGoodsSpecificationDataList.length - 3 }}个规格</a>
+            <div v-if="hasMoreSpecs" class="view-more-specs">
+              <a href="#" class="spec-link" @click.prevent="showAllSpecs = !showAllSpecs">
+                {{ showAllSpecs ? '收起规格' : `查看其他${remainingSpecsCount}个规格` }}
+              </a>
             </div>
           </div>
 
@@ -105,9 +155,14 @@
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
         <div class="similar-goods-list">
-          <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
-            class="similar-goods-item" />
-        </div>
+          <GoodsItemComponent 
+            v-for="(item, index) in groupedRelatedGoods.flat()" 
+            :key="index" 
+            :goods="item"
+            class="similar-goods-item"
+            @clickGoods="handleSimilarGoodsClick(item.id)"
+          />
+              </div>
       </div>
 
       <!-- 详情部分 -->
@@ -116,47 +171,35 @@
           <!-- 商品详情 -->
           <div class="product-info">
             <h2 class="section-title">商品详情</h2>
-            <div class="info-images">
-              <!-- 第一张大图 -->
-              <div v-if="detailImages.length > 0" class="info-image-large"></div>
-
-              <!-- 文本描述 -->
-              <div class="info-text">{{ detailText }}</div>
-
-              <!-- 图片行 -->
-              <div class="info-image-rows-wrapper">
-                <!-- 顶部行：两个大图并排 -->
-                <div class="info-image-row info-image-row-top">
-                  <div v-if="detailImages.length > 1" class="info-image-large"></div>
-                  <div v-if="detailImages.length > 2" class="info-image-large"></div>
-                </div>
-                <!-- 底部行 -->
-                <div class="info-image-row info-image-row-bottom">
-                  <div class="info-image-bottom-left">
-                    <div v-if="detailImages.length > 3" class="info-image-small"></div>
-                  </div>
-                  <div class="info-image-bottom-right">
-                    <div v-if="detailImages.length > 4" class="info-image-small"></div>
-                    <div v-if="detailImages.length > 5" class="info-image-small"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 底部大图 -->
-              <div v-if="detailImages.length > 6" class="info-image-large-bottom"></div>
-
-              <!-- 三张网格图 -->
-              <div v-if="detailImages.length > 7" class="info-image-grid">
-                <div v-for="(img, index) in detailImages.slice(7, 10)" :key="index" class="info-image-item"></div>
-              </div>
+            <div class="goods-detail-content" v-if="parsedDetail.length > 0">
+              <template v-for="(item, index) in parsedDetail" :key="index">
+                <!-- 文本内容 -->
+                <div v-if="item.type === 'text'" class="detail-text" v-html="item.content"></div>
+                <!-- 图片 -->
+                <el-image 
+                  v-else-if="item.type === 'image'" 
+                  :src="item.src" 
+                  fit="contain"
+                  class="detail-image"
+                  :preview-src-list="imageList"
+                  :initial-index="item.index"
+                />
+              </template>
             </div>
+            <div v-else class="empty-detail">暂无商品详情</div>
           </div>
 
           <!-- 热门推荐 -->
           <div class="hot-recommendations">
             <h2 class="section-title">热门推荐</h2>
             <div class="recommendation-list">
-              <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" class="hot-goods-item" />
+              <GoodsItemComponent 
+                v-for="(item, index) in hotGoods" 
+                :key="index" 
+                :goods="item" 
+                class="hot-goods-item"
+                @clickGoods="handleSimilarGoodsClick(item.id)"
+              />
             </div>
           </div>
         </div>
@@ -164,20 +207,28 @@
     </div>
 
     <!-- 下单组件 -->
-    <PlaceOrderComponent ref="placeOrderRef" v-if="showOrder" />
+    <PlaceOrderComponent
+      v-model="showOrder"
+      :goods="goods"
+      :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity"
+      :selected-address-id="selectedAddressId"
+      @submit="handleOrderSubmit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
+import { userAddressList, type Address } from '@/api/mall/personalCenter/addressManagement';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
-import { Star, ArrowDown, Check, ShoppingCart } from '@element-plus/icons-vue';
+import { Check } from '@element-plus/icons-vue';
 
 const props = defineProps<{
   goodsId?: number;
@@ -198,73 +249,213 @@ const goods = ref<Goods>({});
 
 const loading = ref(true); // 加载状态
 
-const placeOrderRef = ref();
+// 解析后的详情内容（文本和图片分离）
+interface DetailItem {
+  type: 'text' | 'image';
+  content?: string;
+  src?: string;
+  index?: number;
+}
+
+const parsedDetail = ref<DetailItem[]>([]);
+const imageList = ref<string[]>([]);
+
+const carouselRef = ref();
 
 const showOrder = ref(false);
 
+// 当前图片索引
+const currentImageIndex = ref(0);
+
 // 需要经过处理得到的数据
 const baseInfo = reactive<{
-  currentImage: string; // 当前展示的图片
-  totalPrice: string; // 当前总价
-  address: string; // 发货地址
-  currentSpec: number | null; // 当前展示的规格
-  quantity: number; // 购买数量,
+  totalPrice: string;
+  selectedAddress: string;
+  currentSpec: number | null;
+  quantity: number;
 }>({
-  currentImage: '', // 当前展示的图片
-  totalPrice: '', // 当前总价
-  address: '', // 发货地址
-  currentSpec: null, // 当前展示的规格
-  quantity: 1 // 购买数量,
+  totalPrice: '',
+  selectedAddress: '',
+  currentSpec: null,
+  quantity: 1
 });
 
 const groupedRelatedGoods = ref([]); // 同类商品
 
 const hotGoods = ref([]); // 最热商品
 
-const addressCollapse = ref(false); // 地址折叠状态
 
-// 缩略图滚动相关
-const thumbnailsRef = ref<HTMLElement | null>(null);
-const thumbnailsContainerRef = ref<HTMLElement | null>(null);
-let thumbnailScrollPosition = 0;
-const thumbnailScrollStep = 100; // 每次滚动的距离（像素）
+// 地址列表
+const addressList = ref<Address[]>([]);
+const selectedAddressId = ref<number | null>(null);
 
-// 缩略图滚动
-const scrollThumbnails = (direction: 'left' | 'right') => {
-  if (!thumbnailsRef.value || !thumbnailsContainerRef.value) return;
+// 规格显示控制
+const showAllSpecs = ref(false);
+const defaultDisplayCount = 6; // 默认显示6个规格（第一行4个，第二行2个）
 
-  const thumbnailWidth = 90 + 10; // 90px宽度 + 10px间距
-
-  if (direction === 'left') {
-    thumbnailScrollPosition = Math.max(0, thumbnailScrollPosition - thumbnailScrollStep);
-  } else {
-    const maxScroll = Math.max(0, thumbnailsRef.value.scrollWidth - thumbnailsContainerRef.value.offsetWidth);
-    thumbnailScrollPosition = Math.min(maxScroll, thumbnailScrollPosition + thumbnailScrollStep);
+// 计算要显示的规格列表
+const displayedSpecs = computed(() => {
+  if (!goods.value?.hnGoodsSpecificationDataList) return [];
+  if (showAllSpecs.value) {
+    return goods.value.hnGoodsSpecificationDataList;
   }
+  return goods.value.hnGoodsSpecificationDataList.slice(0, defaultDisplayCount);
+});
 
-  if (thumbnailsRef.value) {
-    thumbnailsRef.value.style.transform = `translateX(-${thumbnailScrollPosition}px)`;
+// 判断是否有未展示的规格
+const hasMoreSpecs = computed(() => {
+  if (!goods.value?.hnGoodsSpecificationDataList) return false;
+  return goods.value.hnGoodsSpecificationDataList.length > defaultDisplayCount;
+});
+
+// 计算未展示的规格数量
+const remainingSpecsCount = computed(() => {
+  if (!goods.value?.hnGoodsSpecificationDataList) return 0;
+  return goods.value.hnGoodsSpecificationDataList.length - defaultDisplayCount;
+});
+
+
+// 轮播图切换事件
+const handleCarouselChange = (index: number) => {
+  currentImageIndex.value = index;
+};
+
+// 缩略图滚动并切换主图
+const scrollThumbnails = (direction: 'left' | 'right') => {
+  const images = goods.value?.sysOssLists;
+  if (!images?.length) return;
+
+  const newIndex = direction === 'left'
+    ? (currentImageIndex.value > 0 ? currentImageIndex.value - 1 : images.length - 1)
+    : (currentImageIndex.value < images.length - 1 ? currentImageIndex.value + 1 : 0);
+
+  carouselRef.value?.setActiveItem(newIndex);
+};
+
+// 处理缩略图点击，切换主图
+const handleThumbnailClick = (index: number) => {
+  if (goods.value?.sysOssLists?.[index]) {
+    carouselRef.value?.setActiveItem(index);
   }
 };
 
 // 面包屑导航项
 const breadcrumbItems = ref<string[]>([]);
 
-// 商品详情固定图片（写死）
-const detailImages = ref<string[]>([
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
-  'https://pic.nximg.cn/file/20231226/12398452_082624808109_2.jpg',
+// 解析商品详情HTML，提取文本和图片
+const parseGoodsDetail = (html: string) => {
+  if (!html) {
+    parsedDetail.value = [];
+    imageList.value = [];
+    return;
+  }
 
-]);
-
-// 商品详情固定文本（写死）
-const detailText = ref(`该品种品质优、糯性好，甜度高，大福，商品性好，果福筒形，她行整齐，无师尖，籽粒纯白。在同一里输上同时具有權粒75%和甜25%的解食专用玉米品种，一般穗长22厘米，株型紧决，株高中饪，卷种核高160厘米，直种株高180厘米，在我国长江流域可做多季報地。`);
+  const items: DetailItem[] = [];
+  const images: string[] = [];
+  
+  // 创建临时DOM元素来解析HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // 递归处理节点，按顺序提取文本和图片
+  const processNode = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // 文本节点
+      const text = node.textContent?.trim();
+      if (text) {
+        items.push({
+          type: 'text',
+          content: text
+        });
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      
+      if (element.tagName === 'IMG') {
+        // 图片节点
+        const imgSrc = (element as HTMLImageElement).src || (element as HTMLImageElement).getAttribute('src');
+        if (imgSrc) {
+          images.push(imgSrc);
+          items.push({
+            type: 'image',
+            src: imgSrc,
+            index: images.length - 1
+          });
+        }
+      } else {
+        // 其他元素，检查是否包含图片
+        const imgs = element.querySelectorAll('img');
+        if (imgs.length > 0) {
+          // 如果包含图片，需要分别处理文本和图片
+          // 先处理图片前的文本
+          let currentText = '';
+          Array.from(element.childNodes).forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE) {
+              const text = child.textContent?.trim();
+              if (text) {
+                currentText += text;
+              }
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+              const childElement = child as HTMLElement;
+              if (childElement.tagName === 'IMG') {
+                // 如果当前有文本，先添加文本
+                if (currentText) {
+                  items.push({
+                    type: 'text',
+                    content: currentText
+                  });
+                  currentText = '';
+                }
+                // 处理图片
+                processNode(child);
+              } else {
+                // 其他元素，递归处理
+                processNode(child);
+              }
+            }
+          });
+          // 处理剩余的文本
+          if (currentText) {
+            items.push({
+              type: 'text',
+              content: currentText
+            });
+          }
+        } else {
+          // 不包含图片，作为文本处理（保留HTML格式）
+          const text = element.textContent?.trim();
+          if (text) {
+            items.push({
+              type: 'text',
+              content: element.outerHTML
+            });
+          } else {
+            // 递归处理子节点
+            Array.from(element.childNodes).forEach(child => {
+              processNode(child);
+            });
+          }
+        }
+      }
+    }
+  };
+  
+  // 遍历所有顶级节点
+  Array.from(tempDiv.childNodes).forEach(node => {
+    processNode(node);
+  });
+  
+  // 如果没有解析到内容，使用原始HTML作为文本
+  if (items.length === 0) {
+    items.push({
+      type: 'text',
+      content: html
+    });
+  }
+  
+  parsedDetail.value = items;
+  imageList.value = images;
+};
 
 // 选择规格
 const selectSpec = (specId: number) => {
@@ -275,12 +466,22 @@ const selectSpec = (specId: number) => {
 onMounted(async () => {
   // 确保商品ID存在后再加载数据
   if (goodsIdFromRoute.value) {
-    await getGoodsDetail();
+  await getGoodsDetail();
   } else {
     ElMessage.error('缺少商品ID');
     loading.value = false;
   }
 });
+
+// 监听路由变化，当商品ID改变时重新加载详情
+watch(
+  () => goodsIdFromRoute.value,
+  async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await getGoodsDetail();
+    }
+  }
+);
 
 const getGoodsDetail = async () => {
   const id = goodsIdFromRoute.value;
@@ -292,44 +493,46 @@ const getGoodsDetail = async () => {
   loading.value = true;
   try {
     const res = await goodsDetail(id);
-    if (res.code === 200) {
+  if (res.code === 200) {
       if (!res.data) {
         ElMessage.error('商品不存在');
         loading.value = false;
         return;
       }
 
-      goods.value = res.data;
+    goods.value = res.data;
 
-      // 处理商品详情数据
-      if (goods.value.sysOssLists && goods.value.sysOssLists.length > 0) {
-        baseInfo.currentImage = goods.value.sysOssLists[0]?.url || ''; // 默认展示第一张图片
-      }
+    // 解析商品详情HTML内容
+    if (goods.value.goodsDetail) {
+      parseGoodsDetail(goods.value.goodsDetail);
+    } else {
+      parsedDetail.value = [];
+      imageList.value = [];
+    }
 
-      baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
-      const hnBaseEnterpriseInfo = goods.value.hnBaseEnterpriseInfo; // 企业信息
-      // 发货地址
-      if (hnBaseEnterpriseInfo) {
-        const addressParts = [];
-        if (hnBaseEnterpriseInfo.province) addressParts.push(hnBaseEnterpriseInfo.province);
-        if (hnBaseEnterpriseInfo.city) addressParts.push(hnBaseEnterpriseInfo.city);
-        if (hnBaseEnterpriseInfo.district) addressParts.push(hnBaseEnterpriseInfo.district);
-        if (hnBaseEnterpriseInfo.signUpAddress) addressParts.push(hnBaseEnterpriseInfo.signUpAddress);
-        baseInfo.address = addressParts.join('');
-      }
+    // 处理商品详情数据
+    if (goods.value.sysOssLists?.length) {
+      currentImageIndex.value = 0;
+    }
+
+    baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
       // 生成面包屑导航
       updateBreadcrumb();
+      
+      // 获取地址列表
+      await fetchAddressList();
 
       // 商品详情加载成功后，加载相关商品和热门商品
-      await getRelatedGoods();
-      await getHotGoods();
+      await Promise.all([
+        getRelatedGoods(),
+        getHotGoods()
+      ]);
     } else {
       ElMessage.error(res.msg || '获取商品详情失败');
     }
   } catch (error) {
-    console.error('获取商品详情失败:', error);
     ElMessage.error('获取商品详情失败');
   } finally {
     loading.value = false;
@@ -338,19 +541,48 @@ const getGoodsDetail = async () => {
 
 // 更新面包屑导航
 const updateBreadcrumb = () => {
-  const items: string[] = [];
+  breadcrumbItems.value = goods.value?.goodsName ? [goods.value.goodsName] : [];
+};
 
-  // 如果有商品分类名称，添加到面包屑
-  if (goods.value?.goodsCategoryName) {
-    items.push(goods.value.goodsCategoryName);
+// 获取地址列表
+const fetchAddressList = async () => {
+  try {
+    const res = await userAddressList();
+    if (res.code === 200 && res.rows) {
+      addressList.value = res.rows;
+      // 设置默认地址
+      const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
+      if (defaultAddress) {
+        selectedAddressId.value = defaultAddress.id || null;
+        baseInfo.selectedAddress = getAddressDisplayText(defaultAddress);
+      } else if (addressList.value.length > 0) {
+        // 如果没有默认地址，使用第一个地址
+        selectedAddressId.value = addressList.value[0].id || null;
+        baseInfo.selectedAddress = getAddressDisplayText(addressList.value[0]);
+      }
+    }
+  } catch (error) {
+    console.error('获取地址列表失败:', error);
   }
+};
 
-  // 商品名称作为最后一项
-  if (goods.value?.goodsName) {
-    items.push(goods.value.goodsName);
+// 获取地址显示文本
+const getAddressDisplayText = (address: Address) => {
+  const parts = [
+    address.province,
+    address.city,
+    address.region,
+    address.detailAddress
+  ].filter(Boolean);
+  return parts.join('');
+};
+
+// 处理地址选择变化
+const handleAddressChange = (addressId: number | null) => {
+  const address = addressList.value.find(addr => addr.id === addressId);
+  if (address) {
+    baseInfo.selectedAddress = getAddressDisplayText(address);
   }
-
-  breadcrumbItems.value = items;
 };
 
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
@@ -369,18 +601,21 @@ const operateOrder = (type: number) => {
       });
       break;
     case 2:
-      console.log(goods.value.hnGoodsSpecificationDataList, baseInfo.currentSpec);
-      // 检查当前规格是否存在
       if (!baseInfo.currentSpec) {
         ElMessage.error('请选择商品规格');
+        return;
+      }
+      const spec = goods.value.hnGoodsSpecificationDataList?.find(s => s.id === baseInfo.currentSpec);
+      if (!spec) {
+        ElMessage.error('规格信息不存在');
         return;
       }
       addToFavorites({
         favoriteType: 1,
         favoriteGoogsBo: {
-          googsId: goodsIdFromRoute.value, // 商品ID
-          googsPrice: Number(goods.value.hnGoodsSpecificationDataList.filter((spec) => spec.id === baseInfo.currentSpec)[0].goodsPrice || 0), // 商品价格
-          goodsSpecificationId: baseInfo.currentSpec // 规格
+          googsId: goodsIdFromRoute.value,
+          googsPrice: Number(spec.goodsPrice || 0),
+          goodsSpecificationId: baseInfo.currentSpec
         }
       }).then((res) => {
         if (res.code === 200) {
@@ -389,13 +624,22 @@ const operateOrder = (type: number) => {
       });
       break;
     case 3:
-      console.log('立即下单');
+      // 立即下单 - 显示下单弹窗
+      if (!goods.value) {
+        ElMessage.warning('商品信息加载中，请稍候');
+        return;
+      }
+      if (!baseInfo.currentSpec) {
+        ElMessage.error('请选择商品规格');
+        return;
+      }
+      showOrder.value = true;
       break;
     case 4:
-      console.log('电话沟通');
+      // 电话沟通
       break;
     case 5:
-      console.log('我要举报');
+      // 我要举报
       break;
     default:
       break;
@@ -403,16 +647,17 @@ const operateOrder = (type: number) => {
 };
 
 // 获取商品价格区间，返回最低-最高价格
-const getInitPrice = (specs) => {
-  if (specs && specs.length > 0) {
-    const prices = specs.map((spec) => parseFloat(spec.goodsPrice || 0)).filter(p => p > 0);
-    if (prices.length > 0) {
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      return minPrice === maxPrice ? `${minPrice.toFixed(2)}` : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
-    }
-  }
-  return '0.00';
+const getInitPrice = (specs: any[]) => {
+  if (!specs?.length) return '0.00';
+  const prices = specs
+    .map(spec => parseFloat(spec.goodsPrice || 0))
+    .filter(p => p > 0);
+  if (!prices.length) return '0.00';
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+  return minPrice === maxPrice 
+    ? minPrice.toFixed(2) 
+    : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
 };
 
 // 更新总价
@@ -422,69 +667,84 @@ const updateTotalPrice = () => {
     baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList || []);
     return;
   }
-  // 规格对应的价格X数量
+  // 规格对应的价格（选择规格后，只显示当前规格的价格，不显示区间）
   const spec = goods.value.hnGoodsSpecificationDataList?.find((s) => s.id === baseInfo.currentSpec);
   if (spec) {
     const price = parseFloat(String(spec.goodsPrice || 0));
-    baseInfo.totalPrice = `${price.toFixed(2)}~${(price * baseInfo.quantity).toFixed(2)}`;
+    // 只显示单价，不显示区间
+    baseInfo.totalPrice = price.toFixed(2);
   }
+};
+
+// 处理订单提交
+const handleOrderSubmit = (orderData: any) => {
+  // 调用提交订单API
+};
+
+// 处理同类商品点击
+const handleSimilarGoodsClick = (goodsId: string | number) => {
+  if (!goodsId) {
+    ElMessage.warning('商品ID不存在');
+    return;
+  }
+  // 跳转到商品详情页面
+  router.push({
+    path: '/mall/goods-detail',
+    query: { id: String(goodsId) }
+  });
+};
+
+// 获取商品列表（同类商品或热门商品）
+const fetchGoodsList = async (params: {
+  pageSize: number;
+  sortManner: string;
+  excludeId?: number;
+}) => {
+  if (!goods.value?.id) return null;
+  
+  const enterpriseInfo = goods.value.hnBaseEnterpriseInfo;
+  const res = await goodsList({
+    pageNum: 1,
+    pageSize: params.pageSize,
+    id: params.excludeId,
+    sortManner: params.sortManner,
+    goodsCategoryId: goods.value.goodsCategoryId,
+    provinceCode: enterpriseInfo?.provinceCode,
+    cityCode: enterpriseInfo?.cityCode,
+    districtCode: enterpriseInfo?.districtCode
+  });
+  return res.code === 200 ? res.rows || [] : null;
 };
 
 // 获取同类商品
 const getRelatedGoods = async () => {
-  if (!goods.value || !goods.value.id) {
-    return;
-  }
-  try {
-    const res = await goodsList({
-      pageNum: 1,
-      pageSize: 9999,
-      id: goods.value.id,
-      sortManner: '3', // 价格最低
-      goodsCategoryId: goods.value.goodsCategoryId,
-      provinceCode: goods.value.hnBaseEnterpriseInfo?.provinceCode,
-      cityCode: goods.value.hnBaseEnterpriseInfo?.cityCode,
-      districtCode: goods.value.hnBaseEnterpriseInfo?.districtCode
-    });
-    if (res.code === 200) {
-      groupedRelatedGoods.value = groupArray(res.rows || []);
-    }
-  } catch (error) {
-    console.error('获取同类商品失败:', error);
+  const rows = await fetchGoodsList({
+    pageSize: 9999,
+    sortManner: '3',
+    excludeId: goods.value?.id
+  });
+  if (rows) {
+    groupedRelatedGoods.value = groupArray(rows);
   }
 };
 
 // 获取最热商品
 const getHotGoods = async () => {
-  if (!goods.value || !goods.value.id) {
-    return;
-  }
-  try {
-    const res = await goodsList({
-      pageNum: 1,
-      pageSize: 5,
-      sortManner: '0', // 销量最高
-      goodsCategoryId: goods.value.goodsCategoryId,
-      provinceCode: goods.value.hnBaseEnterpriseInfo?.provinceCode,
-      cityCode: goods.value.hnBaseEnterpriseInfo?.cityCode,
-      districtCode: goods.value.hnBaseEnterpriseInfo?.districtCode
-    });
-    if (res.code === 200) {
-      hotGoods.value = res.rows || [];
-    }
-  } catch (error) {
-    console.error('获取热门商品失败:', error);
+  const rows = await fetchGoodsList({
+    pageSize: 5,
+    sortManner: '0'
+  });
+  if (rows) {
+    hotGoods.value = rows;
   }
 };
 
 // 分组数组，每组groupSize个
 const groupArray = (array: any[], groupSize: number = 5) => {
   return array.reduce((result, item, index) => {
-    const groupIndex = Math.floor(index / groupSize); // 计算当前对象属于第几组
-    if (!result[groupIndex]) {
-      result[groupIndex] = []; // 初始化组
-    }
-    result[groupIndex].push(item); // 将对象添加到对应组
+    const groupIndex = Math.floor(index / groupSize);
+    if (!result[groupIndex]) result[groupIndex] = [];
+    result[groupIndex].push(item);
     return result;
   }, []);
 };
@@ -544,17 +804,53 @@ defineExpose({
     width: 400px;
     flex-shrink: 0;
 
-    .main-image {
+    .main-carousel {
       width: 100%;
-      height: 400px;
+      margin-bottom: 15px;
       border-radius: 8px;
       overflow: hidden;
-      margin-bottom: 15px;
-      position: relative;
 
-      :deep(.el-image) {
+      :deep(.el-carousel__container) {
+        height: 400px;
+      }
+
+      :deep(.el-carousel__item) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+      }
+
+      .carousel-image {
         width: 100%;
         height: 100%;
+
+        :deep(.el-image__inner) {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+      }
+
+      :deep(.el-carousel__arrow) {
+        background-color: rgba(0, 0, 0, 0.4);
+        border: none;
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.6);
+        }
+      }
+
+      :deep(.el-carousel__arrow--left) {
+        left: 10px;
+      }
+
+      :deep(.el-carousel__arrow--right) {
+        right: 10px;
       }
     }
 
@@ -581,13 +877,29 @@ defineExpose({
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.3s;
+      user-select: none;
+      position: relative;
+      pointer-events: auto;
+
+      :deep(.el-image) {
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+
+      :deep(.el-image__inner) {
+        cursor: pointer;
+        pointer-events: auto;
+      }
 
       &.active {
-        border-color: #4CAF50;
+        border-color: #108C58;
+        border-width: 2px;
       }
 
       &:hover {
-        border-color: #4CAF50;
+        border-color: #108C58;
       }
     }
 
@@ -607,6 +919,11 @@ defineExpose({
       transition: background-color 0.3s ease;
       z-index: 10;
 
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
       &.thumbnails-btn-left {
         left: 0;
         border-radius: 4px 0 0 4px;
@@ -617,11 +934,11 @@ defineExpose({
         border-radius: 0 4px 4px 0;
       }
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: rgba(0, 0, 0, 0.6);
       }
 
-      &:active {
+      &:active:not(:disabled) {
         background-color: rgba(0, 0, 0, 0.8);
       }
     }
@@ -632,6 +949,8 @@ defineExpose({
     display: flex;
     flex-direction: column;
     gap: 20px;
+    position: relative;
+    padding-bottom: 80px; // 为底部固定按钮留出空间
 
     .title-row {
       display: flex;
@@ -654,7 +973,7 @@ defineExpose({
         .goods-tags {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
+    gap: 10px;
           margin-bottom: 0;
 
           .attribute-tag {
@@ -715,23 +1034,23 @@ defineExpose({
     .shipping-address {
       font-size: 14px;
       color: #333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
       .label {
         color: #333;
+        flex-shrink: 0;
       }
 
-      .address-text {
-        color: #666;
-      }
+      .address-select {
+        flex: 1;
+        min-width: 200px;
 
-      .address-icon {
-        cursor: pointer;
-        color: #666;
-        transition: transform 0.3s;
-        margin-left: 4px;
-
-        &:hover {
-          color: #4CAF50;
+        :deep(.el-input__wrapper) {
+          box-shadow: none;
+          border: 1px solid #ddd;
+          border-radius: 4px;
         }
       }
     }
@@ -746,8 +1065,8 @@ defineExpose({
 
       .spec-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
         margin-bottom: 10px;
       }
 
@@ -761,33 +1080,50 @@ defineExpose({
         font-size: 14px;
         position: relative;
         transition: all 0.3s;
+        min-height: 40px;
+      display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:hover {
-          border-color: #4CAF50;
+          border-color: #108C58;
         }
 
         &.selected {
-          background-color: #4CAF50;
-          color: white;
-          border-color: #4CAF50;
+          background: rgba(16, 140, 88, 0.1);
+          border-radius: 0px;
+          border: 2px solid #108C58;
+          color: #108C58;
+          font-weight: 500;
 
           .spec-check-icon {
             position: absolute;
             bottom: 2px;
             right: 2px;
             font-size: 14px;
-            color: white;
+            color: #108C58;
           }
         }
       }
 
+      .view-more-specs {
+        text-align: center;
+        margin-top: 10px;
+      }
+
       .spec-link {
-        color: #2196F3;
-        font-size: 14px;
+        font-weight: 400;
+        font-size: 15px;
+        color: #108C58;
+        line-height: 21px;
+        text-align: left;
+        font-style: normal;
+        text-transform: none;
         text-decoration: none;
+        display: inline-block;
 
         &:hover {
-          text-decoration: underline;
+          opacity: 0.8;
         }
       }
     }
@@ -802,21 +1138,27 @@ defineExpose({
       }
 
       :deep(.el-input-number) {
-        width: auto;
+        width: 120px;
       }
     }
 
     .action-buttons {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
       display: flex;
       gap: 15px;
+      padding-top: 15px;
 
       .btn {
-        padding: 12px 30px;
-        border-radius: 4px;
+        width: 160px;
+        height: 50px;
+        border-radius: 2px;
         font-size: 16px;
         cursor: pointer;
-        border: none;
         transition: all 0.3s;
+        padding: 0;
       }
 
       .btn-compare {
@@ -831,20 +1173,24 @@ defineExpose({
       }
 
       .btn-favorite {
-        background: #4CAF50;
-        color: white;
+        background: rgba(16, 140, 88, 0.1);
+        border: 1px solid #108C58;
+        color: #108C58;
 
         &:hover {
-          background: #45a049;
+          background: rgba(16, 140, 88, 0.15);
+          border-color: #108C58;
         }
       }
 
       .btn-buy {
-        background: #ff9800;
+        background: #108C58;
         color: white;
+        border: 1px solid #108C58;
 
         &:hover {
-          background: #f57c00;
+          background: #0e7a4a;
+          border-color: #0e7a4a;
         }
       }
     }
@@ -912,108 +1258,53 @@ defineExpose({
         margin-bottom: 15px;
       }
 
-      .info-images {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .info-image-large {
-        width: 100%;
-        height: 300px;
-        background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border-radius: 4px;
-      }
-
-      .info-image-large-bottom {
-        width: 100%;
-        height: 300px;
-        background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border-radius: 4px;
-      }
-
-      .info-text {
+      .goods-detail-content {
         line-height: 1.8;
-        color: #666;
-        margin-bottom: 20px;
+        color: #333;
         font-size: 14px;
-        background-color: #f0f0f0;
-        padding: 10px;
-        border-radius: 4px;
-      }
+        word-wrap: break-word;
+        overflow-wrap: break-word;
 
-      .info-image-rows-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
+        .detail-text {
+          margin: 10px 0;
+          line-height: 1.8;
 
-      .info-image-row-top {
-        display: flex;
-        gap: 10px;
+          :deep(p) {
+            margin: 10px 0;
+            line-height: 1.8;
+          }
 
-        .info-image-large {
-          flex: 1;
-          height: 200px;
+          :deep(em) {
+            font-style: italic;
+          }
+
+          :deep(span) {
+            display: inline;
+          }
+
+          :deep(div) {
+            margin: 10px 0;
+          }
         }
-      }
 
-      .info-image-row-bottom {
-        display: flex;
-        gap: 10px;
-      }
-
-      .info-image-bottom-left {
-        flex: 1;
-
-        .info-image-small {
+        .detail-image {
           width: 100%;
-          height: 250px;
-          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          max-width: 100%;
+          margin: 15px 0;
           border-radius: 4px;
+          cursor: pointer;
+
+          :deep(.el-image__inner) {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+          }
         }
-      }
-
-      .info-image-bottom-right {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-
-        .info-image-small {
-          width: 100%;
-          height: 120px;
-          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          border-radius: 4px;
-        }
-      }
-
-      .info-image-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-
-        .info-image-item {
-          width: 100%;
-          padding-bottom: 100%;
-          position: relative;
-          background-image: url('https://pic.rmb.bdstatic.com/bjh/events/f3437c51fa126e4cf7169180710117a46023.jpeg');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          border-radius: 4px;
+        
+        .empty-detail {
+          color: #999;
+          text-align: center;
+          padding: 40px 0;
         }
       }
     }

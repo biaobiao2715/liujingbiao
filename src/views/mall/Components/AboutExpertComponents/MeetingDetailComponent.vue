@@ -13,14 +13,16 @@
     <div class="description flex-center gap-24 mt-24 mb-24">
       <!-- 头像 -->
       <img :src="detail?.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail?.createBy }}</div>
+      <div>{{ '发布人：  ' + detail?.publishUser }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
       <el-tag type="primary">{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</el-tag>
       <div class="status">
         会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
       <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button type="primary" @click="handleApply" v-if="detail?.meetingStatus === '1'">立即报名</el-button>
+      <el-button :type="detail?.isEnrolled === '1' ? 'info' : 'primary'" @click="handleApply">{{
+        detail?.isEnrolled === '1' ? '取消报名' : '立即报名'
+      }}</el-button>
     </div>
 
     <!-- 分割线 -->
@@ -32,14 +34,14 @@
       <div>会议类别：{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</div>
       <div>会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
       <div>会议地点：{{ detail?.meetingAddress }}</div>
-      <div v-if="detail?.status === '99'">取消原因：{{ detail?.cancelReason }}</div>
+      <div v-if="detail?.meetingStatus === '99'">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { meetingDetail } from '@/api/mall/expert';
+import { meetingDetail, activityApply } from '@/api/mall/expert';
 
 const props = defineProps({
   id: {
@@ -51,11 +53,15 @@ const props = defineProps({
 const detail = ref();
 
 onMounted(() => {
+  getMeetingDetail();
+});
+
+const getMeetingDetail = async () => {
   // 根据传入的ID获取课程详情
-  meetingDetail({ id: props.id }).then((res) => {
+  meetingDetail({ id: props.id, isView: true }).then((res) => {
     detail.value = res.data || {};
   });
-});
+};
 
 // 会议状态 会议状态（0：草稿 1：待开始 2：进行中 3：已结束 99：已取消）
 const getMeetingStatus = (status: string) => {
@@ -76,7 +82,23 @@ const getMeetingStatus = (status: string) => {
 };
 
 // 报名
-const handleApply = () => {};
+const handleApply = async () => {
+  ElMessageBox.confirm(`确认${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      const res = await activityApply({ id: props.id, categoryType: '1', activityType: '0', activityEnrollBo: { ...detail.value } });
+      if (res.code === 200) {
+        ElMessage.success(`${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}成功`);
+        getMeetingDetail();
+      } else {
+        ElMessage.error(res.msg || `${detail.value.isEnrolled === '1' ? '取消报名' : '报名'}失败`);
+      }
+    })
+    .catch(() => {});
+};
 </script>
 
 <style scoped lang="scss">

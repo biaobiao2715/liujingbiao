@@ -1,6 +1,8 @@
 <template>
   <div class="compare-table-section">
-    <div class="section-title">|商品信息</div>
+    <div class="section-title">
+      <span class="title-bar"></span>商品信息
+    </div>
     <el-table :data="tableData" border class="compare-table">
       <el-table-column prop="label" label="对比项" width="120" fixed="left" />
       <el-table-column
@@ -23,7 +25,16 @@
             </el-tag>
           </div>
           <div v-else-if="row.type === 'price-history'" class="price-history-cell">
-            <span v-if="row[`goods${index}`]">{{ row[`goods${index}`] }}</span>
+            <div v-if="row[`goods${index}`] && row[`goods${index}`] !== '-'">
+              <div v-html="row[`goods${index}`].display"></div>
+              <div v-if="row[`goods${index}`].hasMore" class="toggle-more" @click="togglePriceHistory(index, row[`goods${index}`].key)">
+                <span>{{ row[`goods${index}`].expanded ? '收起' : '展开更多' }}</span>
+              </div>
+            </div>
+            <span v-else class="no-data">-</span>
+          </div>
+          <div v-else-if="row.type === 'price'" class="price-cell">
+            <span v-if="row[`goods${index}`] && row[`goods${index}`] !== '-'" class="price-box">{{ row[`goods${index}`] }}</span>
             <span v-else class="no-data">-</span>
           </div>
           <div v-else class="normal-cell">
@@ -53,38 +64,71 @@ const props = defineProps<{
 // 商品信息对比表格数据
 const tableData = ref<any[]>([]);
 
+// 历史价格展开状态管理
+const priceHistoryExpanded = ref<Record<string, boolean>>({});
+
 // 格式化价格信息
 const formatPriceInfo = (goods: CompareGoodsItem) => {
   if (!goods.hnGoodsSpecificationDataList || goods.hnGoodsSpecificationDataList.length === 0) {
     return '-';
   }
   
-  const prices = goods.hnGoodsSpecificationDataList
-    .map(spec => {
-      const price = parseFloat(String(spec.goodsPrice || 0));
-      const quantity = spec.goodsSpecificationValue || '1';
-      return `${price.toFixed(0)}元/${quantity}${spec.goodsSpecification || '袋'}`;
-    })
-    .join(' ');
+  const spec = goods.hnGoodsSpecificationDataList[0];
+  const price = parseFloat(String(spec.goodsPrice || 0));
   
-  return prices;
+  if (!price) {
+    return '-';
+  }
+  
+  const specificationName = goods.goodsSpecificationName || '';
+  return `${price.toFixed(2)}元/${specificationName}`;
 };
 
 // 格式化历史价格
-const formatPriceHistory = (goods: CompareGoodsItem) => {
+const formatPriceHistory = (goods: CompareGoodsItem, goodsIndex: number) => {
   if (!goods.priceHistories || goods.priceHistories.length === 0) {
     return '-';
   }
   
-  const history = goods.priceHistories[0];
-  const oldPrice = parseFloat(String(history.goodsOldPrice || 0));
-  const newPrice = parseFloat(String(history.goodsNewPrice || 0));
+  const historyItems = goods.priceHistories
+    .map((history) => {
+      const oldPriceStr = String(history.goodsOldPrice || '0');
+      const newPriceStr = String(history.goodsNewPrice || '0');
+      const oldPrice = parseFloat(oldPriceStr);
+      const newPrice = parseFloat(newPriceStr);
+      const specification = String(history.goodsSpecification || '');
+      
+      if (isNaN(oldPrice) || isNaN(newPrice) || (oldPrice === 0 && newPrice === 0)) {
+        return null;
+      }
+      
+      return `<span style="color: #EF4D0B; font-size: 14px;">${oldPriceStr}${specification}</span>---调整至---<span style="color: #108C58; font-size: 14px;">${newPriceStr}${specification}</span>`;
+    })
+    .filter(Boolean);
   
-  if (oldPrice === 0 && newPrice === 0) {
+  if (historyItems.length === 0) {
     return '-';
   }
   
-  return `${oldPrice.toFixed(0)}元1/袋---调整至---${newPrice.toFixed(0)}元1/袋`;
+  const key = `goods${goodsIndex}_${goods.id || ''}`;
+  const isExpanded = priceHistoryExpanded.value[key] || false;
+  const maxDisplay = 4;
+  const hasMore = historyItems.length > maxDisplay;
+  const displayItems = isExpanded ? historyItems : historyItems.slice(0, maxDisplay);
+  const displayHtml = displayItems.join('<br/>');
+  
+  return {
+    display: displayHtml,
+    hasMore,
+    expanded: isExpanded,
+    key
+  };
+};
+
+// 切换历史价格展开/收起
+const togglePriceHistory = (goodsIndex: number, key: string) => {
+  priceHistoryExpanded.value[key] = !priceHistoryExpanded.value[key];
+  updateTable();
 };
 
 // 更新表格数据
@@ -114,7 +158,7 @@ const updateTable = () => {
     },
     {
       label: '商品价格',
-      type: 'normal',
+      type: 'price',
       ...props.goodsList.reduce((acc, goods, index) => {
         acc[`goods${index}`] = formatPriceInfo(goods);
         return acc;
@@ -124,7 +168,7 @@ const updateTable = () => {
       label: '历史价格',
       type: 'price-history',
       ...props.goodsList.reduce((acc, goods, index) => {
-        acc[`goods${index}`] = formatPriceHistory(goods);
+        acc[`goods${index}`] = formatPriceHistory(goods, index);
         return acc;
       }, {} as any)
     },
@@ -159,6 +203,9 @@ watch(
 <style lang="scss" scoped>
 .compare-table-section {
   margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   .section-title {
     font-size: 18px;
@@ -166,16 +213,87 @@ watch(
     color: #303133;
     margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #409eff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .title-bar {
+      width: 2px;
+      height: 14px;
+      background: #108C58;
+      border-radius: 4px 4px 4px 4px;
+      flex-shrink: 0;
+    }
   }
 
   .compare-table {
     width: 100%;
+    margin: 0 auto;
+
+    :deep(.el-table__body-wrapper) {
+      .el-table__body {
+        tr {
+          // 只给第一列添加背景色
+          td:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          // 所有单元格内容居中
+          td {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    :deep(.el-table__header-wrapper) {
+      .el-table__header {
+        tr {
+          // 表头第一列也添加背景色
+          th:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          // 表头内容居中
+          th {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    // 固定列的表头也需要设置
+    :deep(.el-table__fixed-header-wrapper) {
+      .el-table__header {
+        tr {
+          th:first-child {
+            background-color: rgba(16, 140, 88, 0.1) !important;
+          }
+          
+          th {
+            text-align: center;
+          }
+        }
+      }
+    }
+    
+    // 固定列的内容也需要居中
+    :deep(.el-table__fixed-body-wrapper) {
+      .el-table__body {
+        tr {
+          td {
+            text-align: center;
+          }
+        }
+      }
+    }
 
     .tags-cell {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      justify-content: center;
 
       .tag-item {
         margin: 0;
@@ -185,10 +303,50 @@ watch(
     .price-history-cell,
     .normal-cell {
       padding: 4px 0;
-      line-height: 1.5;
+      line-height: 1.8;
+      text-align: center;
 
       .no-data {
         color: #c0c4cc;
+      }
+    }
+
+    .price-cell {
+      text-align: center;
+
+      .price-box {
+        display: inline-block;
+        min-width: 70px;
+        height: 36px;
+        background: rgba(16, 140, 88, 0.1);
+        border-radius: 2px;
+        border: 1px solid #108C58;
+        font-size: 12px;
+        color: #108C58;
+        line-height: 36px;
+        text-align: center;
+        padding: 0 8px;
+        box-sizing: border-box;
+      }
+    }
+
+    .price-history-cell {
+      :deep(span) {
+        display: inline-block;
+        margin: 0 2px;
+      }
+
+      .toggle-more {
+        margin-top: 8px;
+        text-align: center;
+        cursor: pointer;
+        color: #108C58;
+        font-size: 14px;
+        user-select: none;
+
+        &:hover {
+          opacity: 0.8;
+        }
       }
     }
   }

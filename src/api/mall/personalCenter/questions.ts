@@ -6,7 +6,7 @@ import request from '@/utils/request';
 export function questionList(query?: any) {
   console.log(query);
   return request({
-    url: 'skill-server/question/list',
+    url: 'skill-server/question/myQuestionList',
     method: 'get',
     params: query
   });

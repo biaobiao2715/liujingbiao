@@ -62,19 +62,13 @@
       </el-table-column>
       <el-table-column label="操作" width="220" align="center">
         <template #default="{ row }">
-          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onEdit(row)"
+          <el-button link v-if="row.hasQuote == '0'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onEdit(row)"
             >修改</el-button
           >
-          <el-button
-            link
-            v-if="row.demandStatus === '1'"
-            v-throttle
-            v-hasPermi="['grain:HnPurchaseDemand:edit']"
-            type="primary"
-            @click="onComplete(row)"
+          <el-button link v-if="row.hasQuote == '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onComplete(row)"
             >完成</el-button
           >
-          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="danger" @click="onDelete(row)"
+          <el-button link v-if="row.hasQuote == '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="danger" @click="onDelete(row)"
             >关闭</el-button
           >
           <el-button link v-throttle v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" @click="onDetails(row)">查看</el-button>
@@ -122,15 +116,10 @@
           >
             <el-table-column type="index" label="序号" width="60" align="center" />
             <el-table-column prop="supplierName" label="供应商名称" align="center" />
-            <el-table-column prop="price" label="报价" align="center">
-              <template #default="{ row }"> {{ row.price }} 元</template>
+            <el-table-column prop="unitPrice" label="报价" align="center">
+              <template #default="{ row }"> {{ row.unitPrice }} 元</template>
             </el-table-column>
-            <el-table-column prop="remark" label="备注说明" align="center" />
-            <!-- 回复时间列暂时注释
-            <el-table-column prop="replyTime" label="回复时间" align="center">
-              <template #default="{ row }">{{ proxy.parseTime(row.replyTime) }}</template>
-            </el-table-column>
-            -->
+            <el-table-column prop="quoteRemarks" label="备注说明" align="center" />
             <el-table-column label="操作" width="120" align="center">
               <template #default="{ row }">
                 <el-button v-if="row.contactPhone" link type="primary" @click="onContact(row)">立即联系</el-button>

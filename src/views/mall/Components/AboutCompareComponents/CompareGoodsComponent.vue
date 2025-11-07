@@ -101,11 +101,18 @@ const loadCompareDataFromRoute = async () => {
       
       const res = await comparePrices(params);
       if (res && res.code === 200 && res.data) {
-        // 处理返回的数据
-        compareGoodsList.value = res.data.map((goods: any) => ({
+        let goodsData = res.data;
+        if (Array.isArray(res.data.comparePrices)) {
+          goodsData = res.data.comparePrices;
+        } else if (Array.isArray(res.data)) {
+          goodsData = res.data;
+        }
+        
+        compareGoodsList.value = goodsData.map((goods: any) => ({
           ...goods,
           price: goods.hnGoodsSpecificationDataList?.[0]?.goodsPrice || '0',
-          location: goods.hnBaseEnterpriseInfo?.province
+          location: goods.hnBaseEnterpriseInfo?.province,
+          priceHistories: goods.priceHistories || []
         }));
         saveToLocalStorage();
       }
@@ -147,7 +154,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .compare-goods-container {
-  padding: 20px;
+  padding:  20px 70px;
   background: #fff;
 
   .breadcrumb {

@@ -36,7 +36,7 @@ export function productSalesStatistics() {
 //下单
 export function productOrder(data: any) {
   return request({
-    url: '/order',
+    url: 'grain-sales//order/add',
     method: 'post',
     data: data
   });
