@@ -42,18 +42,18 @@ const tableData = ref<any[]>([]);
 
 // 格式化资质等级
 const formatCredentialLevel = (level?: string) => {
-  if (!level) return '-';
+  if (level === undefined || level === null) return '-';
   const levelMap: Record<string, string> = {
-    '0': '一级资质',
-    '1': '二级资质',
-    '2': '三级资质'
+    '0': '一级认证',
+    '1': '二级认证',
+    '2': '三级认证'
   };
   return levelMap[level] || '-';
 };
 
 // 格式化信用等级
 const formatCreditLevel = (level?: string) => {
-  if (!level) return '-';
+  if (level === undefined || level === null) return '-';
   const levelMap: Record<string, string> = {
     '0': '优秀',
     '1': '良好',
