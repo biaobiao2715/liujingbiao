@@ -80,6 +80,7 @@ const dialogImageUrl = ref('')
 const fileList = ref([])
 // 表单数据
 const formData = ref({
+    id: undefined as number | undefined,
     title: '',
     description: '',
     videoUrl: '',
@@ -245,14 +246,24 @@ const loadDetail = async () => {
         const res = await gethnOnlineVideoDetail(props.id);
         console.log('详情数据', res);
 
-        formData.value = { ...res.data };
+        formData.value = {
+            id:res.data.id,
+            title:res.data.title,
+            description: res.data.description,
+            videoUrl: res.data.videoUrl,
+            coverImageId: res.data.coverImageId, //主图id 
+        };
 
-        fileList.value = [{
-            // name: data.imageFile.originalName,
-            url: res.data.coverImageUrl,
-            ossId: res.data.coverImageId,
-            uid: Date.now().toString() // 生成一个临时 uid
-        }];
+        if (res.data.imageFile && res.data.imageFile.ossId) {
+            fileList.value = [{
+                name: res.data.imageFile.originalName,
+                url: res.data.imageFile.url,
+                ossId: res.data.imageFile.ossId,
+                uid: Date.now().toString() // 生成一个临时 uid
+            }];
+        } else {
+            fileList.value = [];
+        }
 
     } catch (error) {
         console.error('加载详情失败:', error);

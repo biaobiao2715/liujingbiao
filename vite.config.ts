@@ -24,12 +24,13 @@ export default defineConfig(({ mode, command }) => {
       open: true,
       proxy: {
         [env.VITE_APP_BASE_API]: {
-          // target: 'http://192.168.2.132:8080',
-            // target: 'http://192.168.2.12:8080', // 后端接口
-          // target: 'http://192.168.2.30:8080', // 后端接口  周全
-          //  target: 'http://192.168.2.249:8080', // 后端接口  马春洋
-          // target: 'http://192.168.2.11:8080', // 后端接口
-          target: 'http://192.168.2.253:8080', // 后端接口 赵波
+          // target: 'http://192.168.2.12:8080', // 洞穴
+          // target: 'http://192.168.2.228:8080', // 马春洋
+          // target: 'http://192.168.2.221:8080', // 周全
+          // target: 'http://192.168.2.253:8080', // 照相机
+          target: 'http://192.168.2.111:8080', // 爽
+          // target: 'http://192.168.2.132:8080', // shun
+          // target: 'http://8.153.15.72:8080', // 开发
 
           changeOrigin: true,
           ws: true,
