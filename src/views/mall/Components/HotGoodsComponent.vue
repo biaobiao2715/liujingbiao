@@ -8,7 +8,7 @@
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods?.url || goods?.ossurls" width="100" class="goods-image" />
+    <img :src="goods.url || goods.ossUrls" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
         <div class="goods-price">{{ goods?.goodsPrice }}元起</div>
@@ -46,9 +46,7 @@ const props = defineProps({
   }
 });
 
-onMounted(() => {
-  console.log('商品信息:', props.goods);
-});
+onMounted(() => {});
 
 // 点击商品时触发方法
 const handleClick = (item) => {
@@ -72,7 +70,6 @@ const handleClick = (item) => {
 .goods-image {
   width: 100%;
   height: 120px;
-  margin-bottom: 10px;
 }
 
 .goods-info {

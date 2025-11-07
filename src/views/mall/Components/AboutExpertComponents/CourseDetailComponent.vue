@@ -29,7 +29,7 @@
       </div>
     </div>
     <!-- 编辑器内容 -->
-    <div></div>
+    <ContentWithToc :content="detail?.cultivateContent" ref="contentWithTocRef" />
     <!-- 附件部分 -->
     <el-table :data="detail?.attachments">
       <el-table-column prop="type" label="附件类型" width="180" />
@@ -43,6 +43,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { courseDetail } from '@/api/mall/expert';
+import ContentWithToc from '@/components/ContentWithToc/index.vue';
+
 const props = defineProps({
   id: {
     type: String,

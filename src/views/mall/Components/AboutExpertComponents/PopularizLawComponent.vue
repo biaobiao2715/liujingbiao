@@ -1,14 +1,14 @@
 <template>
   <div class="populariz-law">
-    <el-card v-loading="loading">
+    <el-card>
       <template #header>
         <div class="flex-center gap-24">
           <div class="card-header">普法宣传</div>
-          <el-segmented v-model="activeTab" :options="tabsList" @change="handleTabChange" />
+          <el-segmented v-model="activeTab" :options="tabsList" @change="handleTabChange" :disabled="loading" />
         </div>
       </template>
 
-      <el-scrollbar height="200px" @end-reached="loadMore">
+      <el-scrollbar height="600px" @end-reached="loadMore" v-loading="loading">
         <div class="data-list">
           <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div class="point"></div>
@@ -31,11 +31,11 @@ const emit = defineEmits(['detailChange']);
 const loading = ref(false);
 
 const tabsList = [
-  { label: '国家政策法规', value: 'policyDetail' },
-  { label: '普法活动', value: 'lawContentDetail' },
+  { label: '普法内容', value: 'lawContentDetail' },
+  { label: '普法活动', value: 'lawActivityDetail' },
   { label: '普法白皮书', value: 'whitepaperDetail' }
 ];
-const activeTab = ref('policyDetail');
+const activeTab = ref('lawContentDetail');
 
 const dataList = ref([]);
 const pageNum = ref(1);
@@ -47,6 +47,7 @@ onMounted(() => {
 });
 
 const handleTabChange = (tab: any) => {
+  pageNum.value = 1;
   resetData();
   getDataList();
 };
@@ -61,16 +62,15 @@ const getDataList = async () => {
   if (!hasMore.value) return;
   loading.value = true;
   try {
-    const res: any = await (activeTab.value === 'policyDetail'
+    const res: any = await (activeTab.value === 'lawContentDetail'
       ? getContentList({ pageNum: pageNum.value, pageSize })
-      : activeTab.value === 'lawContentDetail'
+      : activeTab.value === 'lawActivityDetail'
         ? getActivityList({ pageNum: pageNum.value, pageSize })
         : getWhitePaperList({ pageNum: pageNum.value, pageSize }));
     if (res.code === 200) {
       const rows = res.rows || [];
       dataList.value = [...dataList.value, ...rows];
       hasMore.value = rows.length === pageSize;
-      pageNum.value += 1;
     }
   } catch {
   } finally {
@@ -80,6 +80,7 @@ const getDataList = async () => {
 
 const loadMore = () => {
   console.log('-=-=-=-=-=');
+  pageNum.value += 1;
   getDataList();
 };
 

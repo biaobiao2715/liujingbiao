@@ -113,3 +113,19 @@ export function activityApply(data: any) {
     data: data
   });
 }
+
+// 增加普法内容浏览量
+export function addViewRecords(id: string) {
+  return request({
+    url: `skill-server/law/content/addViewRecords/${id}`,
+    method: 'post'
+  });
+}
+
+// 增加普法内容的文件下载数量
+export function addDownloadRecords(id: string) {
+  return request({
+    url: `skill-server/law/content/addDownloadRecords/${id}`,
+    method: 'post'
+  });
+}

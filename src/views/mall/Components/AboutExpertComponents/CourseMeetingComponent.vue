@@ -12,43 +12,45 @@
       <template #header>
         <div class="flex-center gap-24">
           <div class="card-header">专家课程</div>
-          <el-segmented v-model="activeTab" :options="tabsList" />
+          <el-segmented v-model="activeTab" :options="tabsList" :disabled="loading" />
         </div>
       </template>
 
-      <!-- 课程 -->
-      <el-row :gutter="12" v-if="activeTab === 'course'">
-        <el-col :span="6" v-for="(course, index) in courseList" :key="index">
-          <el-card shadow="hover">
-            <div class="course-item" @click="handleDetail('courseDetail', course.id)">
-              <img :src="course.cultivateCoverId" class="course-image" />
-              <div class="hot flex-center gap-12">
-                <div class="views flex-center gap-2">
-                  <el-icon size="20"><View /></el-icon>
-                  <span>{{ course.pageViews }}</span>
+      <div v-loading="loading">
+        <!-- 课程 -->
+        <el-row :gutter="12" v-if="activeTab === 'course'">
+          <el-col :span="6" v-for="(course, index) in courseList" :key="index">
+            <el-card shadow="hover">
+              <div class="course-item" @click="handleDetail('courseDetail', course.id)">
+                <img :src="course.cultivateCoverId" class="course-image" />
+                <div class="hot flex-center gap-12">
+                  <div class="views flex-center gap-2">
+                    <el-icon size="20"><View /></el-icon>
+                    <span>{{ course.pageViews }}</span>
+                  </div>
+                  <div class="collection flex-center gap-2">
+                    <el-icon size="20" v-if="!course.isCollected"><Star /></el-icon>
+                    <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
+                    <span>{{ course.collectCount }}</span>
+                  </div>
                 </div>
-                <div class="collection flex-center gap-2">
-                  <el-icon size="20" v-if="!course.isCollected"><Star /></el-icon>
-                  <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-                  <span>{{ course.collectCount }}</span>
+                <div class="course-info">
+                  <div class="course-title">{{ course.cultivateName }}</div>
+                  <div class="course-type">{{ '课程类型 ' + course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
+                  <div class="course-time">{{ '发布时间 ' + course.publishTime }}</div>
                 </div>
               </div>
-              <div class="course-info">
-                <div class="course-title">{{ course.cultivateName }}</div>
-                <div class="course-type">{{ '课程类型 ' + course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
-                <div class="course-time">{{ '发布时间 ' + course.publishTime }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
-      </el-row>
-      <!-- 会议 -->
-      <div class="meeting-list" v-else>
-        <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleDetail('meetingDetail', meeting.id)">
-          <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
+            </el-card>
+          </el-col>
+          <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
+        </el-row>
+        <!-- 会议 -->
+        <div class="meeting-list" v-else>
+          <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleDetail('meetingDetail', meeting.id)">
+            <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
+          </div>
+          <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" class="margin-center" />
         </div>
-        <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" class="margin-center" />
       </div>
     </el-card>
   </div>
@@ -64,9 +66,11 @@ const tabsList = [
   { label: '培训会议', value: 'meeting' }
 ];
 
+const loading = ref(false);
 const activeTab = ref('course');
 const courseList = ref([]);
 const meetingList = ref([]);
+const pageNum = ref(1);
 
 // 页面加载时调用接口
 onMounted(() => {
@@ -76,13 +80,16 @@ onMounted(() => {
 
 // 获取培训课程列表
 const fetchCourseList = async () => {
-  const response = await courseCultivateList({});
+  const response = await courseCultivateList({ pageNum: pageNum.value, pageSize: 10 });
   courseList.value = response.rows || [];
 };
 
 // 获取培训会议列表
 const fetchMeetingList = async () => {
-  const response = await meetingCultivateList({});
+  const response = await meetingCultivateList({
+    pageNum: pageNum.value,
+    pageSize: 10
+  });
 
   meetingList.value = response.rows || [];
   console.log(meetingList.value);

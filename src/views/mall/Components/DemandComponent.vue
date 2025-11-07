@@ -71,7 +71,7 @@
               v-for="item in group"
               :key="item.id"
               :goods="item"
-              style="width: calc(20% - 10px)"
+              style="width: calc(20% - 12px)"
               @clickGoods="handleClick(item.id)"
             />
           </div>
@@ -198,6 +198,7 @@ const getHotGoodsList = async () => {
   });
   if (res.code === 200) {
     hotRecommendations.value = res.rows || [];
+    console.log(hotRecommendations.value);
   }
 };
 
@@ -227,7 +228,6 @@ const handleOpenDialog = () => {
 };
 
 const contact = (row: any) => {
-  console.log('联系数据:', row);
   contactForm.value = row;
   contactVisible.value = true;
 };
@@ -240,8 +240,6 @@ const groupArray = (array: any[], groupSize: number = 5) => {
       result[groupIndex] = []; // 初始化组
     }
     result[groupIndex].push(item); // 将对象添加到对应组
-    console.log(result);
-
     return result;
   }, []);
 };

@@ -20,8 +20,8 @@
         会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
       <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button :type="detail?.isEnrolled === '1' ? 'info' : 'primary'" @click="handleApply">{{
-        detail?.isEnrolled === '1' ? '取消报名' : '立即报名'
+      <el-button :type="detail?.enrollStatus === '0' ? 'info' : 'primary'" @click="handleApply">{{
+        detail?.enrollStatus === '0' ? '取消报名' : '立即报名'
       }}</el-button>
     </div>
 

@@ -16,7 +16,7 @@
       <!-- 直播 -->
       <LivingComponent @detailChange="showDetail" />
     </div>
-    <div v-show="showArea !== 'area'">
+    <div v-if="showArea !== 'area'">
       <!-- 面包屑导航 -->
       <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
         <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">专家专区</el-breadcrumb-item>
@@ -32,6 +32,10 @@
       <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
       <!-- 普法内容详情 -->
       <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
+      <!-- 普法活动详情 -->
+      <LawActivityDetailComponent v-if="showArea === 'lawActivityDetail'" :id="id" />
+      <!-- 普法白皮书 -->
+      <LawWhiteDetailComponent v-if="showArea === 'whitepaperDetail'" :id="id" />
     </div>
   </div>
 </template>
@@ -51,12 +55,23 @@ import CourseDetailComponent from './AboutExpertComponents/CourseDetailComponent
 import MeetingDetailComponent from './AboutExpertComponents/MeetingDetailComponent.vue'; // 会议详情组件
 import LivingComponent from './AboutExpertComponents/LivingComponent.vue'; // 直播组件
 import LawContentDetailComponent from './AboutExpertComponents/LawContentDetailComponent.vue'; // 普法内容详情组件
+import LawActivityDetailComponent from './AboutExpertComponents/LawActivityDetailComponent.vue'; // 普法活动详情组件
+import LawWhiteDetailComponent from './AboutExpertComponents/LawWhiteDetailComponent.vue'; // 普法白皮书组件
 
-type showAreaType = 'area' | 'qaDetail' | 'essayDetail' | 'courseDetail' | 'meetingDetail' | 'livingDetail' | 'lawContentDetail';
+type showAreaType =
+  | 'area'
+  | 'qaDetail'
+  | 'essayDetail'
+  | 'courseDetail'
+  | 'meetingDetail'
+  | 'livingDetail'
+  | 'lawContentDetail'
+  | 'lawActivityDetail'
+  | 'whitepaperDetail';
+
+const id = ref(null); // 详情ID
 
 const showArea = ref('area');
-// const secondTitle=ref(); // 二级菜单名称 根据showAreaType判断
-const id = ref(null);
 
 const secondTitle = computed(() => {
   switch (showArea.value) {
@@ -72,6 +87,10 @@ const secondTitle = computed(() => {
       return '直播详情';
     case 'lawContentDetail':
       return '普法内容详情';
+    case 'lawActivityDetail':
+      return '普法活动详情';
+    case 'whitepaperDetail':
+      return '普法白皮书详情';
     default:
       return '';
   }
