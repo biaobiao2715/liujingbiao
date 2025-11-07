@@ -7,23 +7,8 @@
     -->
 <template>
   <div class="favorite-page">
-    <el-card shadow="never" class="fav-card">
-      <div class="header">
-        <div class="title">我的收藏夹</div>
-        <el-input
-          v-model="state.queryParams.googsName"
-          placeholder="搜索收藏名称/编号"
-          class="search"
-          clearable
-          @clear="reload"
-          @keyup.enter="reload"
-        >
-          <template #append>
-            <el-button @click="reload" :loading="state.loading" icon="Search">搜索</el-button>
-          </template>
-        </el-input>
-      </div>
-
+    <div class="menu-title">我的收藏夹</div>
+    <div class="pading20">
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange" :loading="state.loading">
         <el-tab-pane v-for="(item, index) in tabList" :key="index" :label="item.label" :name="item.value" />
       </el-tabs>
@@ -61,7 +46,14 @@
                 </div>
                 <div class="flex-between">
                   <div class="name-ellipsis">{{ item.googsName }}</div>
-                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                  <el-button
+                    v-hasPermi="['system:common:favorite']"
+                    @click.stop="onUnfav(item)"
+                    class="fav-heart"
+                    text
+                    v-throttle
+                    :loading="state.opLoadingId === item.id"
+                  >
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
                 </div>
@@ -94,7 +86,14 @@
                 </div>
                 <div class="flex-between">
                   <div class="author">{{ getArticleAuthor(item) }}</div>
-                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                  <el-button
+                    v-hasPermi="['system:common:favorite']"
+                    @click.stop="onUnfav(item)"
+                    class="fav-heart"
+                    text
+                    v-throttle
+                    :loading="state.opLoadingId === item.id"
+                  >
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
                 </div>
@@ -113,7 +112,7 @@
           @pagination="reload"
         />
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -282,25 +281,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.favorite-page {
-  padding: 16px;
-}
-.fav-card {
-  width: 100%;
-}
-.header {
+/* 页面布局样式 */
+.menu-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  height: 60px;
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
-.title {
-  font-size: 18px;
-  font-weight: 600;
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
 }
-.search {
-  max-width: 360px;
-  margin-left: auto;
+
+.pading20 {
+  padding: 20px;
 }
 
 /* 通用网格（文章等保持自适应） */

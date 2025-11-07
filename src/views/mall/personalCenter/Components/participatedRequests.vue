@@ -7,11 +7,8 @@
     -->
 <template>
   <div class="favorite-page">
-    <el-card shadow="never" class="fav-card">
-      <div class="header">
-        <div class="title">我参与的</div>
-      </div>
-
+    <div class="menu-title">我参与的</div>
+    <div class="pading20">
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange">
         <el-tab-pane label="培训会议" name="1" />
         <el-tab-pane label="普法活动" name="2" />
@@ -46,32 +43,28 @@
             >
               <div class="article">
                 <img class="li-img" :src="getArticleCover(item)" alt="商品图片" />
-                <div class="info">
-                  <div class="name">
-                    {{ getTitle(item) }}
-                  </div>
-                  <div class="flex-between meta-line">
-                    <dict-text :options="state.activeTab == '1' ? meeting_type : legal_popularize_activity_type" :value="getType(item)" />
-                    <el-button type="primary" @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id"> 取消报名 </el-button>
-                  </div>
-                  <div>{{ getTime(item) }}</div>
-                </div>
+                <div class="article_name">{{ getTitle(item) }}</div>
+                <dict-text
+                  class="article_type"
+                  :options="state.activeTab == '1' ? meeting_type : legal_popularize_activity_type"
+                  :value="getType(item)"
+                />
+                <div class="article_time">{{ getTime(item) }}</div>
               </div>
+              <el-button
+                v-hasPermi="['grain:HnPurchaseDemand:edit']"
+                class="article-btn cancel-btn-immersive"
+                @click.stop="onUnfav(item)"
+                v-throttle
+                text
+                :loading="state.opLoadingId === item.id"
+                >取消报名</el-button
+              >
             </el-card>
           </div>
         </template>
       </el-skeleton>
-
-      <!-- <div class="pager">
-        <pagination
-          v-if="state.total > 0"
-          v-model:page="state.query.pageNum"
-          v-model:limit="state.query.pageSize"
-          :total="state.total"
-          @pagination="reload"
-        />
-      </div> -->
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -79,11 +72,12 @@
 import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { useUserStore } from '@/store/modules/user';
 import { participateCategoryList, participateCategoryPost, FavoriteItem } from '@/api/mall/personalCenter/participatedRequests';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { meeting_type, legal_popularize_activity_type } = toRefs<any>(proxy?.useDict('meeting_type', 'legal_popularize_activity_type'));
-
+const userStore = useUserStore();
 // 本地占位图（可根据实际资源调整路径）
 const defaultImg = new URL('@/assets/logo/logo.png', import.meta.url).href;
 const state = reactive({
@@ -94,7 +88,8 @@ const state = reactive({
   opLoadingId: 0 as number | 0,
   query: {
     pageNum: 1,
-    pageSize: 10
+    pageSize: 10,
+    userId: userStore.userId
   }
 });
 
@@ -136,7 +131,7 @@ function onUnfav(item: any) {
       state.opLoadingId = item.id as number;
       await participateCategoryPost({
         categoryType: state.activeTab,
-        id: item.id,
+        id: item.foreignId,
         activityType: item.activityType,
         activityEnrollBo: item
       });
@@ -174,27 +169,34 @@ function getTime(item: any) {
 </script>
 
 <style scoped>
-.favorite-page {
-  padding: 16px;
-}
-.fav-card {
-  width: 100%;
-}
-.header {
+/* 页面布局样式 */
+.menu-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.title {
-  font-size: 18px;
-  font-weight: 600;
-}
-.search {
-  max-width: 360px;
-  margin-left: auto;
+  height: 60px;
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
 
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
+}
+
+.pading20 {
+  padding: 20px;
+}
 /* 通用网格（文章等保持自适应） */
 .grid {
   display: grid;
@@ -207,35 +209,6 @@ function getTime(item: any) {
   grid-template-columns: repeat(5, 1fr);
 }
 
-/* 商品卡片统一高度与交互优化 */
-.goods-item {
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  min-height: 260px;
-}
-.goods-item:hover {
-  transform: translateY(-2px);
-}
-
-/* 卡片内布局与文本溢出处理 */
-.goods {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.meta-line {
-  color: #909399;
-  font-size: 16px;
-  margin: 8px 0;
-}
-
 /* 图片比例统一 */
 .li-img {
   width: 100%;
@@ -245,27 +218,92 @@ function getTime(item: any) {
   background: #f7f8fa;
 }
 
-/* 文本省略 */
-.name-ellipsis {
-  max-width: 65%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.article_name {
+  height: 50px;
+  line-height: 50px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #333333;
 }
-.addr-ellipsis {
-  max-width: 45%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.article_name::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 6px;
 }
 
-/* 文章块保持原有自适应即可 */
-.pager {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
+.article_type {
+  width: 48px;
+  height: 21px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 12px;
+  color: #108c58;
+  line-height: 21px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
 }
-.ml8 {
-  margin-left: 8px;
+
+.article_time {
+  height: 21px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #7a7a7a;
+  line-height: 21px;
+  margin-top: 15px;
+}
+
+.article-btn {
+  width: 100%;
+  height: 36px;
+  line-height: 36px;
+  background: #ef4d0b;
+  box-shadow: 0px 4px 3px 0px rgba(115, 33, 0, 0.23);
+  border-radius: 4px 4px 4px 4px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #ffffff;
+}
+.cancel-btn-show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 沉浸式卡片悬停动画 */
+.article-item {
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s;
+  position: relative;
+  overflow: visible;
+}
+.article-item:hover {
+  transform: translateY(-12px) scale(1.03);
+  z-index: 2;
+}
+
+/* 沉浸式取消按钮显示控制 */
+.article-btn.cancel-btn-immersive {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  z-index: 10;
+}
+.article-item:hover .article-btn.cancel-btn-immersive {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 保证卡片内容不被遮挡 */
+.article {
+  position: relative;
+  z-index: 1;
 }
 </style>

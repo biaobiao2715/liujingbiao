@@ -14,8 +14,7 @@
     <el-divider />
 
     <!-- 顶部统计提示 -->
-    <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已发布${total}条`" />
-
+    <div class="summary-alert">已发布{{ total }}条</div>
     <!-- 采购需求表格 -->
     <el-table
       :data="tableData"
@@ -304,9 +303,15 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
 
 /* 顶部提示样式 */
 .summary-alert {
-  margin: 12px 0;
-  border: 1px solid var(--el-color-warning-light-5);
-  border-radius: 4px;
+  margin: 15px 0;
+  height: 36px;
+  line-height: 36px;
+  background: rgba(255, 123, 0, 0.1);
+  border-radius: 4px 4px 4px 4px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #ff7b00;
+  text-align: center;
 }
 
 /* 表格标题背景与单元格内边距优化 */

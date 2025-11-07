@@ -7,34 +7,49 @@
     -->
 <template>
   <div class="address-page">
-    <div class="title">我的提问</div>
-    <el-divider />
+    <div class="menu-title">我的提问</div>
+    <div class="pading20">
+      <!-- 问题统计与红色回复数 -->
+      <div class="summary-alert">已提问{{ total }}条</div>
+      <!-- 表格 -->
+      <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
+        <el-table-column type="index" label="序号" width="55" align="center" />
+        <el-table-column prop="questionContent" label="我的提问" align="center" />
+        <el-table-column prop="publishTime" label="发布时间" align="center">
+          <template #default="scope">
+            <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" align="center">
+          <template #default="{ row }">
+            <div class="ops">
+              <el-button
+                v-if="row.questionStatus !== '99'"
+                v-hasPermi="['system:question:stopQuestion']"
+                @click="onDelete(row)"
+                v-throttle
+                text
+                style="color: #ef4d0b"
+                >关闭</el-button
+              >
+              <el-button
+                v-if="row.hasQuote == '0'"
+                v-hasPermi="['system:question:query']"
+                @click="onDetail(row)"
+                v-throttle
+                text
+                style="color: #108c58"
+                >查看</el-button
+              >
+              <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 问题统计与红色回复数 -->
-    <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已提问${total}条`" />
-
-    <!-- 表格 -->
-    <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column prop="questionContent" label="我的提问" align="center" />
-      <el-table-column prop="publishTime" label="发布时间" align="center">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="160" align="center">
-        <template #default="{ row }">
-          <div class="ops">
-            <el-button v-if="row.questionStatus !== '99'" link type="danger" class="btn-red" @click="onDelete(row)">关闭</el-button>
-            <el-button link type="primary" class="btn-blue" @click="onEdit(row)">查看</el-button>
-            <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div class="flex-end pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <div class="flex-end pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
 
     <!-- 详情弹窗 -->
@@ -124,7 +139,7 @@ const getList = async () => {
 };
 
 // 查看详情
-const onEdit = (row: any) => {
+const onDetail = (row: any) => {
   detailLoading.value = true;
   questionDetail(row.id)
     .then((res: any) => {
@@ -167,13 +182,33 @@ function getReplyCount(row: any) {
 </script>
 
 <style scoped>
-.address-page {
-  padding: 20px;
-}
-.title {
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 20px;
   font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+}
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
+}
+
+.pading20 {
+  padding: 20px;
 }
 .reply-count {
   margin-bottom: 10px;
@@ -197,9 +232,15 @@ function getReplyCount(row: any) {
 
 /* 顶部提示样式 */
 .summary-alert {
-  margin: 12px 0;
-  border: 1px solid var(--el-color-warning-light-5);
-  border-radius: 4px;
+  margin: 15px 0;
+  height: 36px;
+  line-height: 36px;
+  background: rgba(255, 123, 0, 0.1);
+  border-radius: 4px 4px 4px 4px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #ff7b00;
+  text-align: center;
 }
 
 /* 表格标题背景与单元格内边距优化 */

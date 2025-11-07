@@ -8,48 +8,74 @@
 <template>
   <div class="orders">
     <!-- 页面标题 -->
-    <div class="title">我的订单</div>
-    <el-divider />
+    <div class="menu-title">我的最近订单</div>
+    <div class="pading20">
+      <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-change="onTabChange">
+        <el-tab-pane label="全部" name="0" key="0"></el-tab-pane>
+        <el-tab-pane v-for="value in order_status" :key="value.value" :label="value.label" :name="value.value"></el-tab-pane>
+      </el-tabs>
 
-    <!--
-      使用 v-model 与查询参数 orderStatus 绑定，去除额外状态变量
-      点击 Tab 时触发 getList 拉取对应状态的数据
-    -->
-    <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-change="onTabChange">
-      <el-tab-pane label="全部" name="0" key="0"></el-tab-pane>
-      <el-tab-pane v-for="value in order_status" :key="value.value" :label="value.label" :name="value.value"></el-tab-pane>
-    </el-tabs>
-
-    <el-table v-loading="loading" :data="tabList" style="width: 100%">
-      <el-table-column prop="goodsName" label="商品信息" width="200" :show-overflow-tooltip="true">
-        <template v-slot="scope">
-          <div style="display: flex">
-            <!-- 图片增加兜底，避免空值报错 -->
-            <img class="table-img" :src="scope.row.orderItems[0]?.goodsPic || ''" />
-            <span style="margin-left: 10px">{{ scope.row.orderItems[0]?.goodsName }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="goodsPrice" label="商品价格" align="center">
-        <template #default="{ row }"> {{ row.orderItems?.goodsPrice }}元 </template>
-      </el-table-column>
-      <el-table-column prop="orderStatus" label="订单状态" align="center">
-        <template v-slot="scope">
-          <dict-tag :options="order_status" :value="scope.row.orderStatus" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="enterprisePhone" label="商家联系电话" align="center"></el-table-column>
-      <el-table-column prop="orderSn" label="销售订单号" width="250" align="center"></el-table-column>
-      <el-table-column label="操作" width="150" align="center">
-        <template #default="{ row }">
-          <el-button v-if="row.orderStatus == '1'" type="danger" size="small" @click="cancelOrder(row.id)"> 取消订单 </el-button>
-          <el-button v-if="row.orderStatus == '2'" type="primary" size="small" @click="confirmReceipt(row.id)"> 签收 </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <!-- 分页 -->
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <el-table v-loading="loading" :data="tabList" style="width: 100%">
+        <el-table-column prop="goodsName" label="商品信息" width="200" :show-overflow-tooltip="true">
+          <template v-slot="scope">
+            <div style="display: flex">
+              <!-- 图片增加兜底，避免空值报错 -->
+              <img class="table-img" :src="scope.row.orderItems[0]?.goodsPic || ''" />
+              <div style="margin-left: 10px">
+                <div>{{ scope.row.orderItems[0]?.goodsName }}</div>
+                <div>{{ scope.row.orderItems[0]?.goodsNum }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="goodsPrice" label="商品价格" align="center">
+          <template #default="{ row }">
+            <span style="color: #ef4d0b">￥{{ row.orderItems[0]?.goodsPrice }}元 </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="orderStatus" label="订单状态" align="center">
+          <template v-slot="scope">
+            <dict-tag :options="order_status" :value="scope.row.orderStatus" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="enterprisePhone" label="商家联系电话" align="center"></el-table-column>
+        <el-table-column prop="orderSn" label="销售订单号" width="250" align="center"></el-table-column>
+        <el-table-column label="操作" width="150" align="center">
+          <template #default="{ row }">
+            <el-button
+              v-if="row.orderStatus == '1'"
+              v-hasPermi="['grain:salesOrder:cancel']"
+              @click="cancelOrder(row.id)"
+              v-throttle
+              text
+              style="color: #ff0000"
+              >取消订单</el-button
+            >
+            <el-button
+              v-if="row.orderStatus == '2'"
+              v-hasPermi="['grain:salesOrder:edit']"
+              @click="confirmReceipt(row.id)"
+              v-throttle
+              text
+              style="color: #108c58"
+              >签收</el-button
+            >
+            <el-button
+              v-if="row.orderStatus == '3'"
+              v-hasPermi="['grain:salesOrder:edit']"
+              @click="confirmReceipt(row.id)"
+              v-throttle
+              text
+              style="color: #108c58"
+              >举报商品</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+      <!-- 分页 -->
+      <div class="flex-center pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
   </div>
 </template>
@@ -169,19 +195,36 @@ onMounted(() => {
 
 <style scoped>
 /* 页面布局样式 */
-.orders {
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+}
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
+}
+
+.pading20 {
   padding: 20px;
 }
-
-.title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
 .table-img {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
 }
 .pagination {
   margin-top: 24px;

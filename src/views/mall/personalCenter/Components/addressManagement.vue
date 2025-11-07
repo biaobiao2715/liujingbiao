@@ -7,78 +7,78 @@
     -->
 <template>
   <div class="address-page">
-    <div class="title">我的地址管理</div>
-    <el-divider />
+    <div class="menu-title">我的地址</div>
+    <div class="pading20">
+      <!-- 新增/编辑地址 -->
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="90px" class="address-form">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="收货人" prop="receiverName">
+              <el-input v-model="form.receiverName" placeholder="请输入" maxlength="50" show-word-limit />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
 
-    <!-- 新增/编辑地址 -->
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="90px" class="address-form">
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="收货人" prop="receiverName">
-            <el-input v-model="form.receiverName" placeholder="请输入" maxlength="50" show-word-limit />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="地区" prop="regionPath">
+              <RegionSelect style="width: 100%" v-model="form.regionPath" @regionChange="onRegionChange" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号" prop="receiverPhone">
+              <el-input v-model="form.receiverPhone" placeholder="请输入" maxlength="11" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"></el-col>
+          <el-col :span="24">
+            <el-form-item label="详细地址" prop="detailAddress">
+              <el-input v-model="form.detailAddress" type="textarea" :rows="3" placeholder="乡镇、街道、门牌号等" maxlength="200" show-word-limit />
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="12">
-          <el-form-item label="地区" prop="regionPath">
-            <RegionSelect style="width: 100%" v-model="form.regionPath" @regionChange="onRegionChange" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
-        <el-col :span="12">
-          <el-form-item label="手机号" prop="receiverPhone">
-            <el-input v-model="form.receiverPhone" placeholder="请输入" maxlength="11" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12"></el-col>
-        <el-col :span="24">
-          <el-form-item label="详细地址" prop="detailAddress">
-            <el-input v-model="form.detailAddress" type="textarea" :rows="3" placeholder="乡镇、街道、门牌号等" maxlength="200" show-word-limit />
-          </el-form-item>
-        </el-col>
+          <el-col :span="24">
+            <el-form-item label=" " colon="false">
+              <el-checkbox v-model="form.isDefault" true-value="1" false-value="0">设为默认地址</el-checkbox>
+              <div style="margin-left: 20px; color: #909399">设置后系统将在下单时自动选择该收货地址</div>
+            </el-form-item>
+          </el-col>
 
-        <el-col :span="24">
-          <el-form-item label=" " colon="false">
-            <el-checkbox v-model="form.isDefault" true-value="1" false-value="0">设为默认地址</el-checkbox>
-            <div style="margin-left: 20px; color: #909399">设置后系统将在下单时自动选择该收货地址</div>
-          </el-form-item>
-        </el-col>
+          <el-col :span="24" style="text-align: right">
+            <el-button v-hasPermi="['grain:userAddress:add']" type="primary" @click="onSubmit" :loading="saving">保存</el-button>
+          </el-col>
+        </el-row>
+      </el-form>
 
-        <el-col :span="24" style="text-align: right">
-          <el-button type="primary" @click="onSubmit" :loading="saving">保存</el-button>
-        </el-col>
-      </el-row>
-    </el-form>
+      <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
+      <div class="summary-alert">已发布{{ total }}条 ，还能保存{{ remainCount }}条</div>
+      <!-- 表格：加边框与紧凑尺寸 -->
+      <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
+        <el-table-column prop="receiverName" label="收货人" align="center" />
+        <el-table-column label="所在地址" min-width="280" align="center">
+          <template #default="{ row }">
+            {{ [row.province, row.city, row.region].filter(Boolean).join(' ') }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="receiverPhone" label="手机/电话" align="center" />
+        <el-table-column label="设为默认地址" width="160" align="center">
+          <template #default="{ row }">
+            <el-switch v-model="row.isDefault" active-value="1" inactive-value="0" @change="() => onSetDefault(row)" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" align="center">
+          <template #default="{ row }">
+            <div class="ops">
+              <el-button v-hasPermi="['grain:userAddress:edit']" @click="onEdit(row)" v-throttle text style="color: #ff7b00">修改</el-button>
+              <el-button v-hasPermi="['grain:userAddress:remove']" @click="onDelete(row)" v-throttle text style="color: #ef4d0b">删除</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
-    <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已保存${total}条地址，还能保存${remainCount}条`" />
-    <!-- 表格：加边框与紧凑尺寸 -->
-    <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
-      <el-table-column prop="receiverName" label="收货人" align="center" />
-      <el-table-column label="所在地址" min-width="280" align="center">
-        <template #default="{ row }">
-          {{ [row.province, row.city, row.region].filter(Boolean).join(' ') }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="receiverPhone" label="手机号" align="center" />
-      <el-table-column label="操作" width="160" align="center">
-        <template #default="{ row }">
-          <div class="ops">
-            <el-button link type="danger" @click="onDelete(row)">删除</el-button>
-            <el-button link type="primary" @click="onEdit(row)">修改</el-button>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="设为默认地址" width="160" align="center">
-        <template #default="{ row }">
-          <el-checkbox v-model="row.isDefault" true-value="1" false-value="0" @change="() => onSetDefault(row)">设为默认地址</el-checkbox>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <div class="flex-center pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
   </div>
 </template>
@@ -244,13 +244,33 @@ const onSetDefault = async (row: Address) => {
 </script>
 
 <style scoped>
-.address-page {
-  padding: 20px;
-}
-.title {
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 20px;
   font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+}
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
+}
+
+.pading20 {
+  padding: 20px;
 }
 /* 表单容器增加描边与圆角，间距更紧凑 */
 .address-form {
@@ -265,11 +285,16 @@ const onSetDefault = async (row: Address) => {
 
 /* 顶部提示样式 */
 .summary-alert {
-  margin: 12px 0;
-  border: 1px solid var(--el-color-warning-light-5);
-  border-radius: 4px;
+  margin: 15px 0;
+  height: 36px;
+  line-height: 36px;
+  background: rgba(255, 123, 0, 0.1);
+  border-radius: 4px 4px 4px 4px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #ff7b00;
+  text-align: center;
 }
-
 /* 表格标题背景与单元格内边距优化 */
 :deep(.table-header) {
   background: #fafafa !important;
