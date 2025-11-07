@@ -2,7 +2,7 @@
   <div class="goods-detail-container">
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/mall/index' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item 
         v-for="(item, index) in breadcrumbItems" 
         :key="index"
@@ -102,15 +102,16 @@
           <div class="shipping-address">
             <span class="label">发货地址</span>
             <el-select 
-              v-model="baseInfo.selectedAddress" 
+              v-model="selectedAddressId" 
               placeholder="请选择发货地址"
               class="address-select"
+              @change="handleAddressChange"
             >
                 <el-option
-                v-for="(addr, index) in addressList"
-                :key="index"
-                :label="addr"
-                :value="addr"
+                v-for="addr in addressList"
+                :key="addr.id"
+                :label="getAddressDisplayText(addr)"
+                :value="addr.id"
                 />
               </el-select>
           </div>
@@ -211,6 +212,7 @@
       :goods="goods"
       :selected-spec-id="baseInfo.currentSpec"
       :quantity="baseInfo.quantity"
+      :selected-address-id="selectedAddressId"
       @submit="handleOrderSubmit"
     />
   </div>
@@ -222,6 +224,7 @@ import { ElMessage } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
+import { userAddressList, type Address } from '@/api/mall/personalCenter/addressManagement';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
@@ -283,7 +286,8 @@ const hotGoods = ref([]); // 最热商品
 
 
 // 地址列表
-const addressList = ref<string[]>([]);
+const addressList = ref<Address[]>([]);
+const selectedAddressId = ref<number | null>(null);
 
 // 规格显示控制
 const showAllSpecs = ref(false);
@@ -514,22 +518,11 @@ const getGoodsDetail = async () => {
 
     baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
-    // 发货地址
-    const enterpriseInfo = goods.value.hnBaseEnterpriseInfo;
-    if (enterpriseInfo) {
-      const addressParts = [
-        enterpriseInfo.province,
-        enterpriseInfo.city,
-        enterpriseInfo.district,
-        enterpriseInfo.signUpAddress
-      ].filter(Boolean);
-      const defaultAddress = addressParts.join('');
-      baseInfo.selectedAddress = defaultAddress;
-      addressList.value = [defaultAddress];
-    }
-
       // 生成面包屑导航
       updateBreadcrumb();
+      
+      // 获取地址列表
+      await fetchAddressList();
 
       // 商品详情加载成功后，加载相关商品和热门商品
       await Promise.all([
@@ -549,6 +542,47 @@ const getGoodsDetail = async () => {
 // 更新面包屑导航
 const updateBreadcrumb = () => {
   breadcrumbItems.value = goods.value?.goodsName ? [goods.value.goodsName] : [];
+};
+
+// 获取地址列表
+const fetchAddressList = async () => {
+  try {
+    const res = await userAddressList();
+    if (res.code === 200 && res.rows) {
+      addressList.value = res.rows;
+      // 设置默认地址
+      const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
+      if (defaultAddress) {
+        selectedAddressId.value = defaultAddress.id || null;
+        baseInfo.selectedAddress = getAddressDisplayText(defaultAddress);
+      } else if (addressList.value.length > 0) {
+        // 如果没有默认地址，使用第一个地址
+        selectedAddressId.value = addressList.value[0].id || null;
+        baseInfo.selectedAddress = getAddressDisplayText(addressList.value[0]);
+      }
+    }
+  } catch (error) {
+    console.error('获取地址列表失败:', error);
+  }
+};
+
+// 获取地址显示文本
+const getAddressDisplayText = (address: Address) => {
+  const parts = [
+    address.province,
+    address.city,
+    address.region,
+    address.detailAddress
+  ].filter(Boolean);
+  return parts.join('');
+};
+
+// 处理地址选择变化
+const handleAddressChange = (addressId: number | null) => {
+  const address = addressList.value.find(addr => addr.id === addressId);
+  if (address) {
+    baseInfo.selectedAddress = getAddressDisplayText(address);
+  }
 };
 
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
@@ -619,8 +653,8 @@ const getInitPrice = (specs: any[]) => {
     .map(spec => parseFloat(spec.goodsPrice || 0))
     .filter(p => p > 0);
   if (!prices.length) return '0.00';
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
   return minPrice === maxPrice 
     ? minPrice.toFixed(2) 
     : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;

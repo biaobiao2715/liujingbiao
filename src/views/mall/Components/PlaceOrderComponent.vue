@@ -102,6 +102,7 @@
         :class="['address-item', { 'address-item-selected': tempSelectedAddressId === address.id }]"
         @click="tempSelectedAddressId = address.id"
       >
+        <div v-if="address.isDefault === '1'" class="default-address-tag">默认地址</div>
         <div class="address-item-content">
           <div class="address-line">收货人姓名: {{ address.receiverName }}</div>
           <div class="address-line">收货人电话: {{ maskPhone(address.receiverPhone) }}</div>
@@ -130,10 +131,10 @@
       <el-form-item label="收货人电话：" prop="receiverPhone" required>
         <el-input v-model="addressForm.receiverPhone" placeholder="请输入收货人电话" maxlength="11" @input="handlePhoneInput" />
       </el-form-item>
-      <el-form-item label="收货地址：" required>
+      <el-form-item label="收货地址：" prop="regionPath" required>
         <RegionSelect v-model="addressForm.regionPath" @regionChange="handleRegionChange" />
       </el-form-item>
-      <el-form-item label="详细地址：" required>
+      <el-form-item label="详细地址：" prop="detailAddress" required>
         <el-input v-model="addressForm.detailAddress" type="textarea" :rows="3" placeholder="请输入详细地址" />
       </el-form-item>
       <el-form-item label="设为默认地址：">
@@ -160,6 +161,7 @@ const props = defineProps<{
   goods?: any; // 使用 any 类型避免类型检查过于严格
   selectedSpecId?: number | null;
   quantity?: number;
+  selectedAddressId?: number | null; // 从商品详情页传入的选中地址ID
 }>();
 
 const emit = defineEmits<{
@@ -219,6 +221,33 @@ const validateName = (rule: any, value: string, callback: Function) => {
   callback();
 };
 
+// 地区选择验证规则
+const validateRegion = (rule: any, value: any, callback: Function) => {
+  if (!value || !Array.isArray(value) || value.length === 0) {
+    callback(new Error('请选择收货地址'));
+    return;
+  }
+  // 检查是否选择了完整的省市区
+  if (value.length < 3) {
+    callback(new Error('请选择完整的省市区'));
+    return;
+  }
+  callback();
+};
+
+// 详细地址验证规则
+const validateDetailAddress = (rule: any, value: string, callback: Function) => {
+  if (!value || value.trim() === '') {
+    callback(new Error('请输入详细地址'));
+    return;
+  }
+  if (value.trim().length === 0) {
+    callback(new Error('详细地址不能为空'));
+    return;
+  }
+  callback();
+};
+
 // 表单验证规则
 const addressFormRules = {
   receiverName: [
@@ -227,8 +256,11 @@ const addressFormRules = {
   receiverPhone: [
     { validator: validatePhone, trigger: 'blur' }
   ],
+  regionPath: [
+    { validator: validateRegion, trigger: 'change' }
+  ],
   detailAddress: [
-    { required: true, message: '请输入详细地址', trigger: 'blur' }
+    { validator: validateDetailAddress, trigger: 'blur' }
   ]
 };
 
@@ -290,9 +322,16 @@ const fetchAddressList = async () => {
     const res = await userAddressList();
     if (res.code === 200 && res.rows) {
       addressList.value = res.rows;
-      // 设置默认地址
-      const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
-      selectedAddress.value = defaultAddress || addressList.value[0] || null;
+      // 优先使用传入的地址ID，否则使用默认地址
+      if (props.selectedAddressId) {
+        const address = addressList.value.find(addr => addr.id === props.selectedAddressId);
+        selectedAddress.value = address || null;
+      }
+      // 如果没有传入地址ID或找不到对应地址，使用默认地址
+      if (!selectedAddress.value) {
+        const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
+        selectedAddress.value = defaultAddress || addressList.value[0] || null;
+      }
     }
   } catch (error) {
     console.error('获取地址列表失败:', error);
@@ -396,8 +435,9 @@ const handleModifyAddress = () => {
 
 // 地区选择变化
 const handleRegionChange = (value: any) => {
-  if (value) {
+  if (value && value.regionPath && Array.isArray(value.regionPath) && value.regionPath.length > 0) {
     // RegionSelect 组件返回的是包含 regionPath, province, city, region 等字段的对象
+    // 有选择值时，更新所有相关字段
     if (value.regionPath) {
       addressForm.value.regionPath = value.regionPath;
     }
@@ -419,6 +459,15 @@ const handleRegionChange = (value: any) => {
     if (value.regionCode) {
       addressForm.value.regionCode = value.regionCode;
     }
+  } else {
+    // 清空时，清空所有地址相关字段
+    addressForm.value.regionPath = [];
+    addressForm.value.province = undefined;
+    addressForm.value.city = undefined;
+    addressForm.value.region = undefined;
+    addressForm.value.provinceCode = undefined;
+    addressForm.value.cityCode = undefined;
+    addressForm.value.regionCode = undefined;
   }
 };
 
@@ -440,8 +489,25 @@ const handleSaveAddress = async () => {
     return;
   }
 
-  if (!addressForm.value.receiverName || !addressForm.value.receiverPhone || !addressForm.value.detailAddress) {
+  // 验证必填字段
+  if (!addressForm.value.receiverName || !addressForm.value.receiverPhone) {
     ElMessage.warning('请填写完整信息');
+    return;
+  }
+
+  // 验证地区选择
+  if (!addressForm.value.regionPath || !Array.isArray(addressForm.value.regionPath) || addressForm.value.regionPath.length === 0) {
+    ElMessage.warning('请选择收货地址');
+    return;
+  }
+  if (addressForm.value.regionPath.length < 3) {
+    ElMessage.warning('请选择完整的省市区');
+    return;
+  }
+
+  // 验证详细地址
+  if (!addressForm.value.detailAddress || addressForm.value.detailAddress.trim() === '') {
+    ElMessage.warning('请输入详细地址');
     return;
   }
 
@@ -459,19 +525,33 @@ const handleSaveAddress = async () => {
   }
 
   try {
+    // 构建地址数据，确保清空时字段也为空
     const addressData: Partial<Address> = {
       receiverName: addressForm.value.receiverName,
       receiverPhone: addressForm.value.receiverPhone,
-      province: addressForm.value.province,
-      city: addressForm.value.city,
-      region: addressForm.value.region,
-      provinceCode: addressForm.value.provinceCode,
-      cityCode: addressForm.value.cityCode,
-      regionCode: addressForm.value.regionCode,
-      regionPath: addressForm.value.regionPath,
       detailAddress: addressForm.value.detailAddress,
       isDefault: addressForm.value.isDefault || '0'
     };
+
+    // 只有当 regionPath 存在且不为空时，才添加地址相关字段
+    if (addressForm.value.regionPath && Array.isArray(addressForm.value.regionPath) && addressForm.value.regionPath.length > 0) {
+      addressData.regionPath = addressForm.value.regionPath;
+      addressData.province = addressForm.value.province || '';
+      addressData.city = addressForm.value.city || '';
+      addressData.region = addressForm.value.region || '';
+      addressData.provinceCode = addressForm.value.provinceCode || '';
+      addressData.cityCode = addressForm.value.cityCode || '';
+      addressData.regionCode = addressForm.value.regionCode || '';
+    } else {
+      // 清空地址时，明确设置为空值
+      addressData.regionPath = [];
+      addressData.province = '';
+      addressData.city = '';
+      addressData.region = '';
+      addressData.provinceCode = '';
+      addressData.cityCode = '';
+      addressData.regionCode = '';
+    }
 
     if (editingAddressId.value) {
       // 更新地址
@@ -803,18 +883,20 @@ watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () 
     position: relative;
     margin-bottom: 16px;
     padding: 16px;
-    border: 1px solid #e0e0e0;
+    box-sizing: border-box;
+    border: 2px solid #e0e0e0;
     border-radius: 4px;
     background: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: border-color 0.3s ease;
+    min-height: 120px;
 
     &:hover {
       border-color: #ccc;
     }
 
     &.address-item-selected {
-      border: 2px solid #e53935;
+      border-color: #e53935;
       background: #fff;
     }
 
@@ -837,6 +919,18 @@ watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () 
       right: 12px;
       font-size: 20px;
       color: #e53935;
+    }
+
+    .default-address-tag {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 8px;
+      background: #108C58;
+      color: #fff;
+      font-size: 12px;
+      border-radius: 4px;
+      z-index: 1;
     }
   }
 }
