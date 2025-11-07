@@ -473,7 +473,8 @@ const handleFileChange = async (file: any) => {
     } finally {
         (proxy as any)?.$modal?.closeLoading();
     }
-};/* 处理超出限制 */
+};
+/* 处理超出限制 */
 const handleExceed = (files: any, fileList: any) => {
     // 先清空现有文件
     console.log('替换files', files);

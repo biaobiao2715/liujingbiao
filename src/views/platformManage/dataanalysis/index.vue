@@ -4,7 +4,7 @@
 说明:         
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-27
-修改人信息：张峰     2025-10-28
+修改人信息：张峰     2025-11-6
 修改内容：用于展示数据分析的列表和查询功能。
  -->
 
@@ -17,28 +17,28 @@
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator="," :value="staticdata.serviceCount" title="总服务次数"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.serviceCount || 0" title="总服务次数"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator="," :value="staticdata.serviceDuration" title="总时长(分钟)"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.serviceDuration || 0" title="总时长(分钟)"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator="," :value="staticdata.totalConsultations" title="总咨询量"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.totalConsultations || 0" title="总咨询量"></el-statistic>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card>
               <div>
-                <el-statistic group-separator="," :value="staticdata.totalReplies" title="总回复量"></el-statistic>
+                <el-statistic group-separator="," :value="staticdata.totalReplies || 0" title="总回复量"></el-statistic>
               </div>
             </el-card>
           </el-col>
@@ -143,7 +143,13 @@ const { expert_type } = toRefs<any>(proxy?.useDict('expert_type'));
 const expertList = ref([]);
 const loading = ref(false);
 const total = ref(0);
-const staticdata = ref({})
+const staticdata = ref({
+  serviceCount:0,
+  serviceDuration:0,
+  totalConsultations:0,
+  totalReplies:0,
+
+})
 const queryFormRef = ref<ElFormInstance>();
 const tableRef = ref<ElTableInstance>();
 
