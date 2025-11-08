@@ -122,7 +122,9 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { unifiedFavoriteList, favoriteDelete, FavoriteItem } from '@/api/mall/personalCenter/favorite';
 import { StarFilled } from '@element-plus/icons-vue';
-
+import { useRouter } from 'vue-router';
+import { eventBus } from '@/utils/eventBus';
+const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 本地占位图（可根据实际资源调整路径）
@@ -190,17 +192,15 @@ function onUnfav(item: FavoriteItem) {
       state.opLoadingId = item.id as number;
       // 商品/文章/普法/培训均可用同一个删除接口
       const arr: any = { favoriteType: state.activeTab };
-      if (state.activeTab === '1') {
-        arr.favoriteGoogsBo = { ...item };
-      }
-      if (state.activeTab === '3') {
-        arr.favoriteArticleBo = { ...item };
-      }
-      if (state.activeTab === '4') {
-        arr.hnCourseFavoriteBo = { ...item };
-      }
-      if (state.activeTab === '5') {
-        arr.hnLawFavoriteBo = { ...item };
+      const typeMap: Record<string, string> = {
+        '1': 'favoriteGoogsBo',
+        '3': 'favoriteArticleBo',
+        '4': 'hnCourseFavoriteBo',
+        '5': 'hnLawFavoriteBo'
+      };
+      const key = typeMap[state.activeTab];
+      if (key) {
+        arr[key] = { ...item };
       }
       await favoriteDelete(arr);
       ElMessage.success('已取消收藏');
@@ -212,13 +212,23 @@ function onUnfav(item: FavoriteItem) {
 // 跳转详情（按你项目实际路由调整）
 function goDetail(item: FavoriteItem) {
   const id = item.id;
-  if (state.activeTab === '1') {
-    // 商品详情
-    // router.push(`/mall/goods/detail/${id}`);
-  } else {
-    // 文章详情
-    // router.push(`/platform/article/detail/${id}`);
-  }
+  const type: Record<string, string> = {
+    '1': 'shop', // 商品
+    '3': 'essayDetail', // 文章
+    '4': 'courseDetail', // 培训课程
+    '5': 'lawContentDetail' // 普法内容
+  };
+  const commandMap: Record<string, string> = {
+    '1': 'goods',
+    '3': 'expert',
+    '4': 'expert',
+    '5': 'expert'
+  };
+  eventBus.emit('showDetailspage', {
+    command: commandMap[state.activeTab] || 'goods',
+    id,
+    type: type[state.activeTab] || 'shop'
+  });
 }
 
 // 金额格式化（￥可按需添加）

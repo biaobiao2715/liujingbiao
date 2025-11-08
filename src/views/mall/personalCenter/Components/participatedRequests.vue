@@ -73,6 +73,7 @@ import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
+import { eventBus } from '@/utils/eventBus';
 import { participateCategoryList, participateCategoryPost, FavoriteItem } from '@/api/mall/personalCenter/participatedRequests';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -143,15 +144,20 @@ function onUnfav(item: any) {
 
 // 跳转详情（按你项目实际路由调整）
 function goDetail(item: FavoriteItem) {
-  if (state.activeTab === '1') {
-    // 商品详情
-    const id = item.id;
-    // router.push(`/mall/goods/detail/${id}`);
-  } else {
-    // 文章详情
-    const id = item.id;
-    // router.push(`/platform/article/detail/${id}`);
-  }
+  const id = item.id;
+  const type: Record<string, string> = {
+    '1': 'expert', // 培训会议
+    '2': 'expert' // 普法活动
+  };
+  const commandMap: Record<string, string> = {
+    '1': 'meetingDetail',
+    '2': 'lawActivityDetail'
+  };
+  eventBus.emit('showDetailspage', {
+    command: commandMap[state.activeTab] || 'expert',
+    id,
+    type: type[state.activeTab] || 'meetingDetail'
+  });
 }
 
 function getArticleCover(item: any) {

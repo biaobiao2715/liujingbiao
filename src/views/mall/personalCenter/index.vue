@@ -93,7 +93,7 @@ const currentTitle = computed(() => {
 });
 
 function goBack() {
-  eventBus.emit('showHomeContentChange', true);
+  eventBus.emit('activeTabChange', 'goods');
 }
 
 function selectMenu(val: any) {
