@@ -7,19 +7,14 @@
 -->
 <template>
   <div class="activity-management">
-    <!-- 主要内容区域 - 大盒子 -->
     <div class="main-content-box">
-      <!-- 搜索条件 -->
       <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
-        <!-- 普法活动标题搜索框 -->
         <el-form-item label="普法活动标题" prop="activityTitle">
           <el-input v-model="queryParams.activityTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         
-        <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="activityStatus">
-          <el-select v-model="queryParams.activityStatus" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="请选择" />
+          <el-select v-model="queryParams.activityStatus" placeholder="请选择状态" filterable clearable>
             <el-option 
               v-for="item in legal_popularize_activity_status" 
               :key="item.value" 
@@ -28,12 +23,9 @@
             />
           </el-select>
         </el-form-item>
-      
         
-        <!-- 所属类型下拉框 -->
         <el-form-item label="所属类型" prop="activityType">
-          <el-select v-model="queryParams.activityType" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="请选择" />
+          <el-select v-model="queryParams.activityType" placeholder="请选择类型" filterable clearable>
             <el-option 
               v-for="item in legal_popularize_activity_type" 
               :key="item.value" 
@@ -43,7 +35,6 @@
           </el-select>
         </el-form-item>
         
-        <!-- 发布时间选择器 -->
         <el-form-item label="发布时间">
           <el-date-picker
             v-model="dateRange"
@@ -55,14 +46,12 @@
           />
         </el-form-item>
         
-        <!-- 查询和重置按钮 -->
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
 
-      <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
@@ -72,26 +61,22 @@
         </el-col>
       </el-row>
 
-      <!-- 表格展示 -->
       <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <!-- 普法活动开始时间 -->
         <el-table-column label="普法活动开始时间" align="center" prop="startTime" min-width="180">
           <template #default="scope">
             <span>{{ scope.row.startTime }}</span>
           </template>
         </el-table-column>
         
-        <!-- 普法活动结束时间 -->
         <el-table-column label="普法活动结束时间" align="center" prop="endTime" min-width="180">
           <template #default="scope">
             <span>{{ scope.row.endTime }}</span>
           </template>
         </el-table-column>
         
-        <!-- 普法活动标题 -->
         <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
             <router-link :to="'/expertServicePlatform/legalServiceManage/activityDetail?id=' + scope.row.id + '&type=view'" class="link-type">
@@ -100,49 +85,42 @@
           </template>
         </el-table-column>
         
-        <!-- 普法活动地址 -->
         <el-table-column label="普法活动地址" align="center" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
           <template #default="scope">
             <span>{{ scope.row.activityAddress }}</span>
           </template>
         </el-table-column>
         
-        <!-- 所属类型 -->
         <el-table-column label="所属类型" align="center" prop="activityType" width="120">
           <template #default="scope">
-            <dict-tag :options="legal_popularize_activity_type" :value="scope.row.activityType" />
+            <dict-tag :options="legal_popularize_activity_type" :value="String(scope.row.activityType || '')" />
           </template>
         </el-table-column>
         
-        <!-- 联系人 -->
         <el-table-column label="联系人" align="center" prop="activityContact" width="100">
           <template #default="scope">
             <span>{{ scope.row.activityContact }}</span>
           </template>
         </el-table-column>
         
-        <!-- 联系方式 -->
         <el-table-column label="联系方式" align="center" prop="activityContactPhone" width="120">
           <template #default="scope">
             <span>{{ scope.row.activityContactPhone }}</span>
           </template>
         </el-table-column>
         
-        <!-- 报名人数 -->
         <el-table-column label="报名人数" align="center" prop="enrollCount" width="100">
           <template #default="scope">
             <span>{{ scope.row.enrollCount || 0 }}</span>
           </template>
         </el-table-column>
         
-        <!-- 发布时间 -->
         <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
           <template #default="scope">
             <span>{{ scope.row.publishTime }}</span>
           </template>
         </el-table-column>
         
-        <!-- 状态 -->
         <el-table-column label="状态" align="center" prop="activityStatus" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.activityStatus)">
@@ -151,7 +129,6 @@
           </template>
         </el-table-column>
         
-        <!-- 操作 -->
         <el-table-column label="操作" align="center" width="280">
           <template #default="scope">
             <div class="operation-buttons">
@@ -174,9 +151,9 @@
                 查看
               </el-button>
               <el-button 
-                v-if="String(scope.row.activityStatus) === '1'" 
+                v-if="String(scope.row.activityStatus) === '1' || Number(scope.row.activityStatus) === 1" 
+                v-hasPermi="['skill:lawActivity:cancel']" 
                 v-throttle 
-                v-hasPermi="['skill:lawActivity:edit']" 
                 type="warning" 
                 size="small" 
                 @click="handleCancelActivity(scope.row)"
@@ -198,19 +175,17 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
       <div class="flex-center pagination">
         <Pagination 
-          v-show="total > 0" 
-          :page="queryParams.pageNum" 
-          :limit="queryParams.pageSize" 
-          :total="total" 
+          v-if="total > 0" 
+          v-model:total="total"
+          v-model:page="queryParams.pageNum" 
+          v-model:limit="queryParams.pageSize" 
           @pagination="getList" 
         />
       </div>
     </div>
 
-    <!-- 弹窗：新增/编辑/查看 -->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'view' ? '' : getDialogTitle()"
@@ -240,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { 
@@ -250,63 +225,65 @@ import {
   type ActivityListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
-// 弹窗组件异步加载
 const ActivityEditDialog = defineAsyncComponent(() => import('./ActivityEditDialog.vue'));
 const ActivityDetailDialog = defineAsyncComponent(() => import('./ActivityDetailDialog.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-// 使用字典数据
-const { legal_popularize_activity_type, legal_popularize_activity_status } = toRefs<any>(
+const { legal_popularize_activity_type: legal_popularize_activity_type_raw, legal_popularize_activity_status } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_activity_type', 'legal_popularize_activity_status')
 );
 
-// 搜索表单数据
+const legal_popularize_activity_type = computed(() => {
+  if (!legal_popularize_activity_type_raw.value || !Array.isArray(legal_popularize_activity_type_raw.value)) {
+    return [];
+  }
+  
+  return legal_popularize_activity_type_raw.value
+    .filter((item: any) => {
+      const value = String(item.value);
+      return value === '0' || value === '1';
+    })
+    .map((item: any) => ({
+      ...item,
+      value: String(item.value)
+    }));
+});
+
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  activityTitle: '', // 活动标题
-  activityStatus: '', // 状态
-  activityType: '', // 活动类型
-  startTime: '', // 开始时间
-  endTime: '' // 结束时间
+  activityTitle: '',
+  activityStatus: '',
+  activityType: '',
+  startTime: '',
+  endTime: ''
 });
 
-// 表格数据
 const tableData = ref([]);
-// 总记录数
 const total = ref(0);
-// 加载状态
 const loading = ref(false);
-// 表单引用
 const queryFormRef = ref();
-// 日期范围
 const dateRange = ref(['', '']);
-// 是否显示搜索
 const showSearch = ref(true);
-// 选中的行ID数组
 const selectedIds = ref([]);
-// 选中的行数据数组
 const selectedRows = ref([]);
 
-// 弹窗控制
 const dialog = ref({
   visible: false,
-  type: '', // 'add' | 'edit' | 'view'
+  type: '',
   id: null as string | number | null
 });
 
-/** 获取普法活动列表 */
 const getList = async () => {
   loading.value = true;
   try {
-    // 构建查询参数
     const params: ActivityListQuery = {
       pageNum: queryParams.value.pageNum,
       pageSize: queryParams.value.pageSize,
       activityTitle: queryParams.value.activityTitle || undefined,
-      activityStatus: (queryParams.value.activityStatus === '请选择' || !queryParams.value.activityStatus) ? undefined : queryParams.value.activityStatus,
-      activityType: (queryParams.value.activityType === '请选择' || !queryParams.value.activityType) ? undefined : queryParams.value.activityType,
+      activityStatus: queryParams.value.activityStatus || undefined,
+      activityType: queryParams.value.activityType || undefined,
       startTime: queryParams.value.startTime || undefined,
       endTime: queryParams.value.endTime || undefined
     };
@@ -330,26 +307,22 @@ const getList = async () => {
   }
 };
 
-/** 获取状态标签类型 */
 const getStatusType = (status: string | number) => {
-  // 普法活动状态：1-待开始 2-进行中 3-已结束 99-已取消
-  // 转换为字符串进行比较，兼容数字和字符串类型
   const statusStr = String(status);
   switch (statusStr) {
     case '1':
-      return 'primary';  // 待开始 - 蓝色
+      return 'primary';
     case '2':
-      return 'success';  // 进行中 - 绿色
+      return 'success';
     case '3':
-      return 'danger';   // 已结束 - 红色
+      return 'danger';
     case '99':
-      return 'warning';  // 已取消 - 橙色
+      return 'warning';
     default:
       return 'info';
   }
 };
 
-/** 查询按钮事件 */
 const handleSearch = () => {
   queryParams.value.startTime = dateRange.value[0];
   queryParams.value.endTime = dateRange.value[1];
@@ -357,13 +330,11 @@ const handleSearch = () => {
   getList();
 };
 
-/** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
-/** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
   dateRange.value = ['', ''];
@@ -376,13 +347,11 @@ const handleReset = () => {
   handleQuery();
 };
 
-// 表格选择变化事件
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
 };
 
-/** 弹窗标题 */
 const getDialogTitle = () => {
   const map: Record<string, string> = {
     'add': '新增普法活动',
@@ -392,17 +361,14 @@ const getDialogTitle = () => {
   return map[dialog.value.type] || '';
 };
 
-/** 打开弹窗 */
 const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
   dialog.value = { visible: true, type, id: id ?? null };
 };
 
-/** 新增按钮事件 */
 const handleAdd = () => {
   openDialog('add');
 };
 
-/** 删除按钮事件 */
 const handleDelete = async () => {
   const ids = selectedIds.value.slice();
   
@@ -422,12 +388,10 @@ const handleDelete = async () => {
     
     loading.value = true;
     
-    const numericIds = ids.map(id => Number(id));
-    const response: any = await deleteActivity(numericIds);
+    const response: any = await deleteActivity(ids);
     
     if (response && response.code === 200) {
-      ElMessage.success(`成功删除 ${ids.length} 个活动`);
-      // 刷新并清空选择
+      ElMessage.success(response.msg || `成功删除 ${ids.length} 个活动`);
       await getList();
       selectedIds.value = [];
       selectedRows.value = [];
@@ -437,15 +401,12 @@ const handleDelete = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败，请稍后重试');
-    } else {
-      ElMessage.info('删除操作已取消');
     }
   } finally {
     loading.value = false;
   }
 };
 
-/** 编辑按钮事件 */
 const handleEdit = (row: any) => {
   if (!row.id) {
     ElMessage.error('活动ID不存在，无法编辑');
@@ -454,18 +415,15 @@ const handleEdit = (row: any) => {
   openDialog('edit', row.id);
 };
 
-/** 查看按钮事件 */
 const handleView = (row: any) => {
   openDialog('view', row.id);
 };
 
-/** 弹窗成功回调 */
 const onDialogSuccess = () => {
   dialog.value.visible = false;
   getList();
 };
 
-/** 取消活动事件 */
 const handleCancelActivity = async (row: any) => {
   try {
     if (!row.id) {
@@ -473,7 +431,6 @@ const handleCancelActivity = async (row: any) => {
       return;
     }
     
-    // 先让用户输入取消原因
     const { value: cancelReason } = await ElMessageBox.prompt(
       `请输入取消活动"${row.activityTitle}"的原因：`,
       '取消活动',
@@ -505,12 +462,10 @@ const handleCancelActivity = async (row: any) => {
     
     loading.value = true;
     
-    const activityId = Number(row.id);
-    const response: any = await cancelActivity(activityId, cancelReason.trim());
+    const response: any = await cancelActivity(row.id, cancelReason.trim());
     
     if (response && response.code === 200) {
       ElMessage.success('活动取消成功');
-      // 重新加载列表
       await getList();
     } else {
       ElMessage.error(response?.msg || '取消活动失败，请稍后重试');
@@ -524,7 +479,6 @@ const handleCancelActivity = async (row: any) => {
   }
 };
 
-/** 单个删除事件 */
 const handleDeleteSingle = async (row: any) => {
   try {
     if (!row.id) {
@@ -542,13 +496,11 @@ const handleDeleteSingle = async (row: any) => {
       }
     );
     
-    const activityId = Number(row.id);
-    const ids = [activityId];
+    const ids = [row.id];
     const response: any = await deleteActivity(ids);
     
     if (response && response.code === 200) {
-      ElMessage.success('删除成功');
-      // 重新加载列表
+      ElMessage.success(response.msg || '删除成功');
       await getList();
     } else {
       ElMessage.error(response?.msg || '删除活动失败，请稍后重试');
@@ -560,7 +512,6 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
-// 页面加载时获取列表数据
 onMounted(() => {
   getList();
 });
@@ -573,7 +524,6 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-// 主要内容区域 - 大盒子
 .main-content-box {
   background-color: #fff;
   border-radius: 8px;
@@ -581,7 +531,6 @@ onMounted(() => {
   padding: 24px;
   margin-bottom: 24px;
   
-  // 搜索表单样式
   .el-form {
     margin-bottom: 20px;
     
@@ -594,12 +543,10 @@ onMounted(() => {
     }
   }
   
-  // 操作按钮区域样式
   .mb8 {
     margin-bottom: 16px;
   }
   
-  // 表格样式
   .el-table {
     margin-bottom: 20px;
     
@@ -622,14 +569,12 @@ onMounted(() => {
     }
   }
   
-  // 分页样式
   .pagination {
     margin-top: 20px;
     justify-content: end;
   }
 }
 
-// 链接样式
 .link-type {
   color: #409eff;
   text-decoration: none;
@@ -641,7 +586,6 @@ onMounted(() => {
   }
 }
 
-// 按钮样式优化
 .el-button {
   border-radius: 4px;
   font-weight: 500;
@@ -652,7 +596,6 @@ onMounted(() => {
   }
 }
 
-// 标签样式
 .el-tag {
   border-radius: 4px;
   font-weight: 500;
@@ -682,7 +625,6 @@ onMounted(() => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .activity-management {
     padding: 16px;
@@ -693,19 +635,6 @@ onMounted(() => {
   }
 }
 
-// 加载状态样式
-.el-loading-mask {
-  border-radius: 8px;
-}
-
-// 表格列宽优化
-.el-table-column {
-  .cell {
-    padding: 8px 12px;
-  }
-}
-
-// 操作按钮组样式
 .operation-buttons {
   display: flex;
   align-items: center;
@@ -723,7 +652,6 @@ onMounted(() => {
   }
 }
 
-// 表格操作列样式
 :deep(.el-table__body-wrapper) {
   .operation-buttons {
     .el-button + .el-button {
@@ -732,7 +660,6 @@ onMounted(() => {
   }
 }
 
-// 查看模式下隐藏弹窗分隔线
 :deep(.el-dialog.no-header-border) {
   .el-dialog__header {
     border-bottom: none !important;

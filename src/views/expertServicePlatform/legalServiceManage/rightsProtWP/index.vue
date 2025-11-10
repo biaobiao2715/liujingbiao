@@ -7,16 +7,12 @@
 -->
 <template>
   <div class="white-paper-management">
-    <!-- 主要内容区域 - 大盒子 -->
     <div class="main-content-box">
-      <!-- 搜索条件 -->
       <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
-        <!-- 维权白皮书标题搜索框 -->
         <el-form-item label="维权白皮书标题" prop="paperTitle">
           <el-input v-model="queryParams.paperTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         
-        <!-- 所属状态下拉框 -->
         <el-form-item label="所属状态" prop="paperStatus">
           <el-select v-model="queryParams.paperStatus" placeholder="请选择" filterable clearable>
             <el-option 
@@ -28,7 +24,6 @@
           </el-select>
         </el-form-item>
         
-        <!-- 发布时间选择器 -->
         <el-form-item label="发布时间">
           <el-date-picker
             v-model="dateRange"
@@ -40,14 +35,12 @@
           />
         </el-form-item>
         
-        <!-- 查询和重置按钮 -->
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
 
-      <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:whitePaper:add']" type="primary" @click="handleAdd">新增</el-button>
@@ -63,19 +56,16 @@
         </el-col>
       </el-row>
 
-      <!-- 表格展示 -->
       <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <!-- 创建时间 -->
         <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
           <template #default="scope">
             <span>{{ scope.row.createTime }}</span>
           </template>
         </el-table-column>
         
-        <!-- 白皮书标题 -->
         <el-table-column label="白皮书标题" align="center" prop="paperTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
             <router-link :to="'/expertServicePlatform/legalServiceManage/whitePaperDetail?id=' + scope.row.id + '&type=view'" class="link-type">
@@ -84,21 +74,18 @@
           </template>
         </el-table-column>
         
-        <!-- 浏览量 -->
         <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
           <template #default="scope">
             <span>{{ scope.row.viewCount || 0 }}</span>
           </template>
         </el-table-column>
         
-        <!-- 下载量 -->
         <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
           <template #default="scope">
             <span>{{ scope.row.downloadCount || 0 }}</span>
           </template>
         </el-table-column>
         
-        <!-- 状态 -->
         <el-table-column label="所属状态" align="center" prop="paperStatus" width="100">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.paperStatus)">
@@ -107,15 +94,13 @@
           </template>
         </el-table-column>
         
-        <!-- 最新版本号 -->
         <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120">
           <template #default="scope">
             <span>{{ scope.row.currentVersion }}</span>
           </template>
         </el-table-column>
         
-        <!-- 操作 -->
-        <el-table-column label="操作" align="center" width="320">
+        <el-table-column label="操作" align="center" min-width="450">
           <template #default="scope">
             <div class="operation-buttons">
               <el-button 
@@ -189,19 +174,17 @@
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
       <div class="flex-center pagination">
         <Pagination 
-          v-show="total > 0" 
-          :page="queryParams.pageNum" 
-          :limit="queryParams.pageSize" 
-          :total="total" 
+          v-if="total > 0" 
+          v-model:total="total"
+          v-model:page="queryParams.pageNum" 
+          v-model:limit="queryParams.pageSize" 
           @pagination="getList" 
         />
       </div>
     </div>
 
-    <!-- 弹窗：新增/编辑/查看 -->
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
@@ -226,7 +209,6 @@
       </Suspense>
     </el-dialog>
 
-    <!-- 版本更新弹窗 -->
     <el-dialog
       v-model="versionDialog.visible"
       title="更新白皮书版本"
@@ -260,7 +242,7 @@
             :on-remove="handleVersionFileRemove"
             :limit="1"
           >
-            <el-button type="primary">
+            <el-button v-throttle v-hasPermi="['system:oss:upload']" type="primary">
               <el-icon class="el-icon--left"><Upload /></el-icon>
               上传文件
             </el-button>
@@ -313,75 +295,57 @@ import {
   enableWhitePaper,
   disableWhitePaper,
   editWhitePaper,
-  getWhitePaperDetail,
   type WhitePaperListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 
-// 弹窗组件异步加载
 const WhitePaperEditDialog = defineAsyncComponent(() => import('./WhitePaperEditDialog.vue'));
 const WhitePaperDetailDialog = defineAsyncComponent(() => import('./WhitePaperDetailDialog.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-// 使用字典数据
 const { legal_popularize_status } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_status')
 );
 
-// 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  paperTitle: '', // 白皮书标题
-  paperStatus: '' // 状态
+  paperTitle: '',
+  paperStatus: ''
 });
 
-// 表格数据
 const tableData = ref([]);
-// 总记录数
 const total = ref(0);
-// 加载状态
 const loading = ref(false);
-// 表单引用
 const queryFormRef = ref();
-// 日期范围
 const dateRange = ref(['', '']);
-// 是否显示搜索
 const showSearch = ref(true);
-// 选中的行ID数组
 const selectedIds = ref([]);
-// 选中的行数据数组
 const selectedRows = ref([]);
 
-// 弹窗控制
 const dialog = ref({
   visible: false,
-  type: '', // 'add' | 'edit' | 'view'
+  type: '',
   id: null as string | number | null
 });
 
-// 版本更新弹窗控制
 const versionDialog = ref({
   visible: false,
   currentVersion: '',
   paperTitle: '',
   rowId: null as string | number | null,
-  rowData: null as any, // 保存当前行的完整数据
-  loading: false,
   uploading: false
 });
 
 const uploadRef = ref();
 const versionFormRef = ref();
 
-// 版本更新表单数据
 const versionFormData = ref({
   file: null as any,
   version: '',
   remark: ''
 });
 
-// 版本更新表单验证规则
 const versionFormRules = {
   file: [
     { required: true, message: '请上传文件', trigger: 'change' }
@@ -392,9 +356,7 @@ const versionFormRules = {
   ]
 };
 
-/** 获取状态标签类型 */
 const getStatusType = (status: string | number) => {
-  // 白皮书状态：0停用 1启用（根据API文档）
   const statusStr = String(status);
   if (statusStr === '1' || statusStr === '启用') {
     return 'success';
@@ -404,9 +366,7 @@ const getStatusType = (status: string | number) => {
   return 'info';
 };
 
-/** 获取状态标签文字 */
 const getStatusLabel = (status: string | number) => {
-  // 白皮书状态：0停用 1启用（根据API文档）
   const statusStr = String(status);
   if (statusStr === '1') {
     return '启用';
@@ -416,7 +376,6 @@ const getStatusLabel = (status: string | number) => {
   return status;
 };
 
-/** 获取维权白皮书列表 */
 const getList = () => {
   loading.value = true;
   
@@ -448,19 +407,16 @@ const getList = () => {
   });
 };
 
-/** 查询按钮事件 */
 const handleSearch = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
-/** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
-/** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
   dateRange.value = ['', ''];
@@ -469,14 +425,11 @@ const handleReset = () => {
   handleQuery();
 };
 
-
-// 表格选择变化事件
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
 };
 
-/** 弹窗标题 */
 const getDialogTitle = () => {
   const map: Record<string, string> = {
     'add': '新增维权白皮书',
@@ -486,17 +439,14 @@ const getDialogTitle = () => {
   return map[dialog.value.type] || '';
 };
 
-/** 打开弹窗 */
 const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
   dialog.value = { visible: true, type, id: id ?? null };
 };
 
-/** 新增按钮事件 */
 const handleAdd = () => {
   openDialog('add');
 };
 
-/** 启用按钮事件 */
 const handleEnable = async () => {
   const ids = selectedIds.value.slice();
   
@@ -518,12 +468,10 @@ const handleEnable = async () => {
     
     loading.value = true;
     
-    // 调用启用API
     const response: any = await enableWhitePaper(ids);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功启用${ids.length}个白皮书`);
-      // 刷新并清空选择
       await getList();
       selectedIds.value = [];
       selectedRows.value = [];
@@ -533,15 +481,12 @@ const handleEnable = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('启用失败，请稍后重试');
-    } else {
-      ElMessage.info('已取消启用');
     }
   } finally {
     loading.value = false;
   }
 };
 
-/** 停用按钮事件 */
 const handleDisable = async () => {
   const ids = selectedIds.value.slice();
   
@@ -563,12 +508,10 @@ const handleDisable = async () => {
     
     loading.value = true;
     
-    // 调用停用API
     const response: any = await disableWhitePaper(ids);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功停用${ids.length}个白皮书`);
-      // 刷新并清空选择
       await getList();
       selectedIds.value = [];
       selectedRows.value = [];
@@ -578,15 +521,12 @@ const handleDisable = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('停用失败，请稍后重试');
-    } else {
-      ElMessage.info('已取消停用');
     }
   } finally {
     loading.value = false;
   }
 };
 
-/** 删除按钮事件 */
 const handleDelete = async () => {
   const ids = selectedIds.value.slice();
   
@@ -606,12 +546,10 @@ const handleDelete = async () => {
     
     loading.value = true;
     
-    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
     const response: any = await deleteWhitePaper(ids);
     
     if (response && response.code === 200) {
       ElMessage.success(`成功删除 ${ids.length} 个白皮书`);
-      // 刷新并清空选择
       await getList();
       selectedIds.value = [];
       selectedRows.value = [];
@@ -621,47 +559,38 @@ const handleDelete = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败，请稍后重试');
-    } else {
-      ElMessage.info('删除操作已取消');
     }
   } finally {
     loading.value = false;
   }
 };
 
-/** 编辑按钮事件 */
 const handleEdit = (row: any) => {
   openDialog('edit', row.id);
 };
 
-/** 查看按钮事件 */
 const handleView = (row: any) => {
   openDialog('view', row.id);
 };
 
-/** 弹窗成功回调 */
 const onDialogSuccess = () => {
   dialog.value.visible = false;
   getList();
 };
 
-/** 更新版本事件 */
 const handleUpdateVersion = (row: any) => {
   versionDialog.value.visible = true;
   versionDialog.value.currentVersion = row.currentVersion || '1.0';
   versionDialog.value.paperTitle = row.paperTitle || '';
   versionDialog.value.rowId = row.id;
-  versionDialog.value.rowData = row; // 保存当前行的完整数据
   versionDialog.value.uploading = false;
   
-  // 重置表单数据
   versionFormData.value = {
     file: null,
     version: '',
     remark: ''
   };
   
-  // 清空表单验证状态
   nextTick(() => {
     if (versionFormRef.value) {
       versionFormRef.value.clearValidate();
@@ -672,7 +601,6 @@ const handleUpdateVersion = (row: any) => {
   });
 };
 
-/** 版本弹窗关闭事件 */
 const handleVersionDialogClose = () => {
   versionDialog.value.visible = false;
   versionFormData.value = {
@@ -688,16 +616,13 @@ const handleVersionDialogClose = () => {
   }
 };
 
-/** 版本文件选择事件 */
-const handleVersionFileSelect = (file: any, fileList: any) => {
+const handleVersionFileSelect = (file: any) => {
   const rawFile = file.raw || file;
   if (!rawFile) {
     return;
   }
   
-  // 验证文件
   if (!validateVersionFile(rawFile)) {
-    // 验证失败，移除文件
     if (uploadRef.value) {
       uploadRef.value.clearFiles();
     }
@@ -706,13 +631,11 @@ const handleVersionFileSelect = (file: any, fileList: any) => {
   }
   
   versionFormData.value.file = file;
-  // 触发表单验证
   if (versionFormRef.value) {
     versionFormRef.value.validateField('file');
   }
 };
 
-/** 版本文件移除事件 */
 const handleVersionFileRemove = () => {
   versionFormData.value.file = null;
   if (versionFormRef.value) {
@@ -720,10 +643,8 @@ const handleVersionFileRemove = () => {
   }
 };
 
-/** 文件验证 */
 const validateVersionFile = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  // 只允许pdf和word文件
   const docExt = ['pdf', 'doc', 'docx'];
 
   if (!docExt.includes(ext)) {
@@ -741,13 +662,11 @@ const validateVersionFile = (file: File): boolean => {
   return true;
 };
 
-/** 确认版本更新 */
 const handleVersionConfirm = async () => {
   if (!versionFormRef.value) {
     return;
   }
   
-  // 表单验证
   await versionFormRef.value.validate(async (valid: boolean) => {
     if (!valid) {
       return;
@@ -776,28 +695,24 @@ const handleVersionConfirm = async () => {
     
     versionDialog.value.uploading = true;
     
-    // 显示加载提示
     if ((proxy as any)?.$modal) {
       (proxy as any).$modal.loading('正在上传文件，请稍候...');
     }
     
     try {
-      // 上传文件到OSS
       const uploadResponse = await ossUploadImage({ file: rawFile });
       
       if (uploadResponse && uploadResponse.code === 200 && uploadResponse.data?.ossId) {
         const ossData = uploadResponse.data;
         const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
         
-        // 使用用户输入的版本号
         const newVersion = versionFormData.value.version.trim();
         
-        // 构建OSS附件列表，使用新上传的文件（保持与编辑时相同的结构）
         const ossVoList = [{
           ossId: ossData.ossId || 0,
           fileName: ossData.fileName || ossData.originalName || rawFile.name,
           originalName: rawFile.name,
-          fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`, // 确保fileSuffix带点号
+          fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
           url: ossData.url || '',
           version: newVersion,
           ext1: '',
@@ -806,26 +721,14 @@ const handleVersionConfirm = async () => {
           service: ''
         }];
         
-        // 构建提交数据 - 只传4个参数：currentVersion, ossVoList, isUpdate, remark，再加上id
         const submitData: any = {
-          id: versionDialog.value.rowId,  // 白皮书ID
-          currentVersion: newVersion,     // 当前版本号
-          ossVoList: ossVoList,           // 附件列表
-          isUpdate: true,                 // 标识为版本更新操作
-          remark: versionFormData.value.remark || ''  // 备注
+          id: versionDialog.value.rowId,
+          currentVersion: newVersion,
+          ossVoList: ossVoList,
+          isUpdate: true,
+          remark: versionFormData.value.remark || ''
         };
         
-        // 调试日志：打印提交数据，确认只传5个参数（id + 4个核心参数）
-        console.log('版本更新提交数据（只传5个参数）:', {
-          id: submitData.id,
-          currentVersion: submitData.currentVersion,
-          ossVoListCount: submitData.ossVoList.length,
-          ossVoList: submitData.ossVoList,
-          isUpdate: submitData.isUpdate,
-          remark: submitData.remark
-        });
-        
-        // 调用编辑接口更新版本
         const response: any = await editWhitePaper(submitData);
         
         if (response && response.code === 200) {
@@ -833,13 +736,7 @@ const handleVersionConfirm = async () => {
           versionDialog.value.visible = false;
           await getList();
         } else {
-          // 输出更详细的错误信息
           const errorMsg = response?.msg || response?.message || '版本更新失败，请重试';
-          console.error('版本更新失败:', {
-            response,
-            submitData,
-            errorMsg
-          });
           ElMessage.error(errorMsg);
         }
       } else {
@@ -847,26 +744,11 @@ const handleVersionConfirm = async () => {
         ElMessage.error(errorMsg);
       }
     } catch (error: any) {
-      console.error('版本更新异常:', error);
-      // 输出更详细的错误信息
       const errorMsg = error?.message 
         || error?.msg 
         || error?.response?.data?.msg 
         || error?.response?.data?.message
         || '上传失败，请重试';
-      console.error('版本更新异常详情:', {
-        error,
-        errorMessage: error?.message,
-        errorMsg: error?.msg,
-        responseData: error?.response?.data,
-        submitData: versionDialog.value.rowId ? {
-          id: versionDialog.value.rowId,
-          currentVersion: versionFormData.value.version,
-          ossVoListCount: 1,
-          isUpdate: true,
-          remark: versionFormData.value.remark
-        } : null
-      });
       ElMessage.error(errorMsg);
     } finally {
       versionDialog.value.uploading = false;
@@ -877,7 +759,6 @@ const handleVersionConfirm = async () => {
   });
 };
 
-/** 状态变更事件 */
 const handleStatusChange = async (row: any, status: string) => {
   try {
     await ElMessageBox.confirm(
@@ -890,7 +771,6 @@ const handleStatusChange = async (row: any, status: string) => {
       }
     );
     
-    // 调用对应的API
     const api = status === '启用' ? enableWhitePaper : disableWhitePaper;
     const response: any = await api([row.id]);
     
@@ -903,13 +783,10 @@ const handleStatusChange = async (row: any, status: string) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error(`${status}失败，请稍后重试`);
-    } else {
-      ElMessage.info('已取消操作');
     }
   }
 };
 
-/** 单个删除事件 */
 const handleDeleteSingle = async (row: any) => {
   try {
     await ElMessageBox.confirm(
@@ -922,12 +799,10 @@ const handleDeleteSingle = async (row: any) => {
       }
     );
     
-    // 调用删除API - 响应拦截器已处理，response 直接是后端返回数据
     const response: any = await deleteWhitePaper([row.id]);
     
     if (response && response.code === 200) {
       ElMessage.success('删除成功');
-      // 重新加载列表
       await getList();
     } else {
       ElMessage.error(response?.msg || '删除白皮书失败，请稍后重试');
@@ -935,19 +810,14 @@ const handleDeleteSingle = async (row: any) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除白皮书失败，请稍后重试');
-    } else {
-      ElMessage.info('已取消删除');
     }
   }
 };
 
-/** 下载事件 */
 const handleDownload = (row: any) => {
   ElMessage.success(`开始下载白皮书"${row.paperTitle}"`);
-  // 实际开发时这里应该调用下载API
 };
 
-// 页面加载时获取列表数据
 onMounted(() => {
   getList();
 });
@@ -960,7 +830,6 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-// 主要内容区域 - 大盒子
 .main-content-box {
   background-color: #fff;
   border-radius: 8px;
@@ -968,7 +837,6 @@ onMounted(() => {
   padding: 24px;
   margin-bottom: 24px;
   
-  // 搜索表单样式
   .el-form {
     margin-bottom: 20px;
     
@@ -981,12 +849,10 @@ onMounted(() => {
     }
   }
   
-  // 操作按钮区域样式
   .mb8 {
     margin-bottom: 16px;
   }
   
-  // 表格样式
   .el-table {
     margin-bottom: 20px;
     
@@ -1009,14 +875,12 @@ onMounted(() => {
     }
   }
   
-  // 分页样式
   .pagination {
     margin-top: 20px;
     justify-content: end;
   }
 }
 
-// 链接样式
 .link-type {
   color: #409eff;
   text-decoration: none;
@@ -1028,7 +892,6 @@ onMounted(() => {
   }
 }
 
-// 按钮样式优化
 .el-button {
   border-radius: 4px;
   font-weight: 500;
@@ -1039,7 +902,6 @@ onMounted(() => {
   }
 }
 
-// 标签样式
 .el-tag {
   border-radius: 4px;
   font-weight: 500;
@@ -1057,7 +919,6 @@ onMounted(() => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .white-paper-management {
     padding: 16px;
@@ -1068,37 +929,24 @@ onMounted(() => {
   }
 }
 
-// 加载状态样式
-.el-loading-mask {
-  border-radius: 8px;
-}
-
-// 表格列宽优化
-.el-table-column {
-  .cell {
-    padding: 8px 12px;
-  }
-}
-
-// 操作按钮组样式
 .operation-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
   white-space: nowrap;
   
   .el-button {
     margin: 0;
-    padding: 4px 8px;
+    padding: 5px 10px;
     font-size: 12px;
     min-width: auto;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    white-space: nowrap;
   }
 }
 
-// 表格操作列样式
 :deep(.el-table__body-wrapper) {
   .operation-buttons {
     .el-button + .el-button {
@@ -1107,24 +955,9 @@ onMounted(() => {
   }
 }
 
-// 版本更新弹窗样式
-.version-update-content {
-  padding: 20px 0;
-  
-  .upload-tip {
-    margin-bottom: 16px;
-    color: #606266;
-    font-size: 14px;
-  }
-  
-  .upload-tip-text {
-    margin-top: 8px;
-    color: #909399;
-    font-size: 12px;
-  }
-  
-  :deep(.el-upload) {
-    display: block;
-  }
+.upload-tip-text {
+  margin-top: 8px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>
