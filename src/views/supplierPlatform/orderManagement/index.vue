@@ -31,8 +31,14 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="下单时间">
-        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
-          start-placeholder="开始日期" end-placeholder="结束日期" />
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator=" - "
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -110,12 +116,15 @@
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
             <el-link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-link>
-            <el-link type="primary" @click="handleShip(scope.row)" v-hasPermi="['grain:hnSalesOrder:edit']"
-              v-if="scope.row.orderStatus === '1'">
+            <el-link type="primary" @click="handleShip(scope.row)" v-hasPermi="['grain:hnSalesOrder:edit']" v-if="scope.row.orderStatus === '1'">
               发货
             </el-link>
-            <el-link type="danger" @click="handleCancel(scope.row)" v-hasPermi="['grain:hnSalesOrder:cancelSalesOrder']"
-              v-if="scope.row.orderStatus === '1'">
+            <el-link
+              type="danger"
+              @click="handleCancel(scope.row)"
+              v-hasPermi="['grain:hnSalesOrder:cancelSalesOrder']"
+              v-if="scope.row.orderStatus === '1'"
+            >
               取消订单
             </el-link>
           </div>
@@ -134,7 +143,7 @@
 
     <!-- 发货 -->
     <el-dialog v-model="shipmentVisible" title="订单发货" width="600px">
-      <span style="display:inline-block;padding-bottom: 10px; color: #abaeb5; font-weight: 700;">商品信息</span>
+      <span style="display: inline-block; padding-bottom: 10px; color: #abaeb5; font-weight: 700">商品信息</span>
       <el-table :data="[rowdata]" border style="width: 100%">
         <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default="{ row }">
@@ -161,13 +170,11 @@
           </template>
         </el-table-column>
       </el-table>
-      <span
-        style="display:inline-block;padding-bottom: 10px;padding-top: 5px; color: #abaeb5; font-weight: 800;">配送信息</span>
+      <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 800">配送信息</span>
       <el-form :model="shipmentForm" ref="shipmentFormFormRef" :rules="shipmentRules" label-width="100px">
         <el-form-item label="配送方式：" prop="deliveryOptions">
           <el-select v-model="shipmentForm.deliveryOptions" placeholder="请选择配送方式" @change="handleDeliveryOptionChange">
-            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
-            </el-option>
+            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option>
           </el-select>
         </el-form-item>
 
@@ -180,12 +187,11 @@
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes">
-          <span style="color: #abaeb5;">{{ getFullAddress(rowdata) }}</span>
+          <span style="color: #abaeb5">{{ getFullAddress(rowdata) }}</span>
         </el-form-item>
       </el-form>
       <template v-if="logisticsVisible">
-        <span
-          style="display:inline-block;padding-bottom: 10px;padding-top: 5px; color: #abaeb5; font-weight: 700;">物流信息</span>
+        <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
         <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
           <el-form-item label="快递公司：" prop="deliveryCompany">
             <el-input v-model="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
@@ -203,43 +209,34 @@
     </el-dialog>
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" v-model:total="total"
-        @pagination="getTableData" />
+      <pagination
+        v-show="total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        v-model:total="total"
+        @pagination="getTableData"
+      />
     </div>
+
+    <!-- 订单详情 -->
+    <Detail ref="detailRef" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated, getCurrentInstance } from 'vue';
 import { toRefs } from '@vueuse/core';
-import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import axios from 'axios';
-import router from '@/router';
-// 确保引入 axios
 import { getorderList, cancelorderapi, modifypersonnel } from '@/api/supplier/productManagement/ordermanagement';
-// import { getProductAttributesList } from '@/api/platform/mallConfiguration/productAttributeLabel';
+import Detail from './Detail.vue';
 
+const { proxy } = getCurrentInstance() as any;
 
-const getProductAttributesList = async (params: any) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        code: 200,
-        rows: []
-      });
-    }, 500);
-  });
-};
-
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { order_status } = toRefs<any>((proxy as any)?.useDict('order_status'));
-
-const productBrandList = ref([]); // 商品品牌列表
 
 const tableData = ref([]); // 表格数据
 
-const dialogVisible = ref(false) //取消订单确认框
+const dialogVisible = ref(false); //取消订单确认框
 
 const total = ref(0); // 总条数
 
@@ -249,22 +246,26 @@ const queryFormRef = ref(); // 查询表单ref
 
 const dateRange = ref<[DateModelType, DateModelType]>(['', '']); // 价格调整日期范围
 
-const selectedRows = ref([]); // 选中的表格数据
+const detailRef = ref(null); //订单详情弹窗
 
 // 当前选中的 Tab
 const activeTab = ref('all');
 
-const cancelobj = ref() //取消订单row
+const cancelobj = ref(); //取消订单row
 
-const cancelloading = ref(false) //取消loading
+const cancelloading = ref(false); //取消loading
 
-const shipmentVisible = ref(false) //发货弹窗
-const shipmentloading = ref(false) //发货确认loading
-const logisticsVisible = ref(false) //是否展示物流信息
-const shipmentFormFormRef = ref(null)
-const logisticsFormFormRef = ref(null)
+const shipmentVisible = ref(false); //发货弹窗
+
+const shipmentloading = ref(false); //发货确认loading
+
+const logisticsVisible = ref(false); //是否展示物流信息
+
+const shipmentFormFormRef = ref(null);
+
+const logisticsFormFormRef = ref(null);
 /* 发货的row */
-const rowdata = ref()
+const rowdata = ref();
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -273,30 +274,29 @@ const queryParams = ref({
   orderSn: '', //销售订单号
   orderStatus: '', //订单状态
   goodsName: '', //商品名称
-  receiverName: '', // 收货人名字
+  receiverName: '' // 收货人名字
 });
 /* 发货配送信息 */
 const shipmentForm = ref({
-  deliveryOptions: '', //配送方式
-})
+  deliveryOptions: '' //配送方式
+});
 /* 物流信息 */
 const logisticsForm = ref({
-  deliveryCompany: '',//快递公司
-  deliverySn: '',//物流单号
-})
+  deliveryCompany: '', //快递公司
+  deliverySn: '' //物流单号
+});
 const options = ref([
   {
     value: '1',
-    label: '同城自提',
+    label: '同城自提'
   },
   {
     value: '2',
-    label: '快递',
-  },
-])
+    label: '快递'
+  }
+]);
 onMounted(() => {
   getTableData();
-  getProductBrandList();
 });
 // 监听配送方式变化
 const handleDeliveryOptionChange = (value) => {
@@ -314,17 +314,11 @@ const handleDeliveryOptionChange = (value) => {
     logisticsVisible.value = true; // 显示物流信息
   }
 };
-// 处理日期选择事件
-// const handleSelectDate = (val: string[]) => {
-//   queryParams.value.beginCreateTime = val?.[0] || '';
-//   queryParams.value.endCreateTime = val?.[1] || '';
-// };
+
 /* 发货表单校验 */
 const shipmentRules = {
-  deliveryOptions: [
-    { required: true, message: '请选择配送方式', trigger: 'change' },
-  ],
-}
+  deliveryOptions: [{ required: true, message: '请选择配送方式', trigger: 'change' }]
+};
 /* 发货物流校验 */
 const logisticsRules = {
   deliveryCompany: [{ required: true, message: '请输入快递公司', trigger: 'blur' }],
@@ -343,7 +337,7 @@ const logisticsRules = {
           '德邦物流': /^DPL\d{12}$/,
           '顺丰快递': /^SF\d{13}$/,
           'EMS': /^(E\d{10}CS|\d{13})$/,
-          '跨越速运': /^KYE\d{7}$/,
+          '跨越速运': /^KYE\d{7}$/
         };
 
         const company = logisticsForm.value.deliveryCompany;
@@ -353,14 +347,13 @@ const logisticsRules = {
           callback();
         }
       },
-      trigger: 'blur',
-    },
-  ],
+      trigger: 'blur'
+    }
+  ]
+};
 
-}
 /** 搜索按钮操作 */
 const handleQuery = () => {
-  // queryParams.value.pageNum = 1;
   getTableData();
 };
 
@@ -373,7 +366,7 @@ const handleReset = () => {
     orderSn: '', //销售订单号
     orderStatus: '', //订单状态
     goodsName: '', //商品名称
-    receiverName: '', // 收货人名字
+    receiverName: '' // 收货人名字
   };
   dateRange.value = ['', ''];
   getTableData();
@@ -436,12 +429,12 @@ const handleTabChange = (tabName: string) => {
 
 // 获取销售订单列表
 const getTableData = async () => {
-  console.log('dateRange.value',dateRange.value);
-  
+  console.log('dateRange.value', dateRange.value);
+
   loading.value = true;
   console.log('订单列表数据:');
   try {
-    const res: any = await getorderList(proxy?.addDateRange(queryParams.value, dateRange.value,'CreateTime'));
+    const res: any = await getorderList(proxy?.addDateRange(queryParams.value, dateRange.value, 'CreateTime'));
     if (res.code === 200) {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
@@ -457,40 +450,11 @@ const getTableData = async () => {
   }
 };
 
-//  获取商品品牌列表
-const getProductBrandList = async () => {
-  loading.value = true;
-  try {
-    const res: any = await getProductAttributesList({
-      attributeType: 0,
-      pageNum: 1,
-      pageSize: 9999
-    });
-    if (res.code === 200) {
-      productBrandList.value = res.rows || [];
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-// 查询按钮事件
-const onQuery = () => {
-  console.log('查询表单数据:', queryParams.value);
-  getTableData();
-};
-
 /** 获取完整收货地址 */
 const getFullAddress = (row: any) => {
-  const parts = [
-    row.receiverProvince,
-    row.receiverCity,
-    row.receiverRegion,
-    row.receiverDetailAddress
-  ].filter(Boolean);
+  const parts = [row.receiverProvince, row.receiverCity, row.receiverRegion, row.receiverDetailAddress].filter(Boolean);
   return parts.join('') || '-';
 };
-
 
 /** 获取配送方式文本 */
 const getDeliveryMethodText = (deliveryOptions: string | number) => {
@@ -503,49 +467,49 @@ const getDeliveryMethodText = (deliveryOptions: string | number) => {
 
 /** 查看订单详情 */
 const handleView = (row: any) => {
-  console.log('查看订单:', row);
-  // 这里可以跳转到订单详情页面
-  router.push({ path: '/company/sales/company/goods/ordermanagementdetail', query: { id: row.id } });
+  // 调用详情弹窗方法
+  detailRef.value?.openDetailDialog(row.id);
+  // router.push({ path: '/company/sales/company/goods/ordermanagementdetail', query: { id: row.id } });
 };
 
 /** 发货操作 */
 const handleShip = (row: any) => {
   console.log('发货订单:', row);
   /* 保存row */
-  rowdata.value = row
+  rowdata.value = row;
   // 这里可以打开发货对话框或跳转到发货页面
-  shipmentVisible.value = true
+  shipmentVisible.value = true;
   /* 重置配送方式 */
-  shipmentForm.value.deliveryOptions = ''
+  shipmentForm.value.deliveryOptions = '';
 };
 
 /** 取消订单 */
 const handleCancel = (row: any) => {
   console.log('取消订单:', row);
-  cancelobj.value = row
-  dialogVisible.value = true
+  cancelobj.value = row;
+  dialogVisible.value = true;
 };
 /* 确定取消 */
 const cancelorder = async () => {
   console.log('cancelobj.value', cancelobj.value);
-  cancelloading.value = true
+  cancelloading.value = true;
   let params = {
     goodsSpecificationId: cancelobj.value.goodsSpecificationId,
     goodsQuantity: cancelobj.value.goodsQuantity,
-    id:cancelobj.value.id,
-    orderStatus: "99"
-  }
+    id: cancelobj.value.id,
+    orderStatus: '99'
+  };
   try {
-    await cancelorderapi(params)
-    getTableData()
-    ElMessage.success('取消成功')
+    await cancelorderapi(params);
+    getTableData();
+    ElMessage.success('取消成功');
   } catch (error) {
-    ElMessage.error(error)
+    ElMessage.error(error);
   } finally {
-    cancelloading.value = false
-    dialogVisible.value = false
+    cancelloading.value = false;
+    dialogVisible.value = false;
   }
-}
+};
 // // 处理表格复选框选择事件
 // const handleSelectionChange = (rows) => {
 //   selectedRows.value = rows;
@@ -560,12 +524,12 @@ const shipmentInfo = async () => {
       const valid = await logisticsFormFormRef.value.validate(); // 校验物流信息
       if (!valid) return; // 校验不通过，终止操作
     }
-    shipmentloading.value = true
+    shipmentloading.value = true;
     let params = {
       id: rowdata.value.id,
-      orderStatus: "2",
-      deliveryOptions: shipmentForm.value.deliveryOptions,
-    }
+      orderStatus: '2',
+      deliveryOptions: shipmentForm.value.deliveryOptions
+    };
     // 如果选择的是快递，追加物流信息
     if (shipmentForm.value.deliveryOptions === '2') {
       params['deliveryCompany'] = logisticsForm.value.deliveryCompany.trim();
@@ -573,15 +537,15 @@ const shipmentInfo = async () => {
     }
 
     await modifypersonnel(params);
-    shipmentVisible.value = false
+    shipmentVisible.value = false;
     getTableData(); //更新列表
     ElMessage.success('发货成功');
   } catch (error) {
-    ElMessage.error(error)
+    ElMessage.error(error);
   } finally {
-    shipmentloading.value = false
+    shipmentloading.value = false;
   }
-}
+};
 onMounted(() => {
   getTableData();
 });

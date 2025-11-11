@@ -5,7 +5,7 @@
         <div class="card-header">文章专栏</div>
       </template>
 
-      <div class="essat-list" v-if="articleList.length > 0">
+      <div class="essat-list" v-if="articleList?.length > 0">
         <div class="essay flex-center-between" v-for="(article, index) in articleList" :key="index" @click="handleDetail(article)">
           <div class="essay-left flex-center gap-12">
             <div class="title">{{ article.articleTitle }}</div>
