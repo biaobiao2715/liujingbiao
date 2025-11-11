@@ -212,17 +212,17 @@ function onUnfav(item: FavoriteItem) {
 // 跳转详情（按你项目实际路由调整）
 function goDetail(item: FavoriteItem) {
   const id = item.id;
-  const type: Record<string, string> = {
-    '1': 'shop', // 商品
-    '3': 'essayDetail', // 文章
-    '4': 'courseDetail', // 培训课程
-    '5': 'lawContentDetail' // 普法内容
-  };
   const commandMap: Record<string, string> = {
     '1': 'goods',
     '3': 'expert',
     '4': 'expert',
     '5': 'expert'
+  };
+  const type: Record<string, string> = {
+    '1': 'shop', // 商品
+    '3': 'essayDetail', // 文章
+    '4': 'courseDetail', // 培训课程
+    '5': 'lawContentDetail' // 普法内容
   };
   eventBus.emit('showDetailspage', {
     command: commandMap[state.activeTab] || 'goods',

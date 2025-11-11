@@ -50,16 +50,16 @@
                   :value="getType(item)"
                 />
                 <div class="article_time">{{ getTime(item) }}</div>
+                <el-button
+                  v-hasPermi="['grain:HnPurchaseDemand:edit']"
+                  class="article-btn cancel-btn-immersive"
+                  @click.stop="onUnfav(item)"
+                  v-throttle
+                  text
+                  :loading="state.opLoadingId === item.id"
+                  >取消报名
+                </el-button>
               </div>
-              <el-button
-                v-hasPermi="['grain:HnPurchaseDemand:edit']"
-                class="article-btn cancel-btn-immersive"
-                @click.stop="onUnfav(item)"
-                v-throttle
-                text
-                :loading="state.opLoadingId === item.id"
-                >取消报名</el-button
-              >
             </el-card>
           </div>
         </template>
@@ -107,6 +107,7 @@ function onTabChange(name: string | number) {
 function reload() {
   state.loading = true;
   const query = { ...state.query, categoryType: state.activeTab };
+
   participateCategoryList(query)
     .then((res: any) => {
       const rows = res.rows[0].activityEnrollList || [];
@@ -215,10 +216,24 @@ function getTime(item: any) {
   grid-template-columns: repeat(5, 1fr);
 }
 
+/* 沉浸式卡片悬停动画 */
+.article-item {
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s;
+  position: relative;
+  overflow: visible;
+}
+/* 保证卡片内容不被遮挡 */
+.article {
+  position: relative;
+  z-index: 1;
+}
+
 /* 图片比例统一 */
 .li-img {
   width: 100%;
-  height: 140px;
+  height: 196px;
   object-fit: cover;
   border-radius: 6px;
   background: #f7f8fa;
@@ -266,50 +281,25 @@ function getTime(item: any) {
   width: 100%;
   height: 36px;
   line-height: 36px;
-  background: #ef4d0b;
-  box-shadow: 0px 4px 3px 0px rgba(115, 33, 0, 0.23);
   border-radius: 4px 4px 4px 4px;
+  border-radius: 4px 4px 4px 4px;
+  border: 1px solid #ef4d0b;
+  margin-top: 20px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-size: 14px;
-  color: #ffffff;
-}
-.cancel-btn-show {
-  opacity: 1;
-  pointer-events: auto;
-}
+  color: #ef4d0b;
 
-/* 沉浸式卡片悬停动画 */
-.article-item {
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s;
-  position: relative;
-  overflow: visible;
-}
-.article-item:hover {
-  transform: translateY(-12px) scale(1.03);
-  z-index: 2;
-}
-
-/* 沉浸式取消按钮显示控制 */
-.article-btn.cancel-btn-immersive {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
   transition: opacity 0.3s;
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 16px;
-  z-index: 10;
-}
-.article-item:hover .article-btn.cancel-btn-immersive {
-  opacity: 1;
-  pointer-events: auto;
 }
 
-/* 保证卡片内容不被遮挡 */
-.article {
-  position: relative;
-  z-index: 1;
+.article-item:hover .article-btn.cancel-btn-immersive {
+  display: inline-flex;
+  transition: opacity 0.3s;
+}
+
+.article-item:hover .li-img {
+  height: 140px;
+  transition: opacity 0.3s;
 }
 </style>

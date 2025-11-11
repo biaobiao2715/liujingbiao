@@ -22,27 +22,19 @@
         </el-table-column>
         <el-table-column label="操作" width="160" align="center">
           <template #default="{ row }">
-            <div class="ops">
-              <el-button
-                v-if="row.questionStatus !== '99'"
-                v-hasPermi="['system:question:stopQuestion']"
-                @click="onDelete(row)"
-                v-throttle
-                text
-                style="color: #ef4d0b"
-                >关闭</el-button
-              >
-              <el-button
-                v-if="row.hasQuote == '0'"
-                v-hasPermi="['system:question:query']"
-                @click="onDetail(row)"
-                v-throttle
-                text
-                style="color: #108c58"
-                >查看</el-button
-              >
-              <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
-            </div>
+            <el-button
+              v-if="row.questionStatus !== '99'"
+              v-hasPermi="['system:question:stopQuestion']"
+              @click="onDelete(row)"
+              v-throttle
+              text
+              style="color: #ef4d0b"
+              >关闭</el-button
+            >
+            <el-button v-if="row.hasQuote == '0'" v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle text style="color: #108c58"
+              >查看</el-button
+            >
+            <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -53,32 +45,26 @@
     </div>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" width="80%" destroy-on-close :close-on-click-modal="false" class="question-detail-dialog" title="详情">
+    <el-dialog v-model="detailVisible" width="600px" destroy-on-close :close-on-click-modal="false" class="question-detail-dialog" title="我的问题">
       <div v-loading="detailLoading" class="detail-body">
-        <!-- 我的问题 -->
-        <div class="section">
-          <el-divider content-position="left"><div class="section-title">我的问题</div></el-divider>
-          <div class="question-item">
-            <div class="q-time">{{ currentQuestion?.publishTime }}</div>
-            <div class="q-title">{{ currentQuestion?.questionTitle }}</div>
-            <div class="q-content">{{ currentQuestion?.questionContent }}</div>
-            <div class="q-images" v-if="imageList.length">
-              <el-image v-for="(img, i) in imageList.slice(0, 6)" :key="i" :src="img" :preview-src-list="imageList" fit="cover" class="q-img" />
-            </div>
+        <!-- 我的问题区块 -->
+        <div>
+          <div class="reply-content">{{ currentQuestion?.questionContent }}</div>
+          <div class="question-images" v-if="imageList.length">
+            <el-image v-for="(img, i) in imageList.slice(0, 6)" :key="i" :src="img" :preview-src-list="imageList" fit="cover" class="question-img" />
           </div>
+          <div class="reply-time">{{ proxy.parseTime(currentQuestion?.publishTime) }}</div>
         </div>
-
-        <!-- 专家回复倒序展示 -->
-        <div class="section">
-          <el-divider content-position="left"><div class="section-title">专家回复</div></el-divider>
+        <!-- 专家回复区块 -->
+        <div>
+          <el-divider border-style="dashed">
+            <span class="reply-title">专家回复</span>
+          </el-divider>
           <el-empty v-if="!replyList.length && !detailLoading" description="暂无回复" />
           <div v-else>
-            <div class="reply-item" v-for="item in replyListSorted" :key="item.id">
-              <div class="meta">
-                <span class="meta-date">{{ item.replyTime }}</span>
-                <span class="meta-user">{{ item.expertType === '1' ? '技术专家' : item.expertType === '2' ? '法务专家' : '专家' }}</span>
-              </div>
-              <div class="content">{{ item.answerContent }}</div>
+            <div class="reply-item" v-for="item in replyList" :key="item.id">
+              <div class="reply-content">{{ item.answerContent }}</div>
+              <div class="reply-time">{{ proxy.parseTime(item.replyTime) }}</div>
             </div>
           </div>
         </div>
@@ -113,12 +99,6 @@ const detailLoading = ref(false);
 const currentQuestion = ref<HnQuestionVo | null>(null);
 const replyList = ref<HnAnswerVo[]>([]);
 const imageList = ref<string[]>([]);
-
-// 专家回复倒序
-const replyListSorted = computed(() => {
-  return [...replyList.value].sort((a, b) => ((b.replyTime || '') > (a.replyTime || '') ? 1 : -1));
-});
-
 // 生命周期
 onMounted(() => {
   getList();
@@ -253,30 +233,6 @@ function getReplyCount(row: any) {
   padding: 8px 12px;
 }
 
-/* 操作按钮间距和样式 */
-.ops {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-red {
-  color: #e53935 !important;
-  font-weight: bold;
-  text-decoration: none !important;
-}
-.btn-red:hover {
-  color: #b71c1c !important;
-  background: none !important;
-}
-.btn-blue {
-  color: #1976d2 !important;
-  font-weight: bold;
-  text-decoration: none !important;
-}
-.btn-blue:hover {
-  color: #0d47a1 !important;
-  background: none !important;
-}
 /* 红色圆角回复数 */
 .reply-badge {
   display: inline-block;
@@ -294,39 +250,66 @@ function getReplyCount(row: any) {
 }
 
 /* 新增：详情弹窗样式 */
-.question-detail-dialog .section {
-  margin-bottom: 16px;
+.question-detail-dialog .detail-body {
+  width: 560px;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(16, 140, 88, 0.12) 0%, rgba(16, 140, 88, 0) 100%);
+  border-radius: 8px 8px 8px 8px;
+  border: 1px solid;
+  border-image: linear-gradient(
+      180deg,
+      rgba(16.000000946223736, 140.00000685453415, 88.00000235438347, 1),
+      rgba(16.000000946223736, 140.00000685453415, 88.00000235438347, 0)
+    )
+    1 1;
 }
-.section-title {
-  font-weight: 600;
-  font-size: 16px;
-}
-.question-item .q-time {
-  color: var(--el-text-color-secondary);
-  margin-bottom: 6px;
-}
-.question-item .q-images {
+.question-images {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 10px;
+  margin: 15px 0;
 }
-.question-item .q-img {
-  width: 64px;
-  height: 64px;
-  border-radius: 4px;
-  overflow: hidden;
+.question-img {
+  width: 70px;
+  height: 70px;
+}
+
+.reply-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #108c58;
+  margin-bottom: 12px;
 }
 .reply-item {
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 15px;
+  background: #ffffff;
+  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.12);
+  border-radius: 4px 4px 4px 4px;
 }
-.reply-item .meta {
-  color: var(--el-text-color-secondary);
-  margin-bottom: 6px;
+
+.reply-time {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #3d3d3d;
+  text-align: right;
+  font-style: normal;
+  text-transform: none;
   display: flex;
-  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+.reply-time::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 13px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 8px;
+}
+.reply-content {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #3d3d3d;
 }
 </style>
