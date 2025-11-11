@@ -140,16 +140,13 @@ const props = defineProps<{
   goodsId?: number | string;
 }>();
 
-// 从路由或props获取商品id
 const goodsIdFromRoute = computed(() => {
   if (props.goodsId) {
     return String(props.goodsId);
   }
-  // 保持 id 为字符串类型，因为后端返回的是字符串
   return route.query.id ? String(route.query.id) : undefined;
 });
 
-// 当前商品（基准商品，不显示在对比框中）
 const currentGoods = ref<Goods | null>(null);
 
 interface CompareGoodsItem extends Partial<Goods> {
@@ -163,21 +160,14 @@ const goodsData = ref<Goods[]>([]);
 const compareGoodsList = ref<CompareGoodsItem[]>([]);
 const total = ref(0);
 
-// 筛选状态
 const filterState = reactive({
   region: '全国',
-  sortType: '' // 空字符串表示未选中，"最新"表示选中
+  sortType: ''
 });
 
-// 地区选择
 const regionValue = ref<string[]>([]);
 
 const queryParams = reactive({
-  id: undefined as number | undefined,
-  goodsCategoryId: [] as string[],
-  goodsName: undefined,
-  goodsBrandName: undefined,
-  goodsAbilityName: undefined,
   sortManner: '0', // 默认传0（对比列表）
   provinceCode: undefined as string | undefined,
   cityCode: undefined as string | undefined,
@@ -196,16 +186,10 @@ const handleAreaChange = (val: any) => {
     queryParams.provinceCode = val.provinceCode || undefined;
     queryParams.cityCode = val.cityCode || undefined;
     queryParams.districtCode = val.regionCode || undefined;
-    // 更新状态为选择地区
-    if (path && path.length > 0) {
-      filterState.region = '选择地区';
-    } else {
-      filterState.region = '全国';
-    }
+    filterState.region = path && path.length > 0 ? '选择地区' : '全国';
     queryParams.pageNum = 1;
     fetchGoodsList();
   } else {
-    // 清空时重置为全国
     regionValue.value = [];
     queryParams.provinceCode = undefined;
     queryParams.cityCode = undefined;
@@ -220,15 +204,14 @@ const handleAreaChange = (val: any) => {
 const toggleSortType = () => {
   if (filterState.sortType === '最新') {
     filterState.sortType = '';
-    queryParams.sortManner = '0'; // 取消选择时，恢复默认值0
+    queryParams.sortManner = '0';
   } else {
     filterState.sortType = '最新';
-    queryParams.sortManner = '1'; // 选择最新时传1
+    queryParams.sortManner = '1';
   }
   queryParams.pageNum = 1;
   fetchGoodsList();
 };
-
 
 // 处理筛选变化（价格输入）
 const handleFilterChange = () => {
@@ -236,7 +219,6 @@ const handleFilterChange = () => {
   fetchGoodsList();
 };
 
-// 格式化销量
 const formatSales = (sales?: number) => {
   if (!sales) return '0';
   if (sales >= 1000) {
@@ -245,7 +227,6 @@ const formatSales = (sales?: number) => {
   return `${sales}+`;
 };
 
-// 获取价格
 const getPrice = (goods: Goods) => {
   if (goods.hnGoodsSpecificationDataList && goods.hnGoodsSpecificationDataList.length > 0) {
     return goods.hnGoodsSpecificationDataList[0].goodsPrice || '0';
@@ -253,19 +234,15 @@ const getPrice = (goods: Goods) => {
   return '0';
 };
 
-// 检查商品是否在对比列表中（排除当前商品）
 const isInCompare = (goodsId?: number) => {
   if (!goodsId) return false;
-  // 如果是当前商品，不显示为已选中
   if (currentGoods.value && currentGoods.value.id === goodsId) {
     return false;
   }
   return compareGoodsList.value.some(item => item.id === goodsId);
 };
 
-// 切换对比状态
 const toggleCompare = (goods: Goods) => {
-  // 如果是当前商品，不允许添加到对比列表
   if (currentGoods.value && currentGoods.value.id === goods.id) {
     ElMessage.info('当前商品已作为基准商品，无需添加到对比列表');
     return;
@@ -274,10 +251,8 @@ const toggleCompare = (goods: Goods) => {
   const index = compareGoodsList.value.findIndex(item => item.id === goods.id);
 
   if (index > -1) {
-    // 已存在，移除
     compareGoodsList.value.splice(index, 1);
   } else {
-    // 不存在，添加
     if (compareGoodsList.value.length >= 5) {
       ElMessage.warning('最多只能对比5个商品');
       return;
@@ -294,13 +269,11 @@ const toggleCompare = (goods: Goods) => {
   saveToLocalStorage();
 };
 
-// 移除商品
 const removeGoods = (index: number) => {
   compareGoodsList.value.splice(index, 1);
   saveToLocalStorage();
 };
 
-// 清空对比
 const clearCompare = () => {
   compareGoodsList.value = [];
   saveToLocalStorage();
@@ -308,36 +281,27 @@ const clearCompare = () => {
 
 // 开始对比
 const startCompare = async () => {
-  // 需要至少1个对比商品（当前商品 + 至少1个对比商品）
   if (compareGoodsList.value.length < 1) {
     ElMessage.warning('至少需要选择1个商品进行对比');
     return;
   }
 
   try {
-    // 构建请求参数
     const params: any = {};
     
-    // 如果有当前商品，传递主商品id（必须传递，后端需要根据id获取商品信息）
     if (currentGoods.value && currentGoods.value.id) {
       params.id = String(currentGoods.value.id);
     } else if (goodsIdFromRoute.value) {
-      // 如果没有currentGoods但有路由中的id，也传递
       params.id = String(goodsIdFromRoute.value);
     } else {
       ElMessage.warning('缺少主商品信息，无法进行对比');
       return;
     }
     
-    // 传递比价商品id集合（对比商品的id，字符串数组）
     const compareIds = compareGoodsList.value
       .map(item => item.id)
       .filter((id) => id !== undefined && id !== null)
       .map(id => String(id));
-    
-    console.log('comparePricesGoodsIds 数组:', compareIds);
-    console.log('comparePricesGoodsIds 数组长度:', compareIds.length);
-    console.log('comparePricesGoodsIds 数组类型:', typeof compareIds, Array.isArray(compareIds));
     
     if (compareIds.length === 0) {
       ElMessage.warning('请至少选择一个商品进行对比');
@@ -346,16 +310,10 @@ const startCompare = async () => {
     
     params.comparePricesGoodsIds = compareIds;
     
-    // 调用比价API
-    console.log('比价请求参数:', params);
-    console.log('params.comparePricesGoodsIds:', params.comparePricesGoodsIds);
     const res = await comparePrices(params);
-    console.log('比价响应结果:', res);
     
     if (res && res.code === 200) {
-      // 保存并跳转到对比详情页
       saveToLocalStorage();
-      // 跳转到对比详情页，传递商品列表数据
       router.push({
         path: '/mall/compare-detail',
         query: {
@@ -367,7 +325,6 @@ const startCompare = async () => {
       ElMessage.error(res?.msg || '获取比价数据失败');
     }
   } catch (error) {
-    console.error('获取比价数据失败:', error);
     ElMessage.error('获取比价数据失败');
   }
 };
@@ -377,19 +334,7 @@ const saveToLocalStorage = () => {
   try {
     localStorage.setItem('compareGoodsList', JSON.stringify(compareGoodsList.value));
   } catch (error) {
-    console.error('保存比价商品列表失败:', error);
-  }
-};
-
-// 从本地存储加载
-const loadFromLocalStorage = () => {
-  try {
-    const saved = localStorage.getItem('compareGoodsList');
-    if (saved) {
-      compareGoodsList.value = JSON.parse(saved);
-    }
-  } catch (error) {
-    console.error('加载比价商品列表失败:', error);
+    // 忽略存储错误
   }
 };
 
@@ -398,17 +343,12 @@ const fetchCurrentGoods = async () => {
   if (!goodsIdFromRoute.value) return;
   
   try {
-    console.log('获取当前商品详情，id:', goodsIdFromRoute.value);
     const res = await goodsDetail(goodsIdFromRoute.value);
-    console.log('当前商品详情响应:', res);
     if (res && res.code === 200 && res.data) {
       currentGoods.value = res.data;
-      console.log('当前商品详情设置成功:', currentGoods.value);
-    } else {
-      console.error('获取当前商品详情失败，响应:', res);
     }
   } catch (error) {
-    console.error('获取当前商品详情失败:', error);
+    // 忽略错误
   }
 };
 
@@ -416,18 +356,15 @@ const fetchCurrentGoods = async () => {
 const fetchGoodsList = async () => {
   loading.value = true;
   try {
-    // 构建请求参数，只传递有值的参数
     const params: any = {
       pageNum: queryParams.pageNum,
       pageSize: queryParams.pageSize
     };
 
-    // 如果有商品id，传递id（用于筛选同类商品，但不包含当前商品本身）
     if (goodsIdFromRoute.value) {
       params.id = goodsIdFromRoute.value;
     }
 
-    // 如果有地区选择，传递地区编码
     if (filterState.region === '选择地区' && queryParams.provinceCode) {
       params.provinceCode = queryParams.provinceCode;
       if (queryParams.cityCode) {
@@ -438,10 +375,8 @@ const fetchGoodsList = async () => {
       }
     }
 
-    // 传递排序方式（默认传0，选择最新传1）
     params.sortManner = queryParams.sortManner || '0';
 
-    // 传递价格范围
     if (queryParams.minPrice) {
       params.minPrice = queryParams.minPrice;
     }
@@ -453,7 +388,6 @@ const fetchGoodsList = async () => {
     if (response.code === 200) {
       let records = response.rows || [];
       
-      // 如果有当前商品，从列表中排除当前商品
       if (currentGoods.value && currentGoods.value.id) {
         records = records.filter(item => item.id !== currentGoods.value!.id);
       }
@@ -470,11 +404,9 @@ const fetchGoodsList = async () => {
 
 
 onMounted(() => {
-  // 清空本地存储的对比列表，确保每次进入都是空列表
   compareGoodsList.value = [];
   saveToLocalStorage();
   
-  // 如果有商品id，获取当前商品详情（仅用于作为基准商品，不添加到对比列表）
   if (goodsIdFromRoute.value) {
     fetchCurrentGoods();
   }
@@ -725,34 +657,8 @@ onMounted(() => {
         &.in-compare {
           border: 1px solid transparent;
 
-          .compare-badge {
-            display: flex;
-          }
-
           .hover-overlay {
             opacity: 1 !important;
-          }
-        }
-
-        .compare-badge {
-          display: none;
-          position: absolute;
-          top: 0;
-          left: 0;
-          background: #67c23a;
-          color: #fff;
-          padding: 6px 12px;
-          font-size: 13px;
-          z-index: 10;
-          align-items: center;
-          gap: 4px;
-          border-radius: 0 0 8px 0;
-          font-weight: 500;
-
-          .check-icon {
-            font-weight: bold;
-            font-size: 14px;
-            margin-right: 2px;
           }
         }
 
@@ -818,17 +724,6 @@ onMounted(() => {
               color: #909399;
               margin-left: auto;
             }
-          }
-        }
-
-        .add-compare-btn {
-          width: calc(100% - 24px);
-          margin: 0 12px 12px;
-          border-radius: 4px;
-
-          &:not(.is-disabled) {
-            background-color: #409eff;
-            border-color: #409eff;
           }
         }
       }

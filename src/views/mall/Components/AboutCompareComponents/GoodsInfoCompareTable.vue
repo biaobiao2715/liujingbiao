@@ -34,7 +34,18 @@
             <span v-else class="no-data">-</span>
           </div>
           <div v-else-if="row.type === 'price'" class="price-cell">
-            <span v-if="row[`goods${index}`] && row[`goods${index}`] !== '-'" class="price-box">{{ row[`goods${index}`] }}</span>
+            <template v-if="row[`goods${index}`] && row[`goods${index}`] !== '-'">
+              <template v-if="Array.isArray(row[`goods${index}`])">
+                <span
+                  v-for="(priceText, pIdx) in row[`goods${index}`]"
+                  :key="pIdx"
+                  class="price-box"
+                >
+                  {{ priceText }}
+                </span>
+              </template>
+              <span v-else class="price-box">{{ row[`goods${index}`] }}</span>
+            </template>
             <span v-else class="no-data">-</span>
           </div>
           <div v-else class="normal-cell">
@@ -52,8 +63,6 @@ import { ref, watch } from 'vue';
 import type { Goods } from '../../mall';
 
 interface CompareGoodsItem extends Partial<Goods> {
-  image?: string;
-  price?: string;
   location?: string;
 }
 
@@ -67,24 +76,26 @@ const tableData = ref<any[]>([]);
 // 历史价格展开状态管理
 const priceHistoryExpanded = ref<Record<string, boolean>>({});
 
-// 格式化价格信息
+// 格式化价格信息（商品价格列，支持多规格展示，每个价格一个盒子）
 const formatPriceInfo = (goods: CompareGoodsItem) => {
-  if (!goods.hnGoodsSpecificationDataList || goods.hnGoodsSpecificationDataList.length === 0) {
-    return '-';
-  }
-  
-  const spec = goods.hnGoodsSpecificationDataList[0];
-  const price = parseFloat(String(spec.goodsPrice || 0));
-  
-  if (!price) {
-    return '-';
-  }
-  
+  const specs = goods.hnGoodsSpecificationDataList || [];
+  if (!Array.isArray(specs) || specs.length === 0) return '-';
+
   const specificationName = goods.goodsSpecificationName || '';
-  return `${price.toFixed(2)}元/${specificationName}`;
+  const parts = specs
+    .map((s: any) => {
+      const price = parseFloat(String(s.goodsPrice || 0));
+      if (!price) return null;
+      const specificationValue = s.goodsSpecificationValue ?? '';
+      const specDisplay = [specificationValue, specificationName].filter(Boolean).join('/');
+      return `${price.toFixed(2)}元${specDisplay ? ' ' + specDisplay : ''}`;
+    })
+    .filter(Boolean);
+
+  return parts.length > 0 ? parts : '-';
 };
 
-// 格式化历史价格
+// 格式化历史价格（展示：价格元 规格值/单位）
 const formatPriceHistory = (goods: CompareGoodsItem, goodsIndex: number) => {
   if (!goods.priceHistories || goods.priceHistories.length === 0) {
     return '-';
@@ -96,13 +107,16 @@ const formatPriceHistory = (goods: CompareGoodsItem, goodsIndex: number) => {
       const newPriceStr = String(history.goodsNewPrice || '0');
       const oldPrice = parseFloat(oldPriceStr);
       const newPrice = parseFloat(newPriceStr);
-      const specification = String(history.goodsSpecification || '');
+      // 历史记录里的规格：goodsSpecificationValue + '/' + goodsSpecification(单位文本)
+      const specValue = (history as any).goodsSpecificationValue ?? '';
+      const specUnit = (history as any).goodsSpecification ?? (goods as any).goodsSpecificationName ?? '';
+      const specDisplay = [specValue, specUnit].filter(Boolean).join('/');
       
       if (isNaN(oldPrice) || isNaN(newPrice) || (oldPrice === 0 && newPrice === 0)) {
         return null;
       }
       
-      return `<span style="color: #EF4D0B; font-size: 14px;">${oldPriceStr}${specification}</span>---调整至---<span style="color: #108C58; font-size: 14px;">${newPriceStr}${specification}</span>`;
+      return `<span style="color: #EF4D0B; font-size: 14px;">${oldPriceStr}元${specDisplay ? ' ' + specDisplay : ''}</span>---调整至---<span style="color: #108C58; font-size: 14px;">${newPriceStr}元${specDisplay ? ' ' + specDisplay : ''}</span>`;
     })
     .filter(Boolean);
   
@@ -327,6 +341,7 @@ watch(
         text-align: center;
         padding: 0 8px;
         box-sizing: border-box;
+        margin: 4px 6px 0 0;
       }
     }
 

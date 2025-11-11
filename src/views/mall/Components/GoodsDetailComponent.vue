@@ -72,10 +72,28 @@
           <!-- 发货地址 -->
           <div class="shipping-address">
             <span class="label">发货地址</span>
-            <el-select v-model="selectedAddressId" placeholder="请选择发货地址" class="address-select"
-              @change="handleAddressChange">
-              <el-option v-for="addr in addressList" :key="addr.id" :label="getAddressDisplayText(addr)"
-                :value="addr.id" />
+            <el-select
+              v-model="selectedAddressId"
+              :placeholder="enterpriseShippingAddress || '请选择发货地址'"
+              class="address-select"
+              @change="handleAddressChange"
+              @visible-change="handleAddressDropdownVisible"
+              :loading="addressLoading"
+              loading-text="正在加载地址..."
+              clearable
+            >
+              <el-option
+                v-if="addressList.length === 0"
+                :label="enterpriseShippingAddress || '暂无发货地址'"
+                :value="-1"
+                disabled
+              />
+              <el-option
+                v-for="addr in addressList"
+                :key="addr.id"
+                :label="getAddressDisplayText(addr)"
+                :value="addr.id"
+              />
             </el-select>
           </div>
 
@@ -87,7 +105,7 @@
                 <div v-for="spec in displayedSpecs" :key="spec.id"
                   :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
                   @click="selectSpec(spec.id)">
-                  {{ spec.goodsSpecificationValue }}{{ spec.goodsSpecification }}
+                  {{ spec.goodsSpecificationValue }}{{ goods?.goodsSpecificationName || '' }}
                   <el-icon v-if="baseInfo.currentSpec === spec.id" class="spec-check-icon">
                     <Check />
                   </el-icon>
@@ -135,11 +153,16 @@
             <h2 class="section-title">商品详情</h2>
             <div class="goods-detail-content" v-if="parsedDetail.length > 0">
               <template v-for="(item, index) in parsedDetail" :key="index">
-                <!-- 文本内容 -->
-                <div v-if="item.type === 'text'" class="detail-text" v-html="item.content"></div>
-                <!-- 图片 -->
-                <el-image v-else-if="item.type === 'image'" :src="item.src" fit="contain" class="detail-image"
+                <!-- 第一张图片（大图） -->
+                <el-image v-if="item.type === 'image' && index === 0" :src="item.src" fit="contain" class="detail-image detail-image-large"
                   :preview-src-list="imageList" :initial-index="item.index" />
+                <!-- 文本内容 -->
+                <div v-else-if="item.type === 'text'" class="detail-text" v-html="item.content"></div>
+                <!-- 其他图片（小图网格）- 只在第一张图片后显示 -->
+                <div v-else-if="item.type === 'image' && index > 0 && shouldShowImageGrid(index)" class="detail-images-grid">
+                  <el-image v-for="(imgItem, imgIndex) in getRemainingImages(index)" :key="imgIndex" :src="imgItem.src" fit="contain" class="detail-image"
+                    :preview-src-list="imageList" :initial-index="imgItem.index" />
+                </div>
               </template>
             </div>
             <div v-else class="empty-detail">暂无商品详情</div>
@@ -171,7 +194,7 @@ import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
 import { userAddressList, type Address } from '@/api/mall/personalCenter/addressManagement';
 import type { Goods } from '../mall';
-import PlaceOrderComponent from './PlaceOrderComponent.vue';
+import PlaceOrderComponent from './AboutCompareComponents/PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
 import { Check } from '@element-plus/icons-vue';
 
@@ -215,12 +238,10 @@ const currentImageIndex = ref(0);
 // 需要经过处理得到的数据
 const baseInfo = reactive<{
   totalPrice: string;
-  selectedAddress: string;
   currentSpec: number | null;
   quantity: number;
 }>({
   totalPrice: '',
-  selectedAddress: '',
   currentSpec: null,
   quantity: 1
 });
@@ -229,14 +250,66 @@ const groupedRelatedGoods = ref([]); // 同类商品
 
 const hotGoods = ref([]); // 最热商品
 
+const enterpriseShippingAddress = computed(() => {
+  const info = goods.value?.hnBaseEnterpriseInfo;
+  if (!info) return '';
+  return [
+    info.province,
+    info.city,
+    info.district,
+    info.signUpAddress
+  ]
+    .map(part => (typeof part === 'string' ? part.trim() : part))
+    .filter(part => part && String(part).toLowerCase() !== 'null' && String(part).toLowerCase() !== 'undefined')
+    .join('');
+});
 
-// 地址列表
+// 用户地址下拉
 const addressList = ref<Address[]>([]);
 const selectedAddressId = ref<number | null>(null);
+const addressLoading = ref(false);
+
+// 获取用户地址列表
+const fetchAddressList = async () => {
+  try {
+    addressLoading.value = true;
+    const res = await userAddressList();
+    if (res.code === 200 && res.rows) {
+      addressList.value = res.rows;
+      // 选中默认地址
+      const def = addressList.value.find(a => a.isDefault === '1') || addressList.value[0];
+      selectedAddressId.value = def?.id ?? null;
+    }
+  } catch (e) {
+    console.error('获取地址列表失败:', e);
+  } finally {
+    addressLoading.value = false;
+  }
+};
+
+// 组合展示字符串
+const getAddressDisplayText = (address: Address) => {
+  return [address.province, address.city, address.region, address.detailAddress]
+    .filter(Boolean)
+    .join('');
+};
+
+// 切换选择
+const handleAddressChange = (_id: number | null) => {
+  // 仅记录所选ID，提交订单时由下单组件使用
+};
+
+// 下拉展开时拉取地址
+const handleAddressDropdownVisible = async (visible: boolean) => {
+  if (visible) {
+    await fetchAddressList();
+  }
+};
+
 
 // 规格显示控制
 const showAllSpecs = ref(false);
-const defaultDisplayCount = 6; // 默认显示6个规格（第一行4个，第二行2个）
+const defaultDisplayCount = 8; // 默认显示8个规格（第一行4个，第二行4个）
 
 // 计算要显示的规格列表
 const displayedSpecs = computed(() => {
@@ -295,20 +368,21 @@ const parseGoodsDetail = (html: string) => {
     return;
   }
 
-  const items: DetailItem[] = [];
+  const textItems: DetailItem[] = [];
+  const imageItems: DetailItem[] = [];
   const images: string[] = [];
 
   // 创建临时DOM元素来解析HTML
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = html;
 
-  // 递归处理节点，按顺序提取文本和图片
+  // 递归处理节点，分别提取文本和图片
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       // 文本节点
       const text = node.textContent?.trim();
       if (text) {
-        items.push({
+        textItems.push({
           type: 'text',
           content: text
         });
@@ -321,7 +395,7 @@ const parseGoodsDetail = (html: string) => {
         const imgSrc = (element as HTMLImageElement).src || (element as HTMLImageElement).getAttribute('src');
         if (imgSrc) {
           images.push(imgSrc);
-          items.push({
+          imageItems.push({
             type: 'image',
             src: imgSrc,
             index: images.length - 1
@@ -345,7 +419,7 @@ const parseGoodsDetail = (html: string) => {
               if (childElement.tagName === 'IMG') {
                 // 如果当前有文本，先添加文本
                 if (currentText) {
-                  items.push({
+                  textItems.push({
                     type: 'text',
                     content: currentText
                   });
@@ -361,7 +435,7 @@ const parseGoodsDetail = (html: string) => {
           });
           // 处理剩余的文本
           if (currentText) {
-            items.push({
+            textItems.push({
               type: 'text',
               content: currentText
             });
@@ -370,7 +444,7 @@ const parseGoodsDetail = (html: string) => {
           // 不包含图片，作为文本处理（保留HTML格式）
           const text = element.textContent?.trim();
           if (text) {
-            items.push({
+            textItems.push({
               type: 'text',
               content: element.outerHTML
             });
@@ -390,16 +464,67 @@ const parseGoodsDetail = (html: string) => {
     processNode(node);
   });
 
+  // 重新组织顺序：第一张图片（大图） -> 所有文本 -> 剩余图片
+  const finalItems: DetailItem[] = [];
+  
+  // 1. 第一张图片作为大图
+  if (imageItems.length > 0) {
+    finalItems.push({
+      type: 'image',
+      src: imageItems[0].src,
+      index: 0
+    });
+  }
+  
+  // 2. 所有文本内容
+  if (textItems.length > 0) {
+    // 合并所有文本为一个文本块
+    const allText = textItems.map(item => item.content).join('');
+    finalItems.push({
+      type: 'text',
+      content: allText
+    });
+  }
+  
+  // 3. 剩余的图片（从第二张开始）
+  if (imageItems.length > 1) {
+    for (let i = 1; i < imageItems.length; i++) {
+      finalItems.push(imageItems[i]);
+    }
+  }
+
   // 如果没有解析到内容，使用原始HTML作为文本
-  if (items.length === 0) {
-    items.push({
+  if (finalItems.length === 0) {
+    finalItems.push({
       type: 'text',
       content: html
     });
   }
 
-  parsedDetail.value = items;
+  parsedDetail.value = finalItems;
   imageList.value = images;
+};
+
+// 判断是否应该显示图片网格（文本后的第一张图片）
+const shouldShowImageGrid = (index: number) => {
+  // 检查前面是否有文本项
+  for (let i = 0; i < index; i++) {
+    if (parsedDetail.value[i]?.type === 'text') {
+      // 检查这是否是文本后的第一张图片
+      for (let j = i + 1; j < index; j++) {
+        if (parsedDetail.value[j]?.type === 'image') {
+          return false; // 前面已经有图片了，不是第一张
+        }
+      }
+      return true; // 这是文本后的第一张图片
+    }
+  }
+  return false;
+};
+
+// 获取剩余的图片（从指定索引开始的所有图片）
+const getRemainingImages = (startIndex: number) => {
+  return parsedDetail.value.filter((item, index) => item.type === 'image' && index >= startIndex);
 };
 
 // 选择规格
@@ -466,7 +591,7 @@ const getGoodsDetail = async () => {
       // 生成面包屑导航
       updateBreadcrumb();
 
-      // 获取地址列表
+      // 获取地址列表（用于发货地址下拉）
       await fetchAddressList();
 
       // 商品详情加载成功后，加载相关商品和热门商品
@@ -489,46 +614,6 @@ const updateBreadcrumb = () => {
   breadcrumbItems.value = goods.value?.goodsName ? [goods.value.goodsName] : [];
 };
 
-// 获取地址列表
-const fetchAddressList = async () => {
-  try {
-    const res = await userAddressList();
-    if (res.code === 200 && res.rows) {
-      addressList.value = res.rows;
-      // 设置默认地址
-      const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
-      if (defaultAddress) {
-        selectedAddressId.value = defaultAddress.id || null;
-        baseInfo.selectedAddress = getAddressDisplayText(defaultAddress);
-      } else if (addressList.value.length > 0) {
-        // 如果没有默认地址，使用第一个地址
-        selectedAddressId.value = addressList.value[0].id || null;
-        baseInfo.selectedAddress = getAddressDisplayText(addressList.value[0]);
-      }
-    }
-  } catch (error) {
-    console.error('获取地址列表失败:', error);
-  }
-};
-
-// 获取地址显示文本
-const getAddressDisplayText = (address: Address) => {
-  const parts = [
-    address.province,
-    address.city,
-    address.region,
-    address.detailAddress
-  ].filter(Boolean);
-  return parts.join('');
-};
-
-// 处理地址选择变化
-const handleAddressChange = (addressId: number | null) => {
-  const address = addressList.value.find(addr => addr.id === addressId);
-  if (address) {
-    baseInfo.selectedAddress = getAddressDisplayText(address);
-  }
-};
 
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
 const operateOrder = (type: number) => {
@@ -1021,6 +1106,17 @@ defineExpose({
           border-radius: 4px;
         }
       }
+
+      .address-text {
+        flex: 1;
+        min-width: 200px;
+        color: #555;
+        line-height: 38px;
+        padding: 6px 12px;
+        background-color: #f7f7f7;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
     }
 
     .spec-section {
@@ -1284,6 +1380,24 @@ defineExpose({
             width: 100%;
             height: auto;
             object-fit: contain;
+          }
+        }
+
+        // 第一张图片（大图）样式
+        .detail-image-large {
+          margin-bottom: 20px;
+          margin-top: 0;
+        }
+
+        // 图片网格布局（用于展示剩余的小图）
+        .detail-images-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+          margin-top: 20px;
+
+          .detail-image {
+            margin: 0;
           }
         }
 
