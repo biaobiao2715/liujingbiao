@@ -22,14 +22,21 @@
         </div>
         
         <div v-if="detailData.attachments && detailData.attachments.length > 0" class="attachments">
-          <el-icon 
-            v-for="(attachment, index) in detailData.attachments" 
-            :key="index" 
-            class="attachment-icon"
-            @click="handleDownloadAttachment(attachment)"
-          >
-            <Folder />
-          </el-icon>
+          <template v-for="(attachment, index) in detailData.attachments" :key="index">
+            <el-image
+              v-if="isImage(attachment.url)"
+              class="attachment-thumb"
+              :src="attachment.url"
+              fit="cover"
+              :preview-src-list="imagePreviewList"
+              :initial-index="getImageIndex(attachment.url)"
+              :z-index="3000"
+            />
+            <div v-else class="attachment-file" @click="handleDownloadAttachment(attachment)">
+              <el-icon class="attachment-icon"><Folder /></el-icon>
+              <div class="file-name" :title="attachment.originalName || attachment.fileName">文件</div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -64,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Folder } from '@element-plus/icons-vue';
 import { getMessageDetail } from '@/api/expertServicePlatform/messageManage/index';
@@ -178,6 +185,21 @@ const fetchDetail = async () => {
   }
 };
 
+const imagePreviewList = computed(() => {
+  return (detailData.value.attachments || [])
+    .map((a: any) => a?.url)
+    .filter((u: string) => !!u && isImage(u));
+});
+const isImage = (url?: string) => {
+  if (!url) return false;
+  const u = url.split('?')[0].toLowerCase();
+  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some(ext => u.endsWith(ext));
+};
+const getImageIndex = (url?: string) => {
+  if (!url) return 0;
+  return imagePreviewList.value.findIndex(u => u === url);
+};
+
 const handleDownloadAttachment = (attachment: any) => {
   if (attachment.url) {
     window.open(attachment.url, '_blank');
@@ -248,14 +270,42 @@ onMounted(() => {
       gap: 8px;
       flex-wrap: wrap;
       
-      .attachment-icon {
-        font-size: 30px;
-        color: #409eff;
+      .attachment-thumb {
+        width: 80px;
+        height: 80px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        cursor: zoom-in;
+        background: #f8f8f8;
+      }
+      
+      .attachment-file {
+        width: 80px;
+        height: 80px;
+        border-radius: 4px;
+        background: #f0f4ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
         cursor: pointer;
+        border: 1px solid #e5e7ef;
         
-        &:hover {
-          opacity: 0.8;
+        .attachment-icon {
+          font-size: 28px;
+          color: #409eff;
+          margin-bottom: 4px;
         }
+        .file-name {
+          font-size: 12px;
+          color: #606266;
+          max-width: 72px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        &:hover { opacity: 0.9; }
       }
     }
   }

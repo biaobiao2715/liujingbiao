@@ -116,11 +116,10 @@ const legal_popularize_activity_type = computed(() => {
   if (!legal_popularize_activity_type_raw.value || !Array.isArray(legal_popularize_activity_type_raw.value)) {
     return [];
   }
-  
-  return legal_popularize_activity_type_raw.value.filter((item: any) => {
-    const value = String(item.value);
-    return value === '0' || value === '1';
-  });
+  return legal_popularize_activity_type_raw.value.map((item: any) => ({
+    ...item,
+    value: String(item.value)
+  }));
 });
 
 const loading = ref(false);
@@ -173,11 +172,8 @@ const getStatusLabel = (status: string) => {
 
 const getTypeLabel = (type: string) => {
   const typeStr = String(type);
-  if (typeStr !== '0' && typeStr !== '1') {
-    return '-';
-  }
   const item = legal_popularize_activity_type.value?.find((item: any) => String(item.value) === typeStr);
-  return item?.label || '-';
+  return item?.label || typeStr || '-';
 };
 
 const formatTime = (timeStr: string) => {

@@ -38,11 +38,13 @@
         <el-form-item label="发布时间">
           <el-date-picker
             v-model="dateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             range-separator=" - "
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
           />
         </el-form-item>
         
@@ -230,25 +232,9 @@ const ActivityDetailDialog = defineAsyncComponent(() => import('./ActivityDetail
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_activity_type: legal_popularize_activity_type_raw, legal_popularize_activity_status } = toRefs<any>(
+const { legal_popularize_activity_type, legal_popularize_activity_status } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_activity_type', 'legal_popularize_activity_status')
 );
-
-const legal_popularize_activity_type = computed(() => {
-  if (!legal_popularize_activity_type_raw.value || !Array.isArray(legal_popularize_activity_type_raw.value)) {
-    return [];
-  }
-  
-  return legal_popularize_activity_type_raw.value
-    .filter((item: any) => {
-      const value = String(item.value);
-      return value === '0' || value === '1';
-    })
-    .map((item: any) => ({
-      ...item,
-      value: String(item.value)
-    }));
-});
 
 const queryParams = ref({
   pageNum: 1,

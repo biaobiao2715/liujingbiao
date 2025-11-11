@@ -73,26 +73,15 @@
             />
           </div>
           
-          <div class="toc-sidebar">
-            <div class="toc-header">文章目录</div>
-            <div class="toc-content">
-              <div v-if="tocList.length > 0" class="toc-list">
-                <div 
-                  v-for="item in tocList" 
-                  :key="item.id" 
-                  :class="['toc-item', `toc-level-${item.level}`]"
-                  @click="scrollToHeading(item.id)"
-                >
-                  <span class="toc-text">{{ item.text }}</span>
-                </div>
-              </div>
-              <div v-else class="toc-empty">
-                <el-icon class="empty-icon"><Document /></el-icon>
-                <p class="empty-text">暂无目录</p>
-                <p class="empty-tip">使用标题格式编辑内容后将自动生成目录</p>
-              </div>
-            </div>
-          </div>
+          <TocSidebar
+            :content="formData.contentContent"
+            editor-container=".w-e-text-container"
+            :auto-scroll="true"
+            @toc-click="handleTocClick"
+            @active-change="handleActiveChange"
+            @content-update="handleContentUpdate"
+            ref="tocSidebarRef"
+          />
         </div>
       </el-form-item>
 
@@ -116,13 +105,18 @@
 
         <el-table v-if="attachmentList.length > 0" :data="attachmentList" stripe class="attachment-table">
           <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="附件类型" width="120" align="center">
+            <template #default="scope">
+              <span>{{ getFileTypeText(scope.row) }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="fileName" label="附件名称" align="left" :show-overflow-tooltip="true" />
           <el-table-column prop="fileSize" label="文件大小" width="120" align="center" />
-          <el-table-column label="操作" width="180" align="center">
+          <el-table-column label="操作" width="220" align="center">
             <template #default="scope">
-              <el-button type="primary" link @click="handlePreviewFile(scope.row)">
-                <el-icon><View /></el-icon>
-                预览
+              <el-button type="primary" link @click="handleReuploadFile(scope.row)" v-hasPermi="['system:oss:upload']">
+                <el-icon><Upload /></el-icon>
+                重新上传
               </el-button>
               <el-button type="danger" link @click="handleRemoveFile(scope.row)">
                 <el-icon><Delete /></el-icon>
@@ -154,6 +148,7 @@ import {
   editContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import TocSidebar from '@/components/Tocsidebar/index.vue';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -195,12 +190,7 @@ const attachmentList = ref<Array<{
   uid?: string;
 }>>([]);
 
-const tocList = ref<Array<{
-  id: string;
-  text: string;
-  tag: string;
-  level: number;
-}>>([]);
+const tocSidebarRef = ref();
 
 const rules = {
   contentTitle: [
@@ -251,20 +241,46 @@ const fetchContentDetail = async () => {
         contentSummary: data.contentSummary || '',
         contentContent: contentContent
       };
-      
+
       editorKey.value += 1;
       await nextTick();
       await nextTick();
       
-      if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
-        attachmentList.value = data.ossVoList.map((item: any) => ({
-          ossId: item.ossId,
-          fileName: item.fileName || item.originalName,
-          originalName: item.originalName || item.fileName,
-          fileSuffix: item.fileSuffix,
-          url: item.url,
-          fileSize: item.fileSize || '--'
-        }));
+      // 优先兼容后端返回的 sysOssLists，其次兼容旧的 ossVoList
+      const sysList = Array.isArray(data.sysOssLists) ? data.sysOssLists : [];
+      const voList = Array.isArray(data.ossVoList) ? data.ossVoList : [];
+      const list = sysList.length > 0 ? sysList : voList;
+
+      if (list.length > 0) {
+        attachmentList.value = list.map((item: any) => {
+          // 兼容不同字段命名
+          const ossId = item.ossId || item.id || item.ossID;
+          const url = item.url || '';
+          const originalName = item.originalName || item.fileName || item.name || '附件';
+          const fileSuffix = item.fileSuffix || (originalName.includes('.') ? '.' + originalName.split('.').pop() : '');
+          let fileSizeText = item.fileSize || '--';
+
+          // 从 ext1 中解析文件大小（字节数），转为可读文本
+          if ((!fileSizeText || fileSizeText === '--') && item.ext1) {
+            try {
+              const extra = JSON.parse(item.ext1);
+              if (extra && typeof extra.fileSize === 'number') {
+                fileSizeText = formatFileSize(extra.fileSize);
+              }
+            } catch (_) {
+              // ignore json parse error
+            }
+          }
+
+          return {
+            ossId,
+            fileName: originalName,
+            originalName,
+            fileSuffix,
+            url,
+            fileSize: fileSizeText
+          };
+        });
       } else {
         attachmentList.value = [];
       }
@@ -336,63 +352,21 @@ const emitCancel = () => {
   emit('cancel');
 };
 
-const isUpdatingFromWatch = ref(false);
-
-watch(
-  () => formData.value.contentContent,
-  (val) => {
-    if (isUpdatingFromWatch.value) {
-      return;
-    }
-    
-    if (!val || val.trim() === '' || val.trim() === '<p></p>') {
-      tocList.value = [];
-      return;
-    }
-    
-    try {
-      const div = document.createElement('div');
-      div.innerHTML = val;
-      const headings = div.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      const hasIdHeadings = Array.from(headings).filter((el) => (el as HTMLElement).id);
-      const needsUpdate = headings.length > 0 && hasIdHeadings.length !== headings.length;
-      
-      tocList.value = Array.from(headings).map((el, idx) => {
-        const tagName = el.tagName.toUpperCase();
-        const level = parseInt(tagName.substring(1));
-        const headingEl = el as HTMLElement;
-        
-        if (!headingEl.id) {
-          headingEl.id = `toc-${idx}`;
-        }
-        
-        return {
-          id: headingEl.id,
-          text: el.textContent?.trim() || '无标题',
-          tag: tagName,
-          level: level
-        };
-      });
-      
-      if (needsUpdate) {
-        isUpdatingFromWatch.value = true;
-        nextTick(() => {
-          formData.value.contentContent = div.innerHTML;
-          nextTick(() => {
-            isUpdatingFromWatch.value = false;
-          });
-        });
-      }
-    } catch (error) {
-      tocList.value = [];
-    }
-  },
-  { immediate: true }
-);
+// 使用与培训课程编辑一致的目录组件回调，保持标题作为目录项
+const handleTocClick = (_item: any) => {
+  // 目录点击行为交由 TocSidebar 内部滚动处理，这里可按需扩展
+};
+const handleActiveChange = (_id: string) => {
+  // 激活项变化，按需扩展
+};
+const handleContentUpdate = (updatedContent: string) => {
+  // 由目录组件在必要时回写处理后的内容（包含标题锚点等）
+  formData.value.contentContent = updatedContent;
+};
 
 const scrollToHeading = (id: string) => {
   try {
-    const editor = document.querySelector('.ql-editor');
+    const editor = document.querySelector('.w-e-text-container');
     if (editor) {
       const el = editor.querySelector(`#${id}`);
       if (el) {
@@ -463,20 +437,48 @@ const handleFileChange = async (file: any) => {
 };
 
 const handlePreviewFile = async (file: any) => {
-  try {
-    const response = await fetch(file.url);
-    const blob = await response.blob();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = file.originalName || file.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-    ElMessage.success('文件下载成功');
-  } catch (error) {
-    ElMessage.error('文件下载失败，请重试');
-  }
+  // 兼容旧逻辑：预览已替换为“重新上传”，此函数保留为空实现
+};
+
+const handleReuploadFile = async (row: any) => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.jpg,.jpeg,.png,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
+  input.onchange = async (e: any) => {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    if (!validateFile(file)) return;
+    
+    (proxy as any)?.$modal?.loading('正在重新上传，请稍候...');
+    try {
+      const response = await ossUploadImage({ file });
+      if (response.code === 200 && response.data?.ossId) {
+        const idx = attachmentList.value.findIndex((it: any) => (it.uid && row.uid && it.uid === row.uid) || (it.ossId && row.ossId && String(it.ossId) === String(row.ossId)));
+        const newItem = {
+          ossId: response.data.ossId,
+          fileName: response.data.fileName || file.name,
+          originalName: file.name,
+          fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
+          url: response.data.url,
+          fileSize: formatFileSize(file.size),
+          uid: row.uid || String(Date.now() + Math.random())
+        };
+        if (idx !== -1) {
+          attachmentList.value.splice(idx, 1, newItem);
+        } else {
+          attachmentList.value.push(newItem);
+        }
+        ElMessage.success('重新上传成功');
+      } else {
+        ElMessage.error(response?.msg || '重新上传失败，请重试');
+      }
+    } catch (error) {
+      ElMessage.error('重新上传失败，请重试');
+    } finally {
+      (proxy as any)?.$modal?.closeLoading();
+    }
+  };
+  input.click();
 };
 
 const handleRemoveFile = (file: any) => {
@@ -497,6 +499,21 @@ const handleRemoveFile = (file: any) => {
     .catch(() => {});
 };
 
+const getFileTypeText = (row: any): string => {
+  const name: string = row?.originalName || row?.fileName || '';
+  const suffix: string = (row?.fileSuffix || '').toString().toLowerCase();
+  const ext = (name.split('.').pop() || suffix.replace('.', '') || '').toLowerCase();
+  const img = ['jpg','jpeg','png','gif','bmp','webp','svg'];
+  const video = ['mp4','mov','avi','mkv','wmv','flv'];
+  const audio = ['mp3','wav','aac','flac','ogg'];
+  const doc = ['pdf','ppt','pptx','doc','docx','xls','xlsx','txt'];
+  if (img.includes(ext)) return '图片';
+  if (video.includes(ext)) return '视频';
+  if (audio.includes(ext)) return '音频';
+  if (doc.includes(ext)) return '文档';
+  return '其他';
+};
+
 watch(
   () => props.id,
   (newId) => {
@@ -512,7 +529,6 @@ watch(
         contentContent: ''
       };
       attachmentList.value = [];
-      tocList.value = [];
       editorKey.value += 1;
     }
   },
@@ -584,6 +600,7 @@ onMounted(() => {
   .toc-content {
     flex: 1;
     overflow-y: auto;
+    max-height: 500px;
     padding: 16px;
     
     &::-webkit-scrollbar {

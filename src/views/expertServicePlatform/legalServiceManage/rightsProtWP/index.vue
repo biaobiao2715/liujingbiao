@@ -27,11 +27,13 @@
         <el-form-item label="发布时间">
           <el-date-picker
             v-model="dateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             range-separator=" - "
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
           />
         </el-form-item>
         
@@ -131,17 +133,17 @@
                 更新版本
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '1' || scope.row.paperStatus === '启用'" 
+                v-if="isEnabled(scope.row.paperStatus)" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:edit']" 
                 type="warning" 
                 size="small" 
                 @click="handleStatusChange(scope.row, '停用')"
               >
-                停用
+                禁用
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '0' || scope.row.paperStatus === '停用' || scope.row.paperStatus === '禁用'" 
+                v-if="isDisabled(scope.row.paperStatus)" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:edit']" 
                 type="success" 
@@ -151,7 +153,7 @@
                 启用
               </el-button>
               <el-button 
-                v-if="String(scope.row.paperStatus) === '0' || scope.row.paperStatus === '停用' || scope.row.paperStatus === '禁用'" 
+                v-if="isDisabled(scope.row.paperStatus)" 
                 v-throttle 
                 v-hasPermi="['skill:whitePaper:remove']" 
                 type="danger" 
@@ -162,7 +164,7 @@
               </el-button>
               <el-button 
                 v-throttle 
-                v-hasPermi="['skill:whitePaper:export']" 
+                v-hasPermi="['system:oss:download']" 
                 type="primary" 
                 size="small" 
                 @click="handleDownload(scope.row)"
@@ -295,6 +297,7 @@ import {
   enableWhitePaper,
   disableWhitePaper,
   editWhitePaper,
+  getWhitePaperDetail,
   type WhitePaperListQuery 
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 
@@ -366,14 +369,30 @@ const getStatusType = (status: string | number) => {
   return 'info';
 };
 
+const normalizeStatus = (status: string | number | null | undefined) => {
+  const s = String(status ?? '').trim();
+  if (s === '1' || s === '启用' || s.toLowerCase() === 'enable' || s.toLowerCase() === 'enabled') return '1';
+  if (s === '0' || s === '停用' || s === '禁用' || s.toLowerCase() === 'disable' || s.toLowerCase() === 'disabled') return '0';
+  return '';
+};
+
 const getStatusLabel = (status: string | number) => {
-  const statusStr = String(status);
+  const statusStr = normalizeStatus(status);
   if (statusStr === '1') {
     return '启用';
   } else if (statusStr === '0') {
     return '停用';
   }
   return status;
+};
+
+// 统一状态判断，兼容 数字/字符串/中文
+const isEnabled = (status: string | number) => {
+  return normalizeStatus(status) === '1';
+};
+
+const isDisabled = (status: string | number) => {
+  return normalizeStatus(status) === '0';
 };
 
 const getList = () => {
@@ -776,7 +795,8 @@ const handleStatusChange = async (row: any, status: string) => {
     
     if (response && response.code === 200) {
       ElMessage.success(`${status}成功`);
-      await getList();
+      // 本地立即更新状态，按钮即时切换；不立即刷新列表，避免闪烁与按钮短暂消失
+      row.paperStatus = status === '启用' ? '1' : '0';
     } else {
       ElMessage.error(response?.msg || `${status}失败，请稍后重试`);
     }
@@ -814,8 +834,67 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
-const handleDownload = (row: any) => {
-  ElMessage.success(`开始下载白皮书"${row.paperTitle}"`);
+// 统一解析白皮书主键ID，保证与“查看详情”一致
+const getPaperPrimaryId = (row: any): number | string | null => {
+  if (!row) return null;
+  // 优先使用 id；兼容后端可能返回的 paperId / paperNo
+  const cand = row.id ?? row.paperId ?? row.paperNo ?? null;
+  if (cand === null || cand === undefined) return null;
+  // 保持与详情使用的格式一致（详情接受字符串或数字），此处原样返回，但优先转为数字成功时返回数字
+  const n = Number(cand);
+  return Number.isFinite(n) && String(n) === String(cand) ? n : cand;
+};
+
+const handleDownload = async (row: any) => {
+  try {
+    // 统一从“详情”接口用相同的 id 获取附件后下载，保证与查看详情的 id 一致
+    const paperId = getPaperPrimaryId(row);
+    if (paperId === null) {
+      ElMessage.error('缺少白皮书ID');
+      return;
+    }
+    const res: any = await getWhitePaperDetail(paperId);
+    const data = res?.data || {};
+    const attachments = Array.isArray(data.latestFiles) && data.latestFiles.length
+      ? data.latestFiles
+      : (Array.isArray(data.ossVoList) ? data.ossVoList : []);
+
+    // 仅使用“最新附件”的id进行下载（按照业务要求）
+    const latest = Array.isArray(data.latestFiles) && data.latestFiles.length ? data.latestFiles[0] : null;
+    if (latest) {
+      const preferredOssId = latest.ossId || (latest.sysOssLists && latest.sysOssLists[0] && latest.sysOssLists[0].ossId);
+      const preferredUrl = latest.url || (latest.sysOssLists && latest.sysOssLists[0] && latest.sysOssLists[0].url);
+
+      if (preferredOssId) {
+        // 注意：ossId 可能是超大整数字符串，不能用 Number 转换以免精度丢失
+        (proxy as any)?.$download?.oss(String(preferredOssId));
+        return;
+      }
+      if (preferredUrl) {
+        window.open(preferredUrl, '_blank');
+        return;
+      }
+    } else {
+      // 无 latestFiles 时，再回退到 ossVoList 的第一个
+      const first = attachments && attachments[0];
+      const nestedUrl = first?.sysOssLists && first.sysOssLists[0] && first.sysOssLists[0].url;
+      if (first) {
+        if (first.ossId) {
+          (proxy as any)?.$download?.oss(String(first.ossId));
+          return;
+        }
+        if (first.url || nestedUrl) {
+          const url = first.url || nestedUrl;
+          window.open(url, '_blank');
+          return;
+        }
+      }
+    }
+
+    ElMessage.error('未找到可下载的文件');
+  } catch (e) {
+    ElMessage.error('下载失败，请稍后重试');
+  }
 };
 
 onMounted(() => {

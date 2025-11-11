@@ -22,6 +22,7 @@
           </el-button>
           <el-button 
             v-throttle 
+            v-hasPermi="['system:question:stopQuestion']"
             type="danger" 
             size="small" 
             plain
@@ -36,14 +37,21 @@
       <div class="question-time" v-if="messageTime">{{ messageTime }}</div>
       
       <div v-if="attachments && attachments.length > 0" class="attachments">
-        <el-icon 
-          v-for="(attachment, index) in attachments" 
-          :key="index" 
-          class="attachment-icon"
-          @click="handleDownloadAttachment(attachment)"
-        >
-          <Folder />
-        </el-icon>
+        <template v-for="(attachment, index) in attachments" :key="index">
+          <el-image
+            v-if="isImage(attachment.url)"
+            class="attachment-thumb"
+            :src="attachment.url"
+            fit="cover"
+            :preview-src-list="imagePreviewList"
+            :initial-index="getImageIndex(attachment.url)"
+            :z-index="3000"
+          />
+          <div v-else class="attachment-file" @click="handleDownloadAttachment(attachment)">
+            <el-icon class="attachment-icon"><Folder /></el-icon>
+            <div class="file-name" :title="attachment.originalName || attachment.fileName">文件</div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -59,6 +67,7 @@
               maxlength="300"
               resize="none"
               class="reply-textarea"
+              @keydown.enter.prevent="onEnterKey"
             />
             <div class="char-counter">
               已输入{{ charCount }}/300
@@ -91,10 +100,13 @@ const props = defineProps<{
   id: string | number | null;
   messageContent: string;
   rowData?: any;
+  batchIds?: Array<string | number>;
+  batchIndex?: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'success'): void;
+  (e: 'batch-next'): void;
   (e: 'cancel'): void;
 }>();
 
@@ -108,6 +120,20 @@ const formData = ref({
 const questionDetail = ref<any>(null);
 const messageTime = ref('');
 const attachments = ref<any[]>([]);
+const imagePreviewList = computed(() => {
+  return attachments.value
+    .map((a: any) => a?.url)
+    .filter((u: string) => !!u && isImage(u));
+});
+const isImage = (url?: string) => {
+  if (!url) return false;
+  const u = url.split('?')[0].toLowerCase();
+  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some(ext => u.endsWith(ext));
+};
+const getImageIndex = (url?: string) => {
+  if (!url) return 0;
+  return imagePreviewList.value.findIndex(u => u === url);
+};
 
 const fetchMessageDetail = async () => {
   if (!props.id) return;
@@ -172,6 +198,15 @@ const rules = {
   ]
 };
 
+const onEnterKey = (e: KeyboardEvent) => {
+  // Shift+Enter 换行；单独 Enter 不提交
+  if (e.shiftKey) {
+    // 允许默认换行
+    return;
+  }
+  // 阻止单独 Enter 行为（已在模板用 .prevent 处理）
+};
+
 const handleSubmit = async () => {
   if (!formRef.value) return;
   
@@ -223,7 +258,12 @@ const handleSubmit = async () => {
     
     if (response && response.code === 200) {
       ElMessage.success('回复成功');
+      // 触发父组件刷新列表
       emit('success');
+      // 触发批量下一条
+      if (props.batchIds && props.batchIds.length) {
+        emit('batch-next');
+      }
     } else {
       ElMessage.error(response?.msg || '回复失败');
     }
@@ -246,65 +286,50 @@ const getReplyCount = computed(() => {
 });
 
 const handlePinToTop = () => {
-  ElMessage.info('置顶功能开发中...');
+  emit('pin');
+  ElMessage.success('已置顶该条留言');
 };
 
 const handleCloseQuestion = async () => {
-  let questionId: string | number | null = null;
+  // 简化ID获取逻辑，优先使用props.id，其次是rowData.id，最后是questionDetail.id
+  let questionId: string | number | null = props.id || props.rowData?.id || questionDetail.value?.id || null;
   
-  if (props.id !== undefined && props.id !== null && props.id !== '') {
-    questionId = props.id;
-  } else if (props.rowData?.id !== undefined && props.rowData?.id !== null && props.rowData?.id !== '') {
-    questionId = props.rowData.id;
-  } else if (questionDetail.value?.id !== undefined && questionDetail.value?.id !== null && questionDetail.value?.id !== '') {
-    questionId = questionDetail.value.id;
-  }
+  // 统一转换为字符串类型，避免类型问题和大整数精度丢失
+  const finalQuestionId = String(questionId || '');
   
-  if (!questionId || questionId === '' || (typeof questionId === 'number' && (isNaN(questionId) || questionId <= 0))) {
+  if (!finalQuestionId || finalQuestionId === 'null' || finalQuestionId === 'undefined') {
     ElMessage.error('问题ID不存在或无效');
     return;
   }
   
   const replyCount = getReplyCount.value;
   
-  if (replyCount === 0) {
-    try {
-      await ElMessageBox.confirm(
-        '至少需回复一条信息,请确认是否关闭该会话?',
-        '关闭确认',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
-    } catch (error) {
-      if (error === 'cancel') {
-        return;
+  // 简化确认弹窗逻辑
+  const confirmMessage = replyCount === 0 
+    ? '至少需回复一条信息,请确认是否关闭该会话?' 
+    : '确认是否关闭该会话?';
+    
+  try {
+    await ElMessageBox.confirm(
+      confirmMessage,
+      '关闭确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
       }
-    }
-  } else {
-    try {
-      await ElMessageBox.confirm(
-        '确认是否关闭该会话?',
-        '关闭确认',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
-    } catch (error) {
-      if (error === 'cancel') {
-        return;
-      }
+    );
+  } catch (error) {
+    if (error === 'cancel') {
+      return;
     }
   }
   
   closing.value = true;
   
   try {
-    const response: any = await stopQuestion(questionId);
+    // 确保传递字符串类型的ID给API
+    const response: any = await stopQuestion(finalQuestionId);
     
     if (response && response.code === 200) {
       ElMessage.success('关闭成功');
@@ -390,19 +415,47 @@ watch(
   }
   
   .attachments {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  
+  .attachment-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    cursor: zoom-in;
+    background: #f8f8f8;
+  }
+  
+  .attachment-file {
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+    background: #f0f4ff;
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+    border: 1px solid #e5e7ef;
     
     .attachment-icon {
-      font-size: 30px;
+      font-size: 28px;
       color: #409eff;
-      cursor: pointer;
-      
-      &:hover {
-        opacity: 0.8;
-      }
+      margin-bottom: 4px;
     }
+    .file-name {
+      font-size: 12px;
+      color: #606266;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    &:hover { opacity: 0.9; }
+  }
   }
 }
 

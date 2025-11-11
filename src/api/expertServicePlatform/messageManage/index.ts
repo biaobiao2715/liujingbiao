@@ -165,16 +165,13 @@ export function replyMessage(data: ReplyAnswerParams): AxiosPromise<any> {
 
 /**
  * 关闭留言问题
- * API路径：DELETE /skill-server/question/stopQuestion/{id}
- * 根据API文档，需要同时传递路径参数和查询参数
+ * 按需改为仅使用查询参数传递 id：DELETE /skill-server/question/stopQuestion?id=xxx
  */
 export function stopQuestion(id: string | number): AxiosPromise<any> {
-  // 确保 id 转换为数字类型（如果可能）
-  const questionId = typeof id === 'string' ? (isNaN(Number(id)) ? id : Number(id)) : id;
-  
+  // 始终以字符串传递，避免大整型精度丢失
+  const questionId = String(id ?? '');
   return request({
-    url: `/skill-server/question/stopQuestion/${questionId}`,
-    method: 'delete',
-    params: { id: questionId }
+    url: `/skill-server/question/stopQuestion/${encodeURIComponent(questionId)}`,
+    method: 'delete'
   });
 }

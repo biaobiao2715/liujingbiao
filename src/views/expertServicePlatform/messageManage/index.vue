@@ -67,7 +67,7 @@
         
         <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
           <template #default="scope">
-            <span class="link-type" @click="handleView(scope.row)">{{ scope.row.messageContent }}</span>
+            <span class="link-type" @click="handleReply(scope.row)">{{ scope.row.messageContent }}</span>
           </template>
         </el-table-column>
         
@@ -83,38 +83,35 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" align="center" width="180">
+        <el-table-column label="操作" align="center" width="300">
           <template #default="scope">
             <div class="operation-buttons">
-              <el-button 
-                v-if="String(scope.row.questionStatus) === '0'"
-                v-throttle 
-                v-hasPermi="['system:question:add']" 
-                type="success" 
-                size="small" 
+              <el-button
+                v-throttle
+                v-hasPermi="['system:answer:add']"
+                type="success"
+                size="small"
                 @click="handleReply(scope.row)"
               >
                 回复
               </el-button>
-              <el-button 
-                v-if="String(scope.row.questionStatus) !== '99'"
-                v-throttle 
-                v-hasPermi="['system:question:stopQuestion']" 
-                type="warning" 
-                size="small" 
-                @click="handleClose(scope.row)"
-              >
-                关闭
-              </el-button>
-              <el-button 
-                v-else
-                v-throttle 
-                v-hasPermi="['system:question:query']" 
-                type="primary" 
-                size="small" 
+              <el-button
+                v-throttle
+                v-hasPermi="['system:question:query']"
+                type="primary"
+                size="small"
                 @click="handleView(scope.row)"
               >
                 查看
+              </el-button>
+              <el-button
+                v-throttle
+                type="warning"
+                size="small"
+                plain
+                @click="togglePin(scope.row)"
+              >
+                {{ isPinned(scope.row?.id) ? '取消置顶' : '置顶' }}
               </el-button>
             </div>
           </template>
@@ -165,7 +162,11 @@
             :id="replyDialog.id"
             :message-content="replyDialog.messageContent"
             :row-data="replyDialog.rowData"
+            :batch-ids="replyDialog.batchIds"
+            :batch-index="replyDialog.batchIndex"
             @success="onReplySuccess"
+            @batch-next="onReplyBatchNext"
+            @pin="onPin"
             @cancel="replyDialog.visible = false"
           />
         </template>
@@ -183,7 +184,6 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { 
   getMessageList,
-  stopQuestion,
   type MessageListQuery 
 } from '@/api/expertServicePlatform/messageManage/index';
 
@@ -210,6 +210,8 @@ const queryFormRef = ref();
 const messageDateRange = ref<string[] | null>(null);
 const replyDateRange = ref<string[] | null>(null);
 const showSearch = ref(true);
+// 置顶的留言ID集合（按置顶顺序存放）
+const pinnedIds = ref<Array<string | number>>([]);
 
 const detailDialog = ref({
   visible: false,
@@ -220,7 +222,9 @@ const replyDialog = ref({
   visible: false,
   id: null as string | number | null,
   messageContent: '',
-  rowData: null as any
+  rowData: null as any,
+  batchIds: [] as Array<string | number>,
+  batchIndex: 0
 });
 
 const getList = () => {
@@ -250,7 +254,7 @@ const getList = () => {
         messageTime: item.publishTime || item.messageTime || '',
         replyTime: item.latestAnswerTime || item.replyTime || ''
       }));
-      tableData.value = rows;
+      tableData.value = applyPinSort(rows);
       total.value = res.total || 0;
     } else {
       tableData.value = [];
@@ -264,6 +268,55 @@ const getList = () => {
   }).finally(() => {
     loading.value = false;
   });
+};
+
+const applyPinSort = (rows: any[]) => {
+  if (!pinnedIds.value.length) return rows;
+  const indexMap = new Map<string, number>();
+  pinnedIds.value.forEach((id, idx) => indexMap.set(String(id), idx));
+  return [...rows].sort((a: any, b: any) => {
+    const ai = indexMap.has(String(a.id)) ? indexMap.get(String(a.id)) as number : Number.POSITIVE_INFINITY;
+    const bi = indexMap.has(String(b.id)) ? indexMap.get(String(b.id)) as number : Number.POSITIVE_INFINITY;
+    if (ai === bi) return 0;
+    return ai - bi;
+  });
+};
+
+const pinMessage = (id?: string | number | null) => {
+  if (id === undefined || id === null || id === '') return;
+  const sid = String(id);
+  if (!pinnedIds.value.map(String).includes(sid)) {
+    pinnedIds.value.push(id);
+  }
+  tableData.value = applyPinSort(tableData.value as any[]);
+  ElMessage.success('已置顶该条留言');
+};
+
+const onPin = () => {
+  pinMessage(replyDialog.value.id);
+};
+
+const isPinned = (id?: string | number | null) => {
+  if (id === undefined || id === null || id === '') return false;
+  return pinnedIds.value.map(String).includes(String(id));
+};
+
+const togglePin = (row: any) => {
+  const id = row?.id;
+  if (id === undefined || id === null || id === '') return;
+  const sid = String(id);
+  const list = pinnedIds.value.map(String);
+  if (list.includes(sid)) {
+    // 取消置顶
+    pinnedIds.value = pinnedIds.value.filter((x) => String(x) !== sid);
+    tableData.value = applyPinSort(tableData.value as any[]);
+    ElMessage.success('已取消置顶');
+  } else {
+    // 置顶（追加到置顶序列末尾，序列在顶部按顺序显示）
+    pinnedIds.value.push(id);
+    tableData.value = applyPinSort(tableData.value as any[]);
+    ElMessage.success('已置顶该条留言');
+  }
 };
 
 const handleSearch = () => {
@@ -293,38 +346,47 @@ const handleView = (row: any) => {
   };
 };
 
-const handleReply = (row: any) => {
-  replyDialog.value = {
-    visible: true,
-    id: row.id,
-    messageContent: row.messageContent,
-    rowData: row
-  };
+const getUnrepliedSequence = () => {
+  return (tableData.value || [])
+    .filter((r: any) => String(r.questionStatus) === '0')
+    .map((r: any) => r.id)
+    .filter((id: any) => id !== undefined && id !== null && id !== '');
 };
 
-const handleClose = async (row: any) => {
-  if (!row?.id) return;
-  try {
-    await ElMessageBox.confirm(
-      '确认关闭该留言吗？关闭后将不可再回复。',
-      '系统提示',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
-    );
-    const res: any = await stopQuestion(row.id);
-    if (res && res.code === 200) {
-      ElMessage.success('关闭成功');
-      getList();
-    } else {
-      ElMessage.error(res?.msg || '关闭失败，请稍后重试');
-    }
-  } catch (e) {
-    // 取消或失败都不抛错
-  }
+const handleReply = (row: any) => {
+  const batchIds = getUnrepliedSequence();
+  const index = batchIds.findIndex((id: any) => String(id) === String(row.id));
+  replyDialog.value.visible = true;
+  replyDialog.value.id = row.id;
+  replyDialog.value.messageContent = row.messageContent;
+  replyDialog.value.rowData = row;
+  replyDialog.value.batchIds = batchIds;
+  replyDialog.value.batchIndex = index >= 0 ? index : 0;
 };
+
+// 行内“关闭”操作已移除，改为在回复弹窗内部执行关闭动作
 
 const onReplySuccess = () => {
-  replyDialog.value.visible = false;
+  // 保持弹窗打开，刷新列表以同步最新状态与时间
   getList();
+};
+
+const onReplyBatchNext = () => {
+  const ids = replyDialog.value.batchIds || [];
+  let idx = replyDialog.value.batchIndex || 0;
+  idx += 1;
+  if (idx >= ids.length) {
+    ElMessage.success('批量回复已完成');
+    replyDialog.value.visible = false;
+    getList();
+    return;
+  }
+  const nextId = ids[idx];
+  const nextRow = (tableData.value || []).find((r: any) => String(r.id) === String(nextId));
+  replyDialog.value.batchIndex = idx;
+  replyDialog.value.id = nextId;
+  replyDialog.value.messageContent = nextRow?.messageContent || '';
+  replyDialog.value.rowData = nextRow || { id: nextId, messageContent: '' };
 };
 
 onMounted(() => {
