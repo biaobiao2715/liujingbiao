@@ -51,7 +51,7 @@
       <el-table-column prop="deliveryDay" label="交付时间/天" align="center" width="100" />
       <el-table-column label="发布状态" align="center">
         <template #default="{ row }">
-          <dict-text :options="demand_status" :value="row.demandStatus" />
+          <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
         </template>
       </el-table-column>
       <el-table-column prop="publishTime" label="发布时间" align="center" width="140">

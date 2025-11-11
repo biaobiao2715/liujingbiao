@@ -12,7 +12,14 @@
       <!-- 问题统计与红色回复数 -->
       <div class="summary-alert">已提问{{ total }}条</div>
       <!-- 表格 -->
-      <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
+      <el-table
+        :data="tableData"
+        v-loading="loading"
+        style="table-layout: fixed; width: 100%"
+        border
+        size="small"
+        header-cell-class-name="table-header"
+      >
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column prop="questionContent" label="我的提问" align="center" />
         <el-table-column prop="publishTime" label="发布时间" align="center">
@@ -20,7 +27,7 @@
             <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
+        <el-table-column label="操作" min-width="160" align="center">
           <template #default="{ row }">
             <el-button
               v-if="row.questionStatus !== '99'"

@@ -16,7 +16,7 @@
         <span class="author">{{ form.authorName || '-' }}</span>
         <span class="dot" />
         <span>发布时间：{{ parseTime(form.publishTime) }}</span>
-        <dict-text :options="article_type" :value="form.articleType" />
+        <dict-text :options="article_type" :value="form.articleType ?? ''" />
         <div class="stats">
           <el-icon><View /></el-icon>
           <span>{{ form.viewCount ?? form.views ?? 0 }}</span>
@@ -133,6 +133,7 @@ onMounted(async () => {
     ElMessage.error('缺少文章ID');
     return;
   }
+  console.log('[sss]', props.id);
   const res = await getArticle(props.id);
   const data = res?.data ?? res ?? {};
   form.value = data;

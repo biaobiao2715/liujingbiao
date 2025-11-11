@@ -17,16 +17,16 @@
       </el-tabs>
 
       <!-- 订单列表Table -->
-      <el-table v-loading="loading" :data="tabList" style="width: 100%">
+      <el-table v-loading="loading" :data="tabList" style="table-layout: fixed">
         <!-- 商品信息列 -->
-        <el-table-column prop="goodsName" label="商品信息" width="200" :show-overflow-tooltip="true">
+        <el-table-column prop="goodsName" label="商品信息" min-width="200" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <div style="display: flex">
               <!-- 商品图片，兜底处理 -->
-              <img class="table-img" :src="scope.row.orderItems[0]?.goodsPic || ''" />
-              <div style="margin-left: 10px">
+              <img class="table-img" :src="scope.row.orderItems[0]?.goodsPicUrl || ''" />
+              <div class="table-text">
                 <div>{{ scope.row.orderItems[0]?.goodsName }}</div>
-                <div>{{ scope.row.orderItems[0]?.goodsNum }}</div>
+                <div>{{ scope.row.orderItems[0]?.goodsSpecificationValue }}</div>
               </div>
             </div>
           </template>
@@ -46,9 +46,9 @@
         <!-- 商家联系电话 -->
         <el-table-column prop="enterprisePhone" label="商家联系电话" align="center"></el-table-column>
         <!-- 销售订单号 -->
-        <el-table-column prop="orderSn" label="销售订单号" width="250" align="center"></el-table-column>
+        <el-table-column prop="orderSn" label="销售订单号" min-width="150" :show-overflow-tooltip="true" align="center"></el-table-column>
         <!-- 操作列 -->
-        <el-table-column label="操作" width="150" align="center">
+        <el-table-column label="操作" min-width="150" align="center">
           <template #default="{ row }">
             <!-- 取消订单按钮 -->
             <el-button
@@ -417,6 +417,12 @@ onMounted(() => {
 .table-img {
   width: 70px;
   height: 70px;
+}
+.table-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-left: 10px;
 }
 .pagination {
   margin-top: 24px;

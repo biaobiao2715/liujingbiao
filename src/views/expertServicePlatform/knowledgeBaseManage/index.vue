@@ -23,7 +23,7 @@
           <el-option label="禁用" value="3" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布时间">
+      <el-form-item label="发布时间" prop="publishTime">
         <el-date-picker
           v-model="queryParams.publishTime"
           type="datetimerange"
@@ -59,36 +59,36 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed; width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="120">
+      <el-table-column label="发布时间" align="center" prop="publishTime">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="文章标题" align="center" prop="articleTitle" min-width="200" :show-overflow-tooltip="true" />
-      <el-table-column label="文章类别" align="center" prop="articleType" min-width="120">
+      <el-table-column label="文章标题" align="center" prop="articleTitle" :show-overflow-tooltip="true" />
+      <el-table-column label="文章类别" align="center" prop="articleType">
         <template #default="scope">
-          <dict-text :options="article_type" :value="scope.row.articleType" />
+          <dict-text :options="article_type" :value="scope.row.articleType ?? ''" />
         </template>
       </el-table-column>
-      <el-table-column label="启用状态" align="center" prop="articleStatus" width="100">
+      <el-table-column label="启用状态" align="center" prop="articleStatus">
         <template #default="scope">
           <span>{{ getEnableStatusText(scope.row.articleStatus) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
+      <el-table-column label="浏览量" align="center" prop="viewCount">
         <template #default="scope">
           {{ scope.row.viewCount ?? scope.row.views ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="收藏量" align="center" prop="favoriteCount" width="100">
+      <el-table-column label="收藏量" align="center" prop="favoriteCount">
         <template #default="scope">
           {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="400" fixed="right">
+      <el-table-column label="操作" align="center" min-width="200" fixed="right">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['system:article:edit']" type="primary" text @click="handleEdit(scope.row)">编辑</el-button>
           <el-button
@@ -128,19 +128,17 @@
       :close-on-click-modal="false"
       @close="dialog.type = ''"
     >
-      <Suspense>
-        <template #default>
-          <component
-            :is="dialog.type === 'view' ? DetailsDialog : EditDialog"
-            :id="dialog.id"
-            @success="onDialogSuccess"
-            @cancel="dialog.visible = false"
-          />
-        </template>
-        <template #fallback>
-          <el-skeleton :rows="6" animated />
-        </template>
-      </Suspense>
+      <template #default>
+        <component
+          :is="dialog.type === 'view' ? DetailsDialog : dialog.type === 'edit' ? EditDialog : null"
+          :id="dialog.id"
+          @success="onDialogSuccess"
+          @cancel="dialog.visible = false"
+        />
+      </template>
+      <template #fallback>
+        <el-skeleton :rows="6" animated />
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -305,9 +303,6 @@ const onDialogSuccess = () => {
 
 // 生命周期
 onMounted(() => {
-  getList();
-});
-onActivated(() => {
   getList();
 });
 </script>

@@ -53,7 +53,14 @@
       <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
       <div class="summary-alert">已发布{{ total }}条 ，还能保存{{ remainCount }}条</div>
       <!-- 表格：加边框与紧凑尺寸 -->
-      <el-table :data="tableData" v-loading="loading" style="width: 100%" border size="small" header-cell-class-name="table-header">
+      <el-table
+        :data="tableData"
+        v-loading="loading"
+        border
+        size="small"
+        style="table-layout: fixed; width: 100%"
+        header-cell-class-name="table-header"
+      >
         <el-table-column prop="receiverName" label="收货人" align="center" />
         <el-table-column label="所在地址" min-width="280" align="center">
           <template #default="{ row }">
@@ -61,12 +68,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="receiverPhone" label="手机/电话" align="center" />
-        <el-table-column label="设为默认地址" width="160" align="center">
+        <el-table-column label="设为默认地址" min-width="160" align="center">
           <template #default="{ row }">
             <el-switch v-model="row.isDefault" active-value="1" inactive-value="0" @change="() => onSetDefault(row)" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
+        <el-table-column label="操作" min-width="160" align="center">
           <template #default="{ row }">
             <div class="ops">
               <el-button v-hasPermi="['grain:userAddress:edit']" @click="onEdit(row)" v-throttle text style="color: #ff7b00">修改</el-button>

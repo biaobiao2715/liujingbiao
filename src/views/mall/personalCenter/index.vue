@@ -7,35 +7,37 @@
 -->
 <template>
   <div class="personal-center-page">
-    <!-- 顶部可点击返回条 -->
-    <div class="pc-breadcrumb" @click="goBack" :title="`返回上一页`">
-      <span class="crumb">首页</span>
-      <span class="crumb-sep">&gt;</span>
-      <span class="crumb">个人中心</span>
-      <span class="crumb-sep">&gt;</span>
-      <span class="crumb">{{ currentTitle }}</span>
-    </div>
-    <div class="main-row">
-      <!-- 侧边栏菜单 -->
-      <div class="menu-col">
-        <div class="menu-title">个人中心</div>
-        <ul class="menu">
-          <li v-for="item in menuItems" :key="item.id" :class="{ active: item.component == selectedComponent }" @click="selectMenu(item.component)">
-            {{ item.title }}
-          </li>
-        </ul>
-        <div class="menu-bottom-bg"></div>
+    <div class="container_width">
+      <!-- 顶部可点击返回条 -->
+      <div class="pc-breadcrumb" @click="goBack" :title="`返回上一页`">
+        <span class="crumb">首页</span>
+        <span class="crumb-sep">&gt;</span>
+        <span class="crumb">个人中心</span>
+        <span class="crumb-sep">&gt;</span>
+        <span class="crumb">{{ currentTitle }}</span>
       </div>
-      <!-- 主内容区域 -->
-      <div class="content-col">
-        <orders v-if="selectedComponent === 'order'" />
-        <favorites v-if="selectedComponent === 'collection'" />
-        <questions v-if="selectedComponent === 'question'" />
-        <addressManagement v-if="selectedComponent === 'address'" />
-        <requests v-if="selectedComponent === 'demand'" />
-        <participatedRequests v-if="selectedComponent === 'participated'" />
-        <myReport v-if="selectedComponent === 'myReport'" />
-        <varietyIdentification v-if="selectedComponent === 'varietyIdentification'" />
+      <div class="main-row">
+        <!-- 侧边栏菜单 -->
+        <div class="menu-col">
+          <div class="menu-title">个人中心</div>
+          <ul class="menu">
+            <li v-for="item in menuItems" :key="item.id" :class="{ active: item.component == selectedComponent }" @click="selectMenu(item.component)">
+              {{ item.title }}
+            </li>
+          </ul>
+          <div class="menu-bottom-bg"></div>
+        </div>
+        <!-- 主内容区域 -->
+        <div class="content-col">
+          <orders v-if="selectedComponent === 'order'" />
+          <favorites v-if="selectedComponent === 'collection'" />
+          <questions v-if="selectedComponent === 'question'" />
+          <addressManagement v-if="selectedComponent === 'address'" />
+          <requests v-if="selectedComponent === 'demand'" />
+          <participatedRequests v-if="selectedComponent === 'participated'" />
+          <myReport v-if="selectedComponent === 'myReport'" />
+          <varietyIdentification v-if="selectedComponent === 'varietyIdentification'" />
+        </div>
       </div>
     </div>
   </div>
@@ -116,11 +118,16 @@ watch(
 
 <style scoped lang="scss">
 .personal-center-page {
-  min-height: 100vh;
-  background: #f7f9fa;
+  background-color: #f6f7fb;
+  // min-height: 800px;
+  height: 100%;
   --el-color-primary: #108c58;
 }
 
+.container_width {
+  width: 1494px;
+  margin: 0 auto;
+}
 /* 顶部可点击返回条 */
 .pc-breadcrumb {
   font-size: 14px;
@@ -133,6 +140,7 @@ watch(
   cursor: pointer;
   user-select: none;
 }
+
 .crumb {
   color: #7c7c7c;
   font-weight: 400;
@@ -147,11 +155,9 @@ watch(
 .main-row {
   display: flex;
   flex-wrap: nowrap; // 关键：不允许子项换行
-  margin: 0 auto;
   min-height: 600px;
   padding-bottom: 40px;
   align-items: stretch;
-  width: 1494px;
 }
 
 /* 左侧菜单卡片 */

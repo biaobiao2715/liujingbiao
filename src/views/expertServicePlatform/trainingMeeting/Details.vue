@@ -17,7 +17,7 @@
       <div style="display: flex">
         <div style="display: flex; margin-right: 40px">
           <div>会议状态：</div>
-          <dict-text :options="meeting_status" :value="meetingData.meetingStatus" />
+          <dict-text :options="meeting_status" :value="meetingData.meetingStatus ?? ''" />
         </div>
 
         <div>报名人数：{{ meetingData.enrollCount }}人</div>
@@ -29,7 +29,7 @@
     <div class="meeting-info">
       <div>会议主题：{{ meetingData.meetingName }}</div>
       <div>会议联系人：{{ meetingData.meetingContact }}</div>
-      <div style="display: flex">会议类别： <dict-text :options="meeting_type" :value="meetingData.meetingType" /></div>
+      <div style="display: flex">会议类别： <dict-text :options="meeting_type" :value="meetingData.meetingType ?? ''" /></div>
       <div>会议时间：{{ meetingData.meetingStartTime }} 至 {{ meetingData.meetingEndTime }}</div>
       <div>会议地址：{{ meetingData.meetingAddress }}</div>
       <div v-if="meetingData.cancelReason">取消原因：{{ meetingData.cancelReason }}</div>

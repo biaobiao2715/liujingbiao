@@ -255,7 +255,8 @@ const removeFile = (file: any) => {
 
 onMounted(async () => {
   if (props.id) {
-    const res = await getArticle(Number(props.id));
+    console.log('[Edit]', props.id);
+    const res = await getArticle(props.id);
     if ((res?.code ?? 500) === 200) {
       form.value = {
         ...form.value,

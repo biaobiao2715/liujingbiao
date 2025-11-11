@@ -111,7 +111,7 @@
       <el-table-column label="提醒" align="center" prop="remind" width="100" />
       <el-table-column label="商品状态" align="center" prop="status">
         <template #default="scope">
-          <dict-text :options="goods_status" :value="scope.row.status" />
+          <dict-text :options="goods_status" :value="scope.row.status ?? ''" />
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="launchTime" min-width="160">

@@ -15,10 +15,10 @@
       <div class="summary-alert">已发布{{ total }}条</div>
 
       <!-- 采购需求表格 -->
-      <el-table :data="tableData" v-loading="loading" style="width: 100%" border :empty-text="'暂无采购需求'">
+      <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" border :empty-text="'暂无采购需求'">
         <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="categoryName" label="采购类目" align="center" width="160" />
-        <el-table-column label="采购区域" align="center" width="160">
+        <el-table-column prop="categoryName" label="采购类目" align="center" :show-overflow-tooltip="true" />
+        <el-table-column label="采购区域" align="center" :show-overflow-tooltip="true">
           <template #default="{ row }">
             {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
           </template>
@@ -30,7 +30,7 @@
         <el-table-column prop="deliveryDay" label="交付时间/天" align="center" />
         <el-table-column label="发布状态" align="center">
           <template #default="{ row }">
-            <dict-text :options="demand_status" :value="row.demandStatus" />
+            <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
           </template>
         </el-table-column>
         <el-table-column prop="publishTime" label="发布时间" align="center" width="140">
@@ -38,7 +38,7 @@
             <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" align="center">
+        <el-table-column label="操作" min-width="240" align="center">
           <template #default="{ row }">
             <el-button
               v-if="row.hasQuote == '0'"
