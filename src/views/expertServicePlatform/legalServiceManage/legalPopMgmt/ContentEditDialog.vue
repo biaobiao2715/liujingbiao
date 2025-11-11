@@ -22,8 +22,12 @@
         <el-col :span="12">
           <el-form-item label="发布状态" prop="contentStatus" required>
             <el-select v-model="formData.contentStatus" placeholder="请选择" style="width: 100%" clearable>
-              <el-option label="启用" value="3" />
-              <el-option label="禁用" value="2" />
+              <el-option 
+                v-for="item in legal_popularize_status" 
+                :key="item.value" 
+                :label="item.label" 
+                :value="item.value" 
+              />
             </el-select>
           </el-form-item>
         </el-col>
@@ -163,8 +167,8 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_type } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type')
+const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
+  (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
 );
 
 const formRef = ref();

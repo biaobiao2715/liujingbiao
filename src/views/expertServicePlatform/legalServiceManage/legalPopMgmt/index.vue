@@ -36,9 +36,12 @@
         
         <el-form-item label="所属状态" prop="contentStatus">
           <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="" />
-            <el-option label="启用" value="2" />
-            <el-option label="禁用" value="3" />
+            <el-option 
+              v-for="item in legal_popularize_status" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
@@ -221,8 +224,8 @@ const ContentEditDialog = defineAsyncComponent(() => import('./ContentEditDialog
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
 
 const { proxy } = getCurrentInstance() as any;
-const { legal_popularize_type } = toRefs<any>(
-  proxy?.useDict('legal_popularize_type')
+const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
+  proxy?.useDict('legal_popularize_type', 'legal_popularize_status')
 );
 
 const queryParams = ref({

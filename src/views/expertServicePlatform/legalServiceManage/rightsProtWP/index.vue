@@ -16,7 +16,7 @@
         <el-form-item label="所属状态" prop="paperStatus">
           <el-select v-model="queryParams.paperStatus" placeholder="请选择" filterable clearable>
             <el-option 
-              v-for="item in legal_popularize_status" 
+              v-for="item in whitepaper_status" 
               :key="item.value" 
               :label="item.label" 
               :value="item.value" 
@@ -303,8 +303,8 @@ const WhitePaperDetailDialog = defineAsyncComponent(() => import('./WhitePaperDe
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_status } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_status')
+const { whitepaper_status } = toRefs<any>(
+  (proxy as any)?.useDict('whitepaper_status')
 );
 
 const queryParams = ref({

@@ -34,10 +34,10 @@
           />
         </el-form-item>
         
-        <el-form-item label="回复状态" prop="replyStatus">
-          <el-select v-model="queryParams.replyStatus" placeholder="请选择状态" filterable clearable>
+        <el-form-item label="回复状态" prop="questionStatus">
+          <el-select v-model="queryParams.questionStatus" placeholder="请选择状态" filterable clearable>
             <el-option 
-              v-for="item in replyStatusOptions" 
+              v-for="item in question_status" 
               :key="item.value" 
               :label="item.label" 
               :value="item.value" 
@@ -77,9 +77,9 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="回复状态" align="center" prop="replyStatus" width="120">
+        <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
           <template #default="scope">
-            <dict-tag :options="replyStatusOptions" :value="scope.row.replyStatus" />
+            <dict-tag :options="question_status" :value="scope.row.questionStatus" />
           </template>
         </el-table-column>
         
@@ -87,14 +87,24 @@
           <template #default="scope">
             <div class="operation-buttons">
               <el-button 
-                v-if="String(scope.row.replyStatus) === '0'"
+                v-if="String(scope.row.questionStatus) === '0'"
                 v-throttle 
-                v-hasPermi="['system:answer:add']" 
+                v-hasPermi="['system:question:add']" 
                 type="success" 
                 size="small" 
                 @click="handleReply(scope.row)"
               >
                 回复
+              </el-button>
+              <el-button 
+                v-if="String(scope.row.questionStatus) !== '99'"
+                v-throttle 
+                v-hasPermi="['system:question:stopQuestion']" 
+                type="warning" 
+                size="small" 
+                @click="handleClose(scope.row)"
+              >
+                关闭
               </el-button>
               <el-button 
                 v-else
@@ -168,11 +178,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent, Suspense, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, defineAsyncComponent, Suspense, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { 
   getMessageList,
+  stopQuestion,
   type MessageListQuery 
 } from '@/api/expertServicePlatform/messageManage/index';
 
@@ -181,25 +192,15 @@ const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDial
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { msg_status } = toRefs<any>(
-  (proxy as any)?.useDict('msg_status')
+const { question_status } = toRefs<any>(
+  (proxy as any)?.useDict('question_status')
 );
-
-const replyStatusOptions = computed(() => {
-  if (msg_status.value && Array.isArray(msg_status.value) && msg_status.value.length > 0) {
-    return msg_status.value;
-  }
-  return [
-    { label: '未回复', value: '0' },
-    { label: '已回复', value: '1' }
-  ];
-});
 
 const queryParams = ref<MessageListQuery>({
   pageNum: 1,
   pageSize: 10,
   messageContent: '',
-  replyStatus: ''
+  questionStatus: ''
 });
 
 const tableData = ref([]);
@@ -232,44 +233,23 @@ const getList = () => {
   const replyStartTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[0] : null;
   const replyEndTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[1] : null;
   
-  let questionStatusParam: string | undefined;
-  if (queryParams.value.replyStatus !== '' && queryParams.value.replyStatus !== null) {
-    questionStatusParam = queryParams.value.replyStatus;
-  }
-  
   const params: MessageListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
     ...(queryParams.value.messageContent ? { messageContent: queryParams.value.messageContent } : {}),
-    ...(questionStatusParam ? { questionStatus: questionStatusParam } : {}),
+    ...(queryParams.value.questionStatus ? { questionStatus: queryParams.value.questionStatus } : {}),
     ...(messageStartTime && messageEndTime ? { messageStartTime, messageEndTime } : {}),
     ...(replyStartTime && replyEndTime ? { replyStartTime, replyEndTime } : {})
   };
   
   getMessageList(params).then((res: any) => {
     if (res && res.code === 200) {
-      const rows = (res.rows || []).map((item: any) => {
-        let replyStatus = '0';
-        const questionStatus = String(item.questionStatus || '');
-        const hasAnswerTime = item.latestAnswerTime && 
-          typeof item.latestAnswerTime === 'string' && 
-          item.latestAnswerTime.trim() !== '';
-        const hasAnswerList = item.hnAnswerVoList && 
-          Array.isArray(item.hnAnswerVoList) && 
-          item.hnAnswerVoList.length > 0;
-        
-        if (questionStatus === '1' || hasAnswerTime || hasAnswerList) {
-          replyStatus = '1';
-        }
-        
-        return {
-          ...item,
-          messageContent: item.questionContent || item.messageContent || '',
-          messageTime: item.publishTime || item.messageTime || '',
-          replyTime: item.latestAnswerTime || item.replyTime || '',
-          replyStatus: replyStatus
-        };
-      });
+      const rows = (res.rows || []).map((item: any) => ({
+        ...item,
+        messageContent: item.questionContent || item.messageContent || '',
+        messageTime: item.publishTime || item.messageTime || '',
+        replyTime: item.latestAnswerTime || item.replyTime || ''
+      }));
       tableData.value = rows;
       total.value = res.total || 0;
     } else {
@@ -301,7 +281,7 @@ const handleReset = () => {
   messageDateRange.value = null;
   replyDateRange.value = null;
   queryParams.value.messageContent = '';
-  queryParams.value.replyStatus = '';
+  queryParams.value.questionStatus = '';
   queryParams.value.pageNum = 1;
   handleQuery();
 };
@@ -320,6 +300,26 @@ const handleReply = (row: any) => {
     messageContent: row.messageContent,
     rowData: row
   };
+};
+
+const handleClose = async (row: any) => {
+  if (!row?.id) return;
+  try {
+    await ElMessageBox.confirm(
+      '确认关闭该留言吗？关闭后将不可再回复。',
+      '系统提示',
+      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+    );
+    const res: any = await stopQuestion(row.id);
+    if (res && res.code === 200) {
+      ElMessage.success('关闭成功');
+      getList();
+    } else {
+      ElMessage.error(res?.msg || '关闭失败，请稍后重试');
+    }
+  } catch (e) {
+    // 取消或失败都不抛错
+  }
 };
 
 const onReplySuccess = () => {

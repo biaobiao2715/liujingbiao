@@ -136,20 +136,9 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_activity_type: legal_popularize_activity_type_raw } = toRefs<any>(
+const { legal_popularize_activity_type } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_activity_type')
 );
-
-const legal_popularize_activity_type = computed(() => {
-  if (!legal_popularize_activity_type_raw.value || !Array.isArray(legal_popularize_activity_type_raw.value)) {
-    return [];
-  }
-  
-  return legal_popularize_activity_type_raw.value.filter((item: any) => {
-    const value = String(item.value);
-    return value === '0' || value === '1';
-  });
-});
 
 const formRef = ref();
 const saving = ref(false);
