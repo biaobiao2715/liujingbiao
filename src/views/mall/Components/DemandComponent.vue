@@ -18,11 +18,19 @@
       <!-- 数据表格 -->
       <el-table :data="tableList" style="width: 100%" v-loading="loading">
         <el-table-column prop="categoryName" label="发布类型" width="200"></el-table-column>
-        <el-table-column prop="region" label="配送范围" width="200">
+        <el-table-column prop="region" label="配送范围" width="200" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="value in scope.row.deliveryAddresses?.split(',')" :key="value">
-              {{ value }}
-            </div>
+            <el-tooltip class="item" :content="scope.row.region" placement="bottom">
+              <!-- 自定义提示内容 -->
+              <template #content>
+                <div class="address-list">
+                  <div v-for="value in scope.row.deliveryAddresses?.split(',')" :key="value">
+                    {{ value }}
+                  </div>
+                </div>
+              </template>
+              <span>{{ scope.row.deliveryAddresses?.split(',')[0] + '等......' }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column prop="supplyDescription" label="备注" width="300" show-overflow-tooltip></el-table-column>
@@ -247,6 +255,11 @@ const groupArray = (array: any[], groupSize: number = 5) => {
 
 <style scoped lang="scss">
 .recommendation-grid {
+}
+
+.address-list {
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .recommendation-item {

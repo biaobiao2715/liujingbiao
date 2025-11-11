@@ -9,12 +9,13 @@
       </template>
 
       <el-scrollbar height="600px" @end-reached="loadMore" v-loading="loading">
-        <div class="data-list">
+        <div class="data-list" v-if="dataList.length > 0">
           <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div class="point"></div>
             <div>{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
           </div>
         </div>
+        <el-empty v-else style="margin-top: 145px"></el-empty>
       </el-scrollbar>
     </el-card>
   </div>

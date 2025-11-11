@@ -13,9 +13,18 @@
         <!-- 商品图片 -->
         <div class="goods-image">
           <!-- 轮播图主图 -->
-          <el-carousel v-if="goods?.sysOssLists && goods.sysOssLists.length > 0" ref="carouselRef" height="400px"
-            :initial-index="currentImageIndex" @change="handleCarouselChange" indicator-position="none" arrow="hover"
-            :interval="3000" :autoplay="(goods?.sysOssLists?.length ?? 0) > 1" class="main-carousel">
+          <el-carousel
+            v-if="goods?.sysOssLists && goods.sysOssLists.length > 0"
+            ref="carouselRef"
+            height="400px"
+            :initial-index="currentImageIndex"
+            @change="handleCarouselChange"
+            indicator-position="none"
+            arrow="hover"
+            :interval="3000"
+            :autoplay="(goods?.sysOssLists?.length ?? 0) > 1"
+            class="main-carousel"
+          >
             <el-carousel-item v-for="(img, index) in goods?.sysOssLists" :key="index">
               <el-image :src="img.url" fit="contain" class="carousel-image" />
             </el-carousel-item>
@@ -23,20 +32,31 @@
 
           <!-- 缩略图区域 -->
           <div class="thumbnails-wrapper">
-            <button class="thumbnails-btn thumbnails-btn-left" @click="scrollThumbnails('left')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1">
+            <button
+              class="thumbnails-btn thumbnails-btn-left"
+              @click="scrollThumbnails('left')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+            >
               ‹
             </button>
             <div class="thumbnails-container">
               <div class="thumbnails">
-                <div v-for="(img, index) in goods?.sysOssLists" :key="index" class="thumbnail"
-                  :class="{ active: currentImageIndex === index }" @click="handleThumbnailClick(index)">
+                <div
+                  v-for="(img, index) in goods?.sysOssLists"
+                  :key="index"
+                  class="thumbnail"
+                  :class="{ active: currentImageIndex === index }"
+                  @click="handleThumbnailClick(index)"
+                >
                   <el-image :src="img.url" fit="cover" />
                 </div>
               </div>
             </div>
-            <button class="thumbnails-btn thumbnails-btn-right" @click="scrollThumbnails('right')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1">
+            <button
+              class="thumbnails-btn thumbnails-btn-right"
+              @click="scrollThumbnails('right')"
+              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+            >
               ›
             </button>
           </div>
@@ -82,18 +102,8 @@
               loading-text="正在加载地址..."
               clearable
             >
-              <el-option
-                v-if="addressList.length === 0"
-                :label="enterpriseShippingAddress || '暂无发货地址'"
-                :value="-1"
-                disabled
-              />
-              <el-option
-                v-for="addr in addressList"
-                :key="addr.id"
-                :label="getAddressDisplayText(addr)"
-                :value="addr.id"
-              />
+              <el-option v-if="addressList.length === 0" :label="enterpriseShippingAddress || '暂无发货地址'" :value="-1" disabled />
+              <el-option v-for="addr in addressList" :key="addr.id" :label="getAddressDisplayText(addr)" :value="addr.id" />
             </el-select>
           </div>
 
@@ -102,9 +112,12 @@
             <div class="spec-title">规格选择</div>
             <div class="spec-content">
               <div class="spec-grid">
-                <div v-for="spec in displayedSpecs" :key="spec.id"
+                <div
+                  v-for="spec in displayedSpecs"
+                  :key="spec.id"
                   :class="{ 'spec-item': true, 'selected': baseInfo.currentSpec === spec.id }"
-                  @click="selectSpec(spec.id)">
+                  @click="selectSpec(spec.id)"
+                >
                   {{ spec.goodsSpecificationValue }}{{ goods?.goodsSpecificationName || '' }}
                   <el-icon v-if="baseInfo.currentSpec === spec.id" class="spec-check-icon">
                     <Check />
@@ -140,9 +153,14 @@
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
         <div class="similar-goods-list">
-          <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
-            class="similar-goods-item" @clickGoods="handleSimilarGoodsClick(item.id)" />
-              </div>
+          <GoodsItemComponent
+            v-for="(item, index) in groupedRelatedGoods.flat()"
+            :key="index"
+            :goods="item"
+            class="similar-goods-item"
+            @clickGoods="handleSimilarGoodsClick(item.id)"
+          />
+        </div>
       </div>
 
       <!-- 详情部分 -->
@@ -158,8 +176,13 @@
           <div class="hot-recommendations">
             <h2 class="section-title">热门推荐</h2>
             <div class="recommendation-list">
-              <GoodsItemComponent v-for="(item, index) in hotGoods" :key="index" :goods="item" class="hot-goods-item"
-                @clickGoods="handleSimilarGoodsClick(item.id)" />
+              <GoodsItemComponent
+                v-for="(item, index) in hotGoods"
+                :key="index"
+                :goods="item"
+                class="hot-goods-item"
+                @clickGoods="handleSimilarGoodsClick(item.id)"
+              />
             </div>
           </div>
         </div>
@@ -167,8 +190,14 @@
     </div>
 
     <!-- 下单组件 -->
-    <PlaceOrderComponent v-model="showOrder" :goods="goods" :selected-spec-id="baseInfo.currentSpec"
-      :quantity="baseInfo.quantity" :selected-address-id="selectedAddressId" @submit="handleOrderSubmit" />
+    <PlaceOrderComponent
+      v-model="showOrder"
+      :goods="goods"
+      :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity"
+      :selected-address-id="selectedAddressId"
+      @submit="handleOrderSubmit"
+    />
   </div>
 </template>
 
@@ -230,14 +259,9 @@ const hotGoods = ref([]); // 最热商品
 const enterpriseShippingAddress = computed(() => {
   const info = goods.value?.hnBaseEnterpriseInfo;
   if (!info) return '';
-  return [
-    info.province,
-    info.city,
-    info.district,
-    info.signUpAddress
-  ]
-    .map(part => (typeof part === 'string' ? part.trim() : part))
-    .filter(part => part && String(part).toLowerCase() !== 'null' && String(part).toLowerCase() !== 'undefined')
+  return [info.province, info.city, info.district, info.signUpAddress]
+    .map((part) => (typeof part === 'string' ? part.trim() : part))
+    .filter((part) => part && String(part).toLowerCase() !== 'null' && String(part).toLowerCase() !== 'undefined')
     .join('');
 });
 
@@ -254,11 +278,9 @@ const fetchAddressList = async () => {
     if (res.code === 200 && res.rows) {
       addressList.value = res.rows;
       // 如果已有选中项且仍存在于列表中，则保持不变；否则按默认规则选择
-      const exists = selectedAddressId.value
-        ? addressList.value.some(a => a.id === selectedAddressId.value)
-        : false;
+      const exists = selectedAddressId.value ? addressList.value.some((a) => a.id === selectedAddressId.value) : false;
       if (!exists) {
-        const def = addressList.value.find(a => a.isDefault === '1') || addressList.value[0];
+        const def = addressList.value.find((a) => a.isDefault === '1') || addressList.value[0];
         selectedAddressId.value = def?.id ?? null;
       }
     }
@@ -271,9 +293,7 @@ const fetchAddressList = async () => {
 
 // 组合展示字符串
 const getAddressDisplayText = (address: Address) => {
-  return [address.province, address.city, address.region, address.detailAddress]
-    .filter(Boolean)
-    .join('');
+  return [address.province, address.city, address.region, address.detailAddress].filter(Boolean).join('');
 };
 
 // 切换选择
@@ -287,7 +307,6 @@ const handleAddressDropdownVisible = async (visible: boolean) => {
     await fetchAddressList();
   }
 };
-
 
 // 规格显示控制
 const showAllSpecs = ref(false);
@@ -314,7 +333,6 @@ const remainingSpecsCount = computed(() => {
   return goods.value.hnGoodsSpecificationDataList.length - defaultDisplayCount;
 });
 
-
 // 轮播图切换事件
 const handleCarouselChange = (index: number) => {
   currentImageIndex.value = index;
@@ -325,9 +343,14 @@ const scrollThumbnails = (direction: 'left' | 'right') => {
   const images = goods.value?.sysOssLists;
   if (!images?.length) return;
 
-  const newIndex = direction === 'left'
-    ? (currentImageIndex.value > 0 ? currentImageIndex.value - 1 : images.length - 1)
-    : (currentImageIndex.value < images.length - 1 ? currentImageIndex.value + 1 : 0);
+  const newIndex =
+    direction === 'left'
+      ? currentImageIndex.value > 0
+        ? currentImageIndex.value - 1
+        : images.length - 1
+      : currentImageIndex.value < images.length - 1
+        ? currentImageIndex.value + 1
+        : 0;
 
   carouselRef.value?.setActiveItem(newIndex);
 };
@@ -353,7 +376,7 @@ const selectSpec = (specId: number) => {
 onMounted(async () => {
   // 确保商品ID存在后再加载数据
   if (goodsIdFromRoute.value) {
-  await getGoodsDetail();
+    await getGoodsDetail();
   } else {
     ElMessage.error('缺少商品ID');
     loading.value = false;
@@ -380,24 +403,23 @@ const getGoodsDetail = async () => {
   loading.value = true;
   try {
     const res = await goodsDetail(id);
-  if (res.code === 200) {
+    if (res.code === 200) {
       if (!res.data) {
         ElMessage.error('商品不存在');
         loading.value = false;
         return;
       }
 
-    goods.value = res.data;
+      goods.value = res.data;
 
       // 富文本详情直接渲染，无需预处理
 
-
-    // 处理商品详情数据
+      // 处理商品详情数据
       if (goods.value.sysOssLists?.length) {
         currentImageIndex.value = 0;
       }
 
-    baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
+      baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
 
       // 生成面包屑导航
       updateBreadcrumb();
@@ -406,10 +428,7 @@ const getGoodsDetail = async () => {
       await fetchAddressList();
 
       // 商品详情加载成功后，加载相关商品和热门商品
-      await Promise.all([
-        getRelatedGoods(),
-        getHotGoods()
-      ]);
+      await Promise.all([getRelatedGoods(), getHotGoods()]);
     } else {
       ElMessage.error(res.msg || '获取商品详情失败');
     }
@@ -424,7 +443,6 @@ const getGoodsDetail = async () => {
 const updateBreadcrumb = () => {
   breadcrumbItems.value = goods.value?.goodsName ? [goods.value.goodsName] : [];
 };
-
 
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
 const operateOrder = (type: number) => {
@@ -446,7 +464,7 @@ const operateOrder = (type: number) => {
         ElMessage.error('请选择商品规格');
         return;
       }
-      const spec = goods.value.hnGoodsSpecificationDataList?.find(s => s.id === baseInfo.currentSpec);
+      const spec = goods.value.hnGoodsSpecificationDataList?.find((s) => s.id === baseInfo.currentSpec);
       if (!spec) {
         ElMessage.error('规格信息不存在');
         return;
@@ -490,15 +508,11 @@ const operateOrder = (type: number) => {
 // 获取商品价格区间，返回最低-最高价格
 const getInitPrice = (specs: any[]) => {
   if (!specs?.length) return '0.00';
-  const prices = specs
-    .map(spec => parseFloat(spec.goodsPrice || 0))
-    .filter(p => p > 0);
+  const prices = specs.map((spec) => parseFloat(spec.goodsPrice || 0)).filter((p) => p > 0);
   if (!prices.length) return '0.00';
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-  return minPrice === maxPrice
-    ? minPrice.toFixed(2)
-    : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  return minPrice === maxPrice ? minPrice.toFixed(2) : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
 };
 
 // 更新总价
@@ -536,11 +550,7 @@ const handleSimilarGoodsClick = (goodsId: string | number) => {
 };
 
 // 获取商品列表（同类商品或热门商品）
-const fetchGoodsList = async (params: {
-  pageSize: number;
-  sortManner: string;
-  excludeId?: number;
-}) => {
+const fetchGoodsList = async (params: { pageSize: number; sortManner: string; excludeId?: number }) => {
   if (!goods.value?.id) return null;
 
   const enterpriseInfo = goods.value.hnBaseEnterpriseInfo;
@@ -573,7 +583,8 @@ const getRelatedGoods = async () => {
 const getHotGoods = async () => {
   const rows = await fetchGoodsList({
     pageSize: 5,
-    sortManner: '0'
+    sortManner: '0',
+    excludeId: goods.value?.id
   });
   if (rows) {
     hotGoods.value = rows;
@@ -617,7 +628,7 @@ defineExpose({
           text-decoration: none;
 
           &:hover {
-            color: #4CAF50;
+            color: #4caf50;
           }
         }
       }
@@ -735,12 +746,12 @@ defineExpose({
       }
 
       &.active {
-        border-color: #108C58;
+        border-color: #108c58;
         border-width: 2px;
       }
 
       &:hover {
-        border-color: #108C58;
+        border-color: #108c58;
       }
     }
 
@@ -814,7 +825,7 @@ defineExpose({
         .goods-tags {
           display: flex;
           flex-wrap: wrap;
-    gap: 10px;
+          gap: 10px;
           margin-bottom: 0;
 
           .attribute-tag {
@@ -829,7 +840,7 @@ defineExpose({
 
           .ensure-tag {
             font-size: 13px;
-            color: #F23255;
+            color: #f23255;
             height: 21px;
             padding: 5px 8px;
             display: inline-flex;
@@ -840,7 +851,7 @@ defineExpose({
 
           .ability-tag {
             font-size: 13px;
-            color: #FF7B00;
+            color: #ff7b00;
             height: 21px;
             padding: 0 8px;
             display: inline-flex;
@@ -869,12 +880,12 @@ defineExpose({
           line-height: 1.5;
 
           &.phone-link {
-            color: #FFA113;
+            color: #ffa113;
             font-size: 14px;
           }
 
           &.report-link {
-            color: #EF4D0B;
+            color: #ef4d0b;
             font-size: 14px;
           }
 
@@ -886,11 +897,10 @@ defineExpose({
     }
 
     .price-section {
-
       .price {
         font-size: 30px;
         font-weight: bold;
-        color: #EF4D0B;
+        color: #ef4d0b;
       }
     }
 
@@ -966,19 +976,19 @@ defineExpose({
         position: relative;
         transition: all 0.3s;
         min-height: 40px;
-      display: flex;
+        display: flex;
         align-items: center;
         justify-content: center;
 
         &:hover {
-          border-color: #108C58;
+          border-color: #108c58;
         }
 
         &.selected {
           background: rgba(16, 140, 88, 0.1);
           border-radius: 0px;
-          border: 2px solid #108C58;
-          color: #108C58;
+          border: 2px solid #108c58;
+          color: #108c58;
           font-weight: 500;
 
           .spec-check-icon {
@@ -986,7 +996,7 @@ defineExpose({
             bottom: 2px;
             right: 2px;
             font-size: 14px;
-            color: #108C58;
+            color: #108c58;
           }
         }
       }
@@ -999,7 +1009,7 @@ defineExpose({
       .spec-link {
         font-weight: 400;
         font-size: 15px;
-        color: #108C58;
+        color: #108c58;
         line-height: 21px;
         text-align: left;
         font-style: normal;
@@ -1060,26 +1070,26 @@ defineExpose({
         color: #666;
 
         &:hover {
-          border-color: #4CAF50;
-          color: #4CAF50;
+          border-color: #4caf50;
+          color: #4caf50;
         }
       }
 
       .btn-favorite {
         background: rgba(16, 140, 88, 0.1);
-        border: 1px solid #108C58;
-        color: #108C58;
+        border: 1px solid #108c58;
+        color: #108c58;
 
         &:hover {
           background: rgba(16, 140, 88, 0.15);
-          border-color: #108C58;
+          border-color: #108c58;
         }
       }
 
       .btn-buy {
-        background: #108C58;
+        background: #108c58;
         color: white;
-        border: 1px solid #108C58;
+        border: 1px solid #108c58;
 
         &:hover {
           background: #0e7a4a;
@@ -1117,7 +1127,9 @@ defineExpose({
 
         :deep(.goods-item) {
           border: 2px solid transparent;
-          transition: border-color 0.3s, box-shadow 0.3s;
+          transition:
+            border-color 0.3s,
+            box-shadow 0.3s;
 
           &:hover {
             border-color: #ffd700;

@@ -31,7 +31,7 @@ const selectedIdentity = ref<IdentityType>('' as IdentityType);
 const identityOptions = ref<{ label: string; value: IdentityType }[]>([
   { label: '采购商（农户、合作社、农资店、农场）', value: 'buyer' },
   { label: '供应商', value: 'supplier' },
-  { label: '企业（育种机构、科研院所、种子企业、金融与保险机构）', value: 'enterprise' },
+  { label: '企业（育种机构、科研院所、种子企业）', value: 'enterprise' },
   { label: '技术专家', value: 'expert' },
   { label: '法务专家', value: 'legal' }
 ]);
