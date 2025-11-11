@@ -1,6 +1,6 @@
 <!--
   标题: procurement.vue
-  功能: 采购需求
+  功能: 采购需求池
   说明: 该页面用于管理采购需求，包括搜索、新增、编辑、删除采购需求等操作。
   当前版本: 1.0
   开发信息: Created by 刘景彪 2025-11-4
@@ -148,7 +148,7 @@ import { ref, onMounted, getCurrentInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 // 采购需求相关接口
 import { hnPurchaseDemandPurchaseList, hnPurchaseQuotePost } from '@/api/supplier/supplyManagement/procurement';
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { proxy } = getCurrentInstance() as any;
 
 // 表格数据及分页
 const tableData = ref([]); // 采购需求列表
