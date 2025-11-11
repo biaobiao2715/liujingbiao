@@ -372,10 +372,6 @@ const logisticsRules = {
     }
   ]
 };
-// 页面加载时获取列表数据
-onMounted(async () => {
-  getdetail();
-});
 
 const openDetailDialog = (id: string) => {
   detailId.value = id;
