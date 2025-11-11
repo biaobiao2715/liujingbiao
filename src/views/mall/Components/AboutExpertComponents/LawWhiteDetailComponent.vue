@@ -12,12 +12,27 @@
     <div class="title">{{ detailData?.paperTitle }}</div>
     <!-- 描述 -->
     <div class="description">{{ detailData?.remark }}</div>
-    <!-- 附件表格 -->
-    <el-table :data="detailData?.latestFiles" style="width: 100%">
-      <el-table-column prop="name" label="附件名称" />
+    <!-- 最新附件表格 -->
+    <div class="file-title">最新附件</div>
+    <el-table :data="latestFiles" style="width: 100%">
+      <el-table-column prop="fileName" label="附件名称" />
+      <el-table-column prop="fileSuffix" label="附件类型" />
+      <el-table-column prop="fileSize" label="文件大小" />
       <el-table-column label="操作">
         <template #default="scope">
           <el-button type="primary" size="small" :href="scope.row.url" download> 下载 </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!-- 历史版本附件表格 -->
+    <div class="file-title">历史版本附件</div>
+    <el-table :data="historyFiles" style="width: 100%">
+      <el-table-column prop="fileName" label="附件名称" />
+      <el-table-column prop="fileSuffix" label="附件类型" />
+      <el-table-column prop="fileSize" label="文件大小" />
+      <el-table-column label="操作">
+        <template #default="scope">
+          <el-button type="primary" size="small" @click="handleDownloadHistory(scope.row)"> 下载 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -26,6 +41,8 @@
 
 <script setup lang="ts">
 import { getWhitePaperDetail } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
+import { formatFileSize } from '@/utils/fileUtils';
+import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 
 const props = defineProps({
   id: {
@@ -36,17 +53,49 @@ const props = defineProps({
 
 const detailData = ref();
 
+const historyFiles = ref([]);
+
+const latestFiles = ref([]);
+
 onMounted(() => {
   fetchDetail();
 });
 
 const fetchDetail = async () => {
   try {
-    const response = await getWhitePaperDetail(props.id);
+    const response: any = await getWhitePaperDetail(props.id);
     detailData.value = response.data || {};
+
+    // 处理最新附件
+    response.data.latestFiles.forEach((item) => {
+      item.sysOssLists.forEach((attachment) => {
+        latestFiles.value.push({
+          fileName: attachment.originalName,
+          url: attachment.url,
+          fileSuffix: attachment.fileSuffix,
+          fileSize: formatFileSize(JSON.parse(attachment.ext1).fileSize)
+        });
+      });
+    });
+
+    // 处理历史版本附件
+    response.data.historyVersionsList.forEach((item) => {
+      item.sysOssLists.forEach((attachment) => {
+        historyFiles.value.push({
+          fileName: attachment.originalName,
+          url: attachment.url,
+          fileSuffix: attachment.fileSuffix,
+          fileSize: formatFileSize(JSON.parse(attachment.ext1).fileSize)
+        });
+      });
+    });
   } catch (error) {
     console.error('获取白皮书详情失败:', error);
   }
+};
+
+const handleDownloadHistory = (file: any) => {
+  downloadFileByUrl(file.url, file.fileName);
 };
 </script>
 
@@ -63,6 +112,13 @@ const fetchDetail = async () => {
   font-weight: bold; /* 加粗标题 */
   margin-bottom: 10px; /* 增加标题与描述之间的间距 */
   color: #333; /* 设置标题颜色 */
+  text-align: center; /* 居中标题 */
+}
+
+.file-title {
+  font-size: 16px; /* 增大附件标题字体 */
+  font-weight: bold; /* 加粗附件标题 */
+  margin: 24px 0 12px 0;
 }
 
 .description {

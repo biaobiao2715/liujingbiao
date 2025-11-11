@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container flex-center-between">
+  <div class="login-container flex-center-between" @keydown.enter="handleLogin">
     <div class="left-container"></div>
     <div class="right-container">
       <div class="login-header flex-center-center">
