@@ -151,21 +151,7 @@
           <!-- 商品详情 -->
           <div class="product-info">
             <h2 class="section-title">商品详情</h2>
-            <div class="goods-detail-content" v-if="parsedDetail.length > 0">
-              <template v-for="(item, index) in parsedDetail" :key="index">
-                <!-- 第一张图片（大图） -->
-                <el-image v-if="item.type === 'image' && index === 0" :src="item.src" fit="contain" class="detail-image detail-image-large"
-                  :preview-src-list="imageList" :initial-index="item.index" />
-                <!-- 文本内容 -->
-                <div v-else-if="item.type === 'text'" class="detail-text" v-html="item.content"></div>
-                <!-- 其他图片（小图网格）- 只在第一张图片后显示 -->
-                <div v-else-if="item.type === 'image' && index > 0 && shouldShowImageGrid(index)" class="detail-images-grid">
-                  <el-image v-for="(imgItem, imgIndex) in getRemainingImages(index)" :key="imgIndex" :src="imgItem.src" fit="contain" class="detail-image"
-                    :preview-src-list="imageList" :initial-index="imgItem.index" />
-                </div>
-              </template>
-            </div>
-            <div v-else class="empty-detail">暂无商品详情</div>
+            <div class="goods-detail-content" v-html="goods?.goodsDetail || ''"></div>
           </div>
 
           <!-- 热门推荐 -->
@@ -217,16 +203,7 @@ const goods = ref<Goods>({});
 
 const loading = ref(true); // 加载状态
 
-// 解析后的详情内容（文本和图片分离）
-interface DetailItem {
-  type: 'text' | 'image';
-  content?: string;
-  src?: string;
-  index?: number;
-}
-
-const parsedDetail = ref<DetailItem[]>([]);
-const imageList = ref<string[]>([]);
+// 富文本详情直接渲染，无需解析
 
 const carouselRef = ref();
 
@@ -276,9 +253,14 @@ const fetchAddressList = async () => {
     const res = await userAddressList();
     if (res.code === 200 && res.rows) {
       addressList.value = res.rows;
-      // 选中默认地址
-      const def = addressList.value.find(a => a.isDefault === '1') || addressList.value[0];
-      selectedAddressId.value = def?.id ?? null;
+      // 如果已有选中项且仍存在于列表中，则保持不变；否则按默认规则选择
+      const exists = selectedAddressId.value
+        ? addressList.value.some(a => a.id === selectedAddressId.value)
+        : false;
+      if (!exists) {
+        const def = addressList.value.find(a => a.isDefault === '1') || addressList.value[0];
+        selectedAddressId.value = def?.id ?? null;
+      }
     }
   } catch (e) {
     console.error('获取地址列表失败:', e);
@@ -360,172 +342,7 @@ const handleThumbnailClick = (index: number) => {
 // 面包屑导航项
 const breadcrumbItems = ref<string[]>([]);
 
-// 解析商品详情HTML，提取文本和图片
-const parseGoodsDetail = (html: string) => {
-  if (!html) {
-    parsedDetail.value = [];
-    imageList.value = [];
-    return;
-  }
-
-  const textItems: DetailItem[] = [];
-  const imageItems: DetailItem[] = [];
-  const images: string[] = [];
-
-  // 创建临时DOM元素来解析HTML
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-
-  // 递归处理节点，分别提取文本和图片
-  const processNode = (node: Node) => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      // 文本节点
-      const text = node.textContent?.trim();
-      if (text) {
-        textItems.push({
-          type: 'text',
-          content: text
-        });
-      }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as HTMLElement;
-
-      if (element.tagName === 'IMG') {
-        // 图片节点
-        const imgSrc = (element as HTMLImageElement).src || (element as HTMLImageElement).getAttribute('src');
-        if (imgSrc) {
-          images.push(imgSrc);
-          imageItems.push({
-            type: 'image',
-            src: imgSrc,
-            index: images.length - 1
-          });
-        }
-      } else {
-        // 其他元素，检查是否包含图片
-        const imgs = element.querySelectorAll('img');
-        if (imgs.length > 0) {
-          // 如果包含图片，需要分别处理文本和图片
-          // 先处理图片前的文本
-          let currentText = '';
-          Array.from(element.childNodes).forEach(child => {
-            if (child.nodeType === Node.TEXT_NODE) {
-              const text = child.textContent?.trim();
-              if (text) {
-                currentText += text;
-              }
-            } else if (child.nodeType === Node.ELEMENT_NODE) {
-              const childElement = child as HTMLElement;
-              if (childElement.tagName === 'IMG') {
-                // 如果当前有文本，先添加文本
-                if (currentText) {
-                  textItems.push({
-                    type: 'text',
-                    content: currentText
-                  });
-                  currentText = '';
-                }
-                // 处理图片
-                processNode(child);
-              } else {
-                // 其他元素，递归处理
-                processNode(child);
-              }
-            }
-          });
-          // 处理剩余的文本
-          if (currentText) {
-            textItems.push({
-              type: 'text',
-              content: currentText
-            });
-          }
-        } else {
-          // 不包含图片，作为文本处理（保留HTML格式）
-          const text = element.textContent?.trim();
-          if (text) {
-            textItems.push({
-              type: 'text',
-              content: element.outerHTML
-            });
-          } else {
-            // 递归处理子节点
-            Array.from(element.childNodes).forEach(child => {
-              processNode(child);
-            });
-          }
-        }
-      }
-    }
-  };
-
-  // 遍历所有顶级节点
-  Array.from(tempDiv.childNodes).forEach(node => {
-    processNode(node);
-  });
-
-  // 重新组织顺序：第一张图片（大图） -> 所有文本 -> 剩余图片
-  const finalItems: DetailItem[] = [];
-  
-  // 1. 第一张图片作为大图
-  if (imageItems.length > 0) {
-    finalItems.push({
-      type: 'image',
-      src: imageItems[0].src,
-      index: 0
-    });
-  }
-  
-  // 2. 所有文本内容
-  if (textItems.length > 0) {
-    // 合并所有文本为一个文本块
-    const allText = textItems.map(item => item.content).join('');
-    finalItems.push({
-      type: 'text',
-      content: allText
-    });
-  }
-  
-  // 3. 剩余的图片（从第二张开始）
-  if (imageItems.length > 1) {
-    for (let i = 1; i < imageItems.length; i++) {
-      finalItems.push(imageItems[i]);
-    }
-  }
-
-  // 如果没有解析到内容，使用原始HTML作为文本
-  if (finalItems.length === 0) {
-    finalItems.push({
-      type: 'text',
-      content: html
-    });
-  }
-
-  parsedDetail.value = finalItems;
-  imageList.value = images;
-};
-
-// 判断是否应该显示图片网格（文本后的第一张图片）
-const shouldShowImageGrid = (index: number) => {
-  // 检查前面是否有文本项
-  for (let i = 0; i < index; i++) {
-    if (parsedDetail.value[i]?.type === 'text') {
-      // 检查这是否是文本后的第一张图片
-      for (let j = i + 1; j < index; j++) {
-        if (parsedDetail.value[j]?.type === 'image') {
-          return false; // 前面已经有图片了，不是第一张
-        }
-      }
-      return true; // 这是文本后的第一张图片
-    }
-  }
-  return false;
-};
-
-// 获取剩余的图片（从指定索引开始的所有图片）
-const getRemainingImages = (startIndex: number) => {
-  return parsedDetail.value.filter((item, index) => item.type === 'image' && index >= startIndex);
-};
+// 直接展示富文本，无需解析函数
 
 // 选择规格
 const selectSpec = (specId: number) => {
@@ -572,13 +389,7 @@ const getGoodsDetail = async () => {
 
     goods.value = res.data;
 
-      // 解析商品详情HTML内容
-      if (goods.value.goodsDetail) {
-        parseGoodsDetail(goods.value.goodsDetail);
-      } else {
-        parsedDetail.value = [];
-        imageList.value = [];
-      }
+      // 富文本详情直接渲染，无需预处理
 
 
     // 处理商品详情数据
