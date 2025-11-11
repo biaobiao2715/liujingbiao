@@ -1,46 +1,49 @@
 <!--
-      标题: index.vue
-      功能: 个人中心
-      说明: 个人中心，包含我的订单、我的收藏/我的提问/地址管理/我发布的需求。
-      当前版本: 1.0
-      开发信息: Created by 李春雷 2025-10-14
-    -->
+  标题: index.vue
+  功能: 个人中心
+  说明: 个人中心，包含我的订单、我的收藏/我的提问/地址管理/我发布的需求。
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-10-14
+-->
 <template>
-  <div class="register-page">
+  <div class="personal-center-page">
     <!-- 顶部可点击返回条 -->
-    <div class="pc-breadcrumb" @click="goBack" :title="`返回上一页`">首页 > 个人中心 > {{ currentTitle }}</div>
-    <el-row style="height: 100%">
+    <div class="pc-breadcrumb" @click="goBack" :title="`返回上一页`">
+      <span class="crumb">首页</span>
+      <span class="crumb-sep">&gt;</span>
+      <span class="crumb">个人中心</span>
+      <span class="crumb-sep">&gt;</span>
+      <span class="crumb">{{ currentTitle }}</span>
+    </div>
+    <div class="main-row">
       <!-- 侧边栏菜单 -->
-      <el-col :span="4" class="menu">
-        <ul>
-          <div class="menu-title">个人中心</div>
+      <div class="menu-col">
+        <div class="menu-title">个人中心</div>
+        <ul class="menu">
           <li v-for="item in menuItems" :key="item.id" :class="{ active: item.component == selectedComponent }" @click="selectMenu(item.component)">
             {{ item.title }}
           </li>
         </ul>
-      </el-col>
-      <!--  主内容区域 -->
-      <el-col :span="20">
-        <div class="content">
-          <orders v-if="selectedComponent === 'order'" />
-          <favorites v-if="selectedComponent === 'collection'" />
-          <questions v-if="selectedComponent === 'question'" />
-          <addressManagement v-if="selectedComponent === 'address'" />
-          <requests v-if="selectedComponent === 'demand'" />
-          <participatedRequests v-if="selectedComponent === 'participated'" />
-          <myReport v-if="selectedComponent === 'myReport'" />
-          <varietyIdentification v-if="selectedComponent === 'varietyIdentification'" />
-        </div>
-      </el-col>
-    </el-row>
+        <div class="menu-bottom-bg"></div>
+      </div>
+      <!-- 主内容区域 -->
+      <div class="content-col">
+        <orders v-if="selectedComponent === 'order'" />
+        <favorites v-if="selectedComponent === 'collection'" />
+        <questions v-if="selectedComponent === 'question'" />
+        <addressManagement v-if="selectedComponent === 'address'" />
+        <requests v-if="selectedComponent === 'demand'" />
+        <participatedRequests v-if="selectedComponent === 'participated'" />
+        <myReport v-if="selectedComponent === 'myReport'" />
+        <varietyIdentification v-if="selectedComponent === 'varietyIdentification'" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// 引入 Vue 的 ref、watch、computed 函数
 import { ref, watch, computed } from 'vue';
 import { eventBus } from '@/utils/eventBus';
-// 引入各个子组件
 import orders from './Components/orders.vue';
 import favorites from './Components/favorites.vue';
 import addressManagement from './Components/addressManagement.vue';
@@ -62,7 +65,6 @@ const emit = defineEmits<{
   (e: 'nextStep'): void;
 }>();
 
-// 菜单项
 const menuItems = ref([
   { id: 1, title: '我的订单', component: 'order' },
   { id: 2, title: '我的收藏', component: 'collection' },
@@ -74,9 +76,8 @@ const menuItems = ref([
   { id: 8, title: '品种识别记录', component: 'varietyIdentification' }
 ]);
 
-// 当前选中的组件
 const selectedComponent = ref(menuItems.value[0].component);
-// 动态标题
+
 const currentTitle = computed(() => {
   const map: Record<string, string> = {
     order: '我的订单',
@@ -91,12 +92,10 @@ const currentTitle = computed(() => {
   return map[selectedComponent.value] || '我的订单';
 });
 
-// 返回上一页
 function goBack() {
-  eventBus.emit('showHomeContentChange', true);
+  eventBus.emit('activeTabChange', 'goods');
 }
 
-// 切换菜单
 function selectMenu(val: any) {
   const selectedMenu = menuItems.value.find((item) => item.component === val);
   if (selectedMenu) {
@@ -104,12 +103,10 @@ function selectMenu(val: any) {
   }
 }
 
-// 响应式处理
 watch(
   () => props.command,
   (newCommand) => {
     if (newCommand) {
-      console.log('接收到命令:', newCommand);
       selectMenu(newCommand);
     }
   },
@@ -118,102 +115,143 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.register-page {
+.personal-center-page {
   min-height: 100vh;
-  padding: 20px;
-  background-color: #f4f4f4;
-
-  /* 主色定义：#108c58 及其深浅色阶 */
+  background: #f7f9fa;
   --el-color-primary: #108c58;
-  --el-color-primary-dark-2: #0c6d46;
-  --el-color-primary-light-3: #26a169;
-  --el-color-primary-light-5: #45b780;
-  --el-color-primary-light-7: #7ccc9f;
-  --el-color-primary-light-9: #e8f6ef;
 }
 
-/* 顶部可点击返回条：卡片化 + 悬停反馈 */
+/* 顶部可点击返回条 */
 .pc-breadcrumb {
-  margin-bottom: 16px;
-  padding: 10px 14px;
-  background: #fff;
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  color: var(--el-text-color-primary);
+  font-size: 14px;
+  color: #999;
+  line-height: 32px;
+  margin: 0 0 16px 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
 }
-.pc-breadcrumb::before {
-  content: '←';
-  color: var(--el-color-primary);
-  font-weight: 600;
+.crumb {
+  color: #7c7c7c;
+  font-weight: 400;
 }
-.pc-breadcrumb:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--el-box-shadow-light);
-  border-color: var(--el-color-primary-light-5);
+.crumb-sep {
+  margin: 0 8px;
+  color: #7c7c7c;
+  font-weight: 400;
+  font-size: 14px;
+}
+/* 主体行，控制整体宽度和居中 */
+.main-row {
+  display: flex;
+  flex-wrap: nowrap; // 关键：不允许子项换行
+  margin: 0 auto;
+  min-height: 600px;
+  padding-bottom: 40px;
+  align-items: stretch;
+  width: 1494px;
 }
 
-/* 左侧菜单：圆角卡片 + 活跃态优化 */
-.menu {
-  background-color: #fff;
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: var(--el-box-shadow-lighter);
+/* 左侧菜单卡片 */
+.menu-col {
+  width: 210px;
+  min-width: 210px;
+  max-width: 210px;
+  flex-shrink: 0; // 不允许缩小
+  display: flex;
+  flex-direction: column;
+  background: #fff;
 }
+
 .menu-title {
-  padding: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  height: 60px; /* 或你需要的高度 */
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
-.menu ul {
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 6px;
+}
+.menu {
   list-style: none;
   margin: 0;
-  padding: 0;
-}
-.menu li {
-  padding: 10px 12px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  color: var(--el-text-color-regular);
-}
-.menu li + li {
-  margin-top: 6px;
-}
-.menu li:hover {
-  background-color: var(--el-color-primary-light-9);
-  color: var(--el-color-primary);
-}
-.menu li.active {
-  background: linear-gradient(135deg, var(--el-color-primary), #2bb678);
-  color: #fff;
-  box-shadow: 0 2px 10px rgba(16, 140, 88, 0.2);
+  padding: 20px;
+  li {
+    position: relative;
+    height: 36px;
+    line-height: 36px;
+    padding: 0 20px;
+    border-radius: 4px 4px 4px 4px;
+
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 400;
+    font-size: 14px;
+    color: #3d3d3d;
+  }
+  li.active {
+    color: #108c58;
+    background: rgba(16, 140, 88, 0.1);
+  }
+  li:hover:not(.active) {
+    color: #108c58;
+    background: rgba(16, 140, 88, 0.1);
+  }
 }
 
-/* 右侧内容：卡片化 */
-.content {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: var(--el-box-shadow-lighter);
-  padding: 16px 20px;
-  margin-left: 20px;
-  height: 100%;
+/* 左侧菜单底部稻穗装饰 */
+.menu-bottom-bg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+  background: url('@/assets/images/menu-bg.png') no-repeat left bottom/contain;
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* 适配小屏：调小圆角与内边距 */
-@media (max-width: 1200px) {
-  .pc-breadcrumb,
-  .menu,
-  .content {
-    border-radius: 8px;
-  }
-  .content {
-    padding: 14px 16px;
-  }
+/* 右侧内容区，卡片化，圆角，阴影，内边距，宽度自适应剩余空间 */
+.content-col {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 0px 0px 0px 0px;
+  margin-left: 20px !important;
+  width: 1264px;
+}
+// 表格
+::v-deep .el-table__header th {
+  background: #f6f7fb !important;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #3d3d3d;
+}
+// tab标签
+::v-deep .el-tabs__item {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #3d3d3d;
+}
+
+::v-deep .el-tabs__item.is-active {
+  color: #108c58 !important; /* 选中字体颜色 */
+}
+::v-deep .el-tabs__item:hover {
+  color: #108c58;
 }
 </style>

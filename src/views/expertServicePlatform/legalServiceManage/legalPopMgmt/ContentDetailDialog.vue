@@ -6,7 +6,6 @@
 -->
 <template>
   <div class="content-detail-dialog" v-loading="loading">
-    <!-- 文章元信息 -->
     <div class="article-meta">
       <div class="meta-left">
         <div class="author-info">
@@ -29,21 +28,17 @@
       </div>
     </div>
 
-    <!-- 分割线 -->
     <el-divider />
 
-    <!-- 内容详细信息 -->
     <div class="content-details">
       <div class="detail-row">
         <span class="detail-value">{{ detailData.contentSummary || '-' }}</span>
       </div>
       
       <div class="detail-row content-row">
-        <!-- <span class="detail-label">正文内容:</span> -->
         <div class="detail-content" v-html="detailData.contentContent || '-'"></div>
       </div>
 
-      <!-- 附件列表 -->
       <div class="detail-row" v-if="detailData.attachments && detailData.attachments.length > 0">
         <span class="detail-label">附件列表:</span>
         <div class="attachments-list">
@@ -65,8 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
-import type { ComponentInternalInstance } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Download } from '@element-plus/icons-vue';
 import { getContentDetail } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
@@ -75,21 +69,7 @@ const props = defineProps<{
   id?: string | number | null;
 }>();
 
-const emit = defineEmits<{
-  (e: 'cancel'): void;
-}>();
-
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
-// 使用字典数据
-const { legal_popularize_type } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type')
-);
-
-// 加载状态
 const loading = ref(false);
-
-// 详情数据
 const detailData = ref({
   id: undefined as number | undefined,
   contentNo: '',
@@ -106,15 +86,6 @@ const detailData = ref({
   attachments: [] as any[]
 });
 
-/** 格式化文件大小 */
-const formatFileSize = (bytes: number): string => {
-  if (!bytes) return '-';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-};
-
-/** 获取内容详情 */
 const fetchContentDetail = async () => {
   if (!props.id) {
     ElMessage.error('缺少内容ID');
@@ -133,7 +104,6 @@ const fetchContentDetail = async () => {
         return;
       }
       
-      // 状态映射
       let statusText = '未知';
       if (data.contentStatus === '3' || data.contentStatus === 3) {
         statusText = '启用';
@@ -141,7 +111,6 @@ const fetchContentDetail = async () => {
         statusText = '禁用';
       }
       
-      // 将接口返回的数据赋值给详情
       detailData.value = {
         id: data.id,
         contentNo: data.contentNo || '',
@@ -167,7 +136,6 @@ const fetchContentDetail = async () => {
   }
 };
 
-/** 下载附件 */
 const handleDownload = (file: any) => {
   if (file.url) {
     window.open(file.url, '_blank');
@@ -176,12 +144,6 @@ const handleDownload = (file: any) => {
   }
 };
 
-/** 关闭弹窗 */
-const emitCancel = () => {
-  emit('cancel');
-};
-
-// 页面加载时获取详情数据
 onMounted(() => {
   fetchContentDetail();
 });
@@ -192,7 +154,6 @@ onMounted(() => {
   padding: 20px;
 }
 
-// 文章元信息区域
 .article-meta {
   display: flex;
   justify-content: space-between;
@@ -247,7 +208,6 @@ onMounted(() => {
   }
 }
 
-// 内容详细信息
 .content-details {
   .detail-row {
     display: flex;
@@ -293,20 +253,6 @@ onMounted(() => {
   }
 }
 
-// 底部按钮
-.dialog-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
-  
-  .el-button {
-    min-width: 100px;
-  }
-}
-
-// 响应式设计
 @media (max-width: 768px) {
   .article-meta {
     flex-direction: column;

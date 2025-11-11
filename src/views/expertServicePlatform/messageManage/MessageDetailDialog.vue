@@ -6,24 +6,21 @@
 -->
 <template>
   <div class="message-detail-dialog" v-loading="loading">
-    <!-- 我的问题部分 -->
     <div class="question-section">
       <div class="section-header">
         <h3 class="section-title">我的问题</h3>
-        <el-icon class="close-icon" @click="handleClose"><Close /></el-icon>
       </div>
       
       <div class="question-content">
         <div class="question-item">
           <el-tag class="question-tag">问</el-tag>
-          <span class="question-text">{{ detailData.messageContent }}</span>
+          <span class="question-text">{{ detailData.questionContent || detailData.messageContent }}</span>
         </div>
         
-        <div class="question-time" v-if="detailData.messageTime">
-          {{ detailData.messageTime }}
+        <div class="question-time" v-if="detailData.publishTime || detailData.messageTime">
+          {{ detailData.publishTime || detailData.messageTime }}
         </div>
         
-        <!-- 附件图标区域 -->
         <div v-if="detailData.attachments && detailData.attachments.length > 0" class="attachments">
           <el-icon 
             v-for="(attachment, index) in detailData.attachments" 
@@ -39,7 +36,6 @@
 
     <el-divider />
 
-    <!-- 回复历史部分 -->
     <div class="reply-section">
       <h3 class="section-title">回复历史</h3>
       
@@ -52,11 +48,6 @@
           <div class="reply-header">
             <el-tag class="reply-tag">答</el-tag>
             <span class="reply-content">{{ reply.content }}</span>
-            <div class="reply-actions">
-              <el-icon class="more-icon"><MoreFilled /></el-icon>
-              <span class="reply-count">10</span>
-              <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-            </div>
           </div>
           
           <div class="reply-time">
@@ -68,19 +59,6 @@
       <div v-else class="no-reply">
         <el-empty description="暂无回复记录" :image-size="100" />
       </div>
-      
-      <!-- 分页 -->
-      <div v-if="replyTotal > 0" class="pagination-wrapper">
-        <el-pagination
-          :current-page="replyPage"
-          :page-size="replyPageSize"
-          :page-sizes="[10, 20, 30, 50]"
-          :total="replyTotal"
-          layout="total, prev, pager, next, sizes, jumper"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -88,49 +66,48 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Close, Folder, MoreFilled, ArrowRight } from '@element-plus/icons-vue';
+import { Folder } from '@element-plus/icons-vue';
 import { getMessageDetail } from '@/api/expertServicePlatform/messageManage/index';
 
 const props = defineProps<{
   id: string | number | null;
 }>();
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
-
-// 加载状态
 const loading = ref(false);
-
-// 详情数据
 const detailData = ref({
-  id: '',
-  messageNo: '',
+  id: undefined as number | undefined,
+  questionNo: '',
+  userId: undefined as number | undefined,
+  expertType: '',
+  expertId: undefined as number | undefined,
+  questionTitle: '',
+  questionContent: '',
+  questionType: '',
+  priorityLevel: '',
+  questionStatus: '',
+  isAnonymous: '',
+  isPublic: '',
+  publishTime: '',
+  satisfactionScore: undefined as number | undefined,
+  latestAnswerTime: '',
+  expireTime: '',
+  closeTime: '',
+  closeUserId: undefined as number | undefined,
+  closeUserType: '',
+  hnCommonRelevanceFilesVos: [] as any[],
+  hnAnswerVoList: [] as any[],
+  replyCount: 0,
   messageContent: '',
   messageTime: '',
-  userName: '',
-  userPhone: '',
-  userEmail: '',
-  replyStatus: '0',
-  replyContent: '',
-  replyTime: '',
-  replyBy: '',
   attachments: [] as any[]
 });
 
-// 回复列表
 const replyList = ref<Array<{
   content: string;
   time: string;
   replyBy?: string;
 }>>([]);
 
-// 回复分页
-const replyPage = ref(1);
-const replyPageSize = ref(10);
-const replyTotal = ref(0);
-
-/** 获取留言详情 */
 const fetchDetail = async () => {
   if (!props.id) return;
   
@@ -139,31 +116,57 @@ const fetchDetail = async () => {
     const response: any = await getMessageDetail(props.id);
     
     if (response && response.code === 200 && response.data) {
-      detailData.value = response.data;
+      const data = response.data;
       
-      // 处理回复列表
-      if (response.data.replyList && Array.isArray(response.data.replyList) && response.data.replyList.length > 0) {
-        replyList.value = response.data.replyList.map((item: any) => ({
-          content: item.replyContent || item.content || '',
-          time: item.replyTime || item.time || '',
-          replyBy: item.replyBy || ''
-        }));
-        replyTotal.value = replyList.value.length;
-      } else if (response.data.replyContent && response.data.replyStatus === '1') {
-        replyList.value = [{
-          content: response.data.replyContent,
-          time: response.data.replyTime || '',
-          replyBy: response.data.replyBy || ''
-        }];
-        replyTotal.value = 1;
-      } else {
-        replyList.value = [];
-        replyTotal.value = 0;
+      detailData.value = {
+        id: data.id,
+        questionNo: data.questionNo || '',
+        userId: data.userId,
+        expertType: data.expertType || '',
+        expertId: data.expertId,
+        questionTitle: data.questionTitle || '',
+        questionContent: data.questionContent || '',
+        questionType: data.questionType || '',
+        priorityLevel: data.priorityLevel || '',
+        questionStatus: data.questionStatus || '',
+        isAnonymous: data.isAnonymous || '',
+        isPublic: data.isPublic || '',
+        publishTime: data.publishTime || '',
+        satisfactionScore: data.satisfactionScore,
+        latestAnswerTime: data.latestAnswerTime || '',
+        expireTime: data.expireTime || '',
+        closeTime: data.closeTime || '',
+        closeUserId: data.closeUserId,
+        closeUserType: data.closeUserType || '',
+        hnCommonRelevanceFilesVos: data.hnCommonRelevanceFilesVos || [],
+        hnAnswerVoList: data.hnAnswerVoList || [],
+        replyCount: data.replyCount || 0,
+        messageContent: data.questionContent || '',
+        messageTime: data.publishTime || '',
+        attachments: []
+      };
+      
+      if (data.hnCommonRelevanceFilesVos && Array.isArray(data.hnCommonRelevanceFilesVos)) {
+        detailData.value.attachments = data.hnCommonRelevanceFilesVos.flatMap((item: any) => {
+          if (item.remoteOssVos && Array.isArray(item.remoteOssVos)) {
+            return item.remoteOssVos.map((file: any) => ({
+              url: file.url || file.name,
+              fileName: file.name || file.originalName,
+              originalName: file.originalName || file.name
+            }));
+          }
+          return [];
+        });
       }
       
-      // 处理附件
-      if (response.data.attachments && Array.isArray(response.data.attachments)) {
-        detailData.value.attachments = response.data.attachments;
+      if (data.hnAnswerVoList && Array.isArray(data.hnAnswerVoList) && data.hnAnswerVoList.length > 0) {
+        replyList.value = data.hnAnswerVoList.map((item: any) => ({
+          content: item.answerContent || item.content || '',
+          time: item.answerTime || item.time || '',
+          replyBy: item.answerUserId || item.replyBy || ''
+        }));
+      } else {
+        replyList.value = [];
       }
     } else {
       ElMessage.error(response?.msg || '获取详情失败');
@@ -175,18 +178,6 @@ const fetchDetail = async () => {
   }
 };
 
-/** 分页改变 */
-const handlePageChange = (page: number) => {
-  replyPage.value = page;
-};
-
-/** 每页条数改变 */
-const handleSizeChange = (size: number) => {
-  replyPageSize.value = size;
-  replyPage.value = 1;
-};
-
-/** 下载附件 */
 const handleDownloadAttachment = (attachment: any) => {
   if (attachment.url) {
     window.open(attachment.url, '_blank');
@@ -195,12 +186,6 @@ const handleDownloadAttachment = (attachment: any) => {
   }
 };
 
-/** 关闭 */
-const handleClose = () => {
-  emit('close');
-};
-
-// 页面加载时获取详情
 onMounted(() => {
   fetchDetail();
 });
@@ -212,14 +197,10 @@ onMounted(() => {
   min-height: 450px;
 }
 
-// 我的问题部分
 .question-section {
   margin-bottom: 24px;
   
   .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
     
     .section-title {
@@ -227,16 +208,6 @@ onMounted(() => {
       font-weight: 600;
       color: #303133;
       margin: 0;
-    }
-    
-    .close-icon {
-      font-size: 20px;
-      color: #909399;
-      cursor: pointer;
-      
-      &:hover {
-        color: #606266;
-      }
     }
   }
   
@@ -290,7 +261,6 @@ onMounted(() => {
   }
 }
 
-// 回复历史部分
 .reply-section {
   .section-title {
     font-size: 16px;
@@ -334,39 +304,6 @@ onMounted(() => {
           line-height: 1.8;
           word-break: break-all;
         }
-        
-        .reply-actions {
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          
-          .more-icon {
-            font-size: 16px;
-            color: #909399;
-            cursor: pointer;
-            
-            &:hover {
-              color: #606266;
-            }
-          }
-          
-          .reply-count {
-            font-size: 13px;
-            color: #303133;
-            font-weight: 500;
-          }
-          
-          .arrow-icon {
-            font-size: 14px;
-            color: #909399;
-            cursor: pointer;
-            
-            &:hover {
-              color: #606266;
-            }
-          }
-        }
       }
       
       .reply-time {
@@ -380,20 +317,12 @@ onMounted(() => {
     padding: 40px 0;
     text-align: center;
   }
-  
-  .pagination-wrapper {
-    margin-top: 24px;
-    display: flex;
-    justify-content: center;
-  }
 }
 
-// 分隔线样式
 :deep(.el-divider--horizontal) {
   margin: 20px 0;
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .message-detail-dialog {
     padding: 16px;
@@ -408,22 +337,5 @@ onMounted(() => {
       }
     }
   }
-  
-  .reply-section {
-    .reply-list {
-      .reply-item {
-        .reply-header {
-          flex-wrap: wrap;
-          
-          .reply-actions {
-            .reply-count {
-              font-size: 12px;
-            }
-          }
-        }
-      }
-    }
-  }
 }
 </style>
-

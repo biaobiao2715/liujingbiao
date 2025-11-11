@@ -125,13 +125,18 @@ export function editActivity(data: any): AxiosPromise<any> {
  * 删除普法活动
  * @param ids 活动ID数组（array[integer]类型，通过Path参数传递）
  * API: DELETE /law/activity/remove/{ids}
+ * Path参数格式：ids (array类型)
+ * 严格按照API文档格式：将数组转为逗号分隔的字符串作为路径参数
  * 示例: DELETE /law/activity/remove/1,2,3
  */
-export function deleteActivity(ids: (string | number)[]): AxiosPromise<any> {
-  // 确保ids是数组，并且转换为字符串数组（用于URL拼接）
-  const idsArray = Array.isArray(ids) ? ids : [ids];
-  // 将ID数组转为逗号分隔的字符串，作为Path参数
-  const idsString = idsArray.map(id => String(id)).join(',');
+export function deleteActivity(ids: number[] | (string | number)[]): AxiosPromise<any> {
+  // 确保ids是数组格式
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error('ids参数必须是非空数组');
+  }
+  
+  // 直接使用ids，保持原始格式，与详情、编辑、取消活动保持一致
+  const idsString = ids.join(',');
   
   return request({
     url: `/skill-server/law/activity/remove/${idsString}`,
@@ -146,11 +151,8 @@ export function deleteActivity(ids: (string | number)[]): AxiosPromise<any> {
  * API: PUT /law/activity/cancel/{id}?cancelReason=xxx
  */
 export function cancelActivity(id: string | number, cancelReason: string): AxiosPromise<any> {
-  // 确保id是字符串或数字
-  const activityId = String(id);
-  
   return request({
-    url: `/skill-server/law/activity/cancel/${activityId}`,
+    url: `/skill-server/law/activity/cancel/${id}`,
     method: 'put',
     params: {
       cancelReason: cancelReason.trim()

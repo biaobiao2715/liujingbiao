@@ -9,76 +9,73 @@
 -->
 <template>
   <div class="address-page">
-    <!-- 标题 -->
-    <div class="title">我发布的采购需求</div>
-    <el-divider />
+    <div class="menu-title">我发布的需求</div>
+    <div class="pading20">
+      <!-- 顶部统计提示 -->
+      <div class="summary-alert">已发布{{ total }}条</div>
 
-    <!-- 顶部统计提示 -->
-    <el-alert class="summary-alert" :center="true" type="warning" :closable="false" :title="`已发布${total}条`" />
+      <!-- 采购需求表格 -->
+      <el-table :data="tableData" v-loading="loading" style="width: 100%" border :empty-text="'暂无采购需求'">
+        <el-table-column type="index" label="序号" width="55" align="center" />
+        <el-table-column prop="categoryName" label="采购类目" align="center" width="160" />
+        <el-table-column label="采购区域" align="center" width="160">
+          <template #default="{ row }">
+            {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="demandDescription" label="采购说明" align="center" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="采购数量" align="center">
+          <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
+        </el-table-column>
+        <el-table-column prop="deliveryDay" label="交付时间/天" align="center" />
+        <el-table-column label="发布状态" align="center">
+          <template #default="{ row }">
+            <dict-text :options="demand_status" :value="row.demandStatus" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="publishTime" label="发布时间" align="center" width="140">
+          <template #default="scope">
+            <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="240" align="center">
+          <template #default="{ row }">
+            <el-button
+              v-if="row.hasQuote == '0'"
+              v-hasPermi="['grain:HnPurchaseDemand:edit']"
+              @click="onEdit(row)"
+              v-throttle
+              text
+              style="color: #ffa113"
+              >修改</el-button
+            >
+            <el-button
+              v-if="row.hasQuote == '1'"
+              v-hasPermi="['grain:HnPurchaseDemand:edit']"
+              @click="onComplete(row)"
+              v-throttle
+              text
+              style="color: #0b79ef"
+              >完成</el-button
+            >
+            <el-button
+              v-if="row.hasQuote == '1'"
+              v-hasPermi="['grain:HnPurchaseDemand:edit']"
+              @click="onDelete(row)"
+              v-throttle
+              text
+              style="color: #ef4d0b"
+              >关闭</el-button
+            >
+            <el-button v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" v-throttle text @click="onDetails(row)">查看</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 采购需求表格 -->
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      style="width: 100%"
-      border
-      size="small"
-      header-cell-class-name="table-header"
-      :empty-text="'暂无采购需求'"
-    >
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column prop="categoryName" label="采购类目" align="center" width="160" />
-      <el-table-column label="采购区域" align="center" width="160">
-        <template #default="{ row }">
-          {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="demandDescription" label="采购说明" align="center" min-width="180" :show-overflow-tooltip="true">
-        <template #default="{ row }">
-          <el-tooltip
-            v-if="row.demandDescription && row.demandDescription.length > 100"
-            effect="dark"
-            :content="row.demandDescription"
-            placement="top"
-          >
-            <span>{{ row.demandDescription.slice(0, 100) + '...' }}</span>
-          </el-tooltip>
-          <span v-else>{{ row.demandDescription }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="采购数量" align="center">
-        <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
-      </el-table-column>
-      <el-table-column prop="deliveryDay" label="交付时间/天" align="center" width="100" />
-      <el-table-column label="发布状态" align="center">
-        <template #default="{ row }">
-          <dict-text :options="demand_status" :value="row.demandStatus" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="publishTime" label="发布时间" align="center" width="140">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="220" align="center">
-        <template #default="{ row }">
-          <el-button link v-if="row.hasQuote == '0'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onEdit(row)"
-            >修改</el-button
-          >
-          <el-button link v-if="row.hasQuote == '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onComplete(row)"
-            >完成</el-button
-          >
-          <el-button link v-if="row.hasQuote == '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="danger" @click="onDelete(row)"
-            >关闭</el-button
-          >
-          <el-button link v-throttle v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" @click="onDetails(row)">查看</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- 分页 -->
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <!-- 分页 -->
+      <div class="flex-center pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
 
     <!-- 详情弹窗 -->
@@ -86,6 +83,7 @@
       <div v-loading="detailLoading" class="detail-body">
         <!-- 采购信息表单 -->
         <el-form ref="formRef" :model="form" label-width="90px" class="detail-form">
+          <el-divider content-position="left"><div class="section-title">采购信息</div></el-divider>
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="采购类型：" prop="categoryName">
@@ -110,7 +108,6 @@
             :data="supplierList"
             border
             size="small"
-            header-cell-class-name="table-header"
             :empty-text="'暂无供应商回复'"
             :default-sort="{ prop: 'replyTime', order: 'descending' }"
           >
@@ -293,19 +290,15 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
 
 /* 顶部提示样式 */
 .summary-alert {
-  margin: 12px 0;
-  border: 1px solid var(--el-color-warning-light-5);
-  border-radius: 4px;
-}
-
-/* 表格标题背景与单元格内边距优化 */
-:deep(.table-header) {
-  background: #fafafa !important;
-  color: var(--el-text-color-primary);
-  font-weight: 600;
-}
-:deep(.el-table--small .cell) {
-  padding: 8px 12px;
+  margin: 15px 0;
+  height: 36px;
+  line-height: 36px;
+  background: rgba(255, 123, 0, 0.1);
+  border-radius: 4px 4px 4px 4px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 14px;
+  color: #ff7b00;
+  text-align: center;
 }
 
 /* 操作按钮间距 */

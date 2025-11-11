@@ -127,33 +127,54 @@ export function getMessageList(query: MessageListQuery): AxiosPromise<MessageLis
 }
 
 /**
- * 获取留言详情
+ * 获取留言详情（使用新的接口）
  */
 export function getMessageDetail(id: string | number): AxiosPromise<MessageDetailResponse> {
   return request({
-    url: `/skill-server/expert/message/${id}`,
+    url: `/skill-server/question/${id}`,
     method: 'get'
   });
 }
 
+// 回复留言接口参数（根据后端API文档：POST /skill-server/answer）
+export interface ReplyAnswerParams {
+  // 必传字段
+  questionId: number | string; // 问题id（必需，integer <int64>，支持string格式以避免大整数精度丢失）
+  answerContent: string; // 回答内容（必需，string）
+  
+  // 可选字段
+  id?: number; // 回答id（可选，integer <int64>，新增时不需要传）
+  answerUserId?: number; // 回答用户id(专家id)（可选，integer <int64>）
+  parentAnswerId?: number; // 父回答id(用于补充追答)（可选，integer <int64>）
+  answerType?: string; // 回答类型:1首次回答 2补充回答（可选，string）
+  replyTime?: string; // 回复时间（可选，string）
+  expertType?: string; // 专家类型（可选，string）
+}
+
 /**
- * 回复留言
+ * 回复留言（新增留言回答）
+ * API路径：POST /skill-server/answer
  */
-export function replyMessage(data: { id: string | number; replyContent: string }): AxiosPromise<any> {
+export function replyMessage(data: ReplyAnswerParams): AxiosPromise<any> {
   return request({
-    url: '/skill-server/expert/message/reply',
+    url: '/skill-server/answer',
     method: 'post',
     data: data
   });
 }
 
 /**
- * 批量删除留言
+ * 关闭留言问题
+ * API路径：DELETE /skill-server/question/stopQuestion/{id}
+ * 根据API文档，需要同时传递路径参数和查询参数
  */
-export function deleteMessage(ids: (string | number)[]): AxiosPromise<any> {
+export function stopQuestion(id: string | number): AxiosPromise<any> {
+  // 确保 id 转换为数字类型（如果可能）
+  const questionId = typeof id === 'string' ? (isNaN(Number(id)) ? id : Number(id)) : id;
+  
   return request({
-    url: `/skill-server/expert/message/${ids.join(',')}`,
-    method: 'delete'
+    url: `/skill-server/question/stopQuestion/${questionId}`,
+    method: 'delete',
+    params: { id: questionId }
   });
 }
-

@@ -127,6 +127,10 @@
     cursor: default !important;
   }
 
+  .el-input__suffix {
+    display: none !important;
+  }
+
   // 去除 el-checkbox 的样式
   .el-checkbox {
     pointer-events: none; // 禁止用户交互

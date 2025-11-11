@@ -1,21 +1,40 @@
 <!--
-  标题: MessageReplyDialog.vue
-  功能: 回复留言弹窗
-  说明: 用于回复用户留言
+  标题: MessageDetailDialog.vue
+  功能: 留言回复弹窗
+  说明: 用于查看留言详细信息
   当前版本: 1.0
 -->
 <template>
   <div class="message-reply-dialog" v-loading="loading">
-    <!-- 问题展示区域 -->
     <div class="question-section">
       <div class="question-header">
         <el-tag class="question-tag">问</el-tag>
-        <span class="question-text">{{ props.messageContent }}</span>
+        <span class="question-text">{{ questionDetail?.questionContent || props.messageContent }}</span>
+        <div class="question-actions">
+          <el-button 
+            v-throttle 
+            type="primary" 
+            size="small" 
+            plain
+            @click="handlePinToTop"
+          >
+            置顶
+          </el-button>
+          <el-button 
+            v-throttle 
+            type="danger" 
+            size="small" 
+            plain
+            @click="handleCloseQuestion"
+            :loading="closing"
+          >
+            关闭
+          </el-button>
+        </div>
       </div>
       
       <div class="question-time" v-if="messageTime">{{ messageTime }}</div>
       
-      <!-- 附件图标 -->
       <div v-if="attachments && attachments.length > 0" class="attachments">
         <el-icon 
           v-for="(attachment, index) in attachments" 
@@ -28,16 +47,15 @@
       </div>
     </div>
 
-    <!-- 回复输入区域 -->
     <div class="reply-input-section">
       <el-form ref="formRef" :model="formData" :rules="rules">
-        <el-form-item prop="replyContent">
+        <el-form-item prop="answerContent">
           <div class="textarea-wrapper">
             <el-input 
-              v-model="formData.replyContent" 
+              v-model="formData.answerContent" 
               type="textarea" 
               :rows="10" 
-              placeholder="输入留言内容"
+              placeholder="输入回复内容"
               maxlength="300"
               resize="none"
               class="reply-textarea"
@@ -54,7 +72,6 @@
       </div>
     </div>
 
-    <!-- 底部按钮 -->
     <div class="footer-buttons">
       <el-button @click="emitCancel">取消</el-button>
       <el-button type="primary" @click="handleSubmit" :loading="saving">
@@ -65,14 +82,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, computed, watch } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { Folder } from '@element-plus/icons-vue';
-import { replyMessage, getMessageDetail } from '@/api/expertServicePlatform/messageManage/index';
+import { replyMessage, getMessageDetail, stopQuestion, type ReplyAnswerParams } from '@/api/expertServicePlatform/messageManage/index';
 
 const props = defineProps<{
   id: string | number | null;
   messageContent: string;
+  rowData?: any;
 }>();
 
 const emit = defineEmits<{
@@ -80,42 +98,62 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
 
-// 表单引用
 const formRef = ref();
-// 保存状态
 const saving = ref(false);
-// 加载状态
 const loading = ref(false);
-
-// 表单数据
+const closing = ref(false);
 const formData = ref({
-  replyContent: ''
+  answerContent: ''
 });
-
-// 留言时间
+const questionDetail = ref<any>(null);
 const messageTime = ref('');
-// 附件列表
 const attachments = ref<any[]>([]);
 
-/** 获取留言详情（用于显示留言时间和附件） */
 const fetchMessageDetail = async () => {
   if (!props.id) return;
   
   loading.value = true;
   try {
     const response: any = await getMessageDetail(props.id);
+    
     if (response && response.code === 200 && response.data) {
-      messageTime.value = response.data.messageTime || '';
-      attachments.value = response.data.attachments || [];
+      const data = response.data;
+      
+      questionDetail.value = {
+        id: data.id,
+        questionNo: data.questionNo || '',
+        questionTitle: data.questionTitle || '',
+        questionContent: data.questionContent || '',
+        publishTime: data.publishTime || '',
+        hnCommonRelevanceFilesVos: data.hnCommonRelevanceFilesVos || [],
+        hnAnswerVoList: data.hnAnswerVoList || []
+      };
+      
+      messageTime.value = data.publishTime || '';
+      
+      if (data.hnCommonRelevanceFilesVos && Array.isArray(data.hnCommonRelevanceFilesVos)) {
+        attachments.value = data.hnCommonRelevanceFilesVos.flatMap((item: any) => {
+          if (item.remoteOssVos && Array.isArray(item.remoteOssVos)) {
+            return item.remoteOssVos.map((file: any) => ({
+              url: file.url || file.name,
+              fileName: file.name || file.originalName,
+              originalName: file.originalName || file.name
+            }));
+          }
+          return [];
+        });
+      } else {
+        attachments.value = [];
+      }
     }
   } catch (error) {
-    // 静默处理，不影响回复功能
+    messageTime.value = '';
+    attachments.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-/** 下载附件 */
 const handleDownloadAttachment = (attachment: any) => {
   if (attachment.url) {
     window.open(attachment.url, '_blank');
@@ -124,21 +162,16 @@ const handleDownloadAttachment = (attachment: any) => {
   }
 };
 
-// 字符计数
-const charCount = computed(() => formData.value.replyContent.length);
-
-// 剩余字符数
+const charCount = computed(() => formData.value.answerContent.length);
 const remainingChars = computed(() => 300 - charCount.value);
 
-// 表单验证规则
 const rules = {
-  replyContent: [
+  answerContent: [
     { required: true, message: '请输入回复内容', trigger: 'blur' },
     { min: 1, max: 300, message: '回复内容不能超过300个字符', trigger: 'blur' }
   ]
 };
 
-/** 提交表单 */
 const handleSubmit = async () => {
   if (!formRef.value) return;
   
@@ -146,16 +179,44 @@ const handleSubmit = async () => {
     const valid = await formRef.value.validate();
     if (!valid) return;
     
-    if (formData.value.replyContent.trim().length === 0) {
+    if (formData.value.answerContent.trim().length === 0) {
       ElMessage.warning('请输入回复内容');
       return;
     }
     
+    let questionId: string | number | null = null;
+    
+    if (props.id !== undefined && props.id !== null && props.id !== '') {
+      questionId = props.id;
+    } else if (props.rowData?.id !== undefined && props.rowData?.id !== null && props.rowData?.id !== '') {
+      questionId = props.rowData.id;
+    } else if (questionDetail.value?.id !== undefined && questionDetail.value?.id !== null && questionDetail.value?.id !== '') {
+      questionId = questionDetail.value.id;
+    }
+    
+    if (!questionId || questionId === '' || (typeof questionId === 'number' && (isNaN(questionId) || questionId <= 0))) {
+      ElMessage.error('问题ID不存在或无效');
+      return;
+    }
+    
+    let finalQuestionId: string | number = questionId;
+    if (typeof questionId === 'string') {
+      const numId = Number(questionId);
+      if (!isNaN(numId) && numId > 0 && numId <= Number.MAX_SAFE_INTEGER) {
+        finalQuestionId = numId;
+      } else if (!isNaN(numId) && numId > 0) {
+        finalQuestionId = questionId;
+      } else {
+        ElMessage.error('问题ID格式错误');
+        return;
+      }
+    }
+    
     saving.value = true;
     
-    const submitData = {
-      id: props.id as string | number,
-      replyContent: formData.value.replyContent.trim()
+    const submitData: ReplyAnswerParams = {
+      questionId: finalQuestionId,
+      answerContent: formData.value.answerContent.trim()
     };
     
     const response: any = await replyMessage(submitData);
@@ -173,15 +234,101 @@ const handleSubmit = async () => {
   }
 };
 
-/** 取消 */
 const emitCancel = () => {
   emit('cancel');
 };
 
-// 页面加载时获取留言详情
-onMounted(() => {
-  fetchMessageDetail();
+const getReplyCount = computed(() => {
+  if (questionDetail.value?.hnAnswerVoList && Array.isArray(questionDetail.value.hnAnswerVoList)) {
+    return questionDetail.value.hnAnswerVoList.length;
+  }
+  return 0;
 });
+
+const handlePinToTop = () => {
+  ElMessage.info('置顶功能开发中...');
+};
+
+const handleCloseQuestion = async () => {
+  let questionId: string | number | null = null;
+  
+  if (props.id !== undefined && props.id !== null && props.id !== '') {
+    questionId = props.id;
+  } else if (props.rowData?.id !== undefined && props.rowData?.id !== null && props.rowData?.id !== '') {
+    questionId = props.rowData.id;
+  } else if (questionDetail.value?.id !== undefined && questionDetail.value?.id !== null && questionDetail.value?.id !== '') {
+    questionId = questionDetail.value.id;
+  }
+  
+  if (!questionId || questionId === '' || (typeof questionId === 'number' && (isNaN(questionId) || questionId <= 0))) {
+    ElMessage.error('问题ID不存在或无效');
+    return;
+  }
+  
+  const replyCount = getReplyCount.value;
+  
+  if (replyCount === 0) {
+    try {
+      await ElMessageBox.confirm(
+        '至少需回复一条信息,请确认是否关闭该会话?',
+        '关闭确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+    } catch (error) {
+      if (error === 'cancel') {
+        return;
+      }
+    }
+  } else {
+    try {
+      await ElMessageBox.confirm(
+        '确认是否关闭该会话?',
+        '关闭确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+    } catch (error) {
+      if (error === 'cancel') {
+        return;
+      }
+    }
+  }
+  
+  closing.value = true;
+  
+  try {
+    const response: any = await stopQuestion(questionId);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('关闭成功');
+      emit('success');
+    } else {
+      ElMessage.error(response?.msg || '关闭失败');
+    }
+  } catch (error: any) {
+    ElMessage.error(error?.msg || '关闭失败，请稍后重试');
+  } finally {
+    closing.value = false;
+  }
+};
+
+watch(
+  () => props.id,
+  (newId) => {
+    if (newId) {
+      formData.value.answerContent = '';
+      fetchMessageDetail();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped lang="scss">
@@ -190,7 +337,6 @@ onMounted(() => {
   min-height: 450px;
 }
 
-// 问题展示区域
 .question-section {
   margin-bottom: 30px;
   
@@ -199,6 +345,7 @@ onMounted(() => {
     align-items: flex-start;
     gap: 8px;
     margin-bottom: 12px;
+    flex-wrap: nowrap;
     
     .question-tag {
       flex-shrink: 0;
@@ -212,10 +359,27 @@ onMounted(() => {
     
     .question-text {
       flex: 1;
+      min-width: 0;
       font-size: 14px;
       color: #303133;
       line-height: 1.8;
-      word-break: break-all;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    
+    .question-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 12px;
+      white-space: nowrap;
+      
+      .el-button {
+        padding: 5px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
     }
   }
   
@@ -242,7 +406,6 @@ onMounted(() => {
   }
 }
 
-// 回复输入区域
 .reply-input-section {
   margin-bottom: 24px;
   
@@ -294,7 +457,6 @@ onMounted(() => {
   }
 }
 
-// 底部按钮
 .footer-buttons {
   display: flex;
   justify-content: center;
@@ -309,7 +471,6 @@ onMounted(() => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .message-reply-dialog {
     padding: 16px;
@@ -332,4 +493,3 @@ onMounted(() => {
   }
 }
 </style>
-

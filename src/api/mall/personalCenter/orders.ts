@@ -33,3 +33,38 @@ export function orderConfirm(id: any) {
     method: 'put'
   });
 }
+
+/**
+ * 图片上传方法
+ * @param data - 包含文件的对象，需包含 `file` 属性
+ * @returns 图片上传结果的 Promise
+ */
+export const ossUploadImage = (data: { file: File }) => {
+  const formData = new FormData();
+  formData.append('file', data.file);
+
+  return request({
+    url: '/resource/oss/upload',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+};
+
+// -------------------- 类型定义 --------------------
+/** 订单条目类型 */
+interface OrderItem {
+  goodsPic: string;
+  goodsName: string;
+  goodsPrice: number | string;
+}
+/** 订单类型 */
+export interface Order {
+  id: number;
+  orderItems: OrderItem[];
+  orderStatus: string;
+  enterprisePhone: string;
+  orderSn: string;
+}

@@ -6,25 +6,22 @@
       </template>
 
       <div class="essat-list">
-        <div class="essay" v-for="(article, index) in articleList" :key="index" @click="handleDetail(article)">
-          <div class="essay-title">
-            {{ article.articleTitle }}
+        <div class="essay flex-center-between" v-for="(article, index) in articleList" :key="index" @click="handleDetail(article)">
+          <div class="essay-left flex-center gap-12">
+            <div class="title">{{ article.articleTitle }}</div>
             <el-tag type="primary">{{ getArticleType(article.articleType) }}</el-tag>
+            <div class="time">{{ article.publishTime }}</div>
           </div>
-          <!-- articleCover 封面url -->
-          <div class="essay-content">
-            <p>{{ article.articleContent }}</p>
-            <div class="essay-footer flex-center gap-12">
-              <div class="views flex-center gap-2">
-                <el-icon size="20"><View /></el-icon>
-                <span>{{ article.viewCount }}</span>
-              </div>
-              <div class="collection flex-center gap-2">
-                <el-icon size="20" v-if="!article.isCollected"><Star /></el-icon>
-                <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-                <span>{{ article.favoriteCount }}</span>
-              </div>
-              <div>{{ article.publishTime }}</div>
+
+          <div class="essay-right flex-center gap-12">
+            <div class="views flex-center gap-2">
+              <el-icon size="20"><View /></el-icon>
+              <span>{{ article.viewCount }}</span>
+            </div>
+            <div class="collection flex-center gap-2">
+              <el-icon size="20" v-if="!article.isCollected"><Star /></el-icon>
+              <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
+              <span>{{ article.favoriteCount }}</span>
             </div>
           </div>
         </div>
@@ -96,15 +93,24 @@ const handleDetail = (article: any) => {
   padding: 12px;
   border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
-  .essay-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 8px;
+  .essay-left {
+    .title {
+      width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .time {
+      font-size: 14px;
+      color: #999;
+    }
   }
   .essay-content {
     margin-bottom: 8px;
   }
-  .essay-footer {
+  .essay-right {
     font-size: 14px;
     color: #666;
   }

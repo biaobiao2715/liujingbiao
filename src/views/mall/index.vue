@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="mall-container flex-column">
-    <div class="home-content" v-show="showHomeContent">
+    <div class="home-content">
       <!-- 头部组件 -->
       <HeaderComponent />
 
@@ -20,7 +20,7 @@
           <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
         </el-tabs>
         <!-- 商品组件 -->
-        <GoodsComponent v-if="activeTab === 'goods'" />
+        <GoodsComponent v-if="activeTab === 'goods'" :id="detailsId" />
         <div v-else-if="activeTab === 'demand'">
           <DemandComponent />
         </div>
@@ -28,12 +28,12 @@
           <MarketComponent />
         </div>
         <div v-else-if="activeTab === 'expert'">
-          <ExpertComponent />
+          <ExpertComponent :id="detailsId" :type="detailsType" />
         </div>
+        <!-- 个人中心 -->
+        <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
       </div>
     </div>
-    <!-- 个人中心 -->
-    <PersonalCenterComponent v-if="!showHomeContent" :command="personalCommand" />
   </div>
 </template>
 
@@ -48,18 +48,26 @@ import PersonalCenterComponent from './personalCenter/index.vue'; // 个人中�
 import { eventBus } from '@/utils/eventBus';
 
 const activeTab = ref('goods');
-
-const showHomeContent = ref(true);
-
 const personalCommand = ref('');
+const detailsId = ref('');
+const detailsType = ref('');
 
 onMounted(() => {
+  //  监听个人中心导航事件
   eventBus.on('navigateToPersonalCenter', (command: string) => {
     personalCommand.value = command;
-    showHomeContent.value = false;
+    activeTab.value = 'personal';
   });
-  eventBus.on('showHomeContentChange', (command: boolean) => {
-    showHomeContent.value = command;
+  // 监听切换Tabs事件
+  eventBus.on('activeTabChange', (command: string) => {
+    activeTab.value = command;
+  });
+  // 监听显示详情页事件
+  eventBus.on('showDetailspage', ({ command, id, type }: { command: string; id: number | string; type: string }) => {
+    activeTab.value = command;
+    detailsId.value = id.toString();
+    detailsType.value = type;
+    console.log('显示详情页:', command, id, type);
   });
 });
 

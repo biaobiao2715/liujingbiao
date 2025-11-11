@@ -7,23 +7,8 @@
     -->
 <template>
   <div class="favorite-page">
-    <el-card shadow="never" class="fav-card">
-      <div class="header">
-        <div class="title">我的收藏夹</div>
-        <el-input
-          v-model="state.queryParams.googsName"
-          placeholder="搜索收藏名称/编号"
-          class="search"
-          clearable
-          @clear="reload"
-          @keyup.enter="reload"
-        >
-          <template #append>
-            <el-button @click="reload" :loading="state.loading" icon="Search">搜索</el-button>
-          </template>
-        </el-input>
-      </div>
-
+    <div class="menu-title">我的收藏夹</div>
+    <div class="pading20">
       <el-tabs v-model="state.activeTab" @tab-change="onTabChange" :loading="state.loading">
         <el-tab-pane v-for="(item, index) in tabList" :key="index" :label="item.label" :name="item.value" />
       </el-tabs>
@@ -61,7 +46,14 @@
                 </div>
                 <div class="flex-between">
                   <div class="name-ellipsis">{{ item.googsName }}</div>
-                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                  <el-button
+                    v-hasPermi="['system:common:favorite']"
+                    @click.stop="onUnfav(item)"
+                    class="fav-heart"
+                    text
+                    v-throttle
+                    :loading="state.opLoadingId === item.id"
+                  >
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
                 </div>
@@ -94,7 +86,14 @@
                 </div>
                 <div class="flex-between">
                   <div class="author">{{ getArticleAuthor(item) }}</div>
-                  <el-button class="fav-heart" text @click.stop="onUnfav(item)" :loading="state.opLoadingId === item.id">
+                  <el-button
+                    v-hasPermi="['system:common:favorite']"
+                    @click.stop="onUnfav(item)"
+                    class="fav-heart"
+                    text
+                    v-throttle
+                    :loading="state.opLoadingId === item.id"
+                  >
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
                 </div>
@@ -113,7 +112,7 @@
           @pagination="reload"
         />
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -123,7 +122,9 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { unifiedFavoriteList, favoriteDelete, FavoriteItem } from '@/api/mall/personalCenter/favorite';
 import { StarFilled } from '@element-plus/icons-vue';
-
+import { useRouter } from 'vue-router';
+import { eventBus } from '@/utils/eventBus';
+const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 本地占位图（可根据实际资源调整路径）
@@ -191,17 +192,15 @@ function onUnfav(item: FavoriteItem) {
       state.opLoadingId = item.id as number;
       // 商品/文章/普法/培训均可用同一个删除接口
       const arr: any = { favoriteType: state.activeTab };
-      if (state.activeTab === '1') {
-        arr.favoriteGoogsBo = { ...item };
-      }
-      if (state.activeTab === '3') {
-        arr.favoriteArticleBo = { ...item };
-      }
-      if (state.activeTab === '4') {
-        arr.hnCourseFavoriteBo = { ...item };
-      }
-      if (state.activeTab === '5') {
-        arr.hnLawFavoriteBo = { ...item };
+      const typeMap: Record<string, string> = {
+        '1': 'favoriteGoogsBo',
+        '3': 'favoriteArticleBo',
+        '4': 'hnCourseFavoriteBo',
+        '5': 'hnLawFavoriteBo'
+      };
+      const key = typeMap[state.activeTab];
+      if (key) {
+        arr[key] = { ...item };
       }
       await favoriteDelete(arr);
       ElMessage.success('已取消收藏');
@@ -213,13 +212,23 @@ function onUnfav(item: FavoriteItem) {
 // 跳转详情（按你项目实际路由调整）
 function goDetail(item: FavoriteItem) {
   const id = item.id;
-  if (state.activeTab === '1') {
-    // 商品详情
-    // router.push(`/mall/goods/detail/${id}`);
-  } else {
-    // 文章详情
-    // router.push(`/platform/article/detail/${id}`);
-  }
+  const commandMap: Record<string, string> = {
+    '1': 'goods',
+    '3': 'expert',
+    '4': 'expert',
+    '5': 'expert'
+  };
+  const type: Record<string, string> = {
+    '1': 'shop', // 商品
+    '3': 'essayDetail', // 文章
+    '4': 'courseDetail', // 培训课程
+    '5': 'lawContentDetail' // 普法内容
+  };
+  eventBus.emit('showDetailspage', {
+    command: commandMap[state.activeTab] || 'goods',
+    id,
+    type: type[state.activeTab] || 'shop'
+  });
 }
 
 // 金额格式化（￥可按需添加）
@@ -282,25 +291,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.favorite-page {
-  padding: 16px;
-}
-.fav-card {
-  width: 100%;
-}
-.header {
+/* 页面布局样式 */
+.menu-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  height: 60px;
+  padding-left: 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
-.title {
-  font-size: 18px;
-  font-weight: 600;
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
 }
-.search {
-  max-width: 360px;
-  margin-left: auto;
+
+.pading20 {
+  padding: 20px;
 }
 
 /* 通用网格（文章等保持自适应） */

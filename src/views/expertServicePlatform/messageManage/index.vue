@@ -6,11 +6,8 @@
 -->
 <template>
   <div class="message-management">
-    <!-- 主要内容区域 - 大盒子 -->
     <div class="main-content-box">
-      <!-- 搜索条件 -->
       <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="100">
-        <!-- 留言时间选择器 -->
         <el-form-item label="留言时间">
           <el-date-picker
             v-model="messageDateRange"
@@ -22,12 +19,10 @@
           />
         </el-form-item>
         
-        <!-- 留言内容搜索框 -->
         <el-form-item label="留言内容" prop="messageContent">
           <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         
-        <!-- 回复时间选择器 -->
         <el-form-item label="回复时间">
           <el-date-picker
             v-model="replyDateRange"
@@ -39,89 +34,83 @@
           />
         </el-form-item>
         
-        <!-- 回复状态下拉框 -->
         <el-form-item label="回复状态" prop="replyStatus">
-          <el-select v-model="queryParams.replyStatus" placeholder="请选择" filterable clearable>
-            <el-option label="已回复" value="1" />
-            <el-option label="未回复" value="0" />
+          <el-select v-model="queryParams.replyStatus" placeholder="请选择状态" filterable clearable>
+            <el-option 
+              v-for="item in replyStatusOptions" 
+              :key="item.value" 
+              :label="item.label" 
+              :value="item.value" 
+            />
           </el-select>
         </el-form-item>
         
-        <!-- 查询和重置按钮 -->
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
 
-      <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar>
       </el-row>
 
-      <!-- 表格展示 -->
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <!-- 留言时间 -->
         <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
           <template #default="scope">
             <span>{{ scope.row.messageTime }}</span>
           </template>
         </el-table-column>
         
-        <!-- 留言内容 -->
         <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
           <template #default="scope">
             <span class="link-type" @click="handleView(scope.row)">{{ scope.row.messageContent }}</span>
           </template>
         </el-table-column>
         
-        <!-- 回复时间 -->
         <el-table-column label="回复时间" align="center" prop="replyTime" min-width="180">
           <template #default="scope">
             <span>{{ scope.row.replyTime || '----' }}</span>
           </template>
         </el-table-column>
         
-        <!-- 回复状态 -->
         <el-table-column label="回复状态" align="center" prop="replyStatus" width="120">
           <template #default="scope">
-            <el-tag :type="scope.row.replyStatus === '1' ? 'success' : 'danger'">
-              {{ scope.row.replyStatus === '1' ? '已回复' : '未回复' }}
-            </el-tag>
+            <dict-tag :options="replyStatusOptions" :value="scope.row.replyStatus" />
           </template>
         </el-table-column>
         
-        <!-- 操作 -->
         <el-table-column label="操作" align="center" width="180">
           <template #default="scope">
             <div class="operation-buttons">
               <el-button 
+                v-if="String(scope.row.replyStatus) === '0'"
                 v-throttle 
-                v-hasPermi="['expert:message:query']" 
-                type="primary" 
-                size="small" 
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['expert:message:reply']" 
+                v-hasPermi="['system:answer:add']" 
                 type="success" 
                 size="small" 
                 @click="handleReply(scope.row)"
               >
                 回复
               </el-button>
+              <el-button 
+                v-else
+                v-throttle 
+                v-hasPermi="['system:question:query']" 
+                type="primary" 
+                size="small" 
+                @click="handleView(scope.row)"
+              >
+                查看
+              </el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <!-- 分页 -->
       <div class="flex-center pagination">
         <Pagination 
           v-show="total > 0" 
@@ -133,7 +122,6 @@
       </div>
     </div>
 
-    <!-- 弹窗：查看详情 -->
     <el-dialog
       v-model="detailDialog.visible"
       title="留言详情"
@@ -154,7 +142,6 @@
       </Suspense>
     </el-dialog>
 
-    <!-- 弹窗：回复留言 -->
     <el-dialog
       v-model="replyDialog.visible"
       title="回复留言"
@@ -167,6 +154,7 @@
           <MessageReplyDialog
             :id="replyDialog.id"
             :message-content="replyDialog.messageContent"
+            :row-data="replyDialog.rowData"
             @success="onReplySuccess"
             @cancel="replyDialog.visible = false"
           />
@@ -180,18 +168,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineAsyncComponent, Suspense } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent, Suspense, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { 
   getMessageList,
   type MessageListQuery 
 } from '@/api/expertServicePlatform/messageManage/index';
 
-// 弹窗组件异步加载
 const MessageDetailDialog = defineAsyncComponent(() => import('./MessageDetailDialog.vue'));
 const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDialog.vue'));
 
-// 搜索表单数据
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+const { msg_status } = toRefs<any>(
+  (proxy as any)?.useDict('msg_status')
+);
+
+const replyStatusOptions = computed(() => {
+  if (msg_status.value && Array.isArray(msg_status.value) && msg_status.value.length > 0) {
+    return msg_status.value;
+  }
+  return [
+    { label: '未回复', value: '0' },
+    { label: '已回复', value: '1' }
+  ];
+});
+
 const queryParams = ref<MessageListQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -199,66 +202,74 @@ const queryParams = ref<MessageListQuery>({
   replyStatus: ''
 });
 
-// 表格数据
 const tableData = ref([]);
-// 总记录数
 const total = ref(0);
-// 加载状态
 const loading = ref(false);
-// 表单引用
 const queryFormRef = ref();
-// 留言日期范围
-const messageDateRange = ref<[string, string]>(['', '']);
-// 回复日期范围
-const replyDateRange = ref<[string, string]>(['', '']);
-// 是否显示搜索
+const messageDateRange = ref<string[] | null>(null);
+const replyDateRange = ref<string[] | null>(null);
 const showSearch = ref(true);
-// 选中的行ID数组
-const selectedIds = ref([]);
-// 选中的行数据数组
-const selectedRows = ref([]);
 
-// 详情弹窗控制
 const detailDialog = ref({
   visible: false,
   id: null as string | number | null
 });
 
-// 回复弹窗控制
 const replyDialog = ref({
   visible: false,
   id: null as string | number | null,
-  messageContent: ''
+  messageContent: '',
+  rowData: null as any
 });
 
-/** 获取留言列表 */
 const getList = () => {
   loading.value = true;
   
-  const [messageStartTime, messageEndTime] = messageDateRange.value || [];
-  const [replyStartTime, replyEndTime] = replyDateRange.value || [];
+  const messageDate = messageDateRange.value;
+  const replyDate = replyDateRange.value;
+  const messageStartTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[0] : null;
+  const messageEndTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[1] : null;
+  const replyStartTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[0] : null;
+  const replyEndTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[1] : null;
+  
+  let questionStatusParam: string | undefined;
+  if (queryParams.value.replyStatus !== '' && queryParams.value.replyStatus !== null) {
+    questionStatusParam = queryParams.value.replyStatus;
+  }
   
   const params: MessageListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
     ...(queryParams.value.messageContent ? { messageContent: queryParams.value.messageContent } : {}),
-    ...(queryParams.value.replyStatus !== '' ? { replyStatus: queryParams.value.replyStatus } : {}),
+    ...(questionStatusParam ? { questionStatus: questionStatusParam } : {}),
     ...(messageStartTime && messageEndTime ? { messageStartTime, messageEndTime } : {}),
-    ...(replyStartTime && replyEndTime ? { replyStartTime: replyStartTime, replyEndTime: replyEndTime } : {})
+    ...(replyStartTime && replyEndTime ? { replyStartTime, replyEndTime } : {})
   };
   
   getMessageList(params).then((res: any) => {
     if (res && res.code === 200) {
-      // 映射API返回的字段到页面显示的字段
-      const rows = (res.rows || []).map((item: any) => ({
-        ...item,
-        // 兼容字段映射：API返回字段 -> 页面显示字段
-        messageContent: item.questionContent || item.messageContent || '', // 问题内容 -> 留言内容
-        messageTime: item.publishTime || item.messageTime || '', // 发布时间 -> 留言时间
-        replyTime: item.latestAnswerTime || item.replyTime || '', // 最新回答时间 -> 回复时间
-        // 根据问题状态判断回复状态：1已回答 表示已回复，0待回答或99已关闭表示未回复
-        replyStatus: item.questionStatus === '1' ? '1' : (item.replyStatus || '0') // 问题状态 -> 回复状态
-      }));
+      const rows = (res.rows || []).map((item: any) => {
+        let replyStatus = '0';
+        const questionStatus = String(item.questionStatus || '');
+        const hasAnswerTime = item.latestAnswerTime && 
+          typeof item.latestAnswerTime === 'string' && 
+          item.latestAnswerTime.trim() !== '';
+        const hasAnswerList = item.hnAnswerVoList && 
+          Array.isArray(item.hnAnswerVoList) && 
+          item.hnAnswerVoList.length > 0;
+        
+        if (questionStatus === '1' || hasAnswerTime || hasAnswerList) {
+          replyStatus = '1';
+        }
+        
+        return {
+          ...item,
+          messageContent: item.questionContent || item.messageContent || '',
+          messageTime: item.publishTime || item.messageTime || '',
+          replyTime: item.latestAnswerTime || item.replyTime || '',
+          replyStatus: replyStatus
+        };
+      });
       tableData.value = rows;
       total.value = res.total || 0;
     } else {
@@ -275,35 +286,26 @@ const getList = () => {
   });
 };
 
-/** 查询按钮事件 */
 const handleSearch = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
-/** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
-/** 重置按钮操作 */
 const handleReset = () => {
   queryFormRef.value?.resetFields();
-  messageDateRange.value = ['', ''];
-  replyDateRange.value = ['', ''];
+  messageDateRange.value = null;
+  replyDateRange.value = null;
   queryParams.value.messageContent = '';
   queryParams.value.replyStatus = '';
+  queryParams.value.pageNum = 1;
   handleQuery();
 };
 
-// 表格选择变化事件
-const handleSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item) => item.id);
-  selectedRows.value = selection;
-};
-
-/** 查看按钮事件 */
 const handleView = (row: any) => {
   detailDialog.value = {
     visible: true,
@@ -311,22 +313,20 @@ const handleView = (row: any) => {
   };
 };
 
-/** 回复按钮事件 */
 const handleReply = (row: any) => {
   replyDialog.value = {
     visible: true,
     id: row.id,
-    messageContent: row.messageContent
+    messageContent: row.messageContent,
+    rowData: row
   };
 };
 
-/** 回复成功回调 */
 const onReplySuccess = () => {
   replyDialog.value.visible = false;
   getList();
 };
 
-// 页面加载时获取列表数据
 onMounted(() => {
   getList();
 });
@@ -339,7 +339,6 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-// 主要内容区域 - 大盒子
 .main-content-box {
   background-color: #fff;
   border-radius: 8px;
@@ -347,7 +346,6 @@ onMounted(() => {
   padding: 24px;
   margin-bottom: 24px;
   
-  // 搜索表单样式
   .el-form {
     margin-bottom: 20px;
     
@@ -360,12 +358,10 @@ onMounted(() => {
     }
   }
   
-  // 操作按钮区域样式
   .mb8 {
     margin-bottom: 16px;
   }
   
-  // 表格样式
   .el-table {
     margin-bottom: 20px;
     
@@ -388,14 +384,12 @@ onMounted(() => {
     }
   }
   
-  // 分页样式
   .pagination {
     margin-top: 20px;
     justify-content: end;
   }
 }
 
-// 链接样式
 .link-type {
   color: #409eff;
   cursor: pointer;
@@ -407,7 +401,6 @@ onMounted(() => {
   }
 }
 
-// 按钮样式优化
 .el-button {
   border-radius: 4px;
   font-weight: 500;
@@ -418,7 +411,6 @@ onMounted(() => {
   }
 }
 
-// 标签样式
 .el-tag {
   border-radius: 4px;
   font-weight: 500;
@@ -436,7 +428,6 @@ onMounted(() => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .message-management {
     padding: 16px;
@@ -447,7 +438,6 @@ onMounted(() => {
   }
 }
 
-// 操作按钮组样式
 .operation-buttons {
   display: flex;
   align-items: center;
@@ -464,4 +454,3 @@ onMounted(() => {
   }
 }
 </style>
-

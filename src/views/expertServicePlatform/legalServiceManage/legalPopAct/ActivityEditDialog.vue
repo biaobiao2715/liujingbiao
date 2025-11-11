@@ -13,7 +13,6 @@
       label-width="140px"
       class="edit-form"
     >
-      <!-- 普法活动标题 -->
       <el-form-item label="普法活动标题" prop="activityTitle" required>
         <el-input 
           v-model="formData.activityTitle" 
@@ -24,7 +23,6 @@
         />
       </el-form-item>
       
-      <!-- 普法简介 -->
       <el-form-item label="普法简介" prop="activitySummary" required>
         <el-input
           v-model="formData.activitySummary"
@@ -37,7 +35,6 @@
         />
       </el-form-item>
       
-      <!-- 普法活动类型 -->
       <el-form-item label="普法活动类型" prop="activityType" required>
         <el-select v-model="formData.activityType" placeholder="请选择" style="width: 100%" clearable>
           <el-option 
@@ -49,7 +46,6 @@
         </el-select>
       </el-form-item>
       
-      <!-- 普法活动地址 -->
       <el-form-item label="普法活动地址" prop="activityAddress" required>
         <el-input 
           v-model="formData.activityAddress" 
@@ -60,7 +56,6 @@
         />
       </el-form-item>
       
-      <!-- 普法活动时间 -->
       <el-form-item label="普法活动时间" required>
         <div class="time-range">
           <div class="time-item">
@@ -95,7 +90,6 @@
         </div>
       </el-form-item>
       
-      <!-- 普法活动联系人 -->
       <el-form-item label="普法活动联系人" prop="activityContact" required>
         <el-input 
           v-model="formData.activityContact" 
@@ -106,12 +100,10 @@
         />
       </el-form-item>
       
-      <!-- 联系人电话 -->
       <el-form-item label="联系人电话" prop="activityContactPhone" required>
         <el-input v-model="formData.activityContactPhone" placeholder="请输入联系电话" clearable />
       </el-form-item>
 
-      <!-- 表单操作按钮 -->
       <div class="form-actions">
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '发布' : '保存' }}
@@ -123,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { 
@@ -144,19 +136,25 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-// 使用字典数据
-const { legal_popularize_activity_type } = toRefs<any>(
+const { legal_popularize_activity_type: legal_popularize_activity_type_raw } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_activity_type')
 );
 
-// 表单引用
+const legal_popularize_activity_type = computed(() => {
+  if (!legal_popularize_activity_type_raw.value || !Array.isArray(legal_popularize_activity_type_raw.value)) {
+    return [];
+  }
+  
+  return legal_popularize_activity_type_raw.value.filter((item: any) => {
+    const value = String(item.value);
+    return value === '0' || value === '1';
+  });
+});
+
 const formRef = ref();
-// 保存状态
 const saving = ref(false);
-// 加载状态
 const loading = ref(false);
 
-// 表单数据
 const formData = ref({
   id: undefined as string | number | undefined,
   activityTitle: '',
@@ -167,10 +165,9 @@ const formData = ref({
   endTime: '',
   activityContact: '',
   activityContactPhone: '',
-  activityStatus: '1' // 活动状态：1-待开始 2-进行中 3-已结束 99-已取消
+  activityStatus: '1'
 });
 
-// 表单验证规则
 const formRules = {
   activityTitle: [
     { required: true, message: '请输入普法活动标题,最多支持30个汉字', trigger: 'blur' },
@@ -196,13 +193,11 @@ const formRules = {
           return;
         }
         
-        // 检查开始时间格式
         if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
           callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
           return;
         }
         
-        // 如果结束时间已选择，则校验开始时间必须小于结束时间
         if (formData.value.endTime) {
           const startDate = new Date(value);
           const endDate = new Date(formData.value.endTime);
@@ -227,13 +222,11 @@ const formRules = {
           return;
         }
         
-        // 检查结束时间格式
         if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
           callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
           return;
         }
         
-        // 如果开始时间已选择，则校验结束时间必须大于开始时间
         if (formData.value.startTime) {
           const startDate = new Date(formData.value.startTime);
           const endDate = new Date(value);
@@ -259,7 +252,6 @@ const formRules = {
   ]
 };
 
-/** 获取活动详情 */
 const fetchActivityDetail = async () => {
   if (!props.id) {
     ElMessage.error('活动ID不存在');
@@ -300,7 +292,6 @@ const fetchActivityDetail = async () => {
   }
 };
 
-/** 格式化当前时间为 YYYY-MM-DD HH:mm:ss */
 const formatCurrentTime = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -312,7 +303,6 @@ const formatCurrentTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-/** 提交表单 */
 const handleSubmit = async () => {
   if (!formRef.value) return;
   
@@ -370,30 +360,23 @@ const handleSubmit = async () => {
   }
 };
 
-/** 取消 */
 const emitCancel = () => {
   emit('cancel');
 };
 
-/** 开始时间改变事件 */
 const handleStartTimeChange = () => {
-  // 当开始时间改变时，如果已有结束时间，则重新校验结束时间
   if (formData.value.endTime && formRef.value) {
     formRef.value.validateField('endTime');
   }
 };
 
-/** 结束时间改变事件 */
 const handleEndTimeChange = () => {
-  // 当结束时间改变时，如果已有开始时间，则重新校验开始时间
   if (formData.value.startTime && formRef.value) {
     formRef.value.validateField('startTime');
   }
 };
 
-// 页面加载时的处理（参考商品部分的写法）
 onMounted(async () => {
-  // 重置表单状态
   formRef.value?.resetFields?.();
   
   if ((props.type === 'edit' || props.type === 'view') && props.id) {
@@ -409,7 +392,6 @@ onMounted(async () => {
   padding: 20px 0;
 }
 
-// 编辑表单
 .edit-form {
   :deep(.el-form-item__label) {
     font-weight: 500;
@@ -417,7 +399,6 @@ onMounted(async () => {
   }
 }
 
-// 时间范围样式
 .time-range {
   display: flex;
   align-items: flex-start;
@@ -436,7 +417,6 @@ onMounted(async () => {
       line-height: 32px;
     }
     
-    // 移除嵌套 form-item 的额外边距
     .el-form-item {
       margin-bottom: 0 !important;
     }
@@ -451,7 +431,6 @@ onMounted(async () => {
   }
 }
 
-// 表单操作按钮
 .form-actions {
   display: flex;
   justify-content: center;
@@ -465,7 +444,6 @@ onMounted(async () => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .time-range {
     flex-direction: column;

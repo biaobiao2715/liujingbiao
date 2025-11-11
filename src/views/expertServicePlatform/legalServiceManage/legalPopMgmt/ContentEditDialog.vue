@@ -7,7 +7,6 @@
 <template>
   <div class="content-edit-dialog" v-loading="loading">
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
-      <!-- 基础信息区域 -->
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="普法标题" prop="contentTitle" required>
@@ -58,15 +57,18 @@
         </el-col>
       </el-row>
 
-      <!-- 正文编辑区域 -->
       <el-form-item label="正文编辑" prop="contentContent" required>
         <div class="editor-container">
-          <!-- 富文本编辑器 -->
           <div class="editor-wrapper">
-            <Editor v-model="formData.contentContent" :height="500" :minHeight="500" />
+            <Editor 
+              v-model="formData.contentContent" 
+              :height="500" 
+              :minHeight="500" 
+              :fileSize="10"
+              :key="editorKey"
+            />
           </div>
           
-          <!-- 文章目录 -->
           <div class="toc-sidebar">
             <div class="toc-header">文章目录</div>
             <div class="toc-content">
@@ -90,7 +92,6 @@
         </div>
       </el-form-item>
 
-      <!-- 附件上传区域 -->
       <div class="attachment-section">
         <div class="attachment-title">附件上传</div>
         <el-upload
@@ -100,7 +101,7 @@
           :show-file-list="false"
           :on-change="handleFileChange"
         >
-          <el-button type="primary" plain>
+          <el-button v-throttle v-hasPermi="['system:oss:upload']" type="primary" plain>
             <el-icon class="el-icon--left"><Upload /></el-icon>
             添加附件
           </el-button>
@@ -109,7 +110,6 @@
           </template>
         </el-upload>
 
-        <!-- 附件列表 -->
         <el-table v-if="attachmentList.length > 0" :data="attachmentList" stripe class="attachment-table">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column prop="fileName" label="附件名称" align="left" :show-overflow-tooltip="true" />
@@ -129,7 +129,6 @@
         </el-table>
       </div>
 
-      <!-- 表单操作按钮 -->
       <div class="form-actions">
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '发布' : '保存' }}
@@ -141,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, watch } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, watch, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document } from '@element-plus/icons-vue';
@@ -164,19 +163,15 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-// 使用字典数据
 const { legal_popularize_type } = toRefs<any>(
   (proxy as any)?.useDict('legal_popularize_type')
 );
 
-// 表单引用
 const formRef = ref();
-// 保存状态
 const saving = ref(false);
-// 加载状态
 const loading = ref(false);
+const editorKey = ref(0);
 
-// 表单数据
 const formData = ref({
   id: undefined as number | undefined,
   contentTitle: '',
@@ -186,7 +181,6 @@ const formData = ref({
   contentContent: ''
 });
 
-// 附件列表
 const attachmentList = ref<Array<{
   ossId?: number;
   fileName: string;
@@ -197,7 +191,6 @@ const attachmentList = ref<Array<{
   uid?: string;
 }>>([]);
 
-// 文章目录列表
 const tocList = ref<Array<{
   id: string;
   text: string;
@@ -205,7 +198,6 @@ const tocList = ref<Array<{
   level: number;
 }>>([]);
 
-// 表单验证规则
 const rules = {
   contentTitle: [
     { required: true, message: '请输入普法标题', trigger: 'blur' },
@@ -227,7 +219,6 @@ const rules = {
   ]
 };
 
-/** 获取内容详情 */
 const fetchContentDetail = async () => {
   if (!props.id) return;
   
@@ -243,17 +234,24 @@ const fetchContentDetail = async () => {
         return;
       }
       
-      // 将接口返回的数据赋值给表单
+      let contentContent = data.contentContent || '';
+      if (!contentContent || (typeof contentContent === 'string' && contentContent.trim() === '')) {
+        contentContent = '';
+      }
+      
       formData.value = {
         id: data.id,
         contentTitle: data.contentTitle || '',
         contentType: data.contentType || '',
         contentStatus: data.contentStatus || '',
         contentSummary: data.contentSummary || '',
-        contentContent: data.contentContent || ''
+        contentContent: contentContent
       };
       
-      // 加载附件数据
+      editorKey.value += 1;
+      await nextTick();
+      await nextTick();
+      
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
         attachmentList.value = data.ossVoList.map((item: any) => ({
           ossId: item.ossId,
@@ -276,13 +274,19 @@ const fetchContentDetail = async () => {
   }
 };
 
-/** 提交表单 */
 const handleSubmit = async () => {
   if (!formRef.value) return;
   
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
+    
+    const contentContent = formData.value.contentContent || '';
+    const textContent = contentContent.replace(/<[^>]*>/g, '').trim();
+    if (!textContent || textContent === '') {
+      ElMessage.warning('请输入正文内容');
+      return;
+    }
     
     const confirmMsg = props.type === 'add' 
       ? '确定要发布此普法内容吗？发布后用户将可以看到此内容。'
@@ -296,18 +300,16 @@ const handleSubmit = async () => {
     
     saving.value = true;
     
-    // 构建提交数据
     const submitData = {
       ...(props.type === 'edit' ? { id: formData.value.id } : {}),
       contentTitle: formData.value.contentTitle,
       contentType: formData.value.contentType,
       contentStatus: formData.value.contentStatus,
       contentSummary: formData.value.contentSummary,
-      contentContent: formData.value.contentContent,
+      contentContent: contentContent,
       ossVoList: attachmentList.value
     };
     
-    // 调用对应的接口
     const api = props.type === 'add' ? addContent : editContent;
     const response: any = await api(submitData);
     
@@ -326,36 +328,57 @@ const handleSubmit = async () => {
   }
 };
 
-/** 取消 */
 const emitCancel = () => {
   emit('cancel');
 };
 
-/** 监听内容变化，自动生成文章目录 */
+const isUpdatingFromWatch = ref(false);
+
 watch(
   () => formData.value.contentContent,
-  (newContent) => {
-    if (!newContent) {
+  (val) => {
+    if (isUpdatingFromWatch.value) {
+      return;
+    }
+    
+    if (!val || val.trim() === '' || val.trim() === '<p></p>') {
       tocList.value = [];
       return;
     }
     
     try {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = newContent;
-      const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      const div = document.createElement('div');
+      div.innerHTML = val;
+      const headings = div.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      const hasIdHeadings = Array.from(headings).filter((el) => (el as HTMLElement).id);
+      const needsUpdate = headings.length > 0 && hasIdHeadings.length !== headings.length;
       
       tocList.value = Array.from(headings).map((el, idx) => {
         const tagName = el.tagName.toUpperCase();
-        const level = parseInt(tagName.substring(1)); // H1 -> 1, H2 -> 2, etc.
+        const level = parseInt(tagName.substring(1));
+        const headingEl = el as HTMLElement;
+        
+        if (!headingEl.id) {
+          headingEl.id = `toc-${idx}`;
+        }
         
         return {
-          id: `toc-heading-${idx}`,
+          id: headingEl.id,
           text: el.textContent?.trim() || '无标题',
           tag: tagName,
           level: level
         };
       });
+      
+      if (needsUpdate) {
+        isUpdatingFromWatch.value = true;
+        nextTick(() => {
+          formData.value.contentContent = div.innerHTML;
+          nextTick(() => {
+            isUpdatingFromWatch.value = false;
+          });
+        });
+      }
     } catch (error) {
       tocList.value = [];
     }
@@ -363,26 +386,20 @@ watch(
   { immediate: true }
 );
 
-/** 滚动到指定标题位置 */
 const scrollToHeading = (id: string) => {
-  // 在实际的富文本编辑器内容中查找对应的标题元素
-  // 由于编辑器可能在 iframe 或 shadow DOM 中，这里提供一个通用的实现
   try {
-    const editorElement = document.querySelector('.editor-wrapper');
-    if (editorElement) {
-      const targetElement = editorElement.querySelector(`#${id}`);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else {
-        ElMessage.info('正在编辑中，目录跳转功能将在保存后生效');
+    const editor = document.querySelector('.ql-editor');
+    if (editor) {
+      const el = editor.querySelector(`#${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   } catch (error) {
-    // 静默处理错误
+    // ignore
   }
 };
 
-/** 文件大小格式化 */
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -391,7 +408,6 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 };
 
-/** 文件验证 */
 const validateFile = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const imageExt = ['jpg', 'jpeg', 'png'];
@@ -413,7 +429,6 @@ const validateFile = (file: File): boolean => {
   return true;
 };
 
-/** 处理文件上传 */
 const handleFileChange = async (file: any) => {
   if (!validateFile(file.raw)) return;
   
@@ -443,7 +458,6 @@ const handleFileChange = async (file: any) => {
   }
 };
 
-/** 预览/下载文件 */
 const handlePreviewFile = async (file: any) => {
   try {
     const response = await fetch(file.url);
@@ -461,7 +475,6 @@ const handlePreviewFile = async (file: any) => {
   }
 };
 
-/** 删除文件 */
 const handleRemoveFile = (file: any) => {
   ElMessageBox.confirm('确定要删除该附件吗？', '删除确认', {
     confirmButtonText: '确定',
@@ -477,12 +490,31 @@ const handleRemoveFile = (file: any) => {
         ElMessage.success('附件删除成功');
       }
     })
-    .catch(() => {
-      // 用户取消删除
-    });
+    .catch(() => {});
 };
 
-// 页面加载时的处理
+watch(
+  () => props.id,
+  (newId) => {
+    if (props.type === 'edit' && newId) {
+      fetchContentDetail();
+    } else if (props.type === 'add') {
+      formData.value = {
+        id: undefined,
+        contentTitle: '',
+        contentType: '',
+        contentStatus: '',
+        contentSummary: '',
+        contentContent: ''
+      };
+      attachmentList.value = [];
+      tocList.value = [];
+      editorKey.value += 1;
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   if (props.type === 'edit' && props.id) {
     fetchContentDetail();
@@ -495,7 +527,6 @@ onMounted(() => {
   padding: 20px 0;
 }
 
-// 编辑器容器 - 左右布局
 .editor-container {
   display: flex;
   gap: 0;
@@ -506,32 +537,29 @@ onMounted(() => {
   overflow: hidden;
 }
 
-// 编辑器包装器 - 左侧主编辑区
 .editor-wrapper {
   flex: 1;
   min-width: 0;
   background: #ffffff;
   border-right: 1px solid #dcdfe6;
   
-  :deep(.w-e-text-container) {
-    border: none !important;
-    border-radius: 0;
-  }
-  
-  :deep(.w-e-toolbar) {
+  :deep(.ql-toolbar) {
     border: none !important;
     border-bottom: 1px solid #dcdfe6 !important;
     border-radius: 0;
     background-color: #fafafa;
   }
   
-  :deep(.w-e-text-placeholder) {
-    color: #c0c4cc;
-    font-style: normal;
+  :deep(.ql-container) {
+    border: none !important;
+    border-radius: 0;
+  }
+  
+  :deep(.ql-editor) {
+    min-height: 450px;
   }
 }
 
-// 文章目录侧边栏 - 右侧
 .toc-sidebar {
   width: 260px;
   min-width: 260px;
@@ -603,7 +631,6 @@ onMounted(() => {
       white-space: nowrap;
     }
     
-    // 不同层级的缩进
     &.toc-level-1 {
       font-weight: 600;
       font-size: 13px;
@@ -658,7 +685,6 @@ onMounted(() => {
   }
 }
 
-// 表单操作按钮
 .form-actions {
   display: flex;
   justify-content: center;
@@ -672,7 +698,6 @@ onMounted(() => {
   }
 }
 
-// 附件上传区域
 .attachment-section {
   margin: 32px 0;
   padding: 20px;
@@ -721,7 +746,6 @@ onMounted(() => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .editor-container {
     flex-direction: column;
@@ -752,7 +776,6 @@ onMounted(() => {
   }
 }
 
-// 中等屏幕优化
 @media (min-width: 769px) and (max-width: 1024px) {
   .toc-sidebar {
     width: 200px;
