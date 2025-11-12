@@ -85,14 +85,14 @@
               v-hasPermi="['system:baseEnterpriseInfo:query']"
               >查看</el-button
             >
-            <el-button
+            <!-- <el-button
               v-if="scope.row.reviewStatus === '1'"
               v-throttle
               type="primary"
               @click="handleEdit(scope.row, 'edit')"
               v-hasPermi="['system:baseEnterpriseInfo:edit']"
               >编辑</el-button
-            >
+            > -->
             <el-button
               v-throttle
               v-if="scope.row.reviewStatus === '0'"

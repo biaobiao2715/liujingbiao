@@ -102,14 +102,14 @@
             @click="handleEdit(scope.row, 'view')"
             >查看</el-button
           >
-          <el-button
+          <!-- <el-button
             v-throttle
             v-hasPermi="['system:business:edit']"
             v-if="scope.row.reviewStatus === '1'"
             type="primary"
             @click="handleEdit(scope.row, 'edit')"
             >编辑</el-button
-          >
+          > -->
         </template>
       </el-table-column>
     </el-table>

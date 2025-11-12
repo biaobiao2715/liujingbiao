@@ -31,13 +31,17 @@
     <!-- 编辑器内容 -->
     <ContentWithToc :content="detail?.cultivateContent" ref="contentWithTocRef" />
     <!-- 附件部分 -->
-    <el-table :data="detail?.commonRelevanceFilesVos" class="mt-24">
-      <el-table-column prop="type" label="附件类型" width="180" />
-      <el-table-column prop="name" label="文件名" />
-      <el-table-column prop="size" label="文件大小" width="180" />
+    <el-table :data="fileList" class="mt-24">
+      <el-table-column prop="fileSuffix" label="附件类型" width="180" />
+      <el-table-column prop="originalName" label="文件名" />
+      <el-table-column prop="size" label="文件大小" width="180">
+        <template #default="scope">
+          {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="downloadUrl" label="下载">
         <template #default="scope">
-          <el-button type="primary" size="small" :href="scope.row.remoteOssVos" download> 下载 </el-button>
+          <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -49,7 +53,7 @@ import { ref } from 'vue';
 import ContentWithToc from '@/components/ContentWithToc/index.vue';
 import { getArticle, addViewRecords } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { addToFavorites, checkFavorite } from '@/api/mall/index';
-
+import { formatFileSize } from '@/utils/fileUtils';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
@@ -62,6 +66,8 @@ const props = defineProps({
 const detail = ref();
 
 const isCollected = ref(false);
+
+const fileList = ref([]);
 
 onMounted(async () => {
   // 根据传入的ID获取课程详情
@@ -77,6 +83,7 @@ const getArticleDetail = async () => {
   const res = await getArticle(props.id);
   if (res.code === 200) {
     detail.value = res.data || {};
+    fileList.value = detail.value.commonRelevanceFilesVos[0].remoteOssVos || [];
   }
 };
 
@@ -102,12 +109,25 @@ const handleCollection = async () => {
     }
   });
   if (res.code === 200) {
-    ElMessage.success(isCollected.value ? '取消收藏' : '收藏成功');
+    ElMessage.success(res.msg);
     // 刷新文章详情
-    getArticleDetail();
+    await getArticleDetail();
     // 刷新收藏状态
-    getIsCollect();
+    await getIsCollect();
   }
+};
+
+// 增加下载量
+const addDownloadCount = async (item: any) => {
+  // 利用a标签 下载文件到本地
+  const a = document.createElement('a');
+  a.href = item.url;
+  a.target = '_blank';
+  a.download = item.name || '';
+  document.body.appendChild(a);
+  a.click();
+  // 移除a标签
+  document.body.removeChild(a);
 };
 </script>
 
