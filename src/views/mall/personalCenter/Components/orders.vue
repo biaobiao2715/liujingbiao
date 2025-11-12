@@ -91,28 +91,31 @@
 
       <!-- 举报商品弹窗 -->
       <el-dialog v-model="reportDialogVisible" title="我要举报" width="600px" :close-on-click-modal="false">
-        <el-form :model="reportForm" label-width="120px">
+        <el-form :model="reportForm" :rules="reportRules" ref="reportFormRef" label-width="120px">
           <!-- 举报类别 -->
-          <el-form-item label="举报类别" required>
+          <el-form-item label="举报类别" prop="type">
             <el-select v-model="reportForm.type" placeholder="请选择">
               <el-option label="假冒伪劣" value="1" />
               <el-option label="虚假宣传" value="2" />
               <el-option label="其他" value="3" />
             </el-select>
           </el-form-item>
+
           <!-- 被举报方 -->
-          <el-form-item label="被举报方" required>
+          <el-form-item label="被举报方" prop="target">
             <el-input v-model="reportForm.target" placeholder="带出被举报方信息" />
           </el-form-item>
+
           <!-- 举报商品 -->
-          <el-form-item label="举报商品" required>
+          <el-form-item label="举报商品" prop="goods">
             <el-input v-model="reportForm.goods" placeholder="带出举报商品信息" />
           </el-form-item>
+
           <!-- 举报材料上传 -->
-          <el-form-item label="举报材料" required class="uploadcss">
+          <el-form-item label="举报材料" prop="materials" class="uploadcss">
             <el-upload
               :file-list="hnGoodsFilesList"
-              :limit="6"
+              :limit="9"
               ref="refShop"
               list-type="picture-card"
               action="#"
@@ -120,14 +123,16 @@
               :http-request="uploadFile"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
+              :on-change="onUploadChange"
             >
               <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
             </el-upload>
             <div>1.支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张图片大小不超过10MB</div>
             <div>2.支持MP4、mov、avi三种视频格式，最多上传三个视频，每个视频限制大小200MB</div>
           </el-form-item>
+
           <!-- 举报描述 -->
-          <el-form-item label="举报描述" required>
+          <el-form-item label="举报描述" prop="desc" required>
             <el-input
               type="textarea"
               v-model="reportForm.desc"
@@ -171,17 +176,41 @@ const loading = ref(false);
 
 /** 举报弹窗相关 */
 const reportDialogVisible = ref(false);
-const reportForm = ref({
+const reportFormRef = ref();
+
+// 表单模型，增加一个 materials 字段用于配合校验（与上传列表联动）
+const reportForm = reactive({
   type: '',
   target: '',
   goods: '',
-  materials: [],
-  desc: ''
+  desc: '',
+  materials: []
 });
-const hnGoodsFilesList = ref<any[]>([]);
-const refShop = ref<any>(null);
-const currentReportRow = ref<any>(null);
-let timer: NodeJS.Timeout | null = null;
+const hnGoodsFilesList = ref<any[]>([]); // 上传的文件列表
+const refShop = ref<any>(null); // 上传组件实例
+let timer: NodeJS.Timeout | null = null; // 防抖定时器
+// 自定义校验：至少上传一份材料
+const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => void) => {
+  if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) {
+    callback(new Error('请至少上传一份举报材料'));
+  } else {
+    callback();
+  }
+};
+// 表单校验规则
+const reportRules = reactive({
+  type: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
+  target: [
+    { required: true, message: '请输入被举报方', trigger: 'blur' },
+    { min: 2, max: 50, message: '长度为 2-50 个字符', trigger: 'blur' }
+  ],
+  goods: [{ required: true, message: '请输入举报商品', trigger: 'blur' }],
+  desc: [
+    { required: true, message: '请输入举报描述', trigger: 'blur' },
+    { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
+  ],
+  materials: [{ validator: validateMaterials, trigger: 'change' }]
+});
 
 // -------------------- 方法定义 --------------------
 
@@ -270,12 +299,12 @@ const confirmReceipt = async (orderId: number) => {
  * @param row 当前订单行
  */
 const openReportDialog = (row: any) => {
-  currentReportRow.value = row;
-  reportForm.value.type = '';
-  reportForm.value.target = row.enterprisePhone || '';
-  reportForm.value.goods = row.orderItems[0]?.goodsName || '';
-  reportForm.value.materials = [];
-  reportForm.value.desc = '';
+  // currentReportRow.value = row;
+  reportForm.type = '';
+  reportForm.target = row.enterpriseName || '';
+  reportForm.goods = row.orderItems[0]?.goodsName || '';
+  reportForm.materials = [];
+  reportForm.desc = '';
   hnGoodsFilesList.value = [];
   reportDialogVisible.value = true;
 };
@@ -284,9 +313,19 @@ const openReportDialog = (row: any) => {
  * 提交举报
  */
 const submitReport = () => {
-  // 提交举报逻辑，可根据实际需求调用接口
-  ElMessage.success('举报已提交');
-  reportDialogVisible.value = false;
+  reportForm.materials = hnGoodsFilesList.value;
+  reportFormRef.value
+    ?.validate()
+    .then(() => {
+      // 校验通过，提交举报逻辑
+      console.log('举报内容:', reportForm);
+      ElMessage.success('举报已提交');
+      reportDialogVisible.value = false;
+    })
+    .catch(() => {
+      // 校验不通过，不提交举报
+      ElMessage.error('请填写完整举报信息');
+    });
 };
 
 /**
@@ -343,42 +382,41 @@ const handleExceed = () => ElMessage.error(`上传文件数量不能超过6个!`
  * @param file 文件对象
  * @returns 是否允许上传
  */
-const handleBeforeUpload = (file: any) => {
-  // 支持的图片和视频类型
-  const imageTypes = ['jpg', 'jpeg', 'png'];
-  const videoTypes = ['mp4', 'mov', 'avi'];
-
-  // 获取文件扩展名
-  let fileExtension = '';
-  if (file.name.lastIndexOf('.') > -1) {
-    fileExtension = file.name.slice(file.name.lastIndexOf('.') + 1).toLowerCase();
-  }
-
-  // 判断文件类型
-  const isImage = imageTypes.includes(fileExtension);
-  const isVideo = videoTypes.includes(fileExtension);
+const handleBeforeUpload = (file: File) => {
+  const isImage = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
+  const isVideo = ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(file.type); // mp4/mov/avi
 
   if (!isImage && !isVideo) {
-    ElMessage.error('文件格式不正确, 仅支持jpg/jpeg/png图片或mp4/mov/avi视频!');
+    ElMessage.error('仅支持图片(jpg/jpeg/png)或视频(mp4/mov/avi)');
+    return false;
+  }
+  if (isImage && file.size / 1024 / 1024 > 10) {
+    ElMessage.error('单张图片大小不能超过 10MB');
+    return false;
+  }
+  if (isVideo && file.size / 1024 / 1024 > 200) {
+    ElMessage.error('单个视频大小不能超过 200MB');
     return false;
   }
 
-  // 图片最大10MB，视频最大200MB
-  const maxImageSize = 10; // MB
-  const maxVideoSize = 200; // MB
-  const fileSizeMB = file.size / 1024 / 1024;
+  // 按类型分别限制数量：图片 <= 6，视频 <= 3
+  const imgCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('image/')).length;
+  const videoCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('video/')).length;
 
-  if (isImage && fileSizeMB > maxImageSize) {
-    ElMessage.error(`上传图片大小不能超过 ${maxImageSize} MB!`);
+  if (isImage && imgCount >= 6) {
+    ElMessage.error('最多上传 6 张图片');
     return false;
   }
-  if (isVideo && fileSizeMB > maxVideoSize) {
-    ElMessage.error(`上传视频大小不能超过 ${maxVideoSize} MB!`);
+  if (isVideo && videoCount >= 3) {
+    ElMessage.error('最多上传 3 个视频');
     return false;
   }
-
-  proxy?.$modal.loading('正在上传文件，请稍候...');
   return true;
+};
+
+// 当文件列表变化时，让表单重新校验“举报材料”
+const onUploadChange = () => {
+  reportFormRef.value?.validateField('materials');
 };
 
 // -------------------- 生命周期 --------------------

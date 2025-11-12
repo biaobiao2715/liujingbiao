@@ -255,13 +255,20 @@ const removeFile = (file: any) => {
 
 onMounted(async () => {
   if (props.id) {
-    console.log('[Edit]', props.id);
     const res = await getArticle(props.id);
     if ((res?.code ?? 500) === 200) {
       form.value = {
         ...form.value,
         ...res.data
       };
+      // 主图和规格数据不带入
+      fileListtable.value = res.data.commonRelevanceFilesVos.map((file: any) => ({
+        fileName: file.originalName || '商品主图',
+        url: file.url,
+        fileType: '1',
+        ossId: file.ossId,
+        path: file.url
+      }));
     } else {
       ElMessage.error(res?.msg ?? '获取文章信息失败');
     }
