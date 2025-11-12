@@ -3,7 +3,6 @@
   功能: 维权白皮书管理
   说明: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用停用、版本更新等操作
   当前版本: 1.0
-  开发信息: Created by AI Assistant
 -->
 <template>
   <div class="white-paper-management">
@@ -254,15 +253,6 @@
           </el-upload>
         </el-form-item>
         
-        <el-form-item label="请输入版本号:" prop="version" required>
-          <el-input
-            v-model="versionFormData.version"
-            placeholder="请输入版本号"
-            clearable
-            maxlength="20"
-          />
-        </el-form-item>
-        
         <el-form-item label="备注:">
           <el-input
             v-model="versionFormData.remark"
@@ -324,7 +314,6 @@ const queryFormRef = ref();
 const dateRange = ref(['', '']);
 const showSearch = ref(true);
 const selectedIds = ref([]);
-const selectedRows = ref([]);
 
 const dialog = ref({
   visible: false,
@@ -345,17 +334,12 @@ const versionFormRef = ref();
 
 const versionFormData = ref({
   file: null as any,
-  version: '',
   remark: ''
 });
 
 const versionFormRules = {
   file: [
     { required: true, message: '请上传文件', trigger: 'change' }
-  ],
-  version: [
-    { required: true, message: '请输入版本号', trigger: 'blur' },
-    { pattern: /^[\d.]+$/, message: '版本号格式不正确，只能包含数字和点', trigger: 'blur' }
   ]
 };
 
@@ -386,7 +370,6 @@ const getStatusLabel = (status: string | number) => {
   return status;
 };
 
-// 统一状态判断，兼容 数字/字符串/中文
 const isEnabled = (status: string | number) => {
   return normalizeStatus(status) === '1';
 };
@@ -446,7 +429,6 @@ const handleReset = () => {
 
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
-  selectedRows.value = selection;
 };
 
 const getDialogTitle = () => {
@@ -493,7 +475,6 @@ const handleEnable = async () => {
       ElMessage.success(`成功启用${ids.length}个白皮书`);
       await getList();
       selectedIds.value = [];
-      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '启用失败，请重试');
     }
@@ -533,7 +514,6 @@ const handleDisable = async () => {
       ElMessage.success(`成功停用${ids.length}个白皮书`);
       await getList();
       selectedIds.value = [];
-      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '停用失败，请重试');
     }
@@ -571,7 +551,6 @@ const handleDelete = async () => {
       ElMessage.success(`成功删除 ${ids.length} 个白皮书`);
       await getList();
       selectedIds.value = [];
-      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '删除失败，请重试');
     }
@@ -597,16 +576,41 @@ const onDialogSuccess = () => {
   getList();
 };
 
+const getNextVersion = (currentVersion?: string | null): string => {
+  if (!currentVersion || !currentVersion.trim()) {
+    return '1.0';
+  }
+  
+  const versionStr = currentVersion.trim();
+  const versionPattern = /^(\d+)\.(\d+)$/;
+  const match = versionStr.match(versionPattern);
+  
+  if (!match) {
+    return '1.0';
+  }
+  
+  const majorVersion = parseInt(match[1], 10);
+  let minorVersion = parseInt(match[2], 10);
+  
+  minorVersion += 1;
+  
+  if (minorVersion > 99) {
+    return `${majorVersion + 1}.0`;
+  }
+  
+  return `${majorVersion}.${minorVersion}`;
+};
+
 const handleUpdateVersion = (row: any) => {
   versionDialog.value.visible = true;
-  versionDialog.value.currentVersion = row.currentVersion || '1.0';
+  const currentVersion = row.currentVersion || '1.0';
+  versionDialog.value.currentVersion = currentVersion;
   versionDialog.value.paperTitle = row.paperTitle || '';
   versionDialog.value.rowId = row.id;
   versionDialog.value.uploading = false;
   
   versionFormData.value = {
     file: null,
-    version: '',
     remark: ''
   };
   
@@ -624,7 +628,6 @@ const handleVersionDialogClose = () => {
   versionDialog.value.visible = false;
   versionFormData.value = {
     file: null,
-    version: '',
     remark: ''
   };
   if (uploadRef.value) {
@@ -696,11 +699,6 @@ const handleVersionConfirm = async () => {
       return;
     }
     
-    if (!versionFormData.value.version || !versionFormData.value.version.trim()) {
-      ElMessage.error('请输入版本号');
-      return;
-    }
-    
     if (!versionDialog.value.rowId) {
       ElMessage.error('缺少白皮书ID');
       return;
@@ -725,7 +723,8 @@ const handleVersionConfirm = async () => {
         const ossData = uploadResponse.data;
         const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
         
-        const newVersion = versionFormData.value.version.trim();
+        const currentVersion = versionDialog.value.currentVersion || '1.0';
+        const newVersion = getNextVersion(currentVersion);
         
         const ossVoList = [{
           ossId: ossData.ossId || 0,
@@ -795,7 +794,6 @@ const handleStatusChange = async (row: any, status: string) => {
     
     if (response && response.code === 200) {
       ElMessage.success(`${status}成功`);
-      // 本地立即更新状态，按钮即时切换；不立即刷新列表，避免闪烁与按钮短暂消失
       row.paperStatus = status === '启用' ? '1' : '0';
     } else {
       ElMessage.error(response?.msg || `${status}失败，请稍后重试`);
@@ -834,20 +832,16 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
-// 统一解析白皮书主键ID，保证与“查看详情”一致
 const getPaperPrimaryId = (row: any): number | string | null => {
   if (!row) return null;
-  // 优先使用 id；兼容后端可能返回的 paperId / paperNo
   const cand = row.id ?? row.paperId ?? row.paperNo ?? null;
   if (cand === null || cand === undefined) return null;
-  // 保持与详情使用的格式一致（详情接受字符串或数字），此处原样返回，但优先转为数字成功时返回数字
   const n = Number(cand);
   return Number.isFinite(n) && String(n) === String(cand) ? n : cand;
 };
 
 const handleDownload = async (row: any) => {
   try {
-    // 统一从“详情”接口用相同的 id 获取附件后下载，保证与查看详情的 id 一致
     const paperId = getPaperPrimaryId(row);
     if (paperId === null) {
       ElMessage.error('缺少白皮书ID');
@@ -859,14 +853,12 @@ const handleDownload = async (row: any) => {
       ? data.latestFiles
       : (Array.isArray(data.ossVoList) ? data.ossVoList : []);
 
-    // 仅使用“最新附件”的id进行下载（按照业务要求）
     const latest = Array.isArray(data.latestFiles) && data.latestFiles.length ? data.latestFiles[0] : null;
     if (latest) {
       const preferredOssId = latest.ossId || (latest.sysOssLists && latest.sysOssLists[0] && latest.sysOssLists[0].ossId);
       const preferredUrl = latest.url || (latest.sysOssLists && latest.sysOssLists[0] && latest.sysOssLists[0].url);
 
       if (preferredOssId) {
-        // 注意：ossId 可能是超大整数字符串，不能用 Number 转换以免精度丢失
         (proxy as any)?.$download?.oss(String(preferredOssId));
         return;
       }
@@ -875,7 +867,6 @@ const handleDownload = async (row: any) => {
         return;
       }
     } else {
-      // 无 latestFiles 时，再回退到 ossVoList 的第一个
       const first = attachments && attachments[0];
       const nestedUrl = first?.sysOssLists && first.sysOssLists[0] && first.sysOssLists[0].url;
       if (first) {

@@ -60,13 +60,10 @@
             <template #default="scope">
               <el-input 
                 v-model="scope.row.version" 
-                placeholder="请输入版本号" 
-                clearable
+                placeholder="版本号" 
+                disabled
                 size="small"
-                @blur="validateVersion(scope.row)"
               />
-              <div v-if="scope.row.versionError" class="version-tip">{{ scope.row.versionError }}</div>
-              <div v-else-if="!scope.row.version" class="version-tip">请输入版本号</div>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200" align="center">
@@ -349,6 +346,81 @@ const getFileTypeName = (suffix: string): string => {
   return typeMap[suffix.toLowerCase()] || '文档';
 };
 
+const getNextVersion = (currentVersion?: string | null): string => {
+  if (!currentVersion || !currentVersion.trim()) {
+    return '1.0';
+  }
+  
+  const versionStr = currentVersion.trim();
+  const versionPattern = /^(\d+)\.(\d+)$/;
+  const match = versionStr.match(versionPattern);
+  
+  if (!match) {
+    return '1.0';
+  }
+  
+  const majorVersion = parseInt(match[1], 10);
+  let minorVersion = parseInt(match[2], 10);
+  
+  minorVersion += 1;
+  
+  if (minorVersion > 99) {
+    return `${majorVersion + 1}.0`;
+  }
+  
+  return `${majorVersion}.${minorVersion}`;
+};
+
+const getLatestVersion = (): string => {
+  if (attachmentList.value.length > 0) {
+    const versions = attachmentList.value
+      .map(item => item.version)
+      .filter(v => v && v.trim())
+      .sort((a, b) => {
+        const aMatch = a.match(/^(\d+)\.(\d+)$/);
+        const bMatch = b.match(/^(\d+)\.(\d+)$/);
+        if (!aMatch || !bMatch) return 0;
+        const aMajor = parseInt(aMatch[1], 10);
+        const aMinor = parseInt(aMatch[2], 10);
+        const bMajor = parseInt(bMatch[1], 10);
+        const bMinor = parseInt(bMatch[2], 10);
+        if (aMajor !== bMajor) return bMajor - aMajor;
+        return bMinor - aMinor;
+      });
+    
+    if (versions.length > 0) {
+      return versions[0];
+    }
+  }
+  
+  if (detailData.value.currentVersion) {
+    return detailData.value.currentVersion;
+  }
+  
+  if (historyVersions.value.length > 0) {
+    const versions = historyVersions.value
+      .map(item => item.version)
+      .filter(v => v && v.trim())
+      .sort((a, b) => {
+        const aMatch = a.match(/^(\d+)\.(\d+)$/);
+        const bMatch = b.match(/^(\d+)\.(\d+)$/);
+        if (!aMatch || !bMatch) return 0;
+        const aMajor = parseInt(aMatch[1], 10);
+        const aMinor = parseInt(aMatch[2], 10);
+        const bMajor = parseInt(bMatch[1], 10);
+        const bMinor = parseInt(bMatch[2], 10);
+        if (aMajor !== bMajor) return bMajor - aMajor;
+        return bMinor - aMinor;
+      });
+    
+    if (versions.length > 0) {
+      return versions[0];
+    }
+  }
+  
+  return '';
+};
+
 const validateFile = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
@@ -423,6 +495,12 @@ const handleFileChange = async (file: any) => {
       const ossData = response.data;
       const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
       
+      let newVersion = '1.0';
+      if (props.type === 'edit') {
+        const latestVersion = getLatestVersion();
+        newVersion = getNextVersion(latestVersion);
+      }
+      
       attachmentList.value.push({
         ossId: ossData.ossId,
         fileName: ossData.fileName || ossData.originalName || rawFile.name,
@@ -431,7 +509,7 @@ const handleFileChange = async (file: any) => {
         fileSuffix: fileSuffix,
         url: ossData.url,
         fileSize: formatFileSize(rawFile.size),
-        version: '',
+        version: newVersion,
         versionError: '',
         uid: file.uid || Date.now() + Math.random()
       });
@@ -475,6 +553,12 @@ const handleReplaceFile = async (row: any) => {
         const ossData = response.data;
         const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
         
+        let newVersion = '1.0';
+        if (props.type === 'edit') {
+          const latestVersion = getLatestVersion();
+          newVersion = getNextVersion(latestVersion);
+        }
+        
         Object.assign(row, {
           ossId: ossData.ossId,
           fileName: ossData.fileName,
@@ -482,10 +566,12 @@ const handleReplaceFile = async (row: any) => {
           fileType: getFileTypeName(fileSuffix),
           fileSuffix: fileSuffix,
           url: ossData.url,
-          fileSize: formatFileSize(file.size)
+          fileSize: formatFileSize(file.size),
+          version: newVersion,
+          versionError: ''
         });
         
-        ElMessage.success('文件替换成功');
+        ElMessage.success(props.type === 'add' ? '文件替换成功' : '文件替换成功，版本号已自动更新');
       } else {
         ElMessage.error(response?.msg || '文件上传失败');
       }
@@ -705,16 +791,7 @@ const handleSubmit = async () => {
     if (attachmentList.value.length > 0) {
       const hasEmptyVersion = attachmentList.value.some(item => !item.version || !item.version.trim());
       if (hasEmptyVersion) {
-        ElMessage.warning('请为所有附件填写版本号');
-        return;
-      }
-      
-      const hasInvalidVersion = attachmentList.value.some(item => {
-        validateVersion(item);
-        return item.versionError;
-      });
-      if (hasInvalidVersion) {
-        ElMessage.warning('请检查版本号格式，版本号只能输入数字（例如：1.0）');
+        ElMessage.warning('附件版本号异常，请重新上传附件');
         return;
       }
     }
