@@ -112,8 +112,12 @@
           </el-table-column>
           <el-table-column prop="fileName" label="附件名称" align="left" :show-overflow-tooltip="true" />
           <el-table-column prop="fileSize" label="文件大小" width="120" align="center" />
-          <el-table-column label="操作" width="220" align="center">
+          <el-table-column label="操作" width="300" align="center">
             <template #default="scope">
+              <el-button type="primary" link @click="handleDownloadFile(scope.row)">
+                <el-icon><Download /></el-icon>
+                下载
+              </el-button>
               <el-button type="primary" link @click="handleReuploadFile(scope.row)" v-hasPermi="['system:oss:upload']">
                 <el-icon><Upload /></el-icon>
                 重新上传
@@ -141,7 +145,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, watch, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Upload, View, Delete, Document } from '@element-plus/icons-vue';
+import { Upload, View, Delete, Document, Download } from '@element-plus/icons-vue';
 import { 
   getContentDetail, 
   addContent,
@@ -149,6 +153,7 @@ import {
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
+import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -497,6 +502,29 @@ const handleRemoveFile = (file: any) => {
       }
     })
     .catch(() => {});
+};
+
+const handleDownloadFile = async (file: any) => {
+  try {
+    // 优先使用 ossId 通过后端接口下载
+    if (file.ossId) {
+      (proxy as any)?.$download?.oss(String(file.ossId));
+      return;
+    }
+    
+    // 如果没有 ossId，但有 url，则直接下载
+    if (file.url) {
+      const fileName = file.originalName || file.fileName || '附件';
+      downloadFileByUrl(file.url, fileName);
+      return;
+    }
+    
+    // 如果既没有 ossId 也没有 url，提示用户
+    ElMessage.warning('附件链接不存在，无法下载');
+  } catch (error) {
+    console.error('下载失败:', error);
+    ElMessage.error('下载失败，请重试');
+  }
 };
 
 const getFileTypeText = (row: any): string => {

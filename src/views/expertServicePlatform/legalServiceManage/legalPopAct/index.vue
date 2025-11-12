@@ -163,7 +163,6 @@
                 取消活动
               </el-button>
               <el-button 
-                v-if="String(scope.row.activityStatus) === '99' || String(scope.row.activityStatus) === '3'" 
                 v-throttle 
                 v-hasPermi="['skill:lawActivity:remove']" 
                 type="danger" 

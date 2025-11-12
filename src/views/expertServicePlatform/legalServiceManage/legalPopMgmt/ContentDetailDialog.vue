@@ -44,9 +44,20 @@
         <div class="attachments-list">
           <el-table :data="detailData.attachments" border>
             <el-table-column label="附件名称" prop="originalName" :show-overflow-tooltip="true" />
+            <el-table-column label="附件类型" width="120" align="center">
+              <template #default="scope">
+                <span>{{ getFileTypeText(scope.row) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="文件大小" width="120" align="center">
+              <template #default="scope">
+                <span>{{ scope.row.fileSize || '--' }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="120" align="center">
               <template #default="scope">
                 <el-button type="primary" size="small" text @click="handleDownload(scope.row)">
+                  <el-icon><Download /></el-icon>
                   下载
                 </el-button>
               </template>
@@ -60,15 +71,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { View, Download } from '@element-plus/icons-vue';
 import { getContentDetail } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 
 const props = defineProps<{
   id?: string | number | null;
 }>();
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const loading = ref(false);
 const detailData = ref({
   id: undefined as number | undefined,
@@ -85,6 +99,14 @@ const detailData = ref({
   status: '',
   attachments: [] as any[]
 });
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
 
 const fetchContentDetail = async () => {
   if (!props.id) {
@@ -111,6 +133,40 @@ const fetchContentDetail = async () => {
         statusText = '禁用';
       }
       
+      // 处理附件列表，格式化文件大小等信息
+      const sysList = Array.isArray(data.sysOssLists) ? data.sysOssLists : [];
+      const voList = Array.isArray(data.ossVoList) ? data.ossVoList : [];
+      const list = sysList.length > 0 ? sysList : voList;
+      
+      const attachments = list.map((item: any) => {
+        const ossId = item.ossId || item.id || item.ossID;
+        const url = item.url || '';
+        const originalName = item.originalName || item.fileName || item.name || '附件';
+        const fileSuffix = item.fileSuffix || (originalName.includes('.') ? '.' + originalName.split('.').pop() : '');
+        let fileSizeText = item.fileSize || '--';
+
+        // 从 ext1 中解析文件大小（字节数），转为可读文本
+        if ((!fileSizeText || fileSizeText === '--') && item.ext1) {
+          try {
+            const extra = JSON.parse(item.ext1);
+            if (extra && typeof extra.fileSize === 'number') {
+              fileSizeText = formatFileSize(extra.fileSize);
+            }
+          } catch (_) {
+            // ignore json parse error
+          }
+        }
+
+        return {
+          ossId,
+          fileName: originalName,
+          originalName,
+          fileSuffix,
+          url,
+          fileSize: fileSizeText
+        };
+      });
+      
       detailData.value = {
         id: data.id,
         contentNo: data.contentNo || '',
@@ -124,7 +180,7 @@ const fetchContentDetail = async () => {
         downloadCount: data.downloadCount || 0,
         author: data.authorName || data.author || '未知',
         status: statusText,
-        attachments: data.sysOssLists || []
+        attachments: attachments
       };
     } else {
       ElMessage.error(response?.msg || '获取内容详情失败');
@@ -136,12 +192,42 @@ const fetchContentDetail = async () => {
   }
 };
 
-const handleDownload = (file: any) => {
-  if (file.url) {
-    window.open(file.url, '_blank');
-  } else {
-    ElMessage.warning('附件链接不存在');
+const handleDownload = async (file: any) => {
+  try {
+    // 优先使用 ossId 通过后端接口下载
+    if (file.ossId) {
+      (proxy as any)?.$download?.oss(String(file.ossId));
+      return;
+    }
+    
+    // 如果没有 ossId，但有 url，则直接下载
+    if (file.url) {
+      const fileName = file.originalName || file.fileName || '附件';
+      downloadFileByUrl(file.url, fileName);
+      return;
+    }
+    
+    // 如果既没有 ossId 也没有 url，提示用户
+    ElMessage.warning('附件链接不存在，无法下载');
+  } catch (error) {
+    console.error('下载失败:', error);
+    ElMessage.error('下载失败，请重试');
   }
+};
+
+const getFileTypeText = (row: any): string => {
+  const name: string = row?.originalName || row?.fileName || '';
+  const suffix: string = (row?.fileSuffix || '').toString().toLowerCase();
+  const ext = (name.split('.').pop() || suffix.replace('.', '') || '').toLowerCase();
+  const img = ['jpg','jpeg','png','gif','bmp','webp','svg'];
+  const video = ['mp4','mov','avi','mkv','wmv','flv'];
+  const audio = ['mp3','wav','aac','flac','ogg'];
+  const doc = ['pdf','ppt','pptx','doc','docx','xls','xlsx','txt'];
+  if (img.includes(ext)) return '图片';
+  if (video.includes(ext)) return '视频';
+  if (audio.includes(ext)) return '音频';
+  if (doc.includes(ext)) return '文档';
+  return '其他';
 };
 
 onMounted(() => {
