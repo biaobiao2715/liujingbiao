@@ -37,7 +37,7 @@
         <el-form-item label="回复状态" prop="questionStatus">
           <el-select v-model="queryParams.questionStatus" placeholder="请选择状态" filterable clearable>
             <el-option 
-              v-for="item in question_status" 
+              v-for="item in reply_status" 
               :key="item.value" 
               :label="item.label" 
               :value="item.value" 
@@ -79,7 +79,7 @@
         
         <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
           <template #default="scope">
-            <dict-tag :options="question_status" :value="scope.row.questionStatus" />
+            <dict-tag :options="reply_status" :value="scope.row.questionStatus" />
           </template>
         </el-table-column>
         
@@ -87,6 +87,7 @@
           <template #default="scope">
             <div class="operation-buttons">
               <el-button
+                v-if="!isQuestionClosed(scope.row)"
                 v-throttle
                 v-hasPermi="['system:answer:add']"
                 type="success"
@@ -192,8 +193,8 @@ const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDial
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { question_status } = toRefs<any>(
-  (proxy as any)?.useDict('question_status')
+const { reply_status } = toRefs<any>(
+  (proxy as any)?.useDict('reply_status')
 );
 
 const queryParams = ref<MessageListQuery>({
@@ -346,9 +347,18 @@ const handleView = (row: any) => {
   };
 };
 
+// 判断问题是否已关闭
+// 问题状态：0待回答 1已回答 99已关闭
+const isQuestionClosed = (row: any): boolean => {
+  if (!row || row.questionStatus === undefined || row.questionStatus === null) return false;
+  const status = String(row.questionStatus);
+  // 99 表示已关闭
+  return status === '99';
+};
+
 const getUnrepliedSequence = () => {
   return (tableData.value || [])
-    .filter((r: any) => String(r.questionStatus) === '0')
+    .filter((r: any) => String(r.questionStatus) === '0' && !isQuestionClosed(r))
     .map((r: any) => r.id)
     .filter((id: any) => id !== undefined && id !== null && id !== '');
 };

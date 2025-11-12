@@ -37,9 +37,10 @@
       <div class="question-time" v-if="messageTime">{{ messageTime }}</div>
       
       <div v-if="attachments && attachments.length > 0" class="attachments">
-        <template v-for="(attachment, index) in attachments" :key="index">
+        <template v-for="(attachment, index) in attachments">
           <el-image
             v-if="isImage(attachment.url)"
+            :key="`img-${index}-${attachment.url}`"
             class="attachment-thumb"
             :src="attachment.url"
             fit="cover"
@@ -47,7 +48,12 @@
             :initial-index="getImageIndex(attachment.url)"
             :z-index="3000"
           />
-          <div v-else class="attachment-file" @click="handleDownloadAttachment(attachment)">
+          <div
+            v-else
+            :key="`file-${index}-${attachment.url}`"
+            class="attachment-file"
+            @click="handleDownloadAttachment(attachment)"
+          >
             <el-icon class="attachment-icon"><Folder /></el-icon>
             <div class="file-name" :title="attachment.originalName || attachment.fileName">文件</div>
           </div>
@@ -67,7 +73,7 @@
               maxlength="300"
               resize="none"
               class="reply-textarea"
-              @keydown.enter.prevent="onEnterKey"
+              @keydown.enter="onEnterKey"
             />
             <div class="char-counter">
               已输入{{ charCount }}/300
@@ -108,6 +114,7 @@ const emit = defineEmits<{
   (e: 'success'): void;
   (e: 'batch-next'): void;
   (e: 'cancel'): void;
+  (e: 'pin'): void;
 }>();
 
 const formRef = ref();
@@ -199,12 +206,13 @@ const rules = {
 };
 
 const onEnterKey = (e: KeyboardEvent) => {
-  // Shift+Enter 换行；单独 Enter 不提交
+  // Shift+Enter 换行；单独 Enter 不换行也不提交
   if (e.shiftKey) {
-    // 允许默认换行
+    // Shift+Enter：允许默认行为，正常换行
     return;
   }
-  // 阻止单独 Enter 行为（已在模板用 .prevent 处理）
+  // 单独 Enter：阻止默认行为，不换行也不提交
+  e.preventDefault();
 };
 
 const handleSubmit = async () => {
@@ -302,16 +310,11 @@ const handleCloseQuestion = async () => {
     return;
   }
   
-  const replyCount = getReplyCount.value;
-  
-  // 简化确认弹窗逻辑
-  const confirmMessage = replyCount === 0 
-    ? '至少需回复一条信息,请确认是否关闭该会话?' 
-    : '确认是否关闭该会话?';
-    
+  // 关闭规则：专家单向关闭，专家回复一条信息后，用户需重新发起提问
+  // 提示信息：至少需回复一条信息，请确认是否关闭该会话?
   try {
     await ElMessageBox.confirm(
-      confirmMessage,
+      '至少需回复一条信息，请确认是否关闭该会话?',
       '关闭确认',
       {
         confirmButtonText: '确定',
@@ -328,11 +331,13 @@ const handleCloseQuestion = async () => {
   closing.value = true;
   
   try {
-    // 确保传递字符串类型的ID给API
+    // 调用关闭接口：专家单向关闭，关闭后用户需重新发起提问
     const response: any = await stopQuestion(finalQuestionId);
     
     if (response && response.code === 200) {
       ElMessage.success('关闭成功');
+      // 关闭成功后，关闭弹窗并刷新列表
+      emit('cancel');
       emit('success');
     } else {
       ElMessage.error(response?.msg || '关闭失败');
