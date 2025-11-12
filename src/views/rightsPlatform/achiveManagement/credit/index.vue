@@ -1,7 +1,7 @@
-<!-- 信用档案管理 -->
+<!-- 信用列表 -->
 <template>
   <div class="archive-management">
-    <div class="title">信用档案管理</div>
+    <div class="title">信用列表</div>
   </div>
 </template>
 
