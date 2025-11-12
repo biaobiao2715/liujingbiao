@@ -8,7 +8,7 @@
       <span>Hi, 张三，您好，欢迎来到XXX</span>
     </div>
     <!-- 进入后台管理 -->
-    <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button>
+    <!-- <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button> -->
     <el-button type="primary" @click="handleLogout">退出登录</el-button>
 
     <el-dropdown @command="handleCommand" style="margin-left: 12px">

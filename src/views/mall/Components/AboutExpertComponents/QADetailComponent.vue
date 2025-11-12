@@ -19,16 +19,12 @@
     <!-- 回答部分 -->
     <div class="qa-answer">
       <el-scrollbar class="answer-scroll">
-        <div class="answer-item" v-for="(answer, index) in answers?.hnAnswerVoList" :key="index">
-          <div class="expert-info">
-            <!-- <img class="expert-avatar" :src="answer.avatar" /> -->
-            <div class="expert-details">
-              <span>{{ answer.name }}</span>
-              <span>{{ answer.time }}</span>
-            </div>
-          </div>
+        <div class="answer-item flex-center-between" v-for="(answer, index) in answers?.hnAnswerVoList" :key="index">
           <div class="answer-content">
             {{ answer.answerContent }}
+          </div>
+          <div class="reply-time">
+            {{ answer.replyTime }}
           </div>
         </div>
       </el-scrollbar>
@@ -135,9 +131,14 @@ const fetchQuestionDetail = async () => {
   color: #333;
 }
 
-.answer-content div {
-  margin-bottom: 5px;
+.answer-content {
+  width: calc(100% - 130px);
   font-size: 14px;
   color: #666;
+}
+
+.reply-time {
+  font-size: 13px;
+  color: #909399;
 }
 </style>

@@ -64,10 +64,10 @@ const getDataList = async () => {
   loading.value = true;
   try {
     const res: any = await (activeTab.value === 'lawContentDetail'
-      ? getContentList({ pageNum: pageNum.value, pageSize })
+      ? getContentList({ pageNum: pageNum.value, pageSize, contentStatus: '2' })
       : activeTab.value === 'lawActivityDetail'
-        ? getActivityList({ pageNum: pageNum.value, pageSize })
-        : getWhitePaperList({ pageNum: pageNum.value, pageSize }));
+        ? getActivityList({ pageNum: pageNum.value, pageSize, activityStatus: '1' })
+        : getWhitePaperList({ pageNum: pageNum.value, pageSize, paperStatus: '1' }));
     if (res.code === 200) {
       const rows = res.rows || [];
       dataList.value = [...dataList.value, ...rows];
