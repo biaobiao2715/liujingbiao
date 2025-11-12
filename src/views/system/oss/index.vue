@@ -3,7 +3,7 @@
     <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
       <div v-show="showSearch" class="mb-[10px]">
         <el-card shadow="hover">
-          <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+          <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="80">
             <el-form-item label="文件名" prop="fileName">
               <el-input v-model="queryParams.fileName" placeholder="请输入文件名" clearable @keyup.enter="handleQuery" />
             </el-form-item>
@@ -28,8 +28,8 @@
               <el-input v-model="queryParams.service" placeholder="请输入服务商" clearable @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button v-throttle  type="primary" icon="search" @click="handleQuery">搜索</el-button>
-              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle type="primary" icon="search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -40,18 +40,19 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:oss:upload']" type="primary" plain icon="Upload" @click="handleFile">上传文件</el-button>
+            <el-button v-throttle v-hasPermi="['system:oss:upload']" type="primary" plain icon="Upload" @click="handleFile">上传文件</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:oss:upload']" type="primary" plain icon="Upload" @click="handleImage">上传图片</el-button>
+            <el-button v-throttle v-hasPermi="['system:oss:upload']" type="primary" plain icon="Upload" @click="handleImage">上传图片</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:oss:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
+            <el-button v-throttle v-hasPermi="['system:oss:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
               删除
             </el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle 
+            <el-button
+              v-throttle
               v-hasPermi="['system:oss:edit']"
               :type="previewListResource ? 'danger' : 'warning'"
               plain
@@ -60,7 +61,9 @@
             >
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:ossConfig:list']" type="info" plain icon="Operation" @click="handleOssConfig">配置管理</el-button>
+            <el-button v-throttle v-hasPermi="['system:ossConfig:list']" type="info" plain icon="Operation" @click="handleOssConfig"
+              >配置管理</el-button
+            >
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
         </el-row>
@@ -102,10 +105,17 @@
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="下载" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:oss:download']" link type="primary" icon="Download" @click="handleDownload(scope.row)"></el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:oss:download']"
+                link
+                type="primary"
+                icon="Download"
+                @click="handleDownload(scope.row)"
+              ></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:oss:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button v-throttle v-hasPermi="['system:oss:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -123,8 +133,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
-          <el-button v-throttle  @click="cancel">取 消</el-button>
+          <el-button v-throttle :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>

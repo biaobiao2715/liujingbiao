@@ -23,7 +23,7 @@
         <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
           <div v-show="showSearch" class="mb-[10px]">
             <el-card shadow="hover">
-              <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+              <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="80">
                 <el-form-item label="岗位编码" prop="postCode">
                   <el-input v-model="queryParams.postCode" placeholder="请输入岗位编码" clearable @keyup.enter="handleQuery" />
                 </el-form-item>
