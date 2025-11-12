@@ -54,7 +54,7 @@ import requests from './Components/requests.vue';
 import participatedRequests from './Components/participatedRequests.vue';
 import myReport from './Components/myReport.vue';
 import varietyIdentification from './Components/varietyIdentification.vue';
-
+import { pushNoAnswerQuestionMessage } from '@/api/mall/personalCenter/orders';
 interface Props {
   command?: string | number | object;
 }
@@ -104,6 +104,11 @@ function selectMenu(val: any) {
     selectedComponent.value = selectedMenu.component;
   }
 }
+
+onMounted(() => {
+  // 推送未回答问题提示信息
+  pushNoAnswerQuestionMessage();
+});
 
 watch(
   () => props.command,

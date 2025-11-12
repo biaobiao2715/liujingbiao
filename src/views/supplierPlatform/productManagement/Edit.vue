@@ -156,7 +156,7 @@
                   type="number"
                   :min="0"
                   :max="999999"
-                  @input="(val) => onInputPrice(val, scope.row)"
+                  @input="(val) => onInputPrice(val, scope.row, 'goodsWeight')"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsWeight }"
                 />
                 <div class="validation-errors" v-if="scope.row.errors && scope.row.errors.goodsWeight">
@@ -195,7 +195,7 @@
                   type="number"
                   :min="0"
                   :max="999999"
-                  @input="(val) => onInputPrice(val, scope.row)"
+                  @input="(val) => onInputPrice(val, scope.row, 'goodsPrice')"
                   :disabled="operateMode == 'edit' ? (scope.row.id ? true : false) : false"
                   :class="{ 'is-error': scope.row.errors && scope.row.errors.goodsPrice }"
                 />
@@ -587,7 +587,7 @@ const toggleStatus = (row: any) => {
   row.status = row.status === 1 ? 0 : 1;
 };
 
-const onInputPrice = (val: string, row: any) => {
+const onInputPrice = (val: string, row: any, type: string) => {
   // 只允许数字和小数点，且最多两位小数
   let s = val
     .replace(/[^\d.]/g, '') // 只保留数字和小数点
@@ -599,7 +599,12 @@ const onInputPrice = (val: string, row: any) => {
   if (s.indexOf('.') > -1) {
     s = s.replace(/^(\-)*(\d+)\.(\d\d).*$/, '$1$2.$3'); // 保留两位小数
   }
-  row.goodsPrice = s;
+  if (type === 'goodsWeight') {
+    row.goodsWeight = s;
+    return;
+  } else if (type === 'goodsPrice') {
+    row.goodsPrice = s;
+  }
 };
 
 // ==========================

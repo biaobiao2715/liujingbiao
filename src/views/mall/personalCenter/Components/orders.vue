@@ -26,7 +26,7 @@
               <img class="table-img" :src="scope.row.orderItems[0]?.goodsPicUrl || ''" />
               <div class="table-text">
                 <div>{{ scope.row.orderItems[0]?.goodsName }}</div>
-                <div>{{ scope.row.orderItems[0]?.goodsSpecificationValue }}</div>
+                <div>{{ scope.row.orderItems[0]?.goodsSpecificationValue }}{{ scope.row.orderItems[0]?.goodsSpecificationLabel }}</div>
               </div>
             </div>
           </template>

@@ -53,6 +53,15 @@ export const ossUploadImage = (data: { file: File }) => {
   });
 };
 
+// 推送未回答问题提示信息
+// skill-server/question/pushNoAnswerQuestionMessage
+export function pushNoAnswerQuestionMessage() {
+  return request({
+    url: 'skill-server/question/pushNoAnswerQuestionMessage',
+    method: 'get'
+  });
+}
+
 // -------------------- 类型定义 --------------------
 /** 订单条目类型 */
 interface OrderItem {

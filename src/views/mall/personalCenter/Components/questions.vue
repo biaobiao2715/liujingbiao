@@ -38,10 +38,7 @@
               style="color: #ef4d0b"
               >关闭</el-button
             >
-            <el-button v-if="row.hasQuote == '0'" v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle text style="color: #108c58"
-              >查看</el-button
-            >
-            <span v-if="getReplyCount(row) > 0" class="reply-badge">{{ getReplyCount(row) > 99 ? '99+' : getReplyCount(row) }}</span>
+            <el-button v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle text style="color: #108c58">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -161,11 +158,6 @@ const onDelete = async (row: listStyle) => {
     getList();
   }
 };
-
-// 获取每条问题的回复数
-function getReplyCount(row: any) {
-  return Array.isArray(row.hnAnswerVoList) ? row.hnAnswerVoList.length : row.replyCount || 0;
-}
 </script>
 
 <style scoped>
