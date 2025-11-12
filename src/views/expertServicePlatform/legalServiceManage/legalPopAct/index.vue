@@ -241,8 +241,8 @@ const queryParams = ref({
   activityTitle: '',
   activityStatus: '',
   activityType: '',
-  startTime: '',
-  endTime: ''
+  publishTimeStart: '',
+  publishTimeEnd: ''
 });
 
 const tableData = ref([]);
@@ -269,8 +269,8 @@ const getList = async () => {
       activityTitle: queryParams.value.activityTitle || undefined,
       activityStatus: queryParams.value.activityStatus || undefined,
       activityType: queryParams.value.activityType || undefined,
-      startTime: queryParams.value.startTime || undefined,
-      endTime: queryParams.value.endTime || undefined
+      publishTimeStart: queryParams.value.publishTimeStart || undefined,
+      publishTimeEnd: queryParams.value.publishTimeEnd || undefined
     };
     
     const response: any = await getActivityList(params);
@@ -309,8 +309,8 @@ const getStatusType = (status: string | number) => {
 };
 
 const handleSearch = () => {
-  queryParams.value.startTime = dateRange.value[0];
-  queryParams.value.endTime = dateRange.value[1];
+  queryParams.value.publishTimeStart = dateRange.value[0];
+  queryParams.value.publishTimeEnd = dateRange.value[1];
   queryParams.value.pageNum = 1;
   getList();
 };
@@ -326,11 +326,11 @@ const handleReset = () => {
   queryParams.value.activityTitle = '';
   queryParams.value.activityStatus = '';
   queryParams.value.activityType = '';
-  queryParams.value.startTime = '';
-  queryParams.value.endTime = '';
+  queryParams.value.publishTimeStart = '';
+  queryParams.value.publishTimeEnd = '';
   queryParams.value.pageNum = 1;
   handleQuery();
-};
+}
 
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);

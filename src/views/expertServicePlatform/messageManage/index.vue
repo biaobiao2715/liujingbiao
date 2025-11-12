@@ -67,7 +67,13 @@
         
         <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
           <template #default="scope">
-            <span class="link-type" @click="handleReply(scope.row)">{{ scope.row.messageContent }}</span>
+            <span 
+              :class="isQuestionClosed(scope.row) ? '' : 'link-type'" 
+              :style="isQuestionClosed(scope.row) ? 'cursor: default;' : ''"
+              @click="!isQuestionClosed(scope.row) && handleReply(scope.row)"
+            >
+              {{ scope.row.messageContent }}
+            </span>
           </template>
         </el-table-column>
         
@@ -83,7 +89,7 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" align="center" width="300">
+        <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
             <div class="operation-buttons">
               <el-button
@@ -97,6 +103,7 @@
                 回复
               </el-button>
               <el-button
+                v-if="hasReplied(scope.row)"
                 v-throttle
                 v-hasPermi="['system:question:query']"
                 type="primary"
@@ -104,15 +111,6 @@
                 @click="handleView(scope.row)"
               >
                 查看
-              </el-button>
-              <el-button
-                v-throttle
-                type="warning"
-                size="small"
-                plain
-                @click="togglePin(scope.row)"
-              >
-                {{ isPinned(scope.row?.id) ? '取消置顶' : '置顶' }}
               </el-button>
             </div>
           </template>
@@ -165,9 +163,11 @@
             :row-data="replyDialog.rowData"
             :batch-ids="replyDialog.batchIds"
             :batch-index="replyDialog.batchIndex"
+            :is-pinned="isPinned(replyDialog.id)"
             @success="onReplySuccess"
             @batch-next="onReplyBatchNext"
             @pin="onPin"
+            @unpin="onUnpin"
             @cancel="replyDialog.visible = false"
           />
         </template>
@@ -241,7 +241,7 @@ const getList = () => {
   const params: MessageListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
-    ...(queryParams.value.messageContent ? { messageContent: queryParams.value.messageContent } : {}),
+    ...(queryParams.value.messageContent ? { questionContent: queryParams.value.messageContent } : {}),
     ...(queryParams.value.questionStatus ? { questionStatus: queryParams.value.questionStatus } : {}),
     ...(messageStartTime && messageEndTime ? { messageStartTime, messageEndTime } : {}),
     ...(replyStartTime && replyEndTime ? { replyStartTime, replyEndTime } : {})
@@ -295,6 +295,15 @@ const pinMessage = (id?: string | number | null) => {
 
 const onPin = () => {
   pinMessage(replyDialog.value.id);
+};
+
+const onUnpin = () => {
+  const id = replyDialog.value.id;
+  if (id === undefined || id === null || id === '') return;
+  const sid = String(id);
+  pinnedIds.value = pinnedIds.value.filter((x) => String(x) !== sid);
+  tableData.value = applyPinSort(tableData.value as any[]);
+  ElMessage.success('已取消置顶');
 };
 
 const isPinned = (id?: string | number | null) => {
@@ -356,6 +365,15 @@ const isQuestionClosed = (row: any): boolean => {
   return status === '99';
 };
 
+// 判断是否已回复
+// 问题状态：0待回答 1已回答 99已关闭
+const hasReplied = (row: any): boolean => {
+  if (!row || row.questionStatus === undefined || row.questionStatus === null) return false;
+  const status = String(row.questionStatus);
+  // 1 或 99 表示已回复
+  return status === '1' || status === '99';
+};
+
 const getUnrepliedSequence = () => {
   return (tableData.value || [])
     .filter((r: any) => String(r.questionStatus) === '0' && !isQuestionClosed(r))
@@ -364,6 +382,12 @@ const getUnrepliedSequence = () => {
 };
 
 const handleReply = (row: any) => {
+  // 关闭后无法跳转到回复页面
+  if (isQuestionClosed(row)) {
+    ElMessage.warning('该留言已关闭，无法回复');
+    return;
+  }
+  
   const batchIds = getUnrepliedSequence();
   const index = batchIds.findIndex((id: any) => String(id) === String(row.id));
   replyDialog.value.visible = true;

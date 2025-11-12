@@ -360,15 +360,15 @@ const getNextVersion = (currentVersion?: string | null): string => {
   }
   
   const majorVersion = parseInt(match[1], 10);
-  let minorVersion = parseInt(match[2], 10);
+  const minorVersion = parseInt(match[2], 10);
   
-  minorVersion += 1;
-  
-  if (minorVersion > 99) {
-    return `${majorVersion + 1}.0`;
+  // 如果小版本号小于9，则递增小版本号
+  if (minorVersion === 9) {
+     return `${majorVersion + 1}.0`;
   }
   
-  return `${majorVersion}.${minorVersion}`;
+  // 如果小版本号大于等于9，则升级大版本号，小版本号重置为0
+  return `${majorVersion}.${minorVersion + 1}`;
 };
 
 const getLatestVersion = (): string => {
@@ -497,8 +497,14 @@ const handleFileChange = async (file: any) => {
       
       let newVersion = '1.0';
       if (props.type === 'edit') {
-        const latestVersion = getLatestVersion();
-        newVersion = getNextVersion(latestVersion);
+        // 编辑模式下保持原版本号不变
+        newVersion = detailData.value.currentVersion || '1.0';
+        // 编辑模式下添加新附件，清空原有附件列表（原有附件会自动变为历史版本）
+        attachmentList.value = [];
+      } else if (props.type === 'add' && attachmentList.value.length > 0) {
+        // 新增模式下，如果已有附件，保持原版本号不变，替换附件
+        newVersion = attachmentList.value[0].version || '1.0';
+        attachmentList.value = [];
       }
       
       attachmentList.value.push({
@@ -553,11 +559,8 @@ const handleReplaceFile = async (row: any) => {
         const ossData = response.data;
         const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
         
-        let newVersion = '1.0';
-        if (props.type === 'edit') {
-          const latestVersion = getLatestVersion();
-          newVersion = getNextVersion(latestVersion);
-        }
+        // 重新上传时保持原版本号不变
+        const keepVersion = row.version;
         
         Object.assign(row, {
           ossId: ossData.ossId,
@@ -567,11 +570,11 @@ const handleReplaceFile = async (row: any) => {
           fileSuffix: fileSuffix,
           url: ossData.url,
           fileSize: formatFileSize(file.size),
-          version: newVersion,
+          version: keepVersion,
           versionError: ''
         });
         
-        ElMessage.success(props.type === 'add' ? '文件替换成功' : '文件替换成功，版本号已自动更新');
+        ElMessage.success('文件替换成功');
       } else {
         ElMessage.error(response?.msg || '文件上传失败');
       }
@@ -788,7 +791,8 @@ const handleSubmit = async () => {
       return;
     }
     
-    if (attachmentList.value.length > 0) {
+    // 编辑模式下如果没有上传新附件，跳过版本号验证
+    if (props.type === 'add' && attachmentList.value.length > 0) {
       const hasEmptyVersion = attachmentList.value.some(item => !item.version || !item.version.trim());
       if (hasEmptyVersion) {
         ElMessage.warning('附件版本号异常，请重新上传附件');
@@ -835,7 +839,7 @@ const handleSubmit = async () => {
       paperTitle: formData.value.paperTitle?.trim() || '',
       paperType: '',
       paperStatus: paperStatus,
-      currentVersion: currentVersion || '',
+      currentVersion: props.type === 'edit' ? detailData.value.currentVersion : (currentVersion || ''),
       remark: formData.value.remark || '',
       sortOrder: 0,
       beginTime: '',
@@ -847,21 +851,7 @@ const handleSubmit = async () => {
     
     const api = props.type === 'add' ? addWhitePaper : editWhitePaper;
     
-    if (props.type === 'edit') {
-      const currentTitle = formData.value.paperTitle?.trim() || '';
-      const currentRemark = formData.value.remark?.trim() || '';
-      const currentAttachmentOssIds = attachmentList.value.map(item => item.ossId || 0).filter(id => id > 0).sort();
-      const originalAttachmentOssIds = [...originalData.value.attachmentOssIds].sort();
-      
-      const hasChanged = currentTitle !== originalData.value.paperTitle ||
-                        currentRemark !== originalData.value.remark ||
-                        JSON.stringify(currentAttachmentOssIds) !== JSON.stringify(originalAttachmentOssIds);
-      
-      if (!hasChanged) {
-        emit('success');
-        return;
-      }
-    }
+    // 编辑模式下不再检查是否有变化，直接提交
     
     const response: any = await api(submitData);
     

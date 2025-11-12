@@ -18,7 +18,7 @@
             plain
             @click="handlePinToTop"
           >
-            置顶
+            {{ props.isPinned ? '取消置顶' : '置顶' }}
           </el-button>
           <el-button 
             v-throttle 
@@ -108,6 +108,7 @@ const props = defineProps<{
   rowData?: any;
   batchIds?: Array<string | number>;
   batchIndex?: number;
+  isPinned?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -115,6 +116,7 @@ const emit = defineEmits<{
   (e: 'batch-next'): void;
   (e: 'cancel'): void;
   (e: 'pin'): void;
+  (e: 'unpin'): void;
 }>();
 
 const formRef = ref();
@@ -271,6 +273,9 @@ const handleSubmit = async () => {
       // 触发批量下一条
       if (props.batchIds && props.batchIds.length) {
         emit('batch-next');
+      } else {
+        // 非批量操作，关闭弹窗返回列表
+        emit('cancel');
       }
     } else {
       ElMessage.error(response?.msg || '回复失败');
@@ -294,8 +299,11 @@ const getReplyCount = computed(() => {
 });
 
 const handlePinToTop = () => {
-  emit('pin');
-  ElMessage.success('已置顶该条留言');
+  if (props.isPinned) {
+    emit('unpin');
+  } else {
+    emit('pin');
+  }
 };
 
 const handleCloseQuestion = async () => {
@@ -310,11 +318,15 @@ const handleCloseQuestion = async () => {
     return;
   }
   
-  // 关闭规则：专家单向关闭，专家回复一条信息后，用户需重新发起提问
-  // 提示信息：至少需回复一条信息，请确认是否关闭该会话?
+  // 判断是否回复过消息
+  const hasReplied = getReplyCount.value > 0;
+  const confirmMessage = hasReplied 
+    ? '确定要关闭该会话吗？' 
+    : '至少需回复一条信息，请确认是否关闭该会话?';
+  
   try {
     await ElMessageBox.confirm(
-      '至少需回复一条信息，请确认是否关闭该会话?',
+      confirmMessage,
       '关闭确认',
       {
         confirmButtonText: '确定',
@@ -347,7 +359,7 @@ const handleCloseQuestion = async () => {
   } finally {
     closing.value = false;
   }
-};
+}
 
 watch(
   () => props.id,

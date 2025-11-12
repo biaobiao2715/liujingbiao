@@ -325,6 +325,16 @@ const handleSubmit = async () => {
     
     saving.value = true;
     
+    // 获取本地时间
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const currentTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    
     const submitData = {
       ...(props.type === 'edit' ? { id: formData.value.id } : {}),
       contentTitle: formData.value.contentTitle,
@@ -332,8 +342,12 @@ const handleSubmit = async () => {
       contentStatus: formData.value.contentStatus,
       contentSummary: formData.value.contentSummary,
       contentContent: contentContent,
+      publishTime: currentTime,
       ossVoList: attachmentList.value
     };
+    
+    console.log('提交数据:', submitData);
+    console.log('contentStatus:', formData.value.contentStatus, 'publishTime:', currentTime);
     
     const api = props.type === 'add' ? addContent : editContent;
     const response: any = await api(submitData);

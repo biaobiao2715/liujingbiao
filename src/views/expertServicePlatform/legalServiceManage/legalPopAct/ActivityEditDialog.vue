@@ -311,6 +311,8 @@ const handleSubmit = async () => {
     
     saving.value = true;
     
+    const currentTime = formatCurrentTime();
+    
     const submitData: any = {
       ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
       activityTitle: formData.value.activityTitle?.trim(),
@@ -322,7 +324,8 @@ const handleSubmit = async () => {
       startTime: formData.value.startTime,
       endTime: formData.value.endTime,
       activityStatus: formData.value.activityStatus,
-      publishTime: formatCurrentTime()
+      publishTimeStart: currentTime,
+      publishTimeEnd: currentTime
     };
     
     if (props.type === 'edit' && !submitData.id) {

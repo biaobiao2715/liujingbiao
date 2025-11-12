@@ -11,8 +11,8 @@ export interface ActivityListQuery {
   activityTitle?: string; // 活动标题
   activityStatus?: string; // 状态
   activityType?: string; // 活动类型
-  startTime?: string; // 开始时间
-  endTime?: string; // 结束时间
+  publishTimeStart?: string; // 发布时间开始
+  publishTimeEnd?: string; // 发布时间结束
   orderByColumn?: string; // 排序列
   isAsc?: string; // 排序的方向desc或者asc
 }

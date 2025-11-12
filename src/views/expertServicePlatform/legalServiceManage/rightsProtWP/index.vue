@@ -589,16 +589,17 @@ const getNextVersion = (currentVersion?: string | null): string => {
     return '1.0';
   }
   
-  const majorVersion = parseInt(match[1], 10);
-  let minorVersion = parseInt(match[2], 10);
+  let left = parseInt(match[1], 10);
+  let right = parseInt(match[2], 10);
   
-  minorVersion += 1;
+  right += 1;
   
-  if (minorVersion > 99) {
-    return `${majorVersion + 1}.0`;
+  if (right > 9) {
+    left += 1;
+    right = 0;
   }
   
-  return `${majorVersion}.${minorVersion}`;
+  return `${left}.${right}`;
 };
 
 const handleUpdateVersion = (row: any) => {
