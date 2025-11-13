@@ -231,7 +231,7 @@ watch(
   bottom: 0;
   width: 100%;
   height: 120px;
-  background: url('@/assets/images/menu-bg.png') no-repeat left bottom/contain;
+  // background: url('@/assets/images/menu-bg.png') no-repeat left bottom/contain;
   pointer-events: none;
   z-index: 1;
 }
