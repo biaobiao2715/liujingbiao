@@ -734,7 +734,7 @@ const fetchWhitePaperDetail = async () => {
                 fileSuffix: ossInfo.fileSuffix || item.fileSuffix || '',
                 url: ossInfo.url || item.url || '',
                 fileSize: fileSize,
-                version: item.versionNo || item.version || '',
+                version: item.versionNo || item.version || detailData.value.currentVersion || '',
                 versionError: '',
                 uid: item.ossId || Date.now() + index
               };
@@ -748,7 +748,7 @@ const fetchWhitePaperDetail = async () => {
               fileSuffix: item.fileSuffix || '',
               url: item.url || '',
               fileSize: '--',
-              version: item.versionNo || item.version || '',
+              version: item.versionNo || item.version || detailData.value.currentVersion || '',
               versionError: '',
               uid: item.ossId || Date.now() + index
             }));
@@ -856,20 +856,10 @@ const handleSubmit = async () => {
     const response: any = await api(submitData);
     
     if (response && response.code === 200) {
-      const hasWhitePaperInfo = (submitData.paperTitle && submitData.paperTitle.trim()) || 
-                                 (submitData.ossVoList && submitData.ossVoList.length > 0) ||
-                                 (submitData.remark && submitData.remark.trim());
-      
-      if (props.type === 'edit' && !hasWhitePaperInfo) {
-        ElMessage.success('修改成功');
-      } else {
-        ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '维权白皮书提交成功');
-      }
-      
+      ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '修改成功');
       emit('success');
     } else {
-      const errorMsg = response?.msg || response?.message || '操作失败，请重试';
-      ElMessage.error(errorMsg);
+      ElMessage.error(response?.msg || response?.message || '操作失败，请重试');
     }
   } catch (error: any) {
     if (error !== 'cancel') {
