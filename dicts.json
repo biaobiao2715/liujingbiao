@@ -1,0 +1,134 @@
+[
+  {
+    "dict_name": "用户性别",
+    "dict_type": "sys_user_sex"
+  },
+  {
+    "dict_name": "菜单状态",
+    "dict_type": "sys_show_hide"
+  },
+  {
+    "dict_name": "系统开关",
+    "dict_type": "sys_normal_disable"
+  },
+  {
+    "dict_name": "系统是否",
+    "dict_type": "sys_yes_no"
+  },
+  {
+    "dict_name": "通知类型",
+    "dict_type": "sys_notice_type"
+  },
+  {
+    "dict_name": "通知状态",
+    "dict_type": "sys_notice_status"
+  },
+  {
+    "dict_name": "操作类型",
+    "dict_type": "sys_oper_type"
+  },
+  {
+    "dict_name": "系统状态",
+    "dict_type": "sys_common_status"
+  },
+  {
+    "dict_name": "授权类型",
+    "dict_type": "sys_grant_type"
+  },
+  {
+    "dict_name": "设备类型",
+    "dict_type": "sys_device_type"
+  },
+  {
+    "dict_name": "业务状态",
+    "dict_type": "wf_business_status"
+  },
+  {
+    "dict_name": "表单类型",
+    "dict_type": "wf_form_type"
+  },
+  {
+    "dict_name": "任务状态",
+    "dict_type": "wf_task_status"
+  },
+  {
+    "dict_name": "留言回复状态",
+    "dict_type": "reply_status"
+  },
+  {
+    "dict_name": "商品规格字典类型",
+    "dict_type": "goods_specification"
+  },
+  {
+    "dict_name": "审核状态",
+    "dict_type": "review_status"
+  },
+  {
+    "dict_name": "入库状态",
+    "dict_type": "storage_status"
+  },
+  {
+    "dict_name": "停/启用状态",
+    "dict_type": "start_stop_status"
+  },
+  {
+    "dict_name": "可贷周期",
+    "dict_type": "loan_cycle"
+  },
+  {
+    "dict_name": "还款方式",
+    "dict_type": "repayment_method"
+  },
+  {
+    "dict_name": "商品状态",
+    "dict_type": "goods_status"
+  },
+  {
+    "dict_name": "普法内容类型",
+    "dict_type": "legal_popularize_type"
+  },
+  {
+    "dict_name": "文章类别",
+    "dict_type": "article_type"
+  },
+  {
+    "dict_name": "普法内容状态",
+    "dict_type": "legal_popularize_status"
+  },
+  {
+    "dict_name": "普法活动类型",
+    "dict_type": "legal_popularize_activity_type"
+  },
+  {
+    "dict_name": "普法活动状态",
+    "dict_type": "legal_popularize_activity_status"
+  },
+  {
+    "dict_name": "白皮书状态",
+    "dict_type": "whitepaper_status"
+  },
+  {
+    "dict_name": "留言状态",
+    "dict_type": "message_manage_status"
+  },
+  {
+    "dict_name": "问题回复状态",
+    "dict_type": "question_status"
+  },
+  {
+    "dict_name": "订单状态",
+    "dict_type": "order_status"
+  },
+  {
+    "dict_name": "会议类型",
+    "dict_type": "meeting_type"
+  },
+  {
+    "dict_name": "会议状态",
+    "dict_type": "meeting_status"
+  },
+  {
+    "dict_name": "报名状态",
+    "dict_type": "enroll_status"
+  }
+]
