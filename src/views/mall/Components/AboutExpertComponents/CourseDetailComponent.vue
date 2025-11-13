@@ -22,7 +22,7 @@
           <span>{{ detail?.pageViews }}</span>
         </div>
         <div class="collection flex-center gap-2" @click="handleCollection">
-          <el-icon size="20" v-if="!detail?.isCollected"><Star /></el-icon>
+          <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
           <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
           <span>{{ detail?.collectCount }}</span>
         </div>
@@ -43,6 +43,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { courseDetail } from '@/api/mall/expert';
+import { addToFavorites, checkFavorite } from '@/api/mall/index';
 import ContentWithToc from '@/components/ContentWithToc/index.vue';
 
 const props = defineProps({
@@ -53,15 +54,50 @@ const props = defineProps({
 });
 const detail = ref();
 
+const isCollected = ref(false);
+
 onMounted(() => {
-  // 根据传入的ID获取课程详情
-  courseDetail({ id: props.id }).then((res) => {
-    detail.value = res.data || {};
-  });
+  getArticleDetail();
+  getIsCollect();
 });
 
+// 详情
+const getArticleDetail = async () => {
+  const res = await courseDetail({ id: props.id });
+  if (res.code === 200) {
+    detail.value = res.data || {};
+  }
+};
+
+// 判断是否收藏过
+const getIsCollect = async () => {
+  const res = await checkFavorite({
+    favoriteType: '4',
+    'hnCourseFavoriteBo.courseId': props.id
+  });
+  if (res.code === 200) {
+    isCollected.value = res.data;
+  }
+};
+
 // 收藏课程
-const handleCollection = () => {};
+const handleCollection = async () => {
+  const res = await addToFavorites({
+    favoriteType: '4',
+    hnCourseFavoriteBo: {
+      courseId: props.id,
+      courseTitle: detail.value.cultivateName,
+      courseAuthor: detail.value.createBy
+    }
+  });
+  if (res.code === 200) {
+    ElMessage.success(res.msg);
+    // 刷新文章详情
+    await getArticleDetail();
+    // 刷新收藏状态
+    await getIsCollect();
+  }
+};
 </script>
 
 <style scoped lang="scss">
