@@ -128,8 +128,9 @@
     <div v-if="props.type === 'edit'" class="history-section">
       <div class="section-header">
         <el-icon><FolderOpened /></el-icon>
-        <span class="section-title">历史版本</span>
+        <span class="section-title">历史版本 ({{ historyVersions.length }})</span>
       </div>
+
       <el-table :data="historyVersions" border style="width: 100%" empty-text="暂无历史版本">
         <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
         <el-table-column label="历史版本" prop="version" width="120" align="center" />
@@ -276,13 +277,7 @@ const loadCurrentAttachments = async () => {
 
 const historyVersions = computed(() => {
   const list = detailData.value.historyVersionsList;
-  if (!list || (list !== null && !Array.isArray(list))) {
-    return [];
-  }
-  if (list === null) {
-    return [];
-  }
-  if (!Array.isArray(list) || list.length === 0) {
+  if (!list || !Array.isArray(list) || list.length === 0) {
     return [];
   }
   
@@ -291,16 +286,28 @@ const historyVersions = computed(() => {
       || item.version 
       || item.versionNum
       || item.currentVersion
-      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].version)
+      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].versionNo)
       || '';
+    
+    // 优先从 sysOssLists 获取 ossId 和 url
+    let ossId = item.ossId;
+    let url = item.url || '';
+    
+    if (item.sysOssLists && Array.isArray(item.sysOssLists) && item.sysOssLists.length > 0) {
+      ossId = item.sysOssLists[0].ossId || item.ossId;
+      url = item.sysOssLists[0].url || item.url || '';
+    } else if (item.ossVoList && Array.isArray(item.ossVoList) && item.ossVoList.length > 0) {
+      ossId = item.ossVoList[0].ossId || item.ossId;
+      url = item.ossVoList[0].url || item.url || '';
+    }
     
     return {
       ...item,
       updateTime: item.updateTime || item.createTime || '',
       version: version,
       remark: item.remark || '',
-      ossId: item.ossId,
-      url: item.url || ''
+      ossId: ossId,
+      url: url
     };
   });
 });
@@ -446,6 +453,17 @@ const handleExceed = () => {
 
 const uploadingFiles = ref<Set<string>>(new Set());
 
+// 跟踪编辑过程中上传的所有版本
+const uploadedVersions = ref<Array<{
+  version: string;
+  ossId: number;
+  fileName: string;
+  originalName: string;
+  url: string;
+  fileSuffix: string;
+  uploadTime: string;
+}>>([]);
+
 const handleFileChange = async (file: any) => {
   if (!file) {
     ElMessage.error('文件对象不存在');
@@ -497,9 +515,17 @@ const handleFileChange = async (file: any) => {
       
       let newVersion = '1.0';
       if (props.type === 'edit') {
-        // 编辑模式下保持原版本号不变
-        newVersion = detailData.value.currentVersion || '1.0';
-        // 编辑模式下添加新附件，清空原有附件列表（原有附件会自动变为历史版本）
+        // 编辑模式下版本号只在第一次上传时递增一次
+        if (uploadedVersions.value.length === 0) {
+          // 第一次上传，版本号递增
+          const baseVersion = attachmentList.value.length > 0 
+            ? attachmentList.value[0].version 
+            : detailData.value.currentVersion || '1.0';
+          newVersion = getNextVersion(baseVersion);
+        } else {
+          // 后续上传，保持第一次上传的版本号
+          newVersion = uploadedVersions.value[0].version;
+        }
         attachmentList.value = [];
       } else if (props.type === 'add' && attachmentList.value.length > 0) {
         // 新增模式下，如果已有附件，保持原版本号不变，替换附件
@@ -507,7 +533,7 @@ const handleFileChange = async (file: any) => {
         attachmentList.value = [];
       }
       
-      attachmentList.value.push({
+      const newAttachment = {
         ossId: ossData.ossId,
         fileName: ossData.fileName || ossData.originalName || rawFile.name,
         originalName: rawFile.name,
@@ -518,7 +544,22 @@ const handleFileChange = async (file: any) => {
         version: newVersion,
         versionError: '',
         uid: file.uid || Date.now() + Math.random()
-      });
+      };
+      
+      attachmentList.value.push(newAttachment);
+      
+      // 编辑模式下，记录上传的版本到历史
+      if (props.type === 'edit' && attachmentList.value.length > 0) {
+        uploadedVersions.value.push({
+          version: newVersion,
+          ossId: ossData.ossId,
+          fileName: ossData.fileName || ossData.originalName || rawFile.name,
+          originalName: rawFile.name,
+          url: ossData.url,
+          fileSuffix: fileSuffix,
+          uploadTime: new Date().toISOString()
+        });
+      }
       
       formData.value.attachment = 'has_attachment';
       formRef.value?.validateField('attachment');
@@ -559,8 +600,28 @@ const handleReplaceFile = async (row: any) => {
         const ossData = response.data;
         const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
         
-        // 重新上传时保持原版本号不变
-        const keepVersion = row.version;
+        // 重新上传时保持当前版本号
+        let keepVersion = row.version;
+        if (props.type === 'edit' && uploadedVersions.value.length === 0) {
+          // 如果是第一次上传，版本号递增
+          keepVersion = getNextVersion(row.version);
+        } else if (props.type === 'edit' && uploadedVersions.value.length > 0) {
+          // 已经上传过，保持第一次上传的版本号
+          keepVersion = uploadedVersions.value[0].version;
+        }
+        
+        // 编辑模式下，记录重新上传的版本
+        if (props.type === 'edit') {
+          uploadedVersions.value.push({
+            version: keepVersion,
+            ossId: ossData.ossId,
+            fileName: ossData.fileName || file.name,
+            originalName: file.name,
+            url: ossData.url,
+            fileSuffix: fileSuffix,
+            uploadTime: new Date().toISOString()
+          });
+        }
         
         Object.assign(row, {
           ossId: ossData.ossId,
@@ -809,6 +870,7 @@ const handleSubmit = async () => {
         originalName: item.originalName || '',
         fileSuffix: item.fileSuffix || '',
         url: item.url || '',
+        versionNo: item.version || '',
         ext1: '',
         createTime: '',
         createBy: 0,
@@ -825,6 +887,55 @@ const handleSubmit = async () => {
       ? '1'
       : (detailData.value.paperStatus || '1');
     
+    // 编辑模式下，将所有上传过的版本加入历史记录
+    let historyVersionsList: any[] = [];
+    if (props.type === 'edit' && uploadedVersions.value.length > 0) {
+      // 先添加原始版本到历史
+      if (detailData.value.currentVersion && currentVersion !== detailData.value.currentVersion) {
+        const ossVoListForHistory = currentAttachments.value.length > 0 ? [{
+          ossId: currentAttachments.value[0].ossId,
+          fileName: currentAttachments.value[0].fileName,
+          originalName: currentAttachments.value[0].originalName,
+          fileSuffix: currentAttachments.value[0].fileSuffix,
+          url: currentAttachments.value[0].url,
+          versionNo: detailData.value.currentVersion
+        }] : [];
+        
+        const oldVersionRecord = {
+          paperId: formData.value.id,
+          versionNo: detailData.value.currentVersion,
+          paperTitle: originalData.value.paperTitle,
+          remark: originalData.value.remark,
+          updateTime: detailData.value.updateTime,
+          ossVoList: ossVoListForHistory
+        };
+        historyVersionsList.push(oldVersionRecord);
+      }
+      
+      // 添加编辑过程中上传的所有中间版本（除了最后一个当前版本）
+      if (uploadedVersions.value.length > 1) {
+        for (let i = 0; i < uploadedVersions.value.length - 1; i++) {
+          const versionRecord = uploadedVersions.value[i];
+          const historyRecord = {
+            paperId: formData.value.id,
+            versionNo: versionRecord.version,
+            paperTitle: formData.value.paperTitle,
+            remark: formData.value.remark,
+            updateTime: versionRecord.uploadTime,
+            ossVoList: [{
+              ossId: versionRecord.ossId,
+              fileName: versionRecord.fileName,
+              originalName: versionRecord.originalName,
+              fileSuffix: versionRecord.fileSuffix,
+              url: versionRecord.url,
+              versionNo: versionRecord.version
+            }]
+          };
+          historyVersionsList.push(historyRecord);
+        }
+      }
+    }
+    
     const submitData: any = {
       createDept: 0,
       createBy: 0,
@@ -839,20 +950,17 @@ const handleSubmit = async () => {
       paperTitle: formData.value.paperTitle?.trim() || '',
       paperType: '',
       paperStatus: paperStatus,
-      currentVersion: props.type === 'edit' ? detailData.value.currentVersion : (currentVersion || ''),
+      currentVersion: currentVersion || '',
       remark: formData.value.remark || '',
       sortOrder: 0,
       beginTime: '',
       endTime: '',
       ossVoList: ossVoList,
       ids: [0],
-      historyVersionsList: []
+      historyVersionsList: historyVersionsList
     };
     
     const api = props.type === 'add' ? addWhitePaper : editWhitePaper;
-    
-    // 编辑模式下不再检查是否有变化，直接提交
-    
     const response: any = await api(submitData);
     
     if (response && response.code === 200) {
@@ -880,6 +988,7 @@ watch(
   () => [props.id, props.type],
   ([newId, newType]) => {
     if ((newType === 'edit' || newType === 'view') && newId) {
+      uploadedVersions.value = [];
       fetchWhitePaperDetail();
     } else if (newType === 'add') {
       formData.value = {
@@ -889,6 +998,7 @@ watch(
         attachment: ''
       };
       attachmentList.value = [];
+      uploadedVersions.value = [];
       formRef.value?.resetFields?.();
     }
   },
