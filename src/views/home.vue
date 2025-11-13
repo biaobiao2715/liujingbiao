@@ -19,7 +19,7 @@
       class="flex-center gap-12 application-list"
       style="background: url('../assets/images/application-bg-1.png') no-repeat center center; background-size: cover"
     >
-      <div class="application-card flex" v-for="(app, index) in applications" :key="index" @click="handleRedirect(app.redirect)">
+      <div class="application-card flex" v-for="(app, index) in currentPlatform" :key="index" @click="handleRedirect(app.redirect)">
         <!-- 应用图标和标题 -->
         <div class="icon">
           <img :src="getIcon(app.icon)" width="64" />
@@ -48,59 +48,84 @@ const router = useRouter();
 const userInfo = ref();
 // 应用数据
 const applications = ref([
+  // {
+  //   title: '供应商管理后台',
+  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+  //   icon: 'application-icon-1.svg',
+  //   bg: 'application-bg-1.svg',
+  //   redirect: '/platform/index',
+  //   type: []
+  // },
+  // {
+  //   title: '供应商系统',
+  //   description: '供应商系统负责供应商自主供应商进行工作及信息管理',
+  //   icon: 'application-icon-2.svg',
+  //   bg: 'application-bg-2.svg',
+  //   type: []
+  // },
+  // {
+  //   title: '种业数据服务平台',
+  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+  //   icon: 'application-icon-4.svg',
+  //   bg: 'application-bg-4.svg',
+  //   type: []
+  // },
   {
-    title: '供应商管理后台',
+    title: '后台管理',
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-    icon: 'application-icon-1.svg',
-    bg: 'application-bg-1.svg',
-    redirect: '/platform/index'
-  },
-  {
-    title: '供应商系统',
-    description: '供应商系统负责供应商自主供应商进行工作及信息管理',
-    icon: 'application-icon-2.svg',
-    bg: 'application-bg-2.svg'
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg',
+    redirect: '/index',
+    type: ['0', '2', '3', '4']
   },
   {
     title: '农资农具销售服务平台',
     description: '农资农具销售服务平台主要用于针对农户、合作社、农资店、农场等不同客户进行农资农具购买',
     icon: 'application-icon-3.svg',
-    bg: 'application-bg-3.svg'
-  },
-  {
-    title: '种业数据服务平台',
-    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-    icon: 'application-icon-4.svg',
-    bg: 'application-bg-4.svg'
+    bg: 'application-bg-3.svg',
+    redirect: '/mall',
+    type: ['1']
   },
   {
     title: '种子经纪服务平台',
     description: '该应用为内部人员对供应商进行管理；如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-5.svg',
-    bg: 'application-bg-5.svg'
+    bg: 'application-bg-5.svg',
+    redirect: '/mall',
+    type: ['1']
   },
-  {
-    title: '种子维权服务平台',
-    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-    icon: 'application-icon-6.svg',
-    bg: 'application-bg-6.svg'
-  },
+  // {
+  //   title: '种子维权服务平台',
+  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+  //   icon: 'application-icon-6.svg',
+  //   bg: 'application-bg-6.svg',
+  //   redirect: '/mall/index',
+  //   type: ['2', '3']
+  // },
   {
     title: '种子金融服务平台',
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-7.svg',
-    bg: 'application-bg-7.svg'
+    bg: 'application-bg-7.svg',
+    redirect: '/financeFront/index',
+    type: ['1', '2', '3']
   }
 ]);
+
+const currentPlatform = ref([]);
+
 onMounted(() => {
   console.log('12312312312123');
   getUserInfo();
 });
 
 const getUserInfo = async () => {
-  const res = await getInfo();
+  const res: any = await getInfo();
   userInfo.value = res.data.user;
   console.log(res);
+  // 采购商
+  currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
+  console.log(currentPlatform.value);
 };
 
 const getIcon = (svgName: string) => {

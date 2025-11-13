@@ -69,12 +69,33 @@ export const constantRoutes: RouteRecordRaw[] = [
     hidden: true
   },
   {
+    path: '/index',
+    component: Layout,
+    hidden: true
+  },
+  // 门户
+  {
+    path: '/home',
+    component: () => import('@/views/home.vue'),
+    hidden: true
+  },
+  {
     path: '',
-    redirect: 'mall/index',
+    redirect: '/home',
+    hidden: true
+  },
+  // 金融前台
+  {
+    path: '/financeFront/index',
+    component: () => import('@/views/financeFront/index.vue'),
+    hidden: true
+  },
+  {
+    path: '/mall',
     hidden: true,
     children: [
       {
-        path: '/mall/index',
+        path: '/mall',
         component: () => import('@/views/mall/index.vue'),
         name: 'Index',
         meta: { title: '商城', icon: 'dashboard' }
