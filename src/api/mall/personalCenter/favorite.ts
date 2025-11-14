@@ -79,4 +79,7 @@ export interface FavoriteItem {
   articleAuthor?: string;
   articleTitle?: string;
   articleCover?: string;
+
+  contentId?: number; // 普法内容id
+  courseId?: number; // 培训课程id
 }

@@ -144,20 +144,18 @@ function onUnfav(item: any) {
 }
 
 // 跳转详情（按你项目实际路由调整）
-function goDetail(item: FavoriteItem) {
-  const id = item.id;
-  const type: Record<string, string> = {
-    '1': 'expert', // 培训会议
-    '2': 'expert' // 普法活动
+function goDetail(item: any) {
+  const id: Record<string, string | number> = {
+    '1': item.meetingCultivateVo?.id || null,
+    '2': item.lawActivityVo?.id || null
   };
   const commandMap: Record<string, string> = {
-    '1': 'meetingDetail',
-    '2': 'lawActivityDetail'
+    '1': 'meeting',
+    '2': 'lawActivity'
   };
   eventBus.emit('showDetailspage', {
-    command: commandMap[state.activeTab] || 'expert',
-    id,
-    type: type[state.activeTab] || 'meetingDetail'
+    id: id[state.activeTab] || null,
+    type: commandMap[state.activeTab] || 'meeting'
   });
 }
 

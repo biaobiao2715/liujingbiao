@@ -66,8 +66,8 @@
       <h3>报名参加人员信息</h3>
       <el-table :data="signUpList" border>
         <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="signUpName" label="报名人姓名" align="center" />
-        <el-table-column prop="signUpPhone" label="报名人联系电话" align="center" />
+        <el-table-column prop="enrollUserNickName" label="报名人姓名" align="center" />
+        <el-table-column prop="enrollUserPhone" label="报名人联系电话" align="center" />
       </el-table>
       <div class="pagination">
         <pagination

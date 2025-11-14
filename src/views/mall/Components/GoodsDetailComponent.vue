@@ -214,7 +214,7 @@ import GoodsItemComponent from './GoodsItemComponent.vue';
 import { Check } from '@element-plus/icons-vue';
 
 const props = defineProps<{
-  goodsId?: number;
+  id?: number;
 }>();
 
 const router = useRouter();
@@ -222,8 +222,8 @@ const route = useRoute();
 
 // 从路由或props获取商品id
 const goodsIdFromRoute = computed(() => {
-  if (props.goodsId) {
-    return props.goodsId;
+  if (props.id) {
+    return props.id;
   }
   return route.query.id ? String(route.query.id) : undefined;
 });

@@ -20,7 +20,7 @@
           <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
         </el-tabs>
         <!-- 商品组件 -->
-        <GoodsComponent v-if="activeTab === 'goods'" :id="detailsId" />
+        <GoodsComponent v-if="activeTab === 'goods'" />
         <div v-else-if="activeTab === 'demand'">
           <DemandComponent />
         </div>
@@ -28,7 +28,7 @@
           <MarketComponent />
         </div>
         <div v-else-if="activeTab === 'expert'">
-          <ExpertComponent :id="detailsId" :type="detailsType" />
+          <ExpertComponent />
         </div>
         <!-- 个人中心 -->
         <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
@@ -61,13 +61,6 @@ onMounted(() => {
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (command: string) => {
     activeTab.value = command;
-  });
-  // 监听显示详情页事件
-  eventBus.on('showDetailspage', ({ command, id, type }: { command: string; id: number | string; type: string }) => {
-    activeTab.value = command;
-    detailsId.value = id.toString();
-    detailsType.value = type;
-    console.log('显示详情页:', command, id, type);
   });
 });
 

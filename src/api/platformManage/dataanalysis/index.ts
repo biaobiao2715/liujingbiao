@@ -12,6 +12,6 @@ export function getqueryExpertStaticData(query: any) {
 export function getexpertTotalStaticData() {
   return request({
     url: 'skill-server/question/expertTotalStaticData',
-    method: 'get',
+    method: 'get'
   });
 }
