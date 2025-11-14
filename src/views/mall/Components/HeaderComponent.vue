@@ -1,31 +1,30 @@
 <template>
-  <div class="flex-center header">
-    <div class="welcome-message">
-      <span>Hi, 张三，您好，欢迎来到农合智创</span>
+  <div class="flex-center-between header">
+    <div class="welcome-message">Hi, 张三，您好，欢迎来到农合智创</div>
+    <div class="right-info flex-center gap-24">
+      <el-badge value="1" class="badge">
+        <el-icon size="26"><Bell /></el-icon>
+      </el-badge>
+      <el-dropdown @command="handleCommand" style="margin-left: 12px">
+        <div class="flex-center gap-12">
+          <img src="../../../assets/images/avatar.svg" width="32" />
+          <div class="my-center">个人中心</div>
+        </div>
+        <template #dropdown>
+          <el-dropdown-menu class="dropdown-menu">
+            <el-dropdown-item command="order">我的订单</el-dropdown-item>
+            <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
+            <el-dropdown-item command="question">我的提问</el-dropdown-item>
+            <el-dropdown-item command="address">地址管理</el-dropdown-item>
+            <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
+            <el-dropdown-item command="participated">我参与的</el-dropdown-item>
+            <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
+            <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
+            <el-dropdown-item command="loginout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
-    <!-- 进入后台管理 -->
-    <!-- <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button> -->
-    <el-button type="primary" @click="handleLogout">退出登录</el-button>
-
-    <el-dropdown @command="handleCommand" style="margin-left: 12px">
-      <el-button> 个人中心<i class="el-icon-arrow-down el-icon--right"></i> </el-button>
-      <template #dropdown>
-        <el-dropdown-menu class="dropdown-menu">
-          <el-dropdown-item command="order">我的订单</el-dropdown-item>
-          <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
-          <el-dropdown-item command="question">我的提问</el-dropdown-item>
-          <el-dropdown-item command="address">地址管理</el-dropdown-item>
-          <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
-          <el-dropdown-item command="participated">我参与的</el-dropdown-item>
-          <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
-          <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-
-    <el-badge value="1" class="badge">
-      <el-icon size="26"><Bell /></el-icon>
-    </el-badge>
   </div>
 </template>
 
@@ -40,7 +39,10 @@ const userStore = useUserStore();
 const router = useRouter();
 
 const handleCommand = (command: string) => {
-  // console.log('点击了:', command);
+  if (command === 'loginout') {
+    handleLogout();
+    return;
+  }
   eventBus.emit('navigateToPersonalCenter', command);
 };
 
@@ -65,7 +67,6 @@ const handleLogout = () => {
           redirect: encodeURIComponent(router.currentRoute.value.fullPath || '/')
         }
       });
-      // proxy?.$tab.closeAllPage();
     });
   });
 };
@@ -76,19 +77,21 @@ const handleLogout = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background-color: #f5f5f5;
+  padding: 16px 15%;
 }
 .logo {
   flex-grow: 1;
 }
 .welcome-message {
   font-size: 14px;
-  color: #A8A8A8;
+  color: #a8a8a8;
   text-align: left;
-  margin-right: 16px;
 }
 .badge {
   margin-left: 16px;
+}
+.my-center {
+  font-size: 14px;
+  color: #a8a8a8;
 }
 </style>
