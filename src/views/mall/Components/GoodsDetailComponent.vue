@@ -2,7 +2,7 @@
   <div class="goods-detail-container">
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb">
-      <el-breadcrumb-item :to="{ path: '/mall/index' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/mall' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item v-for="(item, index) in breadcrumbItems" :key="index">
         {{ item }}
       </el-breadcrumb-item>

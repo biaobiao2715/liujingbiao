@@ -8,7 +8,7 @@
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods?.sysOssLists?.[0].url" width="100" class="goods-image" />
+    <img :src="goods?.sysOssLists?.[0]?.url" width="100" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
         <div class="goods-price">{{ goods?.hnGoodsSpecificationDataList?.[0].goodsPrice }}元起</div>

@@ -1,11 +1,7 @@
 <template>
   <div class="flex-center header">
-    <div class="logo flex-center gap-12">
-      <img src="../../../assets/images/logo.svg" alt="logo" class="logo-image" />
-      <div>农合智创</div>
-    </div>
     <div class="welcome-message">
-      <span>Hi, 张三，您好，欢迎来到XXX</span>
+      <span>Hi, 张三，您好，欢迎来到农合智创</span>
     </div>
     <!-- 进入后台管理 -->
     <!-- <el-button type="primary" @click="handleAdminLogin" v-hasPermi="['system:into:platform']">进入后台管理</el-button> -->
@@ -87,7 +83,9 @@ const handleLogout = () => {
   flex-grow: 1;
 }
 .welcome-message {
-  text-align: center;
+  font-size: 14px;
+  color: #A8A8A8;
+  text-align: left;
   margin-right: 16px;
 }
 .badge {

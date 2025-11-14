@@ -17,15 +17,20 @@
     <el-table :data="latestFiles" style="width: 100%">
       <el-table-column prop="fileName" label="附件名称" />
       <el-table-column prop="fileSuffix" label="附件类型" />
+      <el-table-column prop="downloadCount" label="下载量" width="180">
+        <template #default="scope">
+          {{ detailData.downloadCount }}
+        </template>
+      </el-table-column>
       <el-table-column prop="fileSize" label="文件大小" />
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button type="primary" size="small" :href="scope.row.url" download> 下载 </el-button>
+          <el-button type="primary" size="small" @click="handleDownloadHistory(scope.row)"> 下载 </el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 历史版本附件表格 -->
-    <div class="file-title">历史版本附件</div>
+    <!-- <div class="file-title">历史版本附件</div>
     <el-table :data="historyFiles" style="width: 100%">
       <el-table-column prop="fileName" label="附件名称" />
       <el-table-column prop="fileSuffix" label="附件类型" />
@@ -35,14 +40,14 @@
           <el-button type="primary" size="small" @click="handleDownloadHistory(scope.row)"> 下载 </el-button>
         </template>
       </el-table-column>
-    </el-table>
+    </el-table> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { getWhitePaperDetail } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 import { formatFileSize } from '@/utils/fileUtils';
-import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
+import { addWhitePaperViewRecords, addWhitePaperDownloadRecords } from '@/api/mall/expert';
 
 const props = defineProps({
   id: {
@@ -57,8 +62,9 @@ const historyFiles = ref([]);
 
 const latestFiles = ref([]);
 
-onMounted(() => {
-  fetchDetail();
+onMounted(async () => {
+  await fetchDetail();
+  await addViewRecords();
 });
 
 const fetchDetail = async () => {
@@ -94,8 +100,31 @@ const fetchDetail = async () => {
   }
 };
 
-const handleDownloadHistory = (file: any) => {
-  downloadFileByUrl(file.url, file.fileName);
+// 增加浏览量
+const addViewRecords = async () => {
+  try {
+    await addWhitePaperViewRecords(props.id);
+  } catch (error) {
+    console.error('增加浏览量失败:', error);
+  }
+};
+
+const handleDownloadHistory = (item: any) => {
+  // 利用a标签 下载文件到本地
+  const a = document.createElement('a');
+  a.href = item.url;
+  a.target = '_blank';
+  a.download = item.name || '';
+  document.body.appendChild(a);
+  a.click();
+  // 移除a标签
+  document.body.removeChild(a);
+  console.log(detailData.value);
+
+  addWhitePaperDownloadRecords({ id: props.id, ossVoList: detailData.value.latestFiles }).then((res) => {
+    console.log(res.data);
+    detailData.value.downloadCount++;
+  });
 };
 </script>
 

@@ -123,9 +123,27 @@ export function addViewRecords(id: string) {
 }
 
 // 增加普法内容的文件下载数量
-export function addDownloadRecords(id: string) {
+export function addDownloadRecords(data) {
   return request({
-    url: `skill-server/law/content/addDownloadRecords/${id}`,
-    method: 'post'
+    url: `skill-server/law/content/addDownloadRecords`,
+    method: 'post',
+    data: data
+  });
+}
+
+// 增加白皮书浏览量
+export function addWhitePaperViewRecords(id: string) {
+  return request({
+    url: `skill-server/skill/whitePaper/addViewRecords/${id}`,
+    method: 'put'
+  });
+}
+
+// 增加白皮书的文件下载数量
+export function addWhitePaperDownloadRecords(data) {
+  return request({
+    url: `skill-server/skill/whitePaper/addDownloadRecord`,
+    method: 'post',
+    data: data
   });
 }
