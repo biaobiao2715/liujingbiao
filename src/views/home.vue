@@ -86,7 +86,7 @@ const applications = ref([
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
     redirect: '/index',
-    type: ['0', '2', '3']
+    type: ['0', '2', '3','6']
   },
   {
     title: '农资农具销售服务平台',
@@ -118,7 +118,7 @@ const applications = ref([
     icon: 'application-icon-7.svg',
     bg: 'application-bg-7.svg',
     redirect: '/financeFront/index',
-    type: ['1', '2', '3','99']
+    type: ['1', '2', '3']
   }
 ]);
 
