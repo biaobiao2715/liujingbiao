@@ -92,19 +92,7 @@
           <!-- 发货地址 -->
           <div class="shipping-address">
             <span class="label">发货地址</span>
-            <el-select
-              v-model="selectedAddressId"
-              :placeholder="enterpriseShippingAddress || '请选择发货地址'"
-              class="address-select"
-              @change="handleAddressChange"
-              @visible-change="handleAddressDropdownVisible"
-              :loading="addressLoading"
-              loading-text="正在加载地址..."
-              clearable
-            >
-              <el-option v-if="addressList.length === 0" :label="enterpriseShippingAddress || '暂无发货地址'" :value="-1" disabled />
-              <el-option v-for="addr in addressList" :key="addr.id" :label="getAddressDisplayText(addr)" :value="addr.id" />
-            </el-select>
+            <span class="address-text">{{ enterpriseShippingAddress || '暂无发货地址' }}</span>
           </div>
 
           <!-- 规格选择 -->
@@ -153,13 +141,8 @@
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
         <div class="similar-goods-list">
-          <GoodsItemComponent
-            v-for="(item, index) in groupedRelatedGoods.flat()"
-            :key="index"
-            :goods="item"
-            class="similar-goods-item"
-            @clickGoods="handleSimilarGoodsClick(item.id)"
-          />
+          <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
+            class="similar-goods-item" @clickGoods="handleSimilarGoodsClick(item.id)" />
         </div>
       </div>
 
@@ -189,15 +172,32 @@
       </div>
     </div>
 
-    <!-- 下单组件 -->
-    <PlaceOrderComponent
-      v-model="showOrder"
-      :goods="goods"
-      :selected-spec-id="baseInfo.currentSpec"
-      :quantity="baseInfo.quantity"
-      :selected-address-id="selectedAddressId"
-      @submit="handleOrderSubmit"
+    <!-- 我要举报弹窗（封装组件） -->
+    <ReportDialog
+      v-model="showReportDialog"
+      :default-target="goods?.hnBaseEnterpriseInfo?.companyName || ''"
+      :default-goods-info="goods?.goodsName || ''"
+      @submit="handleReportSubmitData"
     />
+    <!-- 下单组件 -->
+    <PlaceOrderComponent v-model="showOrder" :goods="goods" :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity" @submit="handleOrderSubmit" />
+
+    <!-- 电话沟通弹窗（自定义，无组件，teleport 到 body 保证层级与可见性） -->
+   
+      <div v-if="showPhoneDialog" class="phone-dialog-overlay" @click.self="showPhoneDialog = false">
+        <div class="phone-dialog">
+          <div class="phone-dialog__header">
+            <div class="phone-dialog__title">联系商家</div>
+            <span class="phone-dialog__close" @click="showPhoneDialog = false">×</span>
+          </div>
+          <div class="phone-dialog__body">
+            <div v-if="enterprisePhoneNumber" class="phone-dialog__number">{{ enterprisePhoneNumber }}</div>
+            <div v-else class="phone-dialog__no-number">暂无商家电话</div>
+          </div>
+        </div>
+      </div>
+  
   </div>
 </template>
 
@@ -207,11 +207,11 @@ import { ElMessage } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail } from '@/api/mall/goods/index';
-import { userAddressList, type Address } from '@/api/mall/personalCenter/addressManagement';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './AboutCompareComponents/PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
 import { Check } from '@element-plus/icons-vue';
+import ReportDialog from './AboutCompareComponents/ReportDialog.vue';
 
 const props = defineProps<{
   id?: number;
@@ -265,48 +265,21 @@ const enterpriseShippingAddress = computed(() => {
     .join('');
 });
 
-// 用户地址下拉
-const addressList = ref<Address[]>([]);
-const selectedAddressId = ref<number | null>(null);
-const addressLoading = ref(false);
+// 发货地址直接根据企业信息拼接展示，无需用户地址下拉
 
-// 获取用户地址列表
-const fetchAddressList = async () => {
-  try {
-    addressLoading.value = true;
-    const res = await userAddressList();
-    if (res.code === 200 && res.rows) {
-      addressList.value = res.rows;
-      // 如果已有选中项且仍存在于列表中，则保持不变；否则按默认规则选择
-      const exists = selectedAddressId.value ? addressList.value.some((a) => a.id === selectedAddressId.value) : false;
-      if (!exists) {
-        const def = addressList.value.find((a) => a.isDefault === '1') || addressList.value[0];
-        selectedAddressId.value = def?.id ?? null;
-      }
-    }
-  } catch (e) {
-    console.error('获取地址列表失败:', e);
-  } finally {
-    addressLoading.value = false;
-  }
+// 商家电话
+const enterprisePhoneNumber = computed(() => {
+  return goods.value?.hnBaseEnterpriseInfo?.phoneNumber || '';
+});
+const showPhoneDialog = ref(false);
+
+// 举报弹窗
+const showReportDialog = ref(false);
+const handleReportSubmitData = (_fd: FormData) => {
+  // TODO: 接入实际举报接口
+  ElMessage.success('已提交举报');
 };
 
-// 组合展示字符串
-const getAddressDisplayText = (address: Address) => {
-  return [address.province, address.city, address.region, address.detailAddress].filter(Boolean).join('');
-};
-
-// 切换选择
-const handleAddressChange = (_id: number | null) => {
-  // 仅记录所选ID，提交订单时由下单组件使用
-};
-
-// 下拉展开时拉取地址
-const handleAddressDropdownVisible = async (visible: boolean) => {
-  if (visible) {
-    await fetchAddressList();
-  }
-};
 
 // 规格显示控制
 const showAllSpecs = ref(false);
@@ -424,9 +397,6 @@ const getGoodsDetail = async () => {
       // 生成面包屑导航
       updateBreadcrumb();
 
-      // 获取地址列表（用于发货地址下拉）
-      await fetchAddressList();
-
       // 商品详情加载成功后，加载相关商品和热门商品
       await Promise.all([getRelatedGoods(), getHotGoods()]);
     } else {
@@ -496,9 +466,11 @@ const operateOrder = (type: number) => {
       break;
     case 4:
       // 电话沟通
+      showPhoneDialog.value = true;
       break;
     case 5:
       // 我要举报
+      showReportDialog.value = true;
       break;
     default:
       break;
@@ -512,7 +484,9 @@ const getInitPrice = (specs: any[]) => {
   if (!prices.length) return '0.00';
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
-  return minPrice === maxPrice ? minPrice.toFixed(2) : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
+  return minPrice === maxPrice
+    ? minPrice.toFixed(2)
+    : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
 };
 
 // 更新总价
@@ -932,11 +906,7 @@ defineExpose({
         flex: 1;
         min-width: 200px;
         color: #555;
-        line-height: 38px;
-        padding: 6px 12px;
-        background-color: #f7f7f7;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+
       }
     }
 
@@ -1099,6 +1069,69 @@ defineExpose({
     }
   }
 
+  // 自定义电话弹窗样式（teleport 到 body，需要全局选择器）
+  :global(.phone-dialog-overlay) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  :global(.phone-dialog) {
+    width: 420px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  :global(.phone-dialog__header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #ebeef5;
+  }
+  :global(.phone-dialog__title) {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+  }
+  :global(.phone-dialog__close) {
+    font-size: 20px;
+    color: #909399;
+    cursor: pointer;
+    line-height: 1;
+    user-select: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+  }
+  :global(.phone-dialog__close:hover) {
+    background: #f5f7fa;
+    color: #606266;
+  }
+  :global(.phone-dialog__body) {
+    padding: 18px;
+  }
+  :global(.phone-dialog__number) {
+    text-align: center;
+    font-size: 22px;
+    color: #108C58;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  :global(.phone-dialog__no-number) {
+    text-align: center;
+    color: #909399;
+    font-size: 14px;
+  }
+
+  // （举报弹窗样式改用 Element Plus，自定义样式移除）
   .similar-goods-section {
     background: white;
     padding: 20px;
@@ -1255,5 +1288,6 @@ defineExpose({
       }
     }
   }
+
 }
 </style>

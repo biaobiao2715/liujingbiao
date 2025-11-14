@@ -7,55 +7,33 @@
         <!-- 筛选/排序区域 -->
         <div class="filter-section">
           <div class="region-filter-wrapper">
-            <RegionSelect 
-              v-model="regionValue"
-              @regionChange="handleAreaChange"
-              placeholder="全国"
-              class="region-select"
-              :show-all-levels="false"
-              clearable
-            />
+            <RegionSelect v-model="regionValue" @regionChange="handleAreaChange" placeholder="全国" class="region-select"
+              :show-all-levels="false" clearable />
           </div>
-          <div 
-            class="filter-checkbox" 
-            :class="{ 'is-checked': filterState.sortType === '最新' }"
-            @click="toggleSortType"
-          >
+          <div class="filter-checkbox" :class="{ 'is-checked': filterState.sortType === '最新' }" @click="toggleSortType">
             <span>最新</span>
           </div>
           <div class="price-filter-group">
             <span class="price-label">价格</span>
             <div class="price-input-group">
-              <el-input
-                v-model="queryParams.minPrice"
-                placeholder="最低价格"
-                class="price-input"
-                @blur="handleFilterChange"
-              />
+              <el-input v-model="queryParams.minPrice" placeholder="最低价格" class="price-input"
+                @keyup.enter="handleSearch" />
               <span class="price-separator">-</span>
-              <el-input
-                v-model="queryParams.maxPrice"
-                placeholder="最高价格"
-                class="price-input"
-                @blur="handleFilterChange"
-              />
+              <el-input v-model="queryParams.maxPrice" placeholder="最高价格" class="price-input"
+                @keyup.enter="handleSearch" />
             </div>
-          </div>
+            <button class="search-btn" @click="handleSearch">搜索</button>
+            </div>
         </div>
 
         <div v-loading="loading" class="goods-content-wrapper">
           <div v-if="goodsData.length > 0" class="goods-grid">
             <div v-for="item in goodsData" :key="item.id" class="goods-card"
-              :class="{ 'in-compare': isInCompare(item.id) }"
-              @click="toggleCompare(item)">
+              :class="{ 'in-compare': isInCompare(item.id) }" @click="toggleCompare(item)">
 
               <!-- 鼠标悬停遮罩层 -->
               <div class="hover-overlay">
-                <el-checkbox 
-                  :model-value="isInCompare(item.id)"
-                  @change="() => toggleCompare(item)"
-                  @click.stop
-                >
+                <el-checkbox :model-value="isInCompare(item.id)" @change="() => toggleCompare(item)" @click.stop>
                 </el-checkbox>
                 <span class="overlay-text">加入对比</span>
               </div>
@@ -213,8 +191,8 @@ const toggleSortType = () => {
   fetchGoodsList();
 };
 
-// 处理筛选变化（价格输入）
-const handleFilterChange = () => {
+// 点击搜索或回车提交价格筛选
+const handleSearch = () => {
   queryParams.pageNum = 1;
   fetchGoodsList();
 };
@@ -288,7 +266,7 @@ const startCompare = async () => {
 
   try {
     const params: any = {};
-    
+
     if (currentGoods.value && currentGoods.value.id) {
       params.id = String(currentGoods.value.id);
     } else if (goodsIdFromRoute.value) {
@@ -297,21 +275,21 @@ const startCompare = async () => {
       ElMessage.warning('缺少主商品信息，无法进行对比');
       return;
     }
-    
+
     const compareIds = compareGoodsList.value
       .map(item => item.id)
       .filter((id) => id !== undefined && id !== null)
       .map(id => String(id));
-    
+
     if (compareIds.length === 0) {
       ElMessage.warning('请至少选择一个商品进行对比');
       return;
     }
-    
+
     params.comparePricesGoodsIds = compareIds;
-    
+
     const res = await comparePrices(params);
-    
+
     if (res && res.code === 200) {
       saveToLocalStorage();
       router.push({
@@ -341,7 +319,7 @@ const saveToLocalStorage = () => {
 // 获取当前商品详情
 const fetchCurrentGoods = async () => {
   if (!goodsIdFromRoute.value) return;
-  
+
   try {
     const res = await goodsDetail(goodsIdFromRoute.value);
     if (res && res.code === 200 && res.data) {
@@ -387,11 +365,11 @@ const fetchGoodsList = async () => {
     const response = await goodsCompareList(params);
     if (response.code === 200) {
       let records = response.rows || [];
-      
+
       if (currentGoods.value && currentGoods.value.id) {
         records = records.filter(item => item.id !== currentGoods.value!.id);
       }
-      
+
       goodsData.value = records;
       total.value = response.total || 0;
     }
@@ -406,7 +384,7 @@ const fetchGoodsList = async () => {
 onMounted(() => {
   compareGoodsList.value = [];
   saveToLocalStorage();
-  
+
   if (goodsIdFromRoute.value) {
     fetchCurrentGoods();
   }
@@ -427,11 +405,11 @@ onMounted(() => {
   }
 
   // 左侧商品列表
-    .goods-list-section {
-      margin-right: 320px;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 100px);
+  .goods-list-section {
+    margin-right: 320px;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 100px);
 
     .filter-section {
       display: flex;
@@ -446,7 +424,7 @@ onMounted(() => {
       .region-filter-wrapper {
         .region-select {
           width: 200px;
-          
+
           :deep(.el-input__wrapper) {
             background: #FFFFFF;
             border-radius: 8px;
@@ -454,16 +432,16 @@ onMounted(() => {
             box-shadow: none;
             height: 36px;
             padding: 0 12px;
-            
+
             &:hover {
               border-color: #108C58;
             }
-            
+
             &.is-focus {
               border-color: #108C58;
             }
           }
-          
+
           :deep(.el-input__inner) {
             font-size: 14px;
             color: #303133;
@@ -507,32 +485,32 @@ onMounted(() => {
         }
 
         .price-input-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: #fff;
-        border-radius: 4px;
-        padding: 8px 12px;
-        border: 1px solid #e0e0e0;
-        min-width: 280px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #fff;
+          border-radius: 4px;
+          padding: 0px 12px;
+          border: 1px solid #e0e0e0;
+          min-width: 280px;
 
-        .price-input {
-          flex: 1;
-          min-width: 0;
+          .price-input {
+            flex: 1;
+            min-width: 0;
 
-          :deep(.el-input__wrapper) {
-            box-shadow: none;
-            border: none;
-            padding: 0;
-            background: transparent;
-          }
+            :deep(.el-input__wrapper) {
+              box-shadow: none;
+              border: none;
+              padding: 0;
+              background: transparent;
+            }
 
-          :deep(.el-input__inner) {
-            &::placeholder {
-              color: #c0c4cc;
+            :deep(.el-input__inner) {
+              &::placeholder {
+                color: #c0c4cc;
+              }
             }
           }
-        }
 
           .price-separator {
             color: #909399;
@@ -540,32 +518,54 @@ onMounted(() => {
             flex-shrink: 0;
           }
         }
+        
+        .search-btn {
+          height: 32px;
+          padding: 0 16px;
+          margin-left: 8px;
+          background: #108C58;
+          color: #fff;
+          border: 1px solid #108C58;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: #0e7a4a;
+            border-color: #0e7a4a;
+          }
+          
+          &:active {
+            transform: translateY(1px);
+          }
+        }
       }
     }
 
-      .goods-content-wrapper {
-        flex: 1;
-        background: #fff;
-        border-radius: 4px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        min-height: 400px;
-      }
+    .goods-content-wrapper {
+      flex: 1;
+      background: #fff;
+      border-radius: 4px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+    }
 
-      .empty-state-wrapper {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-      }
+    .empty-state-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+    }
 
-      .goods-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 20px;
+    .goods-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
 
       .goods-card {
         position: relative;
