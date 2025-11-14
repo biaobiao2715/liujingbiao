@@ -1,6 +1,6 @@
 <template>
   <div class="banner">
-    <el-carousel :interval="5000" type="card" height="200px">
+    <el-carousel :interval="5000" height="200px">
       <el-carousel-item v-for="tab in tabs" :key="tab.name">
         <div class="banner-text">
           <h1>{{ tab.title }}</h1>

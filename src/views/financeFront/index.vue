@@ -21,7 +21,7 @@ import { ref } from 'vue';
 import HeaderComponent from './components/HeaderComponent.vue';
 import SearchComponent from './components/SearchComponent.vue';
 import BannerComponent from './components/BannerComponent.vue';
-import LoanProductsComponent from './components/BannerComponent.vue';
+import LoanProductsComponent from './components/LoanProductsComponent.vue';
 import RiskCasesComponent from './components/RiskCasesComponent.vue';
 import PolicyRulesComponent from './components/PolicyRulesComponent.vue';
 </script>

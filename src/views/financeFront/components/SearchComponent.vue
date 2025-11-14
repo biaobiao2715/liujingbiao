@@ -67,17 +67,24 @@ const handleSearch = () => {
   align-items: center;
   margin: 0 auto;
   height: 40px;
-//   box-shadow: 0 0 10px rgba(16, 140, 88, 0.5);
+  //   box-shadow: 0 0 10px rgba(16, 140, 88, 0.5);
   ::v-deep .el-input__wrapper {
     height: 40px;
   }
+
   ::v-deep .el-select__wrapper {
     height: 40px;
-    border: none;
   }
+  ::v-deep .el-input__wrapper,
   ::v-deep .el-input-group__prepend,
   ::v-deep .el-input-group__append {
     box-shadow: 0 0 0 1px #108c58;
+    background: transparent !important;
+  }
+
+  ::v-deep .el-input-group__append {
+    background-color: #108c58 !important;
+    color: #fff;
   }
 }
 

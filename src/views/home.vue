@@ -118,7 +118,7 @@ const applications = ref([
     icon: 'application-icon-7.svg',
     bg: 'application-bg-7.svg',
     redirect: '/financeFront/index',
-    type: ['1', '2', '3']
+    type: ['1', '2', '3','99']
   }
 ]);
 
