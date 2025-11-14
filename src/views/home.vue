@@ -70,13 +70,23 @@ const applications = ref([
   //   bg: 'application-bg-4.svg',
   //   type: []
   // },
+
+  {
+    title: '专家服务平台',
+    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg',
+    redirect: '/index',
+    type: ['4', '5']
+  },
+
   {
     title: '后台管理',
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
     redirect: '/index',
-    type: ['0', '2', '3', '4']
+    type: ['0', '2', '3']
   },
   {
     title: '农资农具销售服务平台',
