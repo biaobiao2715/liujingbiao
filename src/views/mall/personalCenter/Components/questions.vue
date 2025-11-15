@@ -173,6 +173,7 @@ const onDelete = async (row: listStyle) => {
   background: #fff;
   position: relative;
   border-bottom: 2px solid #d8d8d8;
+  border-radius: 8px 8px 0 0;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
 
@@ -188,6 +189,8 @@ const onDelete = async (row: listStyle) => {
 
 .pading20 {
   padding: 20px;
+  background: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 .reply-count {
   margin-bottom: 10px;

@@ -23,24 +23,24 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
-        <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
+        <el-button v-throttle @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="2">
-        <el-button v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
+      <el-col :span="1.5">
+        <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
       </el-col>
-      <el-col :span="2">
-        <el-button v-throttle type="success" icon="Check" :disabled="multiple" @click="handleBatchStatus('0')">启用</el-button>
+      <el-col :span="1.5">
+        <el-button v-throttle type="success" :disabled="multiple" @click="handleBatchStatus('0')">启用</el-button>
       </el-col>
-      <el-col :span="2">
-        <el-button v-throttle type="warning" icon="Close" :disabled="multiple" @click="handleBatchStatus('1')">禁用</el-button>
+      <el-col :span="1.5">
+        <el-button v-throttle type="warning" :disabled="multiple" @click="handleBatchStatus('1')">禁用</el-button>
       </el-col>
-      <el-col :span="2">
-        <el-button v-throttle type="danger" icon="Delete" :disabled="multiple" @click="handleDelete()">删除</el-button>
+      <el-col :span="1.5">
+        <el-button v-throttle type="danger" :disabled="multiple" @click="handleDelete()">删除</el-button>
       </el-col>
     </el-row>
 
@@ -67,13 +67,13 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="300">
         <template #default="scope">
-          <el-button v-throttle link type="primary" icon="Edit" @click="handleEdit(scope.row)">修改</el-button>
-          <el-button v-throttle link type="info" icon="View" @click="handleView(scope.row)">查看</el-button>
+          <el-button v-throttle link type="primary" @click="handleEdit(scope.row)">修改</el-button>
+          <el-button v-throttle link type="info" @click="handleView(scope.row)">查看</el-button>
           <el-button v-throttle link :type="scope.row.status == '0' ? 'warning' : 'success'" @click="toggleStatus(scope.row)">{{
             scope.row.status == '0' ? '禁用' : '启用'
           }}</el-button>
           <!-- 行内删除按钮改为统一方法 -->
-          <el-button v-throttle link type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button v-throttle link type="danger" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

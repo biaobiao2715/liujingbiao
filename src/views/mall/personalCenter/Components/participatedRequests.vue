@@ -186,6 +186,7 @@ function getTime(item: any) {
   background: #fff;
   position: relative;
   border-bottom: 2px solid #d8d8d8;
+  border-radius: 8px 8px 0 0;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
 
@@ -201,6 +202,8 @@ function getTime(item: any) {
 
 .pading20 {
   padding: 20px;
+  background: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 /* 通用网格（文章等保持自适应） */
 .grid {

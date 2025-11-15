@@ -11,6 +11,7 @@
     <div class="pading20">
       <!-- 新增/编辑地址 -->
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px" class="address-form">
+        <div style="color: #108c58; padding: 8px 4px 20px 8px">新增收货地址</div>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="收货人" prop="receiverName">
@@ -38,8 +39,8 @@
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label=" " colon="false">
-              <el-checkbox v-model="form.isDefault" true-value="1" false-value="0">设为默认地址</el-checkbox>
+            <el-form-item label="" label-width="25px" colon="false">
+              <el-checkbox class="round-checkbox" v-model="form.isDefault" true-value="1" false-value="0">设为默认地址</el-checkbox>
               <div style="margin-left: 20px; color: #909399">设置后系统将在下单时自动选择该收货地址</div>
             </el-form-item>
           </el-col>
@@ -49,7 +50,9 @@
           </el-col>
         </el-row>
       </el-form>
+    </div>
 
+    <div class="pading20" style="margin-top: 20px; border-radius: 8px">
       <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
       <div class="summary-alert">已发布{{ total }}条 ，还能保存{{ remainCount }}条</div>
       <!-- 表格：加边框与紧凑尺寸 -->
@@ -264,6 +267,7 @@ const onSetDefault = async (row: Address) => {
   position: relative;
   border-bottom: 2px solid #d8d8d8;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  border-radius: 8px 8px 0 0;
 }
 
 .menu-title::before {
@@ -278,6 +282,8 @@ const onSetDefault = async (row: Address) => {
 
 .pading20 {
   padding: 20px;
+  border-radius: 0 0 8px 8px;
+  background: #ffffff;
 }
 /* 表单容器增加描边与圆角，间距更紧凑 */
 .address-form {
@@ -288,6 +294,11 @@ const onSetDefault = async (row: Address) => {
 }
 .address-form :deep(.el-form-item) {
   margin-bottom: 12px;
+}
+
+/* 将该表单中的“设为默认地址”复选框外观由方形改为圆形 */
+.address-form :deep(.round-checkbox .el-checkbox__inner) {
+  border-radius: 50%;
 }
 
 /* 顶部提示样式 */

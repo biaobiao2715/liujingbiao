@@ -21,8 +21,8 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
+        <el-button v-throttle type="primary" @click="handleQuery">搜索</el-button>
+        <el-button v-throttle @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 

@@ -77,7 +77,7 @@
               @click="openReportDialog(row)"
               v-throttle
               text
-              style="color: #108c58"
+              style="color: #ff7b00"
               >举报商品</el-button
             >
           </template>
@@ -95,9 +95,7 @@
           <!-- 举报类别 -->
           <el-form-item label="举报类别" prop="type">
             <el-select v-model="reportForm.type" placeholder="请选择">
-              <el-option label="假冒伪劣" value="1" />
-              <el-option label="虚假宣传" value="2" />
-              <el-option label="其他" value="3" />
+              <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
 
@@ -154,13 +152,13 @@
 
 <script setup lang="ts">
 // -------------------- 引入依赖 --------------------
-import { ref, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
+import { ref, reactive, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { orderConfirm, orderCancel, orderList, ossUploadImage, Order } from '@/api/mall/personalCenter/orders';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 // -------------------- 响应式数据 --------------------
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { order_status } = toRefs<any>(proxy?.useDict('order_status')); // 订单状态字典
+const { order_status, report_type_id } = toRefs<any>(proxy?.useDict('order_status')); // 订单状态字典
 
 /** 查询参数 */
 const queryParams = ref({
@@ -197,8 +195,8 @@ const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => v
     callback();
   }
 };
-// 表单校验规则
-const reportRules = reactive({
+
+const reportRules = {
   type: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
   target: [
     { required: true, message: '请输入被举报方', trigger: 'blur' },
@@ -210,8 +208,7 @@ const reportRules = reactive({
     { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
   ],
   materials: [{ validator: validateMaterials, trigger: 'change' }]
-});
-
+};
 // -------------------- 方法定义 --------------------
 
 /**
@@ -438,6 +435,7 @@ onMounted(() => {
   background: #fff;
   position: relative;
   border-bottom: 2px solid #d8d8d8;
+  border-radius: 8px 8px 0 0;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
 .menu-title::before {
@@ -451,6 +449,8 @@ onMounted(() => {
 }
 .pading20 {
   padding: 20px;
+  background: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 .table-img {
   width: 70px;

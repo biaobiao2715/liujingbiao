@@ -9,14 +9,14 @@
   <div class="supplier-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="供应商/企业名称" prop="companyName">
-        <el-input v-model="queryParams.companyName" placeholder="请输入供应商或企业名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="供应商/企业名称" prop="reporterName">
+        <el-input v-model="queryParams.reporterName" placeholder="请输入供应商或企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="案件编号" prop="caseNumber">
-        <el-input v-model="queryParams.caseNumber" placeholder="请输入案件编号" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="案件编号" prop="caseCode">
+        <el-input v-model="queryParams.caseCode" placeholder="请输入案件编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="案件类型" prop="caseType">
-        <el-select v-model="queryParams.caseType" placeholder="案件类型" filterable clearable>
+      <el-form-item label="案件类型" prop="caseTypeId">
+        <el-select v-model="queryParams.caseTypeId" placeholder="案件类型" filterable clearable>
           <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -29,27 +29,26 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="供应商/企业名称" align="center" prop="companyName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="案件编号" align="center" prop="enterpriseNumber" width="210"></el-table-column>
-      <el-table-column label="案件类型" align="center" prop="caseType">
+      <el-table-column label="供应商/企业名称" align="center" prop="reporterName" min-width="100" :show-overflow-tooltip="true" />
+      <el-table-column label="案件编号" align="center" prop="caseCode" width="210" />
+      <el-table-column label="案件类型" align="center" prop="caseTypeId">
         <template v-slot="scope">
-          <dict-tag :options="case_type" :value="scope.row.caseType" />
+          <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
-      <el-table-column label="处理状态" align="center" prop="handleStatus">
+      <el-table-column label="处理状态" align="center" prop="status">
         <template v-slot="scope">
-          <dict-tag :options="plat_credit_rating" :value="scope.row.handleStatus" />
+          <dict-text :options="case_status" :value="scope.row.status || ''" />
         </template>
       </el-table-column>
-      <el-table-column label="处理时间" align="center" prop="handleTime" min-width="160">
+      <el-table-column label="处理时间" align="center" prop="updateTime" min-width="160">
         <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.handleTime) }}</span>
+          <span>{{ proxy.parseTime(scope.row.updateTime) }}</span>
         </template>
       </el-table-column>
-
-      <el-table-column label="本次扣分" align="center" prop="score" min-width="160">
+      <el-table-column label="本次扣分" align="center" prop="caseScore" min-width="160">
         <template #default="scope">
-          <span>{{ scope.row.score }}</span>
+          <span>{{ scope.row.caseScore }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
@@ -57,7 +56,7 @@
           <el-button
             v-throttle
             v-hasPermi="['system:business:queryByTenant']"
-            v-if="scope.row.reviewStatus !== '0'"
+            v-if="scope.row.status !== '0'"
             type="primary"
             @click="handleEdit(scope.row)"
             >查看</el-button
@@ -71,16 +70,7 @@
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
-    <el-dialog
-      class="dialog-preview"
-      :title="dlgTitle"
-      v-model="dlgPreviewVisible"
-      :before-close="cancelDlg"
-      :close-on-click-modal="isReadonly"
-      :destroy-on-close="true"
-      append-to-body
-      width="80%"
-    >
+    <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
       <Detail :id="selectID" @cancel="cancelDlg" />
     </el-dialog>
   </div>
@@ -88,18 +78,18 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { baseEnterpriseInfoList } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords/index';
+import { getReportCaseFilingList } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords/index';
 import Detail from './Detail.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { case_type, plat_credit_rating } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating'));
+const { case_status, case_type } = toRefs<any>(proxy?.useDict('case_status', 'case_type'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  caseNumber: '',
-  caseType: '',
-  companyName: ''
+  caseCode: '',
+  caseTypeId: '',
+  reporterName: ''
 });
 
 // 表格数据
@@ -119,7 +109,7 @@ const getList = () => {
   loading.value = true;
   const params = { ...queryParams.value };
 
-  baseEnterpriseInfoList(params).then((res) => {
+  getReportCaseFilingList(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;

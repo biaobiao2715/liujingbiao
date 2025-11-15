@@ -12,8 +12,7 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="举报类型：">
-            <!-- 使用字典展示举报类型ID（只读） -->
-            <dict-tag :options="plat_credit_rating" :value="formData.reportTypeId" />
+            <dict-text :options="report_type_id" :value="formData.reportType ?? ''" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -28,7 +27,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="举报人：">
-            <el-input v-model="formData.createBy" disabled />
+            <el-input v-model="formData.createByName" disabled />
           </el-form-item>
         </el-col>
 
@@ -39,20 +38,22 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="被举报人：">
-            <el-link type="primary" :underline="false">
-              {{ formData.reportPersonName }}
-            </el-link>
+            <span style="color: #108c58" @click="openSupplierDialog">
+              {{ formData.reporterName }}
+            </span>
           </el-form-item>
         </el-col>
+        <!-- 举报商品名称 -> 举报人联系电话 -->
         <el-col :span="12">
-          <el-form-item label="被举报人用户类型：">
-            <el-input v-model="formData.userType" disabled />
+          <el-form-item label="举报人联系电话：">
+            <el-input v-model="formData.phoneNumber" disabled />
           </el-form-item>
         </el-col>
 
+        <!-- 被举报人用户类型 -> 被举报人联系电话 -->
         <el-col :span="12">
-          <el-form-item label="被举报商品名称：">
-            <el-input v-model="formData.reportGoodsName" disabled />
+          <el-form-item label="被举报人联系电话：">
+            <el-input v-model="formData.contactPhone" disabled />
           </el-form-item>
         </el-col>
 
@@ -105,23 +106,43 @@
 
       <FormHeader title="举报状态" />
       <!-- 保持原先展示 -->
-      <el-steps finish-status="success" style="margin: 0 100px" :active="2">
-        <el-step title="待处理" description="2025-11-13 10:00:00" />
-        <el-step title="处理中" description="2025-11-14 10:00:00" />
-        <el-step title="已申诉" description="2025-11-15 10:00:00" />
-      </el-steps>
+      <template v-if="stepsList.length">
+        <el-steps class="custom-steps" finish-status="success" style="margin: 0 100px" :active="stepsList.length">
+          <el-step v-for="value in stepsList" :key="value.status" :title="getDictText(case_status, value.status)" :description="value.time" />
+        </el-steps>
+      </template>
+      <template v-else>
+        <div class="empty-steps" style="text-align: center; color: #909399; margin: 12px 0">暂无状态进度</div>
+      </template>
 
       <FormHeader title="案件类型" />
-      <el-table :data="formData.folders" border>
-        <el-table-column prop="caseTypeCode" label="案件类型编号" align="center"> </el-table-column>
-        <el-table-column prop="caseTypeName" label="案件类型名称" align="center">
+      <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
+        <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
+        <el-table-column prop="caseTypeId" label="案件类型名称" align="center">
           <template v-slot="scope">
-            <dict-tag :options="plat_credit_rating" :value="scope.row.caseTypeName" />
+            <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
           </template>
         </el-table-column>
-        <el-table-column prop="caseSource" label="案件来源" align="center"></el-table-column>
-        <el-table-column prop="enforcementBasis" label="执法依据" align="center"></el-table-column>
-        <el-table-column prop="enforcementTemplate" label="执法文书模板" align="center"></el-table-column>
+        <el-table-column prop="basisName" label="执法依据" align="center">
+          <template v-slot="scope">
+            <span
+              style="color: #108c58"
+              @click="downloadAttachment(scope.row.newBasisFile?.originalName || '', scope.row.newBasisFile?.ossInfo?.url || '')"
+            >
+              {{ scope.row.newBasisFile?.originalName || '' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="documentName" label="执法文书模板" align="center">
+          <template v-slot="scope">
+            <span
+              style="color: #108c58"
+              @click="downloadAttachment(scope.row.newDocumentFile?.originalName || '', scope.row.newDocumentFile?.ossInfo?.url || '')"
+            >
+              {{ scope.row.newDocumentFile?.originalName || '' }}
+            </span>
+          </template>
+        </el-table-column>
       </el-table>
 
       <FormHeader title="申诉材料" />
@@ -180,52 +201,49 @@
           </el-form-item>
         </el-col>
       </el-row>
-
-      <FormHeader title="历史申诉材料" />
-      <el-table :data="formData.hnReportHistoryList || []" border>
-        <el-table-column type="index" label="序号" align="center" />
-        <el-table-column prop="status" label="状态" align="center"></el-table-column>
-        <el-table-column prop="reportDescription" label="申诉/说明" align="center"></el-table-column>
-        <el-table-column prop="rejectReason" label="驳回原因" align="center"></el-table-column>
-        <el-table-column label="操作" align="center">
-          <template #default="scope">
-            <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!--历史申诉材料  -->
+      <div v-if="formData.historyAppealList && formData.historyAppealList.length > 0">
+        <FormHeader title="历史申诉材料" />
+        <el-table :data="formData.historyAppealList || []" border>
+          <el-table-column type="index" min-width="55" label="序号" align="center" />
+          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+          <el-table-column label="操作" align="center">
+            <template #default="scope">
+              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <FormHeader title="处理反馈" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
           <el-form-item label="供应商名称/企业名称：">
-            <el-input v-model="formData.reportPersonName" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.reporterName" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="案件类型：">
-            <el-select v-model="formData.hnCaseId" placeholder="请选择案件类型" filterable clearable :disabled="true">
-              <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
+            <dict-text :options="case_type" :value="formData.caseType ?? ''" />
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="扣分分值：">
-            <el-input v-model="formData.reportGoodsCode" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="信用等级：">
-            <el-select v-model="formData.hnCaseId" placeholder="请选择信用等级" filterable clearable :disabled="true">
+            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable :disabled="true">
               <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item label="剩余信用积分：">
-            <el-input v-model="formData.reportGoodsName" type="textarea" :rows="4" disabled autosize />
+          <el-form-item label="信用分数：">
+            <el-input v-model="formData.sore" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
-
         <el-col :span="24">
           <el-form-item label="平台反馈处理结果：">
             <el-input v-model="formData.dealResult" type="textarea" :rows="4" disabled autosize />
@@ -233,22 +251,88 @@
         </el-col>
       </el-row>
 
-      <!-- 操作按钮 -->
+      <!-- 
       <div style="margin-top: 20px; text-align: center">
         <el-button v-throttle type="primary" @click="handleSave">返回</el-button>
-      </div>
+      </div> -->
 
       <div style="height: 20px"></div>
     </el-form>
+
+    <!-- 历史申诉材料弹窗 -->
+    <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="70%" destroy-on-close append-to-body @close="closeAppealDialog">
+      <div v-loading="appealDialogLoading">
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="24">
+            <el-form-item label="申诉理由：">
+              <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉时间：">
+              <el-input v-model="appealDetail.updateTime" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉图片：">
+              <div class="evidence">
+                <template v-if="histAppealImageList.length">
+                  <el-image
+                    v-for="(img, idx) in histAppealImageList"
+                    :key="img.url + idx"
+                    :src="img.url"
+                    :preview-src-list="histAppealImagePreviewUrls"
+                    :initial-index="idx"
+                    fit="cover"
+                    class="evidence-image-item"
+                  />
+                </template>
+                <span v-else class="evidence-empty">暂无图片</span>
+              </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉视频：">
+              <div class="evidence">
+                <template v-if="histAppealVideoList.length">
+                  <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
+                    <div class="size">{{ v.sizeText }}</div>
+                    <div class="icon">视频</div>
+                    <div class="ops">
+                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载原件</el-button>
+                    </div>
+                  </div>
+                </template>
+                <span v-else class="evidence-empty">暂无视频</span>
+              </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="平台驳回申诉理由：">
+              <el-input v-model="appealDetail.rejectReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </div>
+    </el-dialog>
+
+    <!-- 被举报人详情弹窗 -->
+    <el-dialog v-model="supplierDialogVisible" title="供应商/企业信息" width="70%" append-to-body destroy-on-close>
+      <supplierDetail :id="supplierDialogId" />
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, getCurrentInstance, toRefs, ComponentInternalInstance } from 'vue';
 // 仅保留使用到的 API 与类型
-import { baseEnterpriseInfoId, FormData } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
+import { getReportCaseFilingDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 import FormHeader from '@/components/FormHeader/index.vue';
-
+import supplierDetail from './supplierDetail.vue';
 // 通过 props 接收父组件传参
 const props = defineProps<{
   id: string | number;
@@ -260,44 +344,103 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 仅保留使用到的字典项
-const { plat_credit_rating } = toRefs<any>(proxy?.useDict('plat_credit_rating'));
+const { plat_credit_rating, case_type, case_status, report_type_id } = toRefs<any>(
+  proxy?.useDict('plat_credit_rating', 'case_type', 'case_status', 'report_type_id')
+);
 
-// 详情数据（与后端 HnReportVo 对齐）
+// 详情数据（与后端 HnReportCaseFilingVo 对齐）
 const formData = ref<FormData>({
   id: undefined,
   caseCode: '',
   reportCode: '',
   reportDescription: '',
-  reportGoodsCode: '',
-  reportGoodsName: '',
+  // 人员信息
+  reporterName: '',
   reportPersonId: undefined,
-  reportPersonName: '',
-  reportTypeId: undefined,
+  reportId: undefined,
+  reportType: undefined,
+  // 状态与时间
   status: '',
   createBy: undefined,
+  createByName: '',
   createDept: undefined,
   createTime: '',
   updateBy: undefined,
   updateTime: '',
+  closeCaseTime: '',
+  tenantId: '',
+  // 案件相关
+  caseType: '',
   hnCaseId: undefined,
+  hnCase: undefined as any,
+  caseScore: undefined,
+  // 信用相关
+  creditLevel: '',
+  sore: undefined,
+  // 联系方式
+  contactName: '',
+  contactPhone: '',
+  // 申诉/处理
   appealReason: '',
   rejectReason: '',
   dealResult: '',
-  userType: '',
-  hnReportHistoryList: [],
-  // 兼容附件字段
-  folders: [],
-  reportFolders: [],
-  appealFolders: []
+  handleBack: '',
+  rejectBack: '',
+  // 历史与材料
+  historyAppealList: [],
+  newAppealFile: undefined as any,
+  reportFiles: [],
+  statusAndDate: []
 });
 
-const handlePreview = (row: any) => {
-  console.log('预览历史申诉记录:', row);
-};
+// 安全的步骤列表（防止后端未返回 statusAndDate 导致 undefined）
+const stepsList = computed(() => {
+  const list = (formData.value as any).statusAndDate;
+  return Array.isArray(list) ? list : [];
+});
+
+const reportImageList = ref<FileViewItem[]>([]); // 举报图片列表
+const reportImagePreviewUrls = ref<string[]>([]); // 举报图片预览 URL 列表
+const reportVideoList = ref<FileViewItem[]>([]); // 举报视频列表
+
+const appealImageList = ref<FileViewItem[]>([]); // 申诉图片列表
+const appealImagePreviewUrls = ref<string[]>([]); // 申诉图片预览 URL 列表
+const appealVideoList = ref<FileViewItem[]>([]); // 申诉视频列表
+
+// 弹窗：历史申诉材料
+const appealDialogVisible = ref(false);
+const appealDialogLoading = ref(false);
+const appealDetail = ref<{ appealReason: string; updateTime: string; rejectReason: string }>({
+  appealReason: '',
+  updateTime: '',
+  rejectReason: ''
+});
+const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
+const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
+const histAppealVideoList = ref<FileViewItem[]>([]); // 历史申诉视频列表
 
 // 违规记录详情返回（保持原事件名以兼容父组件）
 const handleSave = async () => {
   emit('cancel');
+};
+
+// 新增: 状态字典缓存映射与通用取文本方法
+const caseStatusLabelMap = computed(() => {
+  const map = new Map<string, string>();
+  const arr = Array.isArray(case_status?.value) ? case_status.value : Array.isArray(case_status) ? case_status : [];
+  arr.forEach((d: any) => map.set(String(d.value), d.label));
+  return map;
+});
+const getDictText = (dictRef: any, value: any) => {
+  if (value === null || value === undefined) return '';
+  // 优先使用状态缓存
+  if (dictRef === case_status.value || dictRef?.value === case_status?.value) {
+    const cached = caseStatusLabelMap.value.get(String(value));
+    if (cached) return cached;
+  }
+  const arr = Array.isArray(dictRef?.value) ? dictRef.value : Array.isArray(dictRef) ? dictRef : [];
+  const found = arr.find((d: any) => String(d.value) === String(value));
+  return found?.label ?? String(value);
 };
 
 /**
@@ -326,137 +469,151 @@ const downloadAttachment = async (fileName: string, url?: string) => {
   }
 };
 
-/**
- * 工具：判断是否为图片/视频
- * 优先使用 contentType，回退 URL 后缀或独立后缀(fileSuffix)
- */
-const isImage = (u?: string, ct?: string, suffix?: string) => {
-  const hasImgCt = /^image\//i.test(ct || '');
-  const testUrl = u && /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(u);
-  const testSuffix = suffix && /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test('.' + suffix.replace(/^\./, ''));
-  return !!u && (hasImgCt || testUrl || !!testSuffix);
-};
-const isVideo = (u?: string, ct?: string) => !!u && (/\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(u) || /^video\//i.test(ct || ''));
+// 工具方法：安全数组
+const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
 
-/**
- * 工具：格式化文件大小
- */
-const formatSize = (bytes?: number) => {
-  if (!bytes && bytes !== 0) return '未知';
-  const kb = 1024,
-    mb = kb * 1024,
-    gb = mb * 1024;
-  if (bytes >= gb) return (bytes / gb).toFixed(0) + 'GB';
-  if (bytes >= mb) return (bytes / mb).toFixed(0) + 'MB';
-  if (bytes >= kb) return (bytes / kb).toFixed(0) + 'KB';
-  return bytes + 'B';
-};
-
-/**
- * 兼容不同后端字段的材料分拣
- * 优先取专用字段（如 reportFolders/appealFolders），否则从 folders 里按 scene/bizType 等识别
- */
-type Scene = 'REPORT' | 'APPEAL';
-const sceneKeys = ['scene', 'stage', 'bizType', 'folderType', 'category', 'type', 'fileBizType', 'belongTo', 'sourceType'];
-const sceneDict: Record<Scene, any[]> = {
-  REPORT: [1, '1', 'REPORT', 'report', '举报'],
-  APPEAL: [2, '2', 'APPEAL', 'appeal', '申诉']
-};
-const ensureArr = (v: any) => (Array.isArray(v) ? v : []);
-
-const matchScene = (f: any, scene: Scene) => {
-  const targets = sceneDict[scene];
-  for (const k of sceneKeys) {
-    const val = f?.[k];
-    if (val === undefined || val === null) continue;
-    const norm = typeof val === 'string' ? val.trim() : val;
-    if (targets.some((t) => (typeof t === 'string' ? String(norm).toUpperCase() === t.toUpperCase() : norm === t))) {
-      return true;
-    }
+// 工具方法：字节大小转可读文本
+const formatByteSize = (bytes?: number) => {
+  const n = Number(bytes);
+  if (!isFinite(n) || n <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0,
+    v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
   }
-  return false;
+  const fixed = v < 10 && i > 0 ? 1 : 0;
+  return `${v.toFixed(fixed)}${units[i]}`;
 };
 
-const pickFolders = (scene: Scene) => {
-  const fd: any = formData.value || {};
-  // 显式字段优先
-  const explicit =
-    scene === 'REPORT'
-      ? fd.reportFolders || fd.reportAttachList || fd.reportFiles || fd.reportMaterials || fd.reportList || fd.reportEvidence
-      : fd.appealFolders || fd.appealAttachList || fd.appealFiles || fd.appealMaterials || fd.appealList || fd.appealEvidence;
-  const exArr = ensureArr(explicit);
-  if (exArr.length) return exArr;
-  // 从 folders 智能识别
-  return ensureArr(fd.folders).filter((f: any) => matchScene(f, scene));
+// 工具方法：按 url 去重
+const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const it of list) {
+    const u = it?.url;
+    if (!u || seen.has(u)) continue;
+    seen.add(u);
+    out.push(it);
+  }
+  return out;
 };
 
-const mapImageList = (list: any[]) =>
-  ensureArr(list)
-    .filter((f: any) => f?.fileType === 2 || isImage(f?.ossInfo?.url, f?.ossInfo?.contentType))
-    .map((f: any) => ({ url: f?.ossInfo?.url, name: f?.ossInfo?.originalName }))
-    .filter((i: any) => i.url);
-
-const mapVideoList = (list: any[]) =>
-  ensureArr(list)
-    .filter((f: any) => f?.fileType === 3 || isVideo(f?.ossInfo?.url, f?.ossInfo?.contentType))
-    .map((f: any) => {
-      const size = f?.ossInfo?.size ?? f?.size;
-      return {
-        url: f?.ossInfo?.url,
-        name: f?.ossInfo?.originalName,
-        sizeText: size ? formatSize(size) : '200MB'
-      };
-    })
-    .filter((v: any) => v.url);
-
-// 新增：从 sysOssLists 等远端图片列表映射为前端图片项
-const mapRemoteFilesToImages = (list: any[]) =>
-  ensureArr(list)
-    .filter((f: any) => isImage(f?.url, undefined, f?.fileSuffix))
-    .map((f: any) => ({ url: f?.url, name: f?.originalName || f?.name }))
-    .filter((i: any) => i.url);
-
-// 新增：优先取分场景远端图片，REPORT 再回退到 sysOssLists
-const pickRemoteImages = (scene: Scene) => {
-  const fd: any = formData.value || {};
-  const explicit =
-    scene === 'REPORT' ? fd.reportSysOssLists || fd.reportImages || fd.reportPics : fd.appealSysOssLists || fd.appealImages || fd.appealPics;
-  const exArr = ensureArr(explicit);
-  if (exArr.length) return exArr;
-  return scene === 'REPORT' ? ensureArr(fd.sysOssLists) : [];
-};
-
-// 新增：按 url 去重
-const uniqueByUrl = (arr: Array<{ url: string; [k: string]: any }>) => {
-  const set = new Set<string>();
-  return arr.filter((i) => {
-    if (!i?.url || set.has(i.url)) return false;
-    set.add(i.url);
-    return true;
+// 工具方法：拆分图片/视频并格式化
+const splitFiles = (files: any[]) => {
+  const images: FileViewItem[] = [];
+  const videos: FileViewItem[] = [];
+  safeArray(files).forEach((item: any) => {
+    const info = item?.ossInfo ?? item ?? {};
+    const base = {
+      url: info?.url,
+      ossId: info?.ossId,
+      originalName: info?.originalName,
+      name: info?.originalName
+    } as FileViewItem;
+    if (!base.url) return;
+    if (String(item?.fileType) === '1') {
+      const size = Number(info?.fileSize);
+      videos.push({ ...base, sizeText: formatByteSize(size) });
+    } else {
+      images.push(base);
+    }
   });
+  return {
+    images: uniqueByUrl(images),
+    videos: uniqueByUrl(videos)
+  };
 };
 
-/** 举报材料 */
-const reportImageList = computed(() => uniqueByUrl([...mapImageList(pickFolders('REPORT')), ...mapRemoteFilesToImages(pickRemoteImages('REPORT'))]));
-const reportImagePreviewUrls = computed(() => reportImageList.value.map((i) => i.url));
-const reportVideoList = computed(() => mapVideoList(pickFolders('REPORT')));
+const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 
-/** 申诉材料 */
-const appealImageList = computed(() => uniqueByUrl([...mapImageList(pickFolders('APPEAL')), ...mapRemoteFilesToImages(pickRemoteImages('APPEAL'))]));
-const appealImagePreviewUrls = computed(() => appealImageList.value.map((i) => i.url));
-const appealVideoList = computed(() => mapVideoList(pickFolders('APPEAL')));
+// 获取历史申诉详情  打开弹窗
+const handlePreview = async (row: any) => {
+  // 避免重复打开导致多个实例/遮罩叠加
+  if (appealDialogVisible.value) return;
+  const id = row?.id;
+  appealDialogLoading.value = true;
+  try {
+    // 等接口切换后，获取违规记录详情
+    const res = await getReportCaseFilingDetail(String(id)); //获取违规记录详情
+    const data: any = res?.data ?? {};
 
+    // 文本信息
+    appealDetail.value.appealReason = data.appealReason ?? '';
+    appealDetail.value.updateTime = data.updateTime ?? '';
+    appealDetail.value.rejectReason = data.rejectReason ?? '';
+
+    // 附件信息（兼容多种字段命名）
+    const files =
+      safeArray(data.appealFiles) ||
+      safeArray(data?.newAppealFile?.appealFiles) ||
+      safeArray(data.files) ||
+      safeArray(row?.appealFiles) ||
+      safeArray(row?.files);
+
+    const s = splitFiles(files);
+    histAppealImageList.value = s.images;
+    histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
+    histAppealVideoList.value = s.videos;
+  } catch (e) {
+    console.error('获取申诉详情失败:', e);
+    histAppealImageList.value = [];
+    histAppealImagePreviewUrls.value = [];
+    histAppealVideoList.value = [];
+    appealDetail.value.appealReason = '';
+    appealDetail.value.updateTime = '';
+    appealDetail.value.rejectReason = '';
+  } finally {
+    appealDialogLoading.value = false;
+  }
+  appealDialogVisible.value = true;
+};
+
+/** 关闭弹窗并重置数据 */
+const closeAppealDialog = () => {
+  appealDialogVisible.value = false;
+  appealDetail.value = { appealReason: '', updateTime: '', rejectReason: '' };
+  histAppealImageList.value = [];
+  histAppealImagePreviewUrls.value = [];
+  histAppealVideoList.value = [];
+};
+
+// 被举报人详情弹窗
+const supplierDialogVisible = ref(false);
+const supplierDialogId = ref<string | number | undefined>(undefined);
+const openSupplierDialog = () => {
+  // 若弹窗已开启则直接返回，避免重复创建多个对话框实例
+  if (supplierDialogVisible.value) return;
+  supplierDialogId.value = formData.value?.reportPersonId || formData.value?.reportId || formData.value?.id;
+  supplierDialogVisible.value = true;
+};
 /**
  * 获取违规记录详情
  */
 const fetchDetail = async () => {
   try {
-    const res = await baseEnterpriseInfoId(String(props.id));
+    const res = await getReportCaseFilingDetail(String(props.id));
     formData.value = res.data;
+
+    // 使用统一方法构建举报材料
+    const reportFiles = safeArray(res?.data?.reportFiles);
+    const r = splitFiles(reportFiles);
+    reportImageList.value = r.images;
+    reportImagePreviewUrls.value = buildPreviewUrls(r.images);
+    reportVideoList.value = r.videos;
+
+    // 使用统一方法构建申诉材料
+    const appealFiles = safeArray(res?.data?.newAppealFile?.appealFiles);
+    const a = splitFiles(appealFiles);
+    appealImageList.value = a.images;
+    appealImagePreviewUrls.value = buildPreviewUrls(a.images);
+    appealVideoList.value = a.videos;
   } catch (error) {
     console.error('获取违规记录详情失败:', error);
   }
 };
+
 onMounted(fetchDetail);
 </script>
 
@@ -541,5 +698,15 @@ onMounted(fetchDetail);
 .evidence-empty {
   color: #909399;
   font-size: 13px;
+}
+
+::v-deep .el-step__head.is-success {
+  color: #108c58 !important;
+}
+::v-deep .el-step__title.is-success {
+  color: #108c58 !important;
+}
+::v-deep .el-step__description.is-success {
+  color: #108c58 !important;
 }
 </style>

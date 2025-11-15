@@ -26,7 +26,7 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" icon="Search" @click="handleQuery">设置</el-button>
+        <el-button v-throttle type="primary" @click="handleQuery">设置</el-button>
       </el-form-item>
     </el-form>
 

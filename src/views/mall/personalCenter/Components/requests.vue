@@ -269,23 +269,36 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
 </script>
 
 <style scoped>
-.address-page {
-  padding: 20px;
-}
-.title {
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 20px;
   font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-/* 表单容器增加描边与圆角，间距更紧凑 */
-.address-form {
+  font-weight: 500;
+  color: #333333;
   background: #fff;
-  padding: 12px 16px 8px 12px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  border-radius: 8px 8px 0 0;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
-.address-form :deep(.el-form-item) {
-  margin-bottom: 12px;
+
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
+}
+
+.pading20 {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 
 /* 顶部提示样式 */
@@ -301,11 +314,6 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
   text-align: center;
 }
 
-/* 操作按钮间距 */
-.ops :deep(.el-button + .el-button) {
-  margin-left: 12px;
-}
-
 .flex-center.pagination {
   margin-top: 16px;
   justify-content: end;
@@ -319,38 +327,5 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
 .section-title {
   font-weight: 600;
   font-size: 16px;
-}
-.purchase-info-flex {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.purchase-info-row {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-.purchase-info-label {
-  width: 120px;
-  font-weight: 600;
-  color: #333;
-  flex-shrink: 0;
-}
-.purchase-info-value {
-  flex: 1;
-  color: #222;
-}
-.remark-row .purchase-info-remark {
-  flex: 1;
-  min-height: 60px;
-  background: #fafbfc;
-  border-radius: 4px;
-  padding: 8px 12px;
-  color: #444;
-  word-break: break-all;
-}
-.desc-text {
-  white-space: pre-wrap;
-  line-height: 1.6;
 }
 </style>
