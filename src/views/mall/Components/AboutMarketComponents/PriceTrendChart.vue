@@ -35,6 +35,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 const chartContainer = ref<HTMLElement | null>(null)
 let chartInstance: ECharts | null = null
+const MAX_VISIBLE_X_LABELS = 7
+
+const getLabelIndices = (total: number, maxVisible: number) => {
+  if (total <= maxVisible) {
+    return new Set(Array.from({ length: total }, (_, i) => i))
+  }
+  const result = new Set<number>()
+  const step = (total - 1) / (maxVisible - 1)
+  for (let i = 0; i < maxVisible; i++) {
+    const index = Math.min(total - 1, Math.floor(i * step))
+    result.add(index)
+  }
+  result.add(total - 1)
+  return result
+}
 
 // 初始化图表
 const initChart = () => {
@@ -51,6 +66,8 @@ const initChart = () => {
 // 更新图表
 const updateChart = () => {
   if (!chartInstance || !props.dates.length || !props.prices.length) return
+
+  const labelIndices = getLabelIndices(props.dates.length, MAX_VISIBLE_X_LABELS)
 
   const option = {
     tooltip: {
@@ -76,7 +93,12 @@ const updateChart = () => {
       data: props.dates,
       axisLabel: {
         fontSize: 12,
-        color: '#606266'
+        color: '#606266',
+        interval: (index: number) => labelIndices.has(index)
+      },
+      axisTick: {
+        alignWithLabel: true,
+        interval: (index: number) => labelIndices.has(index)
       },
       axisLine: {
         lineStyle: {
@@ -118,7 +140,9 @@ const updateChart = () => {
         type: 'line',
         smooth: true,
         symbol: 'circle',
-        symbolSize: 6,
+        showSymbol: true,
+        symbolSize: (_value: number, params: { dataIndex: number }) =>
+          labelIndices.has(params.dataIndex) ? 6 : 0,
         lineStyle: {
           width: 2,
           color: '#409eff'
