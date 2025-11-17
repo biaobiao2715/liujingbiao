@@ -24,7 +24,12 @@
         <span class="label">可贷金额：</span>
         <span class="value">
           <template v-if="productDetail.minLoanAmount !== null && productDetail.minLoanAmount !== undefined && productDetail.maxLoanAmount !== null && productDetail.maxLoanAmount !== undefined">
-            {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
+            <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
+              {{ productDetail.minLoanAmount }} 万元
+            </template>
+            <template v-else>
+              {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
+            </template>
           </template>
           <template v-else>--</template>
         </span>
@@ -33,7 +38,12 @@
         <span class="label">利率/费率：</span>
         <span class="value">
           <template v-if="productDetail.baseInterestRate !== null && productDetail.baseInterestRate !== undefined && productDetail.floatInterestRate !== null && productDetail.floatInterestRate !== undefined">
-            {{ productDetail.baseInterestRate }}% — {{ productDetail.floatInterestRate }}%
+            <template v-if="productDetail.baseInterestRate === productDetail.floatInterestRate">
+              {{ productDetail.baseInterestRate }}%
+            </template>
+            <template v-else>
+              {{ productDetail.baseInterestRate }}% — {{ productDetail.floatInterestRate }}%
+            </template>
           </template>
           <template v-else>--</template>
         </span>
@@ -123,6 +133,29 @@ import { ElMessage } from 'element-plus';
 import { Document } from '@element-plus/icons-vue';
 import { creditProductDetail } from '@/api/creditPlatform/productCreditManage';
 
+const normalizeRichText = (content?: string | null): string => {
+  if (!content) return '';
+  const str = typeof content === 'string' ? content : String(content);
+  if (!str) return '';
+
+  try {
+    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(str, 'text/html');
+      return doc.body?.innerHTML || str;
+    }
+  } catch (error) {
+    console.warn('normalizeRichText error:', error);
+  }
+
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+};
+
 const props = defineProps<{
   id?: string | number | null;
 }>();
@@ -189,7 +222,12 @@ const fetchDetail = async () => {
   try {
     const response = await creditProductDetail(props.id);
     if (response && response.code === 200 && response.data) {
-      productDetail.value = response.data;
+      productDetail.value = {
+        ...response.data,
+        productAdvantages: normalizeRichText(response.data.productAdvantages),
+        applicableInstructions: normalizeRichText(response.data.applicableInstructions),
+        applicationInstructions: normalizeRichText(response.data.applicationInstructions)
+      };
     } else {
       ElMessage.error(response?.msg || '获取详情失败');
     }

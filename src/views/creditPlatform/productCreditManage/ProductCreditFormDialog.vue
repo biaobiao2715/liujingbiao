@@ -113,7 +113,6 @@
                 :value="item.value"
               />
             </el-select>
-            <p class="cycle-tip">注：一期等同一个月</p>
           </el-form-item>
         </el-col>
       </el-row>
@@ -121,7 +120,7 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="还款方式" prop="repaymentMethod">
-            <el-select v-model="formData.repaymentMethod" placeholder="请选择还款方式" clearable>
+            <el-select v-model="formData.repaymentMethod" placeholder="请选择还款方式" clearable multiple>
               <el-option
                 v-for="item in repaymentMethodOptions"
                 :key="item.value"
@@ -138,9 +137,9 @@
           v-model="formData.productIntro"
           type="textarea"
           :rows="3"
-          maxlength="200"
+          maxlength="100"
           show-word-limit
-          placeholder="请输入产品简介（不超过200字）"
+          placeholder="请输入产品简介（不超过100字）"
           clearable
         />
       </el-form-item>
@@ -212,6 +211,29 @@ import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
+const normalizeRichText = (content?: string | null): string => {
+  if (!content) return '';
+  const str = typeof content === 'string' ? content : String(content);
+  if (!str) return '';
+
+  try {
+    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(str, 'text/html');
+      return doc.body?.innerHTML || str;
+    }
+  } catch (error) {
+    console.warn('normalizeRichText error:', error);
+  }
+
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+};
+
 const props = defineProps<{
   id?: string | number | null;
   type: 'add' | 'edit';
@@ -246,7 +268,7 @@ interface CreditProductForm {
   baseInterestRate: number | null;
   floatInterestRate: number | null;
   loanCycle: string;
-  repaymentMethod: string;
+  repaymentMethod: string[];
   productIntro: string;
   productAdvantages: string;
   applicableInstructions: string;
@@ -268,7 +290,7 @@ const formData = ref<CreditProductForm>({
   baseInterestRate: null,
   floatInterestRate: null,
   loanCycle: '',
-  repaymentMethod: '',
+  repaymentMethod: [],
   productIntro: '',
   productAdvantages: '',
   applicableInstructions: '',
@@ -361,7 +383,7 @@ const rules: FormRules = {
   repaymentMethod: [{ required: true, message: '请选择还款方式', trigger: 'change' }],
   productIntro: [
     { required: true, message: '请输入产品简介', trigger: 'blur' },
-    { min: 5, max: 200, message: '产品简介长度需在5~200个字符内', trigger: 'blur' }
+    { min: 1, max: 100, message: '产品简介长度需在1~100个字符内', trigger: 'blur' }
   ],
   productAdvantages: [
     { required: true, message: '请输入产品优势', trigger: 'change' },
@@ -404,6 +426,18 @@ const rules: FormRules = {
       },
       trigger: 'blur'
     }
+  ],
+  cooperationAttachment: [
+    {
+      validator: (_rule, value, callback) => {
+        if (!value) {
+          callback(new Error('请上传合作机构PDF文件'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
   ]
 };
 
@@ -416,22 +450,6 @@ const fetchDetail = async () => {
     if (response && response.code === 200 && response.data) {
       const data = response.data;
       console.log('详情数据:', data);
-      
-      let productAdvantages = data.productAdvantages || '';
-      if (!productAdvantages || (typeof productAdvantages === 'string' && productAdvantages.trim() === '')) {
-        productAdvantages = '';
-      }
-      
-      let applicableInstructions = data.applicableInstructions || '';
-      if (!applicableInstructions || (typeof applicableInstructions === 'string' && applicableInstructions.trim() === '')) {
-        applicableInstructions = '';
-      }
-      
-      let applicationInstructions = data.applicationInstructions || '';
-      if (!applicationInstructions || (typeof applicationInstructions === 'string' && applicationInstructions.trim() === '')) {
-        applicationInstructions = '';
-      }
-      
       formData.value = {
         id: data.id,
         productId: data.productId,
@@ -444,11 +462,11 @@ const fetchDetail = async () => {
         baseInterestRate: data.baseInterestRate ?? data.minInterestRate ?? null,
         floatInterestRate: data.floatInterestRate ?? data.maxInterestRate ?? null,
         loanCycle: data.loanCycle || '',
-        repaymentMethod: data.repaymentMethod || '',
+        repaymentMethod: data.repaymentMethod ? (Array.isArray(data.repaymentMethod) ? data.repaymentMethod : data.repaymentMethod.split(',')) : [],
         productIntro: data.productIntro || '',
-        productAdvantages: productAdvantages,
-        applicableInstructions: applicableInstructions,
-        applicationInstructions: applicationInstructions,
+        productAdvantages: normalizeRichText(data.productAdvantages),
+        applicableInstructions: normalizeRichText(data.applicableInstructions),
+        applicationInstructions: normalizeRichText(data.applicationInstructions),
         cooperationAttachment: data.cooperationAttachment || null,
         cooperationAttachmentName: data.cooperationAttachmentName || data.cooperationAttachmentUrl || '',
         productRemark: data.productRemark || ''
@@ -496,12 +514,12 @@ const handleSubmit = () => {
         baseInterestRate: formData.value.baseInterestRate ?? 0,
         floatInterestRate: formData.value.floatInterestRate ?? 0,
         loanCycle: formData.value.loanCycle,
-        repaymentMethod: formData.value.repaymentMethod,
+        repaymentMethod: Array.isArray(formData.value.repaymentMethod) ? formData.value.repaymentMethod.join(',') : formData.value.repaymentMethod,
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
         applicableInstructions: formData.value.applicableInstructions,
         applicationInstructions: formData.value.applicationInstructions,
-        productRemark: formData.value.productRemark || ''
+        productRemark: formData.value.productRemark || '具体开办的业务种类及办理程序、办理条件等以当地分行有关规定为准。'
       };
       if (formData.value.cooperationAttachment) {
         payload.cooperationAttachment = formData.value.cooperationAttachment;
@@ -644,11 +662,7 @@ onMounted(() => {
   }
 }
 
-.cycle-tip {
-  font-size: 12px;
-  color: #f56c6c;
-  margin-top: 4px;
-}
+
 
 .attachment-upload {
   display: flex;

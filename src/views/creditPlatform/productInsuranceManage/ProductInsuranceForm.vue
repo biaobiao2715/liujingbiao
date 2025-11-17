@@ -114,7 +114,7 @@ import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent } from
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
-import { addInsuranceProduct } from '@/api/creditPlatform/productInsuranceManage';
+import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
@@ -210,26 +210,21 @@ const handleSubmit = () => {
       if (formData.value.branchOfficeAttachment) {
         payload.branchOfficeAttachment = formData.value.branchOfficeAttachment;
       }
-      if (props.type === 'add') {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        payload.createTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        payload.productStatus = '5';
+      if (props.type === 'edit') {
+        payload.id = props.id;
+        payload.optType = '1';
       }
-      const response = await addInsuranceProduct(payload);
+      const response = props.type === 'edit' 
+        ? await editInsuranceProduct(payload)
+        : await addInsuranceProduct(payload);
       if (response && response.code === 200) {
-        ElMessage.success('新增成功');
+        ElMessage.success(props.type === 'edit' ? '修改成功' : '新增成功');
         emit('success');
       } else {
-        ElMessage.error(response?.msg || '新增失败');
+        ElMessage.error(response?.msg || (props.type === 'edit' ? '修改失败' : '新增失败'));
       }
     } catch (error: any) {
-      ElMessage.error(error?.message || '新增失败，请稍后重试');
+      ElMessage.error(error?.message || (props.type === 'edit' ? '修改失败，请稍后重试' : '新增失败，请稍后重试'));
     } finally {
       saving.value = false;
     }
@@ -285,10 +280,47 @@ const emitCancel = () => {
   emit('cancel');
 };
 
+const loadDetail = async () => {
+  if (!props.id) return;
+  loading.value = true;
+  try {
+    const response = await insuranceProductDetail(props.id);
+    if (response && response.code === 200 && response.data) {
+      const data = response.data;
+      formData.value = {
+        productName: data.productName || '',
+        productType: data.productType || '',
+        applicableObject: data.applicableObject || '',
+        productIntro: data.productIntro || '',
+        productAdvantages: data.productAdvantages || '',
+        guaranteePlan: data.guaranteePlan || '',
+        applicationInstructions: data.applicationInstructions || '',
+        branchOfficeAttachment: data.branchOfficeAttachment || null,
+        branchOfficeAttachmentName: data.branchOfficeAttachmentName || '',
+        productRemark: data.productRemark || ''
+      };
+      if (data.branchOfficeAttachment && data.branchOfficeAttachmentName) {
+        attachmentFileList.value = [{
+          name: data.branchOfficeAttachmentName,
+          url: '',
+          status: 'success'
+        } as UploadFile];
+      }
+    }
+  } catch (error) {
+    ElMessage.error('加载数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
 onMounted(() => {
   advantagesEditorKey.value += 1;
   guaranteePlanEditorKey.value += 1;
   applicationEditorKey.value += 1;
+  if (props.type === 'edit') {
+    loadDetail();
+  }
 });
 </script>
 

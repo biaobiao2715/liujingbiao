@@ -37,9 +37,9 @@ export function editInsuranceProduct(data: any) {
 }
 
 // 删除保险产品
-export function deleteInsuranceProduct(id: number | string) {
+export function deleteInsuranceProduct(ids: number | string) {
   return request({
-    url: `credit-platform/product/insurance/${id}`,
+    url: `credit-server/insuranceProductsVersion/${ids}`,
     method: 'delete'
   });
 }

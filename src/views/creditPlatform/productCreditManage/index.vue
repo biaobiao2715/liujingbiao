@@ -54,7 +54,7 @@
           placeholder="全部"
           clearable
           multiple
-          collapse-tags
+          :collapse-tags="false"
         >
           <el-option
             v-for="dict in applicable_object"
@@ -110,7 +110,7 @@
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
-          <span>{{ scope.row.createTime || '--' }}</span>
+          <span>{{ formatDate(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
@@ -219,6 +219,19 @@ const dialog = ref({
 
 
 
+const ORDER_COLUMN_MAP: Record<string, string> = {
+  productName: 'product_name',
+  productIntro: 'product_intro',
+  productType: 'product_type',
+  productStatus: 'product_status',
+  createTime: 'create_time'
+};
+
+const resolveOrderColumn = (prop?: string) => {
+  if (!prop) return ORDER_COLUMN_MAP.createTime;
+  return ORDER_COLUMN_MAP[prop] || ORDER_COLUMN_MAP.createTime;
+};
+
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -226,7 +239,7 @@ const queryParams = reactive({
   productType: '',
   productStatus: '',
   applicableObject: [] as string[],
-  orderByColumn: 'createTime',
+  orderByColumn: resolveOrderColumn('createTime'),
   isAsc: 'desc'
 });
 
@@ -237,11 +250,22 @@ const handleSelectionChange = () => {
   // 预留选择功能
 };
 
+const formatDate = (dateTime: string) => {
+  if (!dateTime) return '--';
+  return dateTime.split(' ')[0];
+};
+
 /** 获取列表 */
 const getList = () => {
   loading.value = true;
-  console.log('查询参数:', queryParams);
-  creditProductList(queryParams).then((res) => {
+  const params = {
+    ...queryParams,
+    applicableObject: Array.isArray(queryParams.applicableObject) && queryParams.applicableObject.length > 0 
+      ? queryParams.applicableObject.join(',') 
+      : queryParams.applicableObject
+  };
+  console.log('查询参数:', params);
+  creditProductList(params).then((res) => {
     console.log('返回数据:', res);
     tableData.value = res.rows || [];
     total.value = res.total || 0;
@@ -273,17 +297,17 @@ const resetQuery = () => {
   queryParams.productType = '';
   queryParams.productStatus = '';
   queryParams.applicableObject = [];
-  queryParams.orderByColumn = 'createTime';
+  queryParams.orderByColumn = resolveOrderColumn('createTime');
   queryParams.isAsc = 'desc';
   handleQuery();
 };
 
 const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
-  if (order) {
-    queryParams.orderByColumn = prop;
+  if (order && prop) {
+    queryParams.orderByColumn = resolveOrderColumn(prop);
     queryParams.isAsc = order === 'ascending' ? 'asc' : 'desc';
   } else {
-    queryParams.orderByColumn = 'createTime';
+    queryParams.orderByColumn = resolveOrderColumn('createTime');
     queryParams.isAsc = 'desc';
   }
   handleQuery();
@@ -449,6 +473,25 @@ onMounted(() => {
     margin-left: 0;
     min-width: auto;
     flex-shrink: 0;
+  }
+
+  :deep(.el-select) {
+    width: 100%;
+    min-width: 260px;
+  }
+
+  :deep(.el-select__tags) {
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  :deep(.el-select__tags-text) {
+    display: inline-block;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
