@@ -26,7 +26,7 @@
         >
           <el-option label="全部" value="" />
           <el-option
-            v-for="dict in prod_insurance_type"
+            v-for="dict in product_insurance_type"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -72,8 +72,8 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" icon="Plus" @click="handleAdd">
-          + 新增保险产品
+        <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:add']" type="primary" icon="Plus" @click="handleAdd">
+          新增
         </el-button>
       </el-col>
     </el-row>
@@ -84,7 +84,9 @@
       border
       v-loading="loading"
       style="width: 100%"
+      :default-sort="{ prop: 'createTime', order: 'descending' }"
       @selection-change="handleSelectionChange"
+      @sort-change="handleSortChange"
     >
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
@@ -92,7 +94,7 @@
       <el-table-column label="产品简介" align="center" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品类型" align="center" prop="productType" width="140">
         <template #default="scope">
-          <dict-tag :options="prod_insurance_type" :value="scope.row.productType" />
+          <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
       <el-table-column label="适用对象" align="center" prop="applicableObject" width="120">
@@ -105,46 +107,18 @@
           <dict-tag :options="product_status" :value="scope.row.productStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
+      <el-table-column label="创建时间" align="center" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
           <span>{{ scope.row.createTime || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="operation-buttons">
-            <el-button v-throttle type="primary" size="small" link @click="handleView(scope.row)">详情</el-button>
-            <el-button v-throttle type="primary" size="small" link @click="handleEdit(scope.row)">修改</el-button>
-            <el-button
-              v-throttle
-              v-if="scope.row.productStatus === 'draft' || scope.row.productStatus === 'disabled'"
-              type="primary"
-              size="small"
-              link
-              @click="handlePublish(scope.row)"
-            >
-              上架
-            </el-button>
-            <el-button
-              v-throttle
-              v-if="scope.row.productStatus === 'enabled'"
-              type="primary"
-              size="small"
-              link
-              @click="handleOffline(scope.row)"
-            >
-              下架
-            </el-button>
-            <el-button
-              v-throttle
-              type="primary"
-              size="small"
-              link
-              @click="handleDelete(scope.row)"
-            >
-              删除
-            </el-button>
-          </div>
+          <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:query']" type="primary" @click="handleView(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:edit']" v-if="canEdit(scope.row)" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:edit']" v-if="canPublish(scope.row)" type="primary" @click="handlePublish(scope.row)">上架</el-button>
+          <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:edit']" v-if="canOffline(scope.row)" type="primary" @click="handleOffline(scope.row)">下架</el-button>
+          <el-button v-throttle v-hasPermi="['system:insuranceProductsVersion:remove']" v-if="canDelete(scope.row)" type="primary" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -190,19 +164,34 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent } from 'vue';
+import { reactive, ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance } from 'element-plus';
-import { insuranceProductList } from '@/api/creditPlatform/productInsuranceManage';
+import { insuranceProductList, editInsuranceProduct, deleteInsuranceProduct } from '@/api/creditPlatform/productInsuranceManage';
+import { useUserStore } from '@/store/modules/user';
 
 const ProductInsuranceForm = defineAsyncComponent(() => import('./ProductInsuranceForm.vue'));
 const ProductInsuranceDetail = defineAsyncComponent(() => import('./ProductInsuranceDetail.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { prod_insurance_type, applicable_object, product_status } = toRefs<any>(
-  proxy?.useDict('prod_insurance_type', 'applicable_object', 'product_status')
+const { product_insurance_type, applicable_object, product_status } = toRefs<any>(
+  proxy?.useDict('product_insurance_type', 'applicable_object', 'product_status')
 );
+
+const userStore = useUserStore();
+const isAdmin = computed(() => {
+  const roles = userStore.roles || [];
+  return roles.includes('admin') || roles.includes('Admin') || roles.includes('ADMIN') || roles.includes('superadmin');
+});
+const isFinancialInstitution = computed(() => {
+  const roles = userStore.roles || [];
+  return roles.some(role => 
+    role === 'financial_institution' || 
+    role === 'financial' || 
+    role?.toLowerCase().includes('financial')
+  );
+});
 
 interface InsuranceProduct {
   id?: number;
@@ -231,7 +220,9 @@ const queryParams = reactive({
   productName: '',
   productType: '',
   productStatus: '',
-  applicableObject: ''
+  applicableObject: '',
+  orderByColumn: 'createTime',
+  isAsc: 'desc'
 });
 
 const tableData = ref<InsuranceProduct[]>([]);
@@ -267,7 +258,44 @@ const resetQuery = () => {
   queryParams.productType = '';
   queryParams.productStatus = '';
   queryParams.applicableObject = '';
+  queryParams.orderByColumn = 'createTime';
+  queryParams.isAsc = 'desc';
   handleQuery();
+};
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+  if (order) {
+    queryParams.orderByColumn = prop;
+    queryParams.isAsc = order === 'ascending' ? 'asc' : 'desc';
+  } else {
+    queryParams.orderByColumn = 'createTime';
+    queryParams.isAsc = 'desc';
+  }
+  handleQuery();
+};
+
+const canPublish = (row: InsuranceProduct) => {
+  const status = row.productStatus;
+  const canStatusPublish = status === '5' || status === 'pending' || status === 'waiting' || 
+                          status === '3' || status === 'disabled' || status === 'draft';
+  if (!canStatusPublish) return false;
+  if (isFinancialInstitution.value) return false;
+  return isAdmin.value;
+};
+
+const canOffline = (row: InsuranceProduct) => {
+  const status = row.productStatus;
+  return status === '2' || status === 'enabled' || status === '1';
+};
+
+const canEdit = (row: InsuranceProduct) => {
+  const status = row.productStatus;
+  return status === '3' || status === 'disabled' || status === '5' || status === 'pending' || status === 'waiting' || status === 'draft';
+};
+
+const canDelete = (row: InsuranceProduct) => {
+  const status = row.productStatus;
+  return status !== '2' && status !== 'enabled' && status !== '1';
 };
 
 const handleAdd = () => {
@@ -298,10 +326,20 @@ const handlePublish = (row: InsuranceProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('已模拟上架操作');
-    getList();
-  });
+  }).then(async () => {
+    try {
+      const data = { ...row, productStatus: '2', optType: '2' };
+      const response = await editInsuranceProduct(data);
+      if (response && response.code === 200) {
+        ElMessage.success('上架成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '上架失败');
+      }
+    } catch (error) {
+      ElMessage.error('上架失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 const handleOffline = (row: InsuranceProduct) => {
@@ -309,10 +347,20 @@ const handleOffline = (row: InsuranceProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('已模拟下架操作');
-    getList();
-  });
+  }).then(async () => {
+    try {
+      const data = { ...row, productStatus: '3', optType: '2' };
+      const response = await editInsuranceProduct(data);
+      if (response && response.code === 200) {
+        ElMessage.success('下架成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '下架失败');
+      }
+    } catch (error) {
+      ElMessage.error('下架失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 const handleDelete = (row: InsuranceProduct) => {
@@ -320,10 +368,19 @@ const handleDelete = (row: InsuranceProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('已模拟删除操作');
-    getList();
-  });
+  }).then(async () => {
+    try {
+      const response = await deleteInsuranceProduct(row.id as number | string);
+      if (response && response.code === 200) {
+        ElMessage.success('删除成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '删除失败');
+      }
+    } catch (error) {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 const handlePageChange = (page: number) => {
@@ -389,30 +446,7 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
-.operation-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
 
-:deep(.el-table__body-wrapper) {
-  .operation-buttons {
-    .el-button + .el-button {
-      margin-left: 0;
-    }
-  }
-}
 
 .pagination {
   display: flex;

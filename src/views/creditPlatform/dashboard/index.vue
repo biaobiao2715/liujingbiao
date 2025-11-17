@@ -4,7 +4,7 @@
     <div class="dashboard-content">
       <!-- 顶部统计卡片区域 -->
       <el-row :gutter="16" class="top-stats-row">
-        <el-col :xs="24" :sm="12" :md="8" :lg="4.8" :xl="4.8">
+        <el-col :span="4.8">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款待审批</div>
@@ -12,7 +12,7 @@
             </div>
           </el-card>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="4.8" :xl="4.8">
+        <el-col :span="4.8">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">总申请贷款</div>
@@ -20,23 +20,23 @@
             </div>
           </el-card>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="4.8" :xl="4.8">
+        <el-col :span="4.8">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
-              <div class="top-stat-label">贷款审批通过数</div>
+              <div class="top-stat-label">贷款审批通过</div>
               <div class="top-stat-value">{{ dashboardData.approvedLoans }}件</div>
             </div>
           </el-card>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="4.8" :xl="4.8">
+        <el-col :span="4.8">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
-              <div class="top-stat-label">贷款审批驳回数</div>
+              <div class="top-stat-label">贷款审批驳回</div>
               <div class="top-stat-value">{{ dashboardData.rejectedLoans }}件</div>
             </div>
           </el-card>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="4.8" :xl="4.8">
+        <el-col :span="4.8">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款申请取消</div>

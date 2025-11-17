@@ -17,7 +17,7 @@
       <div class="info-item">
         <span class="label">适用对象：</span>
         <span class="value">
-          <dict-tag :options="applicable_object" :value="productDetail.applicableObject" />
+          <dict-tag :options="applicable_object" :value="typeof productDetail.applicableObject === 'string' ? productDetail.applicableObject.split(',') : productDetail.applicableObject" />
         </span>
       </div>
       <div class="info-item range">

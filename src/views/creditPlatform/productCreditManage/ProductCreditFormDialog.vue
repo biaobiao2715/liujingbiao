@@ -33,7 +33,7 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="适用对象" prop="applicableObject">
-            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable>
+            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
               <el-option
                 v-for="dict in applicable_object"
                 :key="dict.value"
@@ -239,7 +239,7 @@ interface CreditProductForm {
   productId?: number | string | null;
   productName: string;
   productType: string;
-  applicableObject: string;
+  applicableObject: string[];
   status: string;
   minLoanAmount: number | null;
   maxLoanAmount: number | null;
@@ -261,7 +261,7 @@ const formData = ref<CreditProductForm>({
   productId: null,
   productName: '',
   productType: '',
-  applicableObject: '',
+  applicableObject: [],
   status: '',
   minLoanAmount: null,
   maxLoanAmount: null,
@@ -437,7 +437,7 @@ const fetchDetail = async () => {
         productId: data.productId,
         productName: data.productName || '',
         productType: data.productType || '',
-        applicableObject: data.applicableObject || '',
+        applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
         status: data.productStatus || data.status || '',
         minLoanAmount: data.minLoanAmount ?? null,
         maxLoanAmount: data.maxLoanAmount ?? null,
@@ -490,7 +490,7 @@ const handleSubmit = () => {
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
-        applicableObject: formData.value.applicableObject,
+        applicableObject: Array.isArray(formData.value.applicableObject) ? formData.value.applicableObject.join(',') : formData.value.applicableObject,
         minLoanAmount: Math.round((formData.value.minLoanAmount ?? 0) * 100) / 100,
         maxLoanAmount: Math.round((formData.value.maxLoanAmount ?? 0) * 100) / 100,
         baseInterestRate: formData.value.baseInterestRate ?? 0,
