@@ -320,6 +320,7 @@
     "Slots": true,
     "createRef": true,
     "ElImagePreview": true,
-    "ElImageViewer": true
+    "ElImageViewer": true,
+    "ElColorPicker": true
   }
 }

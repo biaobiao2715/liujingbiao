@@ -10,9 +10,9 @@
 
 <template>
   <div class="p-2 legal-expert-page">
-    <el-card shadow="hover">
+    <el-card shadow="hover"> 
       <!-- 顶部展示区域 -->
-      <div style="margin-bottom: 2%;">
+      <div style="margin-bottom: 2%">
         <el-row :gutter="20">
           <el-col :span="6">
             <el-card>
@@ -71,15 +71,26 @@
       <!-- 日期筛选区域 -->
       <div class="date-filter flex items-center mb-[10px]">
         <div class="filter-buttons flex items-center gap-2">
-          <el-button v-for="btn in timeButtons" :key="btn.value"
-            :class="['custom-btn', { active: activeTime === btn.value }]" @click="handleTimeSelect(btn.value)">
+          <el-button
+            v-for="btn in timeButtons"
+            :key="btn.value"
+            :class="['custom-btn', { active: activeTime === btn.value }]"
+            @click="handleTimeSelect(btn.value)"
+          >
             {{ btn.label }}
           </el-button>
         </div>
         <div class="filter-date ml-4">
-          <el-date-picker v-model="registrationTime" type="daterange" value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss" range-separator=" - " start-placeholder="开始时间" end-placeholder="结束时间"
-            @change="handleSelectDate" />
+          <el-date-picker
+            v-model="registrationTime"
+            type="daterange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            range-separator=" - "
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            @change="handleSelectDate"
+          />
         </div>
       </div>
       <!-- 列表区域 -->
@@ -127,15 +138,20 @@
         </el-table-column>
       </el-table>
 
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        v-model:total="total" @pagination="handleQuery" />
+      <pagination
+        v-show="total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        v-model:total="total"
+        @pagination="handleQuery"
+      />
     </el-card>
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
 import { ref } from 'vue';
-import { getqueryExpertStaticData,getexpertTotalStaticData } from '@/api/platformManage/dataanalysis';
+import { getqueryExpertStaticData, getexpertTotalStaticData } from '@/api/platformManage/dataanalysis';
 import router from '@/router';
 import dayjs from 'dayjs';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -144,12 +160,11 @@ const expertList = ref([]);
 const loading = ref(false);
 const total = ref(0);
 const staticdata = ref({
-  serviceCount:0,
-  serviceDuration:0,
-  totalConsultations:0,
-  totalReplies:0,
-
-})
+  serviceCount: 0,
+  serviceDuration: 0,
+  totalConsultations: 0,
+  totalReplies: 0
+});
 const queryFormRef = ref<ElFormInstance>();
 const tableRef = ref<ElTableInstance>();
 
@@ -163,7 +178,7 @@ const queryParams = ref({
   expertType: '', //专家类型
   today: false, //是否只查询今天的数据
   yesterday: false, //是否只查询昨天的数据
-  thisWeek: false, //是否只查询本周的数据
+  thisWeek: false //是否只查询本周的数据
 });
 const timeButtons = [
   { label: '昨日', value: 'yesterday' },
@@ -178,9 +193,9 @@ const buildFinalParams = () => {
     pageSize: queryParams.value.pageSize,
     expertName: queryParams.value.expertName,
     expertNumber: queryParams.value.expertNumber,
-    expertType: queryParams.value.expertType,
+    expertType: queryParams.value.expertType
   };
-  
+
   // 只添加为true的时间参数
   if (queryParams.value.today) {
     params['today'] = true;
@@ -191,7 +206,7 @@ const buildFinalParams = () => {
   if (queryParams.value.thisWeek) {
     params['thisWeek'] = true;
   }
-  
+
   return params;
 };
 /** 重置所有时间参数为false */
@@ -206,40 +221,37 @@ const getTimeButtonByDate = (startDate: string, endDate: string): string => {
   const start = dayjs(startDate);
   const end = dayjs(endDate);
   const now = dayjs();
-  
+
   // 检查是否是今天
-  if (start.format('YYYY-MM-DD') === now.format('YYYY-MM-DD') && 
-      end.format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
+  if (start.format('YYYY-MM-DD') === now.format('YYYY-MM-DD') && end.format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
     return 'today';
   }
-  
+
   // 检查是否是昨天
   const yesterday = now.subtract(1, 'day');
-  if (start.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD') && 
-      end.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD')) {
+  if (start.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD') && end.format('YYYY-MM-DD') === yesterday.format('YYYY-MM-DD')) {
     return 'yesterday';
   }
-  
+
   // 检查是否是本周
   const weekStart = now.startOf('week');
   const weekEnd = now.endOf('week');
-  if (start.format('YYYY-MM-DD') === weekStart.format('YYYY-MM-DD') && 
-      end.format('YYYY-MM-DD') === weekEnd.format('YYYY-MM-DD')) {
+  if (start.format('YYYY-MM-DD') === weekStart.format('YYYY-MM-DD') && end.format('YYYY-MM-DD') === weekEnd.format('YYYY-MM-DD')) {
     return 'week';
   }
-  
+
   return ''; // 自定义日期范围
 };
 /** 处理时间按钮选择 */
 const handleTimeSelect = (type: string) => {
   activeTime.value = type;
-  
+
   // 重置所有时间参数
   resetTimeParams();
-  
+
   const now = dayjs();
   let start, end;
-  
+
   switch (type) {
     case 'yesterday':
       queryParams.value.yesterday = true;
@@ -260,20 +272,20 @@ const handleTimeSelect = (type: string) => {
       start = '';
       end = '';
   }
-  
+
   registrationTime.value = [start, end];
   handleQuery(); // 自动执行查询
 };
 
 const handleSelectDate = (val: Array<string>) => {
-    if (val && val.length === 2) {
+  if (val && val.length === 2) {
     // 根据选择的日期判断对应的时间按钮
     const buttonType = getTimeButtonByDate(val[0], val[1]);
     activeTime.value = buttonType;
-    
+
     // 重置所有时间参数
     resetTimeParams();
-    
+
     // 根据按钮类型设置对应的时间参数
     if (buttonType === 'today') {
       queryParams.value.today = true;
@@ -288,12 +300,12 @@ const handleSelectDate = (val: Array<string>) => {
     activeTime.value = '';
     resetTimeParams();
   }
-  
+
   handleQuery();
 };
 const getList = () => {
   loading.value = true;
-   const finalParams = buildFinalParams();
+  const finalParams = buildFinalParams();
   console.log('最终查询参数:', finalParams);
   getqueryExpertStaticData(finalParams)
     .then((res) => {
@@ -306,36 +318,40 @@ const getList = () => {
 };
 
 /* 查询专家知道静态数据总量 */
-const getstaticData = async ()=>{
+const getstaticData = async () => {
   try {
-   let res= await getexpertTotalStaticData()
-    staticdata.value = res.data || {}
+    let res = await getexpertTotalStaticData();
+    staticdata.value = res.data || {};
   } catch (error) {
-    ElMessage.error(error || '查询失败')
+    ElMessage.error(error || '查询失败');
   }
-}
+};
 /** 监听日期选择器变化，同步按钮状态 */
-watch(registrationTime, (newVal) => {
-  if (!newVal || newVal.length !== 2) {
-    activeTime.value = '';
+watch(
+  registrationTime,
+  (newVal) => {
+    if (!newVal || newVal.length !== 2) {
+      activeTime.value = '';
+      resetTimeParams();
+      return;
+    }
+
+    // 当日期选择器值变化时，自动判断对应的时间按钮
+    const buttonType = getTimeButtonByDate(newVal[0], newVal[1]);
+    activeTime.value = buttonType;
+
+    // 重置并设置对应的时间参数
     resetTimeParams();
-    return;
-  }
-  
-  // 当日期选择器值变化时，自动判断对应的时间按钮
-  const buttonType = getTimeButtonByDate(newVal[0], newVal[1]);
-  activeTime.value = buttonType;
-  
-  // 重置并设置对应的时间参数
-  resetTimeParams();
-  if (buttonType === 'today') {
-    queryParams.value.today = true;
-  } else if (buttonType === 'yesterday') {
-    queryParams.value.yesterday = true;
-  } else if (buttonType === 'week') {
-    queryParams.value.thisWeek = true;
-  }
-}, { deep: true });
+    if (buttonType === 'today') {
+      queryParams.value.today = true;
+    } else if (buttonType === 'yesterday') {
+      queryParams.value.yesterday = true;
+    } else if (buttonType === 'week') {
+      queryParams.value.thisWeek = true;
+    }
+  },
+  { deep: true }
+);
 // 搜索
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -347,26 +363,24 @@ const resetQuery = () => {
   queryFormRef.value?.resetFields();
   registrationTime.value = [];
   activeTime.value = '';
-  
+
   // 重置查询参数
   queryParams.value.pageNum = 1;
   queryParams.value.pageSize = 10;
   queryParams.value.expertName = '';
   queryParams.value.expertNumber = '';
   queryParams.value.expertType = '';
-  
+
   // 重置时间参数
   resetTimeParams();
-  
+
   handleQuery();
 };
-
-
 
 // 页面首次加载时执行
 onMounted(() => {
   handleTimeSelect('today'); // 默认选中今日
-  getstaticData()
+  getstaticData();
 });
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {
@@ -409,7 +423,7 @@ onActivated(() => {
     }
 
     &.active {
-      background-color: #409EFF;
+      background-color: #409eff;
       color: #fff;
     }
   }
