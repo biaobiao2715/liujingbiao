@@ -7,7 +7,14 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="100">
+    <el-form
+      v-show="showSearch"
+      ref="queryFormRef"
+      :model="queryParams"
+      inline
+      :label-width="100"
+      class="search-form"
+    >
       <el-form-item label="文章名称" prop="articleTitle">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入文章名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -33,22 +40,29 @@
           <el-option v-for="dict in art_article_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item>
+      <el-form-item label-width="0">
         <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
-    <!-- 操作按钮 -->
-    <el-row :gutter="10" class="mb8">
+    <!-- 操作栏 -->
+    <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-throttle v-hasPermi="['credit:creditArticle:add']" type="primary" icon="Plus" @click="handleAdd">
+          新增
+        </el-button>
       </el-col>
-      <right-toolbar :show-search="showSearch" @query-table="getList" />
     </el-row>
 
-    <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <!-- 表格 -->
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loading"
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+    >
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" align="center" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
@@ -76,10 +90,11 @@
       <el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button v-throttle type="info" size="small" @click="handleDetails(scope.row)">详情</el-button>
-            <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-throttle v-hasPermi="['credit:creditArticle:query']" type="info" size="small" @click="handleDetails(scope.row)">详情</el-button>
+            <el-button v-throttle v-hasPermi="['credit:creditArticle:edit']" type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button
               v-throttle
+              v-hasPermi="['credit:creditArticle:edit']"
               v-if="scope.row.articleStatus === '2'"
               type="warning"
               size="small"
@@ -89,6 +104,7 @@
             </el-button>
             <el-button
               v-throttle
+              v-hasPermi="['credit:creditArticle:publish']"
               v-if="scope.row.articleStatus === '1' || scope.row.articleStatus === '3'"
               type="success"
               size="small"
@@ -98,6 +114,7 @@
             </el-button>
             <el-button
               v-throttle
+              v-hasPermi="['credit:creditArticle:remove']"
               v-if="scope.row.articleStatus === '3'"
               type="danger"
               size="small"
@@ -111,12 +128,15 @@
     </el-table>
 
     <!-- 分页 -->
-    <div class="flex-center pagination">
+    <div class="pagination">
       <pagination
         v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
         :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
         @pagination="getList"
       />
     </div>
@@ -149,6 +169,8 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getCreditArticleList,
   updateCreditArticle,
@@ -234,6 +256,17 @@ const resetQuery = () => {
   handleQuery();
 };
 
+const handlePageChange = (page: number) => {
+  queryParams.value.pageNum = page;
+  getList();
+};
+
+const handlePageSizeChange = (size: number) => {
+  queryParams.value.pageSize = size;
+  queryParams.value.pageNum = 1;
+  getList();
+};
+
 // 表格选择变化事件
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
@@ -284,7 +317,8 @@ const handleStatusChange = async (row: any, status: string) => {
     }).then(async () => {
       const updateData: any = {
         ...row,
-        articleStatus: status
+        articleStatus: status,
+        isOffShelf: status === '2' ? false : true
       };
       if (status === '2') {
         const now = new Date();
@@ -347,11 +381,57 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #f7f8fa;
+  min-height: calc(100vh - 120px);
+}
+
+.search-form {
+  background: #fff;
+  padding: 20px 24px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+
+  .el-form-item {
+    min-width: 260px;
+    margin-bottom: 12px;
+  }
+
+  .el-form-item:last-child {
+    margin-left: 0;
+    min-width: auto;
+    flex-shrink: 0;
+  }
+}
+
+.operation-bar {
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+
+  .el-button {
+    width: 100%;
+  }
+}
+
+.el-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .pagination {
-  margin-top: 24px;
-  justify-content: end;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .operation-buttons {

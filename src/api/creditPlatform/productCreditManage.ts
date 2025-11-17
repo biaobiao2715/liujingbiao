@@ -4,7 +4,7 @@ import request from '@/utils/request';
 // 信贷产品列表
 export function creditProductList(data: any) {
   return request({
-    url: 'credit-platform/product/credit/list',
+    url: 'credit-server/creditProductsVersion/list',
     method: 'get',
     params: data
   });
@@ -13,7 +13,7 @@ export function creditProductList(data: any) {
 // 信贷产品详情
 export function creditProductDetail(id: number | string) {
   return request({
-    url: `credit-platform/product/credit/${id}`,
+    url: `credit-server/creditProductsVersion/${id}`,
     method: 'get'
   });
 }
@@ -21,7 +21,7 @@ export function creditProductDetail(id: number | string) {
 // 新增信贷产品
 export function addCreditProduct(data: any) {
   return request({
-    url: 'credit-platform/product/credit',
+    url: 'credit-server/creditProductsVersion',
     method: 'post',
     data: data
   });
@@ -30,7 +30,7 @@ export function addCreditProduct(data: any) {
 // 编辑信贷产品
 export function editCreditProduct(data: any) {
   return request({
-    url: 'credit-platform/product/credit',
+    url: 'credit-server/creditProductsVersion',
     method: 'put',
     data: data
   });
@@ -39,7 +39,25 @@ export function editCreditProduct(data: any) {
 // 删除信贷产品
 export function deleteCreditProduct(id: number | string) {
   return request({
-    url: `credit-platform/product/credit/${id}`,
+    url: `credit-server/creditProductsVersion/${id}`,
     method: 'delete'
+  });
+}
+
+// 上架信贷产品
+export function publishCreditProduct(data: any) {
+  return request({
+    url: 'credit-server/creditProductsVersion',
+    method: 'put',
+    data: data
+  });
+}
+
+// 下架信贷产品
+export function offlineCreditProduct(data: any) {
+  return request({
+    url: 'credit-server/creditProductsVersion',
+    method: 'put',
+    data: data
   });
 }

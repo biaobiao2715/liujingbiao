@@ -87,6 +87,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { getCreditArticleDetail, addCreditArticle, updateCreditArticle } from '@/api/creditPlatform/contentManage';
+import { getInfo } from '@/api/login';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
@@ -232,13 +233,23 @@ const emitCancel = () => {
   emit('cancel');
 };
 
-const loadAccountName = () => {
-  const userInfo = proxy?.$cache?.local?.getJSON('user') || {};
-  const nickName = userInfo.nickName || userInfo.userName || '';
-  if (nickName) {
-    formData.value.articleSource = nickName;
-  } else {
-    ElMessage.warning('未获取到账号名称');
+const loadAccountName = async () => {
+  try {
+    const response = await getInfo();
+    if (response && response.code === 200 && response.data) {
+      const user = response.data.user;
+      const nickName = user?.nickName || user?.userName || '';
+      if (nickName) {
+        formData.value.articleSource = nickName;
+        ElMessage.success('账号名称读取成功');
+      } else {
+        ElMessage.warning('未获取到账号名称');
+      }
+    } else {
+      ElMessage.error(response?.msg || '获取账号名称失败');
+    }
+  } catch (error) {
+    ElMessage.error('获取账号名称失败，请稍后重试');
   }
 };
 
