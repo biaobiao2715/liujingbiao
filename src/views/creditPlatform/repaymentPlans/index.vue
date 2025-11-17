@@ -48,6 +48,7 @@
             <el-button size="small" type="primary" plain @click="handleComplete(scope.row)">完善信息</el-button>
             <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="info" plain @click="handleDetail(scope.row)">详情</el-button>
+            <el-button size="small" type="warning" plain>追踪</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -74,9 +75,8 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue'
 import type { ComponentInternalInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getloanApplicationsList } from '@/api/creditPlatform/loanApplications'
 
-interface LoanApplication {
+interface RepaymentPlan {
   id: number | string
   realName: string
   productName: string
@@ -91,6 +91,42 @@ interface LoanApplication {
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 const { applicable_object } = toRefs<any>(proxy?.useDict('applicable_object'))
 
+const mockData: RepaymentPlan[] = [
+  {
+    id: 1,
+    realName: '张三',
+    productName: '农户信贷产品A',
+    productType: '1',
+    applicableObject: 'farmer',
+    loanAmount: 100000,
+    loanTerm: 12,
+    approvalTime: '2025-01-01 10:00:00',
+    loanStatus: '还款中'
+  },
+  {
+    id: 2,
+    realName: '李四',
+    productName: '农户信贷产品B',
+    productType: '1',
+    applicableObject: 'farmer',
+    loanAmount: 50000,
+    loanTerm: 6,
+    approvalTime: '2025-01-10 09:30:00',
+    loanStatus: '已结清'
+  },
+  {
+    id: 3,
+    realName: '测试种子公司',
+    productName: '企业信贷产品C',
+    productType: '2',
+    applicableObject: 'enterprise',
+    loanAmount: 300000,
+    loanTerm: 24,
+    approvalTime: '2025-02-05 15:20:00',
+    loanStatus: '逾期'
+  }
+]
+
 const queryFormRef = ref()
 const queryParams = ref({
   pageNum: 1,
@@ -100,26 +136,35 @@ const queryParams = ref({
   applicableObject: ''
 })
 
-const tableData = ref<LoanApplication[]>([])
+const tableData = ref<RepaymentPlan[]>([])
 const total = ref(0)
 const loading = ref(false)
 
-const getList = async () => {
-  loading.value = true
-  try {
-    const response = await getloanApplicationsList(queryParams.value)
-    if (response?.code === 200) {
-      tableData.value = response.rows || response.data || []
-      total.value = response.total || 0
-    } else {
-      ElMessage.error(response?.msg || '获取贷款申请列表失败')
-    }
-  } catch (error) {
-    console.error('获取贷款申请列表失败:', error)
-    ElMessage.error('获取贷款申请列表失败，请稍后重试')
-  } finally {
-    loading.value = false
+const applyFilter = () => {
+  const { realName, productName, applicableObject } = queryParams.value
+  let data = [...mockData]
+  if (realName) {
+    data = data.filter((item) => item.realName.includes(realName))
   }
+  if (productName) {
+    data = data.filter((item) => item.productName.includes(productName))
+  }
+  if (applicableObject) {
+    data = data.filter((item) => item.applicableObject === applicableObject)
+  }
+  total.value = data.length
+  // 简单分页
+  const start = (queryParams.value.pageNum - 1) * queryParams.value.pageSize
+  const end = start + queryParams.value.pageSize
+  tableData.value = data.slice(start, end)
+}
+
+const getList = () => {
+  loading.value = true
+  setTimeout(() => {
+    applyFilter()
+    loading.value = false
+  }, 300)
 }
 
 const handleQuery = () => {
@@ -144,26 +189,26 @@ const handlePageSizeChange = (size: number) => {
   getList()
 }
 
-const handleComplete = (row: LoanApplication) => {
+const handleComplete = (row: RepaymentPlan) => {
   ElMessage.info(`完善信息：${row.productName}`)
 }
 
-const handleRepayment = (row: LoanApplication) => {
+const handleRepayment = (row: RepaymentPlan) => {
   ElMessage.info(`查看还款情况：${row.productName}`)
 }
 
-const handleDetail = (row: LoanApplication) => {
+const handleDetail = (row: RepaymentPlan) => {
   ElMessage.info(`查看详情：${row.productName}`)
 }
 
-const handleDelete = (row: LoanApplication) => {
-  ElMessageBox.confirm(`确定删除 ${row.productName} 的申请记录吗？`, '提示', {
+const handleDelete = (row: RepaymentPlan) => {
+  ElMessageBox.confirm(`确定删除 ${row.productName} 的还款记录吗？（演示数据）`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
   })
     .then(() => {
-      ElMessage.success('删除成功（请接入真实接口）')
+      ElMessage.success('删除成功（演示）')
     })
     .catch(() => {
       ElMessage.info('已取消删除')

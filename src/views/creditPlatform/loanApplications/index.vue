@@ -78,7 +78,7 @@
         <template #default="scope">
           <div class="operation-buttons">
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款计划</el-button>
+            <el-button size="small" type="success" plain @click="openRepaymentPlan(scope.row)">还款计划</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -98,6 +98,9 @@
         @current-change="handlePageChange"
       />
     </div>
+    <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" />
+    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" />
+    <RepaymentPlanDialog v-model:visible="repaymentDialogVisible" :data="repaymentData" />
   </div>
 </template>
 
@@ -105,7 +108,9 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue'
 import type { ComponentInternalInstance } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getloanApplicationsList } from '@/api/creditPlatform/loanApplications'
+import LoanApplicationDetailDialog from './LoanApplicationDetailDialog.vue'
+import LoanApplicationBuyerDetailDialog from './LoanApplicationBuyerDetailDialog.vue'
+import RepaymentPlanDialog from './RepaymentPlanDialog.vue'
 
 interface LoanApplication {
   id: number | string
@@ -115,6 +120,15 @@ interface LoanApplication {
   applicableObject: string
   applyTime?: string
   applyStatus?: string
+  loanAmount?: string | number
+  loanTerm?: string | number
+  repaymentType?: string
+  bankName?: string
+  bankCardNo?: string
+  approvalOpinion?: string
+  loanDate?: string
+  firstRepaymentDate?: string
+  contractFiles?: string[]
 }
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
@@ -132,26 +146,107 @@ const queryParams = ref({
   applyStatus: ''
 })
 
+const mockLoanApplications: LoanApplication[] = [
+  {
+    id: 1,
+    realName: '张三',
+    productName: '农户经营贷',
+    productType: '1',
+    applicableObject: 'farmer',
+    applyTime: '2025-11-06 10:23:00',
+    applyStatus: '1',
+    loanAmount: '100000',
+    loanTerm: '12',
+    repaymentType: '等额本息',
+    bankName: '农业银行',
+    bankCardNo: '6228480402564895'
+  },
+  {
+    id: 2,
+    realName: '李四',
+    productName: '农业设备贷',
+    productType: '2',
+    applicableObject: 'farmer',
+    applyTime: '2025-11-05 09:15:00',
+    applyStatus: '2',
+    loanAmount: '150000',
+    loanTerm: '18',
+    repaymentType: '等额本金',
+    bankName: '建设银行',
+    bankCardNo: '6217002760045698'
+  },
+  {
+    id: 3,
+    realName: '武汉盛源贸易',
+    productName: '采购链条贷',
+    productType: '3',
+    applicableObject: 'purchaser',
+    applyTime: '2025-11-04 15:50:00',
+    applyStatus: '1',
+    loanAmount: '300000',
+    loanTerm: '24',
+    repaymentType: '先息后本',
+    bankName: '招商银行',
+    bankCardNo: '6225880087654321',
+    approvalOpinion: '同意',
+    loanDate: '2025-11-07',
+    firstRepaymentDate: '2025-12-07',
+    contractFiles: ['采购贷合同.pdf']
+  },
+  {
+    id: 4,
+    realName: '测试贸易公司',
+    productName: '采购周转贷',
+    productType: '3',
+    applicableObject: 'purchaser',
+    applyTime: '2025-11-03 11:12:00',
+    applyStatus: '3',
+    loanAmount: '500000',
+    loanTerm: '36',
+    repaymentType: '等额本息',
+    bankName: '工商银行',
+    bankCardNo: '6212260400123456789'
+  }
+]
+
 const tableData = ref<LoanApplication[]>([])
 const total = ref(0)
 const loading = ref(false)
+const detailDialogVisible = ref(false)
+const buyerDetailDialogVisible = ref(false)
+const repaymentDialogVisible = ref(false)
+const detailData = ref<LoanApplication | null>(null)
+const repaymentData = ref<any>(null)
 
-const getList = async () => {
-  loading.value = true
-  try {
-    const response = await getloanApplicationsList(queryParams.value)
-    if (response?.code === 200) {
-      tableData.value = response.rows || response.data || []
-      total.value = response.total || 0
-    } else {
-      ElMessage.error(response?.msg || '获取贷款申请列表失败')
-    }
-  } catch (error) {
-    console.error('获取贷款申请列表失败:', error)
-    ElMessage.error('获取贷款申请列表失败，请稍后重试')
-  } finally {
-    loading.value = false
+const applyFilter = () => {
+  const { realName, productType, applicableObject, applyStatus } = queryParams.value
+  let data = [...mockLoanApplications]
+
+  if (realName) {
+    data = data.filter((item) => item.realName.includes(realName))
   }
+  if (productType) {
+    data = data.filter((item) => item.productType === productType)
+  }
+  if (applicableObject) {
+    data = data.filter((item) => item.applicableObject === applicableObject)
+  }
+  if (applyStatus) {
+    data = data.filter((item) => item.applyStatus === applyStatus)
+  }
+
+  total.value = data.length
+  const start = (queryParams.value.pageNum - 1) * queryParams.value.pageSize
+  const end = start + queryParams.value.pageSize
+  tableData.value = data.slice(start, end)
+}
+
+const getList = () => {
+  loading.value = true
+  setTimeout(() => {
+    applyFilter()
+    loading.value = false
+  }, 300)
 }
 
 const handleQuery = () => {
@@ -180,12 +275,27 @@ const handleSelectionChange = () => {
   // 预留批量操作
 }
 
+const buyerObjectValues = ['purchaser', 'buyer', '采购商']
+
 const handleDetail = (row: LoanApplication) => {
-  ElMessage.info(`查看详情：${row.productName}`)
+  detailData.value = row
+  if (buyerObjectValues.includes(row.applicableObject)) {
+    buyerDetailDialogVisible.value = true
+  } else {
+    detailDialogVisible.value = true
+  }
 }
 
-const handleRepayment = (row: LoanApplication) => {
-  ElMessage.info(`查看还款计划：${row.productName}`)
+const openRepaymentPlan = (row: LoanApplication) => {
+  repaymentData.value = {
+    contractFiles: row.contractFiles || [],
+    plans: Array.from({ length: 9 }, (_, index) => ({
+      period: index + 1,
+      repayDate: ['2025-02-01', '2025-03-01', '2025-04-01'][Math.floor(index / 3)],
+      amount: 9000
+    }))
+  }
+  repaymentDialogVisible.value = true
 }
 
 const handleDelete = (row: LoanApplication) => {
