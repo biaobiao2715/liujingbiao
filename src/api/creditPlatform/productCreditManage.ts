@@ -37,27 +37,11 @@ export function editCreditProduct(data: any) {
 }
 
 // 删除信贷产品
-export function deleteCreditProduct(id: number | string) {
+export function deleteCreditProduct(ids: number | string) {
   return request({
-    url: `credit-server/creditProductsVersion/${id}`,
+    url: `credit-server/creditProductsVersion/${ids}`,
     method: 'delete'
   });
 }
 
-// 上架信贷产品
-export function publishCreditProduct(data: any) {
-  return request({
-    url: 'credit-server/creditProductsVersion',
-    method: 'put',
-    data: data
-  });
-}
 
-// 下架信贷产品
-export function offlineCreditProduct(data: any) {
-  return request({
-    url: 'credit-server/creditProductsVersion',
-    method: 'put',
-    data: data
-  });
-}

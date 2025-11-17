@@ -53,8 +53,9 @@
           v-model="queryParams.applicableObject"
           placeholder="全部"
           clearable
+          multiple
+          collapse-tags
         >
-          <el-option label="全部" value="" />
           <el-option
             v-for="dict in applicable_object"
             :key="dict.value"
@@ -72,7 +73,7 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['credit:creditProduct:add']" type="primary" icon="Plus" @click="handleAdd">
+        <el-button v-throttle v-hasPermi="['system:creditProductsVersion:add']" type="primary" icon="Plus" @click="handleAdd">
           新增
         </el-button>
       </el-col>
@@ -92,9 +93,9 @@
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" align="center" prop="productName" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品简介" align="center" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="适用对象" align="center" prop="applicableObject" width="120">
+      <el-table-column label="适用对象" align="center" prop="applicableObject" width="150">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
+          <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
         </template>
       </el-table-column>
       <el-table-column label="产品类型" align="center" prop="productType" width="120">
@@ -112,13 +113,13 @@
           <span>{{ scope.row.createTime || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['credit:creditProduct:query']" type="primary" size="small" @click="handleView(scope.row)">详情</el-button>
-          <el-button v-throttle v-hasPermi="['credit:creditProduct:edit']" v-if="canEdit(scope.row)" type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle v-hasPermi="['credit:creditProduct:publish']" v-if="canPublish(scope.row)" type="primary" size="small" @click="handlePublish(scope.row)">上架</el-button>
-          <el-button v-throttle v-hasPermi="['credit:creditProduct:offline']" v-if="canOffline(scope.row)" type="primary" size="small" @click="handleOffline(scope.row)">下架</el-button>
-          <el-button v-throttle v-hasPermi="['credit:creditProduct:remove']" v-if="canDelete(scope.row)" type="primary" size="small" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button v-throttle v-hasPermi="['system:creditProductsVersion:query']" type="primary" @click="handleView(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canEdit(scope.row)" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canPublish(scope.row)" type="primary" @click="handlePublish(scope.row)">上架</el-button>
+          <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canOffline(scope.row)" type="primary" @click="handleOffline(scope.row)">下架</el-button>
+          <el-button v-throttle v-hasPermi="['system:creditProductsVersion:remove']" v-if="canDelete(scope.row)" type="primary" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -168,7 +169,7 @@ import { reactive, ref, onMounted, getCurrentInstance, toRefs, defineAsyncCompon
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance } from 'element-plus';
-import { creditProductList, publishCreditProduct, offlineCreditProduct, deleteCreditProduct } from '@/api/creditPlatform/productCreditManage';
+import { creditProductList, editCreditProduct, deleteCreditProduct } from '@/api/creditPlatform/productCreditManage';
 import { useUserStore } from '@/store/modules/user';
 
 const userStore = useUserStore();
@@ -224,7 +225,7 @@ const queryParams = reactive({
   productName: '',
   productType: '',
   productStatus: '',
-  applicableObject: '',
+  applicableObject: [] as string[],
   orderByColumn: 'createTime',
   isAsc: 'desc'
 });
@@ -271,7 +272,7 @@ const resetQuery = () => {
   queryParams.productName = '';
   queryParams.productType = '';
   queryParams.productStatus = '';
-  queryParams.applicableObject = '';
+  queryParams.applicableObject = [];
   queryParams.orderByColumn = 'createTime';
   queryParams.isAsc = 'desc';
   handleQuery();
@@ -352,7 +353,7 @@ const handlePublish = (row: CreditProduct) => {
   }).then(async () => {
     try {
       const data = { ...row, productStatus: '2', optType: '2' };
-      const response = await publishCreditProduct(data);
+      const response = await editCreditProduct(data);
       if (response && response.code === 200) {
         ElMessage.success('上架成功');
         getList();
@@ -372,8 +373,8 @@ const handleOffline = (row: CreditProduct) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const data = { ...row, productStatus: '3', optType: '3' };
-      const response = await offlineCreditProduct(data);
+      const data = { ...row, productStatus: '3', optType: '2' };
+      const response = await editCreditProduct(data);
       if (response && response.code === 200) {
         ElMessage.success('下架成功');
         getList();
@@ -469,30 +470,7 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
-.operation-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
 
-:deep(.el-table__body-wrapper) {
-  .operation-buttons {
-    .el-button + .el-button {
-      margin-left: 0;
-    }
-  }
-}
 
 .pagination {
   display: flex;

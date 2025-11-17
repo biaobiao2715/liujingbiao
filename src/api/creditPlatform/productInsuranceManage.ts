@@ -4,7 +4,7 @@ import request from '@/utils/request';
 // 保险产品列表
 export function insuranceProductList(data: any) {
   return request({
-    url: 'credit-platform/product/insurance/list',
+    url: 'credit-server/insuranceProductsVersion/list',
     method: 'get',
     params: data
   });
@@ -13,7 +13,7 @@ export function insuranceProductList(data: any) {
 // 保险产品详情
 export function insuranceProductDetail(id: number | string) {
   return request({
-    url: `credit-platform/product/insurance/${id}`,
+    url: `credit-server/insuranceProductsVersion/${id}`,
     method: 'get'
   });
 }
@@ -21,7 +21,7 @@ export function insuranceProductDetail(id: number | string) {
 // 新增保险产品
 export function addInsuranceProduct(data: any) {
   return request({
-    url: 'credit-platform/product/insurance',
+    url: 'credit-server/insuranceProductsVersion',
     method: 'post',
     data: data
   });
@@ -30,7 +30,7 @@ export function addInsuranceProduct(data: any) {
 // 编辑保险产品
 export function editInsuranceProduct(data: any) {
   return request({
-    url: 'credit-platform/product/insurance',
+    url: 'credit-server/insuranceProductsVersion',
     method: 'put',
     data: data
   });

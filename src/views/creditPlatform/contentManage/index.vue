@@ -87,42 +87,37 @@
           <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="operation-buttons">
-            <el-button v-throttle v-hasPermi="['credit:creditArticle:query']" type="info" size="small" @click="handleDetails(scope.row)">详情</el-button>
-            <el-button v-throttle v-hasPermi="['credit:creditArticle:edit']" type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button
-              v-throttle
-              v-hasPermi="['credit:creditArticle:edit']"
-              v-if="scope.row.articleStatus === '2'"
-              type="warning"
-              size="small"
-              @click="handleStatusChange(scope.row, '3')"
-            >
-              下架
-            </el-button>
-            <el-button
-              v-throttle
-              v-hasPermi="['credit:creditArticle:publish']"
-              v-if="scope.row.articleStatus === '1' || scope.row.articleStatus === '3'"
-              type="success"
-              size="small"
-              @click="handleStatusChange(scope.row, '2')"
-            >
-              上架
-            </el-button>
-            <el-button
-              v-throttle
-              v-hasPermi="['credit:creditArticle:remove']"
-              v-if="scope.row.articleStatus === '3'"
-              type="danger"
-              size="small"
-              @click="handleDelete(scope.row)"
-            >
-              删除
-            </el-button>
-          </div>
+          <el-button v-throttle v-hasPermi="['credit:creditArticle:query']" type="primary" @click="handleDetails(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['credit:creditArticle:edit']" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button
+            v-throttle
+            v-hasPermi="['credit:creditArticle:edit']"
+            v-if="scope.row.articleStatus === '2'"
+            type="primary"
+            @click="handleStatusChange(scope.row, '3')"
+          >
+            下架
+          </el-button>
+          <el-button
+            v-throttle
+            v-hasPermi="['credit:creditArticle:publish']"
+            v-if="scope.row.articleStatus === '1' || scope.row.articleStatus === '3'"
+            type="primary"
+            @click="handleStatusChange(scope.row, '2')"
+          >
+            上架
+          </el-button>
+          <el-button
+            v-throttle
+            v-hasPermi="['credit:creditArticle:remove']"
+            v-if="scope.row.articleStatus === '3'"
+            type="primary"
+            @click="handleDelete(scope.row)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -434,28 +429,5 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
-.operation-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
 
-:deep(.el-table__body-wrapper) {
-  .operation-buttons {
-    .el-button + .el-button {
-      margin-left: 0;
-    }
-  }
-}
 </style>
