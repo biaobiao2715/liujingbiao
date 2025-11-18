@@ -26,7 +26,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   title: '价格走势图',
-  unit: '单位: 元/斤',
+  unit: '单位: 元/kg',
   showHeader: true,
   yAxisMin: 0,
   yAxisMax: 80,
@@ -48,14 +48,36 @@ const initChart = () => {
   })
 }
 
+// 计算需要显示标签的索引（最多7个）
+const MAX_VISIBLE_X_LABELS = 7
+const getLabelIndices = (total: number, maxVisible: number) => {
+  if (total <= maxVisible) {
+    return new Set(Array.from({ length: total }, (_, i) => i))
+  }
+  const result = new Set<number>()
+  const step = (total - 1) / (maxVisible - 1)
+  for (let i = 0; i < maxVisible; i++) {
+    const index = Math.min(total - 1, Math.floor(i * step))
+    result.add(index)
+  }
+  result.add(total - 1)
+  return result
+}
+
 // 更新图表
 const updateChart = () => {
   if (!chartInstance || !props.dates.length || !props.prices.length) return
 
+  const total = props.dates.length
+  const labelIndices = getLabelIndices(total, MAX_VISIBLE_X_LABELS)
+
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: '{b}<br/>价格: {c} 元/斤',
+      formatter: (params: any) => {
+        const unit = props.unit.replace('单位: ', '') // 从单位中提取单位文本
+        return `${params[0].axisValue}<br/>价格: ${params[0].value} ${unit}`
+      },
       axisPointer: {
         type: 'cross',
         label: {
@@ -76,7 +98,12 @@ const updateChart = () => {
       data: props.dates,
       axisLabel: {
         fontSize: 12,
-        color: '#606266'
+        color: '#606266',
+        interval: (index: number) => labelIndices.has(index)
+      },
+      axisTick: {
+        alignWithLabel: true,
+        interval: (index: number) => labelIndices.has(index)
       },
       axisLine: {
         lineStyle: {
@@ -117,7 +144,7 @@ const updateChart = () => {
         name: '价格',
         type: 'line',
         smooth: true,
-        symbol: 'circle',
+        symbol: (_value: any, params: any) => (labelIndices.has(params.dataIndex) ? 'circle' : 'none'),
         symbolSize: 6,
         lineStyle: {
           width: 2,

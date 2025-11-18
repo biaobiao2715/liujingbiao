@@ -58,8 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
+import { todayTrendList } from '@/api/mall/marketComponent'
 
 const loading = ref(false)
 const queryFormRef = ref()
@@ -68,94 +70,12 @@ const queryFormRef = ref()
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组，格式: [一级ID, 二级ID, 三级ID]
   pageNum: 1,
-  pageSize: 20
+  pageSize: 10
 })
 
-// 表格数据（写死）
-const tableData = ref([
-  {
-    id: 1,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: '湖北省武汉市汉南区',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 2,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: '湖北省武汉市江夏区',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 3,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: '陕西省汉中市强县',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 4,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 5,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: 20.21
-  },
-  {
-    id: 6,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: -13.86
-  },
-  {
-    id: 7,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 8,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 9,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: '-'
-  },
-  {
-    id: 10,
-    salesDate: '2025-10-29',
-    variety: '春菜种子',
-    origin: 'XX省XX市XX县',
-    price: '10元/kg',
-    changePercent: '-'
-  }
-])
-
-const total = ref(922)
+// 表格数据
+const tableData = ref<any[]>([])
+const total = ref(0)
 
 // 查询
 const handleQuery = () => {
@@ -178,10 +98,84 @@ const resetQuery = () => {
 }
 
 // 获取列表数据
-const getList = () => {
-  // 数据已写死，这里可以添加筛选逻辑
-  console.log('查询参数:', queryParams)
+const getList = async () => {
+  loading.value = true
+  try {
+    // 获取品种ID（取数组最后一个元素）
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
+      ? queryParams.variety[queryParams.variety.length - 1] 
+      : ''
+
+    const params: any = {
+      goodsCategoryId: goodsCategoryId || '',
+      pageNum: queryParams.pageNum,
+      pageSize: queryParams.pageSize
+    }
+
+    const response = await todayTrendList(params)
+    if (response && response.code === 200) {
+      const data = response.rows || response.data || []
+      // 映射接口返回的数据到表格需要的格式
+      tableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
+        // 格式化日期：从 "2025-11-13 00:00:00" 提取日期部分
+        let salesDate = '--'
+        if (item.analysisDate) {
+          const dateStr = item.analysisDate
+          if (dateStr.includes(' ')) {
+            salesDate = dateStr.split(' ')[0] // 取日期部分
+          } else {
+            salesDate = dateStr
+          }
+        }
+        
+        // 组合产地：省+市+区县
+        let origin = '--'
+        const parts: string[] = []
+        if (item.provinceName) parts.push(item.provinceName)
+        if (item.cityName) parts.push(item.cityName)
+        if (item.regionName) parts.push(item.regionName)
+        if (parts.length > 0) {
+          origin = parts.join('')
+        }
+        
+        // 处理价格变化百分比
+        let changePercent: number | string = '-'
+        if (item.priceUpDown !== undefined && item.priceUpDown !== null && item.priceUpDown !== '') {
+          const changeValue = Number(item.priceUpDown)
+          if (!isNaN(changeValue)) {
+            changePercent = changeValue
+          }
+        }
+        
+        return {
+          id: item.id,
+          salesDate,
+          variety: item.goodsCategoryName || '--',
+          origin,
+          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
+          changePercent
+        }
+      })
+      total.value = response.total || 0
+    } else {
+      ElMessage.error(response?.msg || '获取今日行情数据失败')
+      tableData.value = []
+      total.value = 0
+    }
+  } catch (error) {
+    console.error('获取今日行情数据失败:', error)
+    ElMessage.error('获取今日行情数据失败，请稍后重试')
+    tableData.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
 }
+
+// 页面加载时获取数据
+onMounted(() => {
+  getList()
+})
 </script>
 
 <style scoped lang="scss">

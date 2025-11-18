@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, ref, watch, defineProps, defineEmits } from 'vue';
 import areaData from 'china-area-data';
 
 const emits = defineEmits(['regionChange']);

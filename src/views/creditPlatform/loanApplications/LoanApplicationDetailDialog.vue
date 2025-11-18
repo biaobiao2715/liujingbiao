@@ -1,6 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="960px" class="loan-detail-dialog" append-to-body destroy-on-close
-    :close-on-click-modal="false" @close="handleClose">
+  <el-dialog :model-value="visible" width="900px" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-title">贷款申请详情</div>
     </template>
@@ -16,8 +15,14 @@
         <el-descriptions-item label="注册日期">{{ detail.company.registerDate }}</el-descriptions-item>
         <el-descriptions-item label="注册地址">{{ detail.company.registerAddress }}</el-descriptions-item>
         <el-descriptions-item label="营业执照">
-          <el-image v-for="(img, idx) in detail.company.licenses" :key="idx" :src="img"
-            :preview-src-list="detail.company.licenses" fit="cover" class="license-image">
+          <el-image
+            v-for="(img, idx) in detail.company.licenses"
+            :key="idx"
+            :src="img"
+            :preview-src-list="detail.company.licenses"
+            fit="cover"
+            class="license-image"
+          >
             <template #error>
               <div class="image-placeholder">暂无图片</div>
             </template>
@@ -46,16 +51,26 @@
         <el-descriptions-item label="申请人">{{ detail.applicant.name }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ detail.applicant.phone }}</el-descriptions-item>
         <el-descriptions-item label="个人身份证明" :span="2">
-          <el-image v-for="(img, idx) in detail.applicant.idPhotos" :key="idx" :src="img"
-            :preview-src-list="detail.applicant.idPhotos" class="license-image">
+          <el-image
+            v-for="(img, idx) in detail.applicant.idPhotos"
+            :key="idx"
+            :src="img"
+            :preview-src-list="detail.applicant.idPhotos"
+            class="license-image"
+          >
             <template #error>
               <div class="image-placeholder">暂无图片</div>
             </template>
           </el-image>
         </el-descriptions-item>
         <el-descriptions-item label="授权文件" :span="2">
-          <el-image v-for="(img, idx) in detail.applicant.authorizationFiles" :key="idx" :src="img"
-            :preview-src-list="detail.applicant.authorizationFiles" class="license-image">
+          <el-image
+            v-for="(img, idx) in detail.applicant.authorizationFiles"
+            :key="idx"
+            :src="img"
+            :preview-src-list="detail.applicant.authorizationFiles"
+            class="license-image"
+          >
             <template #error>
               <div class="image-placeholder">暂无图片</div>
             </template>
@@ -87,8 +102,13 @@
 
     <div class="detail-section approval-section">
       <div class="section-title">审批信息</div>
-      <el-alert title="审核通过时需填写放款日期、第一期还款日并上传合同；审批前需确认状态为待审核。" type="warning" show-icon :closable="false"
-        class="tips" />
+      <el-alert
+        title="审核通过时需填写放款日期、第一期还款日并上传合同；审批前需确认状态为待审核。"
+        type="warning"
+        show-icon
+        :closable="false"
+        class="tips"
+      />
       <el-form label-width="100px" class="approval-form">
         <el-form-item label="审批意见" required>
           <el-select v-model="approvalForm.opinion">
@@ -97,15 +117,21 @@
           </el-select>
         </el-form-item>
         <el-form-item label="放款日期" required>
-          <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" class="short-date-picker" />
+          <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" />
         </el-form-item>
         <el-form-item label="第一期还款日" required>
-          <el-date-picker v-model="approvalForm.firstRepaymentDate" type="date" placeholder="选择日期"
-            class="short-date-picker" />
+          <el-date-picker v-model="approvalForm.firstRepaymentDate" type="date" placeholder="选择日期" style="width: 100%" />
         </el-form-item>
         <el-form-item label="贷款合同" required>
-          <el-upload class="contract-uploader" drag :auto-upload="false" accept=".pdf,.jpg,.png"
-            :file-list="approvalForm.contractFiles" :on-remove="handleRemoveFile" :on-change="handleUploadChange">
+          <el-upload
+            class="contract-uploader"
+            drag
+            :auto-upload="false"
+            accept=".pdf,.jpg,.png"
+            :file-list="approvalForm.contractFiles"
+            :on-remove="handleRemoveFile"
+            :on-change="handleUploadChange"
+          >
             <i class="el-icon-upload" />
             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           </el-upload>
@@ -126,51 +152,51 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue';
 
 interface LoanApplicationDetail {
-  supplierNo?: string
-  companyName?: string
-  reviewStatus?: string
-  creditCode?: string
-  registeredCapital?: string
-  registerDate?: string
-  registerAddress?: string
-  officeAddress?: string
-  qualification?: string
-  creditLevel?: string
-  businessScope?: string
-  licenses?: string[]
+  supplierNo?: string;
+  companyName?: string;
+  reviewStatus?: string;
+  creditCode?: string;
+  registeredCapital?: string;
+  registerDate?: string;
+  registerAddress?: string;
+  officeAddress?: string;
+  qualification?: string;
+  creditLevel?: string;
+  businessScope?: string;
+  licenses?: string[];
   legal?: {
-    name?: string
-    certificateType?: string
-    certificateNumber?: string
-    phone?: string
-  }
+    name?: string;
+    certificateType?: string;
+    certificateNumber?: string;
+    phone?: string;
+  };
   applicant?: {
-    name?: string
-    phone?: string
-    idPhotos?: string[]
-    authorizationFiles?: string[]
-  }
+    name?: string;
+    phone?: string;
+    idPhotos?: string[];
+    authorizationFiles?: string[];
+  };
   loan?: {
-    amount?: string
-    term?: string
-    repaymentType?: string
-    bankName?: string
-    bankCardNo?: string
-    applyTime?: string
-  }
+    amount?: string;
+    term?: string;
+    repaymentType?: string;
+    bankName?: string;
+    bankCardNo?: string;
+    applyTime?: string;
+  };
 }
 
 const props = defineProps<{
-  visible: boolean
-  data: Record<string, any> | null
-}>()
+  visible: boolean;
+  data: Record<string, any> | null;
+}>();
 
 const emit = defineEmits<{
-  (event: 'update:visible', payload: boolean): void
-}>()
+  (event: 'update:visible', payload: boolean): void;
+}>();
 
 const defaultDetail: LoanApplicationDetail = {
   supplierNo: 'GYS202509300001',
@@ -194,10 +220,7 @@ const defaultDetail: LoanApplicationDetail = {
   applicant: {
     name: '张三',
     phone: '15629657691',
-    idPhotos: [
-      'https://via.placeholder.com/120x80.png?text=ID+1',
-      'https://via.placeholder.com/120x80.png?text=ID+2'
-    ],
+    idPhotos: ['https://via.placeholder.com/120x80.png?text=ID+1', 'https://via.placeholder.com/120x80.png?text=ID+2'],
     authorizationFiles: ['https://via.placeholder.com/120x80.png?text=Auth']
   },
   loan: {
@@ -208,17 +231,17 @@ const defaultDetail: LoanApplicationDetail = {
     bankCardNo: '4555555515555555555',
     applyTime: '2025-11-07 12:30:00'
   }
-}
+};
 
 const approvalForm = reactive({
   opinion: 'agree',
   loanDate: '',
   firstRepaymentDate: '',
   contractFiles: [] as any[]
-})
+});
 
 const detail = computed(() => {
-  const row = props.data || {}
+  const row = props.data || {};
   return {
     company: {
       ...defaultDetail,
@@ -250,32 +273,32 @@ const detail = computed(() => {
       term: row.loanTerm ? `${row.loanTerm}` : defaultDetail.loan?.term,
       applyTime: row.applyTime || defaultDetail.loan?.applyTime
     }
-  }
-})
+  };
+});
 
 watch(
   () => props.visible,
   (val) => {
     if (val) {
-      approvalForm.opinion = 'agree'
-      approvalForm.loanDate = ''
-      approvalForm.firstRepaymentDate = ''
-      approvalForm.contractFiles = []
+      approvalForm.opinion = 'agree';
+      approvalForm.loanDate = '';
+      approvalForm.firstRepaymentDate = '';
+      approvalForm.contractFiles = [];
     }
   }
-)
+);
 
 const handleClose = () => {
-  emit('update:visible', false)
-}
+  emit('update:visible', false);
+};
 
 const handleUploadChange = (file: any, fileList: any[]) => {
-  approvalForm.contractFiles = fileList
-}
+  approvalForm.contractFiles = fileList;
+};
 
 const handleRemoveFile = (_file: any, fileList: any[]) => {
-  approvalForm.contractFiles = fileList
-}
+  approvalForm.contractFiles = fileList;
+};
 </script>
 
 <style scoped lang="scss">
@@ -287,25 +310,19 @@ const handleRemoveFile = (_file: any, fileList: any[]) => {
 }
 
 .detail-section {
-  margin-bottom: 20px;
-  background: #fefefe;
-  border-radius: 8px;
-  border: 1px solid #f0f2f5;
-  padding: 16px 20px;
-  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
+  margin-bottom: 24px;
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
-  color: #303133;
 
   &::before {
     content: '';
-    width: 4px;
+    width: 6px;
     height: 16px;
     background-color: #409eff;
     border-radius: 2px;
@@ -313,13 +330,9 @@ const handleRemoveFile = (_file: any, fileList: any[]) => {
   }
 }
 
-:deep(.el-descriptions__body) {
-  background-color: #fafbfc;
-}
-
 .license-image {
-  width: 92px;
-  height: 64px;
+  width: 100px;
+  height: 70px;
   margin-right: 8px;
   border: 1px solid #ebeef5;
   border-radius: 4px;
@@ -327,20 +340,18 @@ const handleRemoveFile = (_file: any, fileList: any[]) => {
 
 .image-placeholder,
 .card-placeholder {
-  width: 92px;
-  height: 64px;
+  width: 100px;
+  height: 70px;
   border: 1px dashed #dcdfe6;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #909399;
   font-size: 12px;
-  background: #fff;
 }
 
 .bank-card-preview {
   margin-top: 12px;
-  color: #606266;
 
   .bank-card-images {
     display: flex;
@@ -358,29 +369,6 @@ const handleRemoveFile = (_file: any, fileList: any[]) => {
 .approval-section {
   .tips {
     margin-bottom: 16px;
-  }
-}
-
-.approval-form {
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 6px;
-  border: 1px solid #f0f2f5;
-
-  :deep(.el-form-item__label) {
-    white-space: nowrap;
-  }
-}
-
-.contract-uploader {
-  width: 100%;
-}
-
-.short-date-picker {
-  width: 220px;
-  :deep(.el-input__wrapper) {
-    padding-left: 8px;
-    padding-right: 8px;
   }
 }
 
