@@ -92,7 +92,8 @@
               <template v-if="reportVideoList.length">
                 <div v-for="(v, idx) in reportVideoList" :key="v.url + idx" class="video-card">
                   <div class="size">{{ v.sizeText }}</div>
-                  <div class="icon">视频</div>
+
+                  <el-image :key="v.url + idx" :src="v.url" :initial-index="idx" fit="cover" class="evidence-image-item" />
                   <div class="ops">
                     <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载原件</el-button>
                   </div>
@@ -330,7 +331,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, getCurrentInstance, toRefs, ComponentInternalInstance } from 'vue';
 // 仅保留使用到的 API 与类型
-import { getReportCaseFilingDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
+import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 import FormHeader from '@/components/FormHeader/index.vue';
 import supplierDetail from './supplierDetail.vue';
 // 通过 props 接收父组件传参
@@ -469,63 +470,6 @@ const downloadAttachment = async (fileName: string, url?: string) => {
   }
 };
 
-// 工具方法：安全数组
-const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
-
-// 工具方法：字节大小转可读文本
-const formatByteSize = (bytes?: number) => {
-  const n = Number(bytes);
-  if (!isFinite(n) || n <= 0) return '';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let i = 0,
-    v = n;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  const fixed = v < 10 && i > 0 ? 1 : 0;
-  return `${v.toFixed(fixed)}${units[i]}`;
-};
-
-// 工具方法：按 url 去重
-const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
-  const seen = new Set<string>();
-  const out: T[] = [];
-  for (const it of list) {
-    const u = it?.url;
-    if (!u || seen.has(u)) continue;
-    seen.add(u);
-    out.push(it);
-  }
-  return out;
-};
-
-// 工具方法：拆分图片/视频并格式化
-const splitFiles = (files: any[]) => {
-  const images: FileViewItem[] = [];
-  const videos: FileViewItem[] = [];
-  safeArray(files).forEach((item: any) => {
-    const info = item?.ossInfo ?? item ?? {};
-    const base = {
-      url: info?.url,
-      ossId: info?.ossId,
-      originalName: info?.originalName,
-      name: info?.originalName
-    } as FileViewItem;
-    if (!base.url) return;
-    if (String(item?.fileType) === '1') {
-      const size = Number(info?.fileSize);
-      videos.push({ ...base, sizeText: formatByteSize(size) });
-    } else {
-      images.push(base);
-    }
-  });
-  return {
-    images: uniqueByUrl(images),
-    videos: uniqueByUrl(videos)
-  };
-};
-
 const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 
 // 获取历史申诉详情  打开弹窗
@@ -536,8 +480,9 @@ const handlePreview = async (row: any) => {
   appealDialogLoading.value = true;
   try {
     // 等接口切换后，获取违规记录详情
-    const res = await getReportCaseFilingDetail(String(id)); //获取违规记录详情
+    const res = await getlookDetail(String(id)); //获取违规记录详情
     const data: any = res?.data ?? {};
+    console.log('历史申诉详情数据:', data);
 
     // 文本信息
     appealDetail.value.appealReason = data.appealReason ?? '';
@@ -588,6 +533,64 @@ const openSupplierDialog = () => {
   supplierDialogId.value = formData.value?.reportPersonId || formData.value?.reportId || formData.value?.id;
   supplierDialogVisible.value = true;
 };
+
+// 工具方法：安全数组
+const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
+
+// 工具方法：字节大小转可读文本
+const formatByteSize = (bytes?: number) => {
+  const n = Number(bytes);
+  if (!isFinite(n) || n <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0,
+    v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  const fixed = v < 10 && i > 0 ? 1 : 0;
+  return `${v.toFixed(fixed)}${units[i]}`;
+};
+
+// 工具方法：按 url 去重
+const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const it of list) {
+    const u = it?.url;
+    if (!u || seen.has(u)) continue;
+    seen.add(u);
+    out.push(it);
+  }
+  return out;
+};
+
+// 工具方法：拆分图片/视频并格式化
+const splitFiles = (files: any[]) => {
+  const images: FileViewItem[] = [];
+  const videos: FileViewItem[] = [];
+  safeArray(files).forEach((item: any) => {
+    const info = item?.ossInfo ?? {};
+    const base = {
+      url: info?.url,
+      ossId: info?.ossId,
+      originalName: info?.originalName,
+      name: info?.originalName
+    } as FileViewItem;
+    if (!base.url) return;
+    if (String(item?.fileType) === '1') {
+      const size = Number(info?.fileSize);
+      videos.push({ ...base, sizeText: formatByteSize(size) });
+    } else {
+      images.push(base);
+    }
+  });
+  return {
+    images: uniqueByUrl(images),
+    videos: uniqueByUrl(videos)
+  };
+};
+
 /**
  * 获取违规记录详情
  */

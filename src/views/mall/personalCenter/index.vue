@@ -49,12 +49,20 @@
     </div>
 
     <!-- 对话框：根据 detailsType 动态展示详情组件 -->
-    <el-dialog v-model="detailDialogVisible" :title="detailDialogTitle" width="80%" append-to-body destroy-on-close :close-on-click-modal="false">
-      <component v-if="currentDetailComponent" :is="currentDetailComponent" :key="detailsId" :id="detailsId" @close="handleDetailClose" />
+    <el-dialog
+      v-model="detailDialogVisible"
+      :title="detailDialogTitle"
+      width="80%"
+      append-to-body
+      destroy-on-close
+      :close-on-click-modal="false"
+      @close="handleDetailClose"
+    >
+      <component v-if="currentDetailComponent" :is="currentDetailComponent" :key="detailsId" :id="detailsId" @close="requestDetailClose" />
       <div v-else class="empty-detail">暂无可展示的详情</div>
 
       <template #footer>
-        <el-button @click="handleDetailClose">关闭</el-button>
+        <el-button @click="requestDetailClose">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -160,10 +168,26 @@ const detailDialogTitle = computed(() => {
 });
 
 // 关闭弹窗并清理
-function handleDetailClose() {
+function requestDetailClose() {
+  // 仅触发对话框关闭，由 el-dialog 的 @close 统一收尾与刷新
   detailDialogVisible.value = false;
+}
+
+function handleDetailClose() {
+  const payload = {
+    key: selectedComponent.value,
+    detailType: detailsType.value,
+    id: detailsId.value
+  };
+  // 清理状态
   detailsId.value = '';
   detailsType.value = '';
+  // 关闭后通知当前列表刷新
+  try {
+    eventBus.emit('refreshPersonalCenterList', payload);
+  } catch {
+    // 忽略事件总线异常，避免影响关闭流程
+  }
 }
 
 // 事件处理器（需要在 on/off 时保持同一引用）

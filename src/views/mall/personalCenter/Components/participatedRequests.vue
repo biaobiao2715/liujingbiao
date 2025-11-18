@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
+import { reactive, onMounted, onBeforeUnmount, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
@@ -96,6 +96,22 @@ const state = reactive({
 
 onMounted(() => {
   reload();
+  // 监听个人中心详情关闭后的刷新事件，仅在“我参与的”页时响应
+  eventBus.on('refreshPersonalCenterList', handleRefreshEvent);
+});
+
+// 统一刷新事件处理器，保持引用稳定以便正常解绑
+function handleRefreshEvent(payload: { key?: string; detailType?: string; id?: string }) {
+  if (payload?.key !== 'participated') return;
+  reload();
+}
+
+onBeforeUnmount(() => {
+  try {
+    eventBus.off?.('refreshPersonalCenterList', handleRefreshEvent);
+  } catch {
+    // 忽略不支持 off 的实现
+  }
 });
 
 function onTabChange(name: string | number) {
@@ -137,8 +153,8 @@ function onUnfav(item: any) {
         activityType: item.activityType,
         activityEnrollBo: item
       });
-      ElMessage.success('已取消收藏');
       reload();
+      ElMessage.success('已取消收藏');
     })
     .finally(() => (state.opLoadingId = 0));
 }

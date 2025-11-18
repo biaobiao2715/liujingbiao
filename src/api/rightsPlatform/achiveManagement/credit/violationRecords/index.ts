@@ -17,6 +17,13 @@ export function getReportCaseFilingDetail(id: number | string) {
   });
 }
 
+// 点击详情页面查看获取申诉文件
+export function getlookDetail(id: number | string) {
+  return request({
+    url: `/safeguard-server/reportCaseFiling/lookDetail/${id}`,
+    method: 'get'
+  });
+}
 // ========== 接口类型（对齐后端文档） ==========
 export interface RemoteOssVo {
   createBy?: number;

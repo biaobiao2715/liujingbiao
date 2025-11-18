@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="p-2">
-    <el-form ref="queryFormRef" :model="queryParams" label-width="120px" :inline="true">
+    <!-- <el-form ref="queryFormRef" :model="queryParams" label-width="120px" :inline="true">
       <el-form-item label="推送时间" prop="pushTime">
         <el-date-picker
           v-model="queryParams.pushTime"
@@ -28,7 +28,7 @@
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">设置</el-button>
       </el-form-item>
-    </el-form>
+    </el-form> -->
 
     <el-table v-loading="loading" border :data="tableList" style="table-layout: fixed">
       <el-table-column type="index" label="序号" width="55" align="center" />

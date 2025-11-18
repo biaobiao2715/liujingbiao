@@ -1,379 +1,236 @@
 <!--
-  文件名: requests.vue
-  功能: 我发布的采购需求
-  说明: 展示、编辑、完成、关闭采购需求，分页展示，详情弹窗
-  版本: 2.0
-  作者: 刘景彪
-  创建时间: 2025-10-27
-  重构时间: 2025-10-29
+  标题: Purchaser.vue
+  功能: 品种识别
+  说明: 用于查看我的品种识别订单。
+  当前版本: 1.0
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 <template>
-  <div class="address-page">
-    <!-- 标题 -->
-    <div class="title">我发布的采购需求</div>
-    <el-divider />
+  <div class="orders">
+    <!-- 页面标题 -->
+    <div class="menu-title">品种识别记录</div>
+    <div class="pading20">
+      <!-- 搜索条件 -->
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
+        <el-form-item label="识别时间" prop="identifyTime">
+          <el-date-picker
+            v-model="queryParams.identifyTime"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+            range-separator=" - "
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+        </el-form-item>
+        <el-form-item label="品种类型" prop="varietyType">
+          <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
+            <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
+          <el-button v-throttle @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
 
-    <!-- 顶部统计提示 -->
-    <div class="summary-alert">已发布{{ total }}条</div>
-    <!-- 采购需求表格 -->
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      style="width: 100%"
-      border
-      size="small"
-      header-cell-class-name="table-header"
-      :empty-text="'暂无采购需求'"
-    >
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column prop="categoryName" label="采购类目" align="center" width="160" />
-      <el-table-column label="采购区域" align="center" width="160">
-        <template #default="{ row }">
-          {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="demandDescription" label="采购说明" align="center" min-width="180" :show-overflow-tooltip="true">
-        <template #default="{ row }">
-          <el-tooltip
-            v-if="row.demandDescription && row.demandDescription.length > 100"
-            effect="dark"
-            :content="row.demandDescription"
-            placement="top"
-          >
-            <span>{{ row.demandDescription.slice(0, 100) + '...' }}</span>
-          </el-tooltip>
-          <span v-else>{{ row.demandDescription }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="采购数量" align="center">
-        <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
-      </el-table-column>
-      <el-table-column prop="deliveryDay" label="交付时间/天" align="center" width="100" />
-      <el-table-column label="发布状态" align="center">
-        <template #default="{ row }">
-          <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="publishTime" label="发布时间" align="center" width="140">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="220" align="center">
-        <template #default="{ row }">
-          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="primary" @click="onEdit(row)"
-            >修改</el-button
-          >
-          <el-button
-            link
-            v-if="row.demandStatus === '1'"
-            v-throttle
-            v-hasPermi="['grain:HnPurchaseDemand:edit']"
-            type="primary"
-            @click="onComplete(row)"
-            >完成</el-button
-          >
-          <el-button link v-if="row.demandStatus === '1'" v-throttle v-hasPermi="['grain:HnPurchaseDemand:edit']" type="danger" @click="onDelete(row)"
-            >关闭</el-button
-          >
-          <el-button link v-throttle v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" @click="onDetails(row)">查看</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+      <!-- 操作按钮 -->
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button v-throttle @click="handleExport"> 导出 </el-button>
+        </el-col>
+      </el-row>
 
-    <!-- 分页 -->
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <!-- 表格展示 -->
+      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+        <el-table-column type="index" label="序号" width="55" align="center" />
+        <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
+          <template #default="scope">
+            <span>{{ proxy.parseTime(scope.row.identifyBeginTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="160">
+          <template #default="scope">
+            <span>{{ proxy.parseTime(scope.row.identifyEndTime) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
+          <template #default="scope">
+            <span>{{ scope.row.fileName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true" />
+        <el-table-column label="品种类型" align="center" prop="varietyType" width="210" style="color: #0000ff">
+          <template #default="scope">
+            <dict-text :options="review_status" :value="scope.row.varietyType ?? ''" />
+          </template>
+        </el-table-column>
+        <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
+        </el-table-column>
+        <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true" />
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="flex-end pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
 
-    <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" width="80%" destroy-on-close :close-on-click-modal="false" class="request-detail-dialog" title="采购需求详情">
-      <div v-loading="detailLoading" class="detail-body">
-        <!-- 采购信息表单 -->
-        <el-form ref="formRef" :model="form" label-width="90px" class="detail-form">
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="采购类型：" prop="categoryName">
-                <el-input v-model="form.categoryName" placeholder="请输入" maxlength="50" show-word-limit disabled />
-              </el-form-item>
-              <el-form-item label="采购区域：" prop="receiverName">
-                <RegionSelect style="width: 100%" v-model="form.regionPath" disabled />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="备注：" prop="receiverName">
-                <el-input v-model="form.demandDescription" placeholder="请输入" maxlength="100" show-word-limit disabled />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-
-        <!-- 供应商信息 -->
-        <div class="section">
-          <el-divider content-position="left"><div class="section-title">供应商信息</div></el-divider>
-          <el-table
-            :data="supplierList"
-            border
-            size="small"
-            header-cell-class-name="table-header"
-            :empty-text="'暂无供应商回复'"
-            :default-sort="{ prop: 'replyTime', order: 'descending' }"
-          >
-            <el-table-column type="index" label="序号" width="60" align="center" />
-            <el-table-column prop="supplierName" label="供应商名称" align="center" />
-            <el-table-column prop="price" label="报价" align="center">
-              <template #default="{ row }"> {{ row.price }} 元</template>
-            </el-table-column>
-            <el-table-column prop="remark" label="备注说明" align="center" />
-            <!-- 回复时间列暂时注释
-            <el-table-column prop="replyTime" label="回复时间" align="center">
-              <template #default="{ row }">{{ proxy.parseTime(row.replyTime) }}</template>
-            </el-table-column>
-            -->
-            <el-table-column label="操作" width="120" align="center">
-              <template #default="{ row }">
-                <el-button v-if="row.contactPhone" link type="primary" @click="onContact(row)">立即联系</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div class="flex-center pagination">
-            <pagination
-              v-show="supplierTotal > 0"
-              v-model:page="supplierQuery.pageNum"
-              v-model:limit="supplierQuery.pageSize"
-              :total="supplierTotal"
-              @pagination="getSupplierList"
-            />
-          </div>
-        </div>
-      </div>
+    <el-dialog
+      :title="dlgTitle"
+      v-model="dlgPreviewVisible"
+      :before-close="cancelDlg"
+      :close-on-click-modal="isReadonly"
+      :destroy-on-close="true"
+      append-to-body
+      width="80%"
+    >
+      <varietyIdentificationForm :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
     </el-dialog>
-
-    <!-- 供应商信息弹窗 -->
-    <el-dialog v-model="contactVisible" width="400px" title="供应商信息" :close-on-click-modal="false">
-      <div v-if="contactSupplier">
-        <div style="margin-bottom: 12px">供应商名称: {{ contactSupplier.supplierName }}</div>
-        <div style="margin-bottom: 12px">联系人: {{ contactSupplier.contactPerson || '-' }}</div>
-        <div style="margin-bottom: 12px">联系电话:{{ contactSupplier.contactPhone }}</div>
-      </div>
-    </el-dialog>
-
-    <!-- 发布需求弹窗 -->
-    <PublishDemandComponent ref="publishDemandRef" @submitSuccess="getDemandList"></PublishDemandComponent>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import PublishDemandComponent from '../../Components/PublishDemandComponent.vue';
-import {
-  hnPurchaseDemandList,
-  hnPurchaseQuoteList,
-  hnSupplierSupplyDelete,
-  hnPurchaseDemandPut,
-  HnPurchaseDemandVo
-} from '@/api/mall/personalCenter/requests';
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
+import { varietyRecognizeList } from '@/api/mall/personalCenter/varietyIdentification';
+import varietyIdentificationForm from './varietyIdentificationForm.vue';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { demand_status } = toRefs<any>(proxy?.useDict('demand_status'));
+const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
+// 搜索表单数据
+const queryParams = ref({
+  pageNum: 1,
+  pageSize: 10,
+  varietyType: '',
+  identifyTime: [] as string[] | []
+});
 
-const publishDemandRef = ref(null);
-
-const loading = ref(false);
-const tableData = ref<HnPurchaseDemandVo[]>([]);
+// 表格数据
+const tableData = ref([]);
 const total = ref(0);
-const queryParams = reactive({ pageNum: 1, pageSize: 10 });
+const loading = ref(true);
+const queryFormRef = ref();
+// 对话框相关状态
+const dlgPreviewVisible = ref(false);
+const dlgTitle = ref('');
+const isReadonly = ref(false);
+const selectID = ref<string | number>('');
+const selectType = ref<'view' | 'edit' | 'audit'>('view');
 
-const detailVisible = ref(false);
-const detailLoading = ref(false);
-const form = ref<HnPurchaseDemandVo>({});
-const supplierList = ref([]);
-const supplierQuery = reactive({ pageNum: 1, pageSize: 10 });
-const supplierTotal = ref(0);
-const contactVisible = ref(false);
-const contactSupplier = ref<any>(null);
+/** 查询企业列表 */
+const getList = () => {
+  loading.value = true;
+  const { identifyTime, ...rest } = queryParams.value as any;
+  const [identifyBeginTime, identifyEndTime] = Array.isArray(identifyTime) ? identifyTime : [];
+  const params = { ...rest, ...(identifyBeginTime && identifyEndTime ? { identifyBeginTime, identifyEndTime } : {}) };
+
+  varietyRecognizeList(params).then((res) => {
+    tableData.value = res.rows;
+    total.value = res.total;
+    loading.value = false;
+  });
+};
+
+// 查询按钮事件
+const handleSearch = () => {
+  queryParams.value.pageNum = 1;
+  getList();
+};
+/** 重置按钮操作 */
+const handleReset = () => {
+  queryFormRef.value?.resetFields();
+  handleSearch();
+};
+
+// 打开对话框：审核/查看/编辑
+const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
+  selectID.value = row.id;
+  selectType.value = type;
+  isReadonly.value = type === 'view';
+  dlgTitle.value = type === 'audit' ? '识别审核' : type === 'edit' ? '识别编辑' : '识别详情';
+  dlgPreviewVisible.value = true;
+};
+
+// 新增：打开表单对话框
+const handleAdd = () => {
+  selectID.value = '';
+  selectType.value = 'edit';
+  isReadonly.value = false;
+  dlgTitle.value = '新增品种识别';
+  dlgPreviewVisible.value = true;
+};
+
+// 导出
+const handleExport = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  const fileName = `品种识别管理_${year}-${month}-${day}.xlsx`;
+  // 解构查询参数
+  const { pageNum, pageSize, ...daochu } = queryParams.value;
+
+  // 构造导出参数
+  const params = { ...daochu }; // 导出当前查询条件下的全部商品
+
+  // 调用下载方法
+  proxy.download('/safeguard-server/varietyRecognize/export', params, fileName);
+};
+// 关闭对话框
+const cancelDlg = () => {
+  dlgPreviewVisible.value = false;
+};
+
+// 子组件刷新回调
+const refreshData = () => {
+  dlgPreviewVisible.value = false;
+  getList();
+};
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
 
 onMounted(() => {
   getList();
 });
-
-const getList = async () => {
-  loading.value = true;
-  try {
-    const res: any = await hnPurchaseDemandList({ pageNum: queryParams.pageNum, pageSize: queryParams.pageSize });
-    if (res?.code === 200) {
-      // 统计供应商回复数
-      tableData.value = (res.rows || []).map((item) => ({
-        ...item,
-        replyCount: item.replyCount || 0
-      }));
-      total.value = res.total || 0;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const getDemandList = async () => {
-  queryParams.pageNum = 1;
-  await getList();
-};
-
-const onEdit = (row: HnPurchaseDemandVo) => {
-  publishDemandRef.value.openDialog(row);
-};
-
-const onDetails = (row: HnPurchaseDemandVo) => {
-  form.value = { ...row };
-  form.value.regionPath = [row.deliveryProvinceCode, row.deliveryCityCode, row.deliveryDistrictCode];
-  detailVisible.value = true;
-  supplierQuery.pageNum = 1;
-  getSupplierList();
-};
-
-const getSupplierList = async () => {
-  detailLoading.value = true;
-  try {
-    const res: any = await hnPurchaseQuoteList({ demandId: form.value.id, pageNum: supplierQuery.pageNum, pageSize: supplierQuery.pageSize });
-    if (res?.code === 200) {
-      supplierList.value = res.rows || [];
-      supplierTotal.value = res.total || 0;
-    }
-  } finally {
-    detailLoading.value = false;
-  }
-};
-
-const onContact = (row: any) => {
-  contactSupplier.value = {
-    supplierName: row.supplierName,
-    contactPerson: row.contactPerson,
-    contactPhone: row.contactPhone
-  };
-  contactVisible.value = true;
-};
-
-const onDelete = async (row: HnPurchaseDemandVo) => {
-  await ElMessageBox.confirm('是否关闭该需求吗？', '提示', { type: 'warning' });
-  // TODO: 调用关闭接口
-  const arr = {
-    ...row,
-    demandStatus: '99' // 标记为关闭
-  };
-  const res: any = await hnPurchaseDemandPut(arr);
-  if (res?.code === 200) {
-    ElMessage.success('操作成功');
-    getList();
-  }
-};
-
-const onComplete = async (row: HnPurchaseDemandVo) => {
-  await ElMessageBox.confirm('是否将该需求标记为完成吗？', '提示', { type: 'success' });
-  // TODO: 调用完成接口
-  const arr = {
-    ...row,
-    demandStatus: '4' // 标记为完成
-  };
-  const res: any = await hnPurchaseDemandPut(arr);
-  if (res?.code === 200) {
-    ElMessage.success('操作成功');
-    getList();
-  }
-};
 </script>
 
 <style scoped>
-.address-page {
-  padding: 20px;
-}
-.title {
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 20px;
   font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-/* 表单容器增加描边与圆角，间距更紧凑 */
-.address-form {
+  font-weight: 500;
+  color: #333333;
   background: #fff;
-  padding: 12px 16px 8px 12px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-}
-.address-form :deep(.el-form-item) {
-  margin-bottom: 12px;
-}
-
-/* 顶部提示样式 */
-.summary-alert {
-  margin: 15px 0;
-  height: 36px;
-  line-height: 36px;
-  background: rgba(255, 123, 0, 0.1);
-  border-radius: 4px 4px 4px 4px;
+  position: relative;
+  border-bottom: 2px solid #d8d8d8;
+  border-radius: 8px 8px 0 0;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-  font-size: 14px;
-  color: #ff7b00;
-  text-align: center;
 }
-
-/* 表格标题背景与单元格内边距优化 */
-:deep(.table-header) {
-  background: #fafafa !important;
-  color: var(--el-text-color-primary);
-  font-weight: 600;
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 12px;
 }
-:deep(.el-table--small .cell) {
-  padding: 8px 12px;
-}
-
-/* 操作按钮间距 */
-.ops :deep(.el-button + .el-button) {
-  margin-left: 12px;
-}
-
-.flex-center.pagination {
-  margin-top: 16px;
-  justify-content: end;
-  display: flex;
-}
-
-/* 新增：详情弹窗样式 */
-.request-detail-dialog .section {
-  margin-bottom: 16px;
-}
-.section-title {
-  font-weight: 600;
-  font-size: 16px;
-}
-.purchase-info-flex {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.purchase-info-row {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-.purchase-info-label {
-  width: 120px;
-  font-weight: 600;
-  color: #333;
-  flex-shrink: 0;
-}
-.purchase-info-value {
-  flex: 1;
-  color: #222;
-}
-.remark-row .purchase-info-remark {
-  flex: 1;
-  min-height: 60px;
-  background: #fafbfc;
-  border-radius: 4px;
-  padding: 8px 12px;
-  color: #444;
-  word-break: break-all;
-}
-.desc-text {
-  white-space: pre-wrap;
-  line-height: 1.6;
+.pading20 {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 0 0 8px 8px;
 }
 </style>

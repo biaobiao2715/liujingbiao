@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
+import { reactive, onMounted, onBeforeUnmount, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { unifiedFavoriteList, favoriteDelete, FavoriteItem } from '@/api/mall/personalCenter/favorite';
@@ -285,6 +285,22 @@ function getArticleAuthor(item: any) {
 
 onMounted(() => {
   reload();
+  // 监听个人中心详情关闭后的刷新事件，仅在“我的收藏”页时响应
+  eventBus.on('refreshPersonalCenterList', handleRefreshEvent);
+});
+
+// 统一刷新事件处理器，保持引用稳定以便正常解绑
+function handleRefreshEvent(payload: { key?: string; detailType?: string; id?: string }) {
+  if (payload?.key !== 'collection') return;
+  reload();
+}
+// 组件销毁时移除事件监听，避免内存泄漏
+onBeforeUnmount(() => {
+  try {
+    eventBus.off?.('refreshPersonalCenterList', handleRefreshEvent);
+  } catch {
+    // 忽略不支持 off 的实现
+  }
 });
 </script>
 
@@ -396,6 +412,7 @@ onMounted(() => {
   line-height: 1.5;
   color: var(--el-text-color-primary);
   display: -webkit-box;
+  line-clamp: 2; /* 标准属性，提升兼容性 */
   -webkit-line-clamp: 2; /* 两行省略 */
   -webkit-box-orient: vertical;
   overflow: hidden;
