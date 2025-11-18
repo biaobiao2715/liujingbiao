@@ -248,9 +248,18 @@
             <el-radio value="0" size="large">下架</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="上架时间" prop="launchTime">
+        <el-form-item label="上架时间" prop="launchTime" v-if="formData.status == '1'">
           <el-date-picker
             v-model="formData.launchTime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            type="datetime"
+            placeholder="请选择日期时间"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="下架时间" prop="takeDownTime" v-if="formData.status == '0'">
+          <el-date-picker
+            v-model="formData.takeDownTime"
             value-format="YYYY-MM-DD HH:mm:ss"
             type="datetime"
             placeholder="请选择日期时间"
@@ -401,6 +410,7 @@ const FormRulesarr: FormRules = {
   goodsSpecification: [{ required: true, message: '请选择商品规格', trigger: 'change' }],
   status: [{ required: true, message: '请选择上架状态', trigger: 'change' }],
   launchTime: [{ required: true, message: '请选择上架时间', trigger: 'change' }],
+  takeDownTime: [{ required: true, message: '请选择下架时间', trigger: 'change' }],
   titleFileList: [
     {
       validator: (_: any, __: any, callback: any) => {

@@ -46,7 +46,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          v-hasPermi="['system:goods:delete']"
+          v-hasPermi="['system:goods:remove']"
           type="primary"
           @click="handleDelete"
           :loading="actionLoading === 'delete'"
@@ -94,13 +94,7 @@
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品名称" align="center" prop="goodsName" width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220">
-        <template #default="scope">
-          <router-link :to="'/supplier/sales/product/details/?id=' + scope.row.id + '&type=view'" class="link-type">
-            <span>{{ scope.row.goodsCode }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
+      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>
       <el-table-column label="销售价" align="center" prop="salesPrice" width="130" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ getSalesPrice(scope.row) }}</span>

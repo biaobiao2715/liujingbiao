@@ -130,7 +130,7 @@
     >
       <template #default>
         <component
-          :is="dialog.type === 'view' ? DetailsDialog : dialog.type === 'edit' ? EditDialog : null"
+          :is="dialog.type === 'view' ? DetailsDialog : dialog.type === 'edit' ? EditDialog : dialog.type === 'add' ? EditDialog : null"
           :id="dialog.id"
           @success="onDialogSuccess"
           @cancel="dialog.visible = false"
