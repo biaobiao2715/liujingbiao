@@ -137,7 +137,7 @@
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
-import editDetails from './EditDetails.vue';
+import editDetails from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
