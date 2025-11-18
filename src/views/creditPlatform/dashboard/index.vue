@@ -3,48 +3,48 @@
   <div class="credit-dashboard">
     <div class="dashboard-content">
       <!-- 顶部统计卡片区域 -->
-      <el-row :gutter="16" class="top-stats-row">
-        <el-col :span="4.8">
+      <div class="top-stats-row">
+        <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款待审批</div>
               <div class="top-stat-value">{{ dashboardData.pendingApprovals }}件</div>
             </div>
           </el-card>
-        </el-col>
-        <el-col :span="4.8">
+        </div>
+        <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">总申请贷款</div>
               <div class="top-stat-value">{{ dashboardData.totalLoanApprovals }}件</div>
             </div>
           </el-card>
-        </el-col>
-        <el-col :span="4.8">
+        </div>
+        <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款审批通过</div>
               <div class="top-stat-value">{{ dashboardData.approvedLoans }}件</div>
             </div>
           </el-card>
-        </el-col>
-        <el-col :span="4.8">
+        </div>
+        <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款审批驳回</div>
               <div class="top-stat-value">{{ dashboardData.rejectedLoans }}件</div>
             </div>
           </el-card>
-        </el-col>
-        <el-col :span="4.8">
+        </div>
+        <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款申请取消</div>
               <div class="top-stat-value">{{ dashboardData.cancelledApplications }}件</div>
             </div>
           </el-card>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
 
       <div class="main-content">
           <!-- 中间详细数据区域 -->
@@ -192,10 +192,17 @@ const formatAmount = (amount: number) => {
   return amount.toLocaleString();
 };
 
+const chartData = ref<any[]>([]);
+
 // 初始化违约率趋势图表
 const initDefaultRateChart = () => {
   if (!defaultRateChart.value) return;
   const chart = echarts.init(defaultRateChart.value);
+  
+  const months = chartData.value.map(item => item.month.substring(5));
+  const cumulativeRates = chartData.value.map(item => item.cumulativeDefaultRate || 0);
+  const monthlyRates = chartData.value.map(item => item.defaultRate || 0);
+  
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -220,7 +227,7 @@ const initDefaultRateChart = () => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: ['5月', '6月', '7月', '8月', '9月', '10月'],
+      data: months,
       axisLabel: {
         color: '#fff'
       },
@@ -232,8 +239,6 @@ const initDefaultRateChart = () => {
     },
     yAxis: {
       type: 'value',
-      min: 3,
-      max: 5.5,
       axisLabel: {
         formatter: '{value}%',
         color: '#fff'
@@ -254,7 +259,7 @@ const initDefaultRateChart = () => {
         name: '总违约率',
         type: 'line',
         smooth: true,
-        data: [4.8, 4.5, 4.2, 3.9, 3.6, 3.24],
+        data: cumulativeRates,
         itemStyle: {
           color: '#f56c6c'
         },
@@ -266,7 +271,7 @@ const initDefaultRateChart = () => {
         name: '本月违约率',
         type: 'line',
         smooth: true,
-        data: [5.0, 4.7, 4.4, 4.1, 3.8, 3.42],
+        data: monthlyRates,
         itemStyle: {
           color: '#409eff'
         },
@@ -301,6 +306,10 @@ const fetchDashboardData = async () => {
         monthlyReceivedAmount: res.data.monthlyReceivedAmount || 0,
         monthlyOverdueAmount: res.data.monthlyOverdueAmount || 0
       };
+      chartData.value = res.data.lastSixMonthsDefaultRates || [];
+      nextTick(() => {
+        initDefaultRateChart();
+      });
     }
   } catch (error) {
     console.error('获取首页数据失败:', error);
@@ -309,9 +318,6 @@ const fetchDashboardData = async () => {
 
 onMounted(() => {
   fetchDashboardData();
-  nextTick(() => {
-    initDefaultRateChart();
-  });
 });
 </script>
 
@@ -329,7 +335,15 @@ onMounted(() => {
 
 // 顶部统计卡片
 .top-stats-row {
+  display: flex;
+  gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.top-stat-card-wrapper {
+  flex: 1;
+  min-width: 180px;
 }
 
 .top-stat-card {
