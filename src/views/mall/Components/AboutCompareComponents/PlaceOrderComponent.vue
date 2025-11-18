@@ -601,6 +601,7 @@ const handleSubmitOrder = async () => {
   }
 
   try {
+    const currentItem = orderItems.value[0];
     const orderData = {
       totalAmount: totalAmount.value,
       enterpriseId: props.goods.enterpriseId || props.goods.hnBaseEnterpriseInfo?.id,
@@ -617,7 +618,7 @@ const handleSubmitOrder = async () => {
       goodsId: props.goods.id,
       goodsSpecificationId: props.selectedSpecId,
       goodsPrice: parseFloat(String(spec.goodsPrice || 0)),
-      goodsQuantity: props.quantity || 1
+      goodsQuantity: currentItem?.quantity || props.quantity || 1
     };
 
     const res = await productOrder(orderData);
