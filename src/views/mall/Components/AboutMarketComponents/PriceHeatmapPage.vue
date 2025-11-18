@@ -26,57 +26,102 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import ChinaMapHeatmap from './ChinaMapHeatmap.vue'
+import { heatmapList } from '@/api/mall/marketComponent'
 
 interface MapDataItem {
   name: string
   value: number
+  yesterdaySales?: number
 }
 
 const router = useRouter()
+const route = useRoute()
 const heatmapRef = ref<InstanceType<typeof ChinaMapHeatmap> | null>(null)
 
-// 热力图数据（写死，用于演示）
-const heatmapData = ref<MapDataItem[]>([
-  { name: '北京', value: 65.5 },
-  { name: '天津', value: 58.3 },
-  { name: '河北', value: 52.1 },
-  { name: '山西', value: 48.7 },
-  { name: '内蒙古', value: 45.2 },
-  { name: '辽宁', value: 55.8 },
-  { name: '吉林', value: 50.3 },
-  { name: '黑龙江', value: 47.9 },
-  { name: '上海', value: 68.2 },
-  { name: '江苏', value: 62.4 },
-  { name: '浙江', value: 60.1 },
-  { name: '安徽', value: 54.6 },
-  { name: '福建', value: 56.8 },
-  { name: '江西', value: 51.2 },
-  { name: '山东', value: 59.5 },
-  { name: '河南', value: 53.4 },
-  { name: '湖北', value: 57.6 },
-  { name: '湖南', value: 55.3 },
-  { name: '广东', value: 63.7 },
-  { name: '广西', value: 49.8 },
-  { name: '海南', value: 46.5 },
-  { name: '重庆', value: 58.9 },
-  { name: '四川', value: 56.2 },
-  { name: '贵州', value: 48.3 },
-  { name: '云南', value: 50.7 },
-  { name: '西藏', value: 42.1 },
-  { name: '陕西', value: 54.8 },
-  { name: '甘肃', value: 47.2 },
-  { name: '青海', value: 44.6 },
-  { name: '宁夏', value: 49.1 },
-  { name: '新疆', value: 46.8 }
-])
+// 热力图数据
+const heatmapData = ref<MapDataItem[]>([])
+
+// 计算最小值和最大值
+const minValue = computed(() => {
+  if (heatmapData.value.length === 0) return 0
+  return Math.min(...heatmapData.value.map(item => item.value))
+})
+
+const maxValue = computed(() => {
+  if (heatmapData.value.length === 0) return 100
+  return Math.max(...heatmapData.value.map(item => item.value))
+})
 
 const title = computed(() => '区域价格差异热力图')
-const minValue = computed(() => 40)
-const maxValue = computed(() => 80)
+
+// 获取热力图数据
+const fetchHeatmapData = async (goodsCategoryId?: string) => {
+  try {
+    // 优先使用 sessionStorage 中的数据（从价格走势页面传递过来的）
+    const storedData = sessionStorage.getItem('heatmapData')
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData)
+        if (Array.isArray(parsedData)) {
+          heatmapData.value = parsedData.map((item: any) => ({
+            name: item.name,
+            value: item.value,
+            yesterdaySales: item.yesterdaySales
+          }))
+          // 使用完后清除 sessionStorage
+          sessionStorage.removeItem('heatmapData')
+          return
+        }
+      } catch (e) {
+        console.error('解析 sessionStorage 数据失败:', e)
+      }
+    }
+    
+    // 如果没有存储的数据，尝试从路由参数获取 goodsCategoryId 并调用接口
+    const categoryId = goodsCategoryId || route.query.goodsCategoryId as string
+    if (!categoryId) {
+      ElMessage.warning('缺少品种参数')
+      return
+    }
+    
+    const params: any = {
+      goodsCategoryId: categoryId
+    }
+    
+    const response = await heatmapList(params)
+    if (response && response.code === 200) {
+      const data = response.data || []
+      // 将数据转换为热力图需要的格式
+      heatmapData.value = (Array.isArray(data) ? data : []).map((item: any) => {
+        // 处理省份名称：去掉"省"、"市"、"自治区"等后缀
+        let provinceName = item.provinceName || ''
+        provinceName = provinceName.replace(/省$|市$|自治区$|特别行政区$/, '')
+        
+        return {
+          name: provinceName,
+          value: Number(item.goodsPriceAvg || 0),
+          yesterdaySales: item.yesterdaySales !== undefined ? Number(item.yesterdaySales) : undefined
+        }
+      })
+    } else {
+      ElMessage.error(response?.msg || '获取热力图数据失败')
+    }
+  } catch (error) {
+    console.error('获取热力图数据失败:', error)
+    ElMessage.error('获取热力图数据失败，请稍后重试')
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  const categoryId = route.query.goodsCategoryId as string
+  fetchHeatmapData(categoryId)
+})
 
 // 返回上一页
 const goBack = () => {

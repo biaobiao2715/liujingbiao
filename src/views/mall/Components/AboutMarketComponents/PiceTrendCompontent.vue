@@ -75,14 +75,14 @@
           </div>
         </div>
 
-        <!-- 近N日价格卡片 -->
+        <!-- 近7日价格卡片 -->
         <div class="price-card">
-          <h4 class="card-title">近{{ activeTimeRange }}日价格</h4>
+          <h4 class="card-title">近7日价格</h4>
           <div class="card-content">
-            <p>近{{ activeTimeRange }}日最高价(元/kg): {{ priceStats.maxPrice }}</p>
-            <p>近{{ activeTimeRange }}日最低价(元/kg): {{ priceStats.minPrice }}</p>
-            <p>近{{ activeTimeRange }}日均价(元/kg): {{ priceStats.avgPrice.toFixed(2) }}</p>
-            <p>近{{ activeTimeRange }}日价格走势: {{ priceStats.trend }}</p>
+            <p>近7日最高价(元/kg): {{ priceStats.maxPrice }}</p>
+            <p>近7日最低价(元/kg): {{ priceStats.minPrice }}</p>
+            <p>近7日均价(元/kg): {{ priceStats.avgPrice.toFixed(2) }}</p>
+            <p>近7日价格走势: {{ priceStats.trend }}</p>
           </div>
           <el-button type="primary" class="heatmap-button" @click="viewHeatmap">
             查看区域价格差异热力图
@@ -122,23 +122,76 @@
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
-          <template #default>
-            <el-link type="primary" @click="viewReport">价格专项报告</el-link>
+          <template #default="{ row }">
+            <el-link type="primary" @click="viewReport(row)">价格专项报告</el-link>
           </template>
         </el-table-column>
       </el-table>
     </div>
+
+    <!-- 价格专项报告弹窗 -->
+    <el-dialog
+      v-model="reportDialogVisible"
+      title="专项价格分析报告"
+      width="90%"
+      destroy-on-close
+      :close-on-click-modal="false"
+    >
+      <div class="report-header">
+        <div class="report-info">
+          <span class="info-item">品种: {{ reportInfo.variety }}</span>
+          <span class="info-item">产地: {{ reportInfo.origin }}</span>
+        </div>
+      </div>
+      <el-table
+        :data="reportTableData"
+        border
+        v-loading="reportLoading"
+        style="width: 100%; margin-top: 16px"
+      >
+        <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table-column prop="goodsName" label="商品名称" align="center" min-width="200" :show-overflow-tooltip="true" />
+        <el-table-column label="商品图片" align="center" width="120">
+          <template #default="{ row }">
+            <el-image
+              v-if="row.goodsImage"
+              :src="row.goodsImage"
+              :preview-src-list="[row.goodsImage]"
+              style="width: 60px; height: 60px"
+              fit="cover"
+            />
+            <span v-else class="text-gray">暂无图片</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="goodsPrice" label="商品价格" align="center" width="120" />
+        <el-table-column prop="supplierName" label="供应商名称" align="center" min-width="180" :show-overflow-tooltip="true" />
+        <el-table-column prop="credentialLevelText" label="供应商资质等级" align="center" width="150" />
+        <el-table-column prop="creditLevelText" label="供应商信用等级" align="center" width="150" />
+      </el-table>
+      <!-- 分页 -->
+      <div class="flex-center pagination">
+        <pagination
+          v-show="reportTotal > 0"
+          v-model:page="reportQueryParams.pageNum"
+          v-model:limit="reportQueryParams.pageSize"
+          :total="reportTotal"
+          @pagination="handleReportPagination"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
 import RegionSelect from '@/components/RegionSelect/index.vue'
 import PriceTrendChart from './PriceTrendChart.vue'
-import { priceActionList, hotRecommendationList } from '@/api/mall/marketComponent'
+import { priceActionList, hotRecommendationList, priceExplanationList, priceSpecialReportList, heatmapList } from '@/api/mall/marketComponent'
+import Pagination from '@/components/Pagination/index.vue'
+import { eventBus } from '@/utils/eventBus'
 
 const router = useRouter()
 const loading = ref(false)
@@ -165,72 +218,80 @@ const currentChartData = ref({
 })
 
 // 价格统计数据
-const priceStats = computed(() => {
-  const prices = currentChartData.value.prices
-  if (!prices || prices.length === 0) {
-    return {
-      todayPrice: 0,
-      yesterdayPrice: 0,
-      priceChange: 0,
-      maxPrice: 0,
-      minPrice: 0,
-      avgPrice: 0,
-      trend: '暂无数据'
-    }
-  }
-
-  // 当日价格（最新一天）
-  const todayPrice = prices[prices.length - 1] || 0
-  
-  // 昨日价格
-  const yesterdayPrice = prices.length > 1 ? prices[prices.length - 2] : todayPrice
-  
-  // 价格变化百分比
-  const priceChange = yesterdayPrice > 0 
-    ? ((todayPrice - yesterdayPrice) / yesterdayPrice) * 100 
-    : 0
-
-  // 最高价、最低价、均价
-  const validPrices = prices.filter(p => p > 0)
-  const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0
-  const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0
-  const avgPrice = validPrices.length > 0 
-    ? validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length 
-    : 0
-
-  // 判断价格走势
-  let trend = '趋于平稳'
-  if (validPrices.length >= 2) {
-    const firstHalf = validPrices.slice(0, Math.floor(validPrices.length / 2))
-    const secondHalf = validPrices.slice(Math.floor(validPrices.length / 2))
-    const firstAvg = firstHalf.reduce((sum, p) => sum + p, 0) / firstHalf.length
-    const secondAvg = secondHalf.reduce((sum, p) => sum + p, 0) / secondHalf.length
-    const changePercent = ((secondAvg - firstAvg) / firstAvg) * 100
-    
-    if (changePercent > 5) {
-      trend = '上涨'
-    } else if (changePercent < -5) {
-      trend = '下跌'
-    } else {
-      trend = '趋于平稳'
-    }
-  }
-
-  return {
-    todayPrice,
-    yesterdayPrice,
-    priceChange,
-    maxPrice,
-    minPrice,
-    avgPrice,
-    trend
-  }
+const priceStats = ref({
+  todayPrice: 0,
+  yesterdayPrice: 0,
+  priceChange: 0,
+  maxPrice: 0,
+  minPrice: 0,
+  avgPrice: 0,
+  trend: '暂无数据'
 })
 
 
 // 热门推荐表格数据
 const recommendationTableData = ref<any[]>([])
 const recommendationLoading = ref(false)
+
+// 价格专项报告弹窗相关
+const reportDialogVisible = ref(false)
+const reportTableData = ref<any[]>([])
+const reportLoading = ref(false)
+const reportTotal = ref(0)
+const reportInfo = ref({
+  variety: '--',
+  origin: '--'
+})
+const reportQueryParams = reactive({
+  goodsCategoryId: '',
+  regionCode: '',
+  pageNum: 1,
+  pageSize: 10
+})
+
+const credentialLevelMap: Record<string, string> = {
+  '0': '一级认证',
+  '1': '二级认证',
+  '2': '三级认证'
+}
+
+const creditLevelMap: Record<string, string> = {
+  '0': '优秀',
+  '1': '良好',
+  '2': '一般',
+  '3': '一般以下',
+  '99': '较差'
+}
+
+const getCredentialLevelText = (level: any) => {
+  if (level === undefined || level === null || level === '') return '--'
+  return credentialLevelMap[String(level)] || '--'
+}
+
+const getCreditLevelText = (level: any) => {
+  if (level === undefined || level === null || level === '') return '--'
+  return creditLevelMap[String(level)] || '--'
+}
+
+const applyExternalFilters = (payload: any) => {
+  if (!payload) return
+  const goodsCategoryId = payload.goodsCategoryId || ''
+  queryParams.variety = goodsCategoryId ? [goodsCategoryId] : []
+
+  regionCodes.provinceCode = payload.provinceCode || ''
+  regionCodes.cityCode = payload.cityCode || ''
+  regionCodes.regionCode = payload.regionCode || ''
+
+  const originPath: string[] = []
+  if (payload.provinceName) originPath.push(payload.provinceName)
+  if (payload.cityName) originPath.push(payload.cityName)
+  if (payload.regionName) originPath.push(payload.regionName)
+  queryParams.origin = originPath
+
+  fetchPriceData()
+  fetchPriceExplanation()
+  fetchHotRecommendation()
+}
 
 // 获取价格走势数据
 const fetchPriceData = async () => {
@@ -300,6 +361,7 @@ const fetchPriceData = async () => {
 const changeTimeRange = (days: number) => {
   activeTimeRange.value = days
   fetchPriceData()
+  // 注意：不调用 fetchPriceExplanation，保持右侧显示近7日数据
 }
 
 // 品种分类变化处理
@@ -334,6 +396,87 @@ const getYesterdayDate = () => {
   return `${year}-${month}-${day}`
 }
 
+// 获取价格说明数据
+const fetchPriceExplanation = async () => {
+  try {
+    // 获取品种ID（取数组最后一个元素）
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
+      ? queryParams.variety[queryParams.variety.length - 1] 
+      : ''
+
+    const params: any = {
+      goodsCategoryId: goodsCategoryId || '',
+      regionCode: regionCodes.regionCode || ''
+    }
+
+    const response = await priceExplanationList(params)
+    if (response && response.code === 200) {
+      const data = response.data || {}
+      
+      // 处理价格走势：将数字转换为文字描述
+      let trendText = '趋于平稳'
+      if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
+        const trendValue = String(data.sevenDaysPriceTrend)
+        switch (trendValue) {
+          case '1':
+            trendText = '上涨'
+            break
+          case '2':
+            trendText = '下跌'
+            break
+          case '3':
+            trendText = '平稳'
+            break
+          case '4':
+            trendText = '波动'
+            break
+          case '5':
+            trendText = '趋于平稳'
+            break
+          default:
+            trendText = '趋于平稳'
+        }
+      }
+      
+      // 映射接口返回的数据到价格统计
+      priceStats.value = {
+        todayPrice: Number(data.yesterdayPrice || 0), // 使用昨日价格作为当日价格显示
+        yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
+        priceChange: Number(data.dayToDayChangeRate || 0), // 日环比变化率
+        maxPrice: Number(data.sevenDaysHighPrice || 0),
+        minPrice: Number(data.sevenDaysLowPrice || 0),
+        avgPrice: Number(data.sevenDaysPriceAvg || 0),
+        trend: trendText
+      }
+    } else {
+      ElMessage.error(response?.msg || '获取价格说明数据失败')
+      // 重置为默认值
+      priceStats.value = {
+        todayPrice: 0,
+        yesterdayPrice: 0,
+        priceChange: 0,
+        maxPrice: 0,
+        minPrice: 0,
+        avgPrice: 0,
+        trend: '暂无数据'
+      }
+    }
+  } catch (error) {
+    console.error('获取价格说明数据失败:', error)
+    ElMessage.error('获取价格说明数据失败，请稍后重试')
+    // 重置为默认值
+    priceStats.value = {
+      todayPrice: 0,
+      yesterdayPrice: 0,
+      priceChange: 0,
+      maxPrice: 0,
+      minPrice: 0,
+      avgPrice: 0,
+      trend: '暂无数据'
+    }
+  }
+}
+
 // 获取热门推荐数据
 const fetchHotRecommendation = async () => {
   recommendationLoading.value = true
@@ -352,15 +495,50 @@ const fetchHotRecommendation = async () => {
     const response = await hotRecommendationList(params)
     if (response && response.code === 200) {
       const data = response.data || response.rows || []
-      // 映射接口返回的数据到表格需要的格式
+      // 映射接口返回的数据到表格需要的格式，保留原始字段用于弹窗
       recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
+        // 格式化日期：从 "2025-11-15 00:00:00" 提取日期部分
+        let time = '--'
+        if (item.analysisDate) {
+          const dateStr = item.analysisDate
+          if (dateStr.includes(' ')) {
+            time = dateStr.split(' ')[0] // 取日期部分
+          } else {
+            time = dateStr
+          }
+        }
+        
+        // 组合产地：省+市+区县
+        let origin = '--'
+        const parts: string[] = []
+        if (item.provinceName) parts.push(item.provinceName)
+        if (item.cityName) parts.push(item.cityName)
+        if (item.regionName) parts.push(item.regionName)
+        if (parts.length > 0) {
+          origin = parts.join('')
+        }
+        
+        // 处理价格变化百分比
+        let change: number | string = '-'
+        if (item.priceUpDown !== undefined && item.priceUpDown !== null && item.priceUpDown !== '') {
+          const changeValue = Number(item.priceUpDown)
+          if (!isNaN(changeValue)) {
+            change = changeValue
+          }
+        }
+        
         return {
           id: item.id,
-          time: item.time || item.createTime || item.date || '--',
-          variety: item.variety || item.categoryName || item.goodsCategoryName || '--',
-          origin: item.origin || item.regionName || item.address || '--',
-          price: item.price ? `${item.price}元/kg` : '--',
-          change: item.change !== undefined && item.change !== null ? Number(item.change) : '-'
+          time,
+          variety: item.goodsCategoryName || '--',
+          origin,
+          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
+          change,
+          // 保留原始字段用于弹窗
+          goodsCategoryId: item.goodsCategoryId || '',
+          regionCode: item.regionCode || '',
+          goodsCategoryName: item.goodsCategoryName || '--',
+          regionName: origin // 使用组合后的产地名称
         }
       })
     } else {
@@ -380,6 +558,7 @@ const fetchHotRecommendation = async () => {
 const handleQuery = () => {
   console.log('查询参数:', queryParams)
   fetchPriceData()
+  fetchPriceExplanation()
   fetchHotRecommendation()
 }
 
@@ -393,24 +572,158 @@ const resetQuery = () => {
   regionCodes.regionCode = ''
   activeTimeRange.value = 7
   fetchPriceData()
+  fetchPriceExplanation()
   fetchHotRecommendation()
 }
 
 // 查看热力图
-const viewHeatmap = () => {
-  // 跳转到热力图页面
-  router.push('/mall/price-heatmap')
+const viewHeatmap = async () => {
+  try {
+    // 获取品种ID（取数组最后一个元素）
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
+      ? queryParams.variety[queryParams.variety.length - 1] 
+      : ''
+    
+    if (!goodsCategoryId) {
+      ElMessage.warning('请先选择品种')
+      return
+    }
+    
+    const params: any = {
+      goodsCategoryId: goodsCategoryId
+    }
+    
+    // 调用热力图接口
+    const response = await heatmapList(params)
+    if (response && response.code === 200) {
+      const data = response.data || []
+      // 将数据转换为热力图需要的格式
+      const heatmapData = (Array.isArray(data) ? data : []).map((item: any) => {
+        // 处理省份名称：去掉"省"、"市"、"自治区"等后缀
+        let provinceName = item.provinceName || ''
+        provinceName = provinceName.replace(/省$|市$|自治区$|特别行政区$/, '')
+        
+        return {
+          name: provinceName,
+          value: Number(item.goodsPriceAvg || 0),
+          provinceCode: item.provinceCode || '',
+          provinceName: item.provinceName || '',
+          goodsPriceAvg: item.goodsPriceAvg || '0',
+          yesterdaySales: item.yesterdaySales || 0,
+          yesterdayTotalSales: item.yesterdayTotalSales || '0.00'
+        }
+      })
+      
+      // 将数据存储到 sessionStorage，供热力图页面使用
+      sessionStorage.setItem('heatmapData', JSON.stringify(heatmapData))
+      
+      // 跳转到热力图页面，通过 query 参数传递 goodsCategoryId
+      router.push({
+        path: '/mall/price-heatmap',
+        query: {
+          goodsCategoryId: goodsCategoryId
+        }
+      })
+    } else {
+      ElMessage.error(response?.msg || '获取热力图数据失败')
+    }
+  } catch (error) {
+    console.error('获取热力图数据失败:', error)
+    ElMessage.error('获取热力图数据失败，请稍后重试')
+  }
 }
 
 // 查看报告
-const viewReport = () => {
-  console.log('查看价格专项报告')
+const viewReport = (row: any) => {
+  if (!row) {
+    ElMessage.warning('数据异常，无法查看报告')
+    return
+  }
+  
+  // 设置报告信息
+  reportInfo.value = {
+    variety: row.goodsCategoryName || row.variety || '--',
+    origin: row.regionName || row.origin || '--'
+  }
+  
+  // 设置查询参数
+  reportQueryParams.goodsCategoryId = row.goodsCategoryId || ''
+  reportQueryParams.regionCode = row.regionCode || ''
+  reportQueryParams.pageNum = 1
+  reportQueryParams.pageSize = 10
+  
+  // 打开弹窗并加载数据
+  reportDialogVisible.value = true
+  fetchReportList()
+}
+
+// 获取价格专项报告列表
+const fetchReportList = async () => {
+  reportLoading.value = true
+  try {
+    const params: any = {
+      goodsCategoryId: reportQueryParams.goodsCategoryId,
+      regionCode: reportQueryParams.regionCode,
+      pageNum: reportQueryParams.pageNum,
+      pageSize: reportQueryParams.pageSize
+    }
+
+    const response = await priceSpecialReportList(params)
+    if (response && response.code === 200) {
+      const data = response.rows || response.data || []
+      // 映射接口返回的数据到表格需要的格式
+      reportTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
+        const credentialLevelValue = item.credentialLevel !== undefined && item.credentialLevel !== null ? String(item.credentialLevel) : ''
+        const creditLevelValue = item.creditLevel !== undefined && item.creditLevel !== null ? String(item.creditLevel) : ''
+        return {
+          id: item.id,
+          goodsName: item.goodsName || '--',
+          goodsImage: item.goodsImageUrl || '',
+          goodsPrice: item.goodsPrice ? `${item.goodsPrice}元/kg` : '--',
+          supplierName: item.enterpriseName || '--',
+          credentialLevel: credentialLevelValue,
+          credentialLevelText: getCredentialLevelText(credentialLevelValue),
+          creditLevel: creditLevelValue,
+          creditLevelText: getCreditLevelText(creditLevelValue)
+        }
+      })
+      reportTotal.value = response.total || 0
+    } else {
+      ElMessage.error(response?.msg || '获取价格专项报告数据失败')
+      reportTableData.value = []
+      reportTotal.value = 0
+    }
+  } catch (error) {
+    console.error('获取价格专项报告数据失败:', error)
+    ElMessage.error('获取价格专项报告数据失败，请稍后重试')
+    reportTableData.value = []
+    reportTotal.value = 0
+  } finally {
+    reportLoading.value = false
+  }
+}
+
+// 报告分页处理
+const handleReportPagination = (pagination: { page: number; limit: number }) => {
+  reportQueryParams.pageNum = pagination.page
+  reportQueryParams.pageSize = pagination.limit
+  fetchReportList()
 }
 
 // 页面加载时获取数据
 onMounted(() => {
   fetchPriceData()
+  fetchPriceExplanation()
   fetchHotRecommendation()
+  eventBus.on('priceTrend:applyFilters', applyExternalFilters)
+})
+
+onBeforeUnmount(() => {
+  try {
+    eventBus.off?.('priceTrend:applyFilters', applyExternalFilters)
+  } catch (error) {
+    // ignore
+  }
 })
 </script>
 
@@ -559,6 +872,40 @@ onMounted(() => {
     font-size: 18px;
     cursor: pointer;
   }
+}
+
+.report-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+
+  .report-info {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+    color: #606266;
+
+    .info-item {
+      font-weight: 500;
+    }
+  }
+}
+
+:deep(.el-dialog__header) {
+  text-align: center;
+  padding: 20px 20px 10px;
+  border-bottom: 1px solid #ebeef5;
+
+  .el-dialog__title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #303133;
+  }
+}
+
+.pagination {
+  margin-top: 20px;
+  justify-content: flex-end;
 }
 </style>
 

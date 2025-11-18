@@ -11,6 +11,7 @@
   interface MapDataItem {
     name: string
     value: number
+    yesterdaySales?: number
   }
   
   interface Props {
@@ -115,7 +116,12 @@
         trigger: 'item',
         formatter: (params: any) => {
           if (params.data && params.data.value !== undefined) {
-            return `${params.name}<br/>价格: ${params.data.value} 元/斤`
+            let tooltipContent = `${params.name}<br/>价格: ${params.data.value} 元/kg`
+            // 如果有销量数据，添加销量信息
+            if (params.data.yesterdaySales !== undefined && params.data.yesterdaySales !== null) {
+              tooltipContent += `<br/>销量: ${params.data.yesterdaySales}`
+            }
+            return tooltipContent
           }
           return `${params.name}<br/>暂无数据`
         }

@@ -31,13 +31,22 @@
       </el-table-column>
       <el-table-column label="走势图" align="center" width="100">
         <template #default="{ row }">
-          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff">
+          <el-icon
+            v-if="row.changePercent === '-'"
+            class="trend-icon"
+            style="color: #409eff"
+            @click="handleViewTrend(row)"
+          >
             <i-ep-arrow-right />
           </el-icon>
-          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red">
+          <el-icon
+            v-else-if="row.changePercent > 0"
+            class="trend-icon text-red"
+            @click="handleViewTrend(row)"
+          >
             <i-ep-arrow-up />
           </el-icon>
-          <el-icon v-else class="trend-icon text-green">
+          <el-icon v-else class="trend-icon text-green" @click="handleViewTrend(row)">
             <i-ep-arrow-down />
           </el-icon>
         </template>
@@ -62,6 +71,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
 import { todayTrendList } from '@/api/mall/marketComponent'
+import { eventBus } from '@/utils/eventBus'
 
 const loading = ref(false)
 const queryFormRef = ref()
@@ -153,7 +163,15 @@ const getList = async () => {
           variety: item.goodsCategoryName || '--',
           origin,
           price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
-          changePercent
+          changePercent,
+          goodsCategoryId: item.goodsCategoryId || '',
+          goodsCategoryName: item.goodsCategoryName || '--',
+          provinceCode: item.provinceCode || '',
+          cityCode: item.cityCode || '',
+          regionCode: item.regionCode || '',
+          provinceName: item.provinceName || '',
+          cityName: item.cityName || '',
+          regionName: item.regionName || ''
         }
       })
       total.value = response.total || 0
@@ -170,6 +188,29 @@ const getList = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 查看走势图
+const handleViewTrend = (row: any) => {
+  if (!row || !row.goodsCategoryId) {
+    ElMessage.warning('暂无品种信息，无法查看走势')
+    return
+  }
+
+  // 先切换到价格走势标签
+  eventBus.emit('market:switchTab', 'second')
+
+  // 传递品种与产地信息给价格走势组件
+  eventBus.emit('priceTrend:applyFilters', {
+    goodsCategoryId: row.goodsCategoryId,
+    goodsCategoryName: row.goodsCategoryName,
+    provinceCode: row.provinceCode,
+    cityCode: row.cityCode,
+    regionCode: row.regionCode,
+    provinceName: row.provinceName,
+    cityName: row.cityName,
+    regionName: row.regionName
+  })
 }
 
 // 页面加载时获取数据

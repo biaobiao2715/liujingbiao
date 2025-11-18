@@ -22,12 +22,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { TabsPaneContext } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import TodayTrendComponent from './AboutMarketComponents/TodayTrendComponent.vue'
 import PriceTrendComponent from './AboutMarketComponents/PiceTrendCompontent.vue'
 import PricePredictionComponent from './AboutMarketComponents/PricePredictionComponent.vue'
+import { eventBus } from '@/utils/eventBus'
 
 const activeName = ref('first')
 
@@ -47,6 +48,23 @@ const currentTabLabel = computed(() => {
 const handleClick = (tab: TabsPaneContext, event: Event) => {
   console.log(tab, event)
 }
+
+const handleExternalSwitch = (tabName: string) => {
+  if (!tabName) return
+  activeName.value = tabName
+}
+
+onMounted(() => {
+  eventBus.on('market:switchTab', handleExternalSwitch)
+})
+
+onBeforeUnmount(() => {
+  try {
+    eventBus.off?.('market:switchTab', handleExternalSwitch)
+  } catch (error) {
+    // ignore
+  }
+})
 </script>
 
 <style scoped lang="scss">
