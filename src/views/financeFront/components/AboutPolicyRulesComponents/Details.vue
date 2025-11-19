@@ -3,7 +3,7 @@
   功能: 政策规则详情组件
   说明: 显示政策规则的详细信息，包括政策规则名称、政策规则描述、政策规则图片、政策规则价格、政策规则时长、政策规则讲师等。
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-29
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 
 <template>
@@ -20,9 +20,7 @@
       </div>
     </div>
 
-    <div class="detail-content">
-      {{ form?.articleContent }}
-    </div>
+    <div class="detail-content" v-html="form?.articleContent"></div>
   </div>
 </template>
 

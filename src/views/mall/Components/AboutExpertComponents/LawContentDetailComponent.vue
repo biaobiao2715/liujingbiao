@@ -139,7 +139,7 @@ const handleCollection = async () => {
   if (res.code === 200) {
     ElMessage.success(res.msg);
     // 刷新详情
-    await getLawContentDetail();
+    // await getLawContentDetail();
     // 刷新收藏状态
     await getIsCollect();
   }

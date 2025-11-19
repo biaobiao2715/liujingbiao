@@ -3,7 +3,7 @@
   功能: 风险案例列表组件
   说明: 用于展示风险案例列表，包括查询、添加、编辑、删除等操作
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 <template>
   <div class="supplier-management">
