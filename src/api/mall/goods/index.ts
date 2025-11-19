@@ -41,7 +41,14 @@ export function productOrder(data: any) {
     data: data
   });
 }
-
+//检查是否已经收藏
+export function checkFavorite(data: any) {
+  return request({
+    url: 'skill-server/skill/checkFavorite',
+    method: 'get',
+    params: data
+  });
+}
 // 加入收藏夹
 
 export function favorite(data: any) {
