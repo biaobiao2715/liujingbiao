@@ -1,7 +1,7 @@
 <template>
   <div class="risk-cases">
     <h2>政策法规</h2>
-    <el-table :data="cases" style="width: 100%" v-loading="loading">
+    <el-table :data="cases" style="width: 100%" v-loading="loading" @row-click="handleClick">
       <el-table-column prop="articleTitle" label="案例标题" />
       <el-table-column prop="articleSummary" label="案例简介" />
       <el-table-column prop="publishTime" label="发布时间" width="180">
@@ -15,8 +15,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getCreditArticle, getCreditArticleList } from '@/api/financeFront/RiskCasesComponent/index';
+import { getCreditArticle, getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 import { ElMessage } from 'element-plus';
+const emit = defineEmits(['detailChange']);
 
 // 列表数据与加载状态
 const cases = ref<any[]>([]);
@@ -26,6 +27,7 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  articleStatus: 2,
   articleTypes: ['1', '2']
 });
 
@@ -37,13 +39,16 @@ const fetchCases = async () => {
     if (res && res.code === 200) {
       cases.value = res.rows || res.data || [];
     } else {
-      ElMessage.error(res?.msg || '获取风险案例列表失败');
+      ElMessage.error(res?.msg || '获取政策法规列表失败');
     }
   } catch (e) {
-    ElMessage.error('获取风险案例列表失败，请稍后重试');
+    ElMessage.error('获取政策法规列表失败，请稍后重试');
   } finally {
     loading.value = false;
   }
+};
+const handleClick = (row: any) => {
+  emit('detailChange', { type: 'PolicyRulesComponentDetails', id: row.id });
 };
 
 onMounted(() => {

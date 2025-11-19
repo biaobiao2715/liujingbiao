@@ -3,7 +3,7 @@
   功能: 风险案例列表组件
   说明: 用于展示风险案例列表，包括查询、添加、编辑、删除等操作
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 <template>
   <div class="supplier-management">
@@ -137,7 +137,7 @@
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
 import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
-import editDetails from './EditDetails.vue';
+import editDetails from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(

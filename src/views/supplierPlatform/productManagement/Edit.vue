@@ -248,9 +248,18 @@
             <el-radio value="0" size="large">下架</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="上架时间" prop="launchTime">
+        <el-form-item label="上架时间" prop="launchTime" v-if="formData.status == '1'">
           <el-date-picker
             v-model="formData.launchTime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            type="datetime"
+            placeholder="请选择日期时间"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="下架时间" prop="takeDownTime" v-if="formData.status == '0'">
+          <el-date-picker
+            v-model="formData.takeDownTime"
             value-format="YYYY-MM-DD HH:mm:ss"
             type="datetime"
             placeholder="请选择日期时间"
@@ -401,8 +410,10 @@ const FormRulesarr: FormRules = {
   goodsSpecification: [{ required: true, message: '请选择商品规格', trigger: 'change' }],
   status: [{ required: true, message: '请选择上架状态', trigger: 'change' }],
   launchTime: [{ required: true, message: '请选择上架时间', trigger: 'change' }],
+  takeDownTime: [{ required: true, message: '请选择下架时间', trigger: 'change' }],
   titleFileList: [
     {
+      required: true,
       validator: (_: any, __: any, callback: any) => {
         if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) callback(new Error('请上传至少一张商品主图'));
         else callback();
@@ -471,6 +482,8 @@ const handlePictureCardPreview = (file: any) => {
 const handleDelete = (file: any) => {
   const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
   if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
+  // 图片删除后，主动刷新“商品主图”校验（titleFileList）
+  refForm.value?.validateField?.('titleFileList');
 };
 
 // 上传
@@ -491,6 +504,8 @@ const processUpload = (file: any, resolve: any, reject: any) => {
         ossId: response.data.ossId
       };
       hnGoodsFilesList.value.push(newFile);
+      // 图片上传成功后，主动刷新“商品主图”校验（titleFileList）
+      refForm.value?.validateField?.('titleFileList');
       proxy?.$modal.closeLoading();
       resolve(newFile);
     })

@@ -3,12 +3,7 @@
     <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
       <el-form-item label="举报类别：" prop="category" required>
         <el-select v-model="form.category" placeholder="请选择">
-          <el-option
-            v-for="dict in report_type_id"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="被举报方：" prop="target" required>
@@ -36,13 +31,7 @@
           <el-icon><Plus /></el-icon>
           <template #file="{ file }">
             <div class="report-preview-card">
-              <video
-                v-if="isVideo(file)"
-                :src="file.url"
-                class="preview-video"
-                muted
-                playsinline
-              ></video>
+              <video v-if="isVideo(file)" :src="file.url" class="preview-video" muted playsinline></video>
               <img v-else :src="file.url" class="preview-image" alt="" />
               <div v-if="isVideo(file)" class="video-play-indicator">
                 <VideoPlay />
@@ -59,31 +48,24 @@
             </div>
           </template>
         </el-upload>
-        <div class="el-upload__tip" style="color:#f56c6c;margin-top:8px;">
+        <div class="el-upload__tip" style="color: #f56c6c; margin-top: 8px">
           注：支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张≤10MB；支持MP4、mov、avi三种视频格式，最多上传三个视频，每个≤200MB
         </div>
       </el-form-item>
       <el-form-item label="举报描述：" prop="desc" required>
-        <el-input
-          v-model="form.desc"
-          type="textarea"
-          :rows="4"
-          maxlength="200"
-          show-word-limit
-          placeholder="请输入举报描述，最长200个字"
-        />
+        <el-input v-model="form.desc" type="textarea" :rows="4" maxlength="200" show-word-limit placeholder="请输入举报描述，最长200个字" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <div style="text-align:center">
+      <div style="text-align: center">
         <el-button type="primary" :loading="submitting" @click="handleSubmit">提交</el-button>
       </div>
     </template>
     <!-- 预览弹窗 -->
     <el-dialog v-model="preview.visible" width="60%" append-to-body>
       <template #default>
-        <img v-if="!preview.isVideo" :src="preview.url" alt="" style="width: 100%; display: block;" />
-        <video v-else :src="preview.url" style="width: 100%; display: block;" controls></video>
+        <img v-if="!preview.isVideo" :src="preview.url" alt="" style="width: 100%; display: block" />
+        <video v-else :src="preview.url" style="width: 100%; display: block" controls></video>
       </template>
     </el-dialog>
   </el-dialog>
@@ -196,7 +178,8 @@ const getExt = (name: string) => {
 const isImage = (file: any) => imageExt.includes(getExt(file.name || ''));
 const isVideo = (file: any) => videoExt.includes(getExt(file.name || ''));
 const countTypes = () => {
-  let img = 0, vid = 0;
+  let img = 0,
+    vid = 0;
   fileList.value.forEach((f: any) => {
     if (isImage(f)) img += 1;
     else if (isVideo(f)) vid += 1;
@@ -403,5 +386,3 @@ const handleClosed = () => {
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
 }
 </style>
-
-

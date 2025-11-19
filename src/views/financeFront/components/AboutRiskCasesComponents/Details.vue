@@ -3,58 +3,47 @@
   功能: 风险案例详情组件
   说明: 显示风险案例的详细信息，包括风险案例名称、风险案例描述、风险案例图片、风险案例价格、风险案例时长、风险案例讲师等。
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-29
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 
 <template>
-  <div class="course-detail-container">
-    <div class="title">{{ detail?.cultivateName }}</div>
-    <!-- 课程描述 -->
-    <div class="description flex-center gap-24 mt-24 mb-24">
-      <!-- 头像 -->
-      <img :src="detail?.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail?.createBy }}</div>
-      <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <el-tag type="primary">{{ detail?.cultivateType === '0' ? '农业知识' : '法律知识' }}</el-tag>
-      <div class="flex-center gap-12">
-        <div class="views flex-center gap-2">
-          <el-icon size="20"><View /></el-icon>
-          <span>{{ detail?.pageViews }}</span>
-        </div>
-        <div class="collection flex-center gap-2">
-          <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
-          <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-          <span>{{ detail?.collectCount }}</span>
-        </div>
+  <div>
+    <div class="details_title">
+      <div class="flex item-start">
+        <div>{{ form?.articleTitle }}</div>
+        <dict-text class="item_type" :options="art_article_type" :value="form.articleType ?? ''" />
+      </div>
+
+      <div class="flex item-end">
+        <div>{{ '发布时间：' + form?.publishTime }}</div>
+        <div style="margin-left: 50px">{{ '来源：' + form?.articleSource }}</div>
       </div>
     </div>
-    <!-- 编辑器内容 -->
-    <ContentWithToc :content="detail?.cultivateContent" ref="contentWithTocRef" />
-    <!-- 附件部分 -->
-    <el-table :data="detail?.attachments">
-      <el-table-column prop="type" label="附件类型" width="180" />
-      <el-table-column prop="name" label="文件名" />
-      <el-table-column prop="size" label="文件大小" width="180" />
-      <el-table-column prop="downloadUrl" label="下载链接" />
-    </el-table>
+
+    <div class="detail-content" v-html="form?.articleContent"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { courseDetail } from '@/api/mall/expert';
-import { getCreditArticle, getCreditArticleList } from '@/api/financeFront/RiskCasesComponent/index';
-import ContentWithToc from '@/components/ContentWithToc/index.vue';
-
+import { getCreditArticle, getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 const props = defineProps({
   id: {
     type: String,
     required: true
   }
 });
-const detail = ref();
 
-const isCollected = ref(false);
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { art_article_type } = toRefs<any>(proxy?.useDict('art_article_type'));
+
+const form = ref({
+  articleTitle: '',
+  articleType: '',
+  publishTime: '',
+  articleSource: '',
+  articleContent: ''
+});
 
 onMounted(() => {
   getArticleDetail();
@@ -64,23 +53,67 @@ onMounted(() => {
 const getArticleDetail = async () => {
   const res = await getCreditArticle(props.id);
   if (res.code === 200) {
-    detail.value = res.data || {};
+    form.value = res.data || {};
   }
 };
 </script>
 
 <style scoped lang="scss">
-.course-detail-container {
-  padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .collection {
-      cursor: pointer;
-    }
-  }
+.details_title {
+  width: 100%;
+  padding: 28px 20px;
+  margin-bottom: 16px;
+
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+}
+
+.item_type {
+  font-size: 14px;
+  color: #ff7b00;
+  height: 25px;
+  display: flex;
+  align-items: center;
+
+  border-radius: 221px 221px 221px 221px;
+  border: 1px solid #ff7b00;
+  padding: 0 12px;
+  margin-left: 10px;
+}
+
+.item-start {
+  height: 21px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 28px;
+  color: #3d3d3d;
+  line-height: 21px;
+  margin-bottom: 36px;
+}
+
+.item-end {
+  height: 20px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3d3d3d;
+  line-height: 20px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+}
+
+.detail-content {
+  width: 100%;
+  min-height: 633px;
+  padding: 30px 20px;
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3d3d3d;
+  line-height: 28px;
 }
 </style>

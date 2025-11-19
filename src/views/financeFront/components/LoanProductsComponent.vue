@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+const emit = defineEmits(['detailChange']);
 
 const products = ref([
   { id: 1, name: '惠农贷', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
@@ -45,6 +46,10 @@ const products = ref([
   { id: 7, name: '惠农贷7', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
   { id: 8, name: '惠农贷8', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false }
 ]);
+
+const handleClick = (row: any) => {
+  emit('detailChange', { type: 'LoanProductsComponentDetails', id: row.id });
+};
 </script>
 
 <style scoped lang="scss">
@@ -109,7 +114,6 @@ const products = ref([
         font-weight: bold;
         color: #333;
         margin-bottom: 4px;
-        
       }
 
       .rate {
