@@ -16,11 +16,27 @@
           <div class="price-filter-group">
             <span class="price-label">价格</span>
             <div class="price-input-group">
-              <el-input v-model="queryParams.minPrice" placeholder="最低价格" class="price-input"
-                @keyup.enter="handleSearch" />
+              <el-input-number 
+                v-model="queryParams.minPrice" 
+                :min="0" 
+                :precision="2" 
+                :controls="false" 
+                placeholder="最低价格" 
+                class="price-input"
+                @keyup.enter="handleSearch"
+                @change="handleMinPriceChange"
+              />
               <span class="price-separator">-</span>
-              <el-input v-model="queryParams.maxPrice" placeholder="最高价格" class="price-input"
-                @keyup.enter="handleSearch" />
+              <el-input-number 
+                v-model="queryParams.maxPrice" 
+                :min="0" 
+                :precision="2" 
+                :controls="false" 
+                placeholder="最高价格" 
+                class="price-input"
+                @keyup.enter="handleSearch"
+                @change="handleMaxPriceChange"
+              />
             </div>
             <button class="search-btn" @click="handleSearch">搜索</button>
             </div>
@@ -150,8 +166,8 @@ const queryParams = reactive({
   provinceCode: undefined as string | undefined,
   cityCode: undefined as string | undefined,
   districtCode: undefined as string | undefined,
-  minPrice: undefined as string | undefined,
-  maxPrice: undefined as string | undefined,
+  minPrice: undefined as number | undefined,
+  maxPrice: undefined as number | undefined,
   pageNum: 1,
   pageSize: 12
 });
@@ -191,8 +207,48 @@ const toggleSortType = () => {
   fetchGoodsList();
 };
 
+// 处理最低价变化，允许清空
+const handleMinPriceChange = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    queryParams.minPrice = undefined;
+  } else if (value < 0) {
+    // 如果输入负数，清空输入框
+    queryParams.minPrice = undefined;
+  }
+};
+
+// 处理最高价变化，允许清空
+const handleMaxPriceChange = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    queryParams.maxPrice = undefined;
+  } else if (value < 0) {
+    // 如果输入负数，清空输入框
+    queryParams.maxPrice = undefined;
+  }
+};
+
 // 点击搜索或回车提交价格筛选
 const handleSearch = () => {
+  // 验证价格不能为负数（只有当值不为空时才验证）
+  if (queryParams.minPrice !== undefined && queryParams.minPrice !== null && queryParams.minPrice < 0) {
+    ElMessage.error('价格不能为负数');
+    return;
+  }
+  if (queryParams.maxPrice !== undefined && queryParams.maxPrice !== null && queryParams.maxPrice < 0) {
+    ElMessage.error('价格不能为负数');
+    return;
+  }
+  // 验证最高价不能小于最低价（只有当两个值都不为空时才验证）
+  if (
+    queryParams.minPrice !== undefined &&
+    queryParams.minPrice !== null &&
+    queryParams.maxPrice !== undefined &&
+    queryParams.maxPrice !== null &&
+    queryParams.minPrice > queryParams.maxPrice
+  ) {
+    ElMessage.error('最高价不能小于最低价');
+    return;
+  }
   queryParams.pageNum = 1;
   fetchGoodsList();
 };
@@ -355,10 +411,11 @@ const fetchGoodsList = async () => {
 
     params.sortManner = queryParams.sortManner || '0';
 
-    if (queryParams.minPrice) {
+    // 价格区间：undefined/null 不传递，0 值保持为 0
+    if (queryParams.minPrice !== undefined && queryParams.minPrice !== null) {
       params.minPrice = queryParams.minPrice;
     }
-    if (queryParams.maxPrice) {
+    if (queryParams.maxPrice !== undefined && queryParams.maxPrice !== null) {
       params.maxPrice = queryParams.maxPrice;
     }
 
@@ -497,6 +554,7 @@ onMounted(() => {
           .price-input {
             flex: 1;
             min-width: 0;
+            width: 100%;
 
             :deep(.el-input__wrapper) {
               box-shadow: none;
@@ -509,6 +567,10 @@ onMounted(() => {
               &::placeholder {
                 color: #c0c4cc;
               }
+            }
+
+            :deep(.el-input-number) {
+              width: 100%;
             }
           }
 
