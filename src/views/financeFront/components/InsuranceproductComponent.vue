@@ -2,13 +2,9 @@
   <div class="risk-cases">
     <h2>保险产品</h2>
     <el-table :data="cases" style="width: 100%" v-loading="loading" @row-click="handleClick">
-      <el-table-column prop="articleTitle" label="案例标题" />
-      <el-table-column prop="articleSummary" label="案例简介" />
-      <el-table-column prop="publishTime" label="发布时间" width="180">
-        <template #default="scope">
-          <span>{{ scope.row.publishTime || '--' }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column prop="productName" label="保险产品名称" />
+      <el-table-column prop="productType" label="保险产品类型" />
+      <el-table-column prop="productIntro" label="保险产品介绍"> </el-table-column>
     </el-table>
   </div>
 </template>
@@ -26,8 +22,7 @@ const loading = ref(false);
 // 基础查询参数（如需筛选可在此扩展）
 const queryParams = ref({
   pageNum: 1,
-  pageSize: 10,
-  articleTypes: ['1', '2']
+  pageSize: 10
 });
 
 // 获取列表数据
@@ -38,10 +33,10 @@ const fetchCases = async () => {
     if (res && res.code === 200) {
       cases.value = res.rows || res.data || [];
     } else {
-      ElMessage.error(res?.msg || '获取风险案例列表失败');
+      ElMessage.error(res?.msg || '获取保险产品列表失败');
     }
   } catch (e) {
-    ElMessage.error('获取风险案例列表失败，请稍后重试');
+    ElMessage.error('获取保险产品列表失败，请稍后重试');
   } finally {
     loading.value = false;
   }

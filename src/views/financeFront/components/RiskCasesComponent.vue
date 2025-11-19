@@ -27,6 +27,7 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  articleStatus: 2,
   articleType: 3
 });
 

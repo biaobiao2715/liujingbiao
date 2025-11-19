@@ -27,6 +27,7 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  articleStatus: 2,
   articleTypes: ['1', '2']
 });
 
@@ -38,10 +39,10 @@ const fetchCases = async () => {
     if (res && res.code === 200) {
       cases.value = res.rows || res.data || [];
     } else {
-      ElMessage.error(res?.msg || '获取风险案例列表失败');
+      ElMessage.error(res?.msg || '获取政策法规列表失败');
     }
   } catch (e) {
-    ElMessage.error('获取风险案例列表失败，请稍后重试');
+    ElMessage.error('获取政策法规列表失败，请稍后重试');
   } finally {
     loading.value = false;
   }

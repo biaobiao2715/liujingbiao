@@ -3,7 +3,7 @@
   功能: 风险案例详情组件
   说明: 显示风险案例的详细信息，包括风险案例名称、风险案例描述、风险案例图片、风险案例价格、风险案例时长、风险案例讲师等。
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-29
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 
 <template>
@@ -20,9 +20,7 @@
       </div>
     </div>
 
-    <div class="detail-content">
-      {{ form?.articleContent }}
-    </div>
+    <div class="detail-content" v-html="form?.articleContent"></div>
   </div>
 </template>
 
