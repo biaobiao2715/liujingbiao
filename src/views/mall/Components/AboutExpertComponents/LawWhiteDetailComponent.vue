@@ -11,17 +11,13 @@
     <!-- 标题 -->
     <div class="title">{{ detailData?.paperTitle }}</div>
     <!-- 描述 -->
-    <div class="description">{{ detailData?.remark }}</div>
     <!-- 最新附件表格 -->
     <div class="file-title">最新附件</div>
     <el-table :data="latestFiles" style="width: 100%">
-      <el-table-column prop="fileName" label="附件名称" />
       <el-table-column prop="fileSuffix" label="附件类型" />
-      <el-table-column prop="downloadCount" label="下载量" width="180">
-        <template #default="scope">
-          {{ detailData.downloadCount }}
-        </template>
-      </el-table-column>
+      <el-table-column prop="fileName" label="附件名称" />
+      <el-table-column prop="versionNo" label="版本号" />
+      <el-table-column prop="updateTime" label="更新时间" width="200" />
       <el-table-column prop="fileSize" label="文件大小" />
       <el-table-column label="操作">
         <template #default="scope">
@@ -29,18 +25,6 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 历史版本附件表格 -->
-    <!-- <div class="file-title">历史版本附件</div>
-    <el-table :data="historyFiles" style="width: 100%">
-      <el-table-column prop="fileName" label="附件名称" />
-      <el-table-column prop="fileSuffix" label="附件类型" />
-      <el-table-column prop="fileSize" label="文件大小" />
-      <el-table-column label="操作">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="handleDownloadHistory(scope.row)"> 下载 </el-button>
-        </template>
-      </el-table-column>
-    </el-table> -->
   </div>
 </template>
 
@@ -79,6 +63,8 @@ const fetchDetail = async () => {
           fileName: attachment.originalName,
           url: attachment.url,
           fileSuffix: attachment.fileSuffix,
+          versionNo: item.versionNo,
+          updateTime: item.updateTime,
           fileSize: formatFileSize(JSON.parse(attachment.ext1).fileSize)
         });
       });

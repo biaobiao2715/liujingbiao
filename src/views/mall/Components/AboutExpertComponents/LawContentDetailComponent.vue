@@ -31,14 +31,14 @@
     <ContentWithToc :content="detail?.contentContent" style="height: 400px; overflow: auto" />
     <!-- 附件部分 -->
     <el-table :data="detail?.sysOssLists" class="mt-24">
-      <el-table-column prop="name" label="文件名" show-overflow-tooltip />
       <el-table-column prop="fileSuffix" label="附件类型" width="180" />
+      <el-table-column prop="originalName" label="文件名" show-overflow-tooltip />
       <!-- 下载量 -->
-      <el-table-column prop="downloadCount" label="下载量" width="180">
+      <!-- <el-table-column prop="downloadCount" label="下载量" width="180">
         <template #default="scope">
           {{ detail.downloadCount }}
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="size" label="文件大小" width="180">
         <template #default="scope">
           {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
@@ -139,7 +139,7 @@ const handleCollection = async () => {
   if (res.code === 200) {
     ElMessage.success(res.msg);
     // 刷新详情
-    // await getLawContentDetail();
+    await getLawContentDetail();
     // 刷新收藏状态
     await getIsCollect();
   }

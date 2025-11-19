@@ -20,8 +20,8 @@
       style="width: 100%"
       v-loading="loading"
     >
-      <el-table-column prop="categoryName" label="商品类目" />
-      <el-table-column prop="orderNum" label="排序" />
+      <el-table-column prop="categoryName" label="商品类目" show-overflow-tooltip />
+      <el-table-column prop="orderNum" label="排序" width="120"/>
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column label="操作">
         <template #default="{ row }">
