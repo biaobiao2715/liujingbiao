@@ -10,10 +10,10 @@
         </el-select>
       </el-form-item>
       <el-form-item label="被举报方：" prop="target" required>
-        <el-input v-model="form.target" maxlength="50" placeholder="带出被举报方信息" />
+        <el-input v-model="form.target" maxlength="50" placeholder="带出被举报方信息"  disabled/>
       </el-form-item>
       <el-form-item label="举报商品：" prop="goodsInfo" required>
-        <el-input v-model="form.goodsInfo" maxlength="50" placeholder="带出举报商品信息" />
+        <el-input v-model="form.goodsInfo" maxlength="50" placeholder="带出举报商品信息" disabled/>
       </el-form-item>
       <el-form-item label="举报材料：" prop="filesCount" required>
         <el-upload
