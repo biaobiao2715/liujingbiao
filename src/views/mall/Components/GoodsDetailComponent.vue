@@ -183,6 +183,8 @@
       v-model="showReportDialog"
       :default-target="goods?.hnBaseEnterpriseInfo?.companyName || ''"
       :default-goods-info="goods?.goodsName || ''"
+      :report-person-id="goods?.enterpriseId || goods?.hnBaseEnterpriseInfo?.id || ''"
+      :report-goods-code="goods?.id || goods?.goodsCode || ''"
       @submit="handleReportSubmitData"
     />
     <!-- 下单组件 -->
@@ -284,9 +286,8 @@ const isFavorite = ref(false);
 
 // 举报弹窗
 const showReportDialog = ref(false);
-const handleReportSubmitData = (_fd: FormData) => {
-  // TODO: 接入实际举报接口
-  ElMessage.success('已提交举报');
+const handleReportSubmitData = (_payload: any) => {
+  // 预留勾子：目前由弹窗内部直接完成举报请求
 };
 
 
