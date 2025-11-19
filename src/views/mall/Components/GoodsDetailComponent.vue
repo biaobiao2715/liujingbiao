@@ -312,8 +312,8 @@ watch(
   }
 );
 
-const handleReportSubmitData = (_fd: FormData) => {
-  // TODO: 接入实际举报接口
+const handleReportSubmitData = (_payload: any) => {
+  // 举报请求已在 ReportDialog 组件内部完成，这里仅保留钩子
   ElMessage.success('已提交举报');
 };
 
