@@ -86,6 +86,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadFile } from 'element-plus';
 import { insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
+import { listByIds } from '@/api/system/oss';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -147,7 +148,7 @@ const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: s
   } as UploadFile;
 };
 
-const syncDetailAttachmentList = (data: any) => {
+const syncDetailAttachmentList = async (data: any) => {
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     detailFileList.value = ossList.map((file: any) =>
@@ -165,17 +166,47 @@ const syncDetailAttachmentList = (data: any) => {
     return;
   }
   if (data?.branchOfficeAttachment) {
-    detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
-    detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
-    detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
-    detailFileList.value = [
-      buildUploadFileItem({
-        ossId: data.branchOfficeAttachment,
-        name: data.branchOfficeAttachmentName || '网点清单',
-        url: data.branchOfficeAttachmentUrl || ''
-      })
-    ];
-    return;
+    try {
+      const ossResponse: any = await listByIds(data.branchOfficeAttachment);
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      if (Array.isArray(ossData) && ossData.length > 0) {
+        detailFileList.value = ossData.map((file: any) =>
+          buildUploadFileItem({
+            ossId: file.ossId,
+            name: file.originalName || file.fileName || data.branchOfficeAttachmentName || '网点清单',
+            url: file.url || file.fileUrl || ''
+          })
+        );
+        detailData.value.branchOfficeAttachmentName =
+          ossData[0].originalName || data.branchOfficeAttachmentName || '网点清单';
+        detailData.value.branchOfficeAttachmentUrl = ossData[0].url || '';
+        detailData.value.branchOfficeAttachment = ossData[0].ossId || data.branchOfficeAttachment;
+        return;
+      }
+      detailFileList.value = [
+        buildUploadFileItem({
+          ossId: data.branchOfficeAttachment,
+          name: data.branchOfficeAttachmentName || '网点清单',
+          url: data.branchOfficeAttachmentUrl || ''
+        })
+      ];
+      detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+      detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
+      return;
+    } catch (error) {
+      detailFileList.value = [
+        buildUploadFileItem({
+          ossId: data.branchOfficeAttachment,
+          name: data.branchOfficeAttachmentName || '网点清单',
+          url: data.branchOfficeAttachmentUrl || ''
+        })
+      ];
+      detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+      detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
+      return;
+    }
   }
   detailData.value.branchOfficeAttachment = null;
   detailData.value.branchOfficeAttachmentName = '';
@@ -204,7 +235,7 @@ const fetchDetail = async () => {
         ossFileVo: data.ossFileVo || [],
         productRemark: data.productRemark || ''
       };
-      syncDetailAttachmentList(data);
+      await syncDetailAttachmentList(data);
     } else {
       ElMessage.error(response?.msg || '获取产品详情失败');
     }

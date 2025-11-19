@@ -315,6 +315,9 @@ const buildFullArticleFields = async (row: any) => {
   return { ...row };
 };
 
+
+
+
 const confirmStatusChange = async (row: any, status: string | number) => {
   const targetStatus = normalizeStatus(status);
   const statusText = targetStatus === '2' ? '上架' : '下架';
@@ -322,7 +325,7 @@ const confirmStatusChange = async (row: any, status: string | number) => {
     id: row.id,
     articleStatus: targetStatus
   };
-  if (targetStatus === '2' || targetStatus === '3') {
+  if ( targetStatus === '3') {
     const fullData = await buildFullArticleFields(row);
     Object.assign(updateData, {
       articleSummary: fullData.articleSummary ?? '',
@@ -331,6 +334,21 @@ const confirmStatusChange = async (row: any, status: string | number) => {
       articleTitle: fullData.articleTitle ?? '',
       articleType: fullData.articleType ?? '',
       articleContent: fullData.articleContent ?? ''
+  
+
+    });
+  }
+  if (targetStatus === '2' ) {
+    const fullData = await buildFullArticleFields(row);
+    Object.assign(updateData, {
+      articleSummary: fullData.articleSummary ?? '',
+      articleNo: fullData.articleNo ?? '',
+      articleSource: fullData.articleSource ?? '',
+      articleTitle: fullData.articleTitle ?? '',
+      articleType: fullData.articleType ?? '',
+      articleContent: fullData.articleContent ?? '',
+      publishTime: new Date().toISOString()
+
     });
   }
   const response = await updateCreditArticle(updateData);
