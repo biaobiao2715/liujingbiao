@@ -8,7 +8,7 @@
       <el-table-column
         v-for="(goods, index) in goodsList"
         :key="goods.id || index"
-        :label="`商品${index + 1}`"
+        :label="goods.goodsName"
         :prop="`goods${index}`"
         min-width="180"
       >
@@ -145,6 +145,17 @@ const togglePriceHistory = (goodsIndex: number, key: string) => {
   updateTable();
 };
 
+// 获取商品类目的最后一个部分
+const getLastCategoryName = (categoryName?: string) => {
+  if (!categoryName) return '-';
+  // 处理多种分隔符：/ 或 \ 或 |
+  const parts = categoryName.split(/[/\\|]/).filter(Boolean);
+  if (parts.length > 0) {
+    return parts[parts.length - 1].trim();
+  }
+  return categoryName.trim() || '-';
+};
+
 // 更新表格数据
 const updateTable = () => {
   if (props.goodsList.length === 0) {
@@ -154,11 +165,12 @@ const updateTable = () => {
 
   // 商品信息表格
   tableData.value = [
+   
     {
       label: '品种',
       type: 'normal',
       ...props.goodsList.reduce((acc, goods, index) => {
-        acc[`goods${index}`] = goods.goodsName || '-';
+        acc[`goods${index}`] = getLastCategoryName(goods.goodsCategoryName);
         return acc;
       }, {} as any)
     },

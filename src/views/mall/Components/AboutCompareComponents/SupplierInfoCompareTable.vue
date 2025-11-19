@@ -1,14 +1,14 @@
 <template>
   <div class="compare-table-section">
     <div class="section-title">
-      <span class="title-bar"></span>商品信息
+      <span class="title-bar"></span>
     </div>
     <el-table :data="tableData" border class="compare-table">
       <el-table-column prop="label" label="对比项" width="120" fixed="left" />
       <el-table-column
         v-for="(goods, index) in goodsList"
         :key="goods.id || index"
-        :label="`商品${index + 1}`"
+        :label="goods.goodsName"
         :prop="`goods${index}`"
         min-width="180"
       >

@@ -2,7 +2,7 @@
   <div class="compare-goods-container">
     <!-- 面包屑导航 -->
     <el-breadcrumb separator=">" class="breadcrumb">
-      <el-breadcrumb-item :to="{ path: '/mall/index' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/mall' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item :to="{ path: '/mall/compare-goods', query: route.query.id ? { id: route.query.id } : {} }">加入对比</el-breadcrumb-item>
       <el-breadcrumb-item>对比详情</el-breadcrumb-item>
     </el-breadcrumb>
