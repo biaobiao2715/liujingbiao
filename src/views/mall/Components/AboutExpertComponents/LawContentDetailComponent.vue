@@ -73,6 +73,7 @@ const isCollected = ref(false);
 
 onMounted(async () => {
   await getLawContentDetail();
+  await addViewCount();
   await getIsCollect();
 });
 
@@ -82,7 +83,6 @@ const getLawContentDetail = async () => {
   getContentDetail(props.id).then((res) => {
     if (res.code === 200) {
       detail.value = res.data || {};
-      addViewCount();
     }
   });
 };
