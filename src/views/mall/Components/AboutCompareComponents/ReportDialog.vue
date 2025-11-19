@@ -34,6 +34,30 @@
           accept=".jpg,.jpeg,.png,.mp4,.mov,.avi"
         >
           <el-icon><Plus /></el-icon>
+          <template #file="{ file }">
+            <div class="report-preview-card">
+              <video
+                v-if="isVideo(file)"
+                :src="file.url"
+                class="preview-video"
+                muted
+                playsinline
+              ></video>
+              <img v-else :src="file.url" class="preview-image" alt="" />
+              <div v-if="isVideo(file)" class="video-play-indicator">
+                <VideoPlay />
+              </div>
+              <div class="preview-mask">
+                <el-icon class="preview-action" @click.stop="onPreview(file)">
+                  <VideoPlay v-if="isVideo(file)" />
+                  <ZoomIn v-else />
+                </el-icon>
+                <el-icon class="preview-action" @click.stop="removeFileManually(file)">
+                  <Delete />
+                </el-icon>
+              </div>
+            </div>
+          </template>
         </el-upload>
         <div class="el-upload__tip" style="color:#f56c6c;margin-top:8px;">
           注：支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张≤10MB；支持MP4、mov、avi三种视频格式，最多上传三个视频，每个≤200MB
@@ -69,7 +93,7 @@
 import { ref, reactive, watch, toRefs, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Delete, ZoomIn, VideoPlay } from '@element-plus/icons-vue';
 import { uploadFile as uploadReportFile, deleteFile as deleteReportFile, report } from '@/api/mall/goods/index';
 
 interface ReportMaterial extends UploadUserFile {
@@ -208,6 +232,13 @@ const handleBeforeUpload = (file: any) => {
   return true;
 };
 const handleExceed = () => ElMessage.error('已达到最多可选择的文件数量');
+const removeFileManually = (file: ReportMaterial) => {
+  try {
+    (uploaderRef.value as any)?.handleRemove(file);
+  } catch (error) {
+    console.error(error);
+  }
+};
 const handleUpload = (file: any) =>
   new Promise((resolve, reject) => {
     const fd = new FormData();
@@ -321,6 +352,55 @@ const handleClosed = () => {
 .report-uploader .el-upload--picture-card .el-icon {
   font-size: 28px;
   color: #8c939d;
+}
+.report-preview-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.preview-image,
+.preview-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.preview-video {
+  background: #000;
+}
+.preview-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.report-preview-card:hover .preview-mask {
+  opacity: 1;
+}
+.preview-action {
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+}
+.preview-action:hover {
+  color: #ffd04b;
+}
+.video-play-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 42px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
 }
 </style>
 
