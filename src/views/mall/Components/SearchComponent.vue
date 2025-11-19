@@ -16,9 +16,32 @@
 
       <div class="price flex-center gap-8">
         <div class="price-label">价格</div>
-        <el-input v-model="filterState.minPrice" type="number" placeholder="最低价" />
+        <el-input-number 
+          v-model="filterState.minPrice" 
+          placeholder="最低价"
+          :precision="2" 
+          :controls="false" 
+          class="price-input"
+          @change="handleMinPriceChange"
+        />
         -
-        <el-input v-model="filterState.maxPrice" type="number" placeholder="最高价" />
+        <el-input-number 
+          v-model="filterState.maxPrice" 
+          placeholder="最高价"
+          :precision="2" 
+          :controls="false" 
+          class="price-input"
+          @change="handleMaxPriceChange"
+        />
+        <el-button 
+          v-if="filterState.minPrice !== undefined || filterState.maxPrice !== undefined" 
+          link 
+          type="primary" 
+          @click="clearPrice"
+          class="clear-price-btn"
+        >
+          清空
+        </el-button>
       </div>
       <div class="search-component flex">
         <div class="search-select">
@@ -41,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 
@@ -77,25 +101,64 @@ const sortList = ref([
 const filterState = reactive({
   areaCodes: [], // 地址选择
   sortType: '-1', // 排序类型
-  minPrice: 0, // 最低价
-  maxPrice: 0, // 最高价
+  minPrice: undefined as number | undefined, // 最低价
+  maxPrice: undefined as number | undefined, // 最高价
   category: [] // 商品分类选择
 });
 
-onMounted(() => {});
+// 是否已初始化完成，用于避免初始化时触发搜索
+const isInitialized = ref(false);
+
+onMounted(() => {
+  // 标记初始化完成
+  isInitialized.value = true;
+});
 
 // 搜索
 const handleSearch = () => {
-  if (filterState.minPrice > filterState.maxPrice) {
+  // 验证价格不能为负数（只有当值不为空时才验证）
+  if (filterState.minPrice !== undefined && filterState.minPrice !== null && filterState.minPrice < 0) {
+    ElMessage.error('价格不能为负数');
+    return;
+  }
+  if (filterState.maxPrice !== undefined && filterState.maxPrice !== null && filterState.maxPrice < 0) {
+    ElMessage.error('价格不能为负数');
+    return;
+  }
+  // 验证最高价不能小于最低价（只有当两个值都不为空时才验证）
+  if (
+    filterState.minPrice !== undefined &&
+    filterState.minPrice !== null &&
+    filterState.maxPrice !== undefined &&
+    filterState.maxPrice !== null &&
+    filterState.minPrice > filterState.maxPrice
+  ) {
     ElMessage.error('最高价不能小于最低价');
     return;
   }
-  emit('searchChange', {
+  
+  // 构建搜索参数，空值转换为 undefined，0 值保持为 0
+  const searchParams = {
     ...filterState,
+    minPrice: filterState.minPrice === undefined || filterState.minPrice === null ? undefined : filterState.minPrice,
+    maxPrice: filterState.maxPrice === undefined || filterState.maxPrice === null ? undefined : filterState.maxPrice,
     searchType: searchType.value,
     searchContent: searchContent.value
-  });
+  };
+  
+  emit('searchChange', searchParams);
 };
+
+// 监听排序类型变化，自动触发搜索
+watch(
+  () => filterState.sortType,
+  () => {
+    // 只有在初始化完成后才自动触发搜索
+    if (isInitialized.value) {
+      handleSearch();
+    }
+  }
+);
 
 // 处理地址选择变化
 const handleAreaChange = (val: any) => {
@@ -106,14 +169,39 @@ const handleAreaChange = (val: any) => {
 const handleCategoryChange = (value: string[]) => {
   filterState.category = value || [];
 };
+
+// 处理最低价变化，允许清空
+const handleMinPriceChange = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    filterState.minPrice = undefined;
+  } else if (value < 0) {
+    // 如果输入负数，清空输入框
+    filterState.minPrice = undefined;
+  }
+};
+
+// 处理最高价变化，允许清空
+const handleMaxPriceChange = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    filterState.maxPrice = undefined;
+  } else if (value < 0) {
+    // 如果输入负数，清空输入框
+    filterState.maxPrice = undefined;
+  }
+};
+
+// 清空价格
+const clearPrice = () => {
+  filterState.minPrice = undefined;
+  filterState.maxPrice = undefined;
+};
+
 </script>
 
 <style scoped lang="scss">
 .category-container {
   padding: 12px;
   border: 1px solid #e4e7ed;
-  .search-component {
-  }
   .search-select {
     display: flex;
     align-items: center;
@@ -141,8 +229,13 @@ const handleCategoryChange = (value: string[]) => {
       .price-label {
         width: 42px;
       }
-      .el-input {
-        width: 80px;
+      .price-input {
+        width: 120px;
+      }
+      .clear-price-btn {
+        margin-left: 8px;
+        padding: 0;
+        font-size: 12px;
       }
     }
   }

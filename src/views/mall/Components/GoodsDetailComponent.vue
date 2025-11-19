@@ -131,7 +131,9 @@
           <!-- 操作按钮 -->
           <div class="action-buttons">
             <button class="btn btn-compare" @click="operateOrder(1)">加入比价</button>
-            <button class="btn btn-favorite" @click="operateOrder(2)">加入收藏夹</button>
+            <button class="btn btn-favorite" :class="{ 'btn-favorite-active': isFavorite }" @click="operateOrder(2)">
+              {{ isFavorite ? '取消收藏' : '加入收藏夹' }}
+            </button>
             <button class="btn btn-buy" @click="operateOrder(3)">立即下单</button>
           </div>
         </div>
@@ -182,6 +184,8 @@
       v-model="showReportDialog"
       :default-target="goods?.hnBaseEnterpriseInfo?.companyName || ''"
       :default-goods-info="goods?.goodsName || ''"
+      :report-person-id="goods?.enterpriseId || goods?.hnBaseEnterpriseInfo?.id || ''"
+      :report-goods-code="goods?.id || goods?.goodsCode || ''"
       @submit="handleReportSubmitData"
     />
     <!-- 下单组件 -->
@@ -215,7 +219,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter, useRoute } from 'vue-router';
 import { addToFavorites } from '@/api/mall/index';
-import { goodsList, goodsDetail } from '@/api/mall/goods/index';
+import { goodsList, goodsDetail, checkFavorite } from '@/api/mall/goods/index';
 import type { Goods } from '../mall';
 import PlaceOrderComponent from './AboutCompareComponents/PlaceOrderComponent.vue';
 import GoodsItemComponent from './GoodsItemComponent.vue';
@@ -282,6 +286,9 @@ const enterprisePhoneNumber = computed(() => {
 });
 const showPhoneDialog = ref(false);
 
+// 收藏状态
+const isFavorite = ref(false);
+
 // 举报弹窗
 const showReportDialog = ref(false);
 
@@ -305,8 +312,8 @@ watch(
   }
 );
 
-const handleReportSubmitData = (_fd: FormData) => {
-  // TODO: 接入实际举报接口
+const handleReportSubmitData = (_payload: any) => {
+  // 举报请求已在 ReportDialog 组件内部完成，这里仅保留钩子
   ElMessage.success('已提交举报');
 };
 
@@ -412,6 +419,9 @@ const getGoodsDetail = async () => {
       // 生成面包屑导航
       updateBreadcrumb();
 
+      // 检查收藏状态
+      await checkFavoriteStatus();
+
       // 商品详情加载成功后，加载相关商品和热门商品
       await Promise.all([getRelatedGoods(), getHotGoods()]);
     } else {
@@ -421,6 +431,27 @@ const getGoodsDetail = async () => {
     ElMessage.error('获取商品详情失败');
   } finally {
     loading.value = false;
+  }
+};
+
+// 检查收藏状态
+const checkFavoriteStatus = async () => {
+  const id = goodsIdFromRoute.value;
+  if (!id) return;
+
+  try {
+    const res = await checkFavorite({
+      favoriteType: '1',
+      'favoriteGoogsBo.googsId': id
+    });
+    if (res && res.code === 200) {
+      // 根据接口返回结果设置收藏状态
+      // data: false 未收藏, true 已收藏
+      isFavorite.value = res.data === true;
+    }
+  } catch (error) {
+    // 忽略错误，不影响页面显示
+    console.error('检查收藏状态失败:', error);
   }
 };
 
@@ -454,6 +485,7 @@ const operateOrder = (type: number) => {
         ElMessage.error('规格信息不存在');
         return;
       }
+      // 调用加入收藏接口（同一个接口，用于加入和取消收藏）
       addToFavorites({
         favoriteType: 1,
         favoriteGoogsBo: {
@@ -461,9 +493,16 @@ const operateOrder = (type: number) => {
           googsPrice: Number(spec.goodsPrice || 0),
           goodsSpecificationId: baseInfo.currentSpec
         }
-      }).then((res) => {
+      }).then(async (res) => {
         if (res.code === 200) {
-          ElMessage.success('加入收藏成功');
+          // 重新检查收藏状态以获取最新状态
+          await checkFavoriteStatus();
+          // 根据最新状态显示提示信息
+          if (isFavorite.value) {
+            ElMessage.success('加入收藏成功');
+          } else {
+            ElMessage.success('取消收藏成功');
+          }
         }
       });
       break;
@@ -1067,6 +1106,17 @@ defineExpose({
         &:hover {
           background: rgba(16, 140, 88, 0.15);
           border-color: #108c58;
+        }
+
+        &.btn-favorite-active {
+          background: #108c58;
+          color: white;
+          border-color: #108c58;
+
+          &:hover {
+            background: #0e7a4a;
+            border-color: #0e7a4a;
+          }
         }
       }
 

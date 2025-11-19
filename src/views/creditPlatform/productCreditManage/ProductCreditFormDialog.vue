@@ -43,9 +43,7 @@
             </el-select>
           </el-form-item>
         </el-col>
-
-
-           <el-col :span="12">
+        <el-col :span="12">
           <el-form-item label="可贷金额" required>
             <div class="range-inputs">
               <el-form-item prop="minLoanAmount" label-width="0" class="inline-form-item">
@@ -74,7 +72,6 @@
       </el-row>
 
       <el-row :gutter="24">
-     
         <el-col :span="12">
           <el-form-item label="利率/费率" required>
             <div class="range-inputs">
@@ -105,12 +102,18 @@
 
         <el-col :span="12">
           <el-form-item label="可贷周期" prop="loanCycle">
-            <el-select v-model="formData.loanCycle" placeholder="请选择可贷周期" clearable>
+            <el-select
+              v-model="formData.loanCycle"
+              placeholder="请选择可贷周期"
+              clearable
+              multiple
+              :collapse-tags="false"
+            >
               <el-option
-                v-for="item in loanCycleOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
+                v-for="dict in loan_cycle"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
               />
             </el-select>
           </el-form-item>
@@ -122,10 +125,10 @@
           <el-form-item label="还款方式" prop="repaymentMethod">
             <el-select v-model="formData.repaymentMethod" placeholder="请选择还款方式" clearable multiple>
               <el-option
-                v-for="item in repaymentMethodOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
+                v-for="dict in repayment_method"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
               />
             </el-select>
           </el-form-item>
@@ -171,7 +174,7 @@
           >
             <el-button type="primary" plain>上传PDF文件</el-button>
           </el-upload>
-          <p class="attachment-tip">注：请上传PDF文件，大小不超过 10MB</p>
+          <p class="attachment-tip">注：请上传PDF文件</p>
         </div>
       </el-form-item>
 
@@ -211,29 +214,6 @@ import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
-const normalizeRichText = (content?: string | null): string => {
-  if (!content) return '';
-  const str = typeof content === 'string' ? content : String(content);
-  if (!str) return '';
-
-  try {
-    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(str, 'text/html');
-      return doc.body?.innerHTML || str;
-    }
-  } catch (error) {
-    console.warn('normalizeRichText error:', error);
-  }
-
-  return str
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&');
-};
-
 const props = defineProps<{
   id?: string | number | null;
   type: 'add' | 'edit';
@@ -245,8 +225,8 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { prod_credit_type, applicable_object, product_status } = toRefs<any>(
-  proxy?.useDict('prod_credit_type', 'applicable_object', 'product_status')
+const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = toRefs<any>(
+  proxy?.useDict('prod_credit_type', 'applicable_object', 'repayment_method', 'loan_cycle')
 );
 
 const formRef = ref<FormInstance>();
@@ -267,7 +247,7 @@ interface CreditProductForm {
   maxLoanAmount: number | null;
   baseInterestRate: number | null;
   floatInterestRate: number | null;
-  loanCycle: string;
+  loanCycle: string[];
   repaymentMethod: string[];
   productIntro: string;
   productAdvantages: string;
@@ -277,6 +257,16 @@ interface CreditProductForm {
   cooperationAttachmentName?: string;
   productRemark: string;
 }
+
+const normalizeStatusValue = (status: string | number | undefined | null) => {
+  const value = String(status ?? '').trim();
+  if (!value) return '';
+  const lower = value.toLowerCase();
+  if (value === '2' || lower === 'enabled' || lower === 'online' || value === '上架') return '2';
+  if (value === '3' || lower === 'disabled' || lower === 'offline' || value === '下架') return '3';
+  if (value === '5' || lower === 'pending' || lower === 'waiting' || value === '待上架') return '5';
+  return value;
+};
 
 const formData = ref<CreditProductForm>({
   id: null,
@@ -289,7 +279,7 @@ const formData = ref<CreditProductForm>({
   maxLoanAmount: null,
   baseInterestRate: null,
   floatInterestRate: null,
-  loanCycle: '',
+  loanCycle: [],
   repaymentMethod: [],
   productIntro: '',
   productAdvantages: '',
@@ -300,24 +290,18 @@ const formData = ref<CreditProductForm>({
   productRemark: ''
 });
 
-const loanCycleOptions = [
-  { label: '3期（3个月）', value: '3' },
-  { label: '6期（6个月）', value: '6' },
-  { label: '12期（12个月）', value: '12' },
-  { label: '24期（24个月）', value: '24' },
-  { label: '36期（36个月）', value: '36' },
-  { label: '48期（48个月）', value: '48' },
-  { label: '60期（60个月）', value: '60' }
-];
-
-const repaymentMethodOptions = [
-  { label: '等额本息', value: '0' },
-  { label: '等额本金', value: '2' },
-  { label: '先息后本', value: '3' },
-  { label: '先本后息', value: '4' }
-];
-
 const attachmentFileList = ref<UploadFile[]>([]);
+
+const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
+  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
+  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
+  return {
+    uid,
+    name: payload.name || '附件',
+    url: payload.url || '',
+    status: 'success'
+  } as UploadFile;
+};
 
 const rules: FormRules = {
   productName: [
@@ -326,7 +310,6 @@ const rules: FormRules = {
   ],
   productType: [{ required: true, message: '请选择产品类型', trigger: 'change' }],
   applicableObject: [{ required: true, message: '请选择适用对象', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
   minLoanAmount: [
     {
       validator: (_rule, value, callback) => {
@@ -379,7 +362,18 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
-  loanCycle: [{ required: true, message: '请选择可贷周期', trigger: 'change' }],
+  loanCycle: [
+    {
+      validator: (_rule, value, callback) => {
+        if (!Array.isArray(value) || value.length === 0) {
+          callback(new Error('请选择可贷周期'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
+  ],
   repaymentMethod: [{ required: true, message: '请选择还款方式', trigger: 'change' }],
   productIntro: [
     { required: true, message: '请输入产品简介', trigger: 'blur' },
@@ -441,34 +435,71 @@ const rules: FormRules = {
   ]
 };
 
+const syncAttachmentFromDetail = (data: any) => {
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    const file = ossList[0] || {};
+    formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
+    formData.value.cooperationAttachmentName = file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件';
+    attachmentFileList.value = [
+      buildUploadFileItem({
+        ossId: file.ossId || data.cooperationAttachment,
+        name: file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件',
+        url: file.url || data.cooperationAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  if (data?.cooperationAttachment) {
+    formData.value.cooperationAttachment = data.cooperationAttachment;
+    formData.value.cooperationAttachmentName = data.cooperationAttachmentName || '合作机构附件';
+    attachmentFileList.value = [
+      buildUploadFileItem({
+        ossId: data.cooperationAttachment,
+        name: data.cooperationAttachmentName || '合作机构附件',
+        url: data.cooperationAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  attachmentFileList.value = [];
+  formData.value.cooperationAttachment = null;
+  formData.value.cooperationAttachmentName = '';
+};
+
 const fetchDetail = async () => {
   if (!props.id) return;
   loading.value = true;
   try {
     const response = await creditProductDetail(props.id as string | number);
-    console.log('详情接口返回:', response);
     if (response && response.code === 200 && response.data) {
       const data = response.data;
-      console.log('详情数据:', data);
+      
+      const productAdvantages = data.productAdvantages || '';
+      const applicableInstructions = data.applicableInstructions || '';
+      const applicationInstructions = data.applicationInstructions || '';
+      
       formData.value = {
         id: data.id,
         productId: data.productId,
         productName: data.productName || '',
         productType: data.productType || '',
         applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
-        status: data.productStatus || data.status || '',
+        status: normalizeStatusValue(data.productStatus || data.status || ''),
         minLoanAmount: data.minLoanAmount ?? null,
         maxLoanAmount: data.maxLoanAmount ?? null,
         baseInterestRate: data.baseInterestRate ?? data.minInterestRate ?? null,
         floatInterestRate: data.floatInterestRate ?? data.maxInterestRate ?? null,
-        loanCycle: data.loanCycle || '',
+        loanCycle: data.loanCycle
+          ? (Array.isArray(data.loanCycle) ? data.loanCycle : data.loanCycle.split(','))
+          : [],
         repaymentMethod: data.repaymentMethod ? (Array.isArray(data.repaymentMethod) ? data.repaymentMethod : data.repaymentMethod.split(',')) : [],
         productIntro: data.productIntro || '',
-        productAdvantages: normalizeRichText(data.productAdvantages),
-        applicableInstructions: normalizeRichText(data.applicableInstructions),
-        applicationInstructions: normalizeRichText(data.applicationInstructions),
+        productAdvantages,
+        applicableInstructions,
+        applicationInstructions,
         cooperationAttachment: data.cooperationAttachment || null,
-        cooperationAttachmentName: data.cooperationAttachmentName || data.cooperationAttachmentUrl || '',
+        cooperationAttachmentName: data.cooperationAttachmentName || '',
         productRemark: data.productRemark || ''
       };
       
@@ -476,19 +507,13 @@ const fetchDetail = async () => {
       instructionsEditorKey.value += 1;
       applicationEditorKey.value += 1;
       await nextTick();
-      await nextTick();
       
-      if (data.cooperationAttachment && data.cooperationAttachmentName) {
-        attachmentFileList.value = [
-          {
-            name: data.cooperationAttachmentName,
-            url: data.cooperationAttachmentUrl,
-            status: 'success'
-          } as UploadFile
-        ];
-      } else {
-        attachmentFileList.value = [];
-      }
+      syncAttachmentFromDetail({
+        cooperationAttachment: formData.value.cooperationAttachment,
+        cooperationAttachmentName: formData.value.cooperationAttachmentName,
+        cooperationAttachmentUrl: data.cooperationAttachmentUrl,
+        ossFileVo: data.ossFileVo
+      });
     } else {
       ElMessage.error(response?.msg || '获取产品详情失败');
     }
@@ -513,7 +538,9 @@ const handleSubmit = () => {
         maxLoanAmount: Math.round((formData.value.maxLoanAmount ?? 0) * 100) / 100,
         baseInterestRate: formData.value.baseInterestRate ?? 0,
         floatInterestRate: formData.value.floatInterestRate ?? 0,
-        loanCycle: formData.value.loanCycle,
+        loanCycle: Array.isArray(formData.value.loanCycle)
+          ? formData.value.loanCycle.join(',')
+          : formData.value.loanCycle,
         repaymentMethod: Array.isArray(formData.value.repaymentMethod) ? formData.value.repaymentMethod.join(',') : formData.value.repaymentMethod,
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
@@ -524,27 +551,20 @@ const handleSubmit = () => {
       if (formData.value.cooperationAttachment) {
         payload.cooperationAttachment = formData.value.cooperationAttachment;
       }
+      payload.productStatus = normalizeStatusValue(formData.value.status) || '3';
       if (props.type === 'edit') {
-        if (!formData.value.id || !formData.value.productId) {
-          ElMessage.error('编辑ID为空，无法提交');
+        payload.id = props.id ?? formData.value.id ?? null;
+        if (!payload.id) {
+          ElMessage.error('未获取到产品ID，无法提交');
           return;
         }
-        payload.id = formData.value.id;
-        payload.productId = formData.value.productId;
-        payload.productStatus = formData.value.status || '3';
+        if (formData.value.productId !== undefined && formData.value.productId !== null) {
+          payload.productId = formData.value.productId;
+        }
         payload.optType = '1';
       } else {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        payload.createTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         payload.productStatus = '3';
       }
-      console.log('提交参数:', payload, '类型:', props.type);
       const api = props.type === 'edit' ? editCreditProduct : addCreditProduct;
       const response = await api(payload);
       if (response && response.code === 200) {
@@ -554,7 +574,6 @@ const handleSubmit = () => {
         ElMessage.error(response?.msg || (props.type === 'edit' ? '修改失败' : '新增失败'));
       }
     } catch (error: any) {
-      console.error('提交错误:', error);
       ElMessage.error(error?.message || (props.type === 'edit' ? '修改失败，请稍后重试' : '新增失败，请稍后重试'));
     } finally {
       saving.value = false;
@@ -584,11 +603,11 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
       formData.value.cooperationAttachment = response.data.ossId;
       formData.value.cooperationAttachmentName = response.data.fileName || (file as File).name;
       attachmentFileList.value = [
-        {
+        buildUploadFileItem({
+          ossId: response.data.ossId,
           name: formData.value.cooperationAttachmentName,
-          url: response.data.url,
-          status: 'success'
-        } as UploadFile
+          url: response.data.url
+        })
       ];
       ElMessage.success('附件上传成功');
       onSuccess?.(response);
@@ -662,12 +681,24 @@ onMounted(() => {
   }
 }
 
-
-
 .attachment-upload {
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  .upload-block {
+    :deep(.el-upload-list) {
+      margin-top: 8px;
+    }
+
+    :deep(.el-upload-list__item) {
+      margin-top: 8px;
+    }
+
+    :deep(.el-upload-list__item-delete) {
+      display: none !important;
+    }
+  }
 
   .attachment-tip {
     font-size: 12px;

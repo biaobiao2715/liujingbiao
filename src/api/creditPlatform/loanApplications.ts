@@ -9,6 +9,29 @@ export function getloanApplicationsList(data: any) {
     params: data
   });
 }
+//企业信息
+export function getEnterprise(data: any) {
+  return request({
+    url: '/credit-server/loanApplications/entByUserId',
+    method: 'get',
+    params: data
+  });
+}
+//个人信息
+export function getPersonal(data: any) {
+  return request({
+    url: '/credit-server/loanApplications/perByUserId',
+    method: 'get',
+    params: data
+  });
+}
+// 获取剩余详情
+export function getRemainingDetail(id: number | string) {
+  return request({
+    url: `/credit-server/loanApplications/${id}`,
+    method: 'get',
+  });
+}
 export const ossUpload = (data: { file: File }) => {
   const formData = new FormData();
   formData.append('file', data.file);

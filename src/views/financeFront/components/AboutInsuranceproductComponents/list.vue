@@ -39,7 +39,7 @@
       <el-table-column label="产品简介" align="center" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:business:queryByTenant']" type="primary" @click="handleEdit(scope.row)">详情</el-button>
+          <el-button v-throttle type="primary" @click="handleEdit(scope.row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -91,9 +91,7 @@ const selectID = ref<string | number>('');
 /** 查询保险产品列表 */
 const getList = () => {
   loading.value = true;
-  const { reviewTime, ...rest } = queryParams.value as any;
-  const [reviewStartTime, reviewEndTime] = Array.isArray(reviewTime) ? reviewTime : [];
-  const params = { ...rest, ...(reviewStartTime && reviewEndTime ? { reviewStartTime, reviewEndTime } : {}) };
+  const params = { ...queryParams.value };
 
   getInsuranceProductsVersionList(params).then((res) => {
     tableData.value = res.rows;

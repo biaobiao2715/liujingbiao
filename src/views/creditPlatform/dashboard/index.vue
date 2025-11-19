@@ -1,8 +1,6 @@
-<!-- 金融首页 -->
 <template>
   <div class="credit-dashboard">
     <div class="dashboard-content">
-      <!-- 顶部统计卡片区域 -->
       <div class="top-stats-row">
         <div class="top-stat-card-wrapper">
           <el-card shadow="never" class="top-stat-card">
@@ -47,7 +45,6 @@
       </div>
 
       <div class="main-content">
-          <!-- 中间详细数据区域 -->
           <div class="middle-section">
             <el-row :gutter="20">
               <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
@@ -108,7 +105,6 @@
             </el-row>
           </div>
 
-          <!-- 底部趋势图区域 -->
           <div class="bottom-chart-section">
             <div class="chart-header">
               <div class="chart-title">近6个月违约率趋势</div>
@@ -134,7 +130,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
-import { Money, Warning, TrendCharts, ArrowUp, ArrowDown } from '@element-plus/icons-vue';
+import { Money, Warning, TrendCharts } from '@element-plus/icons-vue';
 import { getDashboardStats } from '@/api/creditPlatform/dashboard';
 
 interface DashboardData {
@@ -165,14 +161,6 @@ const dashboardData = ref<DashboardData>({
   monthlyOverdueAmount: 0
 });
 
-// 进度条颜色
-const progressColors = {
-  green: '#67c23a',
-  blue: '#409eff',
-  red: '#f56c6c'
-};
-
-// 图表标签
 const chartTabs = [
   { label: '月度', value: 'month' },
   { label: '年度', value: 'year' },
@@ -182,7 +170,6 @@ const activeTab = ref('month');
 
 const defaultRateChart = ref<HTMLElement>();
 
-// 格式化金额
 const formatAmount = (amount: number) => {
   if (amount >= 100000000) {
     return (amount / 100000000).toFixed(2) + '亿';
@@ -194,7 +181,6 @@ const formatAmount = (amount: number) => {
 
 const chartData = ref<any[]>([]);
 
-// 初始化违约率趋势图表
 const initDefaultRateChart = () => {
   if (!defaultRateChart.value) return;
   const chart = echarts.init(defaultRateChart.value);
@@ -282,8 +268,6 @@ const initDefaultRateChart = () => {
     ]
   };
   chart.setOption(option);
-
-  // 响应式
   window.addEventListener('resize', () => {
     chart.resize();
   });
@@ -292,28 +276,36 @@ const initDefaultRateChart = () => {
 const fetchDashboardData = async () => {
   try {
     const res = await getDashboardStats();
-    if (res && res.code === 200 && res.data) {
+    let data = null;
+    
+    if (res && res.code === 200) {
+      data = Array.isArray(res.data) ? res.data[0] : res.data;
+    } else if (Array.isArray(res)) {
+      data = res[0];
+    } else if (res && typeof res === 'object') {
+      data = res;
+    }
+    
+    if (data) {
       dashboardData.value = {
-        pendingApprovals: res.data.pendingApprovals || 0,
-        totalLoanApprovals: res.data.totalLoanApprovals || 0,
-        approvedLoans: res.data.approvedLoans || 0,
-        rejectedLoans: res.data.rejectedLoans || 0,
-        cancelledApplications: res.data.cancelledApplications || 0,
-        totalApprovedAmount: res.data.totalApprovedAmount || 0,
-        currentOverdueAmount: res.data.currentOverdueAmount || 0,
-        totalDefaultRate: res.data.totalDefaultRate || 0,
-        monthlyReceivableAmount: res.data.monthlyReceivableAmount || 0,
-        monthlyReceivedAmount: res.data.monthlyReceivedAmount || 0,
-        monthlyOverdueAmount: res.data.monthlyOverdueAmount || 0
+        pendingApprovals: data.pendingApprovals || 0,
+        totalLoanApprovals: data.totalLoanApprovals || 0,
+        approvedLoans: data.approvedLoans || 0,
+        rejectedLoans: data.rejectedLoans || 0,
+        cancelledApplications: data.cancelledApplications || 0,
+        totalApprovedAmount: data.totalApprovedAmount || 0,
+        currentOverdueAmount: data.currentOverdueAmount || 0,
+        totalDefaultRate: data.totalDefaultRate || 0,
+        monthlyReceivableAmount: data.monthlyReceivableAmount || 0,
+        monthlyReceivedAmount: data.monthlyReceivedAmount || 0,
+        monthlyOverdueAmount: data.monthlyOverdueAmount || 0
       };
-      chartData.value = res.data.lastSixMonthsDefaultRates || [];
+      chartData.value = data.lastSixMonthsDefaultRates || [];
       nextTick(() => {
         initDefaultRateChart();
       });
     }
-  } catch (error) {
-    console.error('获取首页数据失败:', error);
-  }
+  } catch (error) {}
 };
 
 onMounted(() => {
@@ -333,7 +325,6 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-// 顶部统计卡片
 .top-stats-row {
   display: flex;
   gap: 16px;
@@ -383,28 +374,27 @@ onMounted(() => {
   width: 100%;
 }
 
-// 中间详细数据区域
 .middle-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0f1b2d;
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
 }
 
 .data-card {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(19, 30, 49, 0.95);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.3s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(19, 30, 49, 1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
   }
 
   &:last-child {
@@ -420,7 +410,7 @@ onMounted(() => {
 
   .data-card-title {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
   }
 
@@ -450,49 +440,11 @@ onMounted(() => {
   word-break: break-word;
 }
 
-.data-card-trend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-
-  .el-icon {
-    font-size: 14px;
-  }
-
-  &.trend-up {
-    color: #67c23a;
-  }
-
-  &.trend-down {
-    color: #f56c6c;
-  }
-}
-
-.progress-section {
-  margin-top: 12px;
-
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-
-    .progress-target,
-    .progress-label {
-      color: rgba(255, 255, 255, 0.6);
-    }
-  }
-}
-
-// 底部趋势图区域
 .bottom-chart-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0f1b2d;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
 }
 
 .chart-header {
@@ -519,8 +471,6 @@ onMounted(() => {
   width: 100%;
   height: 400px;
 }
-
-// 响应式
 
 @media (max-width: 992px) {
   .top-stats-row {
@@ -578,18 +528,6 @@ onMounted(() => {
   .chart-header {
     .chart-title {
       font-size: 16px;
-    }
-  }
-
-  .legend-box {
-    padding: 12px;
-
-    .legend-title {
-      font-size: 14px;
-    }
-
-    .legend-content {
-      max-height: none;
     }
   }
 }

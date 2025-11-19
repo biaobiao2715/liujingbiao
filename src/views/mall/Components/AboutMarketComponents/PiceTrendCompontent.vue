@@ -50,13 +50,12 @@
       <div class="chart-section">
         <PriceTrendChart
           :title="`过去${activeTimeRange}天小麦种子价格`"
-          unit="单位: 元/kg"
+          unit="单位: 元/斤"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
           :y-axis-min="0"
           :y-axis-max="80"
           :y-axis-interval="15"
-          v-loading="loading"
         />
       </div>
 
@@ -66,11 +65,10 @@
         <div class="price-card">
           <h4 class="card-title">当日价格</h4>
           <div class="card-content">
-            <p>当日均价(元/kg): {{ priceStats.todayPrice.toFixed(2) }}</p>
-            <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
-              相较昨日价格: {{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%
-              <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
-              <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
+            <p>当日均价(元/斤): 60.05</p>
+            <p class="price-change text-red">
+              相较昨日价格: 2.03%
+              <el-icon class="text-red"><i-ep-arrow-up /></el-icon>
             </p>
           </div>
         </div>
@@ -79,10 +77,10 @@
         <div class="price-card">
           <h4 class="card-title">近7日价格</h4>
           <div class="card-content">
-            <p>近7日最高价(元/kg): {{ priceStats.maxPrice }}</p>
-            <p>近7日最低价(元/kg): {{ priceStats.minPrice }}</p>
-            <p>近7日均价(元/kg): {{ priceStats.avgPrice.toFixed(2) }}</p>
-            <p>近7日价格走势: {{ priceStats.trend }}</p>
+            <p>近7日最高价(元/斤): 80</p>
+            <p>近7日最低价(元/斤): 40</p>
+            <p>近7日均价(元/斤): 60</p>
+            <p>近7日价格走势: 趋于平稳</p>
           </div>
           <el-button type="primary" class="heatmap-button" @click="viewHeatmap">
             查看区域价格差异热力图
@@ -95,7 +93,7 @@
     <!-- 热门推荐表格 -->
     <div class="recommendations-section">
       <h3 class="section-title">热门推荐</h3>
-      <el-table :data="recommendationTableData" border v-loading="recommendationLoading" style="width: 100%">
+      <el-table :data="recommendationTableData" border v-loading="loading" style="width: 100%">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="time" label="时间" align="center" width="120" />
         <el-table-column prop="variety" label="品种" align="center" width="120" />
@@ -122,76 +120,21 @@
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
-          <template #default="{ row }">
-            <el-link type="primary" @click="viewReport(row)">价格专项报告</el-link>
+          <template #default>
+            <el-link type="primary" @click="viewReport">价格专项报告</el-link>
           </template>
         </el-table-column>
       </el-table>
     </div>
-
-    <!-- 价格专项报告弹窗 -->
-    <el-dialog
-      v-model="reportDialogVisible"
-      title="专项价格分析报告"
-      width="90%"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
-      <div class="report-header">
-        <div class="report-info">
-          <span class="info-item">品种: {{ reportInfo.variety }}</span>
-          <span class="info-item">产地: {{ reportInfo.origin }}</span>
-        </div>
-      </div>
-      <el-table
-        :data="reportTableData"
-        border
-        v-loading="reportLoading"
-        style="width: 100%; margin-top: 16px"
-      >
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="goodsName" label="商品名称" align="center" min-width="200" :show-overflow-tooltip="true" />
-        <el-table-column label="商品图片" align="center" width="120">
-          <template #default="{ row }">
-            <el-image
-              v-if="row.goodsImage"
-              :src="row.goodsImage"
-              :preview-src-list="[row.goodsImage]"
-              style="width: 60px; height: 60px"
-              fit="cover"
-            />
-            <span v-else class="text-gray">暂无图片</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsPrice" label="商品价格" align="center" width="120" />
-        <el-table-column prop="supplierName" label="供应商名称" align="center" min-width="180" :show-overflow-tooltip="true" />
-        <el-table-column prop="credentialLevelText" label="供应商资质等级" align="center" width="150" />
-        <el-table-column prop="creditLevelText" label="供应商信用等级" align="center" width="150" />
-      </el-table>
-      <!-- 分页 -->
-      <div class="flex-center pagination">
-        <pagination
-          v-show="reportTotal > 0"
-          v-model:page="reportQueryParams.pageNum"
-          v-model:limit="reportQueryParams.pageSize"
-          :total="reportTotal"
-          @pagination="handleReportPagination"
-        />
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
 import RegionSelect from '@/components/RegionSelect/index.vue'
 import PriceTrendChart from './PriceTrendChart.vue'
-import { priceActionList, hotRecommendationList, priceExplanationList, priceSpecialReportList, heatmapList } from '@/api/mall/marketComponent'
-import Pagination from '@/components/Pagination/index.vue'
-import { eventBus } from '@/utils/eventBus'
 
 const router = useRouter()
 const loading = ref(false)
@@ -201,167 +144,132 @@ const activeTimeRange = ref(7)
 // 查询参数
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组
-  origin: [] as string[] // 区域选择路径数组
+  origin: [] as string[] // 省市区数组
 })
 
-// 区域代码
-const regionCodes = reactive({
-  provinceCode: '',
-  cityCode: '',
-  regionCode: ''
-})
-
-// 图表数据
-const currentChartData = ref({
-  dates: [] as string[],
-  prices: [] as number[]
-})
-
-// 价格统计数据
-const priceStats = ref({
-  todayPrice: 0,
-  yesterdayPrice: 0,
-  priceChange: 0,
-  maxPrice: 0,
-  minPrice: 0,
-  avgPrice: 0,
-  trend: '暂无数据'
-})
-
-
-// 热门推荐表格数据
-const recommendationTableData = ref<any[]>([])
-const recommendationLoading = ref(false)
-
-// 价格专项报告弹窗相关
-const reportDialogVisible = ref(false)
-const reportTableData = ref<any[]>([])
-const reportLoading = ref(false)
-const reportTotal = ref(0)
-const reportInfo = ref({
-  variety: '--',
-  origin: '--'
-})
-const reportQueryParams = reactive({
-  goodsCategoryId: '',
-  regionCode: '',
-  pageNum: 1,
-  pageSize: 10
-})
-
-const credentialLevelMap: Record<string, string> = {
-  '0': '一级认证',
-  '1': '二级认证',
-  '2': '三级认证'
+// 图表数据（写死，根据图片精确值）
+const chartData7Days = {
+  dates: ['10-23', '10-24', '10-25', '10-26', '10-27', '10-28', '10-29'],
+  prices: [42, 30, 55, 65, 18, 27, 30] // 根据图片描述调整的精确值
 }
 
-const creditLevelMap: Record<string, string> = {
-  '0': '优秀',
-  '1': '良好',
-  '2': '一般',
-  '3': '一般以下',
-  '99': '较差'
+const chartData30Days = {
+  dates: Array.from({ length: 30 }, (_, i) => {
+    const date = new Date()
+    date.setDate(date.getDate() - 30 + i)
+    return `${date.getMonth() + 1}-${date.getDate()}`
+  }),
+  prices: Array.from({ length: 30 }, () => Math.floor(Math.random() * 40) + 30)
 }
 
-const getCredentialLevelText = (level: any) => {
-  if (level === undefined || level === null || level === '') return '--'
-  return credentialLevelMap[String(level)] || '--'
+const chartData60Days = {
+  dates: Array.from({ length: 60 }, (_, i) => {
+    const date = new Date()
+    date.setDate(date.getDate() - 60 + i)
+    return `${date.getMonth() + 1}-${date.getDate()}`
+  }),
+  prices: Array.from({ length: 60 }, () => Math.floor(Math.random() * 40) + 30)
 }
 
-const getCreditLevelText = (level: any) => {
-  if (level === undefined || level === null || level === '') return '--'
-  return creditLevelMap[String(level)] || '--'
-}
 
-const applyExternalFilters = (payload: any) => {
-  if (!payload) return
-  const goodsCategoryId = payload.goodsCategoryId || ''
-  queryParams.variety = goodsCategoryId ? [goodsCategoryId] : []
-
-  regionCodes.provinceCode = payload.provinceCode || ''
-  regionCodes.cityCode = payload.cityCode || ''
-  regionCodes.regionCode = payload.regionCode || ''
-
-  const originPath: string[] = []
-  if (payload.provinceName) originPath.push(payload.provinceName)
-  if (payload.cityName) originPath.push(payload.cityName)
-  if (payload.regionName) originPath.push(payload.regionName)
-  queryParams.origin = originPath
-
-  fetchPriceData()
-  fetchPriceExplanation()
-  fetchHotRecommendation()
-}
-
-// 获取价格走势数据
-const fetchPriceData = async () => {
-  loading.value = true
-  try {
-    // 转换时间范围为接口参数
-    let priceActionDays = 1
-    if (activeTimeRange.value === 7) {
-      priceActionDays = 1
-    } else if (activeTimeRange.value === 30) {
-      priceActionDays = 2
-    } else if (activeTimeRange.value === 60) {
-      priceActionDays = 3
-    }
-
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
-      ? queryParams.variety[queryParams.variety.length - 1] 
-      : ''
-
-    const params: any = {
-      priceActionDays,
-      regionCode: regionCodes.regionCode || '',
-      goodsCategoryId
-    }
-
-    const response = await priceActionList(params)
-    if (response && response.code === 200) {
-      const data = response.data || {}
-      // 处理返回数据，转换为图表需要的格式
-      const dates: string[] = []
-      const prices: number[] = []
-      
-      // 后端返回 xAxis 和 yAxis 数组
-      if (data.xAxis && Array.isArray(data.xAxis)) {
-        data.xAxis.forEach((dateStr: string) => {
-          // 格式化日期为 MM-DD 格式
-          const date = new Date(dateStr)
-          dates.push(`${date.getMonth() + 1}-${date.getDate()}`)
-        })
-      }
-      
-      if (data.yAxis && Array.isArray(data.yAxis)) {
-        data.yAxis.forEach((priceStr: string | number) => {
-          prices.push(Number(priceStr || 0))
-        })
-      }
-
-      currentChartData.value = {
-        dates: dates.length > 0 ? dates : [],
-        prices: prices.length > 0 ? prices : []
-      }
-    } else {
-      ElMessage.error(response?.msg || '获取价格走势数据失败')
-      currentChartData.value = { dates: [], prices: [] }
-    }
-  } catch (error) {
-    console.error('获取价格走势数据失败:', error)
-    ElMessage.error('获取价格走势数据失败，请稍后重试')
-    currentChartData.value = { dates: [], prices: [] }
-  } finally {
-    loading.value = false
+// 热门推荐表格数据（写死）
+const recommendationTableData = ref([
+  {
+    id: 1,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 2,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 3,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 4,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 5,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: 20.21
+  },
+  {
+    id: 6,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: -13.86
+  },
+  {
+    id: 7,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 8,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 9,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
+  },
+  {
+    id: 10,
+    time: '2025-11-04',
+    variety: '小麦种子',
+    origin: '湖北省武汉市汉南区',
+    price: '50元/斤',
+    change: '-'
   }
-}
+])
+
+// 当前图表数据
+const currentChartData = computed(() => {
+  if (activeTimeRange.value === 7) {
+    return chartData7Days
+  } else if (activeTimeRange.value === 30) {
+    return chartData30Days
+    } else {
+    return chartData60Days
+  }
+})
 
 // 切换时间范围
 const changeTimeRange = (days: number) => {
   activeTimeRange.value = days
-  fetchPriceData()
-  // 注意：不调用 fetchPriceExplanation，保持右侧显示近7日数据
 }
 
 // 品种分类变化处理
@@ -372,194 +280,17 @@ const handleCategoryChange = (value: string[]) => {
 
 // 产地变化处理
 const handleRegionChange = (value: any) => {
-  if (value && value.regionPath) {
-    queryParams.origin = value.regionPath
-    regionCodes.provinceCode = value.provinceCode || ''
-    regionCodes.cityCode = value.cityCode || ''
-    regionCodes.regionCode = value.regionCode || ''
+  if (value) {
+    queryParams.origin = value.regionPath || []
   } else {
     queryParams.origin = []
-    regionCodes.provinceCode = ''
-    regionCodes.cityCode = ''
-    regionCodes.regionCode = ''
   }
   console.log('选择的产地:', value)
-}
-
-// 获取昨天的日期（YYYY-MM-DD格式）
-const getYesterdayDate = () => {
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const year = yesterday.getFullYear()
-  const month = String(yesterday.getMonth() + 1).padStart(2, '0')
-  const day = String(yesterday.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-// 获取价格说明数据
-const fetchPriceExplanation = async () => {
-  try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
-      ? queryParams.variety[queryParams.variety.length - 1] 
-      : ''
-
-    const params: any = {
-      goodsCategoryId: goodsCategoryId || '',
-      regionCode: regionCodes.regionCode || ''
-    }
-
-    const response = await priceExplanationList(params)
-    if (response && response.code === 200) {
-      const data = response.data || {}
-      
-      // 处理价格走势：将数字转换为文字描述
-      let trendText = '趋于平稳'
-      if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
-        const trendValue = String(data.sevenDaysPriceTrend)
-        switch (trendValue) {
-          case '1':
-            trendText = '上涨'
-            break
-          case '2':
-            trendText = '下跌'
-            break
-          case '3':
-            trendText = '平稳'
-            break
-          case '4':
-            trendText = '波动'
-            break
-          case '5':
-            trendText = '趋于平稳'
-            break
-          default:
-            trendText = '趋于平稳'
-        }
-      }
-      
-      // 映射接口返回的数据到价格统计
-      priceStats.value = {
-        todayPrice: Number(data.yesterdayPrice || 0), // 使用昨日价格作为当日价格显示
-        yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
-        priceChange: Number(data.dayToDayChangeRate || 0), // 日环比变化率
-        maxPrice: Number(data.sevenDaysHighPrice || 0),
-        minPrice: Number(data.sevenDaysLowPrice || 0),
-        avgPrice: Number(data.sevenDaysPriceAvg || 0),
-        trend: trendText
-      }
-    } else {
-      ElMessage.error(response?.msg || '获取价格说明数据失败')
-      // 重置为默认值
-      priceStats.value = {
-        todayPrice: 0,
-        yesterdayPrice: 0,
-        priceChange: 0,
-        maxPrice: 0,
-        minPrice: 0,
-        avgPrice: 0,
-        trend: '暂无数据'
-      }
-    }
-  } catch (error) {
-    console.error('获取价格说明数据失败:', error)
-    ElMessage.error('获取价格说明数据失败，请稍后重试')
-    // 重置为默认值
-    priceStats.value = {
-      todayPrice: 0,
-      yesterdayPrice: 0,
-      priceChange: 0,
-      maxPrice: 0,
-      minPrice: 0,
-      avgPrice: 0,
-      trend: '暂无数据'
-    }
-  }
-}
-
-// 获取热门推荐数据
-const fetchHotRecommendation = async () => {
-  recommendationLoading.value = true
-  try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
-      ? queryParams.variety[queryParams.variety.length - 1] 
-      : ''
-
-    const params: any = {
-      goodsCategoryId: goodsCategoryId || '',
-      regionCode: regionCodes.regionCode || '',
-      analysisDate: getYesterdayDate()
-    }
-
-    const response = await hotRecommendationList(params)
-    if (response && response.code === 200) {
-      const data = response.data || response.rows || []
-      // 映射接口返回的数据到表格需要的格式，保留原始字段用于弹窗
-      recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
-        // 格式化日期：从 "2025-11-15 00:00:00" 提取日期部分
-        let time = '--'
-        if (item.analysisDate) {
-          const dateStr = item.analysisDate
-          if (dateStr.includes(' ')) {
-            time = dateStr.split(' ')[0] // 取日期部分
-          } else {
-            time = dateStr
-          }
-        }
-        
-        // 组合产地：省+市+区县
-        let origin = '--'
-        const parts: string[] = []
-        if (item.provinceName) parts.push(item.provinceName)
-        if (item.cityName) parts.push(item.cityName)
-        if (item.regionName) parts.push(item.regionName)
-        if (parts.length > 0) {
-          origin = parts.join('')
-        }
-        
-        // 处理价格变化百分比
-        let change: number | string = '-'
-        if (item.priceUpDown !== undefined && item.priceUpDown !== null && item.priceUpDown !== '') {
-          const changeValue = Number(item.priceUpDown)
-          if (!isNaN(changeValue)) {
-            change = changeValue
-          }
-        }
-        
-        return {
-          id: item.id,
-          time,
-          variety: item.goodsCategoryName || '--',
-          origin,
-          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
-          change,
-          // 保留原始字段用于弹窗
-          goodsCategoryId: item.goodsCategoryId || '',
-          regionCode: item.regionCode || '',
-          goodsCategoryName: item.goodsCategoryName || '--',
-          regionName: origin // 使用组合后的产地名称
-        }
-      })
-    } else {
-      ElMessage.error(response?.msg || '获取热门推荐数据失败')
-      recommendationTableData.value = []
-    }
-  } catch (error) {
-    console.error('获取热门推荐数据失败:', error)
-    ElMessage.error('获取热门推荐数据失败，请稍后重试')
-    recommendationTableData.value = []
-  } finally {
-    recommendationLoading.value = false
-  }
 }
 
 // 查询
 const handleQuery = () => {
   console.log('查询参数:', queryParams)
-  fetchPriceData()
-  fetchPriceExplanation()
-  fetchHotRecommendation()
 }
 
 // 重置
@@ -567,164 +298,19 @@ const resetQuery = () => {
   queryFormRef.value?.resetFields()
   queryParams.variety = []
   queryParams.origin = []
-  regionCodes.provinceCode = ''
-  regionCodes.cityCode = ''
-  regionCodes.regionCode = ''
   activeTimeRange.value = 7
-  fetchPriceData()
-  fetchPriceExplanation()
-  fetchHotRecommendation()
 }
 
 // 查看热力图
-const viewHeatmap = async () => {
-  try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
-      ? queryParams.variety[queryParams.variety.length - 1] 
-      : ''
-    
-    if (!goodsCategoryId) {
-      ElMessage.warning('请先选择品种')
-      return
-    }
-    
-    const params: any = {
-      goodsCategoryId: goodsCategoryId
-    }
-    
-    // 调用热力图接口
-    const response = await heatmapList(params)
-    if (response && response.code === 200) {
-      const data = response.data || []
-      // 将数据转换为热力图需要的格式
-      const heatmapData = (Array.isArray(data) ? data : []).map((item: any) => {
-        // 处理省份名称：去掉"省"、"市"、"自治区"等后缀
-        let provinceName = item.provinceName || ''
-        provinceName = provinceName.replace(/省$|市$|自治区$|特别行政区$/, '')
-        
-        return {
-          name: provinceName,
-          value: Number(item.goodsPriceAvg || 0),
-          provinceCode: item.provinceCode || '',
-          provinceName: item.provinceName || '',
-          goodsPriceAvg: item.goodsPriceAvg || '0',
-          yesterdaySales: item.yesterdaySales || 0,
-          yesterdayTotalSales: item.yesterdayTotalSales || '0.00'
-        }
-      })
-      
-      // 将数据存储到 sessionStorage，供热力图页面使用
-      sessionStorage.setItem('heatmapData', JSON.stringify(heatmapData))
-      
-      // 跳转到热力图页面，通过 query 参数传递 goodsCategoryId
-      router.push({
-        path: '/mall/price-heatmap',
-        query: {
-          goodsCategoryId: goodsCategoryId
-        }
-      })
-    } else {
-      ElMessage.error(response?.msg || '获取热力图数据失败')
-    }
-  } catch (error) {
-    console.error('获取热力图数据失败:', error)
-    ElMessage.error('获取热力图数据失败，请稍后重试')
-  }
+const viewHeatmap = () => {
+  // 跳转到热力图页面
+  router.push('/mall/price-heatmap')
 }
 
 // 查看报告
-const viewReport = (row: any) => {
-  if (!row) {
-    ElMessage.warning('数据异常，无法查看报告')
-    return
-  }
-  
-  // 设置报告信息
-  reportInfo.value = {
-    variety: row.goodsCategoryName || row.variety || '--',
-    origin: row.regionName || row.origin || '--'
-  }
-  
-  // 设置查询参数
-  reportQueryParams.goodsCategoryId = row.goodsCategoryId || ''
-  reportQueryParams.regionCode = row.regionCode || ''
-  reportQueryParams.pageNum = 1
-  reportQueryParams.pageSize = 10
-  
-  // 打开弹窗并加载数据
-  reportDialogVisible.value = true
-  fetchReportList()
+const viewReport = () => {
+  console.log('查看价格专项报告')
 }
-
-// 获取价格专项报告列表
-const fetchReportList = async () => {
-  reportLoading.value = true
-  try {
-    const params: any = {
-      goodsCategoryId: reportQueryParams.goodsCategoryId,
-      regionCode: reportQueryParams.regionCode,
-      pageNum: reportQueryParams.pageNum,
-      pageSize: reportQueryParams.pageSize
-    }
-
-    const response = await priceSpecialReportList(params)
-    if (response && response.code === 200) {
-      const data = response.rows || response.data || []
-      // 映射接口返回的数据到表格需要的格式
-      reportTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
-        const credentialLevelValue = item.credentialLevel !== undefined && item.credentialLevel !== null ? String(item.credentialLevel) : ''
-        const creditLevelValue = item.creditLevel !== undefined && item.creditLevel !== null ? String(item.creditLevel) : ''
-        return {
-          id: item.id,
-          goodsName: item.goodsName || '--',
-          goodsImage: item.goodsImageUrl || '',
-          goodsPrice: item.goodsPrice ? `${item.goodsPrice}元/kg` : '--',
-          supplierName: item.enterpriseName || '--',
-          credentialLevel: credentialLevelValue,
-          credentialLevelText: getCredentialLevelText(credentialLevelValue),
-          creditLevel: creditLevelValue,
-          creditLevelText: getCreditLevelText(creditLevelValue)
-        }
-      })
-      reportTotal.value = response.total || 0
-    } else {
-      ElMessage.error(response?.msg || '获取价格专项报告数据失败')
-      reportTableData.value = []
-      reportTotal.value = 0
-    }
-  } catch (error) {
-    console.error('获取价格专项报告数据失败:', error)
-    ElMessage.error('获取价格专项报告数据失败，请稍后重试')
-    reportTableData.value = []
-    reportTotal.value = 0
-  } finally {
-    reportLoading.value = false
-  }
-}
-
-// 报告分页处理
-const handleReportPagination = (pagination: { page: number; limit: number }) => {
-  reportQueryParams.pageNum = pagination.page
-  reportQueryParams.pageSize = pagination.limit
-  fetchReportList()
-}
-
-// 页面加载时获取数据
-onMounted(() => {
-  fetchPriceData()
-  fetchPriceExplanation()
-  fetchHotRecommendation()
-  eventBus.on('priceTrend:applyFilters', applyExternalFilters)
-})
-
-onBeforeUnmount(() => {
-  try {
-    eventBus.off?.('priceTrend:applyFilters', applyExternalFilters)
-  } catch (error) {
-    // ignore
-  }
-})
 </script>
 
 <style scoped lang="scss">
@@ -872,40 +458,6 @@ onBeforeUnmount(() => {
     font-size: 18px;
     cursor: pointer;
   }
-}
-
-.report-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
-
-  .report-info {
-    display: flex;
-    gap: 24px;
-    font-size: 14px;
-    color: #606266;
-
-    .info-item {
-      font-weight: 500;
-    }
-  }
-}
-
-:deep(.el-dialog__header) {
-  text-align: center;
-  padding: 20px 20px 10px;
-  border-bottom: 1px solid #ebeef5;
-
-  .el-dialog__title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #303133;
-  }
-}
-
-.pagination {
-  margin-top: 20px;
-  justify-content: flex-end;
 }
 </style>
 

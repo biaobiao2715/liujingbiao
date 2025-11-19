@@ -6,24 +6,13 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="产品名称" prop="productName">
-            <el-input
-              v-model="formData.productName"
-              placeholder="请输入产品名称"
-              maxlength="50"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="适用对象" prop="applicableObject">
-            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable>
-              <el-option
-                v-for="dict in applicable_object"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
+              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -33,27 +22,16 @@
         <el-col :span="12">
           <el-form-item label="产品类型" prop="productType">
             <el-select v-model="formData.productType" placeholder="请选择产品类型" clearable>
-              <el-option
-                v-for="dict in product_insurance_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label"
+                :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
       </el-row>
 
       <el-form-item label="产品简介" prop="productIntro">
-        <el-input
-          v-model="formData.productIntro"
-          type="textarea"
-          :rows="3"
-          maxlength="100"
-          show-word-limit
-          placeholder="请输入产品简介（不超过100字）"
-          clearable
-        />
+        <el-input v-model="formData.productIntro" type="textarea" :rows="3" maxlength="100" show-word-limit
+          placeholder="请输入产品简介（不超过100字）" clearable />
       </el-form-item>
 
       <el-form-item label="产品优势" prop="productAdvantages">
@@ -68,36 +46,22 @@
         <Editor v-model="formData.applicationInstructions" :height="420" :minHeight="420" :key="applicationEditorKey" />
       </el-form-item>
 
-      <el-form-item label="产品备注" prop="productRemark">
-        <el-input
-          v-model="formData.productRemark"
-          type="textarea"
-          :rows="3"
-          maxlength="100"
-          show-word-limit
-          placeholder="具体开办的业务种类及办理程序、办理条件等以线下网点信息为准。"
-          clearable
-        />
-      </el-form-item>
-
       <el-form-item label="网点清单" prop="branchOfficeAttachment">
         <div class="attachment-upload">
-          <el-upload
-            class="upload-block"
-            :file-list="attachmentFileList"
-            :http-request="handleAttachmentUpload"
-            :before-upload="beforeAttachmentUpload"
-            :on-remove="handleAttachmentRemove"
-            accept=".pdf"
-            :limit="1"
-            action=""
-            list-type="text"
-          >
+          <el-upload class="upload-block" :file-list="attachmentFileList" :http-request="handleAttachmentUpload"
+            :before-upload="beforeAttachmentUpload" :on-remove="handleAttachmentRemove" accept=".pdf" :limit="1"
+            action="" list-type="text">
             <el-button type="primary" plain>上传PDF文件</el-button>
           </el-upload>
-          <p class="attachment-tip">注：请上传PDF文件，大小不超过 10MB</p>
+          <p class="attachment-tip">注：请上传PDF文件</p>
         </div>
       </el-form-item>
+
+      <el-form-item label="产品备注" prop="productRemark">
+        <el-input v-model="formData.productRemark" type="textarea" :rows="3" maxlength="100" show-word-limit
+          placeholder="具体开办的业务种类及办理程序、办理条件等以线下网点信息为准。" clearable />
+      </el-form-item>
+
 
       <div class="form-actions">
         <el-button type="primary" @click="handleSubmit" :loading="saving">
@@ -110,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
@@ -121,7 +85,7 @@ const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'
 
 const props = defineProps<{
   id?: string | number | null;
-  type: 'add' | 'edit' | 'view';
+  type: 'add' | 'edit';
 }>();
 
 const emit = defineEmits<{
@@ -144,7 +108,9 @@ const applicationEditorKey = ref(0);
 interface InsuranceProductForm {
   productName: string;
   productType: string;
-  applicableObject: string;
+  applicableObject: string[];
+  productId?: string | number | null;
+  status?: string;
   productIntro: string;
   productAdvantages: string;
   guaranteePlan: string;
@@ -157,7 +123,9 @@ interface InsuranceProductForm {
 const formData = ref<InsuranceProductForm>({
   productName: '',
   productType: '',
-  applicableObject: '',
+  applicableObject: [],
+  productId: null,
+  status: '',
   productIntro: '',
   productAdvantages: '',
   guaranteePlan: '',
@@ -200,7 +168,8 @@ const handleSubmit = () => {
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
-        applicableObject: formData.value.applicableObject,
+        applicableObject: Array.isArray(formData.value.applicableObject) ? formData.value.applicableObject.join(',') : formData.value.applicableObject,
+        productStatus: formData.value.status || '3',
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
         guaranteePlan: formData.value.guaranteePlan,
@@ -212,9 +181,10 @@ const handleSubmit = () => {
       }
       if (props.type === 'edit') {
         payload.id = props.id;
+        payload.productId = formData.value.productId;
         payload.optType = '1';
       }
-      const response = props.type === 'edit' 
+      const response = props.type === 'edit'
         ? await editInsuranceProduct(payload)
         : await addInsuranceProduct(payload);
       if (response && response.code === 200) {
@@ -245,6 +215,17 @@ const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
   return true;
 };
 
+const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
+  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
+  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
+  return {
+    uid,
+    name: payload.name || '附件',
+    url: payload.url || '',
+    status: 'success'
+  } as UploadFile;
+};
+
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
   try {
@@ -253,11 +234,11 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
       formData.value.branchOfficeAttachment = response.data.ossId;
       formData.value.branchOfficeAttachmentName = response.data.fileName || (file as File).name;
       attachmentFileList.value = [
-        {
+        buildUploadFileItem({
+          ossId: response.data.ossId,
           name: formData.value.branchOfficeAttachmentName,
-          url: response.data.url,
-          status: 'success'
-        } as UploadFile
+          url: response.data.url
+        })
       ];
       ElMessage.success('附件上传成功');
       onSuccess?.(response);
@@ -280,6 +261,38 @@ const emitCancel = () => {
   emit('cancel');
 };
 
+const syncAttachmentFromDetail = (data: any) => {
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    const file = ossList[0] || {};
+    formData.value.branchOfficeAttachment = file.ossId || data.branchOfficeAttachment || null;
+    formData.value.branchOfficeAttachmentName = file.fileName || file.name || data.branchOfficeAttachmentName || '网点清单';
+    attachmentFileList.value = [
+      buildUploadFileItem({
+        ossId: file.ossId || data.branchOfficeAttachment,
+        name: file.fileName || file.name || data.branchOfficeAttachmentName || '网点清单',
+        url: file.url || file.fileUrl || data.branchOfficeAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  if (data?.branchOfficeAttachment) {
+    formData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+    formData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+    attachmentFileList.value = [
+      buildUploadFileItem({
+        ossId: data.branchOfficeAttachment,
+        name: data.branchOfficeAttachmentName || '网点清单',
+        url: data.branchOfficeAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  attachmentFileList.value = [];
+  formData.value.branchOfficeAttachment = null;
+  formData.value.branchOfficeAttachmentName = '';
+};
+
 const loadDetail = async () => {
   if (!props.id) return;
   loading.value = true;
@@ -290,7 +303,9 @@ const loadDetail = async () => {
       formData.value = {
         productName: data.productName || '',
         productType: data.productType || '',
-        applicableObject: data.applicableObject || '',
+        applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
+        productId: data.productId || null,
+        status: data.productStatus || data.status || '',
         productIntro: data.productIntro || '',
         productAdvantages: data.productAdvantages || '',
         guaranteePlan: data.guaranteePlan || '',
@@ -299,13 +314,9 @@ const loadDetail = async () => {
         branchOfficeAttachmentName: data.branchOfficeAttachmentName || '',
         productRemark: data.productRemark || ''
       };
-      if (data.branchOfficeAttachment && data.branchOfficeAttachmentName) {
-        attachmentFileList.value = [{
-          name: data.branchOfficeAttachmentName,
-          url: '',
-          status: 'success'
-        } as UploadFile];
-      }
+
+      await nextTick();
+      syncAttachmentFromDetail(data);
     }
   } catch (error) {
     ElMessage.error('加载数据失败');
@@ -342,6 +353,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  .upload-block {
+    :deep(.el-upload-list) {
+      margin-top: 8px;
+    }
+
+    :deep(.el-upload-list__item) {
+      margin-top: 8px;
+    }
+
+    :deep(.el-upload-list__item-delete) {
+      display: none !important;
+    }
+  }
 
   .attachment-tip {
     font-size: 12px;

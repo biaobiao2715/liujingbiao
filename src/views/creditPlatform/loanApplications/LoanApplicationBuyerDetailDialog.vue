@@ -4,6 +4,7 @@
     <template #header>
       <div class="dialog-title">贷款申请详情（采购商）</div>
     </template>
+    <div v-loading="loading">
 
     <div class="detail-section">
       <div class="section-title">用户信息</div>
@@ -14,12 +15,15 @@
         <el-descriptions-item label="手机号">{{ detail.user.phone }}</el-descriptions-item>
         <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
         <el-descriptions-item label="身份证正反面" :span="2">
-          <el-image v-for="(img, idx) in detail.user.idPhotos" :key="idx" :src="img"
-            :preview-src-list="detail.user.idPhotos" class="identity-image">
-            <template #error>
-              <div class="image-placeholder">暂无图片</div>
-            </template>
-          </el-image>
+          <template v-if="detail.user.idPhotos.length">
+            <el-image v-for="(img, idx) in detail.user.idPhotos" :key="idx" :src="img"
+              :preview-src-list="detail.user.idPhotos" class="identity-image">
+              <template #error>
+                <div class="image-placeholder">暂无图片</div>
+              </template>
+            </el-image>
+          </template>
+          <span v-else>--</span>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -34,12 +38,15 @@
         <el-descriptions-item label="收款卡银行">{{ detail.loan.bank }}</el-descriptions-item>
         <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
         <el-descriptions-item label="银行卡正反面" :span="2">
-          <el-image v-for="(img, idx) in detail.loan.cardPhotos" :key="idx" :src="img"
-            :preview-src-list="detail.loan.cardPhotos" class="identity-image">
-            <template #error>
-              <div class="image-placeholder">暂无图片</div>
-            </template>
-          </el-image>
+          <template v-if="detail.loan.cardPhotos.length">
+            <el-image v-for="(img, idx) in detail.loan.cardPhotos" :key="idx" :src="img"
+              :preview-src-list="detail.loan.cardPhotos" class="identity-image">
+              <template #error>
+                <div class="image-placeholder">暂无图片</div>
+              </template>
+            </el-image>
+          </template>
+          <span v-else>--</span>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -58,16 +65,20 @@
         <el-descriptions-item label="放款日期">{{ detail.approval.loanDate }}</el-descriptions-item>
         <el-descriptions-item label="第一期还款日">{{ detail.approval.firstRepaymentDate }}</el-descriptions-item>
         <el-descriptions-item label="贷款合同">
-          <div class="contract-files">
-            <div class="contract-file" v-for="(file, idx) in detail.approval.contractFiles" :key="idx">
-              <el-icon><i-ep-document /></el-icon>
-              <span>{{ file }}</span>
+          <template v-if="detail.approval.contractFiles.length">
+            <div class="contract-files">
+              <div class="contract-file" v-for="(file, idx) in detail.approval.contractFiles" :key="idx">
+                <el-icon><i-ep-document /></el-icon>
+                <span>{{ file }}</span>
+              </div>
             </div>
-          </div>
+          </template>
+          <span v-else>--</span>
         </el-descriptions-item>
       </el-descriptions>
     </div>
 
+    </div>
     <template #footer>
       <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
@@ -75,7 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { getRemainingDetail, getPersonal } from '@/api/creditPlatform/loanApplications'
 
 const props = defineProps<{
   visible: boolean
@@ -84,36 +96,75 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>()
 
-const fallbackImages = [
-  'https://via.placeholder.com/120x80.png?text=Image+1',
-  'https://via.placeholder.com/120x80.png?text=Image+2'
-]
+const loading = ref(false)
+const detailRow = ref<Record<string, any>>(props.data || {})
+
+const fetchDetail = async () => {
+  if (!props.data?.id) {
+    detailRow.value = props.data || {}
+    return
+  }
+  loading.value = true
+  try {
+    let merged: Record<string, any> = props.data ? { ...props.data } : {}
+    const res = await getRemainingDetail(props.data.id)
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data }
+    }
+    const userId = merged.lenderId || merged.userId
+    if (userId) {
+      try {
+        const extra = await getPersonal({ id: userId })
+        if (extra && extra.code === 200 && extra.data) {
+          merged = { ...merged, ...extra.data }
+        }
+      } catch (error) {
+        console.error('获取个人信息失败:', error)
+      }
+    }
+    detailRow.value = merged
+  } catch (error) {
+    console.error('获取申请详情失败:', error)
+    detailRow.value = props.data || {}
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(
+  [() => props.visible, () => props.data?.id],
+  ([visible, id], [prevVisible, prevId]) => {
+    if (visible && (!prevVisible || id !== prevId)) {
+      fetchDetail()
+    }
+  }
+)
 
 const detail = computed(() => {
-  const row = props.data || {}
+  const row = detailRow.value || {}
   return {
     user: {
-      name: row.realName || '张三',
-      birthday: row.birthday || '1995-04-01',
-      idNumber: row.idNumber || '41152419940125619',
-      phone: row.phone || '13429113218',
-      address: row.address || '测试联系地址',
-      idPhotos: row.idPhotos || fallbackImages
+      name: row.name || row.realName || '--',
+      birthday: row.birthday || '--',
+      idNumber: row.idNumber || '--',
+      phone: row.phoneNumber || row.phone || '--',
+      address: row.address || '--',
+      idPhotos: Array.isArray(row.idPhotos) ? row.idPhotos : []
     },
     loan: {
-      applyDate: row.applyTime || '2025-11-06',
-      amount: row.loanAmount || '5万',
-      period: row.loanTerm || '12',
-      repaymentType: row.repaymentType || '等额本息',
-      bank: row.bankName || '招商银行',
-      bankCardNo: row.bankCardNo || '5252252565651555',
-      cardPhotos: row.cardPhotos || fallbackImages
+      applyDate: row.applyTime || '--',
+      amount: row.loanAmount || '--',
+      period: row.loanTerm || '--',
+      repaymentType: row.repaymentType || '--',
+      bank: row.bankName || '--',
+      bankCardNo: row.bankCardNo || '--',
+      cardPhotos: Array.isArray(row.cardPhotos) ? row.cardPhotos : []
     },
     approval: {
-      opinion: row.approvalOpinion || '同意',
-      loanDate: row.loanDate || '2025-11-07',
-      firstRepaymentDate: row.firstRepaymentDate || '2025-12-07',
-      contractFiles: row.contractFiles || ['贷款合同.pdf']
+      opinion: row.approvalOpinion || '--',
+      loanDate: row.loanDate || '--',
+      firstRepaymentDate: row.firstRepaymentDate || '--',
+      contractFiles: Array.isArray(row.contractFiles) ? row.contractFiles : []
     }
   }
 })

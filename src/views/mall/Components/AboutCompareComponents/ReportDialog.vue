@@ -3,17 +3,14 @@
     <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
       <el-form-item label="举报类别：" prop="category" required>
         <el-select v-model="form.category" placeholder="请选择">
-          <el-option label="虚假信息" value="falseInfo" />
-          <el-option label="诈骗行为" value="fraud" />
-          <el-option label="侵权/违法" value="rights" />
-          <el-option label="其他" value="other" />
+          <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="被举报方：" prop="target" required>
-        <el-input v-model="form.target" maxlength="50" placeholder="带出被举报方信息"  disabled/>
+        <el-input v-model="form.target" maxlength="50" placeholder="带出被举报方信息" disabled />
       </el-form-item>
       <el-form-item label="举报商品：" prop="goodsInfo" required>
-        <el-input v-model="form.goodsInfo" maxlength="50" placeholder="带出举报商品信息" disabled/>
+        <el-input v-model="form.goodsInfo" maxlength="50" placeholder="带出举报商品信息" disabled />
       </el-form-item>
       <el-form-item label="举报材料：" prop="filesCount" required>
         <el-upload
@@ -22,7 +19,7 @@
           :file-list="fileList"
           list-type="picture-card"
           action="#"
-          :http-request="uploadFile"
+          :http-request="handleUpload"
           :before-upload="handleBeforeUpload"
           :on-remove="handleRemove"
           :on-exceed="handleExceed"
@@ -32,52 +29,92 @@
           accept=".jpg,.jpeg,.png,.mp4,.mov,.avi"
         >
           <el-icon><Plus /></el-icon>
+          <template #file="{ file }">
+            <div class="report-preview-card">
+              <video v-if="isVideo(file)" :src="file.url" class="preview-video" muted playsinline></video>
+              <img v-else :src="file.url" class="preview-image" alt="" />
+              <div v-if="isVideo(file)" class="video-play-indicator">
+                <VideoPlay />
+              </div>
+              <div class="preview-mask">
+                <el-icon class="preview-action" @click.stop="onPreview(file)">
+                  <VideoPlay v-if="isVideo(file)" />
+                  <ZoomIn v-else />
+                </el-icon>
+                <el-icon class="preview-action" @click.stop="removeFileManually(file)">
+                  <Delete />
+                </el-icon>
+              </div>
+            </div>
+          </template>
         </el-upload>
-        <div class="el-upload__tip" style="color:#f56c6c;margin-top:8px;">
+        <div class="el-upload__tip" style="color: #f56c6c; margin-top: 8px">
           注：支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张≤10MB；支持MP4、mov、avi三种视频格式，最多上传三个视频，每个≤200MB
         </div>
       </el-form-item>
       <el-form-item label="举报描述：" prop="desc" required>
-        <el-input
-          v-model="form.desc"
-          type="textarea"
-          :rows="4"
-          maxlength="200"
-          show-word-limit
-          placeholder="请输入举报描述，最长200个字"
-        />
+        <el-input v-model="form.desc" type="textarea" :rows="4" maxlength="200" show-word-limit placeholder="请输入举报描述，最长200个字" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <div style="text-align:center">
-        <el-button type="primary" @click="handleSubmit">提交</el-button>
+      <div style="text-align: center">
+        <el-button type="primary" :loading="submitting" @click="handleSubmit">提交</el-button>
       </div>
     </template>
     <!-- 预览弹窗 -->
     <el-dialog v-model="preview.visible" width="60%" append-to-body>
       <template #default>
-        <img v-if="!preview.isVideo" :src="preview.url" alt="" style="width: 100%; display: block;" />
-        <video v-else :src="preview.url" style="width: 100%; display: block;" controls></video>
+        <img v-if="!preview.isVideo" :src="preview.url" alt="" style="width: 100%; display: block" />
+        <video v-else :src="preview.url" style="width: 100%; display: block" controls></video>
       </template>
     </el-dialog>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch, toRefs, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Plus } from '@element-plus/icons-vue';
-import { ossUploadImage } from '@/api/mall/personalCenter/orders';
+import type { UploadUserFile } from 'element-plus';
+import { Plus, Delete, ZoomIn, VideoPlay } from '@element-plus/icons-vue';
+import { uploadFile as uploadReportFile, deleteFile as deleteReportFile, report } from '@/api/mall/goods/index';
+
+interface ReportMaterial extends UploadUserFile {
+  ossId?: string | number;
+  fileName?: string;
+  fileType?: string;
+  url?: string;
+}
+
+interface ReportApiMaterial {
+  ossId?: string | number;
+  fileName?: string;
+  fileType?: string;
+  url?: string;
+}
+
+interface ReportSubmitPayload {
+  reportPersonId: string | number;
+  reportDescription: string;
+  reportGoodsCode: string | number;
+  reportTypeId: string;
+  ossList: ReportApiMaterial[];
+}
 
 const props = defineProps<{
   modelValue: boolean;
+  reportPersonId?: string | number;
+  reportGoodsCode?: string | number;
   defaultTarget?: string;
   defaultGoodsInfo?: string;
 }>();
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const dictData = reactive(proxy?.useDict('report_type_id') ?? { report_type_id: [] });
+const { report_type_id } = toRefs<any>(dictData);
+
 const emit = defineEmits<{
   'update:modelValue': [val: boolean];
-  submit: [data: FormData];
+  submit: [data: ReportSubmitPayload];
   closed: [];
 }>();
 
@@ -120,13 +157,15 @@ const rules = {
   ]
 };
 
-const fileList = ref<any[]>([]);
+const fileList = ref<ReportMaterial[]>([]);
 const uploaderRef = ref();
 const preview = reactive({
   visible: false,
   url: '',
   isVideo: false
 });
+
+const submitting = ref(false);
 
 const MAX_IMAGE = 6;
 const MAX_VIDEO = 3;
@@ -139,7 +178,8 @@ const getExt = (name: string) => {
 const isImage = (file: any) => imageExt.includes(getExt(file.name || ''));
 const isVideo = (file: any) => videoExt.includes(getExt(file.name || ''));
 const countTypes = () => {
-  let img = 0, vid = 0;
+  let img = 0,
+    vid = 0;
   fileList.value.forEach((f: any) => {
     if (isImage(f)) img += 1;
     else if (isVideo(f)) vid += 1;
@@ -175,15 +215,28 @@ const handleBeforeUpload = (file: any) => {
   return true;
 };
 const handleExceed = () => ElMessage.error('已达到最多可选择的文件数量');
-const uploadFile = (file: any) =>
+const removeFileManually = (file: ReportMaterial) => {
+  try {
+    (uploaderRef.value as any)?.handleRemove(file);
+  } catch (error) {
+    console.error(error);
+  }
+};
+const handleUpload = (file: any) =>
   new Promise((resolve, reject) => {
-    ossUploadImage({ file: file.file })
+    const fd = new FormData();
+    fd.append('file', file.file);
+    uploadReportFile(fd)
       .then((response: any) => {
-        const newFile = {
-          name: response.data.fileName || file.file.name,
-          url: response.data.url,
-          ossId: response.data.ossId,
-          fileType: '0'
+        const data = response?.data || {};
+        const fileName = data.fileName || file.file.name;
+        const newFile: ReportMaterial = {
+          fileName,
+          name: fileName,
+          url: data.url,
+          ossId: data.ossId,
+          fileType: isVideo({ name: fileName }) ? '1' : '0',
+          status: 'success'
         };
         fileList.value.push(newFile);
         form.filesCount = fileList.value.length;
@@ -191,12 +244,24 @@ const uploadFile = (file: any) =>
       })
       .catch((error: any) => {
         ElMessage.error(error?.msg || '文件上传失败，请重试');
-        try { (uploaderRef.value as any)?.handleRemove(file); } catch {}
+        try {
+          (uploaderRef.value as any)?.handleRemove(file);
+        } catch {
+          // ignore
+        }
         reject(error);
       });
   });
-const handleRemove = (file: any) => {
-  const idx = fileList.value.map((f: any) => f.url).indexOf(file.url);
+const handleRemove = async (file: ReportMaterial) => {
+  if (file?.ossId) {
+    try {
+      await deleteReportFile([file.ossId]);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '删除文件失败，请重试');
+      return;
+    }
+  }
+  const idx = fileList.value.findIndex((f) => f.url === file.url);
   if (idx > -1) fileList.value.splice(idx, 1);
   form.filesCount = fileList.value.length;
 };
@@ -217,19 +282,44 @@ const initDefaults = () => {
   fileList.value = [];
 };
 
+const buildPayload = (): ReportSubmitPayload => ({
+  reportPersonId: props.reportPersonId as string | number,
+  reportDescription: form.desc,
+  reportGoodsCode: props.reportGoodsCode as string | number,
+  reportTypeId: form.category,
+  ossList: fileList.value.map((item) => ({
+    ossId: item.ossId,
+    fileName: item.fileName,
+    fileType: item.fileType ?? (isVideo({ name: item.fileName || item.name || '' }) ? '1' : '0'),
+    url: item.url
+  }))
+});
+
 const handleSubmit = () => {
-  if (!formRef.value) return;
-  formRef.value.validate((valid: boolean) => {
+  if (!formRef.value || submitting.value) return;
+  formRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
-    const fd = new FormData();
-    fd.set('category', form.category);
-    fd.set('target', form.target);
-    fd.set('goodsInfo', form.goodsInfo);
-    fd.set('desc', form.desc);
-    fd.set('materials', JSON.stringify(fileList.value));
-    emit('submit', fd);
-    visible.value = false;
-    ElMessage.success('已提交举报');
+    if (!props.reportPersonId) {
+      ElMessage.error('缺少被举报方信息，无法提交');
+      return;
+    }
+    if (!props.reportGoodsCode) {
+      ElMessage.error('缺少举报商品信息，无法提交');
+      return;
+    }
+
+    const payload = buildPayload();
+    submitting.value = true;
+    try {
+      await report(payload);
+      ElMessage.success('已提交举报');
+      emit('submit', payload);
+      visible.value = false;
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '举报提交失败，请稍后重试');
+    } finally {
+      submitting.value = false;
+    }
   });
 };
 
@@ -246,6 +336,53 @@ const handleClosed = () => {
   font-size: 28px;
   color: #8c939d;
 }
+.report-preview-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.preview-image,
+.preview-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.preview-video {
+  background: #000;
+}
+.preview-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.report-preview-card:hover .preview-mask {
+  opacity: 1;
+}
+.preview-action {
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+}
+.preview-action:hover {
+  color: #ffd04b;
+}
+.video-play-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 42px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+}
 </style>
-
-

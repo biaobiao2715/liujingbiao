@@ -41,9 +41,15 @@ export function productOrder(data: any) {
     data: data
   });
 }
-
+//检查是否已经收藏
+export function checkFavorite(data: any) {
+  return request({
+    url: 'skill-server/skill/checkFavorite',
+    method: 'get',
+    params: data
+  });
+}
 // 加入收藏夹
-
 export function favorite(data: any) {
   return request({
     url: 'skill-server/skill/favorite',
@@ -51,7 +57,30 @@ export function favorite(data: any) {
     data: data
   });
 }
-
+//文件上传
+export function uploadFile(data: any) {
+  return request({
+    url: 'resource/oss/upload',
+    method: 'post',
+    data: data
+  });
+}
+// 删除文件
+export function deleteFile(ossIds: string | number | Array<string | number>) {
+  const ids = Array.isArray(ossIds) ? ossIds.join(',') : ossIds;
+  return request({
+    url: `/resource/oss/${ids}`,
+    method: 'delete'
+  });
+}
+//举报
+export function report(data: any) {
+  return request({
+    url: '/safeguard-server/report/add',
+    method: 'post',
+    data: data
+  });
+}
 //获取对比商品列表
 export function goodsCompareList(data: any) {
   return request({

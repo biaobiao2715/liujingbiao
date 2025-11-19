@@ -4,13 +4,16 @@
     <SearchComponent @searchChange="getSearchInfo" />
     <!-- 商品组件 -->
     <div class="goods-list mt-24" v-loading="loading">
-      <GoodsItemComponent
-        v-for="item in goodsData"
-        :key="item.id"
-        :goods="item"
-        :style="{ width: 'calc(20% - 16px)' }"
-        @clickGoods="handleClick(item.id)"
-      />
+      <template v-if="!loading && goodsData.length > 0">
+        <GoodsItemComponent
+          v-for="item in goodsData"
+          :key="item.id"
+          :goods="item"
+          :style="{ width: 'calc(20% - 16px)' }"
+          @clickGoods="handleClick(item.id)"
+        />
+      </template>
+      <el-empty v-else-if="!loading && goodsData.length === 0" description="暂无商品数据" />
     </div>
 
     <!-- 分页组件 -->
@@ -74,14 +77,9 @@ const getSearchInfo = (searchInfo) => {
 
   // 最新/销量排序
   queryParams.sortManner = searchInfo.sortType === '-1' ? undefined : searchInfo.sortType;
-  // 价格区间
-  if (searchInfo.minPrice === 0 && searchInfo.maxPrice === 0) {
-    queryParams.minPrice = undefined;
-    queryParams.maxPrice = undefined;
-  } else {
-    queryParams.minPrice = searchInfo.minPrice;
-    queryParams.maxPrice = searchInfo.maxPrice;
-  }
+  // 价格区间：undefined/null 保持为 undefined，0 值保持为 0
+  queryParams.minPrice = searchInfo.minPrice === undefined || searchInfo.minPrice === null ? undefined : searchInfo.minPrice;
+  queryParams.maxPrice = searchInfo.maxPrice === undefined || searchInfo.maxPrice === null ? undefined : searchInfo.maxPrice;
 
   console.log(queryParams);
 
@@ -119,5 +117,11 @@ const handleClick = (id: string) => {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  min-height: 300px;
+  
+  ::v-deep .el-empty {
+    width: 100%;
+    padding: 60px 0;
+  }
 }
 </style>
