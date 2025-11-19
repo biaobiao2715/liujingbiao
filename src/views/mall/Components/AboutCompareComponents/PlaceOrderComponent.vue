@@ -125,16 +125,16 @@
   <!-- 新建/修改地址弹窗 -->
   <el-dialog v-model="addressFormDialogVisible" :title="addressFormTitle" width="600px" append-to-body>
     <el-form ref="addressFormRef" :model="addressForm" :rules="addressFormRules" label-width="120px">
-      <el-form-item label="收货人姓名：" prop="receiverName" required>
+      <el-form-item label="收货人姓名：" prop="receiverName">
         <el-input v-model="addressForm.receiverName" placeholder="请输入收货人姓名" maxlength="20" show-word-limit />
       </el-form-item>
-      <el-form-item label="收货人电话：" prop="receiverPhone" required>
+      <el-form-item label="收货人电话：" prop="receiverPhone">
         <el-input v-model="addressForm.receiverPhone" placeholder="请输入收货人电话" maxlength="11" @input="handlePhoneInput" />
       </el-form-item>
-      <el-form-item label="收货地址：" prop="regionPath" required>
+      <el-form-item label="收货地址：" prop="regionPath">
         <RegionSelect v-model="addressForm.regionPath" @regionChange="handleRegionChange" />
       </el-form-item>
-      <el-form-item label="详细地址：" prop="detailAddress" required>
+      <el-form-item label="详细地址：" prop="detailAddress">
         <el-input v-model="addressForm.detailAddress" type="textarea" :rows="3" placeholder="请输入详细地址" />
       </el-form-item>
       <el-form-item label="设为默认地址：">
@@ -251,16 +251,16 @@ const validateDetailAddress = (rule: any, value: string, callback: Function) => 
 // 表单验证规则
 const addressFormRules = {
   receiverName: [
-    { validator: validateName, trigger: 'blur' }
+    { required: true, validator: validateName, trigger: ['blur', 'change'] }
   ],
   receiverPhone: [
-    { validator: validatePhone, trigger: 'blur' }
+    { required: true, validator: validatePhone, trigger: ['blur', 'change'] }
   ],
   regionPath: [
-    { validator: validateRegion, trigger: 'change' }
+    { required: true, validator: validateRegion, trigger: ['change', 'blur'] }
   ],
   detailAddress: [
-    { validator: validateDetailAddress, trigger: 'blur' }
+    { required: true, validator: validateDetailAddress, trigger: ['blur', 'change'] }
   ]
 };
 
