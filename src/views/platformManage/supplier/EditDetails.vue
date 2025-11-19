@@ -168,6 +168,53 @@
           </el-table-column>
         </el-table>
       </el-form>
+      <!-- 企业画像 -->
+      <el-form :model="activityInfo" label-width="140px" v-if="formData.reviewStatus === '1'">
+        <FormHeader title="企业画像" />
+        <el-segmented v-model="enterpriseProfileType" :options="enterpriseProfileTypeOptions" class="mb-12" />
+
+        <!-- 交易活动 -->
+        <div v-show="enterpriseProfileType === '1'">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="近7日交易量">
+                {{ activityInfo.transactionActivity?.transactionCount || '' }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="最近一笔交易时间">
+                {{ activityInfo.transactionActivity?.lastTransactionTime || '' }}
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+              <el-form-item label="最后系统登录时间">
+                {{ activityInfo.transactionActivity?.loginDate || '' }}
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-table :data="activityInfo.transactionActivity.orders" border>
+            <el-table-column type="index" label="序号" width="100"></el-table-column>
+            <el-table-column prop="createTime" label="交易时间"> </el-table-column>
+            <el-table-column prop="orderSn" label="订单编号"></el-table-column>
+            <el-table-column prop="orderStatus" label="订单状态">
+              <template #default="scope">
+                {{
+                  scope.row.orderStatus === 1 ? '待发货' : scope.row.orderStatus === 2 ? '已发货' : scope.row.orderStatus === 3 ? '已完成' : '已取消'
+                }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="enterpriseProfileType === '2'">
+          <el-table :data="activityInfo.violationRecords" border>
+            <el-table-column type="index" label="序号" width="100"></el-table-column>
+            <el-table-column prop="closeCaseTime" label="违规时间"> </el-table-column>
+            <el-table-column prop="dealResult" label="违规描述"></el-table-column>
+          </el-table>
+        </div>
+      </el-form>
       <!-- 审核意见 -->
       <el-form :model="formData" label-width="140px" :disabled="operateMode === 'view'" v-if="operateMode !== 'edit'">
         <FormHeader title="审核意见" />
@@ -190,7 +237,7 @@
 import { ref, onMounted } from 'vue';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
-import { enterpriseEdit, enterpriseReview, baseEnterpriseInfoId } from '@/api/platform/enterprise';
+import { enterpriseEdit, enterpriseReview, baseEnterpriseInfoId, getTransactionInfo, getViolationInfo } from '@/api/platform/enterprise';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
@@ -250,10 +297,25 @@ interface SupplierDetails {
   };
 }
 const route = useRoute();
+
 const { id, type } = route.query;
+
 const operateMode = ref(type);
+
 const loading = ref(false);
+
 const dialogVisible = ref(false);
+
+const activityInfo = ref({
+  transactionActivity: {
+    orders: [],
+    transactionCount: 0,
+    loginDate: '',
+    lastTransactionTime: ''
+  },
+  violationRecords: []
+});
+
 const formData = ref<SupplierDetails>({
   id: undefined,
   enterpriseNumber: '',
@@ -289,7 +351,15 @@ const formData = ref<SupplierDetails>({
   }
 });
 
+const enterpriseProfileType = ref('1'); // 企业画像类型 1：交易活跃度 2：违规记录
+
+const enterpriseProfileTypeOptions = ref([
+  { label: '交易活跃度', value: '1' },
+  { label: '违规记录', value: '2' }
+]);
+
 const contactZ = ref([]); // 自然人
+
 const contactF = ref({
   // 法人联系人信息
   contactUserType: '',
@@ -316,7 +386,6 @@ const getSupplierDetails = async () => {
 
       if (response.data?.contacts?.length > 0) {
         response.data.contacts.forEach((element) => {
-          // console.log('33', element);
           if (element.contactUserType == 1) {
             contactF.value = element;
           } else {
@@ -331,6 +400,45 @@ const getSupplierDetails = async () => {
     }
   }
 };
+
+//  交易活跃度
+const getTransactionInfoDetail = async () => {
+  if (formData.value.id) {
+    loading.value = true;
+    try {
+      const response = await getTransactionInfo({
+        id: formData.value.id
+      });
+      console.log(response);
+      activityInfo.value.transactionActivity = response.data;
+      // formData.value = response.data;
+    } catch (error) {
+      console.error('获取交易活跃度详情失败', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+};
+
+// 违规记录
+const getViolationInfoDetail = async () => {
+  if (formData.value.id) {
+    loading.value = true;
+    try {
+      const response = await getViolationInfo({
+        id: formData.value.id
+      });
+      console.log(response);
+      activityInfo.value.violationRecords = response.data || [];
+      // formData.value = response.data;
+    } catch (error) {
+      console.error('获取违规记录详情失败', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+};
+
 // 保存按钮事件 和详情接口返回的的数据结构略有区别
 const handleSave = async () => {
   try {
@@ -414,12 +522,17 @@ const downloadAttachment = async (fileName: string, url: string) => {
   }
 };
 // 打开弹窗
-const handleOpenDialog = (id: string, type: 'view' | 'edit' | 'audit') => {
+const handleOpenDialog = async (id: string, type: 'view' | 'edit' | 'audit') => {
   operateMode.value = type;
   formData.value.id = id;
   dialogVisible.value = true;
-  getSupplierDetails();
+  await getSupplierDetails();
+  if (formData.value.reviewStatus === '1') {
+    getTransactionInfoDetail();
+    getViolationInfoDetail();
+  }
 };
+
 defineExpose({
   handleOpenDialog
 });

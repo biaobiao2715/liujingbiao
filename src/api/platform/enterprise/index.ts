@@ -105,3 +105,29 @@ export const baseEnterpriseInfoDelete = (id: any) => {
     method: 'delete'
   });
 };
+
+
+/**
+ * 交易活跃度
+ * @param data
+ */
+export const getTransactionInfo = (data: any) => {
+  return request({
+    url: '/system/baseEnterpriseInfo/getTransactionInfo',
+    method: 'get',
+    params: data
+  });
+};
+
+
+/**
+ * 违规记录
+ * @param data
+ */
+export const getViolationInfo = (data: any) => {
+  return request({
+    url: '/system/baseEnterpriseInfo/getViolationInfo',
+    method: 'get',
+    params: data
+  });
+};

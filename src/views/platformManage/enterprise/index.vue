@@ -88,7 +88,7 @@
         <template #default="scope">
           <el-button
             v-throttle
-            v-hasPermi="['system:business:audit']"
+            v-hasPermi="['system:baseEnterpriseInfo:audit']"
             v-if="scope.row.reviewStatus === '0'"
             type="primary"
             @click="handleEdit(scope.row, 'audit')"
@@ -96,7 +96,7 @@
           >
           <el-button
             v-throttle
-            v-hasPermi="['system:business:queryByTenant']"
+            v-hasPermi="['system:baseEnterpriseInfo:query']"
             v-if="scope.row.reviewStatus !== '0'"
             type="primary"
             @click="handleEdit(scope.row, 'view')"
@@ -104,7 +104,7 @@
           >
           <!-- <el-button
             v-throttle
-            v-hasPermi="['system:business:edit']"
+            v-hasPermi="['system:baseEnterpriseInfo:edit']"
             v-if="scope.row.reviewStatus === '1'"
             type="primary"
             @click="handleEdit(scope.row, 'edit')"
