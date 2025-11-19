@@ -62,6 +62,15 @@ export function pushNoAnswerQuestionMessage() {
   });
 }
 
+// 新增举报通道管理
+export function addReportChannel(data: any) {
+  return request({
+    url: '/safeguard-server/report/add',
+    method: 'post',
+    data
+  });
+}
+
 // -------------------- 类型定义 --------------------
 /** 订单条目类型 */
 interface OrderItem {

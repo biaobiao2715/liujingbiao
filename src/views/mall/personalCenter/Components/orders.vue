@@ -93,24 +93,24 @@
       <el-dialog v-model="reportDialogVisible" title="我要举报" width="600px" :close-on-click-modal="false">
         <el-form :model="reportForm" :rules="reportRules" ref="reportFormRef" label-width="120px">
           <!-- 举报类别 -->
-          <el-form-item label="举报类别" prop="type">
-            <el-select v-model="reportForm.type" placeholder="请选择">
+          <el-form-item label="举报类别" prop="reportTypeId">
+            <el-select v-model="reportForm.reportTypeId" placeholder="请选择">
               <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
 
           <!-- 被举报方 -->
-          <el-form-item label="被举报方" prop="target">
-            <el-input v-model="reportForm.target" placeholder="带出被举报方信息" />
+          <el-form-item label="被举报方" prop="reportPersonName">
+            <el-input v-model="reportForm.reportPersonName" placeholder="带出被举报方信息" />
           </el-form-item>
 
           <!-- 举报商品 -->
-          <el-form-item label="举报商品" prop="goods">
-            <el-input v-model="reportForm.goods" placeholder="带出举报商品信息" />
+          <el-form-item label="举报商品" prop="reportGoodsCode">
+            <el-input v-model="reportForm.reportGoodsCode" placeholder="带出举报商品信息" />
           </el-form-item>
 
           <!-- 举报材料上传 -->
-          <el-form-item label="举报材料" prop="materials" class="uploadcss">
+          <el-form-item label="举报材料" prop="ossList" class="uploadcss">
             <el-upload
               :file-list="hnGoodsFilesList"
               :limit="9"
@@ -121,7 +121,6 @@
               :http-request="uploadFile"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
-              :on-change="onUploadChange"
             >
               <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
             </el-upload>
@@ -130,10 +129,10 @@
           </el-form-item>
 
           <!-- 举报描述 -->
-          <el-form-item label="举报描述" prop="desc" required>
+          <el-form-item label="举报描述" prop="reportDescription" required>
             <el-input
               type="textarea"
-              v-model="reportForm.desc"
+              v-model="reportForm.reportDescription"
               placeholder="请输入举报描述，最大长度为200个字"
               maxlength="200"
               show-word-limit
@@ -152,13 +151,13 @@
 
 <script setup lang="ts">
 // -------------------- 引入依赖 --------------------
-import { ref, reactive, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
-import { orderConfirm, orderCancel, orderList, ossUploadImage, Order } from '@/api/mall/personalCenter/orders';
+import { ref, reactive, toRefs, onMounted, nextTick, getCurrentInstance, type ComponentInternalInstance } from 'vue';
+import { orderConfirm, orderCancel, orderList, ossUploadImage, addReportChannel, Order } from '@/api/mall/personalCenter/orders';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 // -------------------- 响应式数据 --------------------
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { order_status, report_type_id } = toRefs<any>(proxy?.useDict('order_status')); // 订单状态字典
+const { order_status, report_type_id } = toRefs<any>(proxy?.useDict('order_status', 'report_type_id')); // 订单状态字典
 
 /** 查询参数 */
 const queryParams = ref({
@@ -177,12 +176,14 @@ const reportDialogVisible = ref(false);
 const reportFormRef = ref();
 
 // 表单模型，增加一个 materials 字段用于配合校验（与上传列表联动）
-const reportForm = reactive({
-  type: '',
-  target: '',
-  goods: '',
-  desc: '',
-  materials: []
+const reportForm = ref({
+  reportId: '',
+  reportPersonId: '',
+  reportTypeId: '',
+  reportPersonName: '',
+  reportGoodsCode: '',
+  reportDescription: '',
+  ossList: []
 });
 const hnGoodsFilesList = ref<any[]>([]); // 上传的文件列表
 const refShop = ref<any>(null); // 上传组件实例
@@ -197,17 +198,17 @@ const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => v
 };
 
 const reportRules = {
-  type: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
-  target: [
+  reportTypeId: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
+  reportPersonName: [
     { required: true, message: '请输入被举报方', trigger: 'blur' },
     { min: 2, max: 50, message: '长度为 2-50 个字符', trigger: 'blur' }
   ],
-  goods: [{ required: true, message: '请输入举报商品', trigger: 'blur' }],
-  desc: [
+  reportGoodsCode: [{ required: true, message: '请输入举报商品', trigger: 'blur' }],
+  reportDescription: [
     { required: true, message: '请输入举报描述', trigger: 'blur' },
     { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
   ],
-  materials: [{ validator: validateMaterials, trigger: 'change' }]
+  ossList: [{ validator: validateMaterials, trigger: 'change' }]
 };
 // -------------------- 方法定义 --------------------
 
@@ -296,13 +297,19 @@ const confirmReceipt = async (orderId: number) => {
  * @param row 当前订单行
  */
 const openReportDialog = (row: any) => {
-  // currentReportRow.value = row;
-  reportForm.type = '';
-  reportForm.target = row.enterpriseName || '';
-  reportForm.goods = row.orderItems[0]?.goodsName || '';
-  reportForm.materials = [];
-  reportForm.desc = '';
+  reportForm.value = {
+    reportId: row.userId,
+    reportPersonId: row.enterpriseId || '',
+    reportTypeId: '',
+    reportPersonName: row.enterpriseName || '',
+    reportGoodsCode: row.orderItems[0]?.goodsName || '',
+    reportDescription: '',
+    ossList: []
+  };
   hnGoodsFilesList.value = [];
+  setTimeout(() => reportFormRef.value?.clearValidate(), 100);
+
+  // 先显示弹窗，等待内部表单渲染完成后再做重置与填充，避免初次渲染触发校验
   reportDialogVisible.value = true;
 };
 
@@ -310,14 +317,21 @@ const openReportDialog = (row: any) => {
  * 提交举报
  */
 const submitReport = () => {
-  reportForm.materials = hnGoodsFilesList.value;
+  reportForm.value.ossList = hnGoodsFilesList.value;
   reportFormRef.value
     ?.validate()
     .then(() => {
       // 校验通过，提交举报逻辑
-      console.log('举报内容:', reportForm);
-      ElMessage.success('举报已提交');
-      reportDialogVisible.value = false;
+      console.log('举报内容:', reportForm.value);
+
+      const arr = {
+        ...reportForm.value,
+        status: '0' // 设置举报状态为“待处理”
+      };
+      addReportChannel(arr).then(() => {
+        ElMessage.success('举报已提交');
+        reportDialogVisible.value = false;
+      });
     })
     .catch(() => {
       // 校验不通过，不提交举报
@@ -348,21 +362,27 @@ const uploadFile = (file: any) =>
  * 处理文件上传
  */
 const processUpload = (file: any, resolve: any, reject: any) => {
-  const fileData = file.file;
+  const fileData: File = file.file;
+  const isImage = (fileData.type || '').startsWith('image/');
+  const typeCode = isImage ? '0' : '1'; // 0：图片 1：视频
+
+  // 将大小与类型一并传到后端
   ossUploadImage({ file: fileData })
     .then((response) => {
       const newFile = {
-        name: response.data.fileName || '举报材料',
+        name: response.data.fileName || fileData.name || '举报材料',
         url: response.data.url,
-        fileType: '0',
+        path: response.data.url, // 供删除时对齐使用
+        fileType: typeCode, // 0：图片 1：视频
+        foreignType: '3', //0：法律依据文件 1：法律文书模版 2：品种信息识别 3：举报材料 4：申诉材料 等
+        fileSize: fileData.size,
         ossId: response.data.ossId
-      };
+      } as any;
       hnGoodsFilesList.value.push(newFile);
-      proxy?.$modal.closeLoading();
+      reportFormRef.value?.validateField('ossList');
       resolve(newFile);
     })
     .catch((error) => {
-      proxy?.$modal.closeLoading();
       ElMessage.error(error.msg || '文件上传失败，请重试');
       refShop.value.handleRemove(file);
       reject(error);
@@ -372,7 +392,7 @@ const processUpload = (file: any, resolve: any, reject: any) => {
 /**
  * 超出上传数量限制
  */
-const handleExceed = () => ElMessage.error(`上传文件数量不能超过6个!`);
+const handleExceed = () => ElMessage.error(`已达到最多可选择的文件数量!`);
 
 /**
  * 上传前校验
@@ -409,11 +429,6 @@ const handleBeforeUpload = (file: File) => {
     return false;
   }
   return true;
-};
-
-// 当文件列表变化时，让表单重新校验“举报材料”
-const onUploadChange = () => {
-  reportFormRef.value?.validateField('materials');
 };
 
 // -------------------- 生命周期 --------------------
