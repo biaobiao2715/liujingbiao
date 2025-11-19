@@ -5,7 +5,8 @@
       >，您的登陆账号是： <span class="account">{{ account }}</span
       >，请牢记登陆账号和密码！
     </p>
-    <p>{{ countdown }}秒后自动进入登陆页</p>
+    <p v-if="isBuyer">{{ countdown }}秒后自动进入登陆页</p>
+    <p v-else>请您耐心等待管理员审核</p>
   </div>
 </template>
 
@@ -16,6 +17,7 @@ import { useRouter } from 'vue-router';
 defineProps<{
   username: string;
   account: string;
+  isBuyer: boolean;
 }>();
 
 const router = useRouter();

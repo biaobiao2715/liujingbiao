@@ -45,7 +45,7 @@
           <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
         </div>
         <!-- 注册成功组件 -->
-        <Success :username="username" :account="account" v-if="activeStep === 3" />
+        <Success :username="username" :account="account" :isBuyer="selectedIdentity === 'buyer'" v-if="activeStep === 3" />
       </div>
     </div>
   </div>

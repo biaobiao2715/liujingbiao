@@ -141,8 +141,13 @@
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
         <div class="similar-goods-list">
-          <GoodsItemComponent v-for="(item, index) in groupedRelatedGoods.flat()" :key="index" :goods="item"
-            class="similar-goods-item" @clickGoods="handleSimilarGoodsClick(item.id)" />
+          <GoodsItemComponent
+            v-for="(item, index) in groupedRelatedGoods.flat()"
+            :key="index"
+            :goods="item"
+            class="similar-goods-item"
+            @clickGoods="handleSimilarGoodsClick(item.id)"
+          />
         </div>
       </div>
 
@@ -180,24 +185,28 @@
       @submit="handleReportSubmitData"
     />
     <!-- 下单组件 -->
-    <PlaceOrderComponent v-model="showOrder" :goods="goods" :selected-spec-id="baseInfo.currentSpec"
-      :quantity="baseInfo.quantity" @submit="handleOrderSubmit" />
+    <PlaceOrderComponent
+      v-model="showOrder"
+      :goods="goods"
+      :selected-spec-id="baseInfo.currentSpec"
+      :quantity="baseInfo.quantity"
+      @submit="handleOrderSubmit"
+    />
 
     <!-- 电话沟通弹窗（自定义，无组件，teleport 到 body 保证层级与可见性） -->
-   
-      <div v-if="showPhoneDialog" class="phone-dialog-overlay" @click.self="showPhoneDialog = false">
-        <div class="phone-dialog">
-          <div class="phone-dialog__header">
-            <div class="phone-dialog__title">联系商家</div>
-            <span class="phone-dialog__close" @click="showPhoneDialog = false">×</span>
-          </div>
-          <div class="phone-dialog__body">
-            <div v-if="enterprisePhoneNumber" class="phone-dialog__number">{{ enterprisePhoneNumber }}</div>
-            <div v-else class="phone-dialog__no-number">暂无商家电话</div>
-          </div>
+
+    <div v-if="showPhoneDialog" class="phone-dialog-overlay" @click.self="showPhoneDialog = false">
+      <div class="phone-dialog">
+        <div class="phone-dialog__header">
+          <div class="phone-dialog__title">联系商家</div>
+          <span class="phone-dialog__close" @click="showPhoneDialog = false">×</span>
+        </div>
+        <div class="phone-dialog__body">
+          <div v-if="enterprisePhoneNumber" class="phone-dialog__number">{{ enterprisePhoneNumber }}</div>
+          <div v-else class="phone-dialog__no-number">暂无商家电话</div>
         </div>
       </div>
-  
+    </div>
   </div>
 </template>
 
@@ -275,11 +284,31 @@ const showPhoneDialog = ref(false);
 
 // 举报弹窗
 const showReportDialog = ref(false);
+
+onMounted(async () => {
+  // 确保商品ID存在后再加载数据
+  if (goodsIdFromRoute.value) {
+    await getGoodsDetail();
+  } else {
+    ElMessage.error('缺少商品ID');
+    loading.value = false;
+  }
+});
+
+// 监听路由变化，当商品ID改变时重新加载详情
+watch(
+  () => goodsIdFromRoute.value,
+  async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await getGoodsDetail();
+    }
+  }
+);
+
 const handleReportSubmitData = (_fd: FormData) => {
   // TODO: 接入实际举报接口
   ElMessage.success('已提交举报');
 };
-
 
 // 规格显示控制
 const showAllSpecs = ref(false);
@@ -346,28 +375,11 @@ const selectSpec = (specId: number) => {
   updateTotalPrice();
 };
 
-onMounted(async () => {
-  // 确保商品ID存在后再加载数据
-  if (goodsIdFromRoute.value) {
-    await getGoodsDetail();
-  } else {
-    ElMessage.error('缺少商品ID');
-    loading.value = false;
-  }
-});
-
-// 监听路由变化，当商品ID改变时重新加载详情
-watch(
-  () => goodsIdFromRoute.value,
-  async (newId, oldId) => {
-    if (newId && newId !== oldId) {
-      await getGoodsDetail();
-    }
-  }
-);
-
 const getGoodsDetail = async () => {
   const id = goodsIdFromRoute.value;
+  baseInfo.currentSpec = null;
+  baseInfo.totalPrice = '';
+  baseInfo.quantity = 1;
   if (!id) {
     ElMessage.error('缺少商品ID');
     loading.value = false;
@@ -385,11 +397,14 @@ const getGoodsDetail = async () => {
 
       goods.value = res.data;
 
-      // 富文本详情直接渲染，无需预处理
-
       // 处理商品详情数据
       if (goods.value.sysOssLists?.length) {
         currentImageIndex.value = 0;
+      }
+
+      // 如果只有一个规格，默认选中
+      if (goods.value.hnGoodsSpecificationDataList?.length === 1) {
+        baseInfo.currentSpec = goods.value.hnGoodsSpecificationDataList[0]?.id;
       }
 
       baseInfo.totalPrice = getInitPrice(goods.value.hnGoodsSpecificationDataList); // 初始化获取价格区间
@@ -484,9 +499,7 @@ const getInitPrice = (specs: any[]) => {
   if (!prices.length) return '0.00';
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
-  return minPrice === maxPrice
-    ? minPrice.toFixed(2)
-    : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
+  return minPrice === maxPrice ? minPrice.toFixed(2) : `${minPrice.toFixed(2)}~${maxPrice.toFixed(2)}`;
 };
 
 // 更新总价
@@ -498,9 +511,11 @@ const updateTotalPrice = () => {
   }
   // 规格对应的价格（选择规格后，只显示当前规格的价格，不显示区间）
   const spec = goods.value.hnGoodsSpecificationDataList?.find((s) => s.id === baseInfo.currentSpec);
+  console.log(spec);
+
   if (spec) {
-    const price = parseFloat(String(spec.goodsPrice || 0));
-    // 只显示单价，不显示区间
+    const price = parseFloat(String(spec.goodsPrice || 0)) * baseInfo.quantity;
+    // 总价
     baseInfo.totalPrice = price.toFixed(2);
   }
 };
@@ -906,7 +921,6 @@ defineExpose({
         flex: 1;
         min-width: 200px;
         color: #555;
-
       }
     }
 
@@ -1109,7 +1123,9 @@ defineExpose({
     user-select: none;
     padding: 2px 6px;
     border-radius: 4px;
-    transition: background 0.2s, color 0.2s;
+    transition:
+      background 0.2s,
+      color 0.2s;
   }
   :global(.phone-dialog__close:hover) {
     background: #f5f7fa;
@@ -1121,7 +1137,7 @@ defineExpose({
   :global(.phone-dialog__number) {
     text-align: center;
     font-size: 22px;
-    color: #108C58;
+    color: #108c58;
     font-weight: 600;
     letter-spacing: 1px;
   }
@@ -1288,6 +1304,5 @@ defineExpose({
       }
     }
   }
-
 }
 </style>
