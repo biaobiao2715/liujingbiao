@@ -1,7 +1,7 @@
 <!--
   标题: whitePaperManage.vue
   功能: 维权白皮书管理
-  说明: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用停用、版本更新等操作
+  说明: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用禁用、版本更新等操作
   当前版本: 1.0
 -->
 <template>
@@ -50,7 +50,7 @@
           <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="success" @click="handleEnable">启用</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="warning" @click="handleDisable">停用</el-button>
+          <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="warning" @click="handleDisable">禁用</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:whitePaper:remove']" type="danger" @click="handleDelete">删除</el-button>
@@ -69,9 +69,7 @@
         
         <el-table-column label="白皮书标题" align="center" prop="paperTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
-            <router-link :to="'/expertServicePlatform/legalServiceManage/whitePaperDetail?id=' + scope.row.id + '&type=view'" class="link-type">
-              <span>{{ scope.row.paperTitle }}</span>
-            </router-link>
+            <span>{{ scope.row.paperTitle }}</span>
           </template>
         </el-table-column>
         
@@ -137,7 +135,7 @@
                 v-hasPermi="['skill:whitePaper:edit']" 
                 type="warning" 
                 size="small" 
-                @click="handleStatusChange(scope.row, '停用')"
+                @click="handleStatusChange(scope.row, '禁用')"
               >
                 禁用
               </el-button>
@@ -347,7 +345,7 @@ const getStatusType = (status: string | number) => {
   const statusStr = String(status);
   if (statusStr === '1' || statusStr === '启用') {
     return 'success';
-  } else if (statusStr === '0' || statusStr === '停用' || statusStr === '禁用') {
+  } else if (statusStr === '0' || statusStr === '禁用' || statusStr === '禁用') {
     return 'danger';
   }
   return 'info';
@@ -356,7 +354,7 @@ const getStatusType = (status: string | number) => {
 const normalizeStatus = (status: string | number | null | undefined) => {
   const s = String(status ?? '').trim();
   if (s === '1' || s === '启用' || s.toLowerCase() === 'enable' || s.toLowerCase() === 'enabled') return '1';
-  if (s === '0' || s === '停用' || s === '禁用' || s.toLowerCase() === 'disable' || s.toLowerCase() === 'disabled') return '0';
+  if (s === '0' || s === '禁用' || s === '禁用' || s.toLowerCase() === 'disable' || s.toLowerCase() === 'disabled') return '0';
   return '';
 };
 
@@ -365,7 +363,7 @@ const getStatusLabel = (status: string | number) => {
   if (statusStr === '1') {
     return '启用';
   } else if (statusStr === '0') {
-    return '停用';
+    return '禁用';
   }
   return status;
 };
@@ -491,13 +489,13 @@ const handleDisable = async () => {
   const ids = selectedIds.value.slice();
   
   if (ids.length === 0) {
-    ElMessage.warning('请先选择要停用的白皮书');
+    ElMessage.warning('请先选择要禁用的白皮书');
     return;
   }
   
   try {
     await ElMessageBox.confirm(
-      `确定要停用选中的${ids.length}个白皮书吗？`,
+      `确定要禁用选中的${ids.length}个白皮书吗？`,
       '系统提示',
       {
         confirmButtonText: '确定',
@@ -511,15 +509,15 @@ const handleDisable = async () => {
     const response: any = await disableWhitePaper(ids);
     
     if (response && response.code === 200) {
-      ElMessage.success(`成功停用${ids.length}个白皮书`);
+      ElMessage.success(`成功禁用${ids.length}个白皮书`);
       await getList();
       selectedIds.value = [];
     } else {
-      ElMessage.error(response?.msg || '停用失败，请重试');
+      ElMessage.error(response?.msg || '禁用失败，请重试');
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('停用失败，请稍后重试');
+      ElMessage.error('禁用失败，请稍后重试');
     }
   } finally {
     loading.value = false;
@@ -949,17 +947,6 @@ onMounted(() => {
   .pagination {
     margin-top: 20px;
     justify-content: end;
-  }
-}
-
-.link-type {
-  color: #409eff;
-  text-decoration: none;
-  font-weight: 500;
-  
-  &:hover {
-    text-decoration: underline;
-    color: #66b1ff;
   }
 }
 

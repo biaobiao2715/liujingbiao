@@ -110,7 +110,7 @@
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
         <template #default="scope">
-          <span>{{ formatDate(scope.row.createTime) }}</span>
+          <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
@@ -219,19 +219,6 @@ const dialog = ref({
 
 
 
-const ORDER_COLUMN_MAP: Record<string, string> = {
-  productName: 'product_name',
-  productIntro: 'product_intro',
-  productType: 'product_type',
-  productStatus: 'product_status',
-  createTime: 'create_time'
-};
-
-const resolveOrderColumn = (prop?: string) => {
-  if (!prop) return ORDER_COLUMN_MAP.createTime;
-  return ORDER_COLUMN_MAP[prop] || ORDER_COLUMN_MAP.createTime;
-};
-
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -239,23 +226,15 @@ const queryParams = reactive({
   productType: '',
   productStatus: '',
   applicableObject: [] as string[],
-  orderByColumn: resolveOrderColumn('createTime'),
+  orderByColumn: 'createTime',
   isAsc: 'desc'
 });
 
 const tableData = ref<CreditProduct[]>([]);
 const total = ref(0);
 
-const handleSelectionChange = () => {
-  // 预留选择功能
-};
+const handleSelectionChange = () => {};
 
-const formatDate = (dateTime: string) => {
-  if (!dateTime) return '--';
-  return dateTime.split(' ')[0];
-};
-
-/** 获取列表 */
 const getList = () => {
   loading.value = true;
   const params = {
@@ -264,26 +243,15 @@ const getList = () => {
       ? queryParams.applicableObject.join(',') 
       : queryParams.applicableObject
   };
-  console.log('查询参数:', params);
   creditProductList(params).then((res) => {
-    console.log('返回数据:', res);
     tableData.value = res.rows || [];
     total.value = res.total || 0;
-    // 调试：打印产品状态以便排查
-    if (res.rows && res.rows.length > 0) {
-      console.log('产品状态示例:', res.rows[0].productStatus);
-      console.log('当前用户角色:', userStore.roles);
-      console.log('是否为管理员:', isAdmin.value);
-      console.log('是否为金融机构:', isFinancialInstitution.value);
-    }
     loading.value = false;
-  }).catch((err) => {
-    console.error('获取列表失败:', err);
+  }).catch(() => {
     loading.value = false;
   });
 };
 
-// 搜索与重置
 const handleQuery = () => {
   queryParams.pageNum = 1;
   getList();
@@ -297,54 +265,52 @@ const resetQuery = () => {
   queryParams.productType = '';
   queryParams.productStatus = '';
   queryParams.applicableObject = [];
-  queryParams.orderByColumn = resolveOrderColumn('createTime');
+  queryParams.orderByColumn = 'createTime';
   queryParams.isAsc = 'desc';
   handleQuery();
 };
 
 const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
-  if (order && prop) {
-    queryParams.orderByColumn = resolveOrderColumn(prop);
+  if (order) {
+    queryParams.orderByColumn = prop;
     queryParams.isAsc = order === 'ascending' ? 'asc' : 'desc';
   } else {
-    queryParams.orderByColumn = resolveOrderColumn('createTime');
+    queryParams.orderByColumn = 'createTime';
     queryParams.isAsc = 'desc';
   }
   handleQuery();
 };
 
-// 判断是否可以上架
-// 待上架(5)和下架(3/disabled)状态的产品可以进行上架操作
-// 金融机构账号不可以进行上架操作，只可以进行下架操作
-// 管理员可以进行上下架操作
+const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
+  const value = String(status ?? '').trim();
+  if (!value) return false;
+  const lowerValue = value.toLowerCase();
+  return candidates.some((item) => {
+    const target = String(item ?? '').trim();
+    if (!target) return false;
+    return value === target || lowerValue === target.toLowerCase();
+  });
+};
+
+const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
+const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['5', '待上架', 'pending', 'waiting']);
+
 const canPublish = (row: CreditProduct) => {
   const status = row.productStatus;
-  // 只有待上架或下架状态的产品才能上架
-  const canStatusPublish = status === '5' || status === 'pending' || status === 'waiting' || 
-                          status === '3' || status === 'disabled' || status === 'draft';
+  const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
   if (!canStatusPublish) return false;
-  
-  // 金融机构账号不能上架
   if (isFinancialInstitution.value) return false;
-  
-  // 管理员可以上架
   return isAdmin.value;
 };
 
-// 判断是否可以下架
-// 上架状态的产品可以进行下架操作
-// 金融机构账号和管理员都可以下架
 const canOffline = (row: CreditProduct) => {
   const status = row.productStatus;
-  // 只有上架状态的产品才能下架
   return status === '2' || status === 'enabled' || status === '1';
 };
 
-// 判断是否可以编辑
-// 当状态为"下架、待上架"时可修改
 const canEdit = (row: CreditProduct) => {
   const status = row.productStatus;
-  return status === '3' || status === 'disabled' || status === '5' || status === 'pending' || status === 'waiting';
+  return isOfflineStatus(status) || isPendingStatus(status);
 };
 
 const canDelete = (row: CreditProduct) => {
@@ -442,7 +408,6 @@ const handlePageSizeChange = (size: number) => {
   getList();
 };
 
-// 初始化
 onMounted(() => {
   getList();
 });

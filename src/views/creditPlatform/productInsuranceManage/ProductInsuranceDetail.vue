@@ -17,7 +17,7 @@
       <div class="info-item">
         <span class="label">适用对象：</span>
         <span class="value">
-          <dict-tag :options="applicable_object" :value="detailData.applicableObject" />
+          <dict-tag :options="applicable_object" :value="typeof detailData.applicableObject === 'string' ? detailData.applicableObject.split(',') : detailData.applicableObject" />
         </span>
       </div>
     </div>
@@ -49,15 +49,17 @@
       <div class="rich-text-content" v-html="detailData.applicationInstructions"></div>
     </div>
 
-    <div class="info-block" v-if="detailData.branchOfficeAttachment || detailData.branchOfficeAttachmentName">
+    <div class="info-block" v-if="mainAttachment">
       <span class="label">网点清单：</span>
-      <div class="attachment-content">
-        <div class="file-item">
-          <el-link :href="detailData.branchOfficeAttachmentUrl" target="_blank" type="primary" :underline="false">
-            <el-icon><Document /></el-icon>
-            {{ detailData.branchOfficeAttachmentName || '附件' }}
+      <div class="attachment-content link-display">
+        <template v-if="mainAttachment?.url">
+          <el-link type="primary" :href="mainAttachment.url" target="_blank">
+            {{ mainAttachment.name || '网点清单' }}
           </el-link>
-        </div>
+        </template>
+        <template v-else>
+          <span class="file-name">{{ mainAttachment?.name || '--' }}</span>
+        </template>
       </div>
     </div>
 
@@ -79,10 +81,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Document } from '@element-plus/icons-vue';
+import type { UploadFile } from 'element-plus';
 import { insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
 
 const props = defineProps<{
@@ -112,6 +114,7 @@ interface InsuranceProductDetail {
   branchOfficeAttachment?: string | number | null;
   branchOfficeAttachmentName?: string;
   branchOfficeAttachmentUrl?: string;
+  ossFileVo?: any[];
   productRemark: string;
 }
 
@@ -126,8 +129,59 @@ const detailData = ref<InsuranceProductDetail>({
   branchOfficeAttachment: null,
   branchOfficeAttachmentName: '',
   branchOfficeAttachmentUrl: '',
+  ossFileVo: [],
   productRemark: ''
 });
+
+const detailFileList = ref<UploadFile[]>([]);
+const mainAttachment = computed(() => (detailFileList.value.length > 0 ? detailFileList.value[0] : null));
+
+const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
+  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
+  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
+  return {
+    uid,
+    name: payload.name || '附件',
+    url: payload.url || '',
+    status: 'success'
+  } as UploadFile;
+};
+
+const syncDetailAttachmentList = (data: any) => {
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    detailFileList.value = ossList.map((file: any) =>
+      buildUploadFileItem({
+        ossId: file.ossId,
+        name: file.fileName || file.name || data?.branchOfficeAttachmentName || '网点清单',
+        url: file.url || file.fileUrl || data?.branchOfficeAttachmentUrl || ''
+      })
+    );
+    detailData.value.branchOfficeAttachment = ossList[0].ossId || data.branchOfficeAttachment || null;
+    detailData.value.branchOfficeAttachmentName =
+      ossList[0].fileName || ossList[0].name || data.branchOfficeAttachmentName || '网点清单';
+    detailData.value.branchOfficeAttachmentUrl =
+      ossList[0].url || ossList[0].fileUrl || data.branchOfficeAttachmentUrl || '';
+    return;
+  }
+  if (data?.branchOfficeAttachment) {
+    detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+    detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+    detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
+    detailFileList.value = [
+      buildUploadFileItem({
+        ossId: data.branchOfficeAttachment,
+        name: data.branchOfficeAttachmentName || '网点清单',
+        url: data.branchOfficeAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  detailData.value.branchOfficeAttachment = null;
+  detailData.value.branchOfficeAttachmentName = '';
+  detailData.value.branchOfficeAttachmentUrl = '';
+  detailFileList.value = [];
+};
 
 const fetchDetail = async () => {
   if (!props.id) return;
@@ -147,8 +201,10 @@ const fetchDetail = async () => {
         branchOfficeAttachment: data.branchOfficeAttachment || null,
         branchOfficeAttachmentName: data.branchOfficeAttachmentName || '',
         branchOfficeAttachmentUrl: data.branchOfficeAttachmentUrl || '',
+        ossFileVo: data.ossFileVo || [],
         productRemark: data.productRemark || ''
       };
+      syncDetailAttachmentList(data);
     } else {
       ElMessage.error(response?.msg || '获取产品详情失败');
     }
@@ -275,17 +331,13 @@ onMounted(() => {
     flex: 1;
     max-width: 800px;
 
-    .file-item {
+    &.link-display {
       display: flex;
       align-items: center;
-      padding: 8px 12px;
-      background-color: #f5f7fa;
-      border-radius: 4px;
-      border: 1px solid #dcdfe6;
+      min-height: 32px;
 
-      .el-icon {
-        margin-right: 8px;
-        font-size: 16px;
+      .file-name {
+        color: #303133;
       }
     }
   }
