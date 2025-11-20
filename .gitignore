@@ -30,5 +30,3 @@ components.d.ts
 
 #忽略dist目录
 dist.zip
-
-vite.config.ts
