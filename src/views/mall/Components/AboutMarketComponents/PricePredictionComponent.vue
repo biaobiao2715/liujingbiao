@@ -102,13 +102,6 @@ const chartYAxisMin = ref(0);
 const chartYAxisMax = ref(5);
 const chartYAxisInterval = ref(1);
 
-const parsePriceValue = (val: any) => {
-  if (val === undefined || val === null || val === '' || val === '-') return null;
-  const num = Number(val);
-  if (Number.isNaN(num)) return null;
-  return num;
-};
-
 const normalizeMonthLabel = (value: any) => {
   if (value === undefined || value === null) return '';
   const str = String(value).trim();
@@ -119,6 +112,53 @@ const normalizeMonthLabel = (value: any) => {
     return `${year}-${safeMonth}`;
   }
   return str;
+};
+
+const parsePriceValue = (val: any) => {
+  if (val === undefined || val === null || val === '' || val === '-') return null;
+  const num = Number(val);
+  if (Number.isNaN(num)) return null;
+  return num;
+};
+
+const buildSeriesByXAxis = (
+  baseMonths: string[],
+  xAxis?: any[],
+  yAxis?: any[]
+): (number | null)[] => {
+  const map = new Map<string, number | null>();
+  if (Array.isArray(xAxis) && Array.isArray(yAxis)) {
+    xAxis.forEach((label: any, idx: number) => {
+      map.set(normalizeMonthLabel(label), parsePriceValue(yAxis[idx]));
+    });
+  }
+  return baseMonths.map((month) => map.get(month) ?? null);
+};
+
+const fillSequentialIfEmpty = (
+  series: (number | null)[],
+  baseMonths: string[],
+  values?: any[]
+) => {
+  if (series.some((val) => val !== null) || !Array.isArray(values)) return series;
+  return baseMonths.map((_, idx) => parsePriceValue(values[idx]));
+};
+
+const deriveExtreme = (
+  series: (number | null)[],
+  months: string[],
+  type: 'max' | 'min'
+): { month: string; price: number } => {
+  const entries = series
+    .map((price, idx) => ({ price, month: months[idx] }))
+    .filter((item) => item.price !== null && item.month) as { price: number; month: string }[];
+  if (!entries.length) return { month: '', price: 0 };
+  const comparator =
+    type === 'max'
+      ? (prev: any, curr: any) => (curr.price > prev.price ? curr : prev)
+      : (prev: any, curr: any) => (curr.price < prev.price ? curr : prev);
+  const result = entries.reduce(comparator);
+  return { month: result.month, price: Number(result.price.toFixed(2)) };
 };
 
 // 市场分析数据
@@ -196,40 +236,28 @@ const fetchPricePrediction = async () => {
         allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
       }
 
-      if (historicalData.yAxis && Array.isArray(historicalData.yAxis)) {
-        pastPrices.value = historicalData.yAxis.map((p: string | number) => parsePriceValue(p));
-      } else if (data.pastPrices && Array.isArray(data.pastPrices)) {
-        pastPrices.value = data.pastPrices.map((p: any) => parsePriceValue(p));
-      }
-
-      // 处理预测数据（predictedData）
       if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
         const predictedMonths = predictedData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
         allMonths.value = [...new Set([...allMonths.value, ...predictedMonths])];
       }
 
-      if (predictedData.yAxis && Array.isArray(predictedData.yAxis)) {
-        predictedPrices.value = predictedData.yAxis.map((p: string | number) => parsePriceValue(p));
-      } else if (data.predictedPrices && Array.isArray(data.predictedPrices)) {
-        predictedPrices.value = data.predictedPrices.map((p: any) => parsePriceValue(p));
+      if (!allMonths.value.length && Array.isArray(data.months)) {
+        allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
+      }
+      if (!allMonths.value.length) {
+        allMonths.value = Array.from({ length: 12 }, (_, idx) => `${idx + 1}`);
       }
 
-      // 处理价格上下限（如果接口返回）
-      if (data.pastPriceUpper && Array.isArray(data.pastPriceUpper)) {
-        pastPriceUpper.value = data.pastPriceUpper.map((p: any) => parsePriceValue(p));
-      }
+      pastPrices.value = buildSeriesByXAxis(allMonths.value, historicalData.xAxis, historicalData.yAxis);
+      predictedPrices.value = buildSeriesByXAxis(allMonths.value, predictedData.xAxis, predictedData.yAxis);
 
-      if (data.pastPriceLower && Array.isArray(data.pastPriceLower)) {
-        pastPriceLower.value = data.pastPriceLower.map((p: any) => parsePriceValue(p));
-      }
+      pastPriceUpper.value = buildSeriesByXAxis(allMonths.value, allMonths.value, data.pastPriceUpper);
+      pastPriceLower.value = buildSeriesByXAxis(allMonths.value, allMonths.value, data.pastPriceLower);
+      predictedPriceUpper.value = buildSeriesByXAxis(allMonths.value, allMonths.value, data.predictedPriceUpper);
+      predictedPriceLower.value = buildSeriesByXAxis(allMonths.value, allMonths.value, data.predictedPriceLower);
 
-      if (data.predictedPriceUpper && Array.isArray(data.predictedPriceUpper)) {
-        predictedPriceUpper.value = data.predictedPriceUpper.map((p: any) => parsePriceValue(p));
-      }
-
-      if (data.predictedPriceLower && Array.isArray(data.predictedPriceLower)) {
-        predictedPriceLower.value = data.predictedPriceLower.map((p: any) => parsePriceValue(p));
-      }
+      pastPrices.value = fillSequentialIfEmpty(pastPrices.value, allMonths.value, data.pastPrices);
+      predictedPrices.value = fillSequentialIfEmpty(predictedPrices.value, allMonths.value, data.predictedPrices);
 
       // 最高点和最低点
       const resolveMonthFromIndex = (index: any) => {
@@ -242,32 +270,40 @@ const fetchPricePrediction = async () => {
         return normalizeMonthLabel(index);
       };
 
-      if (data.pastHighest) {
+      if (data.pastHighest && data.pastHighest.price !== undefined) {
         pastHighest.value = {
           month: normalizeMonthLabel(data.pastHighest.month) || resolveMonthFromIndex(data.pastHighest.monthIndex),
           price: Number(data.pastHighest.price || 0)
         };
+      } else {
+        pastHighest.value = deriveExtreme(pastPrices.value, allMonths.value, 'max');
       }
 
-      if (data.pastLowest) {
+      if (data.pastLowest && data.pastLowest.price !== undefined) {
         pastLowest.value = {
           month: normalizeMonthLabel(data.pastLowest.month) || resolveMonthFromIndex(data.pastLowest.monthIndex),
           price: Number(data.pastLowest.price || 0)
         };
+      } else {
+        pastLowest.value = deriveExtreme(pastPrices.value, allMonths.value, 'min');
       }
 
-      if (data.predictedHighest) {
+      if (data.predictedHighest && data.predictedHighest.price !== undefined) {
         predictedHighest.value = {
           month: normalizeMonthLabel(data.predictedHighest.month) || resolveMonthFromIndex(data.predictedHighest.monthIndex),
           price: Number(data.predictedHighest.price || 0)
         };
+      } else {
+        predictedHighest.value = deriveExtreme(predictedPrices.value, allMonths.value, 'max');
       }
 
-      if (data.predictedLowest) {
+      if (data.predictedLowest && data.predictedLowest.price !== undefined) {
         predictedLowest.value = {
           month: normalizeMonthLabel(data.predictedLowest.month) || resolveMonthFromIndex(data.predictedLowest.monthIndex),
           price: Number(data.predictedLowest.price || 0)
         };
+      } else {
+        predictedLowest.value = deriveExtreme(predictedPrices.value, allMonths.value, 'min');
       }
 
       updateYAxisRange();

@@ -54,8 +54,28 @@ const updateChart = () => {
   // 构建最高点和最低点数据
   const pastHighestData = props.months.map((m) => (m === props.pastHighest.month ? props.pastHighest.price : null))
   const pastLowestData = props.months.map((m) => (m === props.pastLowest.month ? props.pastLowest.price : null))
-  const predictedHighestData = props.months.map((m) => (m === props.predictedHighest.month ? props.predictedHighest.price : null))
-  const predictedLowestData = props.months.map((m) => (m === props.predictedLowest.month ? props.predictedLowest.price : null))
+  const predictedHighestData = props.months.map((m) =>
+    m === props.predictedHighest.month ? props.predictedHighest.price : null
+  )
+  const predictedLowestData = props.months.map((m) =>
+    m === props.predictedLowest.month ? props.predictedLowest.price : null
+  )
+
+  const markerLabel = {
+    show: true,
+    position: 'top',
+    fontSize: 12,
+    color: '#303133',
+    backgroundColor: '#fff',
+    borderColor: '#dcdfe6',
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: [2, 6],
+    formatter: (params: any) => {
+      if (params.value === null || params.value === undefined || params.value === '') return ''
+      return Number(params.value).toFixed(2)
+    }
+  }
 
   const option = {
     backgroundColor: '#fff', // 图表背景颜色为白色
@@ -241,10 +261,13 @@ const updateChart = () => {
         type: 'scatter',
         data: pastLowestData,
         symbol: 'circle',
-        symbolSize: 12,
+        symbolSize: 14,
         itemStyle: {
-          color: '#FF0000' // 红色
+          color: '#FF0000',
+          borderColor: '#fff',
+          borderWidth: 2
         },
+        label: markerLabel,
         z: 10 // 确保在最上层
       },
       // 过往月份价格最高点（绿色）
@@ -253,11 +276,16 @@ const updateChart = () => {
         type: 'scatter',
         data: pastHighestData,
         symbol: 'circle',
-        symbolSize: 12,
+        symbolSize: 18,
         itemStyle: {
-          color: '#00FF00' // 绿色
+          color: '#00BB00',
+          borderColor: '#fff',
+          borderWidth: 3,
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 187, 0, 0.35)'
         },
-        z: 10
+        label: markerLabel,
+        z: 20
       },
       // 预测月份价格最低点（黄色）
       {
@@ -265,10 +293,13 @@ const updateChart = () => {
         type: 'scatter',
         data: predictedLowestData,
         symbol: 'circle',
-        symbolSize: 12,
+        symbolSize: 14,
         itemStyle: {
-          color: '#FFD700' // 黄色
+          color: '#FFD700',
+          borderColor: '#fff',
+          borderWidth: 2
         },
+        label: markerLabel,
         z: 10
       },
       // 预测月份价格最高点（紫色）
@@ -277,11 +308,16 @@ const updateChart = () => {
         type: 'scatter',
         data: predictedHighestData,
         symbol: 'circle',
-        symbolSize: 12,
+        symbolSize: 18,
         itemStyle: {
-          color: '#800080' // 紫色
+          color: '#800080',
+          borderColor: '#fff',
+          borderWidth: 3,
+          shadowBlur: 10,
+          shadowColor: 'rgba(128, 0, 128, 0.35)'
         },
-        z: 10
+        label: markerLabel,
+        z: 20
       }
     ]
   }
