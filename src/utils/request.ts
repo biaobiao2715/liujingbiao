@@ -28,7 +28,7 @@ axios.defaults.headers['clientid'] = import.meta.env.VITE_APP_CLIENT_ID;
 // 创建 axios 实例
 const service = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
-  timeout: 50000
+  timeout: 5000
 });
 
 // 请求拦截器

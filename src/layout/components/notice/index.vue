@@ -25,7 +25,7 @@
 
 <script setup lang="ts" name="layoutBreadcrumbUserNews">
 import { useNoticeStore } from '@/store/modules/notice';
-import { string } from 'vue-types';
+import { eventBus } from '@/utils/eventBus';
 
 const noticeStore = useNoticeStore();
 const { readAll } = useNoticeStore();
@@ -65,7 +65,7 @@ const onNewsClick = (item: any, key: number) => {
   }
   //供给主题 --推给采购商使用
   if (item.event == 'supplyDemand') {
-    proxy.$router.push({ path: '/supplierPlatform/supplyManagement/procurement' });
+    eventBus.emit('supplyDemandmessage', { type: 'demand', id: item.message.id });
     return;
   }
 };

@@ -16,7 +16,7 @@
               <div class="upload-businessLicense">
                 <el-upload
                   class="upload-box"
-                  accept=".jpg,.jpeg,.gif,.png,.pdf"
+                  accept=".jpg,.jpeg,.png,.pdf"
                   action="#"
                   drag
                   :auto-upload="false"
@@ -217,7 +217,7 @@
             <template #default="scope">
               <el-button v-throttle text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
-                <span style="height: 16px; line-height: 16px">预览</span>
+                <span style="height: 16px; line-height: 16px">下载</span>
               </el-button>
 
               <el-button
@@ -296,7 +296,6 @@ import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一�
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { supplierRegister } from '@/api/register/supplier'; //注册接口
 import { isAccountExist } from '@/api/login'; //账号获取详情信息
-import areaData from 'china-area-data'; //注册地址数据
 // 定义props来接收selectedIdentity
 const props = defineProps({
   selectedIdentity: {
@@ -312,7 +311,7 @@ const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目�
 enum idTypeEnum {
   sysUserId = null,
   supplier = 'qyId',
-  enterprise = 'qyId',
+  // enterprise = 'qyId',
   expert = 'jszjId',
   legal = 'fwzjId'
 }
@@ -824,14 +823,32 @@ const handleDiplomaChange = (file: UploadFile) => {
         // 同步预览对象（保持为对象，模板使用 diplomaUrl.url）
         diplomaUrl.value = newFile;
 
+        const arr = res.data.url;
+
         // 继续调用 OCR
-        return ocrUploadImage({ file: file.raw })
+        return ocrUploadImage({ image_url_list: [arr] })
           .then((ocrRes) => {
+            console.log('OCR 识别结果：', ocrRes, ocrRes[0]);
+            const brr = ocrRes.data[0];
+            if (!brr) {
+              proxy?.$modal.msgError('营业执照识别失败，请上传正确的营业执照');
+              return;
+            }
             Object.keys(ocrRes).forEach((key) => {
               if (key in form.value) {
-                form.value[key] = ocrRes[key];
+                form.value[key] = brr[key];
               }
             });
+            form.value.companyName = brr.companyName; // 企业名称
+            form.value.licenseNumber = brr.unifiedSocialCreditCode; // 统一社会信用代码
+            form.value.signUpTime = brr.establishmentDate; // 注册日期
+            form.value.signUpCapital = brr.registeredCapital; // 注册资本
+            form.value.signUpAddress = brr.address; // 注册地址
+            form.value.officeAddress = brr.address; // 办公地址
+            form.value.businessScope = brr.businessScope; // 经营范围
+            form.value.legalPerson = brr.legalRepresentative; // 法人
+
+            tableList.value[0].contactUserName = brr.legalRepresentative;
           })
           .catch((error) => {
             // OCR 失败回滚
@@ -923,7 +940,7 @@ const previewFile = async (file: any) => {
     const blob = await response.blob();
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = file.fileName; // 设置文件名
+    link.download = file.name; // 设置文件名
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -931,7 +948,6 @@ const previewFile = async (file: any) => {
   } catch (error) {
     console.error('下载失败', error);
   }
-  console.log('预览文件:', file);
 };
 
 // 删除文件

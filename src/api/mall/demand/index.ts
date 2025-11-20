@@ -36,6 +36,15 @@ export function updatePurchaseDemand(data: any) {
   });
 }
 
+// 获取推荐供给需求详细信息
+export function querySupplyInfoById(data: any) {
+  return request({
+    url: 'grain-sales/hnSupplierSupply/querySupplyInfoById',
+    method: 'get',
+    params: data
+  });
+}
+
 // 供需大厅热销推荐
 export function hotRecommendationList(data: any) {
   return request({

@@ -22,7 +22,7 @@
         <!-- 商品组件 -->
         <GoodsComponent v-if="activeTab === 'goods'" />
         <div v-else-if="activeTab === 'demand'">
-          <DemandComponent />
+          <DemandComponent :id="detailsId" :type="detailsType" />
         </div>
         <div v-else-if="activeTab === 'market'">
           <MarketComponent />
@@ -49,7 +49,7 @@ import { eventBus } from '@/utils/eventBus';
 
 const activeTab = ref('goods');
 const personalCommand = ref('');
-const detailsId = ref('');
+const detailsId = ref<string | number>('');
 const detailsType = ref('');
 
 onMounted(() => {
@@ -61,6 +61,12 @@ onMounted(() => {
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (command: string) => {
     activeTab.value = command;
+  });
+  // 监听消息事件
+  eventBus.on('supplyDemandmessage', (command: any) => {
+    activeTab.value = command.type;
+    detailsId.value = command.id;
+    detailsType.value = 'supplyDemand';
   });
 });
 

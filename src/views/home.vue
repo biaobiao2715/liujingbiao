@@ -145,7 +145,9 @@ const getIcon = (svgName: string) => {
 const handleRedirect = (path: string) => {
   if (path) {
     router.push(path);
-    initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
+    setTimeout(() => {
+      initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
+    }, 1000);
   }
 };
 
