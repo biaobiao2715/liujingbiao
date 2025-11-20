@@ -11,9 +11,9 @@
   <div class="knowledge-case-page" v-loading="loading">
     <div class="filter-card">
       <el-form ref="queryFormRef" :model="queryParams" inline label-width="120px">
-        <el-form-item label="知识库案件名称" prop="caseName">
+        <el-form-item label="知识库案件名称" prop="knowledgeCaseName">
           <el-select
-            v-model="queryParams.caseName"
+            v-model="queryParams.knowledgeCaseName"
             placeholder="请选择"
             clearable
             filterable
@@ -32,9 +32,9 @@
             clearable
           />
         </el-form-item>
-        <el-form-item label="创建人" prop="creatorName">
+        <el-form-item label="创建人" prop="createBy">
           <el-input
-            v-model="queryParams.creatorName"
+            v-model="queryParams.createBy"
             placeholder="请输入创建人姓名"
             clearable
             style="width: 220px"
@@ -72,9 +72,9 @@
             {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="caseName" label="知识库案件名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="创建时间" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="creatorName" label="创建人" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="knowledgeCaseName" label="知识库案件名称" min-width="200" align="center" show-overflow-tooltip />
+        <el-table-column prop="createTime" label="创建时间" min-width="180" align="center" show-overflow-tooltip />
+        <el-table-column prop="createBy" label="创建人" min-width="120" align="center" show-overflow-tooltip />
         <el-table-column label="操作" width="200" align="center">
           <template #default="scope">
             <el-button type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
@@ -97,21 +97,32 @@
         />
       </div>
     </div>
+
+    <!-- 案件详情弹窗 -->
+    <CaseDetailDialog
+      :visible="dialogVisible"
+      :mode="dialogMode"
+      :detail="currentRow"
+      @update:visible="dialogVisible = $event"
+      @confirm="handleDialogConfirm"
+      @close="handleDialogClose"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import type { FormInstance } from 'element-plus';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { pickBy } from 'lodash';
-import { fetchKnowledgeCaseList, fetchKnowledgeCaseNames } from '../../../api/rightsPlatform/knowledgeCaseManage/index';
+import { fetchKnowledgeCaseList, fetchKnowledgeCaseNames, deleteKnowledgeCase } from '@/api/rightsPlatform/knowledgeCaseManage/index';
+import CaseDetailDialog from './CaseDetailDialog.vue';
 
 interface KnowledgeCaseItem {
   id?: string | number;
-  caseName?: string;
+  knowledgeCaseName?: string;
   createTime?: string;
-  creatorName?: string;
+  createBy?: string;
 }
 
 const queryFormRef = ref<FormInstance>();
@@ -121,10 +132,15 @@ const total = ref(0);
 const selectionRows = ref<KnowledgeCaseItem[]>([]);
 const caseNameOptions = ref<{ label: string; value: string }[]>([]);
 
+// 弹窗相关
+const dialogVisible = ref(false);
+const dialogMode = ref<'view' | 'edit' | 'add'>('add');
+const currentRow = ref<KnowledgeCaseItem | null>(null);
+
 const queryParams = reactive({
-  caseName: '',
+  knowledgeCaseName: '',
   createTime: '',
-  creatorName: '',
+  createBy: '',
   pageNum: 1,
   pageSize: 10
 });
@@ -136,9 +152,9 @@ const handleSearch = () => {
 
 const handleReset = () => {
   queryFormRef.value?.resetFields();
-  queryParams.caseName = '';
+  queryParams.knowledgeCaseName = '';
   queryParams.createTime = '';
-  queryParams.creatorName = '';
+  queryParams.createBy = '';
   queryParams.pageNum = 1;
   queryParams.pageSize = 10;
   fetchTableData();
@@ -156,30 +172,97 @@ const handlePageChange = (page: number) => {
 };
 
 const handleCreate = () => {
-  ElMessage.info('新增功能暂未接入接口');
+  dialogMode.value = 'add';
+  currentRow.value = null;
+  dialogVisible.value = true;
 };
 
 const handleEdit = (row: KnowledgeCaseItem) => {
-  console.log('edit row', row);
-  ElMessage.info('编辑功能暂未接入接口');
+  dialogMode.value = 'edit';
+  currentRow.value = row;
+  dialogVisible.value = true;
 };
 
 const handleView = (row: KnowledgeCaseItem) => {
-  console.log('view row', row);
-  ElMessage.info('查看功能暂未接入接口');
+  dialogMode.value = 'view';
+  currentRow.value = row;
+  dialogVisible.value = true;
 };
 
-const handleSingleDelete = (row: KnowledgeCaseItem) => {
-  console.log('delete row', row);
-  ElMessage.info('删除功能暂未接入接口');
+const handleSingleDelete = async (row: KnowledgeCaseItem) => {
+  if (!row.id) {
+    ElMessage.warning('该案件数据异常，无法删除');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm('确定要删除该案件吗？', '系统提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    loading.value = true;
+    const response: any = await deleteKnowledgeCase(row.id);
+    if (response && response.code === 200) {
+      ElMessage.success('删除成功');
+      fetchTableData();
+    } else {
+      ElMessage.error(response?.msg || '删除失败，请稍后重试');
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (!selectionRows.value.length) {
     ElMessage.warning('请先选择要删除的案件');
     return;
   }
-  ElMessage.info('批量删除功能暂未接入接口');
+
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectionRows.value.length} 个案件吗？`, '系统提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    loading.value = true;
+    const ids = selectionRows.value.map((row) => row.id).filter((id) => id !== undefined && id !== null);
+    if (ids.length === 0) {
+      ElMessage.warning('选中的案件数据异常，无法删除');
+      return;
+    }
+
+    const response: any = await deleteKnowledgeCase(ids);
+    if (response && response.code === 200) {
+      ElMessage.success('批量删除成功');
+      selectionRows.value = [];
+      fetchTableData();
+    } else {
+      ElMessage.error(response?.msg || '批量删除失败，请稍后重试');
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('批量删除失败，请稍后重试');
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleDialogConfirm = () => {
+  fetchTableData();
+};
+
+const handleDialogClose = () => {
+  dialogVisible.value = false;
+  currentRow.value = null;
 };
 
 const handleSelectionChange = (rows: KnowledgeCaseItem[]) => {
