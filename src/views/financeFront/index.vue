@@ -6,7 +6,7 @@
   开发信息: Created by 李春雷 2025-11-13
 -->
 <template>
-  <div>
+  <div class="finance-container">
     <!-- 导航栏 -->
     <HeaderComponent />
     <!-- 搜索组件 -->
@@ -17,10 +17,17 @@
       <BannerComponent />
       <!-- 贷款产品 -->
       <LoanProductsComponent @detailChange="showDetail" />
-      <!-- 保险产品 -->
-      <InsuranceproductComponent @detailChange="showDetail" />
-      <!-- 风险案例 -->
-      <RiskCasesComponent @detailChange="showDetail" />
+      <el-row>
+        <el-col :span="16">
+          <!-- 保险产品 -->
+          <InsuranceproductComponent @detailChange="showDetail" />
+        </el-col>
+        <el-col :span="8">
+          <!-- 风险案例 -->
+          <RiskCasesComponent @detailChange="showDetail" />
+        </el-col>
+      </el-row>
+
       <!-- 政策法规 -->
       <PolicyRulesComponent @detailChange="showDetail" />
     </div>
@@ -92,6 +99,7 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
 
 const secondTitle = computed(() => (showArea.value === 'area' ? '' : TITLE_MAP[showArea.value]));
 
+
 // 显示详情
 const showDetail = (detail: DetailPayload) => {
   id.value = String(detail.id);
@@ -103,6 +111,7 @@ const showDetail = (detail: DetailPayload) => {
 .finance-container {
   // padding: 0 16%;
   min-width: 1400px;
+  background-color: #f6f7fb;
 }
 
 .detail-container {

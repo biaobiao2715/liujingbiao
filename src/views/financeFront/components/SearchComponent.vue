@@ -1,5 +1,8 @@
 <template>
   <div class="search-container flex-between">
+    <!-- 麦穗图片 -->
+    <img src="@/assets/images/finance/wheat.png" width="60" class="wheat-ong" />
+
     <div class="left-space flex-center gap-12">
       <div class="point"></div>
       <div class="search-title">种子金融服务平台</div>
@@ -47,6 +50,7 @@ const handleSearch = () => {
   background-size: cover;
   padding: 20px;
   text-align: center;
+  position: relative;
   .left-space {
     .point {
       width: 26px;
@@ -59,6 +63,9 @@ const handleSearch = () => {
       font-size: 32px;
     }
   }
+}
+.wheat-ong {
+  position: absolute;
 }
 
 .search-input {

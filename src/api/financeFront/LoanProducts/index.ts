@@ -11,6 +11,14 @@ export function getCreditArticleList(data: any) {
   });
 }
 
+// 查询金融产品信息列表（无租户）
+export function getCreditProductsVersionNoTenantList(data?: any) {
+  return request({
+    url: '/credit-server/creditProductsVersion/noTenant/list',
+    method: 'get',
+    params: data
+  });
+}
 /**
  * 获取金融文章详情
  */
