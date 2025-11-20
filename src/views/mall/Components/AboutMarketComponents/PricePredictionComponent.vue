@@ -39,9 +39,9 @@
           :past-lowest="pastLowest"
           :predicted-highest="predictedHighest"
           :predicted-lowest="predictedLowest"
-          :y-axis-min="55"
-          :y-axis-max="85"
-          :y-axis-interval="5"
+          :y-axis-min="chartYAxisMin"
+          :y-axis-max="chartYAxisMax"
+          :y-axis-interval="chartYAxisInterval"
           v-loading="loading"
         />
       </div>
@@ -88,16 +88,38 @@ const regionCodes = reactive({
 
 // 图表数据
 const allMonths = ref<string[]>([]);
-const pastPrices = ref<number[]>([]);
-const pastPriceUpper = ref<number[]>([]);
-const pastPriceLower = ref<number[]>([]);
-const predictedPrices = ref<number[]>([]);
-const predictedPriceUpper = ref<number[]>([]);
-const predictedPriceLower = ref<number[]>([]);
+const pastPrices = ref<(number | null)[]>([]);
+const pastPriceUpper = ref<(number | null)[]>([]);
+const pastPriceLower = ref<(number | null)[]>([]);
+const predictedPrices = ref<(number | null)[]>([]);
+const predictedPriceUpper = ref<(number | null)[]>([]);
+const predictedPriceLower = ref<(number | null)[]>([]);
 const pastHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const pastLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
+const chartYAxisMin = ref(0);
+const chartYAxisMax = ref(5);
+const chartYAxisInterval = ref(1);
+
+const parsePriceValue = (val: any) => {
+  if (val === undefined || val === null || val === '' || val === '-') return null;
+  const num = Number(val);
+  if (Number.isNaN(num)) return null;
+  return num;
+};
+
+const normalizeMonthLabel = (value: any) => {
+  if (value === undefined || value === null) return '';
+  const str = String(value).trim();
+  if (!str) return '';
+  if (str.includes('-')) {
+    const [year, month] = str.split('-');
+    const safeMonth = (month || '').padStart(2, '0');
+    return `${year}-${safeMonth}`;
+  }
+  return str;
+};
 
 // 市场分析数据
 const marketAnalysis = ref({
@@ -169,90 +191,86 @@ const fetchPricePrediction = async () => {
 
       // 处理历史数据（historicalData）
       if (historicalData.xAxis && Array.isArray(historicalData.xAxis)) {
-        // xAxis 是日期数组，需要转换为月份索引
-        allMonths.value = historicalData.xAxis.map((dateStr: string) => {
-          // 如果格式是 "2024-11"，提取月份部分
-          if (dateStr.includes('-')) {
-            const month = dateStr.split('-')[1];
-            return String(parseInt(month));
-          }
-          return String(dateStr);
-        });
+        allMonths.value = historicalData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
       } else if (data.months && Array.isArray(data.months)) {
-        allMonths.value = data.months.map((m: any) => String(m));
+        allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
       }
 
       if (historicalData.yAxis && Array.isArray(historicalData.yAxis)) {
-        pastPrices.value = historicalData.yAxis.map((p: string | number) => Number(p || 0));
+        pastPrices.value = historicalData.yAxis.map((p: string | number) => parsePriceValue(p));
       } else if (data.pastPrices && Array.isArray(data.pastPrices)) {
-        pastPrices.value = data.pastPrices.map((p: any) => Number(p || 0));
+        pastPrices.value = data.pastPrices.map((p: any) => parsePriceValue(p));
       }
 
       // 处理预测数据（predictedData）
       if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
-        // 如果预测数据也有 xAxis，可以合并到 allMonths
-        const predictedMonths = predictedData.xAxis.map((dateStr: string) => {
-          if (dateStr.includes('-')) {
-            const month = dateStr.split('-')[1];
-            return String(parseInt(month));
-          }
-          return String(dateStr);
-        });
-        // 合并历史月份和预测月份，去重
+        const predictedMonths = predictedData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
         allMonths.value = [...new Set([...allMonths.value, ...predictedMonths])];
       }
 
       if (predictedData.yAxis && Array.isArray(predictedData.yAxis)) {
-        predictedPrices.value = predictedData.yAxis.map((p: string | number) => Number(p || 0));
+        predictedPrices.value = predictedData.yAxis.map((p: string | number) => parsePriceValue(p));
       } else if (data.predictedPrices && Array.isArray(data.predictedPrices)) {
-        predictedPrices.value = data.predictedPrices.map((p: any) => Number(p || 0));
+        predictedPrices.value = data.predictedPrices.map((p: any) => parsePriceValue(p));
       }
 
       // 处理价格上下限（如果接口返回）
       if (data.pastPriceUpper && Array.isArray(data.pastPriceUpper)) {
-        pastPriceUpper.value = data.pastPriceUpper.map((p: any) => Number(p || 0));
+        pastPriceUpper.value = data.pastPriceUpper.map((p: any) => parsePriceValue(p));
       }
 
       if (data.pastPriceLower && Array.isArray(data.pastPriceLower)) {
-        pastPriceLower.value = data.pastPriceLower.map((p: any) => Number(p || 0));
+        pastPriceLower.value = data.pastPriceLower.map((p: any) => parsePriceValue(p));
       }
 
       if (data.predictedPriceUpper && Array.isArray(data.predictedPriceUpper)) {
-        predictedPriceUpper.value = data.predictedPriceUpper.map((p: any) => Number(p || 0));
+        predictedPriceUpper.value = data.predictedPriceUpper.map((p: any) => parsePriceValue(p));
       }
 
       if (data.predictedPriceLower && Array.isArray(data.predictedPriceLower)) {
-        predictedPriceLower.value = data.predictedPriceLower.map((p: any) => Number(p || 0));
+        predictedPriceLower.value = data.predictedPriceLower.map((p: any) => parsePriceValue(p));
       }
 
       // 最高点和最低点
+      const resolveMonthFromIndex = (index: any) => {
+        if (index === undefined || index === null) return '';
+        const num = Number(index);
+        if (!Number.isNaN(num)) {
+          const valueByIndex = allMonths.value[num];
+          if (valueByIndex) return valueByIndex;
+        }
+        return normalizeMonthLabel(index);
+      };
+
       if (data.pastHighest) {
         pastHighest.value = {
-          month: String(data.pastHighest.month || data.pastHighest.monthIndex || ''),
+          month: normalizeMonthLabel(data.pastHighest.month) || resolveMonthFromIndex(data.pastHighest.monthIndex),
           price: Number(data.pastHighest.price || 0)
         };
       }
 
       if (data.pastLowest) {
         pastLowest.value = {
-          month: String(data.pastLowest.month || data.pastLowest.monthIndex || ''),
+          month: normalizeMonthLabel(data.pastLowest.month) || resolveMonthFromIndex(data.pastLowest.monthIndex),
           price: Number(data.pastLowest.price || 0)
         };
       }
 
       if (data.predictedHighest) {
         predictedHighest.value = {
-          month: String(data.predictedHighest.month || data.predictedHighest.monthIndex || ''),
+          month: normalizeMonthLabel(data.predictedHighest.month) || resolveMonthFromIndex(data.predictedHighest.monthIndex),
           price: Number(data.predictedHighest.price || 0)
         };
       }
 
       if (data.predictedLowest) {
         predictedLowest.value = {
-          month: String(data.predictedLowest.month || data.predictedLowest.monthIndex || ''),
+          month: normalizeMonthLabel(data.predictedLowest.month) || resolveMonthFromIndex(data.predictedLowest.monthIndex),
           price: Number(data.predictedLowest.price || 0)
         };
       }
+
+      updateYAxisRange();
 
       // 市场分析数据
       if (data.overallTrend) {
@@ -291,11 +309,48 @@ const resetChartData = () => {
   pastLowest.value = { month: '', price: 0 };
   predictedHighest.value = { month: '', price: 0 };
   predictedLowest.value = { month: '', price: 0 };
+  chartYAxisMin.value = 0;
+  chartYAxisMax.value = 5;
+  chartYAxisInterval.value = 1;
   marketAnalysis.value = {
     overallTrend: '暂无数据',
     priceRange: '暂无数据',
     suggestion: '暂无数据'
   };
+};
+
+const updateYAxisRange = () => {
+  const values = [
+    ...pastPrices.value,
+    ...predictedPrices.value,
+    ...pastPriceUpper.value,
+    ...pastPriceLower.value,
+    ...predictedPriceUpper.value,
+    ...predictedPriceLower.value
+  ].filter((val) => typeof val === 'number' && val !== null && !Number.isNaN(val)) as number[];
+
+  if (!values.length) {
+    chartYAxisMin.value = 0;
+    chartYAxisMax.value = 5;
+    chartYAxisInterval.value = 1;
+    return;
+  }
+
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const padding = Math.max(1, (maxVal - minVal) * 0.1);
+  const rawMin = minVal - padding;
+  const rawMax = maxVal + padding;
+
+  chartYAxisMin.value = Math.max(0, Math.floor(rawMin / 5) * 5);
+  chartYAxisMax.value = Math.ceil(rawMax / 5) * 5;
+
+  if (chartYAxisMax.value <= chartYAxisMin.value) {
+    chartYAxisMax.value = chartYAxisMin.value + 5;
+  }
+
+  const range = chartYAxisMax.value - chartYAxisMin.value;
+  chartYAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
 // 查询
@@ -373,9 +428,10 @@ onMounted(() => {
     }
 
     .analysis-section {
-      flex: 1;
+      flex: 0 0 260px;
       display: flex;
       flex-direction: column;
+      min-width: 220px;
 
       .analysis-card {
         background-color: #fffbe6; // 浅黄色背景
