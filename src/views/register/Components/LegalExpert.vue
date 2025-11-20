@@ -615,10 +615,8 @@ const handleDiplomaChange = (file: any) => {
           }
         }
         Object.keys(data).forEach((key) => {
-          if (key in data) {
-            if (data[key]) {
-              formData.value[ocrMap[key] || key] = data[key];
-            }
+          if (data[key]) {
+            formData.value[ocrMap[key] || key] = data[key];
           }
         });
       } catch (error) {

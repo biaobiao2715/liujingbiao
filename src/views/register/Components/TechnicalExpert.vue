@@ -636,9 +636,10 @@ const handleDiplomaChange = (file: any) => {
         }
         return ocrUploadImage({ image_url_list: [res.data.url] })
           .then((res) => {
-            Object.keys(res).forEach((key) => {
-              if (key in formData.value) {
-                formData.value[key] = res[key];
+            const data = res?.data?.[0] || {};
+            Object.keys(data).forEach((key) => {
+              if (data[key]) {
+                formData.value[key] = data[key];
               }
             });
           })
