@@ -140,3 +140,14 @@ export function isAccountExist(phoneNumber: string): AxiosPromise<boolean> {
     method: 'get'
   });
 }
+
+/**
+ * 针对采购商和供应商分别推送匹配的供给需求和采购需求
+ */
+export function getRecommendDemand(data?: any) {
+  return request({
+    url: '/grain-sales/recommendDemand/getRecommendDemand',
+    method: 'get',
+    params: data || {}
+  });
+}

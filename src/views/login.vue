@@ -167,6 +167,7 @@ const handleLogin = async () => {
         // 判断当前用户类型
         const { data }: any = await getInfo();
         router.push('/home'); // 所有用户统一跳转门户
+
         // if (data.tenantType === '1' || data.tenantType === '2' || data.tenantType === '3') {
         //   router.push('/home'); // 采购商、供应商、企业
         // } else if (data.tenantType === '99') {

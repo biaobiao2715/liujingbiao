@@ -51,7 +51,7 @@
             text
             type="primary"
             size="small"
-            @click="handleQuote(scope.row)"
+            @click="handleQuote(scope.row.id)"
             >立即报价</el-button
           >
         </template>
@@ -144,11 +144,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance } from 'vue';
+import { ref, onMounted, getCurrentInstance, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
-// 采购需求相关接口
-import { hnPurchaseDemandPurchaseList, hnPurchaseQuotePost } from '@/api/supplier/supplyManagement/procurement';
+
+import { hnPurchaseDemandPurchaseList, hnPurchaseQuotePost, hnPurchaseDemandId } from '@/api/supplier/supplyManagement/procurement';
 const { proxy } = getCurrentInstance() as any;
+const route = useRoute();
 
 // 表格数据及分页
 const tableData = ref([]); // 采购需求列表
@@ -268,7 +270,11 @@ const handleReset = () => {
  * 打开报价弹窗并初始化表单
  * @param row 当前行数据
  */
-const handleQuote = (row: any) => {
+const handleQuote = async (id: any) => {
+  const res: any = await hnPurchaseDemandId(id);
+  const row = res?.data || (Array.isArray(res?.rows) ? res.rows[0] : undefined);
+  if (!row) return;
+
   quoteForm.value = {
     ...row,
     quoteRemarks: '',
@@ -325,10 +331,24 @@ const handleAreaChange = (val: any) => {
   // queryParams.value.deliveryDistrict = val.region;
 };
 
-// 页面初始化
+// 进入页面后尝试根据路由 id 打开
 onMounted(() => {
+  const id = route.query?.id;
+  if (id !== undefined) {
+    handleQuote(id);
+  }
   getTableData();
 });
+
+// 监听路由变化，如果 id 改变则尝试打开
+watch(
+  () => route.query?.id,
+  (id, oldId) => {
+    if (id !== undefined && id !== oldId) {
+      handleQuote(id);
+    }
+  }
+);
 </script>
 
 <style scoped lang="scss">

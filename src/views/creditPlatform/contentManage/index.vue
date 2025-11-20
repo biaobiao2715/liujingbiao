@@ -166,11 +166,7 @@
 import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import {
-  getCreditArticleList,
-  updateCreditArticle,
-  deleteCreditArticle
-} from '@/api/creditPlatform/contentManage';
+import { getCreditArticleList, updateCreditArticle, deleteCreditArticle, getCreditArticleDetail } from '@/api/creditPlatform/contentManage';
 
 const ContentFormDialog = defineAsyncComponent(() => import('./ContentFormDialog.vue'));
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
@@ -302,37 +298,80 @@ const onDialogSuccess = () => {
 };
 
 /** 状态变更（上架/下架） */
+const normalizeStatus = (value: string | number | undefined | null) => String(value ?? '');
+
+const buildFullArticleFields = async (row: any) => {
+  if (!row?.id) {
+    return { ...row };
+  }
+  try {
+    const res = await getCreditArticleDetail(row.id);
+    if (res && res.code === 200 && res.data) {
+      return { ...res.data, ...row };
+    }
+  } catch (error) {
+    console.warn('获取文章详情失败，使用列表数据作为上架参数', error);
+  }
+  return { ...row };
+};
+
+
+
+
+const confirmStatusChange = async (row: any, status: string | number) => {
+  const targetStatus = normalizeStatus(status);
+  const statusText = targetStatus === '2' ? '上架' : '下架';
+  const updateData: any = {
+    id: row.id,
+    articleStatus: targetStatus
+  };
+  if ( targetStatus === '3') {
+    const fullData = await buildFullArticleFields(row);
+    Object.assign(updateData, {
+      articleSummary: fullData.articleSummary ?? '',
+      articleNo: fullData.articleNo ?? '',
+      articleSource: fullData.articleSource ?? '',
+      articleTitle: fullData.articleTitle ?? '',
+      articleType: fullData.articleType ?? '',
+      articleContent: fullData.articleContent ?? ''
+  
+
+    });
+  }
+  if (targetStatus === '2' ) {
+    const fullData = await buildFullArticleFields(row);
+    Object.assign(updateData, {
+      articleSummary: fullData.articleSummary ?? '',
+      articleNo: fullData.articleNo ?? '',
+      articleSource: fullData.articleSource ?? '',
+      articleTitle: fullData.articleTitle ?? '',
+      articleType: fullData.articleType ?? '',
+      articleContent: fullData.articleContent ?? '',
+      publishTime: new Date().toISOString()
+
+    });
+  }
+  const response = await updateCreditArticle(updateData);
+  if (response && response.code === 200) {
+    ElMessage.success(`${statusText}成功`);
+    return true;
+  } else {
+    ElMessage.error(response?.msg || `${statusText}失败`);
+    return false;
+  }
+};
+
+/** 状态变更（上架/下架） */
 const handleStatusChange = async (row: any, status: string) => {
   const statusText = status === '2' ? '上架' : '下架';
   try {
-    ElMessageBox.confirm(`确定要${statusText}该文章吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(async () => {
-      const updateData: any = {
-        ...row,
-        articleStatus: status,
-        isOffShelf: status === '2' ? false : true
-      };
-      if (status === '2') {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        updateData.publishTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-      }
-      const response = await updateCreditArticle(updateData);
-      if (response && response.code === 200) {
-        ElMessage.success(`${statusText}成功`);
+    const message = `确定要${statusText}文章「${row.articleTitle || ''}」吗？`;
+    await proxy?.$modal.confirm(message).then(async () => {
+      const success = await confirmStatusChange(row, status);
+      if (success) {
         getList();
-      } else {
-        ElMessage.error(response?.msg || `${statusText}失败`);
       }
-    });
+    }).catch(() => {});
   } catch (error) {
     console.error(`${statusText}失败:`, error);
   }

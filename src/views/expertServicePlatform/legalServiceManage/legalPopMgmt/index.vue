@@ -1,7 +1,7 @@
 <!--
   标题: contentManage.vue
   功能: 普法内容管理
-  说明: 用于普法内容的管理，包括查询、添加、编辑、删除、启用停用等操作
+  说明: 用于普法内容的管理，包括查询、添加、编辑、删除、启用禁用等操作
   当前版本: 1.0
   开发信息: Created by AI Assistant
 -->
@@ -63,7 +63,7 @@
           <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="success" @click="handleEnable">启用</el-button>
         </el-col>
         <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="warning" @click="handleDisable">停用</el-button>
+          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="warning" @click="handleDisable">禁用</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:lawContent:remove']" type="danger" @click="handleDelete">删除</el-button>
@@ -410,7 +410,7 @@ const handleEnable = () => {
 
 const handleDisable = () => {
   if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要停用的内容');
+    ElMessage.warning('请先选择要禁用的内容');
     return;
   }
 
@@ -420,7 +420,7 @@ const handleDisable = () => {
   });
   
   if (invalidRows.length > 0) {
-    ElMessage.warning('所选内容中包含已停用的内容，无法重复停用');
+    ElMessage.warning('所选内容中包含已禁用的内容，无法重复禁用');
     return;
   }
 
@@ -447,16 +447,16 @@ const handleDisable = () => {
       editContent(disableData)
         .then((response: any) => {
           if (response.code === 200) {
-            ElMessage.success(`成功停用 ${selectedIds.value.length} 条内容`);
+            ElMessage.success(`成功禁用 ${selectedIds.value.length} 条内容`);
             getList();
             selectedIds.value = [];
             selectedRows.value = [];
           } else {
-            ElMessage.error(response.msg || '停用操作失败');
+            ElMessage.error(response.msg || '禁用操作失败');
           }
         })
         .catch(() => {
-          ElMessage.error('停用操作失败，请稍后重试');
+          ElMessage.error('禁用操作失败，请稍后重试');
         });
     })
     .catch(() => {});
@@ -470,7 +470,7 @@ const handleDelete = async () => {
   
   const hasEnabledItems = selectedRows.value.some(row => row.status === '启用');
   if (hasEnabledItems) {
-    ElMessage.warning('只能删除已停用的内容，请先停用后再删除');
+    ElMessage.warning('只能删除已禁用的内容，请先禁用后再删除');
     return;
   }
   

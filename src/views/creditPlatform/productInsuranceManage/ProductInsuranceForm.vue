@@ -17,7 +17,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="适用对象" prop="applicableObject">
-            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable>
+            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
               <el-option
                 v-for="dict in applicable_object"
                 :key="dict.value"
@@ -81,7 +81,7 @@
       </el-form-item>
 
       <el-form-item label="网点清单" prop="branchOfficeAttachment">
-        <div class="attachment-upload">
+        <div class="attachment-upload" v-loading="uploadLoading">
           <el-upload
             class="upload-block"
             :file-list="attachmentFileList"
@@ -90,6 +90,7 @@
             :on-remove="handleAttachmentRemove"
             accept=".pdf"
             :limit="1"
+            :disabled="uploadLoading"
             action=""
             list-type="text"
           >
@@ -100,7 +101,7 @@
       </el-form-item>
 
       <div class="form-actions">
-        <el-button type="primary" @click="handleSubmit" :loading="saving">
+        <el-button type="primary" @click="handleSubmit" :loading="saving" :disabled="uploadLoading">
           {{ props.type === 'add' ? '保存' : '确认修改' }}
         </el-button>
         <el-button @click="emitCancel">取消</el-button>
@@ -115,13 +116,14 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage';
+import { listByIds } from '@/api/system/oss';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
 const props = defineProps<{
   id?: string | number | null;
-  type: 'add' | 'edit' | 'view';
+  type: 'add' | 'edit';
 }>();
 
 const emit = defineEmits<{
@@ -137,6 +139,7 @@ const { product_insurance_type, applicable_object, product_status } = toRefs<any
 const formRef = ref<FormInstance>();
 const saving = ref(false);
 const loading = ref(false);
+const uploadLoading = ref(false);
 const advantagesEditorKey = ref(0);
 const guaranteePlanEditorKey = ref(0);
 const applicationEditorKey = ref(0);
@@ -144,7 +147,9 @@ const applicationEditorKey = ref(0);
 interface InsuranceProductForm {
   productName: string;
   productType: string;
-  applicableObject: string;
+  applicableObject: string[];
+  productId?: string | number | null;
+  status?: string;
   productIntro: string;
   productAdvantages: string;
   guaranteePlan: string;
@@ -157,7 +162,9 @@ interface InsuranceProductForm {
 const formData = ref<InsuranceProductForm>({
   productName: '',
   productType: '',
-  applicableObject: '',
+  applicableObject: [],
+  productId: null,
+  status: '',
   productIntro: '',
   productAdvantages: '',
   guaranteePlan: '',
@@ -168,6 +175,17 @@ const formData = ref<InsuranceProductForm>({
 });
 
 const attachmentFileList = ref<UploadFile[]>([]);
+
+const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
+  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
+  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
+  return {
+    uid,
+    name: payload.name || '附件',
+    url: payload.url || '',
+    status: 'success'
+  } as UploadFile;
+};
 
 const rules: FormRules = {
   productName: [
@@ -188,10 +206,26 @@ const rules: FormRules = {
   ],
   applicationInstructions: [
     { required: true, message: '请输入申请条件', trigger: 'change' }
+  ],
+  branchOfficeAttachment: [
+    {
+      validator: (_rule, value, callback) => {
+        if (!formData.value.branchOfficeAttachment) {
+          callback(new Error('请上传网点清单PDF文件'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
   ]
 };
 
 const handleSubmit = () => {
+  if (uploadLoading.value) {
+    ElMessage.warning('附件上传中，请稍候再提交');
+    return;
+  }
   if (!formRef.value) return;
   formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -200,18 +234,18 @@ const handleSubmit = () => {
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
-        applicableObject: formData.value.applicableObject,
+        applicableObject: Array.isArray(formData.value.applicableObject) ? formData.value.applicableObject.join(',') : formData.value.applicableObject,
+        productStatus: formData.value.status || '3',
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
         guaranteePlan: formData.value.guaranteePlan,
         applicationInstructions: formData.value.applicationInstructions,
-        productRemark: formData.value.productRemark || ''
+        productRemark: formData.value.productRemark || '',
+        branchOfficeAttachment: formData.value.branchOfficeAttachment ?? null
       };
-      if (formData.value.branchOfficeAttachment) {
-        payload.branchOfficeAttachment = formData.value.branchOfficeAttachment;
-      }
       if (props.type === 'edit') {
         payload.id = props.id;
+        payload.productId = formData.value.productId;
         payload.optType = '1';
       }
       const response = props.type === 'edit' 
@@ -247,17 +281,18 @@ const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
 
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
+  uploadLoading.value = true;
   try {
     const response = await ossUploadImage({ file: file as File });
     if (response.code === 200 && response.data?.ossId) {
       formData.value.branchOfficeAttachment = response.data.ossId;
       formData.value.branchOfficeAttachmentName = response.data.fileName || (file as File).name;
       attachmentFileList.value = [
-        {
+        buildUploadFileItem({
+          ossId: response.data.ossId,
           name: formData.value.branchOfficeAttachmentName,
-          url: response.data.url,
-          status: 'success'
-        } as UploadFile
+          url: response.data.url
+        })
       ];
       ElMessage.success('附件上传成功');
       onSuccess?.(response);
@@ -267,6 +302,8 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   } catch (error: any) {
     ElMessage.error(error?.message || '上传失败，请重试');
     onError?.(error);
+  } finally {
+    uploadLoading.value = false;
   }
 };
 
@@ -280,6 +317,66 @@ const emitCancel = () => {
   emit('cancel');
 };
 
+const syncAttachmentFromDetail = async (data: any) => {
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    attachmentFileList.value = ossList.map((file: any) =>
+      buildUploadFileItem({
+        ossId: file.ossId,
+        name: file.fileName || file.name || data.branchOfficeAttachmentName || '网点清单',
+        url: file.url || file.fileUrl || data.branchOfficeAttachmentUrl || ''
+      })
+    );
+    formData.value.branchOfficeAttachment = ossList[0].ossId || data.branchOfficeAttachment || null;
+    formData.value.branchOfficeAttachmentName =
+      ossList[0].fileName || ossList[0].name || data.branchOfficeAttachmentName || '网点清单';
+    return;
+  }
+  if (data?.branchOfficeAttachment) {
+    try {
+      const ossResponse: any = await listByIds(data.branchOfficeAttachment);
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      if (Array.isArray(ossData) && ossData.length > 0) {
+        attachmentFileList.value = ossData.map((file: any) =>
+          buildUploadFileItem({
+            ossId: file.ossId,
+            name: file.originalName || file.fileName || data.branchOfficeAttachmentName || '网点清单',
+            url: file.url || file.fileUrl || ''
+          })
+        );
+        const firstFile = ossData[0];
+        formData.value.branchOfficeAttachment = firstFile?.ossId || data.branchOfficeAttachment || null;
+        formData.value.branchOfficeAttachmentName =
+          firstFile?.originalName || firstFile?.fileName || data.branchOfficeAttachmentName || '网点清单';
+      } else {
+        attachmentFileList.value = [
+          buildUploadFileItem({
+            ossId: data.branchOfficeAttachment,
+            name: data.branchOfficeAttachmentName || '网点清单',
+            url: data.branchOfficeAttachmentUrl || ''
+          })
+        ];
+        formData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+        formData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      }
+    } catch (error) {
+      attachmentFileList.value = [
+        buildUploadFileItem({
+          ossId: data.branchOfficeAttachment,
+          name: data.branchOfficeAttachmentName || '网点清单',
+          url: data.branchOfficeAttachmentUrl || ''
+        })
+      ];
+      formData.value.branchOfficeAttachment = data.branchOfficeAttachment;
+      formData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+    }
+    return;
+  }
+  attachmentFileList.value = [];
+  formData.value.branchOfficeAttachment = null;
+  formData.value.branchOfficeAttachmentName = '';
+};
+
 const loadDetail = async () => {
   if (!props.id) return;
   loading.value = true;
@@ -290,7 +387,9 @@ const loadDetail = async () => {
       formData.value = {
         productName: data.productName || '',
         productType: data.productType || '',
-        applicableObject: data.applicableObject || '',
+        applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
+        productId: data.productId || null,
+        status: data.productStatus || data.status || '',
         productIntro: data.productIntro || '',
         productAdvantages: data.productAdvantages || '',
         guaranteePlan: data.guaranteePlan || '',
@@ -299,13 +398,8 @@ const loadDetail = async () => {
         branchOfficeAttachmentName: data.branchOfficeAttachmentName || '',
         productRemark: data.productRemark || ''
       };
-      if (data.branchOfficeAttachment && data.branchOfficeAttachmentName) {
-        attachmentFileList.value = [{
-          name: data.branchOfficeAttachmentName,
-          url: '',
-          status: 'success'
-        } as UploadFile];
-      }
+
+      await syncAttachmentFromDetail(data);
     }
   } catch (error) {
     ElMessage.error('加载数据失败');

@@ -36,6 +36,7 @@ export const initWebSocket = (url: any) => {
         return;
       }
       useNoticeStore().addNotice({
+        event: 'message',
         message: e.data,
         read: false,
         time: new Date().toLocaleString()

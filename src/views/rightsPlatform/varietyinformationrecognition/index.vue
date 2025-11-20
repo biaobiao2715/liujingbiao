@@ -3,8 +3,8 @@ div<!--
 功能：		供应商/企业信息识别
 说明：		
 当前版本：	1.0
-开发信息：	Created by 张峰 2025-11-13
-修改人信息：	张峰 2025-11-13
+开发信息：	Created by 李政达 2025-11-13
+修改人信息：	李政达 2025-11-18
 修改内容：	供应商/企业信息识别页面开发
  -->
 <template>
@@ -32,7 +32,7 @@ div<!--
         <!-- 所属类别搜索框 -->
         <el-form-item label="品种类型" prop="varietyType">
           <el-select v-model="queryParams.varietyType" placeholder="请选择品种类型" filterable clearable>
-            <!-- <el-option v-for="item in cultivate_type" :key="item.value" :label="item.label" :value="item.value" /> -->
+            <el-option v-for="item in cultivateTypeOptions" :key="item.value" :label="item.varietyType" :value="item.varietyType" />
           </el-select>
         </el-form-item>
 
@@ -50,12 +50,14 @@ div<!--
             @change="handleSelectDate"
           />
         </el-form-item>
+         
         <!-- 查询和重置按钮 -->
         <el-form-item>
           <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
           <el-button v-throttle @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
+      <el-button  type="primary" @click="handleExport">导出</el-button>
 
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
@@ -66,60 +68,60 @@ div<!--
       <el-table :data="tableData" border v-loading="loading" width="100%" style="table-layout: fixed">
         <el-table-column type="index" label="序号" width="55" align="center" />
         <!-- 识别开始时间 -->
-        <el-table-column label="识别开始时间" align="center" prop="publishTime">
+        <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime">
           <template #default="scope">
-            <span>{{ scope.row.publishTime }}</span>
+            <span>{{ scope.row.identifyBeginTime }}</span>
           </template>
         </el-table-column>
         <!-- 识别结束时间 -->
-        <el-table-column label="识别结束时间" align="center" prop="publishTime">
+        <el-table-column label="识别结束时间" align="center" prop="identifyEndTime">
           <template #default="scope">
-            <span>{{ scope.row.publishTime }}</span>
+            <span>{{ scope.row.identifyEndTime }}</span>
           </template>
         </el-table-column>
         <!-- 图片文件名 -->
-        <el-table-column label="图片文件名" align="center" prop="cultivateName">
+        <el-table-column label="图片文件名" align="center" prop="fileName">
           <template #default="scope">
-            <span>{{ scope.row.cultivateName }}</span>
+            <span>{{ scope.row.fileName }}</span>
           </template>
         </el-table-column>
 
         <!-- 品种名称 -->
-        <el-table-column label="品种名称" align="center" prop="cultivateType">
+        <el-table-column label="品种名称" align="center" prop="varietyName">
           <template #default="scope">
-            <span>{{ scope.row.cultivateType }}</span>
+            <span>{{ scope.row.varietyName }}</span>
           </template>
         </el-table-column>
 
         <!-- 品种类型 -->
-        <el-table-column label="品种类型" align="center" prop="pageViews">
+        <el-table-column label="品种类型" align="center" prop="varietyType">
           <template #default="scope">
-            <span>{{ scope.row.pageViews != null ? scope.row.pageViews : 0 }}</span>
+            <span>{{ scope.row.varietyType != null ? scope.row.varietyType : 0 }}</span>
           </template>
         </el-table-column>
 
         <!-- 特征描述 -->
-        <el-table-column label="特征描述" align="center" prop="collectCount">
+        <el-table-column label="特征描述" align="center" prop="featureDescription">
           <template #default="scope">
-            <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
+            <span>{{ scope.row.featureDescription != null ? scope.row.featureDescription : 0 }}</span>
           </template>
         </el-table-column>
         <!-- 种植技术指导 -->
-        <el-table-column label="种植技术指导" align="center" prop="collectCount">
+        <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance">
           <template #default="scope">
-            <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
+            <span>{{ scope.row.plantingTechniquesGuidance != null ? scope.row.plantingTechniquesGuidance : 0 }}</span>
           </template>
         </el-table-column>
         <!-- 注意事项 -->
-        <el-table-column label="注意事项" align="center" prop="collectCount">
+        <el-table-column label="注意事项" align="center" prop="precautions">
           <template #default="scope">
-            <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
+            <span>{{ scope.row.precautions != null ? scope.row.precautions : 0 }}</span>
           </template>
         </el-table-column>
         <!-- 置信度评分 -->
-        <el-table-column label="置信度评分" align="center" prop="collectCount">
+        <el-table-column label="置信度评分" align="center" prop="confidenceLevel">
           <template #default="scope">
-            <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
+            <span>{{ scope.row.confidenceLevel != null ? scope.row.confidenceLevel : 0 }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -143,14 +145,17 @@ import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspe
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, UploadFilled } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
-import { getCourseCultivateList, updateStatus, courseCultivatedelete } from '@/api/system/courseCultivate';
+
+import { getPinlist, reportExport, getreportDetail,reportAdela,magiAppeal,reportDetail,reportGroupType } from '@/api/rightsPlatform/varietyinformationrecognition';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   varietyType: '', //品种类型
-  recognizeStartTime: '', // 识别开始时间
-  recognizeEndTime: '' // 识别结束时间
+  identifyBeginTime: '', // 识别开始时间
+  identifyEndTime: '' // 识别结束时间
 });
 const tableData = ref([]);
 // 日期范围
@@ -168,16 +173,28 @@ const handleSearch = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
+/* 导出事件 */
+const handleExport = () => {
+    proxy?.download(
+    'safeguard-server/varietyRecognize/export',
+    {
+      ...queryParams.value
+    },
+    `品种信息_${new Date().getTime()}.excel`
+  );
+};
 // 处理日期选择事件
 const handleSelectDate = (val: string[]) => {
-  queryParams.value.recognizeStartTime = val?.[0] || '';
-  queryParams.value.recognizeEndTime = val?.[1] || '';
+  queryParams.value.identifyBeginTime = val?.[0] || '';
+  queryParams.value.identifyEndTime = val?.[1] || '';
 };
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
+/** 下拉框的数据 */
+const cultivateTypeOptions = ref([]);
 
 /** 重置按钮操作 */
 const handleReset = () => {
@@ -187,17 +204,61 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     varietyType: '', //品种类型
-    recognizeStartTime: '', // 识别开始时间
-    recognizeEndTime: '' // 识别结束时间
+    
+    identifyBeginTime: '', // 识别开始时间
+    identifyEndTime: '' // 识别结束时间
   };
   handleQuery();
 };
 /* 历史记录 */
 const historyhandle = () => {
   ishistory.value = true;
+   // 打开对话框时自动加载数据
+  nextTick(() => {
+    getList();
+  });
 };
+onMounted(() => {
+  getListType();
+});
 /* 历史列表查询 */
-const getList = async () => {};
+const getList = async () => {
+    try {
+    loading.value = true;
+    const res = await getPinlist(queryParams.value);
+    console.log('历史列表数据:', res);
+    
+    if (res.code === 200) {
+      tableData.value = res.rows || [];
+      total.value = res.total || 0;
+    } else {
+      ElMessage.error(res.msg || '获取数据失败');
+    }
+  } catch (error) {
+    console.error('获取历史记录失败:', error);
+    ElMessage.error('获取数据时发生错误');
+  } finally {
+    loading.value = false;
+  }
+
+};
+/* 获取类型 */
+const getListType = async () => {
+  try {
+    const res = await reportGroupType(); // 修正：添加括号调用函数
+    console.log('获取类型:', res);
+    
+    if (res.code === 200) {
+      // 假设返回的数据结构中data字段包含选项数组
+      cultivateTypeOptions.value = res.data || [];
+    } else {
+      ElMessage.error(res.msg || '获取类型数据失败');
+    }
+  } catch (error) {
+    console.error('获取类型失败:', error);
+    ElMessage.error('获取类型时发生错误');
+  }
+};
 </script>
 
 <style scoped lang="scss">
