@@ -9,19 +9,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import * as echarts from 'echarts'
-import type { ECharts } from 'echarts'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import * as echarts from 'echarts';
+import type { ECharts } from 'echarts';
 
 interface Props {
-  title?: string
-  unit?: string
-  showHeader?: boolean
-  dates: string[]
-  prices: number[]
-  yAxisMin?: number
-  yAxisMax?: number
-  yAxisInterval?: number
+  title?: string;
+  unit?: string;
+  showHeader?: boolean;
+  dates: string[];
+  prices: number[];
+  yAxisMin?: number;
+  yAxisMax?: number;
+  yAxisInterval?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,52 +31,52 @@ const props = withDefaults(defineProps<Props>(), {
   yAxisMin: 0,
   yAxisMax: 80,
   yAxisInterval: 15
-})
+});
 
-const chartContainer = ref<HTMLElement | null>(null)
-let chartInstance: ECharts | null = null
+const chartContainer = ref<HTMLElement | null>(null);
+let chartInstance: ECharts | null = null;
 
 // 初始化图表
 const initChart = () => {
-  if (!chartContainer.value) return
+  if (!chartContainer.value) return;
 
-  chartInstance = echarts.init(chartContainer.value)
-  updateChart()
+  chartInstance = echarts.init(chartContainer.value);
+  updateChart();
   // 初始化后立即调整大小，确保图表正确显示
   nextTick(() => {
-    chartInstance?.resize()
-  })
-}
+    chartInstance?.resize();
+  });
+};
 
 // 计算需要显示标签的索引（最多7个）
-const MAX_VISIBLE_X_LABELS = 7
+const MAX_VISIBLE_X_LABELS = 7;
 const getLabelIndices = (total: number, maxVisible: number) => {
   if (total <= maxVisible) {
-    return new Set(Array.from({ length: total }, (_, i) => i))
+    return new Set(Array.from({ length: total }, (_, i) => i));
   }
-  const result = new Set<number>()
-  const step = (total - 1) / (maxVisible - 1)
+  const result = new Set<number>();
+  const step = (total - 1) / (maxVisible - 1);
   for (let i = 0; i < maxVisible; i++) {
-    const index = Math.min(total - 1, Math.floor(i * step))
-    result.add(index)
+    const index = Math.min(total - 1, Math.floor(i * step));
+    result.add(index);
   }
-  result.add(total - 1)
-  return result
-}
+  result.add(total - 1);
+  return result;
+};
 
 // 更新图表
 const updateChart = () => {
-  if (!chartInstance || !props.dates.length || !props.prices.length) return
+  if (!chartInstance || !props.dates.length || !props.prices.length) return;
 
-  const total = props.dates.length
-  const labelIndices = getLabelIndices(total, MAX_VISIBLE_X_LABELS)
+  const total = props.dates.length;
+  const labelIndices = getLabelIndices(total, MAX_VISIBLE_X_LABELS);
 
   const option = {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
-        const unit = props.unit.replace('单位: ', '') // 从单位中提取单位文本
-        return `${params[0].axisValue}<br/>价格: ${params[0].value} ${unit}`
+        const unit = props.unit.replace('单位: ', ''); // 从单位中提取单位文本
+        return `${params[0].axisValue}<br/>价格: ${params[0].value} ${unit}`;
       },
       axisPointer: {
         type: 'cross',
@@ -171,66 +171,66 @@ const updateChart = () => {
         data: props.prices
       }
     ]
-  }
+  };
 
-  chartInstance.setOption(option, true)
-}
+  chartInstance.setOption(option, true);
+};
 
 // 窗口大小变化时调整图表
 const resizeChart = () => {
-  chartInstance?.resize()
-}
+  chartInstance?.resize();
+};
 
 // 监听数据变化
 watch(
   () => [props.dates, props.prices],
   () => {
     nextTick(() => {
-      updateChart()
+      updateChart();
       // 数据更新后调整大小
-      chartInstance?.resize()
-    })
+      chartInstance?.resize();
+    });
   },
   { deep: true }
-)
+);
 
 // 使用 ResizeObserver 监听容器大小变化
-let resizeObserver: ResizeObserver | null = null
+let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
   // 使用双重 nextTick 和 requestAnimationFrame 确保容器有正确的尺寸
   nextTick(() => {
     requestAnimationFrame(() => {
-      initChart()
-      
+      initChart();
+
       // 使用 ResizeObserver 监听容器大小变化
       if (chartContainer.value) {
         resizeObserver = new ResizeObserver(() => {
-          chartInstance?.resize()
-        })
-        resizeObserver.observe(chartContainer.value)
+          chartInstance?.resize();
+        });
+        resizeObserver.observe(chartContainer.value);
       }
-      
+
       // 再次延迟调整，确保图表正确渲染
       setTimeout(() => {
-        chartInstance?.resize()
-      }, 100)
-    })
-  })
-  window.addEventListener('resize', resizeChart)
-})
+        chartInstance?.resize();
+      }, 100);
+    });
+  });
+  window.addEventListener('resize', resizeChart);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', resizeChart)
+  window.removeEventListener('resize', resizeChart);
   if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
+    resizeObserver.disconnect();
+    resizeObserver = null;
   }
   if (chartInstance) {
-    chartInstance.dispose()
-    chartInstance = null
+    chartInstance.dispose();
+    chartInstance = null;
   }
-})
+});
 </script>
 
 <style scoped lang="scss">
@@ -268,4 +268,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

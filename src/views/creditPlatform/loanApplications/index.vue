@@ -14,8 +14,8 @@
           <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="适用对象" prop="lenderType">
-        <el-select v-model="queryParams.lenderType" placeholder="全部" clearable>
+      <el-form-item label="适用对象" prop="applicableObject">
+        <el-select v-model="queryParams.applicableObject" placeholder="全部" clearable>
           <el-option label="全部" value="" />
           <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -42,9 +42,9 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="lenderType" align="center" width="120">
+      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="scope.row.lenderType" />
+          <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
         </template>
       </el-table-column>
       <el-table-column label="申请时间" prop="createTime" min-width="180" align="center" />
@@ -56,13 +56,7 @@
       <el-table-column label="操作" align="center" width="260">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button
-              size="small"
-              type="primary"
-              plain
-              :disabled="!canAudit(scope.row.applyStatus)"
-              @click="handleDetail(scope.row, 'approval')"
-            >
+            <el-button size="small" type="primary" plain :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
               审批
             </el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
@@ -106,7 +100,7 @@ interface LoanApplication {
   realName: string;
   productName: string;
   productType: string;
-  lenderType: string;
+  applicableObject: string;
   lenderId?: string | number;
   userId?: string | number;
   applyTime?: string;
@@ -145,7 +139,7 @@ const queryParams = ref({
   pageSize: 10,
   realName: '',
   productType: '',
-  lenderType: '',
+  applicableObject: '',
   applyStatus: ''
 });
 
@@ -220,8 +214,8 @@ const getApplicableLabel = (value: string | number | undefined) => {
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
   detailDialogMode.value = mode;
   detailData.value = row;
-  const label = getApplicableLabel(row.lenderType).toLowerCase();
-  const rawValue = String(row.lenderType || '').toLowerCase();
+  const label = getApplicableLabel(row.applicableObject).toLowerCase();
+  const rawValue = String(row.applicableObject || '').toLowerCase();
   const isPersonal = label.includes('采购') || rawValue.includes('purchaser');
   if (isPersonal) {
     buyerDetailDialogVisible.value = true;

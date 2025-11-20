@@ -3,18 +3,10 @@
     <!-- 查询表单 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
       <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect
-          v-model="queryParams.variety"
-          @categoryChange="handleCategoryChange"
-          style="width: 250px"
-        />
+        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
       </el-form-item>
       <el-form-item label="产地:" prop="origin">
-        <RegionSelect
-          v-model="queryParams.origin"
-          @regionChange="handleRegionChange"
-          style="width: 250px"
-        />
+        <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -24,24 +16,9 @@
 
     <!-- 时间范围选择 -->
     <div class="time-range-selector">
-      <el-button
-        :type="activeTimeRange === 7 ? 'primary' : 'default'"
-        @click="changeTimeRange(7)"
-      >
-        近7天
-      </el-button>
-      <el-button
-        :type="activeTimeRange === 30 ? 'primary' : 'default'"
-        @click="changeTimeRange(30)"
-      >
-        近30天
-      </el-button>
-      <el-button
-        :type="activeTimeRange === 60 ? 'primary' : 'default'"
-        @click="changeTimeRange(60)"
-      >
-        近60天
-      </el-button>
+      <el-button :type="activeTimeRange === 7 ? 'primary' : 'default'" @click="changeTimeRange(7)"> 近7天 </el-button>
+      <el-button :type="activeTimeRange === 30 ? 'primary' : 'default'" @click="changeTimeRange(30)"> 近30天 </el-button>
+      <el-button :type="activeTimeRange === 60 ? 'primary' : 'default'" @click="changeTimeRange(60)"> 近60天 </el-button>
     </div>
 
     <!-- 主要内容区域 -->
@@ -50,12 +27,13 @@
       <div class="chart-section">
         <PriceTrendChart
           :title="`过去${activeTimeRange}天小麦种子价格`"
-          unit="单位: 元/斤"
+          unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
           :y-axis-min="0"
           :y-axis-max="80"
           :y-axis-interval="15"
+          v-loading="loading"
         />
       </div>
 
@@ -65,35 +43,33 @@
         <div class="price-card">
           <h4 class="card-title">当日价格</h4>
           <div class="card-content">
-            <p>当日均价(元/斤): 60.05</p>
-            <p class="price-change text-red">
-              相较昨日价格: 2.03%
-              <el-icon class="text-red"><i-ep-arrow-up /></el-icon>
+            <p>当日均价(元/kg): {{ priceStats.todayPrice.toFixed(2) }}</p>
+            <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
+              相较昨日价格: {{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%
+              <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
+              <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
             </p>
           </div>
         </div>
 
-        <!-- 近7日价格卡片 -->
+        <!-- 近N日价格卡片 -->
         <div class="price-card">
-          <h4 class="card-title">近7日价格</h4>
+          <h4 class="card-title">近{{ activeTimeRange }}日价格</h4>
           <div class="card-content">
-            <p>近7日最高价(元/斤): 80</p>
-            <p>近7日最低价(元/斤): 40</p>
-            <p>近7日均价(元/斤): 60</p>
-            <p>近7日价格走势: 趋于平稳</p>
+            <p>近{{ activeTimeRange }}日最高价(元/kg): {{ priceStats.maxPrice }}</p>
+            <p>近{{ activeTimeRange }}日最低价(元/kg): {{ priceStats.minPrice }}</p>
+            <p>近{{ activeTimeRange }}日均价(元/kg): {{ priceStats.avgPrice.toFixed(2) }}</p>
+            <p>近{{ activeTimeRange }}日价格走势: {{ priceStats.trend }}</p>
           </div>
-          <el-button type="primary" class="heatmap-button" @click="viewHeatmap">
-            查看区域价格差异热力图
-          </el-button>
+          <el-button type="primary" class="heatmap-button" @click="viewHeatmap"> 查看区域价格差异热力图 </el-button>
         </div>
       </div>
     </div>
 
-
     <!-- 热门推荐表格 -->
     <div class="recommendations-section">
       <h3 class="section-title">热门推荐</h3>
-      <el-table :data="recommendationTableData" border v-loading="loading" style="width: 100%">
+      <el-table :data="recommendationTableData" border v-loading="recommendationLoading" style="width: 100%">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="time" label="时间" align="center" width="120" />
         <el-table-column prop="variety" label="品种" align="center" width="120" />
@@ -130,187 +106,277 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
-import RegionSelect from '@/components/RegionSelect/index.vue'
-import PriceTrendChart from './PriceTrendChart.vue'
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
+import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
+import RegionSelect from '@/components/RegionSelect/index.vue';
+import PriceTrendChart from './PriceTrendChart.vue';
+import { priceActionList, hotRecommendationList } from '@/api/mall/marketComponent';
 
-const router = useRouter()
-const loading = ref(false)
-const queryFormRef = ref()
-const activeTimeRange = ref(7)
+const router = useRouter();
+const loading = ref(false);
+const queryFormRef = ref();
+const activeTimeRange = ref(7);
 
 // 查询参数
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组
-  origin: [] as string[] // 省市区数组
-})
+  origin: [] as string[] // 区域选择路径数组
+});
 
-// 图表数据（写死，根据图片精确值）
-const chartData7Days = {
-  dates: ['10-23', '10-24', '10-25', '10-26', '10-27', '10-28', '10-29'],
-  prices: [42, 30, 55, 65, 18, 27, 30] // 根据图片描述调整的精确值
-}
+// 区域代码
+const regionCodes = reactive({
+  provinceCode: '',
+  cityCode: '',
+  regionCode: ''
+});
 
-const chartData30Days = {
-  dates: Array.from({ length: 30 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - 30 + i)
-    return `${date.getMonth() + 1}-${date.getDate()}`
-  }),
-  prices: Array.from({ length: 30 }, () => Math.floor(Math.random() * 40) + 30)
-}
+// 图表数据
+const currentChartData = ref({
+  dates: [] as string[],
+  prices: [] as number[]
+});
 
-const chartData60Days = {
-  dates: Array.from({ length: 60 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - 60 + i)
-    return `${date.getMonth() + 1}-${date.getDate()}`
-  }),
-  prices: Array.from({ length: 60 }, () => Math.floor(Math.random() * 40) + 30)
-}
-
-
-// 热门推荐表格数据（写死）
-const recommendationTableData = ref([
-  {
-    id: 1,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 2,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 3,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 4,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 5,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: 20.21
-  },
-  {
-    id: 6,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: -13.86
-  },
-  {
-    id: 7,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 8,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 9,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
-  },
-  {
-    id: 10,
-    time: '2025-11-04',
-    variety: '小麦种子',
-    origin: '湖北省武汉市汉南区',
-    price: '50元/斤',
-    change: '-'
+// 价格统计数据
+const priceStats = computed(() => {
+  const prices = currentChartData.value.prices;
+  if (!prices || prices.length === 0) {
+    return {
+      todayPrice: 0,
+      yesterdayPrice: 0,
+      priceChange: 0,
+      maxPrice: 0,
+      minPrice: 0,
+      avgPrice: 0,
+      trend: '暂无数据'
+    };
   }
-])
 
-// 当前图表数据
-const currentChartData = computed(() => {
-  if (activeTimeRange.value === 7) {
-    return chartData7Days
-  } else if (activeTimeRange.value === 30) {
-    return chartData30Days
+  // 当日价格（最新一天）
+  const todayPrice = prices[prices.length - 1] || 0;
+
+  // 昨日价格
+  const yesterdayPrice = prices.length > 1 ? prices[prices.length - 2] : todayPrice;
+
+  // 价格变化百分比
+  const priceChange = yesterdayPrice > 0 ? ((todayPrice - yesterdayPrice) / yesterdayPrice) * 100 : 0;
+
+  // 最高价、最低价、均价
+  const validPrices = prices.filter((p) => p > 0);
+  const maxPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+  const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const avgPrice = validPrices.length > 0 ? validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length : 0;
+
+  // 判断价格走势
+  let trend = '趋于平稳';
+  if (validPrices.length >= 2) {
+    const firstHalf = validPrices.slice(0, Math.floor(validPrices.length / 2));
+    const secondHalf = validPrices.slice(Math.floor(validPrices.length / 2));
+    const firstAvg = firstHalf.reduce((sum, p) => sum + p, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum, p) => sum + p, 0) / secondHalf.length;
+    const changePercent = ((secondAvg - firstAvg) / firstAvg) * 100;
+
+    if (changePercent > 5) {
+      trend = '上涨';
+    } else if (changePercent < -5) {
+      trend = '下跌';
     } else {
-    return chartData60Days
+      trend = '趋于平稳';
+    }
   }
-})
+
+  return {
+    todayPrice,
+    yesterdayPrice,
+    priceChange,
+    maxPrice,
+    minPrice,
+    avgPrice,
+    trend
+  };
+});
+
+// 热门推荐表格数据
+const recommendationTableData = ref<any[]>([]);
+const recommendationLoading = ref(false);
+
+// 获取价格走势数据
+const fetchPriceData = async () => {
+  loading.value = true;
+  try {
+    // 转换时间范围为接口参数
+    let priceActionDays = 1;
+    if (activeTimeRange.value === 7) {
+      priceActionDays = 1;
+    } else if (activeTimeRange.value === 30) {
+      priceActionDays = 2;
+    } else if (activeTimeRange.value === 60) {
+      priceActionDays = 3;
+    }
+
+    // 获取品种ID（取数组最后一个元素）
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+
+    const params: any = {
+      priceActionDays,
+      regionCode: regionCodes.regionCode || '',
+      goodsCategoryId
+    };
+
+    const response = await priceActionList(params);
+    if (response && response.code === 200) {
+      const data = response.data || {};
+      // 处理返回数据，转换为图表需要的格式
+      const dates: string[] = [];
+      const prices: number[] = [];
+
+      // 后端返回 xAxis 和 yAxis 数组
+      if (data.xAxis && Array.isArray(data.xAxis)) {
+        data.xAxis.forEach((dateStr: string) => {
+          // 格式化日期为 MM-DD 格式
+          const date = new Date(dateStr);
+          dates.push(`${date.getMonth() + 1}-${date.getDate()}`);
+        });
+      }
+
+      if (data.yAxis && Array.isArray(data.yAxis)) {
+        data.yAxis.forEach((priceStr: string | number) => {
+          prices.push(Number(priceStr || 0));
+        });
+      }
+
+      currentChartData.value = {
+        dates: dates.length > 0 ? dates : [],
+        prices: prices.length > 0 ? prices : []
+      };
+    } else {
+      ElMessage.error(response?.msg || '获取价格走势数据失败');
+      currentChartData.value = { dates: [], prices: [] };
+    }
+  } catch (error) {
+    console.error('获取价格走势数据失败:', error);
+    ElMessage.error('获取价格走势数据失败，请稍后重试');
+    currentChartData.value = { dates: [], prices: [] };
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 切换时间范围
 const changeTimeRange = (days: number) => {
-  activeTimeRange.value = days
-}
+  activeTimeRange.value = days;
+  fetchPriceData();
+};
 
 // 品种分类变化处理
 const handleCategoryChange = (value: string[]) => {
-  queryParams.variety = value
-  console.log('选择的品种分类:', value)
-}
+  queryParams.variety = value;
+  console.log('选择的品种分类:', value);
+};
 
 // 产地变化处理
 const handleRegionChange = (value: any) => {
-  if (value) {
-    queryParams.origin = value.regionPath || []
+  if (value && value.regionPath) {
+    queryParams.origin = value.regionPath;
+    regionCodes.provinceCode = value.provinceCode || '';
+    regionCodes.cityCode = value.cityCode || '';
+    regionCodes.regionCode = value.regionCode || '';
   } else {
-    queryParams.origin = []
+    queryParams.origin = [];
+    regionCodes.provinceCode = '';
+    regionCodes.cityCode = '';
+    regionCodes.regionCode = '';
   }
-  console.log('选择的产地:', value)
-}
+  console.log('选择的产地:', value);
+};
+
+// 获取昨天的日期（YYYY-MM-DD格式）
+const getYesterdayDate = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const year = yesterday.getFullYear();
+  const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+  const day = String(yesterday.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 获取热门推荐数据
+const fetchHotRecommendation = async () => {
+  recommendationLoading.value = true;
+  try {
+    // 获取品种ID（取数组最后一个元素）
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+
+    const params: any = {
+      goodsCategoryId: goodsCategoryId || '',
+      regionCode: regionCodes.regionCode || '',
+      analysisDate: getYesterdayDate()
+    };
+
+    const response = await hotRecommendationList(params);
+    if (response && response.code === 200) {
+      const data = response.data || response.rows || [];
+      // 映射接口返回的数据到表格需要的格式
+      recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
+        return {
+          id: item.id,
+          time: item.time || item.createTime || item.date || '--',
+          variety: item.variety || item.categoryName || item.goodsCategoryName || '--',
+          origin: item.origin || item.regionName || item.address || '--',
+          price: item.price ? `${item.price}元/kg` : '--',
+          change: item.change !== undefined && item.change !== null ? Number(item.change) : '-'
+        };
+      });
+    } else {
+      ElMessage.error(response?.msg || '获取热门推荐数据失败');
+      recommendationTableData.value = [];
+    }
+  } catch (error) {
+    console.error('获取热门推荐数据失败:', error);
+    ElMessage.error('获取热门推荐数据失败，请稍后重试');
+    recommendationTableData.value = [];
+  } finally {
+    recommendationLoading.value = false;
+  }
+};
 
 // 查询
 const handleQuery = () => {
-  console.log('查询参数:', queryParams)
-}
+  console.log('查询参数:', queryParams);
+  fetchPriceData();
+  fetchHotRecommendation();
+};
 
 // 重置
 const resetQuery = () => {
-  queryFormRef.value?.resetFields()
-  queryParams.variety = []
-  queryParams.origin = []
-  activeTimeRange.value = 7
-}
+  queryFormRef.value?.resetFields();
+  queryParams.variety = [];
+  queryParams.origin = [];
+  regionCodes.provinceCode = '';
+  regionCodes.cityCode = '';
+  regionCodes.regionCode = '';
+  activeTimeRange.value = 7;
+  fetchPriceData();
+  fetchHotRecommendation();
+};
 
 // 查看热力图
 const viewHeatmap = () => {
   // 跳转到热力图页面
-  router.push('/mall/price-heatmap')
-}
+  router.push('/mall/price-heatmap');
+};
 
 // 查看报告
 const viewReport = () => {
-  console.log('查看价格专项报告')
-}
+  console.log('查看价格专项报告');
+};
+
+// 页面加载时获取数据
+onMounted(() => {
+  fetchPriceData();
+  fetchHotRecommendation();
+});
 </script>
 
 <style scoped lang="scss">
@@ -460,4 +526,3 @@ const viewReport = () => {
   }
 }
 </style>
-
