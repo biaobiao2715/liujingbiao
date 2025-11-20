@@ -6,9 +6,9 @@
     </div>
     <div v-loading="state.loading" class="content-box">
       <template v-if="newsList.length > 0">
-        <div v-for="(v, k) in newsList" :key="k" class="content-box-item" @click="onNewsClick(k)">
+        <div v-for="(v, k) in newsList" :key="k" class="content-box-item" @click="onNewsClick(v, k)">
           <div class="item-conten">
-            <div>{{ v.message }}</div>
+            <div>{{ titleChange(v) }}</div>
             <div class="content-box-msg"></div>
             <div class="content-box-time">{{ v.time }}</div>
           </div>
@@ -25,10 +25,11 @@
 
 <script setup lang="ts" name="layoutBreadcrumbUserNews">
 import { useNoticeStore } from '@/store/modules/notice';
+import { string } from 'vue-types';
 
 const noticeStore = useNoticeStore();
 const { readAll } = useNoticeStore();
-
+const { proxy } = getCurrentInstance() as any;
 // 定义变量内容
 const state = reactive({
   loading: false
@@ -43,18 +44,44 @@ const getTableData = async () => {
   state.loading = true;
   newsList.value = noticeStore.state.notices;
   state.loading = false;
+  console.log('消息更新', noticeStore.state);
 };
 
 //点击消息，写入已读
-const onNewsClick = (item: any) => {
-  newsList.value[item].read = true;
+const onNewsClick = (item: any, key: number) => {
+  newsList.value[key].read = true;
   //并且写入pinia
   noticeStore.state.notices = newsList.value;
+  //采购主题 --推给供应商使用
+  if (item.event == 'purchaseDemand') {
+    // 采购需求
+    proxy.$router.push({
+      path: '/supplierPlatform/supplyManagement/procurement',
+      query: {
+        id: item.message.id
+      }
+    });
+    return;
+  }
+  //供给主题 --推给采购商使用
+  if (item.event == 'supplyDemand') {
+    proxy.$router.push({ path: '/supplierPlatform/supplyManagement/procurement' });
+    return;
+  }
 };
 
 // 前往通知中心点击
 const onGoToGiteeClick = () => {
   window.open('https://gitee.com/dromara/RuoYi-Vue-Plus/tree/5.X/');
+};
+
+// 标题处理：目前 purchaseDemand / supplyDemand 逻辑一致，合并
+const titleChange = (item: any) => {
+  const base = item.message.message;
+  if (item.message.demandDescription) {
+    return base + item.message.demandDescription;
+  }
+  return base;
 };
 
 onMounted(() => {

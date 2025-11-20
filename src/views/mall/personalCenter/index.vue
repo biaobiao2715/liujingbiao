@@ -342,8 +342,8 @@ watch(
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 120px;
-  background: url('@/assets/images/profile.jpg') no-repeat left bottom/100% auto;
+  height: 210px;
+  background: url('@/assets/mall/切图 28.webp') no-repeat left bottom/100% 100%;
   pointer-events: none;
   z-index: 1;
 }

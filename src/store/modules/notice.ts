@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 
 interface NoticeItem {
   title?: string;
+  event?: string;
   read: boolean;
   message: any;
   time: string;

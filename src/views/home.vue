@@ -39,7 +39,7 @@ import { useRouter } from 'vue-router';
 import { getInfo } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
-
+import { initSSE } from '@/utils/sse';
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -86,7 +86,7 @@ const applications = ref([
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
     redirect: '/index',
-    type: ['0', '2', '3','6']
+    type: ['0', '2', '3', '6']
   },
   {
     title: '农资农具销售服务平台',
@@ -125,7 +125,6 @@ const applications = ref([
 const currentPlatform = ref([]);
 
 onMounted(() => {
-  console.log('12312312312123');
   getUserInfo();
 });
 
@@ -146,6 +145,7 @@ const getIcon = (svgName: string) => {
 const handleRedirect = (path: string) => {
   if (path) {
     router.push(path);
+    initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
   }
 };
 
