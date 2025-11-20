@@ -611,7 +611,7 @@ const handleDiplomaChange = (file: any) => {
           const sexMatch = rawText.match(/性别[:：]?\s*([男女])/);
           const sex = sexMatch?.[1] || null;
           if (sex) {
-            formData.value.sex = sex === '男' ? '1' : '2';
+            formData.value.sex = sex === '男' ? '0' : '1';
           }
         }
         Object.keys(data).forEach((key) => {

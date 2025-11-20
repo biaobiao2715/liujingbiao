@@ -33,21 +33,24 @@
     </div>
 
     <div v-if="showArea !== 'area'" class="detail-container">
-      <!-- 面包屑导航 -->
-      <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
-        <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item>
-      </el-breadcrumb>
-      <!-- 贷款产品详情 -->
-      <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
-      <!-- 风险案例详情 -->
-      <AboutRiskCasesComponentDetails v-if="showArea === 'RiskCasesComponentDetails'" :id="id" />
-      <!-- 政策法规详情 -->
-      <AboutPolicyRulesComponentDetails v-if="showArea === 'PolicyRulesComponentDetails'" :id="id" />
-      <!-- 保险产品详情 -->
-      <AboutInsuranceproductComponentDetails v-if="showArea === 'InsuranceproductComponentDetails'" :id="id" />
-      <!-- 保险产品列表 -->
-      <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
+      <!-- detail-container 设置背景颜色  detail-content 设置宽度 -->
+      <div class="detail-content">
+        <!-- 面包屑导航 -->
+        <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
+          <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">首页</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item>
+        </el-breadcrumb>
+        <!-- 贷款产品详情 -->
+        <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
+        <!-- 风险案例详情 -->
+        <AboutRiskCasesComponentDetails v-if="showArea === 'RiskCasesComponentDetails'" :id="id" />
+        <!-- 政策法规详情 -->
+        <AboutPolicyRulesComponentDetails v-if="showArea === 'PolicyRulesComponentDetails'" :id="id" />
+        <!-- 保险产品详情 -->
+        <AboutInsuranceproductComponentDetails v-if="showArea === 'InsuranceproductComponentDetails'" :id="id" />
+        <!-- 保险产品列表 -->
+        <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
+      </div>
     </div>
   </div>
 </template>
@@ -94,11 +97,10 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   InsuranceproductComponentDetails: '保险产品详情',
   PolicyRulesComponentDetails: '政策法规详情',
   RiskCasesComponentDetails: '风险案例详情',
-  LoanProductsComponentDetails: '贷款产品详情'
+  LoanProductsComponentDetails: '信贷产品详情'
 };
 
 const secondTitle = computed(() => (showArea.value === 'area' ? '' : TITLE_MAP[showArea.value]));
-
 
 // 显示详情
 const showDetail = (detail: DetailPayload) => {

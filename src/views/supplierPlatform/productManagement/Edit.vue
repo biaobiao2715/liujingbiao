@@ -47,7 +47,7 @@
 
         <el-col :span="12">
           <el-form-item label="商品品牌" prop="goodsBrandId">
-            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" clearable>
+            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" filterable clearable>
               <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
             </el-select>
           </el-form-item>
@@ -56,7 +56,7 @@
 
         <el-col :span="12">
           <el-form-item label="产品保障" prop="goodsEnsureIds">
-            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" clearable multiple>
+            <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" filterable clearable multiple>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select>
           </el-form-item>
@@ -65,7 +65,7 @@
 
         <el-col :span="12">
           <el-form-item label="产品功能" prop="goodsAbilityIds">
-            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" clearable multiple>
+            <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" filterable clearable multiple>
               <el-option v-for="item in functionOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select>
           </el-form-item>

@@ -329,6 +329,22 @@ const form: TechnicalExpert = {
   phoneNumber: ''
 } as TechnicalExpert;
 
+const ocrMap = {
+  'studentName': 'expertName',
+  'idNumber': 'idCard',
+  'schoolName': 'graduationSchool',
+  'major': 'major',
+  'degree': 'degree',
+  'educationLevel': 'education',
+  'studyForm': 'studyForm',
+  'studyDuration': 'studyDuration',
+  'certificateType': 'certificateType',
+  'certificateNumber': 'certificateNumber',
+  'holderName': 'holderName',
+  'issueDate': 'issueDate',
+  'validUntil': 'validUntil',
+  'issuingAuthority': 'issuingAuthority'
+};
 const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string }> = {
   // 专家姓名
   expertName: [
@@ -638,8 +654,9 @@ const handleDiplomaChange = (file: any) => {
           .then((res) => {
             const data = res?.data?.[0] || {};
             Object.keys(data).forEach((key) => {
+              const mappedKey = ocrMap[key] || key;
               if (data[key]) {
-                formData.value[key] = data[key];
+                formData.value[mappedKey] = data[key];
               }
             });
           })

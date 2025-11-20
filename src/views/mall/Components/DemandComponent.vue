@@ -115,7 +115,18 @@ import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import PublishDemandComponent from './PublishDemandComponent.vue';
 import HotGoodsComponent from './HotGoodsComponent.vue';
 import { useRouter } from 'vue-router';
-import { supplyHallList, hotRecommendationList, greatGoodsRecommendList } from '@/api/mall/demand';
+import { supplyHallList, hotRecommendationList, greatGoodsRecommendList, querySupplyInfoById } from '@/api/mall/demand';
+
+const props = withDefaults(
+  defineProps<{
+    id?: string | number;
+    type?: string;
+  }>(),
+  {
+    id: 0,
+    type: ''
+  }
+);
 
 const publishDemandRef = ref();
 
@@ -155,7 +166,20 @@ onMounted(() => {
   getDemandList();
   getHotGoodsList();
   getGoodGoodsList();
+  if (props.id && props.type === 'supplyDemand') {
+    contactDetail(props.id);
+  }
 });
+
+// 监听 props 变化，若满足条件则重新获取联系方式
+watch(
+  () => [props.id, props.type],
+  ([newId, newType]) => {
+    if (newId && newType === 'supplyDemand') {
+      contactDetail(newId);
+    }
+  }
+);
 
 // 重置筛选条件
 const resetQuery = () => {
@@ -238,6 +262,15 @@ const handleOpenDialog = () => {
 const contact = (row: any) => {
   contactForm.value = row;
   contactVisible.value = true;
+};
+
+const contactDetail = (value: any) => {
+  querySupplyInfoById({ id: value }).then((res) => {
+    if (res.code === 200) {
+      contactForm.value = res.data || {};
+      contactVisible.value = true;
+    }
+  });
 };
 
 // 分组数组，每组groupSize个

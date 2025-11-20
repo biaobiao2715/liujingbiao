@@ -98,19 +98,24 @@ const getArticleDetail = async () => {
   text-align: left;
   font-style: normal;
   text-transform: none;
+  margin-bottom: 22px;
 }
 
 .item_type {
-  font-size: 14px;
-  color: #ff7b00;
-  height: 25px;
-  display: flex;
-  align-items: center;
-
-  border-radius: 221px 221px 221px 221px;
-  border: 1px solid #ff7b00;
-  padding: 0 12px;
-  margin-left: 10px;
+  width: 328px;
+  height: 58px;
+  line-height: 58px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 30px;
+  color: #ffffff;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  background: linear-gradient(270deg, rgba(5, 238, 130, 0) 0%, rgba(255, 255, 255, 0.34) 100%);
+  border-radius: 0px 0px 0px 0px;
+  margin-bottom: 19px;
+  padding-left: 20px;
 }
 
 .item_productIntro {
