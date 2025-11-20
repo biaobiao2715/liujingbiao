@@ -3,8 +3,8 @@ div<!--
 功能：		供应商/企业信客户举报页面
 说明：		
 当前版本：	1.0
-开发信息：	Created by 张峰 2025-11-13
-修改人信息：	张峰 2025-11-13
+开发信息：	Created by 李政达 2025-11-18
+修改人信息：	李政达 2025-11-18
 修改内容：	供应商/企业信客户举报页面开发
  -->
 <template>
@@ -94,7 +94,7 @@ div<!--
             <!-- 查看按钮 - 已结案和已撤回显示 -->
             <el-button
               v-if="scope.row.status === '3' || scope.row.status === '4'"
-              v-hasPermi="['safeguard:report:query']"
+              v-hasPermi="['safeguard:report:back']"
               v-throttle
               type="primary"
               size="small"
@@ -188,6 +188,7 @@ const { proxy } = getCurrentInstance() as any;
 const { report_type_id, report_status } = toRefs<any>(proxy?.useDict('report_type_id', 'report_status'));
 // // 弹窗组件异步加载（首字母大写）
 const Appealmodal = defineAsyncComponent(() => import('./appealmodal.vue'));
+const Detail = defineAsyncComponent(() => import('./Detail.vue'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -286,12 +287,10 @@ const revokeconfirm = async () => {
 const getList = async () => {
   loading.value = true;
   try {
-    // 过滤掉空值字段
-    const filteredParams = pickBy(queryParams.value, (value) => {
-      return value !== '' && value !== null && value !== undefined;
-    });
-    const res = await getreportlist(filteredParams);
-    console.log('res', res);
+   console.log('queryParams.value-------', queryParams.value);
+    
+    const res = await getreportlist(queryParams.value);
+    console.log('res-------', res);
     tableData.value = res.rows || [];
     total.value = res.total || 0;
   } catch (error) {
@@ -308,6 +307,11 @@ const openDialog = (type: 'appeal' | 'view', status, id?: string | number) => {
 const handleAppeal = (row) => {
   console.log('row', row);
   openDialog('appeal', row.status, row.id);
+};
+/* 查看 */
+const handleEdit = (row) => {
+  console.log('row', row);
+  openDialog('view', row.status, row.id);
 };
 /** 弹窗标题 */
 const getDialogTitle = () => {

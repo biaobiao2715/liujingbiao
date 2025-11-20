@@ -3,8 +3,8 @@
 功能：		举报申述
 说明：		
 当前版本：	1.0
-开发信息：	Created by 张峰 2025-11-14
-修改人信息：	张峰 2025-11-14
+开发信息：	Created by 李政达 2025-11-18
+修改人信息：	李政达 2025-11-18
 修改内容：	举报申述
  -->
 <template>
@@ -18,8 +18,8 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="举报编号" prop="reportGoodsCode">
-            <el-input v-model="formData.reportGoodsCode" clearable />
+          <el-form-item label="举报编号" prop="reportCode">
+            <el-input v-model="formData.reportCode" clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -50,32 +50,49 @@
     <div class="section-title">案件类型</div>
     <el-table :data="casetableData" border v-loading="loading" style="table-layout: fixed">
       <!-- 案件类型编号 -->
-      <el-table-column label="案件类型编号" align="center" prop="publishTime">
+      <el-table-column label="案件类型编号" align="center" prop="caseCode">
         <template #default="scope">
-          <span>{{ scope.row.publishTime }}</span>
+          <span>{{ scope.row.caseCode }}</span>
         </template>
       </el-table-column>
       <!-- 案件类型名称 -->
-      <el-table-column label="案件类型名称" align="center" prop="cultivateName">
+      <el-table-column label="案件类型名称" align="center" prop="caseTypeId">
         <template #default="scope">
-          <span>{{ scope.row.cultivateName }}</span>
+          <span>{{ scope.row.caseTypeId }}</span>
         </template>
       </el-table-column>
 
-      <!-- 案件来源 -->
-      <el-table-column label="案件来源" align="center" prop="cultivateType"> </el-table-column>
+      
 
       <!-- 执法依据 -->
-      <el-table-column label="执法依据" align="center" prop="pageViews">
+      <el-table-column label="执法依据" align="center">
         <template #default="scope">
-          <span>{{ scope.row.pageViews != null ? scope.row.pageViews : 0 }}</span>
+           <el-link 
+            v-if="scope.row.newBasisFile && scope.row.newBasisFile.ossInfo && scope.row.newBasisFile.ossInfo.url"
+            :href="scope.row.newBasisFile.ossInfo.url" 
+            target="_blank"
+            type="primary"
+            :underline="true"
+            @click.stop
+           > 
+          <span>{{ scope.row.newBasisFile.ossInfo.originalName}}</span>
+          </el-link>
         </template>
       </el-table-column>
 
       <!-- 执法文书模板 -->
       <el-table-column label="执法文书模板" align="center" prop="collectCount">
         <template #default="scope">
-          <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
+          <el-link 
+            v-if="scope.row.newDocumentFile && scope.row.newDocumentFile.ossInfo && scope.row.newDocumentFile.ossInfo.url"
+            :href="scope.row.newDocumentFile.ossInfo.url" 
+            target="_blank"
+            type="primary"
+            :underline="true"
+            @click.stop
+           >  
+          <span>{{ scope.row.newDocumentFile.ossInfo.originalName }}</span>
+          </el-link>
         </template>
       </el-table-column>
     </el-table>
@@ -83,6 +100,7 @@
     <!-- 附件上传区域 -->
     <div class="attachment-section">
       <el-upload
+       v-if="props.type === 'appeal'"
         action="#"
         :auto-upload="false"
         accept=".png,.jpg,.MP4,.jpeg,.mov,.avi"
@@ -145,7 +163,7 @@ import { ref, onMounted, getCurrentInstance, toRefs, watch, computed } from 'vue
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
-import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
+import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate,courseAppeal } from '@/api/system/courseCultivate';
 import { getreportdetail, reportback, reportappeal } from '@/api/rightsPlatform/customerreport';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
@@ -181,7 +199,7 @@ const dialogImageUrl = ref('');
 const formData = ref({
   id: undefined as number | undefined,
   reportTypeId: null, //举报类别
-  reportGoodsCode: '', //举报编号
+  reportCode: '', //举报编号
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
@@ -225,6 +243,20 @@ const statusText = computed(() => {
   };
   return statusMap[props.status] || '未知状态';
 });
+// 添加这两个计算属性用于附件计数显示
+const currentImageCount = computed(() => {
+  return attachmentList.value.filter(item => {
+    const suffix = (item.fileSuffix || '').toLowerCase();
+    return ['.jpg', '.jpeg', '.png'].includes(suffix);
+  }).length;
+});
+
+const currentVideoCount = computed(() => {
+  return attachmentList.value.filter(item => {
+    const suffix = (item.fileSuffix || '').toLowerCase();
+    return ['.mp4', '.mov', '.avi'].includes(suffix);
+  }).length;
+});
 /** 获取内容详情 */
 const fetchContentDetail = async () => {
   if (!props.id) return;
@@ -246,13 +278,13 @@ const fetchContentDetail = async () => {
       formData.value = {
         id: data.id,
         reportTypeId: data.reportTypeId || '',
-        reportGoodsCode: data.reportGoodsCode || '',
+        reportCode: data.reportCode || '',
         createTime: data.createTime || '',
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
         status: data.status || ''
       };
-      casetableData.value = data.hnReportHistoryList || [];
+      casetableData.value = data.reportCaseFiling || [];
       // 加载附件数据
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
         attachmentList.value = data.ossVoList.map((item: any) => {
@@ -303,23 +335,24 @@ const handleSubmit = async () => {
   try {
     saving.value = true;
     const submitData = {
-      id: formData.value.id,
-      reportTypeId: formData.value.reportTypeId,
-      reportGoodsCode: formData.value.reportGoodsCode,
-      createTime: formData.value.createTime,
-      caseCode: formData.value.caseCode,
-      reportDescription: formData.value.reportDescription,
-      status: formData.value.status,
-      presentarguments: presentarguments.value
+       id: formData.value.id,
+      appealReason: presentarguments.value,
+      ossList: attachmentList.value.map(item => ({
+        ossId: item.ossId,
+        fileName: item.fileName,
+        originalName: item.originalName,
+        fileSuffix: item.fileSuffix,
+        url: item.url
+      }))
     };
     console.log('submitData提交的数据', submitData);
-    return;
+    
     // 调用对应的接口
-    const api = props.type === 'add' ? courseCultivateadd : courseCultivateupdate;
+    const api = props.type === 'appeal' ? courseAppeal : courseCultivateupdate;
     const response: any = await api(submitData);
 
     if (response && response.code === 200) {
-      ElMessage.success(props.type === 'add' ? '培训课程发布成功' : '培训课程修改成功');
+      ElMessage.success('操作成功');
       emit('success');
     } else {
       ElMessage.error(response?.msg || '操作失败，请稍后重试');
