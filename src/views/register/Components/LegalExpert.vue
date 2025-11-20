@@ -26,14 +26,14 @@
                   :auto-upload="false"
                   :show-file-list="false"
                   :on-change="handleDiplomaChange"
-                  accept=".jpg,.jpeg,.gif,.png,.pdf"
+                  accept=".jpeg,.gif,.png,.jpg"
                 >
                   <div class="upload-content">
                     <div v-if="!diplomaUrl">
                       <img src="@/assets/images/register3.svg" class="step-icon" />
                       <div class="upload-text">
                         <span>点击或将文件拖拽到这里上传</span>
-                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpeg.gif.png.jpg</p>
                       </div>
                     </div>
                     <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
@@ -259,6 +259,15 @@ enum idTypeEnum {
   expert = 'jszjId',
   legal = 'fwzjId'
 }
+
+const ocrMap = {
+  lawyerName: 'expertName',
+  holderName: 'expertName',
+  practiceType: 'practiceCertificateType',
+  barNumber: 'legalPracticeQualification',
+  certificateNumber: 'practiceCertificateNumber',
+  lawFirm: 'practiceInstitution'
+};
 // 表单数据
 // 可选 字段
 const form: LegalExpert = {
@@ -506,7 +515,6 @@ const beforeUpload = (file: any) => {
   const allowedTypes = [
     'image/jpeg',
     'image/png',
-    'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel',
@@ -563,6 +571,7 @@ const deleteQualification = (index: number) => {
     item.index = i + 1;
   });
 };
+
 // 上传律师证
 const handleDiplomaChange = (file: any) => {
   proxy?.$modal.loading('正在上传律师证，请稍候...');
@@ -588,9 +597,28 @@ const handleDiplomaChange = (file: any) => {
       }
       try {
         const res_1 = await ocrUploadImage({ image_url_list: [res.data.url] });
-        Object.keys(res_1).forEach((key) => {
-          if (key in formData.value) {
-            formData.value[key] = res_1[key];
+        const data = res_1.data?.[0];
+        console.log(data);
+        const rawText = data?.rawText || '';
+        if (rawText) {
+          // 正则提取身份证号字符串开头的后边18位数字
+          const m = rawText.match(/身份证号[:：]?\s*([0-9]{17}[0-9Xx])/);
+          const id = m?.[1] || null;
+          if (id) {
+            formData.value.idCard = id;
+          }
+          //   提取男女
+          const sexMatch = rawText.match(/性别[:：]?\s*([男女])/);
+          const sex = sexMatch?.[1] || null;
+          if (sex) {
+            formData.value.sex = sex === '男' ? '1' : '2';
+          }
+        }
+        Object.keys(data).forEach((key) => {
+          if (key in data) {
+            if (data[key]) {
+              formData.value[ocrMap[key] || key] = data[key];
+            }
           }
         });
       } catch (error) {
