@@ -56,11 +56,21 @@ import { todayTrendList } from '@/api/mall/marketComponent';
 const loading = ref(false);
 const queryFormRef = ref();
 
+const getYesterdayDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // 查询参数
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组，格式: [一级ID, 二级ID, 三级ID]
   pageNum: 1,
-  pageSize: 10
+  pageSize: 10,
+  analysisDate: getYesterdayDate()
 });
 
 // 表格数据
@@ -84,6 +94,7 @@ const resetQuery = () => {
   queryFormRef.value?.resetFields();
   queryParams.variety = [];
   queryParams.pageNum = 1;
+  queryParams.analysisDate = getYesterdayDate();
   getList();
 };
 
@@ -97,7 +108,8 @@ const getList = async () => {
     const params: any = {
       goodsCategoryId: goodsCategoryId || '',
       pageNum: queryParams.pageNum,
-      pageSize: queryParams.pageSize
+      pageSize: queryParams.pageSize,
+      analysisDate: queryParams.analysisDate
     };
 
     const response = await todayTrendList(params);
