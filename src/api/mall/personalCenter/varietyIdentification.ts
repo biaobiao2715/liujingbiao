@@ -12,6 +12,14 @@ export function varietyRecognizeList(query?: any) {
   });
 }
 
+// 查询品种信息识别类别
+export function varietyRecognizeGroupType() {
+  return request({
+    url: 'safeguard-server/varietyRecognize/groupType',
+    method: 'get'
+  });
+}
+
 /** 品种识别商品详情
 
  * @param id
