@@ -4,144 +4,130 @@
       <div class="dialog-title">{{ dialogTitle }}</div>
     </template>
     <div v-loading="loading">
-
-    <div class="detail-section">
-      <div class="section-title">企业基础信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item v-for="item in companyInfoList" :key="item.label" :label="item.label">
-          {{ item.value }}
-        </el-descriptions-item>
-        <el-descriptions-item label="营业执照">
-          <template v-if="companyLicenseList.length">
-          <el-image
-              v-for="(img, idx) in companyLicenseList"
-            :key="idx"
-            :src="img"
-              :preview-src-list="companyLicenseList"
-            fit="cover"
-            class="license-image"
-          >
-            <template #error>
-              <div class="image-placeholder">暂无图片</div>
+      <div class="detail-section">
+        <div class="section-title">企业基础信息</div>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item v-for="item in companyInfoList" :key="item.label" :label="item.label">
+            {{ item.value }}
+          </el-descriptions-item>
+          <el-descriptions-item label="营业执照">
+            <template v-if="companyLicenseList.length">
+              <el-image
+                v-for="(img, idx) in companyLicenseList"
+                :key="idx"
+                :src="img.url"
+                :preview-src-list="companyLicenseList"
+                fit="cover"
+                class="license-image"
+              >
+                <template #error>
+                  <div class="image-placeholder">暂无图片</div>
+                </template>
+              </el-image>
             </template>
-          </el-image>
-          </template>
-          <span v-else>--</span>
-        </el-descriptions-item>
-      </el-descriptions>
-    </div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
 
-    <div class="detail-section">
-      <div class="section-title">法人信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item v-for="item in legalInfoList" :key="item.label" :label="item.label">
-          {{ item.value }}
-        </el-descriptions-item>
-      </el-descriptions>
-    </div>
+      <div class="detail-section">
+        <div class="section-title">法人信息</div>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item v-for="item in legalInfoList" :key="item.label" :label="item.label">
+            {{ item.value }}
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
 
-    <div class="detail-section">
-      <div class="section-title">申请人信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item v-for="item in applicantInfoList" :key="item.label" :label="item.label">
-          {{ item.value }}
-        </el-descriptions-item>
-        <el-descriptions-item label="个人身份证明" :span="2">
-          <template v-if="applicantIdPhotos.length">
-          <el-image
-              v-for="(img, idx) in applicantIdPhotos"
-            :key="idx"
-            :src="img"
-              :preview-src-list="applicantIdPhotos"
-            class="license-image"
-          >
-            <template #error>
-              <div class="image-placeholder">暂无图片</div>
+      <div class="detail-section">
+        <div class="section-title">申请人信息</div>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item v-for="item in applicantInfoList" :key="item.label" :label="item.label">
+            {{ item.value }}
+          </el-descriptions-item>
+          <el-descriptions-item label="个人身份证明" :span="2">
+            <template v-if="applicantIdPhotos.length">
+              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image">
+                <template #error>
+                  <div class="image-placeholder">暂无图片</div>
+                </template>
+              </el-image>
             </template>
-          </el-image>
-          </template>
-          <span v-else>--</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="授权文件" :span="2">
-          <template v-if="applicantAuthFiles.length">
-          <el-image
-              v-for="(img, idx) in applicantAuthFiles"
-            :key="idx"
-            :src="img"
-              :preview-src-list="applicantAuthFiles"
-            class="license-image"
-          >
-            <template #error>
-              <div class="image-placeholder">暂无图片</div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="授权文件" :span="2">
+            <template v-if="applicantAuthFiles.length">
+              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image">
+                <template #error>
+                  <div class="image-placeholder">暂无图片</div>
+                </template>
+              </el-image>
             </template>
-          </el-image>
-          </template>
-          <span v-else>--</span>
-        </el-descriptions-item>
-      </el-descriptions>
-    </div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
 
-    <div class="detail-section">
-      <div class="section-title">贷款信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
-          {{ item.value }}
-        </el-descriptions-item>
-      </el-descriptions>
-      <div class="bank-card-preview">
-        <div>银行卡号正反面：</div>
-        <div class="bank-card-images">
-          <div class="card-placeholder" v-for="idx in 2" :key="idx">预览</div>
+      <div class="detail-section">
+        <div class="section-title">贷款信息</div>
+        <el-descriptions :column="2" border>
+          <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
+            {{ item.value }}
+          </el-descriptions-item>
+        </el-descriptions>
+        <div class="bank-card-preview">
+          <div>银行卡号正反面：</div>
+          <div class="bank-card-images">
+            <div class="card-placeholder" v-for="idx in 2" :key="idx">预览</div>
+          </div>
+        </div>
+        <div class="product-link">
+          <el-button type="primary" plain size="large">查看产品详情</el-button>
         </div>
       </div>
-      <div class="product-link">
-        <el-button type="primary" plain size="large">查看产品详情</el-button>
+
+      <div v-if="isApprovalMode" class="detail-section approval-section">
+        <div class="section-title">审批信息</div>
+        <el-alert
+          title="审核通过时需填写放款日期、第一期还款日并上传合同；审批前需确认状态为待审核。"
+          type="warning"
+          show-icon
+          :closable="false"
+          class="tips"
+        />
+        <el-form label-width="100px" class="approval-form no-wrap-label">
+          <el-form-item label="审批意见" required>
+            <el-select v-model="approvalForm.opinion">
+              <el-option label="同意" value="agree" />
+              <el-option label="不同意" value="reject" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="放款日期" required>
+            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="第一期还款日" required>
+            <el-date-picker v-model="approvalForm.firstRepaymentDate" type="date" placeholder="选择日期" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="贷款合同" required>
+            <el-upload
+              class="contract-uploader"
+              drag
+              :auto-upload="false"
+              accept=".pdf,.jpg,.png"
+              :file-list="approvalForm.contractFiles"
+              :on-remove="handleRemoveFile"
+              :on-change="handleUploadChange"
+            >
+              <i class="el-icon-upload" />
+              <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            </el-upload>
+          </el-form-item>
+          <div class="approval-actions">
+            <el-button type="primary">审批通过</el-button>
+            <el-button>审批驳回</el-button>
+          </div>
+        </el-form>
       </div>
-    </div>
-
-    <div v-if="isApprovalMode" class="detail-section approval-section">
-      <div class="section-title">审批信息</div>
-      <el-alert
-        title="审核通过时需填写放款日期、第一期还款日并上传合同；审批前需确认状态为待审核。"
-        type="warning"
-        show-icon
-        :closable="false"
-        class="tips"
-      />
-      <el-form label-width="100px" class="approval-form no-wrap-label">
-        <el-form-item label="审批意见" required>
-          <el-select v-model="approvalForm.opinion">
-            <el-option label="同意" value="agree" />
-            <el-option label="不同意" value="reject" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="放款日期" required>
-          <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="第一期还款日" required>
-          <el-date-picker v-model="approvalForm.firstRepaymentDate" type="date" placeholder="选择日期" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="贷款合同" required>
-          <el-upload
-            class="contract-uploader"
-            drag
-            :auto-upload="false"
-            accept=".pdf,.jpg,.png"
-            :file-list="approvalForm.contractFiles"
-            :on-remove="handleRemoveFile"
-            :on-change="handleUploadChange"
-          >
-            <i class="el-icon-upload" />
-            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          </el-upload>
-        </el-form-item>
-        <div class="approval-actions">
-          <el-button type="primary">审批通过</el-button>
-          <el-button>审批驳回</el-button>
-        </div>
-      </el-form>
-    </div>
-
     </div>
     <template #footer>
       <div class="dialog-footer">
@@ -237,14 +223,11 @@ const fetchDetail = async () => {
   }
 };
 
-watch(
-  [() => props.visible, () => props.data?.id],
-  ([visible, id], [prevVisible, prevId]) => {
-    if (visible && (!prevVisible || id !== prevId)) {
-      fetchDetail();
-    }
+watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
+  if (visible && (!prevVisible || id !== prevId)) {
+    fetchDetail();
   }
-);
+});
 
 const companyInfoList = computed(() => {
   const row = detailRow.value;
@@ -287,13 +270,9 @@ const applicantInfoList = computed(() => {
   ];
 });
 
-const applicantIdPhotos = computed(() =>
-  Array.isArray(detailRow.value.idPhotos) ? detailRow.value.idPhotos : []
-);
+const applicantIdPhotos = computed(() => (Array.isArray(detailRow.value.idPhotos) ? detailRow.value.idPhotos : []));
 
-const applicantAuthFiles = computed(() =>
-  Array.isArray(detailRow.value.authorizationFiles) ? detailRow.value.authorizationFiles : []
-);
+const applicantAuthFiles = computed(() => (Array.isArray(detailRow.value.authorizationFiles) ? detailRow.value.authorizationFiles : []));
 
 const loanInfoList = computed(() => {
   const row = detailRow.value;
