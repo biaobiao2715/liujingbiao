@@ -6,7 +6,7 @@
  * @FilePath: /api/register/index.ts
  */
 
-import { AxiosPromise } from 'axios';
+import axios, { AxiosPromise } from 'axios';
 import request from '@/utils/request';
 import { UplodaImageResult } from './types';
 
@@ -36,16 +36,20 @@ export function uploadImage(data: { file: File }): AxiosPromise<UplodaImageResul
  * @param data - 包含文件的对象
  * @returns 图片上传结果的 Promise
  */
-export function ocrUploadImage(data: { file: File }): AxiosPromise<UplodaImageResult> {
-  const formData = new FormData();
-  formData.append('file', data.file);
-  return request({
-    url: '/resource/ocr/biz-license',
+export function ocrUploadImage(data: { image_url_list: string[] }): AxiosPromise<UplodaImageResult> {
+  const dataJson = JSON.stringify(data);
+  return axios({
+    url: 'http://8.153.15.72:8886/ocr',
     method: 'post',
-    data: formData,
-    headers: {
-      isToken: false,
-      'Content-Type': 'multipart/form-data'
-    }
+    data: dataJson
   });
+  //   return request({
+  //     url: '/resource/ocr/biz-license',
+  //     method: 'post',
+  //     data: formData,
+  //     headers: {
+  //       isToken: false,
+  //       'Content-Type': 'multipart/form-data'
+  //     }
+  //   });
 }

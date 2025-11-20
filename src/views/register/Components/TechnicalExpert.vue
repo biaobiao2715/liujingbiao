@@ -634,7 +634,7 @@ const handleDiplomaChange = (file: any) => {
             ossId: res.data.ossId
           });
         }
-        return ocrUploadImage({ file: file.raw })
+        return ocrUploadImage({ image_url_list: [res.data.url] })
           .then((res) => {
             Object.keys(res).forEach((key) => {
               if (key in formData.value) {
