@@ -69,8 +69,11 @@ export const initSSE = (url: any) => {
     const payload = parsePayload(data.value);
     let msg = extractMessage(payload);
 
-    if ((event.value === 'purchaseDemand' || event.value === 'supplyDemand') && payload && payload.demandDescription) {
-      msg = `${msg ? msg + ' ' : ''}${String(payload.demandDescription)}`;
+    if (event.value === 'purchaseDemand') {
+      msg = msg + payload.categoryName + '类型；' + payload.demandDescription;
+    }
+    if (event.value === 'supplyDemand') {
+      msg = msg + payload.categoryName + '类型；' + payload.supplyDescription;
     }
 
     useNoticeStore().addNotice({

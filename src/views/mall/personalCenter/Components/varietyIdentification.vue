@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item label="品种类型" prop="varietyType">
           <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
-            <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+            <el-option v-for="dict in varietyTypeOptions" :key="dict.id" :label="dict.varietyType" :value="dict.varietyType" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { varietyRecognizeList } from '@/api/mall/personalCenter/varietyIdentification';
+import { varietyRecognizeList, varietyRecognizeGroupType } from '@/api/mall/personalCenter/varietyIdentification';
 import varietyIdentificationForm from './varietyIdentificationForm.vue';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
@@ -121,6 +121,8 @@ const dlgTitle = ref('');
 const isReadonly = ref(false);
 const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'edit' | 'audit'>('view');
+// 品种识别类别
+const varietyTypeOptions = ref([]);
 
 /** 查询企业列表 */
 const getList = () => {
@@ -193,13 +195,12 @@ const refreshData = () => {
   getList();
 };
 
-// 每次页面激活时执行（从缓存中恢复）
-onActivated(() => {
-  getList();
-});
-
 onMounted(() => {
   getList();
+  // 查询品种识别类别
+  varietyRecognizeGroupType().then((res) => {
+    varietyTypeOptions.value = res.rows;
+  });
 });
 </script>
 

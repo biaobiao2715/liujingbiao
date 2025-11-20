@@ -52,6 +52,7 @@ const onNewsClick = (item: any, key: number) => {
   newsList.value[key].read = true;
   //并且写入pinia
   noticeStore.state.notices = newsList.value;
+  console.log('点击的消息', item);
   //采购主题 --推给供应商使用
   if (item.event == 'purchaseDemand') {
     // 采购需求
@@ -78,10 +79,13 @@ const onGoToGiteeClick = () => {
 // 标题处理：目前 purchaseDemand / supplyDemand 逻辑一致，合并
 const titleChange = (item: any) => {
   const base = item.message.message;
-  if (item.message.demandDescription) {
-    return base + item.message.demandDescription;
+  if (item.event == 'purchaseDemand') {
+    return base + item.message.categoryName + '类型；' + item.message.demandDescription;
   }
-  return base;
+  if (item.event == 'supplyDemand') {
+    return base + item.message.categoryName + '类型；' + item.message.supplyDescription;
+  }
+  // return base;
 };
 
 onMounted(() => {
