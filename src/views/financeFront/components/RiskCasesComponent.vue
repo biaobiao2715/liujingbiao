@@ -1,15 +1,16 @@
 <template>
   <div class="risk-cases">
-    <h2>风险案例</h2>
-    <el-table :data="cases" style="width: 100%" v-loading="loading" @row-click="handleClick">
-      <el-table-column prop="articleTitle" label="案例标题" />
-      <el-table-column prop="articleSummary" label="案例简介" />
-      <el-table-column prop="publishTime" label="发布时间" width="180">
-        <template #default="scope">
-          <span>{{ scope.row.publishTime || '--' }}</span>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="section-title flex-center-between mb-12">
+      <div>风险案例</div>
+      <div class="more">查看更多 >></div>
+    </div>
+    <!-- 列表 -->
+    <div class="risk-list">
+      <div class="item" v-for="item in cases" :key="item.id" @click="handleClick(item)">
+        <div class="article-title mb-12">{{ item.articleTitle }}</div>
+        <div class="article-summary">{{ item.articleSummary }}</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -29,6 +30,10 @@ const queryParams = ref({
   pageSize: 10,
   articleStatus: 2,
   articleType: 3
+});
+
+onMounted(() => {
+  fetchCases();
 });
 
 // 获取列表数据
@@ -51,14 +56,45 @@ const fetchCases = async () => {
 const handleClick = (row: any) => {
   emit('detailChange', { type: 'RiskCasesComponentDetails', id: row.id });
 };
-
-onMounted(() => {
-  fetchCases();
-});
 </script>
 
 <style scoped lang="scss">
 .risk-cases {
   padding: 20px;
+  .section-title {
+    height: 20px;
+    line-height: 20px;
+    font-size: 20px;
+    color: #000000;
+    border-left: 3px solid #108c58;
+    padding-left: 12px;
+    .more {
+      cursor: pointer;
+      font-size: 14px;
+      color: rgba(51, 51, 51, 0.5);
+    }
+  }
+  .risk-list {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    .item {
+      cursor: pointer;
+      background: #f6f7fb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      .article-title {
+        font-weight: 500;
+        font-size: 16px;
+        color: #3d3d3d;
+      }
+      .article-summary {
+        font-weight: 400;
+        font-size: 14px;
+        color: #767676;
+      }
+    }
+  }
 }
 </style>
