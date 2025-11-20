@@ -148,6 +148,54 @@
         </el-table-column>
       </el-table>
 
+      <!-- 企业画像 -->
+      <el-form :model="activityInfo" label-width="140px" v-if="formData.reviewStatus === '1'">
+        <FormHeader title="企业画像" />
+        <el-segmented v-model="enterpriseProfileType" :options="enterpriseProfileTypeOptions" class="mb-12" />
+
+        <!-- 交易活动 -->
+        <div v-show="enterpriseProfileType === '1'">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="近7日交易量">
+                {{ activityInfo.transactionActivity?.transactionCount || '' }}
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="最近一笔交易时间">
+                {{ activityInfo.transactionActivity?.lastTransactionTime || '' }}
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+              <el-form-item label="最后系统登录时间">
+                {{ activityInfo.transactionActivity?.loginDate || '' }}
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <el-table :data="activityInfo.transactionActivity.orders" border>
+            <el-table-column type="index" label="序号" width="100"></el-table-column>
+            <el-table-column prop="createTime" label="交易时间"> </el-table-column>
+            <el-table-column prop="orderSn" label="订单编号"></el-table-column>
+            <el-table-column prop="orderStatus" label="订单状态">
+              <template #default="scope">
+                {{
+                  scope.row.orderStatus === 1 ? '待发货' : scope.row.orderStatus === 2 ? '已发货' : scope.row.orderStatus === 3 ? '已完成' : '已取消'
+                }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div v-show="enterpriseProfileType === '2'">
+          <el-table :data="activityInfo.violationRecords" border>
+            <el-table-column type="index" label="序号" width="100"></el-table-column>
+            <el-table-column prop="closeCaseTime" label="违规时间"> </el-table-column>
+            <el-table-column prop="dealResult" label="违规描述"></el-table-column>
+          </el-table>
+        </div>
+      </el-form>
+
       <div v-if="operateMode !== 'edit'" :class="!disabledIf ? 'detail-form' : ''">
         <FormHeader title="审核意见" />
         <el-form-item label="审核意见">
@@ -171,7 +219,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview } from '@/api/platform/enterprise/index';
+import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview, getTransactionInfo, getViolationInfo } from '@/api/platform/enterprise/index';
+
 import FormHeader from '@/components/FormHeader/index.vue';
 
 import { FormData } from '@/api/platform/enterprise/types'; //ts类型
@@ -190,6 +239,8 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'cancel'): void;
 }>();
+
+const loading = ref(false);
 
 // 操作模式来源于 props
 const operateMode = ref(props.type);
@@ -236,8 +287,18 @@ const formData = ref<FormData>({
   folders: []
 });
 const idType = ref('身份认证');
+
 const areaCodes = ref('');
+
 const contactZ = ref([]); // 自然人
+
+const enterpriseProfileType = ref('1'); // 企业画像类型 1：交易活跃度 2：违规记录
+
+const enterpriseProfileTypeOptions = ref([
+  { label: '交易活跃度', value: '1' },
+  { label: '违规记录', value: '2' }
+]);
+
 const contactF = ref({
   // 法人联系人信息
   contactUserType: '',
@@ -245,11 +306,33 @@ const contactF = ref({
   contactIdCard: '',
   contactPhone: ''
 });
+
+// 企业画像相关
+const activityInfo = ref({
+  transactionActivity: {
+    orders: [],
+    transactionCount: 0,
+    loginDate: '',
+    lastTransactionTime: ''
+  },
+  violationRecords: []
+});
+
 const urlImage = ref(); // 营业执照
 
-// id获取详情信息（使用 props.id）
-baseEnterpriseInfoId(String(props.id))
-  .then((res) => {
+onMounted(async () => {
+  await getSupplierDetails();
+  if (formData.value.reviewStatus === '1') {
+    getTransactionInfoDetail();
+    getViolationInfoDetail();
+  }
+});
+
+// 获取企业详情
+const getSupplierDetails = async () => {
+  loading.value = true;
+  try {
+    const res = await baseEnterpriseInfoId(String(props.id));
     formData.value = res.data;
     areaCodes.value = formData.value.province + formData.value.city + formData.value.district;
     if (res.data?.contacts?.length > 0) {
@@ -270,10 +353,12 @@ baseEnterpriseInfoId(String(props.id))
         }
       });
     }
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('获取企业基本信息失败:', error);
-  });
+  } finally {
+    loading.value = false;
+  }
+};
 
 /**
  * 审核前置校验
@@ -352,6 +437,44 @@ const handleSave = async () => {
     console.error('保存失败', error);
   } finally {
     proxy?.$modal.closeLoading();
+  }
+};
+
+//  交易活跃度
+const getTransactionInfoDetail = async () => {
+  if (formData.value.id) {
+    loading.value = true;
+    try {
+      const response = await getTransactionInfo({
+        id: formData.value.id
+      });
+      console.log(response);
+      activityInfo.value.transactionActivity = response.data;
+      // formData.value = response.data;
+    } catch (error) {
+      console.error('获取交易活跃度详情失败', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+};
+
+// 违规记录
+const getViolationInfoDetail = async () => {
+  if (formData.value.id) {
+    loading.value = true;
+    try {
+      const response = await getViolationInfo({
+        id: formData.value.id
+      });
+      console.log(response);
+      activityInfo.value.violationRecords = response.data || [];
+      // formData.value = response.data;
+    } catch (error) {
+      console.error('获取违规记录详情失败', error);
+    } finally {
+      loading.value = false;
+    }
   }
 };
 

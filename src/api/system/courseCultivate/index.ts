@@ -47,3 +47,11 @@ export function courseCultivatedelete(ids: any) {
     method: 'delete',
   });
 }
+/* 供养商申诉 */
+export function courseAppeal(data: any) {
+  return request({
+    url: `/safeguard-server/report/appeal`,
+    method: 'post',
+     data
+  });
+}
