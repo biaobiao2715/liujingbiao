@@ -56,7 +56,15 @@
       <el-table-column label="操作" align="center" width="260">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'approval')">审批</el-button>
+            <el-button
+              size="small"
+              type="primary"
+              plain
+              :disabled="!canAudit(scope.row.applyStatus)"
+              @click="handleDetail(scope.row, 'approval')"
+            >
+              审批
+            </el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
             <el-button size="small" type="success" plain @click="openRepaymentPlan(scope.row)">还款计划</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
@@ -85,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import LoanApplicationDetailDialog from './LoanApplicationDetailDialog.vue';
@@ -118,6 +126,18 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { prod_credit_type, applicable_object, application_status } = toRefs<any>(
   proxy?.useDict('prod_credit_type', 'applicable_object', 'application_status')
 );
+const pendingStatusValues = computed(() => {
+  const dictList = application_status?.value || [];
+  const match = dictList.filter((item: any) => {
+    const label = (item.label || '').toString();
+    return label.includes('待审') || label.includes('待审核');
+  });
+  if (match.length) {
+    return match.map((item: any) => String(item.value));
+  }
+  // fallback, assume字典值为 '1' 或 '0'
+  return ['1', '0'];
+});
 
 const queryFormRef = ref();
 const queryParams = ref({
@@ -208,6 +228,11 @@ const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detai
   } else {
     detailDialogVisible.value = true;
   }
+};
+
+const canAudit = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return false;
+  return pendingStatusValues.value.includes(String(status));
 };
 
 const openRepaymentPlan = (row: LoanApplication) => {

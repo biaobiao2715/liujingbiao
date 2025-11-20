@@ -32,16 +32,19 @@ export function getRemainingDetail(id: number | string) {
     method: 'get',
   });
 }
-export const ossUpload = (data: { file: File }) => {
-  const formData = new FormData();
-  formData.append('file', data.file);
-
+//审核
+export function auditLoanApplication(data: any) {
   return request({
-    url: '/resource/oss/upload',
+    url: '/credit-server/loanApplications',
     method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+    data: data
   });
-};
+}
+//文件上传
+export function uploadFile(data: any) {
+  return request({
+    url: 'resource/oss/upload',
+    method: 'post',
+    data: data
+  });
+}
