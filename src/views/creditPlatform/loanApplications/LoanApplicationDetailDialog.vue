@@ -63,7 +63,7 @@
                 </template>
               </el-image>
             </template>
-            <span v-else>--</span>
+            <div v-else class="image-placeholder">暂无图片</div>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -78,7 +78,20 @@
         <div class="bank-card-preview">
           <div>银行卡号正反面：</div>
           <div class="bank-card-images">
-            <div class="card-placeholder" v-for="idx in 2" :key="idx">预览</div>
+            <template v-if="bankCardImages.length">
+              <el-image
+                v-for="(img, idx) in bankCardImages"
+                :key="idx"
+                :src="img"
+                :preview-src-list="bankCardImages"
+                class="license-image"
+              >
+                <template #error>
+                  <div class="image-placeholder">暂无图片</div>
+                </template>
+              </el-image>
+            </template>
+            <div v-else class="card-placeholder">暂无图片</div>
           </div>
         </div>
         <div class="product-link">
@@ -181,6 +194,19 @@ const creditLevelMap: Record<string, string> = {
   '99': '较差'
 };
 
+const idCardTypeMap: Record<string, string> = {
+  '0': '身份证',
+  '1': '护照',
+  '2': '其他'
+};
+
+const repaymentMethodMap: Record<string, string> = {
+  '0': '等额本息',
+  '2': '等额本金',
+  '3': '先息后本',
+  '4': '先本后息'
+};
+
 const formatValue = (value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return value;
@@ -255,10 +281,10 @@ const companyLicenseList = computed(() => {
 const legalInfoList = computed(() => {
   const row = detailRow.value;
   return [
-    { label: '法人姓名', value: formatValue(row.legalPerson) },
-    { label: '证件类型', value: formatValue(row.certificateType) },
-    { label: '证件号码', value: formatValue(row.certificateNumber) },
-    { label: '联系电话', value: formatValue(row.phoneNumber) }
+    { label: '法人姓名', value: formatValue(row.legalPersonName || row.legalPerson) },
+    { label: '证件类型', value: mapValue(idCardTypeMap, row.legalPersonIdCardType || row.certificateType) },
+    { label: '证件号码', value: formatValue(row.legalPersonIdCardNumber || row.certificateNumber || row.legalPersonContactPhone) },
+    { label: '联系电话', value: formatValue(row.legalPersonContactPhone || row.phoneNumber) }
   ];
 });
 
@@ -266,24 +292,59 @@ const applicantInfoList = computed(() => {
   const row = detailRow.value;
   return [
     { label: '申请人', value: formatValue(row.realName || row.applicantName) },
-    { label: '联系电话', value: formatValue(row.phone || row.applicantPhone) }
+    { label: '联系电话', value: formatValue(row.contactPhone || row.phone || row.applicantPhone) }
   ];
 });
 
-const applicantIdPhotos = computed(() => (Array.isArray(detailRow.value.idPhotos) ? detailRow.value.idPhotos : []));
+const applicantIdPhotos = computed(() => {
+  const row = detailRow.value;
+  const photos: string[] = [];
+  if (row.idFrontUrl) photos.push(row.idFrontUrl);
+  const back = row.idBackUrl || row.idBackUr;
+  if (back) photos.push(back);
+  return photos;
+});
 
-const applicantAuthFiles = computed(() => (Array.isArray(detailRow.value.authorizationFiles) ? detailRow.value.authorizationFiles : []));
+const applicantAuthFiles = computed(() => {
+  const row = detailRow.value;
+  const files: string[] = [];
+  const pushUrl = (val: any) => {
+    if (!val) return;
+    if (typeof val === 'string' && val) {
+      files.push(val);
+    } else if (typeof val === 'object') {
+      const url = val.url || val.fileUrl || val.path || val.src;
+      if (url) files.push(url);
+    }
+  };
+
+  if (Array.isArray(row.authorizationFiles)) {
+    row.authorizationFiles.forEach(pushUrl);
+  } else {
+    pushUrl(row.authorizationUrl);
+  }
+
+  return files;
+});
 
 const loanInfoList = computed(() => {
   const row = detailRow.value;
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
-    { label: '还款方式', value: formatValue(row.repaymentType) },
-    { label: '收款银行卡', value: formatValue(row.bankName) },
-    { label: '银行卡号', value: formatValue(row.bankCardNo) },
-    { label: '申请时间', value: formatValue(row.applyTime) }
+    { label: '还款方式', value: mapValue(repaymentMethodMap, row.repaymentMethod || row.repaymentType) },
+    { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
+    { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
+    { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }
   ];
+});
+
+const bankCardImages = computed(() => {
+  const row = detailRow.value;
+  const list: string[] = [];
+  if (row.bankFrontUrl) list.push(row.bankFrontUrl);
+  if (row.bankBackUrl) list.push(row.bankBackUrl);
+  return list;
 });
 
 const dialogTitle = computed(() => {
