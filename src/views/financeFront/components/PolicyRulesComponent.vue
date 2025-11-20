@@ -8,10 +8,14 @@
     <div class="card-list" v-loading="loading">
       <el-row :gutter="20">
         <el-col :span="12" v-for="caseItem in cases" :key="caseItem.id">
-          <div class="card-item" @click="handleClick(caseItem)">
-            <div class="card-title">{{ caseItem.articleTitle }}</div>
+          <div class="card-item">
+            <div class="card-header flex-center">
+              <div class="title" @click="handleClick(caseItem)">
+                {{ caseItem.articleTitle }}
+              </div>
+              <el-tag effect="plain" round :type="tagMap[caseItem.articleType]?.type">{{ tagMap[caseItem.articleType]?.label }}</el-tag>
+            </div>
             <div class="card-summary">{{ caseItem.articleSummary }}</div>
-            <div class="card-tag">{{ getTag(caseItem.articleType) }}</div>
           </div>
         </el-col>
       </el-row>
@@ -55,14 +59,14 @@ const fetchCases = async () => {
 };
 
 // 获取标签文本
-const getTag = (type: string) => {
-  const tagMap: Record<string, string> = {
-    '1': '金融政策',
-    '2': '金融法规',
-    '3': '行业资讯',
-    '4': '其他'
-  };
-  return tagMap[type] || '未知';
+// 文章类型：1金融政策 2金融法规 3风险案例 4行业资讯 99其他
+// 改成label和type的映射
+const tagMap: Record<string, { label: string; type: any }> = {
+  '1': { label: '金融政策', type: 'danger' },
+  '2': { label: '金融法规', type: 'warning' },
+  '3': { label: '风险案例', type: 'primary' },
+  '4': { label: '行业资讯', type: 'success' },
+  '99': { label: '其他', type: 'info' }
 };
 
 const handleClick = (row: any) => {
@@ -95,29 +99,28 @@ onMounted(() => {
   }
 
   .card-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    width: calc(33.333% - 20px);
+    padding: 12px;
     cursor: pointer;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: bold;
-      color: #333;
+    border-bottom: 1px dashed #d8d8d8;
+    .card-header {
       margin-bottom: 10px;
+      .title {
+        font-weight: 500;
+        font-size: 14px;
+        color: #3d3d3d;
+        width: calc(100% - 240px);
+        line-height: 16px;
+      }
+      .title:hover {
+        color: #108c58;
+      }
     }
 
     .card-summary {
+      font-weight: 400;
       font-size: 14px;
-      color: #666;
-      margin-bottom: 10px;
+      color: #767676;
+      line-height: 16px;
     }
 
     .card-tag {
