@@ -11,40 +11,37 @@
 
           <div class="header">
             <div class="flex-center gap-8">
-              <span class="name">{{ product.name }}</span>
+              <span class="name">{{ product.productName }}</span>
               <el-icon size="20" color="#ccc" v-if="!product.isCollected"><StarFilled /></el-icon>
               <el-icon size="20" color="#108c58" v-else> <StarFilled /></el-icon>
             </div>
           </div>
           <div class="content">
             <div class="limit">
-              <div>
-                {{ product.limit }}
+              <div class="flex-center-center money-amount">
+                <div>{{ product.maxLoanAmount }}</div>
+                <div>万元</div>
               </div>
-              <div>最高额度</div>
+              <div class="max-label">最高额度</div>
             </div>
             <!-- 贷款利率和周期 -->
             <div class="flex-center-center mt-12 mb-12">
               <div class="rate">
                 <div class="number">
-                  {{ product.rate }}
+                  {{ product.baseInterestRate + '%' + ' ~ ' + product.floatInterestRate + '%' }}
                 </div>
                 <div class="label">贷款利率</div>
               </div>
               <div class="line"></div>
               <div class="term">
-                <div class="number">最高36期</div>
+                <div class="number">最高{{ product.loanCycle.split(',').pop() }}期</div>
                 <div class="label">可贷周期</div>
               </div>
             </div>
             <!-- 描述 -->
             <div class="description">
-              <el-tooltip
-                content="灵活便捷的贷款方案 满足个人消费需求活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案"
-                placement="top"
-              >
-                灵活便捷的贷款方案 满足个人消费需求活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案
-                满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消活便捷的贷款方案 满足个人消
+              <el-tooltip :content="product.productIntro" placement="top">
+                {{ product.productIntro }}
               </el-tooltip>
             </div>
           </div>
@@ -59,19 +56,27 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { getCreditProductsVersionNoTenantList } from '@/api/financeFront/LoanProducts/index';
 const emit = defineEmits(['detailChange']);
 
-const products = ref([
-  { id: 1, name: '惠农贷', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 2, name: '惠农贷2', limit: '100万元', rate: '1.2% - 2.6%', isCollected: true },
-  { id: 3, name: '惠农贷3', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 4, name: '惠农贷4', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 5, name: '惠农贷5', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 6, name: '惠农贷6', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 7, name: '惠农贷7', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false },
-  { id: 8, name: '惠农贷8', limit: '100万元', rate: '1.2% - 2.6%', isCollected: false }
-]);
+const products = ref([]);
 
+onMounted(() => {
+  fetchProducts();
+});
+
+// 获取列表数据
+const fetchProducts = async () => {
+  try {
+    const res = await getCreditProductsVersionNoTenantList({ pageNum: 1, pageSize: 6, productStatus: '2' });
+    if (res.code === 200) {
+      products.value = res.rows || [];
+    }
+  } catch (error) {
+    console.error('获取信贷产品列表失败:', error);
+  } finally {
+  }
+};
 const handleDetail = (row: any) => {
   emit('detailChange', { type: 'LoanProductsComponentDetails', id: row.id });
 };
@@ -138,17 +143,23 @@ const handleDetail = (row: any) => {
         margin-bottom: 4px;
         text-align: center;
         padding: 16px 0;
-        div:first-child {
-          font-weight: 500;
-          font-size: 28px;
+        .money-amount {
           color: #ef4d0b;
-          line-height: 32px;
-          margin-bottom: 12px;
-        }
-        div:last-child {
-          font-size: 16px;
-          color: #3d3d3d;
-          line-height: 14px;
+          font-weight: 500;
+          gap: 4px;
+          div:first-child {
+            font-size: 28px;
+            line-height: 32px;
+            margin-bottom: 12px;
+          }
+          div:last-child {
+            font-size: 12px;
+          }
+          .max-label {
+            font-size: 16px;
+            color: #3d3d3d;
+            line-height: 14px;
+          }
         }
       }
 

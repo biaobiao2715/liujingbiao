@@ -3,11 +3,7 @@
     <!-- 查询表单 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
       <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect
-          v-model="queryParams.variety"
-          @categoryChange="handleCategoryChange"
-          style="width: 200px"
-        />
+        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 200px" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -31,22 +27,13 @@
       </el-table-column>
       <el-table-column label="走势图" align="center" width="100">
         <template #default="{ row }">
-          <el-icon
-            v-if="row.changePercent === '-'"
-            class="trend-icon"
-            style="color: #409eff"
-            @click="handleViewTrend(row)"
-          >
+          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff">
             <i-ep-arrow-right />
           </el-icon>
-          <el-icon
-            v-else-if="row.changePercent > 0"
-            class="trend-icon text-red"
-            @click="handleViewTrend(row)"
-          >
+          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red">
             <i-ep-arrow-up />
           </el-icon>
-          <el-icon v-else class="trend-icon text-green" @click="handleViewTrend(row)">
+          <el-icon v-else class="trend-icon text-green">
             <i-ep-arrow-down />
           </el-icon>
         </template>
@@ -55,168 +42,128 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :total="total"
-        @pagination="getList"
-      />
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue'
-import { todayTrendList } from '@/api/mall/marketComponent'
-import { eventBus } from '@/utils/eventBus'
+import { ref, reactive, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
+import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
+import { todayTrendList } from '@/api/mall/marketComponent';
 
-const loading = ref(false)
-const queryFormRef = ref()
+const loading = ref(false);
+const queryFormRef = ref();
 
 // 查询参数
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组，格式: [一级ID, 二级ID, 三级ID]
   pageNum: 1,
   pageSize: 10
-})
+});
 
 // 表格数据
-const tableData = ref<any[]>([])
-const total = ref(0)
+const tableData = ref<any[]>([]);
+const total = ref(0);
 
 // 查询
 const handleQuery = () => {
-  queryParams.pageNum = 1
-  getList()
-}
+  queryParams.pageNum = 1;
+  getList();
+};
 
 // 品种分类变化处理
 const handleCategoryChange = (value: string[]) => {
-  queryParams.variety = value
-  console.log('选择的品种分类:', value)
-}
+  queryParams.variety = value;
+  console.log('选择的品种分类:', value);
+};
 
 // 重置
 const resetQuery = () => {
-  queryFormRef.value?.resetFields()
-  queryParams.variety = []
-  queryParams.pageNum = 1
-  getList()
-}
+  queryFormRef.value?.resetFields();
+  queryParams.variety = [];
+  queryParams.pageNum = 1;
+  getList();
+};
 
 // 获取列表数据
 const getList = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 
-      ? queryParams.variety[queryParams.variety.length - 1] 
-      : ''
+    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
 
     const params: any = {
       goodsCategoryId: goodsCategoryId || '',
       pageNum: queryParams.pageNum,
       pageSize: queryParams.pageSize
-    }
+    };
 
-    const response = await todayTrendList(params)
+    const response = await todayTrendList(params);
     if (response && response.code === 200) {
-      const data = response.rows || response.data || []
+      const data = response.rows || response.data || [];
       // 映射接口返回的数据到表格需要的格式
       tableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
         // 格式化日期：从 "2025-11-13 00:00:00" 提取日期部分
-        let salesDate = '--'
+        let salesDate = '--';
         if (item.analysisDate) {
-          const dateStr = item.analysisDate
+          const dateStr = item.analysisDate;
           if (dateStr.includes(' ')) {
-            salesDate = dateStr.split(' ')[0] // 取日期部分
+            salesDate = dateStr.split(' ')[0]; // 取日期部分
           } else {
-            salesDate = dateStr
+            salesDate = dateStr;
           }
         }
-        
+
         // 组合产地：省+市+区县
-        let origin = '--'
-        const parts: string[] = []
-        if (item.provinceName) parts.push(item.provinceName)
-        if (item.cityName) parts.push(item.cityName)
-        if (item.regionName) parts.push(item.regionName)
+        let origin = '--';
+        const parts: string[] = [];
+        if (item.provinceName) parts.push(item.provinceName);
+        if (item.cityName) parts.push(item.cityName);
+        if (item.regionName) parts.push(item.regionName);
         if (parts.length > 0) {
-          origin = parts.join('')
+          origin = parts.join('');
         }
-        
+
         // 处理价格变化百分比
-        let changePercent: number | string = '-'
+        let changePercent: number | string = '-';
         if (item.priceUpDown !== undefined && item.priceUpDown !== null && item.priceUpDown !== '') {
-          const changeValue = Number(item.priceUpDown)
+          const changeValue = Number(item.priceUpDown);
           if (!isNaN(changeValue)) {
-            changePercent = changeValue
+            changePercent = changeValue;
           }
         }
-        
+
         return {
           id: item.id,
           salesDate,
           variety: item.goodsCategoryName || '--',
           origin,
           price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
-          changePercent,
-          goodsCategoryId: item.goodsCategoryId || '',
-          goodsCategoryName: item.goodsCategoryName || '--',
-          provinceCode: item.provinceCode || '',
-          cityCode: item.cityCode || '',
-          regionCode: item.regionCode || '',
-          provinceName: item.provinceName || '',
-          cityName: item.cityName || '',
-          regionName: item.regionName || ''
-        }
-      })
-      total.value = response.total || 0
+          changePercent
+        };
+      });
+      total.value = response.total || 0;
     } else {
-      ElMessage.error(response?.msg || '获取今日行情数据失败')
-      tableData.value = []
-      total.value = 0
+      ElMessage.error(response?.msg || '获取今日行情数据失败');
+      tableData.value = [];
+      total.value = 0;
     }
   } catch (error) {
-    console.error('获取今日行情数据失败:', error)
-    ElMessage.error('获取今日行情数据失败，请稍后重试')
-    tableData.value = []
-    total.value = 0
+    console.error('获取今日行情数据失败:', error);
+    ElMessage.error('获取今日行情数据失败，请稍后重试');
+    tableData.value = [];
+    total.value = 0;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
-
-// 查看走势图
-const handleViewTrend = (row: any) => {
-  if (!row || !row.goodsCategoryId) {
-    ElMessage.warning('暂无品种信息，无法查看走势')
-    return
-  }
-
-  // 先切换到价格走势标签
-  eventBus.emit('market:switchTab', 'second')
-
-  // 传递品种与产地信息给价格走势组件
-  eventBus.emit('priceTrend:applyFilters', {
-    goodsCategoryId: row.goodsCategoryId,
-    goodsCategoryName: row.goodsCategoryName,
-    provinceCode: row.provinceCode,
-    cityCode: row.cityCode,
-    regionCode: row.regionCode,
-    provinceName: row.provinceName,
-    cityName: row.cityName,
-    regionName: row.regionName
-  })
-}
+};
 
 // 页面加载时获取数据
 onMounted(() => {
-  getList()
-})
+  getList();
+});
 </script>
 
 <style scoped lang="scss">
@@ -272,4 +219,3 @@ onMounted(() => {
   justify-content: end;
 }
 </style>
-
