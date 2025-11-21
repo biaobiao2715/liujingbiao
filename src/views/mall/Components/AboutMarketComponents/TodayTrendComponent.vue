@@ -27,13 +27,13 @@
       </el-table-column>
       <el-table-column label="走势图" align="center" width="100">
         <template #default="{ row }">
-          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff">
+          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
             <i-ep-arrow-right />
           </el-icon>
-          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red">
+          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red" @click="handleTrendClick(row)">
             <i-ep-arrow-up />
           </el-icon>
-          <el-icon v-else class="trend-icon text-green">
+          <el-icon v-else class="trend-icon text-green" @click="handleTrendClick(row)">
             <i-ep-arrow-down />
           </el-icon>
         </template>
@@ -52,6 +52,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import { todayTrendList } from '@/api/mall/marketComponent';
+import { eventBus } from '@/utils/eventBus';
 
 const loading = ref(false);
 const queryFormRef = ref();
@@ -153,7 +154,15 @@ const getList = async () => {
           variety: item.goodsCategoryName || '--',
           origin,
           price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
-          changePercent
+          changePercent,
+          // 保留原始字段用于切换到价格走势
+          goodsCategoryId: item.goodsCategoryId || '',
+          provinceCode: item.provinceCode || '',
+          cityCode: item.cityCode || '',
+          regionCode: item.regionCode || '',
+          provinceName: item.provinceName || '',
+          cityName: item.cityName || '',
+          regionName: item.regionName || ''
         };
       });
       total.value = response.total || 0;
@@ -170,6 +179,33 @@ const getList = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// 点击走势图图标，切换到价格走势页面
+const handleTrendClick = (row: any) => {
+  if (!row || !row.goodsCategoryId) {
+    ElMessage.warning('数据异常，无法查看价格走势');
+    return;
+  }
+
+  // 切换到价格走势标签页
+  eventBus.emit('market:switchTab', 'second');
+
+  // 传递筛选条件给价格走势组件
+  const filterPayload = {
+    goodsCategoryId: row.goodsCategoryId,
+    provinceCode: row.provinceCode || '',
+    cityCode: row.cityCode || '',
+    regionCode: row.regionCode || '',
+    provinceName: row.provinceName || '',
+    cityName: row.cityName || '',
+    regionName: row.regionName || ''
+  };
+
+  // 延迟一下确保组件已切换完成
+  setTimeout(() => {
+    eventBus.emit('priceTrend:applyFilters', filterPayload);
+  }, 100);
 };
 
 // 页面加载时获取数据

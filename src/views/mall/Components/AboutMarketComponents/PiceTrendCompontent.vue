@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
@@ -155,11 +155,15 @@ import PriceTrendChart from './PriceTrendChart.vue';
 import { priceActionList, hotRecommendationList, priceExplanationList, priceSpecialReportList, heatmapList } from '@/api/mall/marketComponent';
 import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
+import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import type { ComponentInternalInstance } from 'vue';
 
 const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const loading = ref(false);
 const queryFormRef = ref();
 const activeTimeRange = ref(7);
+const categoryList = ref<any[]>([]); // 分类列表数据
 
 // 查询参数
 const queryParams = reactive({
@@ -235,20 +239,52 @@ const getCreditLevelText = (level: any) => {
   return creditLevelMap[String(level)] || '--';
 };
 
-const applyExternalFilters = (payload: any) => {
+// 根据三级ID查找完整路径
+const findCategoryPath = (categoryId: string, categories: any[]): string[] => {
+  const findPath = (id: string, list: any[], path: string[] = []): string[] | null => {
+    for (const item of list) {
+      const currentPath = [...path, item.id];
+      if (item.id === id) {
+        return currentPath;
+      }
+      if (item.children && item.children.length > 0) {
+        const result = findPath(id, item.children, currentPath);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return null;
+  };
+  return findPath(categoryId, categories) || [categoryId];
+};
+
+const applyExternalFilters = async (payload: any) => {
   if (!payload) return;
   const goodsCategoryId = payload.goodsCategoryId || '';
-  queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
+  
+  // 如果有分类ID，尝试查找完整路径
+  if (goodsCategoryId && categoryList.value.length > 0) {
+    const categoryPath = findCategoryPath(goodsCategoryId, categoryList.value);
+    queryParams.variety = categoryPath;
+  } else {
+    // 如果没有分类列表数据，先设置为数组，组件可能会自动处理
+    queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
+  }
 
   regionCodes.provinceCode = payload.provinceCode || '';
   regionCodes.cityCode = payload.cityCode || '';
   regionCodes.regionCode = payload.regionCode || '';
 
+  // RegionSelect 需要代码数组 [provinceCode, cityCode, regionCode]
   const originPath: string[] = [];
-  if (payload.provinceName) originPath.push(payload.provinceName);
-  if (payload.cityName) originPath.push(payload.cityName);
-  if (payload.regionName) originPath.push(payload.regionName);
+  if (payload.provinceCode) originPath.push(payload.provinceCode);
+  if (payload.cityCode) originPath.push(payload.cityCode);
+  if (payload.regionCode) originPath.push(payload.regionCode);
   queryParams.origin = originPath;
+
+  // 设置默认时间范围为7天，对应 priceActionDays = 1
+  activeTimeRange.value = 7;
 
   fetchPriceData();
   fetchPriceExplanation();
@@ -664,8 +700,21 @@ const handleReportPagination = (pagination: { page: number; limit: number }) => 
   fetchReportList();
 };
 
+// 获取分类列表
+const fetchCategoryList = async () => {
+  try {
+    const res = await getProductCategoryList();
+    if (res.code === 200) {
+      categoryList.value = proxy?.handleTree<any>(res.data, 'id') || [];
+    }
+  } catch (error) {
+    console.error('获取商品分类数据失败:', error);
+  }
+};
+
 // 页面加载时获取数据
 onMounted(() => {
+  fetchCategoryList();
   fetchPriceData();
   fetchPriceExplanation();
   fetchHotRecommendation();
