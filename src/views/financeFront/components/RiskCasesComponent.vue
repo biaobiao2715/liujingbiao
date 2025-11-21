@@ -1,3 +1,10 @@
+<!--
+  标题: RiskCasesComponent.vue
+  功能: 风险案例组件
+  说明: 展示风险案例列表，用户可以点击查看详情
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-11-21
+-->
 <template>
   <div class="risk-cases">
     <div class="section-title flex-center-between mb-12">
@@ -6,8 +13,8 @@
     </div>
     <!-- 列表 -->
     <div class="risk-list">
-      <div class="item" v-for="item in cases" :key="item.id" @click="handleClick(item)">
-        <div class="article-title mb-12">{{ item.articleTitle }}</div>
+      <div class="item" v-for="item in cases" :key="item.id" @click="handleDetail(item)">
+        <div class="article-title mb-12" @click="handleDetail(item)">{{ item.articleTitle }}</div>
         <div class="article-summary">{{ item.articleSummary }}</div>
       </div>
     </div>
@@ -18,6 +25,7 @@
 import { ref, onMounted } from 'vue';
 import { getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 import { ElMessage } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
 const emit = defineEmits(['detailChange']);
 
 // 列表数据与加载状态
@@ -53,8 +61,8 @@ const fetchCases = async () => {
   }
 };
 
-const handleClick = (row: any) => {
-  emit('detailChange', { type: 'RiskCasesComponentDetails', id: row.id });
+const handleDetail = (row: any) => {
+  eventBus.emit('showComponentByCommand', { type: 'RiskCasesComponentDetails', id: row.id });
 };
 </script>
 

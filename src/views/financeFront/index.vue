@@ -50,6 +50,8 @@
         <AboutInsuranceproductComponentDetails v-if="showArea === 'InsuranceproductComponentDetails'" :id="id" />
         <!-- 保险产品列表 -->
         <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
+        <!-- 个人中心 -->
+        <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
       </div>
     </div>
   </div>
@@ -66,6 +68,7 @@ import LoanProductsComponent from './components/LoanProductsComponent.vue';
 import RiskCasesComponent from './components/RiskCasesComponent.vue';
 import PolicyRulesComponent from './components/PolicyRulesComponent.vue';
 import InsuranceproductComponent from './components/InsuranceproductComponent.vue';
+import { eventBus } from '@/utils/eventBus';
 
 // 详情相关组件按需异步加载，减少首屏体积
 const AboutLoanProductsComponentDetails = defineAsyncComponent(() => import('./components/AboutLoanProductsComponents/Details.vue')); // 贷款产品详情组件
@@ -73,7 +76,7 @@ const AboutPolicyRulesComponentDetails = defineAsyncComponent(() => import('./co
 const AboutRiskCasesComponentDetails = defineAsyncComponent(() => import('./components/AboutRiskCasesComponents/Details.vue')); // 风险案例详情组件
 const AboutInsuranceproductComponentDetails = defineAsyncComponent(() => import('./components/AboutInsuranceproductComponents/Details.vue')); // 保险产品详情组件
 const AboutInsuranceproductComponentList = defineAsyncComponent(() => import('./components/AboutInsuranceproductComponents/list.vue')); // 保险产品列表组件
-
+const PersonalCenterComponent = defineAsyncComponent(() => import('./components/PersonalCenter/index.vue')); // 个人中心组件
 // 类型定义
 type DetailView =
   | 'area'
@@ -81,7 +84,8 @@ type DetailView =
   | 'InsuranceproductComponentDetails'
   | 'PolicyRulesComponentDetails'
   | 'RiskCasesComponentDetails'
-  | 'LoanProductsComponentDetails';
+  | 'LoanProductsComponentDetails'
+  | 'PersonalCenter';
 
 interface DetailPayload {
   id: string | number;
@@ -92,15 +96,25 @@ const id = ref<string>(''); // 详情ID统一为字符串，便于下游组件�
 
 const showArea = ref<DetailView>('area');
 
+const personalActivityTab = ref('');
+
 const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   InsuranceproductComponentList: '保险产品列表',
   InsuranceproductComponentDetails: '保险产品详情',
   PolicyRulesComponentDetails: '政策法规详情',
   RiskCasesComponentDetails: '风险案例详情',
-  LoanProductsComponentDetails: '信贷产品详情'
+  LoanProductsComponentDetails: '信贷产品详情',
+  PersonalCenter: '个人中心'
 };
 
 const secondTitle = computed(() => (showArea.value === 'area' ? '' : TITLE_MAP[showArea.value]));
+
+onMounted(() => {
+  eventBus.on('showComponentByCommand', (data: any) => {
+    showArea.value = data.type;
+    personalActivityTab.value = data.command;
+  });
+});
 
 // 显示详情
 const showDetail = (detail: DetailPayload) => {

@@ -10,7 +10,7 @@
         <el-col :span="12" v-for="caseItem in cases" :key="caseItem.id">
           <div class="card-item">
             <div class="card-header flex-center">
-              <div class="title" @click="handleClick(caseItem)">
+              <div class="title" @click="handleDetail(caseItem)">
                 {{ caseItem.articleTitle }}
               </div>
               <el-tag effect="plain" round :type="tagMap[caseItem.articleType]?.type">{{ tagMap[caseItem.articleType]?.label }}</el-tag>
@@ -27,6 +27,7 @@
 import { ref, onMounted } from 'vue';
 import { getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 import { ElMessage } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
 const emit = defineEmits(['detailChange']);
 
 // 列表数据与加载状态
@@ -69,8 +70,8 @@ const tagMap: Record<string, { label: string; type: any }> = {
   '99': { label: '其他', type: 'info' }
 };
 
-const handleClick = (row: any) => {
-  emit('detailChange', { type: 'PolicyRulesComponentDetails', id: row.id });
+const handleDetail = (row: any) => {
+  eventBus.emit('showComponentByCommand', { type: 'PolicyRulesComponentDetails', id: row.id });
 };
 
 onMounted(() => {

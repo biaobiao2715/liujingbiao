@@ -15,7 +15,7 @@
       <div v-for="item in cases" :key="item.id" class="product-card mb-12">
         <div class="product-header">
           <div class="title">{{ item.productName }}</div>
-          <div class="flex-center gap-8" @click="toggleFavorite(item)">
+          <div class="flex-center gap-8 favorite" @click="toggleFavorite(item)">
             <div :class="[{ 'isFavorite': item.isFavorite }, 'text-primary']">
               {{ item.isFavorite ? '已收藏' : '收藏' }}
             </div>
@@ -29,7 +29,7 @@
             <div class="introduction">{{ item.productIntro }}</div>
           </div>
           <div class="product-actions">
-            <el-button type="primary" round>查看详情 →</el-button>
+            <el-button type="primary" round @click="handleDetail(item)">查看详情 →</el-button>
           </div>
         </div>
       </div>
@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue';
 import { getInsuranceProductsVersionList } from '@/api/financeFront/Insuranceproduct/index';
 import { addToFavorites } from '@/api/mall/index';
-
+import { eventBus } from '@/utils/eventBus';
 import { ElMessage } from 'element-plus';
 const emit = defineEmits(['detailChange']);
 
@@ -94,8 +94,8 @@ const toggleFavorite = async (item: any) => {
   }
 };
 
-const viewDetails = (item: any) => {
-  emit('detailChange', { type: 'InsuranceproductComponentDetails', id: item.id });
+const handleDetail = (item: any) => {
+  eventBus.emit('showComponentByCommand', { type: 'InsuranceproductComponentDetails', id: item.id });
 };
 
 onMounted(() => {
@@ -138,6 +138,9 @@ onMounted(() => {
   .title {
     font-size: 18px;
     color: #333;
+  }
+  .favorite {
+    cursor: pointer;
   }
   .text-primary {
     font-size: 14px;
