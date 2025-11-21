@@ -11,7 +11,7 @@
   <div class="knowledge-case-page" v-loading="loading">
     <div class="filter-card">
       <el-form ref="queryFormRef" :model="queryParams" inline label-width="120px">
-        <el-form-item label="知识库案件名称" prop="knowledgeCaseName">
+        <el-form-item label="知识库案件名称" prop="knowledgeCaseName" v-hasPermi="['safeguard:knowledgeCaseContent:groupName']">
           <el-select
             v-model="queryParams.knowledgeCaseName"
             placeholder="请选择"
@@ -42,7 +42,7 @@
           />
         </el-form-item>
         <el-form-item class="filter-actions">
-          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button type="primary" @click="handleSearch" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -51,8 +51,8 @@
     <div class="table-card">
       <div class="table-toolbar">
         <div class="toolbar-left">
-          <el-button type="primary" @click="handleCreate">新增</el-button>
-          <el-button type="danger" plain @click="handleBatchDelete">删除</el-button>
+          <el-button type="primary" @click="handleCreate" v-hasPermi="['safeguard:knowledgeCaseContent:add']">新增</el-button>
+          <el-button type="danger" plain @click="handleBatchDelete" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
         </div>
         <div class="toolbar-right">
           <span class="table-tips">共查询到 {{ total }} 条数据</span>
@@ -77,9 +77,9 @@
         <el-table-column prop="createBy" label="创建人" min-width="120" align="center" show-overflow-tooltip />
         <el-table-column label="操作" width="200" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button type="primary" link @click="handleView(scope.row)">查看</el-button>
-            <el-button type="danger" link @click="handleSingleDelete(scope.row)">删除</el-button>
+            <el-button type="primary" link @click="handleEdit(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:edit']">编辑</el-button>
+            <el-button type="primary" link @click="handleView(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查看</el-button>
+            <el-button type="danger" link @click="handleSingleDelete(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -98,7 +98,7 @@
       </div>
     </div>
 
-    <!-- 案件详情弹窗 -->
+    <!-- 案件详情弹窗（新增/编辑） -->
     <CaseDetailDialog
       :visible="dialogVisible"
       :mode="dialogMode"
@@ -106,6 +106,14 @@
       @update:visible="dialogVisible = $event"
       @confirm="handleDialogConfirm"
       @close="handleDialogClose"
+    />
+
+    <!-- 案件查看弹窗 -->
+    <CaseViewDialog
+      :visible="viewDialogVisible"
+      :detail="currentRow"
+      @update:visible="viewDialogVisible = $event"
+      @close="handleViewDialogClose"
     />
   </div>
 </template>
@@ -117,6 +125,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { pickBy } from 'lodash';
 import { fetchKnowledgeCaseList, fetchKnowledgeCaseNames, deleteKnowledgeCase } from '@/api/rightsPlatform/knowledgeCaseManage/index';
 import CaseDetailDialog from './CaseDetailDialog.vue';
+import CaseViewDialog from './CaseViewDialog.vue';
 
 interface KnowledgeCaseItem {
   id?: string | number;
@@ -136,6 +145,9 @@ const caseNameOptions = ref<{ label: string; value: string }[]>([]);
 const dialogVisible = ref(false);
 const dialogMode = ref<'view' | 'edit' | 'add'>('add');
 const currentRow = ref<KnowledgeCaseItem | null>(null);
+
+// 查看弹窗相关
+const viewDialogVisible = ref(false);
 
 const queryParams = reactive({
   knowledgeCaseName: '',
@@ -184,9 +196,8 @@ const handleEdit = (row: KnowledgeCaseItem) => {
 };
 
 const handleView = (row: KnowledgeCaseItem) => {
-  dialogMode.value = 'view';
   currentRow.value = row;
-  dialogVisible.value = true;
+  viewDialogVisible.value = true;
 };
 
 const handleSingleDelete = async (row: KnowledgeCaseItem) => {
@@ -265,6 +276,11 @@ const handleDialogClose = () => {
   currentRow.value = null;
 };
 
+const handleViewDialogClose = () => {
+  viewDialogVisible.value = false;
+  currentRow.value = null;
+};
+
 const handleSelectionChange = (rows: KnowledgeCaseItem[]) => {
   selectionRows.value = rows;
 };
@@ -273,10 +289,16 @@ const fetchCaseNameOptions = async () => {
   try {
     const res = await fetchKnowledgeCaseNames();
     const list = res?.data ?? res ?? [];
-    caseNameOptions.value = (list || []).map((item: any) => ({
-      label: item?.label || item?.name || item?.caseName || item,
-      value: item?.value || item?.name || item?.caseName || item
-    }));
+    caseNameOptions.value = (list || []).map((item: any) => {
+      if (typeof item === 'string') {
+        return { label: item, value: item };
+      }
+      const name = item?.knowledgeCaseName || item?.groupName || item?.label || item?.name || '';
+      return {
+        label: name,
+        value: item?.knowledgeCaseName || item?.value || name
+      };
+    });
   } catch (error: any) {
     ElMessage.error(error?.message || '获取案件名称失败');
   }

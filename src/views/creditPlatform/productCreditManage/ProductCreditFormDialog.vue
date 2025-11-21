@@ -1,5 +1,4 @@
 <!-- 产品管理-信贷新增和编辑弹窗 -->
-
 <template>
   <div class="product-credit-form-dialog" v-loading="loading">
     <div class="section-title">基础信息</div>
@@ -98,8 +97,6 @@
             </div>
           </el-form-item>
         </el-col>
-
-
         <el-col :span="12">
           <el-form-item label="可贷周期" prop="loanCycle">
             <el-select
@@ -258,16 +255,6 @@ interface CreditProductForm {
   productRemark: string;
 }
 
-const normalizeStatusValue = (status: string | number | undefined | null) => {
-  const value = String(status ?? '').trim();
-  if (!value) return '';
-  const lower = value.toLowerCase();
-  if (value === '2' || lower === 'enabled' || lower === 'online' || value === '上架') return '2';
-  if (value === '3' || lower === 'disabled' || lower === 'offline' || value === '下架') return '3';
-  if (value === '5' || lower === 'pending' || lower === 'waiting' || value === '待上架') return '5';
-  return value;
-};
-
 const formData = ref<CreditProductForm>({
   id: null,
   productId: null,
@@ -291,17 +278,6 @@ const formData = ref<CreditProductForm>({
 });
 
 const attachmentFileList = ref<UploadFile[]>([]);
-
-const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
-  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
-  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
-  return {
-    uid,
-    name: payload.name || '附件',
-    url: payload.url || '',
-    status: 'success'
-  } as UploadFile;
-};
 
 const rules: FormRules = {
   productName: [
@@ -435,38 +411,6 @@ const rules: FormRules = {
   ]
 };
 
-const syncAttachmentFromDetail = (data: any) => {
-  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
-  if (ossList.length > 0) {
-    const file = ossList[0] || {};
-    formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
-    formData.value.cooperationAttachmentName = file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件';
-    attachmentFileList.value = [
-      buildUploadFileItem({
-        ossId: file.ossId || data.cooperationAttachment,
-        name: file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件',
-        url: file.url || data.cooperationAttachmentUrl || ''
-      })
-    ];
-    return;
-  }
-  if (data?.cooperationAttachment) {
-    formData.value.cooperationAttachment = data.cooperationAttachment;
-    formData.value.cooperationAttachmentName = data.cooperationAttachmentName || '合作机构附件';
-    attachmentFileList.value = [
-      buildUploadFileItem({
-        ossId: data.cooperationAttachment,
-        name: data.cooperationAttachmentName || '合作机构附件',
-        url: data.cooperationAttachmentUrl || ''
-      })
-    ];
-    return;
-  }
-  attachmentFileList.value = [];
-  formData.value.cooperationAttachment = null;
-  formData.value.cooperationAttachmentName = '';
-};
-
 const fetchDetail = async () => {
   if (!props.id) return;
   loading.value = true;
@@ -474,7 +418,6 @@ const fetchDetail = async () => {
     const response = await creditProductDetail(props.id as string | number);
     if (response && response.code === 200 && response.data) {
       const data = response.data;
-      
       const productAdvantages = data.productAdvantages || '';
       const applicableInstructions = data.applicableInstructions || '';
       const applicationInstructions = data.applicationInstructions || '';
@@ -485,7 +428,7 @@ const fetchDetail = async () => {
         productName: data.productName || '',
         productType: data.productType || '',
         applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
-        status: normalizeStatusValue(data.productStatus || data.status || ''),
+        status: data.productStatus || data.status || '',
         minLoanAmount: data.minLoanAmount ?? null,
         maxLoanAmount: data.maxLoanAmount ?? null,
         baseInterestRate: data.baseInterestRate ?? data.minInterestRate ?? null,
@@ -508,12 +451,34 @@ const fetchDetail = async () => {
       applicationEditorKey.value += 1;
       await nextTick();
       
-      syncAttachmentFromDetail({
-        cooperationAttachment: formData.value.cooperationAttachment,
-        cooperationAttachmentName: formData.value.cooperationAttachmentName,
-        cooperationAttachmentUrl: data.cooperationAttachmentUrl,
-        ossFileVo: data.ossFileVo
-      });
+      if (data.ossFileVo && Array.isArray(data.ossFileVo) && data.ossFileVo.length > 0) {
+        const file = data.ossFileVo[0];
+        formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
+        formData.value.cooperationAttachmentName = file.fileName || file.name || data.cooperationAttachmentName || '';
+        attachmentFileList.value = [
+          {
+            uid: file.ossId?.toString() || Date.now().toString(),
+            name: file.fileName || file.name || data.cooperationAttachmentName || '附件',
+            url: file.url || data.cooperationAttachmentUrl || '',
+            status: 'success'
+          } as UploadFile
+        ];
+      } else if (data.cooperationAttachment) {
+        formData.value.cooperationAttachment = data.cooperationAttachment;
+        formData.value.cooperationAttachmentName = data.cooperationAttachmentName || '合作机构附件';
+        attachmentFileList.value = [
+          {
+            uid: data.cooperationAttachment.toString() || Date.now().toString(),
+            name: data.cooperationAttachmentName || '合作机构附件',
+            url: data.cooperationAttachmentUrl || '',
+            status: 'success'
+          } as UploadFile
+        ];
+      } else {
+        attachmentFileList.value = [];
+        formData.value.cooperationAttachment = null;
+        formData.value.cooperationAttachmentName = '';
+      }
     } else {
       ElMessage.error(response?.msg || '获取产品详情失败');
     }
@@ -551,18 +516,24 @@ const handleSubmit = () => {
       if (formData.value.cooperationAttachment) {
         payload.cooperationAttachment = formData.value.cooperationAttachment;
       }
-      payload.productStatus = normalizeStatusValue(formData.value.status) || '3';
       if (props.type === 'edit') {
-        payload.id = props.id ?? formData.value.id ?? null;
-        if (!payload.id) {
-          ElMessage.error('未获取到产品ID，无法提交');
+        if (!formData.value.id || !formData.value.productId) {
+          ElMessage.error('编辑ID为空，无法提交');
           return;
         }
-        if (formData.value.productId !== undefined && formData.value.productId !== null) {
-          payload.productId = formData.value.productId;
-        }
+        payload.id = formData.value.id;
+        payload.productId = formData.value.productId;
+        payload.productStatus = formData.value.status || '3';
         payload.optType = '1';
       } else {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        payload.createTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         payload.productStatus = '3';
       }
       const api = props.type === 'edit' ? editCreditProduct : addCreditProduct;
@@ -603,11 +574,11 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
       formData.value.cooperationAttachment = response.data.ossId;
       formData.value.cooperationAttachmentName = response.data.fileName || (file as File).name;
       attachmentFileList.value = [
-        buildUploadFileItem({
-          ossId: response.data.ossId,
+        {
           name: formData.value.cooperationAttachmentName,
-          url: response.data.url
-        })
+          url: response.data.url,
+          status: 'success'
+        } as UploadFile
       ];
       ElMessage.success('附件上传成功');
       onSuccess?.(response);
@@ -719,5 +690,4 @@ onMounted(() => {
     min-width: 100px;
   }
 }
-
 </style>

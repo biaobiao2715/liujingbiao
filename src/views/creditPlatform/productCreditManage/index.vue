@@ -1,7 +1,6 @@
 <!-- 产品管理-信贷列表页 -->
 <template>
   <div class="product-credit-manage">
-    <!-- 搜索条件 -->
     <el-form
       v-show="showSearch"
       ref="queryFormRef"
@@ -70,7 +69,6 @@
       </el-form-item>
     </el-form>
 
-    <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:creditProductsVersion:add']" type="primary" icon="Plus" @click="handleAdd">
@@ -79,7 +77,6 @@
       </el-col>
     </el-row>
 
-    <!-- 表格 -->
     <el-table
       :data="tableData"
       border
@@ -124,7 +121,6 @@
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
     <div class="pagination">
       <pagination
         v-show="total > 0"
@@ -138,7 +134,6 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'add' ? '新增产品' : dialog.type === 'edit' ? '编辑产品' : '产品详情'"
@@ -165,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense, computed } from 'vue';
+import { reactive, ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance } from 'element-plus';
@@ -177,7 +172,6 @@ const isAdmin = computed(() => {
   const roles = userStore.roles || [];
   return roles.includes('admin') || roles.includes('Admin') || roles.includes('ADMIN') || roles.includes('superadmin');
 });
-// 判断是否为金融机构账号
 const isFinancialInstitution = computed(() => {
   const roles = userStore.roles || [];
   return roles.some(role => 
@@ -212,12 +206,6 @@ const dialog = ref({
   type: 'add' as 'add' | 'edit' | 'view',
   id: null as string | number | null
 });
-
-
-
-
-
-
 
 const queryParams = reactive({
   pageNum: 1,
@@ -477,8 +465,6 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
-
-
 
 .pagination {
   display: flex;

@@ -51,15 +51,16 @@
 
     <div class="info-block" v-if="mainAttachment">
       <span class="label">网点清单：</span>
-      <div class="attachment-content link-display">
-        <template v-if="mainAttachment?.url">
-          <el-link type="primary" :href="mainAttachment.url" target="_blank">
-            {{ mainAttachment.name || '网点清单' }}
-          </el-link>
-        </template>
-        <template v-else>
-          <span class="file-name">{{ mainAttachment?.name || '--' }}</span>
-        </template>
+      <div class="attachment-content">
+        <div class="uploaded-file-box">
+          <el-icon class="file-icon"><Document /></el-icon>
+          <span class="file-name" v-if="mainAttachment?.url">
+            <el-link type="primary" :href="mainAttachment.url" target="_blank" :underline="false">
+              {{ mainAttachment.name || '网点清单.pdf' }}
+            </el-link>
+          </span>
+          <span class="file-name" v-else>{{ mainAttachment?.name || '网点清单.pdf' }}</span>
+        </div>
       </div>
     </div>
 
@@ -84,6 +85,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Document } from '@element-plus/icons-vue';
 import type { UploadFile } from 'element-plus';
 import { insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
 import { listByIds } from '@/api/system/oss';
@@ -148,62 +150,96 @@ const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: s
   } as UploadFile;
 };
 
+const formatFileName = (fileName: string | undefined | null): string => {
+  if (!fileName) return '网点清单.pdf';
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    return fileName;
+  }
+  return `${fileName}.pdf`;
+};
+
 const syncDetailAttachmentList = async (data: any) => {
-  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
-  if (ossList.length > 0) {
-    detailFileList.value = ossList.map((file: any) =>
+  if (data?.remoteFile && data.remoteFile.ossId) {
+    const remoteFile = data.remoteFile;
+    const fileName = remoteFile.originalName || remoteFile.name || data.branchOfficeAttachmentName || '网点清单';
+    const displayName = formatFileName(fileName);
+    
+    detailFileList.value = [
       buildUploadFileItem({
-        ossId: file.ossId,
-        name: file.fileName || file.name || data?.branchOfficeAttachmentName || '网点清单',
-        url: file.url || file.fileUrl || data?.branchOfficeAttachmentUrl || ''
+        ossId: remoteFile.ossId,
+        name: displayName,
+        url: remoteFile.url || data.branchOfficeAttachmentUrl || ''
       })
-    );
-    detailData.value.branchOfficeAttachment = ossList[0].ossId || data.branchOfficeAttachment || null;
-    detailData.value.branchOfficeAttachmentName =
-      ossList[0].fileName || ossList[0].name || data.branchOfficeAttachmentName || '网点清单';
-    detailData.value.branchOfficeAttachmentUrl =
-      ossList[0].url || ossList[0].fileUrl || data.branchOfficeAttachmentUrl || '';
+    ];
+    detailData.value.branchOfficeAttachment = remoteFile.ossId || data.branchOfficeAttachment || null;
+    detailData.value.branchOfficeAttachmentName = displayName;
+    detailData.value.branchOfficeAttachmentUrl = remoteFile.url || data.branchOfficeAttachmentUrl || '';
     return;
   }
+  
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    const firstFile = ossList[0];
+    const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.branchOfficeAttachmentName || '网点清单';
+    const displayName = formatFileName(fileName);
+    
+    detailFileList.value = [
+      buildUploadFileItem({
+        ossId: firstFile.ossId,
+        name: displayName,
+        url: firstFile.url || firstFile.fileUrl || data.branchOfficeAttachmentUrl || ''
+      })
+    ];
+    detailData.value.branchOfficeAttachment = firstFile.ossId || data.branchOfficeAttachment || null;
+    detailData.value.branchOfficeAttachmentName = displayName;
+    detailData.value.branchOfficeAttachmentUrl = firstFile.url || firstFile.fileUrl || data.branchOfficeAttachmentUrl || '';
+    return;
+  }
+  
   if (data?.branchOfficeAttachment) {
     try {
       const ossResponse: any = await listByIds(data.branchOfficeAttachment);
       const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
       if (Array.isArray(ossData) && ossData.length > 0) {
-        detailFileList.value = ossData.map((file: any) =>
+        const firstFile = ossData[0];
+        const fileName = firstFile.originalName || firstFile.fileName || data.branchOfficeAttachmentName || '网点清单';
+        const displayName = formatFileName(fileName);
+        
+        detailFileList.value = [
           buildUploadFileItem({
-            ossId: file.ossId,
-            name: file.originalName || file.fileName || data.branchOfficeAttachmentName || '网点清单',
-            url: file.url || file.fileUrl || ''
+            ossId: firstFile.ossId,
+            name: displayName,
+            url: firstFile.url || firstFile.fileUrl || ''
           })
-        );
-        detailData.value.branchOfficeAttachmentName =
-          ossData[0].originalName || data.branchOfficeAttachmentName || '网点清单';
-        detailData.value.branchOfficeAttachmentUrl = ossData[0].url || '';
-        detailData.value.branchOfficeAttachment = ossData[0].ossId || data.branchOfficeAttachment;
+        ];
+        detailData.value.branchOfficeAttachment = firstFile.ossId || data.branchOfficeAttachment || null;
+        detailData.value.branchOfficeAttachmentName = displayName;
+        detailData.value.branchOfficeAttachmentUrl = firstFile.url || firstFile.fileUrl || '';
         return;
       }
+      const displayName = formatFileName(data.branchOfficeAttachmentName);
       detailFileList.value = [
         buildUploadFileItem({
           ossId: data.branchOfficeAttachment,
-          name: data.branchOfficeAttachmentName || '网点清单',
+          name: displayName,
           url: data.branchOfficeAttachmentUrl || ''
         })
       ];
       detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
-      detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      detailData.value.branchOfficeAttachmentName = displayName;
       detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
       return;
     } catch (error) {
+      const displayName = formatFileName(data.branchOfficeAttachmentName);
       detailFileList.value = [
         buildUploadFileItem({
           ossId: data.branchOfficeAttachment,
-          name: data.branchOfficeAttachmentName || '网点清单',
+          name: displayName,
           url: data.branchOfficeAttachmentUrl || ''
         })
       ];
       detailData.value.branchOfficeAttachment = data.branchOfficeAttachment;
-      detailData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      detailData.value.branchOfficeAttachmentName = displayName;
       detailData.value.branchOfficeAttachmentUrl = data.branchOfficeAttachmentUrl || '';
       return;
     }
@@ -362,13 +398,30 @@ onMounted(() => {
     flex: 1;
     max-width: 800px;
 
-    &.link-display {
-      display: flex;
+    .uploaded-file-box {
+      display: inline-flex;
       align-items: center;
-      min-height: 32px;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      background-color: #fff;
+      min-width: 150px;
+      max-width: 300px;
+
+      .file-icon {
+        font-size: 18px;
+        color: #409eff;
+        flex-shrink: 0;
+      }
 
       .file-name {
-        color: #303133;
+        font-size: 14px;
+        color: #606266;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }
