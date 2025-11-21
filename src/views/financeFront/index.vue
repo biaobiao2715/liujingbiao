@@ -44,6 +44,8 @@
         <AboutLoanProductsComponentList v-if="showArea === 'LoanProductsComponentList'" />
         <!-- 信贷产品详情 -->
         <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
+        <!-- 信贷产品申请表单 -->
+        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" />
         <!-- 保险产品列表 -->
         <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
         <!-- 保险产品详情 -->
@@ -79,6 +81,7 @@ import { eventBus } from '@/utils/eventBus';
 // 详情相关组件按需异步加载，减少首屏体积
 const AboutLoanProductsComponentList = defineAsyncComponent(() => import('./components/AboutLoanProductsComponents/list.vue')); // 信贷产品列表组件
 const AboutLoanProductsComponentDetails = defineAsyncComponent(() => import('./components/AboutLoanProductsComponents/Details.vue')); // 信贷产品详情组件
+const AboutLoanProductsComponentApplyForm = defineAsyncComponent(() => import('./components/AboutLoanProductsComponents/ApplyForm.vue')); // 信贷产品申请表单组件
 const AboutInsuranceproductComponentList = defineAsyncComponent(() => import('./components/AboutInsuranceproductComponents/list.vue')); // 保险产品列表组件
 const AboutInsuranceproductComponentDetails = defineAsyncComponent(() => import('./components/AboutInsuranceproductComponents/Details.vue')); // 保险产品详情组件
 const AboutRiskCasesComponentList = defineAsyncComponent(() => import('./components/AboutRiskCasesComponents/list.vue')); // 风险案例列表组件
@@ -91,6 +94,7 @@ type DetailView =
   | 'area'
   | 'LoanProductsComponentList'
   | 'LoanProductsComponentDetails'
+  | 'LoanProductsComponentApplyForm'
   | 'InsuranceproductComponentList'
   | 'InsuranceproductComponentDetails'
   | 'RiskCasesComponentList'
@@ -113,6 +117,7 @@ const personalActivityTab = ref('');
 const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   LoanProductsComponentList: '信贷产品列表',
   LoanProductsComponentDetails: '信贷产品详情',
+  LoanProductsComponentApplyForm: '申请信贷产品',
   InsuranceproductComponentList: '保险产品列表',
   InsuranceproductComponentDetails: '保险产品详情',
   RiskCasesComponentList: '风险案例列表',
