@@ -26,14 +26,14 @@
                   :auto-upload="false"
                   :show-file-list="false"
                   :on-change="handleDiplomaChange"
-                  accept=".jpeg,.gif,.png,.jpg"
+                  accept=".jpg,.jpeg,.png"
                 >
                   <div class="upload-content">
                     <div v-if="!diplomaUrl">
                       <img src="@/assets/images/register3.svg" class="step-icon" />
                       <div class="upload-text">
                         <span>点击或将文件拖拽到这里上传</span>
-                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpeg.gif.png.jpg</p>
+                        <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
                       </div>
                     </div>
                     <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
@@ -53,7 +53,7 @@
                   style="width: 150px"
                   :show-file-list="false"
                   :on-change="handlePhotoChange"
-                  accept=".jpg,.jpeg,.gif,.png"
+                  accept=".jpg,.jpeg,.png"
                   drag
                 >
                   <div class="upload-content">
@@ -66,7 +66,7 @@
                     <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
                   </div>
                 </el-upload>
-                <span class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</span>
+                <span class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</span>
               </div>
             </el-form-item>
           </el-col>
@@ -263,10 +263,15 @@ enum idTypeEnum {
 const ocrMap = {
   lawyerName: 'expertName',
   holderName: 'expertName',
+  lawFirm: 'practiceInstitution',
   practiceType: 'practiceCertificateType',
-  barNumber: 'legalPracticeQualification',
+  certificateType: 'practiceCertificateType',
+  barNumber: 'practiceCertificateNumber',
   certificateNumber: 'practiceCertificateNumber',
-  lawFirm: 'practiceInstitution'
+  issuingAuthority: 'issuingAuthority',
+  issueDate: 'issueDate',
+  qualificationDate: 'issueDate',
+  specialization: 'technicalQualification'
 };
 // 表单数据
 // 可选 字段
