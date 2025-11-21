@@ -390,7 +390,11 @@ const fetchDetail = async () => {
       }
     }
     detailRow.value = merged;
-    hydrateApprovalForm(merged);
+    if (props.mode === 'approval') {
+      resetApprovalForm();
+    } else {
+      hydrateApprovalForm(merged);
+    }
   } catch (error) {
     console.error('获取申请详情失败:', error);
     detailRow.value = props.data || {};
