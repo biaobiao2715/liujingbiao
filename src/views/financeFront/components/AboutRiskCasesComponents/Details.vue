@@ -29,7 +29,7 @@ import { ref } from 'vue';
 import { getCreditArticle, getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 const props = defineProps({
   id: {
-    type: String,
+    type: String || Number,
     required: true
   }
 });

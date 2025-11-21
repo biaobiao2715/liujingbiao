@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { eventBus } from '@/utils/eventBus';
 import { getInsuranceProductsVersion } from '@/api/financeFront/Insuranceproduct/index';
 const props = defineProps({
   id: {
@@ -107,7 +108,7 @@ const revealAmount = () => {
 
 // 立即申请
 const handleApply = () => {
-  window.open('https://www.baidu.com', '_blank');
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentEdit' });
 };
 
 onMounted(() => {
