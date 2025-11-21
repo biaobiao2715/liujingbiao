@@ -3,7 +3,7 @@
   <div class="policy-rules">
     <div class="section-title flex-center-between mb-12">
       <div>政策法规</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <div class="card-list" v-loading="loading">
       <el-row :gutter="20">
@@ -42,6 +42,10 @@ const queryParams = ref({
   articleTypes: ['1', '2']
 });
 
+onMounted(() => {
+  fetchCases();
+});
+
 // 获取列表数据
 const fetchCases = async () => {
   loading.value = true;
@@ -70,13 +74,15 @@ const tagMap: Record<string, { label: string; type: any }> = {
   '99': { label: '其他', type: 'info' }
 };
 
+// 查看详情
 const handleDetail = (row: any) => {
   eventBus.emit('showComponentByCommand', { type: 'PolicyRulesComponentDetails', id: row.id });
 };
 
-onMounted(() => {
-  fetchCases();
-});
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'PolicyRulesComponentList' });
+};
 </script>
 
 <style scoped lang="scss">

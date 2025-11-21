@@ -9,7 +9,7 @@
   <div class="risk-cases">
     <div class="section-title flex-center-between mb-12">
       <div>保险产品</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <div class="product-list">
       <div v-for="item in cases" :key="item.id" class="product-card mb-12">
@@ -63,6 +63,10 @@ const productTypeMap: Record<number, { label: string; type: any }> = {
   3: { label: '气象指数保险', type: 'danger' }
 };
 
+onMounted(() => {
+  fetchCases();
+});
+
 // 获取列表数据
 const fetchCases = async () => {
   loading.value = true;
@@ -98,9 +102,10 @@ const handleDetail = (item: any) => {
   eventBus.emit('showComponentByCommand', { type: 'InsuranceproductComponentDetails', id: item.id });
 };
 
-onMounted(() => {
-  fetchCases();
-});
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'InsuranceproductComponentList' });
+};
 </script>
 
 <style scoped lang="scss">

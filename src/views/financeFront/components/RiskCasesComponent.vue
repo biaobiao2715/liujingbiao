@@ -9,7 +9,7 @@
   <div class="risk-cases">
     <div class="section-title flex-center-between mb-12">
       <div>风险案例</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <!-- 列表 -->
     <div class="risk-list">
@@ -61,8 +61,14 @@ const fetchCases = async () => {
   }
 };
 
+// 查看详情
 const handleDetail = (row: any) => {
   eventBus.emit('showComponentByCommand', { type: 'RiskCasesComponentDetails', id: row.id });
+};
+
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'RiskCasesComponentList' });
 };
 </script>
 

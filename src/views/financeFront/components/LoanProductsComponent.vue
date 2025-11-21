@@ -9,7 +9,7 @@
   <div class="loan-products">
     <div class="section-title flex-center-between mb-12">
       <div>信贷产品</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <el-row :gutter="20">
       <el-col :span="8" v-for="product in products" :key="product.id">
@@ -67,8 +67,6 @@ import { getCreditProductsVersionNoTenantList } from '@/api/financeFront/LoanPro
 import { addToFavorites } from '@/api/mall/index';
 import { eventBus } from '@/utils/eventBus';
 
-const emit = defineEmits(['detailChange']);
-
 const products = ref([]);
 
 onMounted(() => {
@@ -89,6 +87,11 @@ const fetchProducts = async () => {
 };
 const handleDetail = (row: any) => {
   eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentDetails', id: row.id });
+};
+
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentList' });
 };
 
 // 收藏产品
