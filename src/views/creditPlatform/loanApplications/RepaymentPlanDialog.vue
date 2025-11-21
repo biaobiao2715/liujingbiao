@@ -44,7 +44,14 @@
             </el-form-item>
             <el-form-item label="还款金额：">
               <div class="amount-input">
-                <el-input v-model="item.amount" />
+                <el-input 
+                  :model-value="item.amount"
+                  type="number"
+                  :min="0"
+                  :step="1"
+                  @input="handleAmountInput(item, $event)"
+                  @blur="handleAmountBlur(item)"
+                />
                 <span class="unit">元</span>
               </div>
             </el-form-item>
@@ -78,6 +85,20 @@ const plans = computed(() => props.data?.plans || [])
 
 const contractFiles = ref<any[]>([])
 const objectUrls = new Map<string, string>()
+
+// 处理还款金额输入，确保为整数
+const handleAmountInput = (item: any, event: any) => {
+  const value = event?.target?.value ?? event
+  // 将输入值转换为整数
+  const intValue = Math.floor(Number(value) || 0)
+  // 确保不为负数
+  item.amount = Math.max(0, intValue)
+}
+
+// 处理失焦事件，确保最终值为整数
+const handleAmountBlur = (item: any) => {
+  item.amount = Math.floor(Number(item.amount) || 0)
+}
 
 const normalizeFiles = (files: Array<any> = []) =>
   files.map((item, index) => {

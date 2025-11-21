@@ -32,6 +32,13 @@ export function getRemainingDetail(id: number | string) {
     method: 'get',
   });
 }
+//查看产品详情
+export function getProduct(id: number | string) {
+  return request({
+    url: `/credit-server/creditProductsVersion/noTenant/${id}`,
+    method: 'get',
+  });
+}
 //审核
 export function auditLoanApplication(data: any) {
   return request({

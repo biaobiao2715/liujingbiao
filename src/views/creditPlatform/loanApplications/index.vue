@@ -230,12 +230,18 @@ const canAudit = (status: string | number | undefined) => {
 };
 
 const openRepaymentPlan = (row: LoanApplication) => {
+  // 根据 loanTerm 生成对应数量的还款计划
+  const loanTerm = Number(row.loanTerm) || 1;
+  const loanAmount = Number(row.loanAmount) || 0;
+  // 计算每期还款金额（整数），如果贷款总额为0则默认为0
+  const perPeriodAmount = loanTerm > 0 ? Math.floor(loanAmount / loanTerm) : 0;
+  
   repaymentData.value = {
     contractFiles: row.contractFiles || [],
-    plans: Array.from({ length: 9 }, (_, index) => ({
+    plans: Array.from({ length: loanTerm }, (_, index) => ({
       period: index + 1,
       repayDate: ['2025-02-01', '2025-03-01', '2025-04-01'][Math.floor(index / 3)],
-      amount: 9000
+      amount: perPeriodAmount
     }))
   };
   repaymentDialogVisible.value = true;

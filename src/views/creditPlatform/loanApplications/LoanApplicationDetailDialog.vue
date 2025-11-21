@@ -95,7 +95,7 @@
           </div>
         </div>
         <div class="product-link">
-          <el-button type="primary" plain size="large">查看产品详情</el-button>
+          <el-button type="primary" plain size="large" @click="handleViewProductDetail">查看产品详情</el-button>
         </div>
       </div>
 
@@ -214,6 +214,7 @@
         <el-button @click="handleClose">{{ isApprovalMode ? '关闭' : '返回' }}</el-button>
       </div>
     </template>
+    <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
   </el-dialog>
 </template>
 
@@ -221,7 +222,8 @@
 import { computed, reactive, watch, ref, nextTick } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications';
+import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile,getProduct } from '@/api/creditPlatform/loanApplications';
+import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -249,6 +251,7 @@ const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
 const loading = ref(false);
 const detailRow = ref<Record<string, any>>(props.data || {});
 const currentDetail = computed(() => detailRow.value || {});
+const productDetailVisible = ref(false);
 
 const reviewStatusMap: Record<string, string> = {
   '0': '待审核',
@@ -489,6 +492,14 @@ watch(
 
 const handleClose = () => {
   emit('update:visible', false);
+};
+
+const handleViewProductDetail = () => {
+  if (!currentDetail.value.productId) {
+    ElMessage.warning('产品ID不存在');
+    return;
+  }
+  productDetailVisible.value = true;
 };
 
 const normalizeContractFiles = (row: Record<string, any>) => {
