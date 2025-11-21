@@ -1,425 +1,199 @@
 <!--
   标题: Purchaser.vue
-  功能: 我的最近订单
-  说明: 用于查看我最近购买的订单。
+  功能: 品种识别
+  说明: 用于查看我的品种识别订单。
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-27
+  开发信息: Created by 刘景彪 2025-11-18
 -->
 <template>
   <div class="orders">
     <!-- 页面标题 -->
-    <div class="menu-title">我的最近订单</div>
+    <!-- <div class="menu-title">新增作物</div> -->
     <div class="pading20">
-      <!-- 订单状态Tabs -->
-      <el-tabs v-model="queryParams.orderStatus" class="demo-tabs" @tab-change="onTabChange">
-        <el-tab-pane label="全部" name="0" key="0"></el-tab-pane>
-        <el-tab-pane v-for="value in order_status" :key="value.value" :label="value.label" :name="value.value"></el-tab-pane>
-      </el-tabs>
-
-      <!-- 订单列表Table -->
-      <el-table v-loading="loading" :data="tabList" style="table-layout: fixed">
-        <!-- 商品信息列 -->
-        <el-table-column prop="goodsName" label="商品信息" min-width="200" :show-overflow-tooltip="true">
-          <template v-slot="scope">
-            <div style="display: flex">
-              <!-- 商品图片，兜底处理 -->
-              <img class="table-img" :src="scope.row.orderItems[0]?.goodsPicUrl || ''" />
-              <div class="table-text">
-                <div>{{ scope.row.orderItems[0]?.goodsName }}</div>
-                <div>{{ scope.row.orderItems[0]?.goodsSpecificationValue }}{{ scope.row.orderItems[0]?.goodsSpecificationLabel }}</div>
+      <div class="upload-box-container">
+        <el-upload
+          ref="uploadRef"
+          class="upload-box"
+          accept=".jpg,.jpeg,.png,.pdf"
+          action="#"
+          drag
+          :auto-upload="false"
+          :show-file-list="false"
+          :on-change="handleDiplomaChange"
+        >
+          <div class="upload-content" :class="{ error: uploadError }">
+            <template v-if="diplomaUrl.url && !uploadError">
+              <img :src="diplomaUrl.url" :alt="diplomaUrl.name" class="upload-image" />
+            </template>
+            <template v-else>
+              <div class="upload-placeholder">
+                <img src="@/assets/images/register3.svg" class="step-icon" />
+                <div class="upload-text">点击或将附件拖拽到这里上传</div>
+                <div class="upload-tip">最大10M 支持：jpg jpeg png pdf</div>
               </div>
-            </div>
-          </template>
-        </el-table-column>
-        <!-- 商品价格列 -->
-        <el-table-column prop="goodsPrice" label="商品价格" align="center">
-          <template #default="{ row }">
-            <span style="color: #ef4d0b">￥{{ row.orderItems[0]?.goodsPrice }}元 </span>
-          </template>
-        </el-table-column>
-        <!-- 订单状态列 -->
-        <el-table-column prop="orderStatus" label="订单状态" align="center">
-          <template v-slot="scope">
-            <dict-tag :options="order_status" :value="scope.row.orderStatus" />
-          </template>
-        </el-table-column>
-        <!-- 商家联系电话 -->
-        <el-table-column prop="enterprisePhone" label="商家联系电话" align="center"></el-table-column>
-        <!-- 销售订单号 -->
-        <el-table-column prop="orderSn" label="销售订单号" min-width="150" :show-overflow-tooltip="true" align="center"></el-table-column>
-        <!-- 操作列 -->
-        <el-table-column label="操作" min-width="150" align="center">
-          <template #default="{ row }">
-            <!-- 取消订单按钮 -->
-            <el-button
-              v-if="row.orderStatus == '1'"
-              v-hasPermi="['grain:salesOrder:cancel']"
-              @click="cancelOrder(row.id)"
-              v-throttle
-              text
-              style="color: #ff0000"
-              >取消订单</el-button
-            >
-            <!-- 签收按钮 -->
-            <el-button
-              v-if="row.orderStatus == '2'"
-              v-hasPermi="['grain:salesOrder:edit']"
-              @click="confirmReceipt(row.id)"
-              v-throttle
-              text
-              style="color: #108c58"
-              >签收</el-button
-            >
-            <!-- 举报商品按钮 -->
-            <el-button
-              v-if="row.orderStatus == '3'"
-              v-hasPermi="['grain:salesOrder:edit']"
-              @click="openReportDialog(row)"
-              v-throttle
-              text
-              style="color: #ff7b00"
-              >举报商品</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <!-- 分页组件 -->
-      <div class="flex-center pagination">
-        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+            </template>
+          </div>
+        </el-upload>
+      </div>
+      <!-- 错误提示定位容器，可通过 alertPosition 切换位置 -->
+      <div :class="['alert-wrapper', 'pos-center']" v-if="uploadError">
+        <el-alert center @close="closable">
+          <div class="error-title">提示</div>
+          <div class="error-icon">×</div>
+          <div class="error-title-content">识别失败</div>
+          <div class="error-tietle-copey">抱歉，无法识别您上传的图片</div>
+          <div class="error-msg">可能原因：{{ uploadError }}</div>
+        </el-alert>
       </div>
 
-      <!-- 举报商品弹窗 -->
-      <el-dialog v-model="reportDialogVisible" title="我要举报" width="600px" :close-on-click-modal="false">
-        <el-form :model="reportForm" :rules="reportRules" ref="reportFormRef" label-width="120px">
-          <!-- 举报类别 -->
-          <el-form-item label="举报类别" prop="type">
-            <el-select v-model="reportForm.type" placeholder="请选择">
-              <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
+      <div style="height: 50px"></div>
+      <!-- 操作按钮 -->
+      <el-row type="flex" justify="center" :gutter="5">
+        <el-button v-throttle type="primary" @click="submitForm">开始识别</el-button>
+        <div style="width: 20px"></div>
+        <el-button v-throttle @click="handcancel">历史记录</el-button>
+      </el-row>
+      <!-- 搜索条件 -->
+      <el-form ref="formRef" :model="form" :label-width="130" v-show="formShow">
+        <el-form-item label="品种名称：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
 
-          <!-- 被举报方 -->
-          <el-form-item label="被举报方" prop="target">
-            <el-input v-model="reportForm.target" placeholder="带出被举报方信息" />
-          </el-form-item>
+        <el-form-item label="品种类型：" prop="varietyType">
+          <!-- <dict-text :options="varietyTypeOptions" :value="form.varietyType ?? ''" /> -->
+          {{ form.varietyType }}
+        </el-form-item>
 
-          <!-- 举报商品 -->
-          <el-form-item label="举报商品" prop="goods">
-            <el-input v-model="reportForm.goods" placeholder="带出举报商品信息" />
-          </el-form-item>
+        <el-form-item label="特征描述：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
 
-          <!-- 举报材料上传 -->
-          <el-form-item label="举报材料" prop="materials" class="uploadcss">
-            <el-upload
-              :file-list="hnGoodsFilesList"
-              :limit="9"
-              ref="refShop"
-              list-type="picture-card"
-              action="#"
-              :before-upload="handleBeforeUpload"
-              :http-request="uploadFile"
-              :on-remove="handleDelete"
-              :on-exceed="handleExceed"
-              :on-change="onUploadChange"
-            >
-              <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-            </el-upload>
-            <div>1.支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张图片大小不超过10MB</div>
-            <div>2.支持MP4、mov、avi三种视频格式，最多上传三个视频，每个视频限制大小200MB</div>
-          </el-form-item>
+        <el-form-item label="种植技术指导：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
+        <el-form-item label="注意事项：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
+        <el-form-item label="置信度评分：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
+        <el-form-item label="识别状态：" prop="varietyType">
+          {{ form.varietyType }}
+        </el-form-item>
 
-          <!-- 举报描述 -->
-          <el-form-item label="举报描述" prop="desc" required>
-            <el-input
-              type="textarea"
-              v-model="reportForm.desc"
-              placeholder="请输入举报描述，最大长度为200个字"
-              maxlength="200"
-              show-word-limit
-              :rows="3"
-            />
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="reportDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitReport">提交</el-button>
-        </template>
-      </el-dialog>
+        <el-form-item>
+          <el-button v-throttle type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-throttle @click="handcancel">取消</el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// -------------------- 引入依赖 --------------------
-import { ref, reactive, toRefs, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
-import { orderConfirm, orderCancel, orderList, ossUploadImage, Order } from '@/api/mall/personalCenter/orders';
-import { ElMessage, ElMessageBox } from 'element-plus';
-
-// -------------------- 响应式数据 --------------------
+import { ref, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
+import { uploadImage } from '@/api/register'; // 图片上传接口
+import type { UploadFile } from 'element-plus';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { order_status, report_type_id } = toRefs<any>(proxy?.useDict('order_status')); // 订单状态字典
-
-/** 查询参数 */
-const queryParams = ref({
+const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
+const emit = defineEmits<{
+  (e: 'refresh'): void;
+  (e: 'cancel'): void;
+}>();
+// 搜索表单数据
+const form = ref({
   pageNum: 1,
   pageSize: 10,
-  orderStatus: '0'
+  varietyType: '',
+  identifyTime: [] as string[] | []
 });
+const formRef = ref();
+const formShow = ref(false);
+// 上传文件信息
+const diplomaUrl = ref<any>({ url: null, name: '', fileType: '1', remark: '', ossId: undefined, ossInfo: {} });
+// 上传过程与错误状态
+const uploading = ref(false);
+const uploadError = ref<string | null>(null);
+const uploadRef = ref();
+const sizeLimit = 10 * 1024 * 1024; // 10M
+const allowExt = ['jpg', 'jpeg', 'png', 'pdf'];
+const allowMime = ['image/jpeg', 'image/png', 'application/pdf'];
 
-/** 列表数据与状态 */
-const tabList = ref<Order[]>([]);
-const total = ref(0);
-const loading = ref(false);
+// 提交按钮操作
+const handleSubmit = () => {
+  emit('refresh');
+};
+/** 取消按钮操作 */
+const handcancel = () => {
+  emit('cancel');
+};
 
-/** 举报弹窗相关 */
-const reportDialogVisible = ref(false);
-const reportFormRef = ref();
-
-// 表单模型，增加一个 materials 字段用于配合校验（与上传列表联动）
-const reportForm = reactive({
-  type: '',
-  target: '',
-  goods: '',
-  desc: '',
-  materials: []
-});
-const hnGoodsFilesList = ref<any[]>([]); // 上传的文件列表
-const refShop = ref<any>(null); // 上传组件实例
-let timer: NodeJS.Timeout | null = null; // 防抖定时器
-// 自定义校验：至少上传一份材料
-const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => void) => {
-  if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) {
-    callback(new Error('请至少上传一份举报材料'));
-  } else {
-    callback();
+const submitForm = () => {
+  if (!diplomaUrl.value.ossId) {
+    ElMessage.error('请上传图片后再进行识别');
+    return;
   }
+  // proxy?.$modal.loading('正在识别中，请稍候...');
+  // ocrUploadImage({ ossId: diplomaUrl.value.ossId })
+  //   .then((res) => {
+  //     ElMessage.success('识别成功');
+  //   })
+  //   .catch((error) => {
+  //     console.error('识别过程出错：', error);
+  //     ElMessage.error('识别失败，请重试');
+  //   })
+  //   .finally(() => {
+  //     proxy?.$modal.closeLoading();
+  //   });
 };
+/** 文件上传成功处理 */
+const handleDiplomaChange = (file: UploadFile) => {
+  uploadError.value = null;
+  if (!file || !file.raw) return;
 
-const reportRules = {
-  type: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
-  target: [
-    { required: true, message: '请输入被举报方', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度为 2-50 个字符', trigger: 'blur' }
-  ],
-  goods: [{ required: true, message: '请输入举报商品', trigger: 'blur' }],
-  desc: [
-    { required: true, message: '请输入举报描述', trigger: 'blur' },
-    { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
-  ],
-  materials: [{ validator: validateMaterials, trigger: 'change' }]
-};
-// -------------------- 方法定义 --------------------
-
-/**
- * Tab切换事件
- * @param name 订单状态
- */
-const onTabChange = (name: string | number) => {
-  queryParams.value.pageNum = 1;
-  queryParams.value.orderStatus = String(name);
-  if (String(name) === '0') {
-    // “全部”时不传递orderStatus字段
-    delete queryParams.value.orderStatus;
+  // 类型校验
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (!ext || !allowExt.includes(ext) || !allowMime.includes(file.raw.type)) {
+    uploadError.value = '格式不支持，请上传 jpg / jpeg / png / pdf';
+    return;
   }
-  getList();
-};
-
-/**
- * 获取订单列表
- */
-const getList = async () => {
-  loading.value = true;
-  try {
-    const res = await orderList(queryParams.value);
-    if (res.code === 200) {
-      tabList.value = res.rows || [];
-      total.value = res.total || 0;
-    }
-  } catch (error) {
-    // 可根据需要增加错误提示
-  } finally {
-    loading.value = false;
+  // 大小校验
+  if (file.raw.size > sizeLimit) {
+    uploadError.value = '文件超出 10M，请压缩后重新上传';
+    return;
   }
-};
 
-/**
- * 取消订单
- * @param orderId 订单ID
- */
-const cancelOrder = async (orderId: number) => {
-  try {
-    await ElMessageBox.confirm('确定取消订单？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-    loading.value = true;
-    const res = await orderCancel(orderId);
-    if (res.code === 200) {
-      ElMessage.success('取消订单成功');
-      getList();
-    }
-  } catch {
-    // 用户取消或请求失败
-  } finally {
-    loading.value = false;
-  }
-};
-
-/**
- * 确认收货
- * @param orderId 订单ID
- */
-const confirmReceipt = async (orderId: number) => {
-  try {
-    await ElMessageBox.confirm('确定签收订单？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-    loading.value = true;
-    const res = await orderConfirm(orderId);
-    if (res.code === 200) {
-      ElMessage.success('签收订单成功');
-      getList();
-    }
-  } catch {
-    // 用户取消或请求失败
-  } finally {
-    loading.value = false;
-  }
-};
-
-/**
- * 打开举报弹窗
- * @param row 当前订单行
- */
-const openReportDialog = (row: any) => {
-  // currentReportRow.value = row;
-  reportForm.type = '';
-  reportForm.target = row.enterpriseName || '';
-  reportForm.goods = row.orderItems[0]?.goodsName || '';
-  reportForm.materials = [];
-  reportForm.desc = '';
-  hnGoodsFilesList.value = [];
-  reportDialogVisible.value = true;
-};
-
-/**
- * 提交举报
- */
-const submitReport = () => {
-  reportForm.materials = hnGoodsFilesList.value;
-  reportFormRef.value
-    ?.validate()
-    .then(() => {
-      // 校验通过，提交举报逻辑
-      console.log('举报内容:', reportForm);
-      ElMessage.success('举报已提交');
-      reportDialogVisible.value = false;
-    })
-    .catch(() => {
-      // 校验不通过，不提交举报
-      ElMessage.error('请填写完整举报信息');
-    });
-};
-
-/**
- * 删除举报材料
- * @param file 文件对象
- */
-const handleDelete = (file: any) => {
-  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
-  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
-};
-
-/**
- * 上传举报材料
- * @param file 文件对象
- */
-const uploadFile = (file: any) =>
-  new Promise((resolve, reject) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => processUpload(file, resolve, reject), 500);
-  });
-
-/**
- * 处理文件上传
- */
-const processUpload = (file: any, resolve: any, reject: any) => {
-  const fileData = file.file;
-  ossUploadImage({ file: fileData })
-    .then((response) => {
-      const newFile = {
-        name: response.data.fileName || '举报材料',
-        url: response.data.url,
-        fileType: '0',
-        ossId: response.data.ossId
-      };
-      hnGoodsFilesList.value.push(newFile);
-      proxy?.$modal.closeLoading();
-      resolve(newFile);
+  uploading.value = true;
+  proxy?.$modal.loading('正在上传，请稍候...');
+  uploadImage({ file: file.raw })
+    .then((res) => {
+      if (res.data?.ossId) {
+        diplomaUrl.value = {
+          name: res.data.fileName || file.name || '附件',
+          remark: '营业执照',
+          url: res.data.url,
+          fileType: '1',
+          ossId: res.data.ossId,
+          ossInfo: {}
+        };
+        ElMessage.success('上传成功');
+      } else {
+        uploadError.value = '上传返回数据异常，请重试';
+      }
     })
     .catch((error) => {
+      console.error('上传过程出错：', error);
+      uploadError.value = '上传失败，可能是网络问题，请稍后再试';
+    })
+    .finally(() => {
+      uploading.value = false;
       proxy?.$modal.closeLoading();
-      ElMessage.error(error.msg || '文件上传失败，请重试');
-      refShop.value.handleRemove(file);
-      reject(error);
     });
 };
-
-/**
- * 超出上传数量限制
- */
-const handleExceed = () => ElMessage.error(`上传文件数量不能超过6个!`);
-
-/**
- * 上传前校验
- * @param file 文件对象
- * @returns 是否允许上传
- */
-const handleBeforeUpload = (file: File) => {
-  const isImage = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
-  const isVideo = ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(file.type); // mp4/mov/avi
-
-  if (!isImage && !isVideo) {
-    ElMessage.error('仅支持图片(jpg/jpeg/png)或视频(mp4/mov/avi)');
-    return false;
-  }
-  if (isImage && file.size / 1024 / 1024 > 10) {
-    ElMessage.error('单张图片大小不能超过 10MB');
-    return false;
-  }
-  if (isVideo && file.size / 1024 / 1024 > 200) {
-    ElMessage.error('单个视频大小不能超过 200MB');
-    return false;
-  }
-
-  // 按类型分别限制数量：图片 <= 6，视频 <= 3
-  const imgCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('image/')).length;
-  const videoCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('video/')).length;
-
-  if (isImage && imgCount >= 6) {
-    ElMessage.error('最多上传 6 张图片');
-    return false;
-  }
-  if (isVideo && videoCount >= 3) {
-    ElMessage.error('最多上传 3 个视频');
-    return false;
-  }
-  return true;
+/** 关闭错误提示弹窗 */
+const closable = () => {
+  uploadError.value = null;
 };
-
-// 当文件列表变化时，让表单重新校验“举报材料”
-const onUploadChange = () => {
-  reportFormRef.value?.validateField('materials');
-};
-
-// -------------------- 生命周期 --------------------
-onMounted(() => {
-  onTabChange('0');
-});
 </script>
 
 <style scoped>
@@ -452,34 +226,176 @@ onMounted(() => {
   background: #ffffff;
   border-radius: 0 0 8px 8px;
 }
-.table-img {
-  width: 70px;
-  height: 70px;
-}
-.table-text {
+
+.upload-box-container {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin-left: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
-.pagination {
-  margin-top: 24px;
-  justify-content: end;
-}
-.uploadcss {
-  ::v-deep .el-form-item__content {
-    white-space: nowrap;
-    display: inline-block;
+
+.upload-box {
+  width: 700px;
+
+  .upload-content {
+    width: 700px;
+    height: 276px;
+    background: rgba(16, 140, 88, 0.05);
+    border-radius: 8px 8px 8px 8px;
+    border: 1px dashed #108c58;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s;
+
+    &.error {
+      border-color: #f56c6c;
+      background: rgba(255, 0, 0, 0.03);
+    }
+
+    .upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .upload-image {
+      width: 100%;
+      height: 100%;
+    }
+
+    .step-icon {
+      width: 57px;
+      height: 50px;
+      margin: 100px 0 20px 0;
+    }
+
+    .upload-text {
+      height: 21px;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 14px;
+      color: #108c58;
+      line-height: 21px;
+      text-align: left;
+      font-style: normal;
+      text-transform: none;
+      margin-bottom: 2px;
+    }
+
+    .upload-tip {
+      height: 21px;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 400;
+      font-size: 14px;
+      color: #7a7a7a;
+      line-height: 21px;
+      text-align: left;
+      font-style: normal;
+      text-transform: none;
+    }
+  }
+  .upload-image {
+    width: 100%;
+    height: 150px;
   }
 }
-::v-deep .el-upload-list--picture-card .el-upload-list__item {
-  width: 106px;
-  height: 106px;
+
+/* 使用深度选择器确保样式能够穿透到Element UI组件内部 */
+.upload-box-container ::v-deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
 }
-::v-deep .el-upload--picture-card {
-  width: 106px;
-  height: 106px;
-  line-height: 106px;
-  float: left;
+
+/* 错误提示弹窗样式 */
+::v-deep.el-alert.el-alert--info.is-center.is-light {
+  width: 487px;
+  background: #ffffff;
+  box-shadow: 0px 4px 10px 0px rgba(0, 0, 0, 0.3);
+  border-radius: 4px 4px 4px 4px;
+
+  .el-alert__content {
+    width: 100%;
+    .el-alert__description {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+}
+.alert-wrapper {
+  position: fixed;
+  z-index: 3000;
+}
+.alert-wrapper.pos-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.error-title {
+  width: 100%;
+  height: 34px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 20px;
+  color: #444444;
+  line-height: 24px;
+  text-align: center;
+  font-style: normal;
+  text-transform: none;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f1f1;
+  margin-bottom: 35px;
+}
+.error-icon {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f53f3f;
+  font-size: 34px;
+  margin-bottom: 16px;
+
+  width: 45px;
+  height: 45px;
+  background: #ffece8;
+}
+.error-title-content {
+  margin-bottom: 10px;
+  height: 22px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #1d2129;
+  line-height: 22px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+}
+.error-tietle-copey {
+  height: 31px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 400;
+  font-size: 14px;
+  color: #333333;
+  line-height: 22px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+}
+.error-msg {
+  height: 22px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 400;
+  font-size: 14px;
+  color: #4e5969;
+  line-height: 22px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  margin-bottom: 64px;
 }
 </style>

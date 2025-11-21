@@ -34,6 +34,8 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const ignoreFrequencyLimit = config.headers?.ignoreFrequencyLimit === 'true';
+
     // 对应国际化资源文件后缀
     config.headers['Content-Language'] = getLanguage();
 
@@ -68,7 +70,7 @@ service.interceptors.request.use(
         const s_data = sessionObj.data; // 请求数据
         const s_time = sessionObj.time; // 请求时间
         const interval = 500; // 间隔时间(ms)，小于此时间视为重复提交
-        if (s_data === requestObj.data && requestObj.time - s_time < interval && s_url === requestObj.url) {
+        if (s_data === requestObj.data && requestObj.time - s_time < interval && s_url === requestObj.url && !ignoreFrequencyLimit) {
           const message = '数据正在处理，请勿重复提交';
           console.warn(`[${s_url}]: ` + message);
           return Promise.reject(new Error(message));

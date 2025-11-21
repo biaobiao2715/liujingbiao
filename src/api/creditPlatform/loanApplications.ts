@@ -17,18 +17,24 @@ export function getEnterprise(data: any) {
     params: data
   });
 }
-//个人信息
-export function getPersonal(data: any) {
+//个人信息（路径参数传递用户ID）
+export function getPersonal(id: string | number) {
   return request({
-    url: '/credit-server/loanApplications/perByUserId',
-    method: 'get',
-    params: data
+    url: `/credit-server/loanApplications/perByUserId/${id}`,
+    method: 'get'
   });
 }
 // 获取剩余详情
 export function getRemainingDetail(id: number | string) {
   return request({
     url: `/credit-server/loanApplications/${id}`,
+    method: 'get',
+  });
+}
+//查看产品详情
+export function getProduct(id: number | string) {
+  return request({
+    url: `/credit-server/creditProductsVersion/noTenant/${id}`,
     method: 'get',
   });
 }

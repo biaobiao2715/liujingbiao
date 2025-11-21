@@ -7,6 +7,7 @@ import { PostVO } from '@/api/system/post/types';
 export interface UserInfo {
   user: UserVO;
   roles: string[];
+  tenantType: string;
   permissions: string[];
 }
 
@@ -20,7 +21,7 @@ export interface UserQuery extends PageQuery {
   status?: string;
   deptId?: string | number;
   roleId?: string | number;
-  userIds?:  string | number | (string | number)[] | undefined;
+  userIds?: string | number | (string | number)[] | undefined;
 }
 
 /**

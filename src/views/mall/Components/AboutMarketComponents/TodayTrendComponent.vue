@@ -21,19 +21,21 @@
       <el-table-column prop="changePercent" label="升降(%)" align="center" width="120">
         <template #default="{ row }">
           <span v-if="row.changePercent === '-'" class="text-gray">{{ row.changePercent }}</span>
-          <span v-else-if="row.changePercent > 0" class="text-red">{{ row.changePercent }}%</span>
-          <span v-else class="text-green">{{ Math.abs(row.changePercent) }}%</span>
+          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="text-gray">0%</span>
+          <span v-else-if="row.changePercent > 0" class="text-green">{{ row.changePercent }}%</span>
+          <span v-else class="text-red">{{ Math.abs(row.changePercent) }}%</span>
         </template>
       </el-table-column>
       <el-table-column label="走势图" align="center" width="100">
         <template #default="{ row }">
-          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff">
+          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
             <i-ep-arrow-right />
           </el-icon>
-          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red">
+          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="trend-icon text-gray horizontal-line" @click="handleTrendClick(row)">─</span>
+          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
             <i-ep-arrow-up />
           </el-icon>
-          <el-icon v-else class="trend-icon text-green">
+          <el-icon v-else class="trend-icon text-red" @click="handleTrendClick(row)">
             <i-ep-arrow-down />
           </el-icon>
         </template>
@@ -52,6 +54,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import { todayTrendList } from '@/api/mall/marketComponent';
+import { eventBus } from '@/utils/eventBus';
 
 const loading = ref(false);
 const queryFormRef = ref();
@@ -153,7 +156,15 @@ const getList = async () => {
           variety: item.goodsCategoryName || '--',
           origin,
           price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
-          changePercent
+          changePercent,
+          // 保留原始字段用于切换到价格走势
+          goodsCategoryId: item.goodsCategoryId || '',
+          provinceCode: item.provinceCode || '',
+          cityCode: item.cityCode || '',
+          regionCode: item.regionCode || '',
+          provinceName: item.provinceName || '',
+          cityName: item.cityName || '',
+          regionName: item.regionName || ''
         };
       });
       total.value = response.total || 0;
@@ -172,9 +183,41 @@ const getList = async () => {
   }
 };
 
+// 点击走势图图标，切换到价格走势页面
+const handleTrendClick = (row: any) => {
+  if (!row || !row.goodsCategoryId) {
+    ElMessage.warning('数据异常，无法查看价格走势');
+    return;
+  }
+
+  // 切换到价格走势标签页
+  eventBus.emit('market:switchTab', 'second');
+
+  // 传递筛选条件给价格走势组件
+  const filterPayload = {
+    goodsCategoryId: row.goodsCategoryId,
+    provinceCode: row.provinceCode || '',
+    cityCode: row.cityCode || '',
+    regionCode: row.regionCode || '',
+    provinceName: row.provinceName || '',
+    cityName: row.cityName || '',
+    regionName: row.regionName || ''
+  };
+
+  // 延迟一下确保组件已切换完成
+  setTimeout(() => {
+    eventBus.emit('priceTrend:applyFilters', filterPayload);
+  }, 100);
+};
+
 // 页面加载时获取数据
 onMounted(() => {
   getList();
+});
+
+// 暴露方法供父组件调用
+defineExpose({
+  getList
 });
 </script>
 
@@ -212,6 +255,13 @@ onMounted(() => {
 .trend-icon {
   font-size: 18px;
   cursor: pointer;
+}
+
+.horizontal-line {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: bold;
 }
 
 .text-red {

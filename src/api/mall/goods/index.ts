@@ -62,7 +62,10 @@ export function uploadFile(data: any) {
   return request({
     url: 'resource/oss/upload',
     method: 'post',
-    data: data
+    data: data,
+    headers: {
+      ignoreFrequencyLimit: true
+    }
   });
 }
 // 删除文件

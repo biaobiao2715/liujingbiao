@@ -1,3 +1,10 @@
+<!--
+    标题: legalDocumentAdd.vue
+    功能: 新增法律文书模版
+    说明: 新增法律文书模版弹窗
+    当前版本: 1.0
+    开发信息: Created by 邓和杰 2025-11-20
+-->
 <template>
   <el-dialog :model-value="formVisible" width="720px" :title="dialogTitle" align-center :close-on-click-modal="false" @close="handleClose">
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="200px" class="legal-edit-form">

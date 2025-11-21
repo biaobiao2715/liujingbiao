@@ -147,7 +147,7 @@ const handleRedirect = (path: string) => {
     router.push(path);
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
-    }, 1000);
+    }, 2000);
   }
 };
 

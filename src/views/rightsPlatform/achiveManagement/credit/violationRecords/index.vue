@@ -55,7 +55,7 @@
         <template #default="scope">
           <el-button
             v-throttle
-            v-hasPermi="['system:business:queryByTenant']"
+            v-hasPermi="['safeguard:reportCaseFiling:query']"
             v-if="scope.row.status !== '0'"
             type="primary"
             @click="handleEdit(scope.row)"

@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
@@ -155,11 +155,15 @@ import PriceTrendChart from './PriceTrendChart.vue';
 import { priceActionList, hotRecommendationList, priceExplanationList, priceSpecialReportList, heatmapList } from '@/api/mall/marketComponent';
 import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
+import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import type { ComponentInternalInstance } from 'vue';
 
 const router = useRouter();
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const loading = ref(false);
 const queryFormRef = ref();
 const activeTimeRange = ref(7);
+const categoryList = ref<any[]>([]); // 分类列表数据
 
 // 查询参数
 const queryParams = reactive({
@@ -235,20 +239,52 @@ const getCreditLevelText = (level: any) => {
   return creditLevelMap[String(level)] || '--';
 };
 
-const applyExternalFilters = (payload: any) => {
+// 根据三级ID查找完整路径
+const findCategoryPath = (categoryId: string, categories: any[]): string[] => {
+  const findPath = (id: string, list: any[], path: string[] = []): string[] | null => {
+    for (const item of list) {
+      const currentPath = [...path, item.id];
+      if (item.id === id) {
+        return currentPath;
+      }
+      if (item.children && item.children.length > 0) {
+        const result = findPath(id, item.children, currentPath);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return null;
+  };
+  return findPath(categoryId, categories) || [categoryId];
+};
+
+const applyExternalFilters = async (payload: any) => {
   if (!payload) return;
   const goodsCategoryId = payload.goodsCategoryId || '';
-  queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
+  
+  // 如果有分类ID，尝试查找完整路径
+  if (goodsCategoryId && categoryList.value.length > 0) {
+    const categoryPath = findCategoryPath(goodsCategoryId, categoryList.value);
+    queryParams.variety = categoryPath;
+  } else {
+    // 如果没有分类列表数据，先设置为数组，组件可能会自动处理
+    queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
+  }
 
   regionCodes.provinceCode = payload.provinceCode || '';
   regionCodes.cityCode = payload.cityCode || '';
   regionCodes.regionCode = payload.regionCode || '';
 
+  // RegionSelect 需要代码数组 [provinceCode, cityCode, regionCode]
   const originPath: string[] = [];
-  if (payload.provinceName) originPath.push(payload.provinceName);
-  if (payload.cityName) originPath.push(payload.cityName);
-  if (payload.regionName) originPath.push(payload.regionName);
+  if (payload.provinceCode) originPath.push(payload.provinceCode);
+  if (payload.cityCode) originPath.push(payload.cityCode);
+  if (payload.regionCode) originPath.push(payload.regionCode);
   queryParams.origin = originPath;
+
+  // 设置默认时间范围为7天，对应 priceActionDays = 1
+  activeTimeRange.value = 7;
 
   fetchPriceData();
   fetchPriceExplanation();
@@ -372,24 +408,25 @@ const fetchPriceExplanation = async () => {
       const data = response.data || {};
 
       // 处理价格走势：将数字转换为文字描述
+      // 1:趋于平稳、2:略有上升、3:大幅上升、4:略有下降、5:大幅下降
       let trendText = '趋于平稳';
       if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
         const trendValue = String(data.sevenDaysPriceTrend);
         switch (trendValue) {
           case '1':
-            trendText = '上涨';
+            trendText = '趋于平稳';
             break;
           case '2':
-            trendText = '下跌';
+            trendText = '略有上升';
             break;
           case '3':
-            trendText = '平稳';
+            trendText = '大幅上升';
             break;
           case '4':
-            trendText = '波动';
+            trendText = '略有下降';
             break;
           case '5':
-            trendText = '趋于平稳';
+            trendText = '大幅下降';
             break;
           default:
             trendText = '趋于平稳';
@@ -398,13 +435,13 @@ const fetchPriceExplanation = async () => {
 
       // 映射接口返回的数据到价格统计
       priceStats.value = {
-        todayPrice: Number(data.yesterdayPrice || 0), // 使用昨日价格作为当日价格显示
+        todayPrice: Number(data.yesterdayPrice || 0), // 当日均价
         yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
-        priceChange: Number(data.dayToDayChangeRate || 0), // 日环比变化率
-        maxPrice: Number(data.sevenDaysHighPrice || 0),
-        minPrice: Number(data.sevenDaysLowPrice || 0),
-        avgPrice: Number(data.sevenDaysPriceAvg || 0),
-        trend: trendText
+        priceChange: Number(data.dayToDayChangeRate || 0), // 相较昨日价格
+        maxPrice: Number(data.sevenDaysHighPrice || 0), // 近7日最高价
+        minPrice: Number(data.sevenDaysLowPrice || 0), // 近7日最低价
+        avgPrice: Number(data.sevenDaysPriceAvg || 0), // 近7日均价
+        trend: trendText // 近7日价格走势
       };
     } else {
       ElMessage.error(response?.msg || '获取价格说明数据失败');
@@ -571,13 +608,14 @@ const viewHeatmap = async () => {
       // 将数据存储到 sessionStorage，供热力图页面使用
       sessionStorage.setItem('heatmapData', JSON.stringify(heatmapData));
 
-      // 跳转到热力图页面，通过 query 参数传递 goodsCategoryId
-      router.push({
+      // 在新标签页中打开热力图页面，通过 query 参数传递 goodsCategoryId
+      const routeData = router.resolve({
         path: '/mall/price-heatmap',
         query: {
           goodsCategoryId: goodsCategoryId
         }
       });
+      window.open(routeData.href, '_blank');
     } else {
       ElMessage.error(response?.msg || '获取热力图数据失败');
     }
@@ -664,12 +702,37 @@ const handleReportPagination = (pagination: { page: number; limit: number }) => 
   fetchReportList();
 };
 
+// 获取分类列表
+const fetchCategoryList = async () => {
+  try {
+    const res = await getProductCategoryList();
+    if (res.code === 200) {
+      categoryList.value = proxy?.handleTree<any>(res.data, 'id') || [];
+    }
+  } catch (error) {
+    console.error('获取商品分类数据失败:', error);
+  }
+};
+
+// 刷新数据方法（供父组件调用）
+const refreshData = () => {
+  fetchPriceData();
+  fetchPriceExplanation();
+  fetchHotRecommendation();
+};
+
 // 页面加载时获取数据
 onMounted(() => {
+  fetchCategoryList();
   fetchPriceData();
   fetchPriceExplanation();
   fetchHotRecommendation();
   eventBus.on('priceTrend:applyFilters', applyExternalFilters);
+});
+
+// 暴露方法供父组件调用
+defineExpose({
+  refreshData
 });
 
 onBeforeUnmount(() => {

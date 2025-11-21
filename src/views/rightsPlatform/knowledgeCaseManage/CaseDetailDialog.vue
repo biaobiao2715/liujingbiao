@@ -22,7 +22,7 @@
           v-model="formData.knowledgeCaseName" 
           placeholder="请输入知识库案件名称" 
           :disabled="mode === 'view'"
-          maxlength="100"
+          maxlength="30"
           show-word-limit
           clearable
         />
@@ -36,14 +36,11 @@
               :height="500" 
               :minHeight="500" 
               :fileSize="10"
-              :readOnly="mode === 'view'"
-              :showToolbar="mode !== 'view'"
               :key="editorKey"
             />
           </div>
           
           <TocSidebar
-            v-if="mode !== 'view'"
             :content="formData.knowledgeCaseContent"
             editor-container=".w-e-text-container"
             :auto-scroll="true"
@@ -57,19 +54,22 @@
 
       <el-form-item label="附件上传" v-if="mode !== 'view'">
         <el-upload
+          ref="uploadRef"
           action="#"
           :auto-upload="false"
-          accept=".jpg,.jpeg,.png,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt,.mp4,.mov,.avi"
+          accept=".pdf,.doc,.docx,.xls,.xlsx"
           :show-file-list="false"
+          :limit="1"
           :on-change="handleFileChange"
+          :on-exceed="handleExceed"
         >
           <el-button type="primary" plain>
             <el-icon class="el-icon--left"><Upload /></el-icon>
-            添加附件
+            {{ attachmentList.length > 0 ? '重新上传' : '上传附件' }}
           </el-button>
           <template #tip>
             <div class="upload-tip">
-              支持格式：图片(jpg/jpeg/png)、文档(pdf/doc/docx/ppt/pptx/xls/xlsx/txt)、视频(mp4/mov/avi)，单个文件最大100MB
+              非必填，仅支持 PDF、Word(doc/docx)、Excel(xls/xlsx)，仅可上传一个，单个文件最大100MB
             </div>
           </template>
         </el-upload>
@@ -83,13 +83,13 @@
               <span>{{ getFileTypeText(scope.row) }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="originalName" label="附件名称" align="left" :show-overflow-tooltip="true" />
-          <el-table-column prop="fileSize" label="文件大小" width="120" align="center" />
+          <el-table-column prop="originalName" label="法律文书模版" align="left" :show-overflow-tooltip="true" />
+          <el-table-column prop="fileSize" label="附件大小" width="120" align="center" />
           <el-table-column label="操作" width="200" align="center" v-if="mode !== 'view'">
             <template #default="scope">
-              <el-button type="primary" link @click="handleDownloadFile(scope.row)">
-                <el-icon><Download /></el-icon>
-                下载
+              <el-button type="primary" link @click="triggerReUpload">
+                <el-icon><Upload /></el-icon>
+                重新上传
               </el-button>
               <el-button type="danger" link @click="handleRemoveFile(scope.row)">
                 <el-icon><Delete /></el-icon>
@@ -97,7 +97,7 @@
               </el-button>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100" align="center" v-else>
+          <el-table-column label="操作" width="120" align="center" v-else>
             <template #default="scope">
               <el-button type="primary" link @click="handleDownloadFile(scope.row)">
                 <el-icon><Download /></el-icon>
@@ -118,11 +118,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, getCurrentInstance, withDefaults, defineAsyncComponent, nextTick } from 'vue';
-import type { FormInstance, FormRules } from 'element-plus';
+import type { FormInstance, FormRules, UploadInstance } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Download, Delete } from '@element-plus/icons-vue';
-import { addKnowledgeCase, updateKnowledgeCase, fetchKnowledgeCaseDetail } from '@/api/rightsPlatform/knowledgeCaseManage/index';
+import { addKnowledgeCase, updateKnowledgeCase, fetchKnowledgeCaseDetail, fetchKnowledgeCaseList } from '@/api/rightsPlatform/knowledgeCaseManage/index';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
@@ -154,6 +154,7 @@ const loading = ref(false);
 const saving = ref(false);
 const editorKey = ref(0);
 const tocSidebarRef = ref();
+const uploadRef = ref<UploadInstance>();
 
 const formData = ref({
   id: undefined as number | undefined,
@@ -175,7 +176,7 @@ const attachmentList = ref<Array<{
 const rules: FormRules = {
   knowledgeCaseName: [
     { required: true, message: '请输入知识库案件名称', trigger: 'blur' },
-    { min: 1, max: 100, message: '名称长度在 1 到 100 个字符', trigger: 'blur' }
+    { min: 1, max: 30, message: '名称长度在 1 到 30 个字符', trigger: 'blur' }
   ],
   knowledgeCaseContent: [
     { required: true, message: '请输入正文内容', trigger: 'blur' },
@@ -231,16 +232,51 @@ const getFileType = (fileName: string, fileType?: string): string => {
   return '99';
 };
 
+const normalizeAttachment = (item: any) => ({
+  ossId: item.ossId,
+  fileName: item.fileName || item.originalName,
+  originalName: item.originalName || item.fileName || '附件',
+  fileSuffix: item.fileSuffix || '',
+  url: item.url || '',
+  fileSize: item.fileSize || '--',
+  fileType: item.fileType || getFileType(item.originalName || item.fileName || '', item.fileType),
+  foreignType: item.foreignType || '1'
+});
+
+const checkCaseNameDuplicate = async (): Promise<boolean> => {
+  const name = formData.value.knowledgeCaseName?.trim();
+  if (!name) return false;
+  try {
+    const response: any = await fetchKnowledgeCaseList({
+      knowledgeCaseName: name,
+      pageNum: 1,
+      pageSize: 1
+    });
+    const list = response?.rows || response?.data?.records || response?.data || [];
+    if (!Array.isArray(list) || list.length === 0) return false;
+    const existItem = list.find((item: any) => item?.knowledgeCaseName === name);
+    if (!existItem) return false;
+    if (props.mode === 'edit') {
+      const currentId = formData.value.id || props.detail?.id;
+      if (currentId && String(existItem.id) === String(currentId)) {
+        return false;
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error('案件名称去重校验失败:', error);
+    ElMessage.error('案件名称校验失败，请稍后重试');
+    return true;
+  }
+};
+
 // 验证文件
 const validateFile = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const imageExt = ['jpg', 'jpeg', 'png'];
-  const videoExt = ['mp4', 'mov', 'avi'];
-  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
-  const allExt = [...imageExt, ...videoExt, ...docExt];
+  const allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx'];
 
-  if (!allExt.includes(ext)) {
-    ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件`);
+  if (!allowedExt.includes(ext)) {
+    ElMessage.error('仅支持 PDF、Word、Excel 文件');
     return false;
   }
 
@@ -255,6 +291,10 @@ const validateFile = (file: File): boolean => {
 };
 
 // 处理文件上传
+const handleExceed = () => {
+  ElMessage.warning('仅支持上传一个附件，如需更换请重新上传');
+};
+
 const handleFileChange = async (file: any) => {
   if (!validateFile(file.raw)) return;
 
@@ -265,7 +305,7 @@ const handleFileChange = async (file: any) => {
 
     if (response.code === 200 && response.data?.ossId) {
       const fileType = getFileType(file.raw.name);
-      attachmentList.value.push({
+      const newAttachment = {
         ossId: response.data.ossId,
         fileName: response.data.fileName,
         originalName: file.raw.name,
@@ -274,8 +314,14 @@ const handleFileChange = async (file: any) => {
         fileSize: formatFileSize(file.raw.size),
         fileType: fileType,
         foreignType: '1' // 根据接口文档，1表示法律文书模版等
-      });
-      ElMessage.success('附件上传成功');
+      };
+      if (attachmentList.value.length > 0) {
+        attachmentList.value = [newAttachment];
+        ElMessage.success('附件已重新上传并覆盖原文件');
+      } else {
+        attachmentList.value = [newAttachment];
+        ElMessage.success('附件上传成功');
+      }
     } else {
       ElMessage.error(response?.msg || '上传失败，请重试');
     }
@@ -303,9 +349,15 @@ const handleRemoveFile = (row: any) => {
     (item.url === row.url)
   );
   if (idx > -1) {
-    attachmentList.value.splice(idx, 1);
+    attachmentList.value = [];
+    uploadRef.value?.clearFiles();
     ElMessage.success('删除成功');
   }
+};
+
+const triggerReUpload = () => {
+  if (props.mode === 'view') return;
+  (uploadRef.value as any)?.$el?.querySelector('input')?.click();
 };
 
 // 获取详情
@@ -326,15 +378,10 @@ const fetchDetail = async () => {
     
     if (response && response.code === 200) {
       const data = response.data;
-      let contentContent = data.knowledgeCaseContent || '';
-      if (!contentContent || (typeof contentContent === 'string' && contentContent.trim() === '')) {
-        contentContent = '';
-      }
-
       formData.value = {
         id: data.id,
         knowledgeCaseName: data.knowledgeCaseName || '',
-        knowledgeCaseContent: contentContent
+        knowledgeCaseContent: data.knowledgeCaseContent || ''
       };
 
       editorKey.value += 1;
@@ -343,28 +390,10 @@ const fetchDetail = async () => {
 
       // 处理附件列表
       if (data.protectionFiles && Array.isArray(data.protectionFiles)) {
-        attachmentList.value = data.protectionFiles.map((item: any) => ({
-          ossId: item.ossId,
-          fileName: item.fileName || item.originalName,
-          originalName: item.originalName || item.fileName || '附件',
-          fileSuffix: item.fileSuffix || '',
-          url: item.url || '',
-          fileSize: item.fileSize || '--',
-          fileType: item.fileType || '2',
-          foreignType: item.foreignType || '1'
-        }));
+        attachmentList.value = data.protectionFiles.length > 0 ? [normalizeAttachment(data.protectionFiles[0])] : [];
       } else if (data.protectionFiles && typeof data.protectionFiles === 'object') {
         // 单个附件对象
-        attachmentList.value = [{
-          ossId: data.protectionFiles.ossId,
-          fileName: data.protectionFiles.fileName || data.protectionFiles.originalName,
-          originalName: data.protectionFiles.originalName || data.protectionFiles.fileName || '附件',
-          fileSuffix: data.protectionFiles.fileSuffix || '',
-          url: data.protectionFiles.url || '',
-          fileSize: data.protectionFiles.fileSize || '--',
-          fileType: data.protectionFiles.fileType || '2',
-          foreignType: data.protectionFiles.foreignType || '1'
-        }];
+        attachmentList.value = [normalizeAttachment(data.protectionFiles)];
       } else {
         attachmentList.value = [];
       }
@@ -430,6 +459,12 @@ const handleSubmit = async () => {
       return;
     }
 
+    const isDuplicate = await checkCaseNameDuplicate();
+    if (isDuplicate) {
+      ElMessage.warning('案件名称已存在，请修改');
+      return;
+    }
+
     saving.value = true;
 
     // 构建提交数据
@@ -457,7 +492,7 @@ const handleSubmit = async () => {
       submitData.id = formData.value.id;
       const response: any = await updateKnowledgeCase(submitData);
       if (response && response.code === 200) {
-        ElMessage.success('编辑成功');
+        ElMessage.success('提交成功');
         emit('confirm');
         handleClose();
       } else {
@@ -467,7 +502,7 @@ const handleSubmit = async () => {
       // 新增
       const response: any = await addKnowledgeCase(submitData);
       if (response && response.code === 200) {
-        ElMessage.success('新增成功');
+        ElMessage.success('提交成功');
         emit('confirm');
         handleClose();
       } else {
@@ -502,6 +537,43 @@ const handleSubmit = async () => {
       margin-right: 4px;
     }
   }
+}
+
+.attachment-info {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  background-color: #f9fafc;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attachment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.attachment-name {
+  font-weight: 500;
+  color: #303133;
+}
+
+.attachment-size {
+  color: #909399;
+}
+
+.attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 :deep(.el-form-item__label) {

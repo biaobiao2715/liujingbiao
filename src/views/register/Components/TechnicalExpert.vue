@@ -21,7 +21,7 @@
                 <div class="upload-container">
                   <el-upload
                     class="upload-box"
-                    accept=".jpg,.jpeg,.gif,.png,.pdf"
+                    accept=".jpg,.jpeg,.png"
                     action="#"
                     drag
                     :auto-upload="false"
@@ -34,7 +34,7 @@
                         <img src="@/assets/images/register3.svg" class="step-icon" />
                         <div class="upload-text">
                           <span>点击或将文件拖拽到这里上传</span>
-                          <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</p>
+                          <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
                         </div>
                       </div>
                       <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
@@ -54,7 +54,7 @@
                     style="width: 150px"
                     :show-file-list="false"
                     :on-change="handlePhotoChange"
-                    accept=".jpg,.jpeg,.gif,.png"
+                    accept=".jpg,.jpeg,.png"
                     drag
                   >
                     <div class="upload-content">
@@ -67,7 +67,7 @@
                       <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
                     </div>
                   </el-upload>
-                  <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.png.jpeg.gif</p>
+                  <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
                 </div>
               </el-form-item>
             </el-col>
@@ -330,20 +330,16 @@ const form: TechnicalExpert = {
 } as TechnicalExpert;
 
 const ocrMap = {
-  'studentName': 'expertName',
-  'idNumber': 'idCard',
-  'schoolName': 'graduationSchool',
-  'major': 'major',
-  'degree': 'degree',
-  'educationLevel': 'education',
-  'studyForm': 'studyForm',
-  'studyDuration': 'studyDuration',
-  'certificateType': 'certificateType',
-  'certificateNumber': 'certificateNumber',
-  'holderName': 'holderName',
-  'issueDate': 'issueDate',
-  'validUntil': 'validUntil',
-  'issuingAuthority': 'issuingAuthority'
+  studentName: 'expertName',
+  holderName: 'expertName',
+  idNumber: 'idCard',
+  schoolName: 'graduationSchool',
+  issuingAuthority: 'graduationSchool',
+  major: 'major',
+  degree: 'degree',
+  educationLevel: 'education',
+  certificateNumber: 'graduationCertNo',
+  issueDate: 'graduationDate'
 };
 const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string }> = {
   // 专家姓名
@@ -653,6 +649,19 @@ const handleDiplomaChange = (file: any) => {
         return ocrUploadImage({ image_url_list: [res.data.url] })
           .then((res) => {
             const data = res?.data?.[0] || {};
+            const rawText = data?.rawText || '';
+            if (rawText) {
+              const m = rawText.match(/身份证号[:：]?\s*([0-9]{17}[0-9Xx])/);
+              const id = m?.[1] || null;
+              if (id) {
+                formData.value.idCard = id;
+              }
+              const sexMatch = rawText.match(/性别[:：]?\s*([男女])/);
+              const sex = sexMatch?.[1] || null;
+              if (sex) {
+                formData.value.sex = sex === '男' ? '0' : '1';
+              }
+            }
             Object.keys(data).forEach((key) => {
               const mappedKey = ocrMap[key] || key;
               if (data[key]) {

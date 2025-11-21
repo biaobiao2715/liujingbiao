@@ -57,7 +57,7 @@ const props = defineProps({
   // 占位符
   placeholder: {
     type: String,
-    default: '请选择区域'
+    default: '请选择品种'
   },
   // 是否只返回最后一级分类id
   emitPath: {

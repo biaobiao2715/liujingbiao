@@ -3,14 +3,14 @@
   <div class="policy-rules">
     <div class="section-title flex-center-between mb-12">
       <div>政策法规</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <div class="card-list" v-loading="loading">
       <el-row :gutter="20">
         <el-col :span="12" v-for="caseItem in cases" :key="caseItem.id">
           <div class="card-item">
             <div class="card-header flex-center">
-              <div class="title" @click="handleClick(caseItem)">
+              <div class="title" @click="handleDetail(caseItem)">
                 {{ caseItem.articleTitle }}
               </div>
               <el-tag effect="plain" round :type="tagMap[caseItem.articleType]?.type">{{ tagMap[caseItem.articleType]?.label }}</el-tag>
@@ -27,6 +27,7 @@
 import { ref, onMounted } from 'vue';
 import { getCreditArticleList } from '@/api/financeFront/RiskCases/index';
 import { ElMessage } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
 const emit = defineEmits(['detailChange']);
 
 // 列表数据与加载状态
@@ -39,6 +40,10 @@ const queryParams = ref({
   pageSize: 10,
   articleStatus: 2,
   articleTypes: ['1', '2']
+});
+
+onMounted(() => {
+  fetchCases();
 });
 
 // 获取列表数据
@@ -69,13 +74,15 @@ const tagMap: Record<string, { label: string; type: any }> = {
   '99': { label: '其他', type: 'info' }
 };
 
-const handleClick = (row: any) => {
-  emit('detailChange', { type: 'PolicyRulesComponentDetails', id: row.id });
+// 查看详情
+const handleDetail = (row: any) => {
+  eventBus.emit('showComponentByCommand', { type: 'PolicyRulesComponentDetails', id: row.id });
 };
 
-onMounted(() => {
-  fetchCases();
-});
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'PolicyRulesComponentList' });
+};
 </script>
 
 <style scoped lang="scss">

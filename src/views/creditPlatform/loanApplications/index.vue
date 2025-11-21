@@ -81,7 +81,7 @@
       />
     </div>
     <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" :mode="detailDialogMode" />
-    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" />
+    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" :mode="detailDialogMode" />
     <RepaymentPlanDialog v-model:visible="repaymentDialogVisible" :data="repaymentData" />
   </div>
 </template>
@@ -100,7 +100,9 @@ interface LoanApplication {
   realName: string;
   productName: string;
   productType: string;
-  applicableObject: string;
+  applicableObject?: string;
+  lenderTyp?: string;
+  lenderType?: string;
   lenderId?: string | number;
   userId?: string | number;
   applyTime?: string;
@@ -214,9 +216,13 @@ const getApplicableLabel = (value: string | number | undefined) => {
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
   detailDialogMode.value = mode;
   detailData.value = row;
-  const label = getApplicableLabel(row.applicableObject).toLowerCase();
-  const rawValue = String(row.applicableObject || '').toLowerCase();
+  const applicableValue = row.lenderTyp ?? row.lenderType ?? row.applicableObject;
+  const label = getApplicableLabel(applicableValue).toLowerCase();
+  const rawValue = String(applicableValue || '').toLowerCase();
   const isPersonal = label.includes('采购') || rawValue.includes('purchaser');
+  // 先隐藏另一个弹窗，避免同时打开
+  detailDialogVisible.value = false;
+  buyerDetailDialogVisible.value = false;
   if (isPersonal) {
     buyerDetailDialogVisible.value = true;
   } else {
@@ -230,12 +236,18 @@ const canAudit = (status: string | number | undefined) => {
 };
 
 const openRepaymentPlan = (row: LoanApplication) => {
+  // 根据 loanTerm 生成对应数量的还款计划
+  const loanTerm = Number(row.loanTerm) || 1;
+  const loanAmount = Number(row.loanAmount) || 0;
+  // 计算每期还款金额（整数），如果贷款总额为0则默认为0
+  const perPeriodAmount = loanTerm > 0 ? Math.floor(loanAmount / loanTerm) : 0;
+
   repaymentData.value = {
     contractFiles: row.contractFiles || [],
-    plans: Array.from({ length: 9 }, (_, index) => ({
+    plans: Array.from({ length: loanTerm }, (_, index) => ({
       period: index + 1,
       repayDate: ['2025-02-01', '2025-03-01', '2025-04-01'][Math.floor(index / 3)],
-      amount: 9000
+      amount: perPeriodAmount
     }))
   };
   repaymentDialogVisible.value = true;

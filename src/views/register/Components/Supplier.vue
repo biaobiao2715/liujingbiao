@@ -16,7 +16,7 @@
               <div class="upload-businessLicense">
                 <el-upload
                   class="upload-box"
-                  accept=".jpg,.jpeg,.png,.pdf"
+                  accept=".jpg,.jpeg,.png"
                   action="#"
                   drag
                   :auto-upload="false"

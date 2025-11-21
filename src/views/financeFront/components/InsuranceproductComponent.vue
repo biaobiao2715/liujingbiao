@@ -9,13 +9,13 @@
   <div class="risk-cases">
     <div class="section-title flex-center-between mb-12">
       <div>保险产品</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <div class="product-list">
       <div v-for="item in cases" :key="item.id" class="product-card mb-12">
         <div class="product-header">
           <div class="title">{{ item.productName }}</div>
-          <div class="flex-center gap-8" @click="toggleFavorite(item)">
+          <div class="flex-center gap-8 favorite" @click="toggleFavorite(item)">
             <div :class="[{ 'isFavorite': item.isFavorite }, 'text-primary']">
               {{ item.isFavorite ? '已收藏' : '收藏' }}
             </div>
@@ -29,7 +29,7 @@
             <div class="introduction">{{ item.productIntro }}</div>
           </div>
           <div class="product-actions">
-            <el-button type="primary" round>查看详情 →</el-button>
+            <el-button type="primary" round @click="handleDetail(item)">查看详情 →</el-button>
           </div>
         </div>
       </div>
@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue';
 import { getInsuranceProductsVersionList } from '@/api/financeFront/Insuranceproduct/index';
 import { addToFavorites } from '@/api/mall/index';
-
+import { eventBus } from '@/utils/eventBus';
 import { ElMessage } from 'element-plus';
 const emit = defineEmits(['detailChange']);
 
@@ -62,6 +62,10 @@ const productTypeMap: Record<number, { label: string; type: any }> = {
   2: { label: '收入保险', type: 'success' },
   3: { label: '气象指数保险', type: 'danger' }
 };
+
+onMounted(() => {
+  fetchCases();
+});
 
 // 获取列表数据
 const fetchCases = async () => {
@@ -94,13 +98,14 @@ const toggleFavorite = async (item: any) => {
   }
 };
 
-const viewDetails = (item: any) => {
-  emit('detailChange', { type: 'InsuranceproductComponentDetails', id: item.id });
+const handleDetail = (item: any) => {
+  eventBus.emit('showComponentByCommand', { type: 'InsuranceproductComponentDetails', id: item.id });
 };
 
-onMounted(() => {
-  fetchCases();
-});
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'InsuranceproductComponentList' });
+};
 </script>
 
 <style scoped lang="scss">
@@ -138,6 +143,9 @@ onMounted(() => {
   .title {
     font-size: 18px;
     color: #333;
+  }
+  .favorite {
+    cursor: pointer;
   }
   .text-primary {
     font-size: 14px;

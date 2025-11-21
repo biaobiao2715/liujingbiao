@@ -411,6 +411,11 @@ const resetQuery = () => {
 onMounted(() => {
   fetchPricePrediction();
 });
+
+// 暴露方法供父组件调用
+defineExpose({
+  fetchPricePrediction
+});
 </script>
 
 <style scoped lang="scss">

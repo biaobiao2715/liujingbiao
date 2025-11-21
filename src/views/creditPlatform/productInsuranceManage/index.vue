@@ -1,7 +1,6 @@
 <!-- 产品管理-保险列表页 -->
 <template>
   <div class="product-insurance-manage">
-    <!-- 搜索条件 -->
     <el-form
       v-show="showSearch"
       ref="queryFormRef"
@@ -70,7 +69,6 @@
       </el-form-item>
     </el-form>
 
-    <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
         <el-button
@@ -85,7 +83,6 @@
       </el-col>
     </el-row>
 
-    <!-- 表格 -->
     <el-table
       :data="tableData"
       border
@@ -159,7 +156,6 @@
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
     <div class="pagination">
       <pagination
         v-show="total > 0"
@@ -173,7 +169,6 @@
       />
     </div>
 
-    <!-- 新增/编辑/详情弹窗 -->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'add' ? '新增保险产品' : dialog.type === 'edit' ? '编辑保险产品' : '保险产品详情'"
@@ -262,13 +257,10 @@ const queryParams = reactive({
 });
 
 const tableData = ref<InsuranceProduct[]>([]);
-const total = ref(922);
+const total = ref(0);
 
-const handleSelectionChange = () => {
-  // 预留选择功能
-};
+const handleSelectionChange = () => {};
 
-/** 获取列表 */
 const getList = () => {
   loading.value = true;
   const params = {
@@ -286,7 +278,6 @@ const getList = () => {
   });
 };
 
-// 搜索与重置
 const handleQuery = () => {
   queryParams.pageNum = 1;
   getList();
@@ -436,7 +427,6 @@ const handlePageSizeChange = (size: number) => {
   getList();
 };
 
-// 初始化
 onMounted(() => {
   getList();
 });
@@ -506,8 +496,6 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
-
-
 
 .pagination {
   display: flex;
