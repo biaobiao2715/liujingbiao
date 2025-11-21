@@ -114,24 +114,6 @@
         </el-col>
       </el-row>
 
-      <FormHeader title="企业信息" />
-      <el-row :gutter="20" :class="!disabledIf ? 'detail-form' : ''">
-        <el-col :span="12">
-          <el-form-item label="资质等级">
-            <el-select v-model="formData.credentialLevel" placeholder="请选择资质等级" filterable clearable :disabled="!disabledIf">
-              <el-option v-for="dict in plat_qualification_grade" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="信用等级">
-            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable :disabled="!disabledIf">
-              <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
       <FormHeader title="资料清单" />
       <el-table :data="formData.folders" border>
         <el-table-column type="index" label="序号" width="55" align="center" />
@@ -147,70 +129,6 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 企业画像 -->
-      <el-form :model="activityInfo" label-width="140px" v-if="formData.reviewStatus === '1'">
-        <FormHeader title="企业画像" />
-        <el-segmented v-model="enterpriseProfileType" :options="enterpriseProfileTypeOptions" class="mb-12" />
-
-        <!-- 交易活动 -->
-        <div v-show="enterpriseProfileType === '1'">
-          <el-row>
-            <el-col :span="12">
-              <el-form-item label="近7日交易量">
-                {{ activityInfo.transactionActivity?.transactionCount || '' }}
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="最近一笔交易时间">
-                {{ activityInfo.transactionActivity?.lastTransactionTime || '' }}
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="12">
-              <el-form-item label="最后系统登录时间">
-                {{ activityInfo.transactionActivity?.loginDate || '' }}
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-table :data="activityInfo.transactionActivity.orders" border>
-            <el-table-column type="index" label="序号" width="100"></el-table-column>
-            <el-table-column prop="createTime" label="交易时间"> </el-table-column>
-            <el-table-column prop="orderSn" label="订单编号"></el-table-column>
-            <el-table-column prop="orderStatus" label="订单状态">
-              <template #default="scope">
-                {{
-                  scope.row.orderStatus === 1 ? '待发货' : scope.row.orderStatus === 2 ? '已发货' : scope.row.orderStatus === 3 ? '已完成' : '已取消'
-                }}
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <div v-show="enterpriseProfileType === '2'">
-          <el-table :data="activityInfo.violationRecords" border>
-            <el-table-column type="index" label="序号" width="100"></el-table-column>
-            <el-table-column prop="closeCaseTime" label="违规时间"> </el-table-column>
-            <el-table-column prop="dealResult" label="违规描述"></el-table-column>
-          </el-table>
-        </div>
-      </el-form>
-
-      <div v-if="operateMode !== 'edit'" :class="!disabledIf ? 'detail-form' : ''">
-        <FormHeader title="审核意见" />
-        <el-form-item label="审核意见">
-          <el-input v-model="formData.reviewRemark" type="textarea" maxlength="200" :rows="3" :disabled="!disabledIf"></el-input>
-        </el-form-item>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
-        <el-button v-throttle type="danger" @click="cancelAudit(99)">审核退回</el-button>
-        <el-button v-throttle type="success" @click="cancelAudit(1)">审核通过</el-button>
-      </div>
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-        <el-button v-throttle type="primary" @click="handleSave">保存</el-button>
-      </div>
 
       <div style="height: 20px"></div>
     </el-form>
@@ -229,24 +147,18 @@ const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<a
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
 
-// 通过 props 接收父组件传参
-const props = defineProps<{
-  id: string | number;
-  type: 'view' | 'edit' | 'audit';
-}>();
 // 子组件对外事件
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'cancel'): void;
 }>();
-
+const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: true
+  }
+});
 const loading = ref(false);
-
-// 操作模式来源于 props
-const operateMode = ref(props.type);
-// 编辑/详情模式
-const disabledIf = ref(true);
-disabledIf.value = props.type !== 'view';
 
 const formData = ref<FormData>({
   id: undefined,
@@ -291,13 +203,6 @@ const idType = ref('身份认证');
 const areaCodes = ref('');
 
 const contactZ = ref([]); // 自然人
-
-const enterpriseProfileType = ref('1'); // 企业画像类型 1：交易活跃度 2：违规记录
-
-const enterpriseProfileTypeOptions = ref([
-  { label: '交易活跃度', value: '1' },
-  { label: '违规记录', value: '2' }
-]);
 
 const contactF = ref({
   // 法人联系人信息

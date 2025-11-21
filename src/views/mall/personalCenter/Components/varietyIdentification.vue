@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item label="品种类型" prop="varietyType">
           <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
-            <el-option v-for="dict in varietyTypeOptions" :key="dict.id" :label="dict.varietyType" :value="dict.varietyType" />
+            <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -222,7 +222,7 @@ onMounted(() => {
   getList();
   // 查询品种识别类别
   varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.rows;
+    varietyTypeOptions.value = res.data;
   });
 });
 </script>

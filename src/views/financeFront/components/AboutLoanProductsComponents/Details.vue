@@ -108,7 +108,7 @@ const revealAmount = () => {
 
 // 立即申请
 const handleApply = () => {
-  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentEdit' });
+  eventBus.emit('LoanProductsComponentApplyForm', { type: 'LoanProductsComponentEdit' });
 };
 
 onMounted(() => {
