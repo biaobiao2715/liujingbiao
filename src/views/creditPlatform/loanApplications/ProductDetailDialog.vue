@@ -12,55 +12,27 @@
         </div>
         <div class="info-item">
           <span class="label">产品类型：</span>
-          <span class="value">
-            <dict-tag :options="prod_credit_type" :value="productDetail.productType" />
-          </span>
+          <span class="value">{{ productTypeText }}</span>
         </div>
         <div class="info-item">
           <span class="label">适用对象：</span>
-          <span class="value">
-            <dict-tag :options="applicable_object" :value="typeof productDetail.applicableObject === 'string' ? productDetail.applicableObject.split(',') : productDetail.applicableObject" />
-          </span>
+          <span class="value">{{ applicableObjectText }}</span>
         </div>
         <div class="info-item range">
           <span class="label">可贷金额：</span>
-          <span class="value">
-            <template v-if="productDetail.minLoanAmount !== null && productDetail.minLoanAmount !== undefined && productDetail.maxLoanAmount !== null && productDetail.maxLoanAmount !== undefined">
-              <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
-                {{ productDetail.minLoanAmount }} 万元
-              </template>
-              <template v-else>
-                {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
-              </template>
-            </template>
-            <template v-else>--</template>
-          </span>
+          <span class="value">{{ loanAmountRangeText }}</span>
         </div>
         <div class="info-item range">
           <span class="label">利率/费率：</span>
-          <span class="value">
-            <template v-if="productDetail.baseInterestRate !== null && productDetail.baseInterestRate !== undefined && productDetail.floatInterestRate !== null && productDetail.floatInterestRate !== undefined">
-              <template v-if="productDetail.baseInterestRate === productDetail.floatInterestRate">
-                {{ productDetail.baseInterestRate }}%
-              </template>
-              <template v-else>
-                {{ productDetail.baseInterestRate }}% — {{ productDetail.floatInterestRate }}%
-              </template>
-            </template>
-            <template v-else>--</template>
-          </span>
+          <span class="value">{{ interestRateRangeText }}</span>
         </div>
         <div class="info-item">
           <span class="label">可贷周期：</span>
-          <span class="value">
-            <dict-tag :options="loan_cycle" :value="typeof productDetail.loanCycle === 'string' ? productDetail.loanCycle.split(',') : productDetail.loanCycle" />
-          </span>
+          <span class="value">{{ loanCycleText }}</span>
         </div>
         <div class="info-item">
           <span class="label">还款方式：</span>
-          <span class="value">
-            <dict-tag :options="repayment_method" :value="typeof productDetail.repaymentMethod === 'string' ? productDetail.repaymentMethod.split(',') : productDetail.repaymentMethod" />
-          </span>
+          <span class="value">{{ repaymentMethodText }}</span>
         </div>
       </div>
 
@@ -155,6 +127,89 @@ const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = to
 
 const loading = ref(false);
 const productDetail = ref<any>({});
+
+const normalizeArrayValue = (value: unknown) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value.split(',').map((item) => item.trim());
+  }
+  if (value !== undefined && value !== null) {
+    return [value];
+  }
+  return [];
+};
+
+const getDictLabel = (dictList: any[] = [], value: string | number | undefined | null) => {
+  if (value === undefined || value === null || dictList.length === 0) return '--';
+  const match = dictList.find((item) => String(item.value) === String(value));
+  return match?.label || '--';
+};
+
+const getDictLabels = (dictList: any[] = [], value: unknown) => {
+  if (!dictList.length) return '--';
+  const values = normalizeArrayValue(value);
+  if (!values.length) return '--';
+  const labels = values
+    .map((item) => getDictLabel(dictList, item))
+    .filter((label) => label && label !== '--');
+  return labels.length ? labels.join('、') : '--';
+};
+
+const formatRangeText = (min?: number | string | null, max?: number | string | null, unit = '') => {
+  const hasMin = min !== undefined && min !== null && min !== '';
+  const hasMax = max !== undefined && max !== null && max !== '';
+  if (!hasMin && !hasMax) return '--';
+  if (hasMin && hasMax) {
+    if (Number(min) === Number(max)) {
+      return `${min}${unit}`;
+    }
+    return `${min}${unit} - ${max}${unit}`;
+  }
+  if (hasMin) return `${min}${unit}`;
+  return `${max}${unit}`;
+};
+
+const productTypeText = computed(() => getDictLabel(prod_credit_type?.value, productDetail.value.productType));
+
+const applicableObjectText = computed(() => getDictLabels(applicable_object?.value, productDetail.value.applicableObject));
+
+const loanAmountRangeText = computed(() =>
+  formatRangeText(productDetail.value.minLoanAmount, productDetail.value.maxLoanAmount, '万元')
+);
+
+const interestRateRangeText = computed(() => {
+  const { baseInterestRate, floatInterestRate } = productDetail.value;
+  if (
+    baseInterestRate === null ||
+    baseInterestRate === undefined ||
+    floatInterestRate === null ||
+    floatInterestRate === undefined
+  ) {
+    return '--';
+  }
+  if (Number(baseInterestRate) === Number(floatInterestRate)) {
+    return `${baseInterestRate}%`;
+  }
+  return `${baseInterestRate}% - ${floatInterestRate}%`;
+});
+
+const loanCycleText = computed(() => getDictLabels(loan_cycle?.value, productDetail.value.loanCycle));
+
+const repaymentMethodLabelsMap: Record<string, string> = {
+  '0': '等额本息',
+  '2': '等额本金',
+  '3': '先息后本',
+  '4': '先本后息'
+};
+
+const repaymentMethodText = computed(() => {
+  const values = normalizeArrayValue(productDetail.value.repaymentMethod);
+  if (!values.length) return '--';
+  const labels = values
+    .map((item) => repaymentMethodLabelsMap[String(item)] || getDictLabel(repayment_method?.value, item))
+    .filter((label) => label && label !== '--');
+  return labels.length ? labels.join('、') : '--';
+});
 
 const cooperationFileList = computed<UploadFile[]>(() => {
   if (productDetail.value.ossFileVo && Array.isArray(productDetail.value.ossFileVo) && productDetail.value.ossFileVo.length > 0) {

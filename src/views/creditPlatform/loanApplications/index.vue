@@ -235,7 +235,7 @@ const openRepaymentPlan = (row: LoanApplication) => {
   const loanAmount = Number(row.loanAmount) || 0;
   // 计算每期还款金额（整数），如果贷款总额为0则默认为0
   const perPeriodAmount = loanTerm > 0 ? Math.floor(loanAmount / loanTerm) : 0;
-  
+
   repaymentData.value = {
     contractFiles: row.contractFiles || [],
     plans: Array.from({ length: loanTerm }, (_, index) => ({

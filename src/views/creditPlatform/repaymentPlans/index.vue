@@ -11,15 +11,10 @@
       <el-form-item label="产品名称" prop="productName">
         <el-input v-model="queryParams.productName" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="适用对象" prop="applicableObject">
-        <el-select v-model="queryParams.applicableObject" placeholder="全部" clearable>
+      <el-form-item label="适用对象" prop="lenderTyp">
+        <el-select v-model="queryParams.lenderTyp" placeholder="全部" clearable>
           <el-option label="全部" value="" />
-          <el-option
-            v-for="dict in applicable_object"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label-width="0">
@@ -33,9 +28,9 @@
       <el-table-column label="申请人" prop="realName" align="center" width="120" />
       <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />
       <el-table-column label="产品类型" prop="productType" align="center" width="120" />
-      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
+      <el-table-column label="适用对象" prop="lenderTyp" align="center" width="120">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
+          <dict-tag :options="applicable_object" :value="scope.row.lenderTyp" />
         </template>
       </el-table-column>
       <el-table-column label="贷款金额(元)" prop="loanAmount" align="center" width="140" />
@@ -72,24 +67,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue'
-import type { ComponentInternalInstance } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 interface RepaymentPlan {
-  id: number | string
-  realName: string
-  productName: string
-  productType?: string
-  applicableObject: string
-  loanAmount?: string | number
-  loanTerm?: string | number
-  approvalTime?: string
-  loanStatus?: string
+  id: number | string;
+  realName: string;
+  productName: string;
+  productType?: string;
+  lenderTyp: string;
+  loanAmount?: string | number;
+  loanTerm?: string | number;
+  approvalTime?: string;
+  loanStatus?: string;
 }
 
-const { proxy } = getCurrentInstance() as ComponentInternalInstance
-const { applicable_object } = toRefs<any>(proxy?.useDict('applicable_object'))
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { applicable_object } = toRefs<any>(proxy?.useDict('applicable_object'));
 
 const mockData: RepaymentPlan[] = [
   {
@@ -97,7 +92,7 @@ const mockData: RepaymentPlan[] = [
     realName: '张三',
     productName: '农户信贷产品A',
     productType: '1',
-    applicableObject: 'farmer',
+    lenderTyp: 'farmer',
     loanAmount: 100000,
     loanTerm: 12,
     approvalTime: '2025-01-01 10:00:00',
@@ -108,7 +103,7 @@ const mockData: RepaymentPlan[] = [
     realName: '李四',
     productName: '农户信贷产品B',
     productType: '1',
-    applicableObject: 'farmer',
+    lenderTyp: 'farmer',
     loanAmount: 50000,
     loanTerm: 6,
     approvalTime: '2025-01-10 09:30:00',
@@ -119,87 +114,87 @@ const mockData: RepaymentPlan[] = [
     realName: '测试种子公司',
     productName: '企业信贷产品C',
     productType: '2',
-    applicableObject: 'enterprise',
+    lenderTyp: 'enterprise',
     loanAmount: 300000,
     loanTerm: 24,
     approvalTime: '2025-02-05 15:20:00',
     loanStatus: '逾期'
   }
-]
+];
 
-const queryFormRef = ref()
+const queryFormRef = ref();
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   realName: '',
   productName: '',
-  applicableObject: ''
-})
+  lenderTyp: ''
+});
 
-const tableData = ref<RepaymentPlan[]>([])
-const total = ref(0)
-const loading = ref(false)
+const tableData = ref<RepaymentPlan[]>([]);
+const total = ref(0);
+const loading = ref(false);
 
 const applyFilter = () => {
-  const { realName, productName, applicableObject } = queryParams.value
-  let data = [...mockData]
+  const { realName, productName, lenderTyp } = queryParams.value;
+  let data = [...mockData];
   if (realName) {
-    data = data.filter((item) => item.realName.includes(realName))
+    data = data.filter((item) => item.realName.includes(realName));
   }
   if (productName) {
-    data = data.filter((item) => item.productName.includes(productName))
+    data = data.filter((item) => item.productName.includes(productName));
   }
-  if (applicableObject) {
-    data = data.filter((item) => item.applicableObject === applicableObject)
+  if (lenderTyp) {
+    data = data.filter((item) => item.lenderTyp === lenderTyp);
   }
-  total.value = data.length
+  total.value = data.length;
   // 简单分页
-  const start = (queryParams.value.pageNum - 1) * queryParams.value.pageSize
-  const end = start + queryParams.value.pageSize
-  tableData.value = data.slice(start, end)
-}
+  const start = (queryParams.value.pageNum - 1) * queryParams.value.pageSize;
+  const end = start + queryParams.value.pageSize;
+  tableData.value = data.slice(start, end);
+};
 
 const getList = () => {
-  loading.value = true
+  loading.value = true;
   setTimeout(() => {
-    applyFilter()
-    loading.value = false
-  }, 300)
-}
+    applyFilter();
+    loading.value = false;
+  }, 300);
+};
 
 const handleQuery = () => {
-  queryParams.value.pageNum = 1
-  getList()
-}
+  queryParams.value.pageNum = 1;
+  getList();
+};
 
 const resetQuery = () => {
-  queryFormRef.value?.resetFields()
-  queryParams.value.pageNum = 1
-  getList()
-}
+  queryFormRef.value?.resetFields();
+  queryParams.value.pageNum = 1;
+  getList();
+};
 
 const handlePageChange = (page: number) => {
-  queryParams.value.pageNum = page
-  getList()
-}
+  queryParams.value.pageNum = page;
+  getList();
+};
 
 const handlePageSizeChange = (size: number) => {
-  queryParams.value.pageSize = size
-  queryParams.value.pageNum = 1
-  getList()
-}
+  queryParams.value.pageSize = size;
+  queryParams.value.pageNum = 1;
+  getList();
+};
 
 const handleComplete = (row: RepaymentPlan) => {
-  ElMessage.info(`完善信息：${row.productName}`)
-}
+  ElMessage.info(`完善信息：${row.productName}`);
+};
 
 const handleRepayment = (row: RepaymentPlan) => {
-  ElMessage.info(`查看还款情况：${row.productName}`)
-}
+  ElMessage.info(`查看还款情况：${row.productName}`);
+};
 
 const handleDetail = (row: RepaymentPlan) => {
-  ElMessage.info(`查看详情：${row.productName}`)
-}
+  ElMessage.info(`查看详情：${row.productName}`);
+};
 
 const handleDelete = (row: RepaymentPlan) => {
   ElMessageBox.confirm(`确定删除 ${row.productName} 的还款记录吗？（演示数据）`, '提示', {
@@ -208,16 +203,16 @@ const handleDelete = (row: RepaymentPlan) => {
     type: 'warning'
   })
     .then(() => {
-      ElMessage.success('删除成功（演示）')
+      ElMessage.success('删除成功（演示）');
     })
     .catch(() => {
-      ElMessage.info('已取消删除')
-    })
-}
+      ElMessage.info('已取消删除');
+    });
+};
 
 onMounted(() => {
-  getList()
-})
+  getList();
+});
 </script>
 
 <style scoped lang="scss">
@@ -263,4 +258,3 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 </style>
-
