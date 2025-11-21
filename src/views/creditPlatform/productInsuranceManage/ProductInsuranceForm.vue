@@ -80,23 +80,38 @@
         />
       </el-form-item>
 
-      <el-form-item label="网点清单" prop="branchOfficeAttachment">
-        <div class="attachment-upload" v-loading="uploadLoading">
-          <el-upload
-            class="upload-block"
-            :file-list="attachmentFileList"
-            :http-request="handleAttachmentUpload"
-            :before-upload="beforeAttachmentUpload"
-            :on-remove="handleAttachmentRemove"
-            accept=".pdf"
-            :limit="1"
-            :disabled="uploadLoading"
-            action=""
-            list-type="text"
-          >
-            <el-button type="primary" plain>上传PDF文件</el-button>
-          </el-upload>
-          <p class="attachment-tip">注：请上传PDF文件，大小不超过 10MB</p>
+      <el-form-item label="网点清单" prop="branchOfficeAttachment" required>
+        <div class="attachment-upload-wrapper" v-loading="uploadLoading">
+          <div class="attachment-content">
+            <div v-if="attachmentFileList.length > 0" class="uploaded-file-box">
+              <el-icon class="file-icon"><Document /></el-icon>
+              <span class="file-name">{{ attachmentFileList[0].name || '网点清单.pdf' }}</span>
+              <el-icon class="delete-icon" @click="handleAttachmentRemove" v-if="!uploadLoading">
+                <Close />
+              </el-icon>
+            </div>
+            <el-upload
+              :key="uploadKey"
+              ref="uploadRef"
+              class="upload-box"
+              :http-request="handleAttachmentUpload"
+              :before-upload="beforeAttachmentUpload"
+              accept=".pdf"
+              :limit="1"
+              :disabled="uploadLoading"
+              :show-file-list="false"
+              action=""
+              :on-exceed="handleExceed"
+            >
+              <div class="upload-trigger">
+                <el-icon class="plus-icon"><Plus /></el-icon>
+              </div>
+            </el-upload>
+            <span class="upload-tip">注: 请上传PDF文件</span>
+          </div>
+          <div v-if="showReplaceTip" class="replace-tip">
+            请删除后重新上传
+          </div>
         </div>
       </el-form-item>
 
@@ -114,6 +129,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Document, Close, Plus } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage';
@@ -137,9 +153,12 @@ const { product_insurance_type, applicable_object, product_status } = toRefs<any
 );
 
 const formRef = ref<FormInstance>();
+const uploadRef = ref();
 const saving = ref(false);
 const loading = ref(false);
 const uploadLoading = ref(false);
+const showReplaceTip = ref(false);
+const uploadKey = ref(0);
 const advantagesEditorKey = ref(0);
 const guaranteePlanEditorKey = ref(0);
 const applicationEditorKey = ref(0);
@@ -266,6 +285,14 @@ const handleSubmit = () => {
 };
 
 const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
+  if (attachmentFileList.value.length > 0) {
+    showReplaceTip.value = true;
+    setTimeout(() => {
+      showReplaceTip.value = false;
+    }, 3000);
+    return false;
+  }
+  
   const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   if (!isPdf) {
     ElMessage.error('仅支持上传 PDF 文件');
@@ -285,16 +312,22 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   try {
     const response = await ossUploadImage({ file: file as File });
     if (response.code === 200 && response.data?.ossId) {
+      const fileName = response.data.fileName || (file as File).name;
+      const displayName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
       formData.value.branchOfficeAttachment = response.data.ossId;
-      formData.value.branchOfficeAttachmentName = response.data.fileName || (file as File).name;
+      formData.value.branchOfficeAttachmentName = displayName;
       attachmentFileList.value = [
         buildUploadFileItem({
           ossId: response.data.ossId,
-          name: formData.value.branchOfficeAttachmentName,
+          name: displayName,
           url: response.data.url
         })
       ];
       ElMessage.success('附件上传成功');
+      showReplaceTip.value = false;
+      if (formRef.value) {
+        formRef.value.validateField('branchOfficeAttachment');
+      }
       onSuccess?.(response);
     } else {
       throw new Error(response?.msg || '上传失败');
@@ -307,68 +340,111 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   }
 };
 
-const handleAttachmentRemove: UploadProps['onRemove'] = () => {
+const handleExceed: UploadProps['onExceed'] = () => {};
+
+const handleAttachmentRemove = () => {
   attachmentFileList.value = [];
   formData.value.branchOfficeAttachment = null;
   formData.value.branchOfficeAttachmentName = '';
+  showReplaceTip.value = false;
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles();
+  }
+  uploadKey.value += 1;
+  if (formRef.value) {
+    formRef.value.validateField('branchOfficeAttachment');
+  }
 };
 
 const emitCancel = () => {
   emit('cancel');
 };
 
+const formatFileName = (fileName: string | undefined | null): string => {
+  if (!fileName) return '网点清单.pdf';
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    return fileName;
+  }
+  return `${fileName}.pdf`;
+};
+
 const syncAttachmentFromDetail = async (data: any) => {
-  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
-  if (ossList.length > 0) {
-    attachmentFileList.value = ossList.map((file: any) =>
+  if (data?.remoteFile && data.remoteFile.ossId) {
+    const remoteFile = data.remoteFile;
+    const fileName = remoteFile.originalName || remoteFile.name || data.branchOfficeAttachmentName || '网点清单';
+    const displayName = formatFileName(fileName);
+    
+    attachmentFileList.value = [
       buildUploadFileItem({
-        ossId: file.ossId,
-        name: file.fileName || file.name || data.branchOfficeAttachmentName || '网点清单',
-        url: file.url || file.fileUrl || data.branchOfficeAttachmentUrl || ''
+        ossId: remoteFile.ossId,
+        name: displayName,
+        url: remoteFile.url || data.branchOfficeAttachmentUrl || ''
       })
-    );
-    formData.value.branchOfficeAttachment = ossList[0].ossId || data.branchOfficeAttachment || null;
-    formData.value.branchOfficeAttachmentName =
-      ossList[0].fileName || ossList[0].name || data.branchOfficeAttachmentName || '网点清单';
+    ];
+    formData.value.branchOfficeAttachment = remoteFile.ossId || data.branchOfficeAttachment || null;
+    formData.value.branchOfficeAttachmentName = displayName;
     return;
   }
+  
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    const firstFile = ossList[0];
+    const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.branchOfficeAttachmentName || '网点清单';
+    const displayName = formatFileName(fileName);
+    
+    attachmentFileList.value = [
+      buildUploadFileItem({
+        ossId: firstFile.ossId,
+        name: displayName,
+        url: firstFile.url || firstFile.fileUrl || data.branchOfficeAttachmentUrl || ''
+      })
+    ];
+    formData.value.branchOfficeAttachment = firstFile.ossId || data.branchOfficeAttachment || null;
+    formData.value.branchOfficeAttachmentName = displayName;
+    return;
+  }
+  
   if (data?.branchOfficeAttachment) {
     try {
       const ossResponse: any = await listByIds(data.branchOfficeAttachment);
       const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
       if (Array.isArray(ossData) && ossData.length > 0) {
-        attachmentFileList.value = ossData.map((file: any) =>
-          buildUploadFileItem({
-            ossId: file.ossId,
-            name: file.originalName || file.fileName || data.branchOfficeAttachmentName || '网点清单',
-            url: file.url || file.fileUrl || ''
-          })
-        );
         const firstFile = ossData[0];
-        formData.value.branchOfficeAttachment = firstFile?.ossId || data.branchOfficeAttachment || null;
-        formData.value.branchOfficeAttachmentName =
-          firstFile?.originalName || firstFile?.fileName || data.branchOfficeAttachmentName || '网点清单';
+        const fileName = firstFile.originalName || firstFile.fileName || data.branchOfficeAttachmentName || '网点清单';
+        const displayName = formatFileName(fileName);
+        
+        attachmentFileList.value = [
+          buildUploadFileItem({
+            ossId: firstFile.ossId,
+            name: displayName,
+            url: firstFile.url || firstFile.fileUrl || ''
+          })
+        ];
+        formData.value.branchOfficeAttachment = firstFile.ossId || data.branchOfficeAttachment || null;
+        formData.value.branchOfficeAttachmentName = displayName;
       } else {
+        const displayName = formatFileName(data.branchOfficeAttachmentName);
         attachmentFileList.value = [
           buildUploadFileItem({
             ossId: data.branchOfficeAttachment,
-            name: data.branchOfficeAttachmentName || '网点清单',
+            name: displayName,
             url: data.branchOfficeAttachmentUrl || ''
           })
         ];
         formData.value.branchOfficeAttachment = data.branchOfficeAttachment;
-        formData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+        formData.value.branchOfficeAttachmentName = displayName;
       }
     } catch (error) {
+      const displayName = formatFileName(data.branchOfficeAttachmentName);
       attachmentFileList.value = [
         buildUploadFileItem({
           ossId: data.branchOfficeAttachment,
-          name: data.branchOfficeAttachmentName || '网点清单',
+          name: displayName,
           url: data.branchOfficeAttachmentUrl || ''
         })
       ];
       formData.value.branchOfficeAttachment = data.branchOfficeAttachment;
-      formData.value.branchOfficeAttachmentName = data.branchOfficeAttachmentName || '网点清单';
+      formData.value.branchOfficeAttachmentName = displayName;
     }
     return;
   }
@@ -432,15 +508,99 @@ onMounted(() => {
   border-left: 4px solid #409eff;
 }
 
-.attachment-upload {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.attachment-upload-wrapper {
+  width: 100%;
 
-  .attachment-tip {
-    font-size: 12px;
-    color: #909399;
-    margin: 0;
+  .attachment-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+  }
+
+  .uploaded-file-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    background-color: #fff;
+    min-width: 150px;
+    max-width: 300px;
+    position: relative;
+
+    .file-icon {
+      font-size: 18px;
+      color: #409eff;
+      flex-shrink: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
+      color: #606266;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .delete-icon {
+      font-size: 16px;
+      color: #909399;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-left: 4px;
+
+      &:hover {
+        color: #f56c6c;
+      }
+    }
+  }
+
+  .upload-box {
+    display: inline-block;
+    flex-shrink: 0;
+
+    .upload-trigger {
+      width: 80px;
+      height: 80px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      background-color: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        border-color: #409eff;
+        background-color: #f0f9ff;
+      }
+
+      .plus-icon {
+        font-size: 28px;
+        color: #909399;
+      }
+
+      &:hover .plus-icon {
+        color: #409eff;
+      }
+    }
+  }
+
+  .upload-tip {
+    font-size: 14px;
+    color: #f56c6c;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .replace-tip {
+    margin-top: 8px;
+    color: #f56c6c;
+    font-size: 14px;
   }
 }
 

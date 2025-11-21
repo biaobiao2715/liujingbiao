@@ -48,8 +48,18 @@ export const updateKnowledgeCase = (data: any) =>
   });
 
 // 删除知识库案件
+// 接口文档：DELETE /safeguard-server/knowledgeCaseContent/{ids}
+// Path参数：ids (array[integer]) - 主键串
 export const deleteKnowledgeCase = (ids: string | number | Array<string | number>) => {
-  const idPath = Array.isArray(ids) ? ids.join(',') : ids;
+  // 确保ids始终是数组格式
+  const idsArray = Array.isArray(ids) ? ids : [ids];
+  // 过滤掉无效值并转换为字符串
+  const validIds = idsArray.filter(id => id !== undefined && id !== null && id !== '');
+  if (validIds.length === 0) {
+    throw new Error('ids参数不能为空');
+  }
+  // 将数组转换为逗号分隔的字符串作为路径参数
+  const idPath = validIds.join(',');
   return request({
     url: `/safeguard-server/knowledgeCaseContent/${idPath}`,
     method: 'delete'

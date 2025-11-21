@@ -55,3 +55,21 @@ export function reportcount(data: any) {
     data
   });
 }
+
+/* 查询举报分析（新接口） */
+export function getReportCountAnalysis(params: any) {
+  return request({
+    url: 'safeguard-server/reportCount/count',
+    method: 'post',
+    params
+  });
+}
+
+/* 查询举报分析地图（按省份） */
+export function getReportCountByProvince(params: any) {
+  return request({
+    url: 'safeguard-server/reportCount/countByProvinceCode',
+    method: 'post',
+    params
+  });
+}
