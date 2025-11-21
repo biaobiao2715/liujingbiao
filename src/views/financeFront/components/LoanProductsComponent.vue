@@ -9,7 +9,7 @@
   <div class="loan-products">
     <div class="section-title flex-center-between mb-12">
       <div>信贷产品</div>
-      <div class="more">查看更多 >></div>
+      <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <el-row :gutter="20">
       <el-col :span="8" v-for="product in products" :key="product.id">
@@ -17,7 +17,7 @@
           <span class="tag">热门</span>
 
           <div class="header">
-            <div class="flex-center gap-8">
+            <div class="flex-center favorite gap-8" @click="handleFavorite(product)">
               <span class="name">{{ product.productName }}</span>
               <el-icon size="20" color="#ccc" v-if="!product.isFavorite"><StarFilled /></el-icon>
               <el-icon size="20" color="#108c58" v-else> <StarFilled /></el-icon>
@@ -64,7 +64,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { getCreditProductsVersionNoTenantList } from '@/api/financeFront/LoanProducts/index';
-const emit = defineEmits(['detailChange']);
+import { addToFavorites } from '@/api/mall/index';
+import { eventBus } from '@/utils/eventBus';
 
 const products = ref([]);
 
@@ -85,7 +86,27 @@ const fetchProducts = async () => {
   }
 };
 const handleDetail = (row: any) => {
-  emit('detailChange', { type: 'LoanProductsComponentDetails', id: row.id });
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentDetails', id: row.id });
+};
+
+// 查看更多
+const handleMore = () => {
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentList' });
+};
+
+// 收藏产品
+const handleFavorite = async (item: any) => {
+  const res = await addToFavorites({
+    favoriteType: '6',
+    creditProductFavoritesBo: {
+      productId: item.productId,
+      productVersion: item.productVersion
+    }
+  });
+  if (res.code === 200) {
+    item.isFavorite = !item.isFavorite;
+    ElMessage.success(item.isFavorite ? '收藏成功' : '取消收藏成功');
+  }
 };
 </script>
 
@@ -130,7 +151,9 @@ const handleDetail = (row: any) => {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-
+      .favorite {
+        cursor: pointer;
+      }
       .name {
         font-size: 16px;
         font-weight: bold;

@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item label="品种类型" prop="varietyType">
           <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
-            <el-option v-for="dict in varietyTypeOptions" :key="dict.id" :label="dict.varietyType" :value="dict.varietyType" />
+            <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -60,7 +60,7 @@
         </el-table-column>
         <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.fileName }}</span>
+            <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName }}</span>
           </template>
         </el-table-column>
         <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true" />
@@ -73,7 +73,11 @@
         <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
         </el-table-column>
         <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true" />
+        <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true">
+          <template #default="scope">
+            <span style="color: #108c58">{{ scope.row.confidenceLevel }}</span>
+          </template>
+        </el-table-column>
       </el-table>
 
       <!-- 分页 -->
@@ -92,6 +96,19 @@
       width="80%"
     >
       <varietyIdentificationForm :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
+    </el-dialog>
+
+    <!-- 图片预览 -->
+    <el-dialog
+      title="预览"
+      v-model="picOpen"
+      :before-close="picPreBeforeClose"
+      class="pic-dialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <img width="100%" :src="dialogImageUrl" alt="" />
     </el-dialog>
   </div>
 </template>
@@ -120,9 +137,12 @@ const dlgPreviewVisible = ref(false);
 const dlgTitle = ref('');
 const isReadonly = ref(false);
 const selectID = ref<string | number>('');
-const selectType = ref<'view' | 'edit' | 'audit'>('view');
+const selectType = ref<'view' | 'add'>('view');
 // 品种识别类别
 const varietyTypeOptions = ref([]);
+// 图片预览
+const picOpen = ref(false);
+const dialogImageUrl = ref('');
 
 /** 查询企业列表 */
 const getList = () => {
@@ -149,21 +169,12 @@ const handleReset = () => {
   handleSearch();
 };
 
-// 打开对话框：审核/查看/编辑
-const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
-  selectID.value = row.id;
-  selectType.value = type;
-  isReadonly.value = type === 'view';
-  dlgTitle.value = type === 'audit' ? '识别审核' : type === 'edit' ? '识别编辑' : '识别详情';
-  dlgPreviewVisible.value = true;
-};
-
 // 新增：打开表单对话框
 const handleAdd = () => {
   selectID.value = '';
-  selectType.value = 'edit';
+  selectType.value = 'add';
   isReadonly.value = false;
-  dlgTitle.value = '新增品种识别';
+  dlgTitle.value = '新增作物';
   dlgPreviewVisible.value = true;
 };
 
@@ -174,7 +185,7 @@ const handleExport = () => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  const fileName = `品种识别管理_${year}-${month}-${day}.xlsx`;
+  const fileName = `品种识别管理_${year}-${month}-${day}.excel`;
   // 解构查询参数
   const { pageNum, pageSize, ...daochu } = queryParams.value;
 
@@ -195,11 +206,23 @@ const refreshData = () => {
   getList();
 };
 
+// 预览关闭
+const picPreBeforeClose = () => {
+  dialogImageUrl.value = '';
+  picOpen.value = false;
+};
+// 预览
+const handlePictureCardPreview = (file: any) => {
+  console.log('预览图片', file);
+  // dialogImageUrl.value = file.url;
+  // picOpen.value = true;
+};
+
 onMounted(() => {
   getList();
   // 查询品种识别类别
   varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.rows;
+    varietyTypeOptions.value = res.data;
   });
 });
 </script>

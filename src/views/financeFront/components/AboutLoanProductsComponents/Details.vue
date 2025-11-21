@@ -19,16 +19,32 @@
             <div class="kpi-list-li-text">最高额度</div>
           </div>
           <div class="kpi-list-li">
-            <div>500万</div>
+            <div class="kpi-list-li-num">500万</div>
             <div class="kpi-list-li-text">最高额度</div>
           </div>
           <div class="kpi-list-li">
-            <div>500万</div>
+            <div class="kpi-list-li-num">500万</div>
             <div class="kpi-list-li-text">最高额度</div>
           </div>
         </div>
       </div>
-      <div class="item-right" v-if="addDisplay"></div>
+      <div class="item-right" v-if="addShow">
+        <div class="loan-card">
+          <div class="loan-card__title">
+            <span class="loan-card__title-line"></span>
+            <span class="loan-card__title-text">可贷款金额预估</span>
+            <span class="loan-card__title-line"></span>
+          </div>
+          <div class="loan-card__field-label">贷款金额（万元）</div>
+          <div class="loan-card__amount-box">
+            {{ showAmount ? estimatedAmount : '*******' }}
+          </div>
+          <div class="loan-card__actions">
+            <el-button type="primary" class="loan-btn-main" @click="revealAmount">查看可贷金额</el-button>
+            <el-button class="loan-btn-outline" plain @click="handleApply">立即申请</el-button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="detail-content">
@@ -60,6 +76,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { eventBus } from '@/utils/eventBus';
 import { getInsuranceProductsVersion } from '@/api/financeFront/Insuranceproduct/index';
 const props = defineProps({
   id: {
@@ -81,7 +98,18 @@ const form = ref({
   branchOfficeAttachment: '',
   productRemark: ''
 });
-const addDisplay = ref(true);
+const addShow = ref(true);
+const showAmount = ref(false);
+const estimatedAmount = ref('100.56');
+
+const revealAmount = () => {
+  showAmount.value = !showAmount.value;
+};
+
+// 立即申请
+const handleApply = () => {
+  eventBus.emit('LoanProductsComponentApplyForm', { type: 'LoanProductsComponentEdit' });
+};
 
 onMounted(() => {
   getArticleDetail();
@@ -115,8 +143,102 @@ const getArticleDetail = async () => {
   width: 317px;
   height: 305px;
   background: #ffffff;
-  border-radius: 8px 8px 8px 8px;
+  border-radius: 8px;
   flex: 0 0 317px;
+  padding: 0 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 贷款卡片内部布局 */
+.loan-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+}
+.loan-card__title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 23px;
+}
+.loan-card__title-text {
+  height: 24px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 20px;
+  color: #108c58;
+  line-height: 24px;
+}
+.loan-card__title-line {
+  flex: 1 1 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(16, 140, 88, 0.2) 0%, rgba(16, 140, 88, 0.6) 50%, rgba(16, 140, 88, 0.2) 100%);
+}
+.loan-card__field-label {
+  height: 24px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 400;
+  font-size: 14px;
+  color: #3d3d3d;
+  line-height: 24px;
+  margin-bottom: 10px;
+}
+.loan-card__amount-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #108c58;
+  letter-spacing: 0.5px;
+
+  width: 100%;
+  height: 32px;
+  background: #f7f8fa;
+  border-radius: 4px 4px 4px 4px;
+  margin-bottom: 43px;
+}
+
+.loan-card__actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.loan-btn-main {
+  flex: 1 1 0;
+  background: #108c58;
+  border-color: #108c58;
+  font-weight: 500;
+  height: 32px;
+  border-radius: 4px 4px 4px 4px;
+}
+.loan-btn-main:hover {
+  background: #0d7248;
+  border-color: #0d7248;
+}
+.loan-btn-outline {
+  flex: 1 1 0;
+  font-weight: 500;
+  color: #108c58;
+  border: 1px solid #108c58;
+  background: #ffffff;
+  height: 32px;
+  border-radius: 4px 4px 4px 4px;
+}
+.loan-btn-outline:hover {
+  background: rgba(16, 140, 88, 0.06);
+  color: #0d7248;
+  border-color: #0d7248;
 }
 
 .item_productName {
@@ -236,13 +358,20 @@ const getArticleDetail = async () => {
   background: rgba(255, 255, 255, 0.9);
 }
 .kpi-list-li-num {
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 30px;
+  color: #ffffff;
+  height: 41px;
+  line-height: 41px;
+  margin-bottom: 10px;
 }
 .kpi-list-li-text {
-  margin-top: 6px;
-  font-size: 12px;
-  opacity: 0.9;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 16px;
+  color: #ffffff;
+  height: 22px;
+  line-height: 22px;
 }
 </style>

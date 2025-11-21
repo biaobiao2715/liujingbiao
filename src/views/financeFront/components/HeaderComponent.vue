@@ -12,14 +12,8 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu class="dropdown-menu">
-            <el-dropdown-item command="order">我的订单</el-dropdown-item>
             <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
-            <el-dropdown-item command="question">我的提问</el-dropdown-item>
-            <el-dropdown-item command="address">地址管理</el-dropdown-item>
-            <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
-            <el-dropdown-item command="participated">我参与的</el-dropdown-item>
-            <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
-            <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
+            <el-dropdown-item command="application">信用申请管理</el-dropdown-item>
             <el-dropdown-item command="loginout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -43,14 +37,7 @@ const handleCommand = (command: string) => {
     handleLogout();
     return;
   }
-  eventBus.emit('navigateToPersonalCenter', command);
-};
-
-// 进入后台管理 拼接基础地址加路由
-const handleAdminLogin = () => {
-  const env = import.meta.env.VITE_APP_BASE_URL;
-  console.log(env);
-  window.open(env + '/index');
+  eventBus.emit('showComponentByCommand', { type: 'PersonalCenter', command });
 };
 
 // 退出登录
