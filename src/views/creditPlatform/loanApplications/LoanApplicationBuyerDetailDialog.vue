@@ -2,19 +2,19 @@
   <el-dialog :model-value="visible" width="760px" class="buyer-detail-dialog" append-to-body destroy-on-close
     :close-on-click-modal="false" @close="handleClose">
     <template #header>
-      <div class="dialog-title">贷款申请详情（采购商）</div>
+      <div class="dialog-title">{{ dialogTitle }}</div>
     </template>
     <div v-loading="loading">
-      <div class="detail-section">
-        <div class="section-title">用户信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="姓名">{{ detail.user.name }}</el-descriptions-item>
-          <el-descriptions-item label="出生年月">{{ detail.user.birthday }}</el-descriptions-item>
-          <el-descriptions-item label="身份证号">{{ detail.user.idNumber }}</el-descriptions-item>
-          <el-descriptions-item label="手机号">{{ detail.user.phone }}</el-descriptions-item>
-          <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
-          <el-descriptions-item label="身份证正反面" :span="2">
-            <template v-if="detail.user.idPhotos.length">
+    <div class="detail-section">
+      <div class="section-title">用户信息</div>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="姓名">{{ detail.user.name }}</el-descriptions-item>
+        <el-descriptions-item label="出生年月">{{ detail.user.birthday }}</el-descriptions-item>
+        <el-descriptions-item label="身份证号">{{ detail.user.idNumber }}</el-descriptions-item>
+        <el-descriptions-item label="手机号">{{ detail.user.phone }}</el-descriptions-item>
+        <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
+        <el-descriptions-item label="身份证正反面" :span="2">
+          <template v-if="detail.user.idPhotos.length">
               <el-image
                 v-for="(img, idx) in detail.user.idPhotos"
                 :key="idx"
@@ -22,27 +22,27 @@
                 :preview-src-list="detail.user.idPhotos"
                 class="identity-image"
               >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
+              <template #error>
+                <div class="image-placeholder">暂无图片</div>
+              </template>
+            </el-image>
+          </template>
+          <span v-else>--</span>
+        </el-descriptions-item>
+      </el-descriptions>
+    </div>
 
-      <div class="detail-section">
-        <div class="section-title">贷款信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="申请日期">{{ detail.loan.applyDate }}</el-descriptions-item>
-          <el-descriptions-item label="贷款金额">{{ detail.loan.amount }}</el-descriptions-item>
-          <el-descriptions-item label="还款周期">{{ detail.loan.period }}</el-descriptions-item>
-          <el-descriptions-item label="还款方式">{{ detail.loan.repaymentType }}</el-descriptions-item>
-          <el-descriptions-item label="收款卡银行">{{ detail.loan.bank }}</el-descriptions-item>
-          <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
-          <el-descriptions-item label="银行卡正反面" :span="2">
-            <template v-if="detail.loan.cardPhotos.length">
+    <div class="detail-section">
+      <div class="section-title">贷款信息</div>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="申请日期">{{ detail.loan.applyDate }}</el-descriptions-item>
+        <el-descriptions-item label="贷款金额">{{ detail.loan.amount }}</el-descriptions-item>
+        <el-descriptions-item label="还款周期">{{ detail.loan.period }}</el-descriptions-item>
+        <el-descriptions-item label="还款方式">{{ detail.loan.repaymentType }}</el-descriptions-item>
+        <el-descriptions-item label="收款卡银行">{{ detail.loan.bank }}</el-descriptions-item>
+        <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
+        <el-descriptions-item label="银行卡正反面" :span="2">
+          <template v-if="detail.loan.cardPhotos.length">
               <el-image
                 v-for="(img, idx) in detail.loan.cardPhotos"
                 :key="idx"
@@ -50,34 +50,35 @@
                 :preview-src-list="detail.loan.cardPhotos"
                 class="identity-image"
               >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
+              <template #error>
+                <div class="image-placeholder">暂无图片</div>
+              </template>
+            </el-image>
+          </template>
+          <span v-else>--</span>
+        </el-descriptions-item>
+      </el-descriptions>
+    </div>
 
-      <div class="detail-section">
-        <div class="section-title">产品信息</div>
-        <div class="product-link">
+    <div class="detail-section">
+      <div class="section-title">产品信息</div>
+      <div class="product-link">
           <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
-      </div>
+    </div>
 
-      <div class="detail-section approval-section">
-        <div class="section-title">审批信息</div>
+    <div class="detail-section approval-section">
+      <div class="section-title">审批信息</div>
         <el-alert
-          v-if="isApprovalMode"
-          title="审核通过时需填写放款日期、第一期还款日期并上传合同；审批前需确认状态为待审核。"
+          v-if="showApprovalTip"
+          :title="approvalTipMessage"
           type="warning"
           show-icon
           :closable="false"
           class="tips"
         />
         <el-form
+          v-if="showApprovalForm"
           ref="approvalFormRef"
           :model="approvalForm"
           :rules="approvalRules"
@@ -173,9 +174,9 @@
             >
               审批驳回
             </el-button>
-          </div>
+            </div>
         </el-form>
-      </div>
+    </div>
     </div>
     <template #footer>
       <el-button type="primary" @click="handleClose">返回</el-button>
@@ -316,6 +317,14 @@ const detail = computed(() => {
   }
 })
 
+const applyStatusMap: Record<string, string> = {
+  '0': '待审核',
+  '1': '待审核',
+  '2': '审批通过',
+  '3': '审批驳回',
+  '99': '审批异常'
+}
+
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批结果', trigger: 'change' }],
   rejectionReason: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
@@ -360,6 +369,25 @@ const approvalRules: FormRules = {
 const isApprovalMode = computed(() => props.mode === 'approval')
 const isApprovalReadonly = computed(() => !isApprovalMode.value)
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree')
+const isPendingStatus = computed(() => {
+  const status = detailRow.value?.applyStatus
+  if (status === undefined || status === null || status === '') return false
+  const label = applyStatusMap[String(status)] || detailRow.value?.applyStatusName || detailRow.value?.applyStatusLabel || ''
+  return String(label).includes('待审')
+})
+const hasCompletedResult = computed(() => {
+  const status = detailRow.value?.applyStatus
+  return status === '2' || status === '3'
+})
+const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value)
+const approvalTipMessage = computed(() => {
+  return '当前申请状态为待审核，请前往审批流程处理。'
+})
+const showApprovalForm = computed(() => isApprovalMode.value && !hasCompletedResult.value)
+
+const dialogTitle = computed(() => {
+  return props.mode === 'approval' ? '个人贷款申请审核' : '贷款申请详情（采购商）'
+})
 
 const normalizeContractFiles = (row: Record<string, any>) => {
   const baseName = row.contractFileName || '合同文件'

@@ -102,14 +102,15 @@
       <div class="detail-section approval-section">
         <div class="section-title">审批信息</div>
         <el-alert
-          v-if="isApprovalMode"
-          title="审核通过时需填写放款日期、第一期还款日期并上传合同；审批前需确认状态为待审核。"
+          v-if="showApprovalTip"
+          :title="approvalTipMessage"
           type="warning"
           show-icon
           :closable="false"
           class="tips"
         />
         <el-form
+          v-if="showApprovalForm"
           ref="approvalFormRef"
           :model="approvalForm"
           :rules="approvalRules"
@@ -478,12 +479,27 @@ const bankCardImages = computed(() => {
 });
 
 const dialogTitle = computed(() => {
-  return props.mode === 'approval' ? '企业贷款申请审批' : '贷款申请详情';
+  return props.mode === 'approval' ? '企业贷款申请审核' : '贷款申请详情（企业）';
 });
 
 const isApprovalMode = computed(() => props.mode === 'approval');
 const isApprovalReadonly = computed(() => !isApprovalMode.value);
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
+const isPendingStatus = computed(() => {
+  const status = detailRow.value?.applyStatus;
+  if (status === undefined || status === null || status === '') return false;
+  const label = applyStatusMap[String(status)] || detailRow.value?.applyStatusName || detailRow.value?.applyStatusLabel || '';
+  return String(label).includes('待审');
+});
+const hasCompletedResult = computed(() => {
+  const status = detailRow.value?.applyStatus;
+  return status === '2' || status === '3';
+});
+const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value);
+const approvalTipMessage = computed(() => {
+  return '当前申请状态为待审核，请前往审批流程处理。';
+});
+const showApprovalForm = computed(() => isApprovalMode.value && !hasCompletedResult.value);
 
 watch(
   () => props.visible,

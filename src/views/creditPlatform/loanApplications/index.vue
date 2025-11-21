@@ -214,12 +214,14 @@ const getApplicableLabel = (value: string | number | undefined) => {
 };
 
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
-  detailDialogMode.value = mode;
   detailData.value = row;
   const applicableValue = row.lenderTyp ?? row.lenderType ?? row.applicableObject;
   const label = getApplicableLabel(applicableValue).toLowerCase();
   const rawValue = String(applicableValue || '').toLowerCase();
   const isPersonal = label.includes('采购') || rawValue.includes('purchaser');
+  const status = row.applyStatus;
+  const isPending = status === '0' || status === '1';
+  detailDialogMode.value = mode;
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
