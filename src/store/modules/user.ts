@@ -11,6 +11,7 @@ export const useUserStore = defineStore('user', () => {
   const name = ref('');
   const nickname = ref('');
   const userId = ref<string | number>('');
+  const userType = ref<string | number>('');
   const tenantId = ref<string>('');
   const avatar = ref('');
   const roles = ref<Array<string>>([]); // 用户角色编码集合 → 判断路由权限
@@ -51,6 +52,7 @@ export const useUserStore = defineStore('user', () => {
       nickname.value = user.nickName;
       avatar.value = profile;
       userId.value = user.userId;
+      userType.value = data.tenantType || '';
       tenantId.value = user.tenantId;
       return Promise.resolve();
     }
@@ -72,6 +74,7 @@ export const useUserStore = defineStore('user', () => {
 
   return {
     userId,
+    userType,
     tenantId,
     token,
     nickname,

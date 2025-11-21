@@ -31,7 +31,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:business:queryByTenant']" type="primary" @click="openSetDialog(scope.row)">设置</el-button>
+          <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" type="primary" @click="openSetDialog(scope.row)">设置</el-button>
         </template>
       </el-table-column>
     </el-table>

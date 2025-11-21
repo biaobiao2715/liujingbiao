@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { eventBus } from '@/utils/eventBus';
-import { getInsuranceProductsVersion } from '@/api/financeFront/Insuranceproduct/index';
+import { getCreditArticle } from '@/api/financeFront/LoanProducts/index';
 const props = defineProps({
   id: {
     type: String || Number,
@@ -108,7 +108,7 @@ const revealAmount = () => {
 
 // 立即申请
 const handleApply = () => {
-  eventBus.emit('LoanProductsComponentApplyForm', { type: 'LoanProductsComponentEdit' });
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentApplyForm' });
 };
 
 onMounted(() => {
@@ -117,7 +117,7 @@ onMounted(() => {
 
 // 详情
 const getArticleDetail = async () => {
-  const res = await getInsuranceProductsVersion(props.id);
+  const res = await getCreditArticle(props.id);
   if (res.code === 200) {
     form.value = res.data || {};
   }
