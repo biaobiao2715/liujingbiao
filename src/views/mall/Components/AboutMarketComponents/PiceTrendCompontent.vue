@@ -607,13 +607,14 @@ const viewHeatmap = async () => {
       // 将数据存储到 sessionStorage，供热力图页面使用
       sessionStorage.setItem('heatmapData', JSON.stringify(heatmapData));
 
-      // 跳转到热力图页面，通过 query 参数传递 goodsCategoryId
-      router.push({
+      // 在新标签页中打开热力图页面，通过 query 参数传递 goodsCategoryId
+      const routeData = router.resolve({
         path: '/mall/price-heatmap',
         query: {
           goodsCategoryId: goodsCategoryId
         }
       });
+      window.open(routeData.href, '_blank');
     } else {
       ElMessage.error(response?.msg || '获取热力图数据失败');
     }
@@ -712,6 +713,13 @@ const fetchCategoryList = async () => {
   }
 };
 
+// 刷新数据方法（供父组件调用）
+const refreshData = () => {
+  fetchPriceData();
+  fetchPriceExplanation();
+  fetchHotRecommendation();
+};
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchCategoryList();
@@ -719,6 +727,11 @@ onMounted(() => {
   fetchPriceExplanation();
   fetchHotRecommendation();
   eventBus.on('priceTrend:applyFilters', applyExternalFilters);
+});
+
+// 暴露方法供父组件调用
+defineExpose({
+  refreshData
 });
 
 onBeforeUnmount(() => {

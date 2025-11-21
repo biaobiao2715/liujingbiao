@@ -1,17 +1,5 @@
 <template>
   <div class="price-heatmap-page">
-    <!-- 面包屑导航 -->
-    <div class="breadcrumb-container">
-      <el-breadcrumb :separator-icon="ArrowRight">
-        <el-breadcrumb-item @click="goBack" style="cursor: pointer">
-          当前位置
-        </el-breadcrumb-item>
-        <el-breadcrumb-item>市场行情</el-breadcrumb-item>
-        <el-breadcrumb-item>价格走势</el-breadcrumb-item>
-        <el-breadcrumb-item class="active">区域价格差异热力图</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
-
     <!-- 热力图内容 -->
     <div class="heatmap-content">
       <ChinaMapHeatmap
@@ -27,8 +15,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import ChinaMapHeatmap from './ChinaMapHeatmap.vue'
 import { heatmapList } from '@/api/mall/marketComponent'
@@ -39,7 +26,6 @@ interface MapDataItem {
   yesterdaySales?: number
 }
 
-const router = useRouter()
 const route = useRoute()
 const heatmapRef = ref<InstanceType<typeof ChinaMapHeatmap> | null>(null)
 
@@ -122,11 +108,6 @@ onMounted(() => {
   const categoryId = route.query.goodsCategoryId as string
   fetchHeatmapData(categoryId)
 })
-
-// 返回上一页
-const goBack = () => {
-  router.back()
-}
 </script>
 
 <style scoped lang="scss">
@@ -134,30 +115,6 @@ const goBack = () => {
   padding: 12px;
   background-color: #fff;
   min-height: calc(100vh - 60px);
-
-  .breadcrumb-container {
-    margin-bottom: 16px;
-    padding: 8px 0;
-    font-size: 14px;
-
-    :deep(.el-breadcrumb__item) {
-      .el-breadcrumb__inner {
-        color: #606266;
-
-        &.is-link {
-          color: #606266;
-          font-weight: normal;
-        }
-      }
-
-      &.active {
-        .el-breadcrumb__inner {
-          color: #409eff;
-          font-weight: bold;
-        }
-      }
-    }
-  }
 
   .heatmap-content {
     width: 100%;

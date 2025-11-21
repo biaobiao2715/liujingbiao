@@ -21,8 +21,9 @@
       <el-table-column prop="changePercent" label="升降(%)" align="center" width="120">
         <template #default="{ row }">
           <span v-if="row.changePercent === '-'" class="text-gray">{{ row.changePercent }}</span>
-          <span v-else-if="row.changePercent > 0" class="text-red">{{ row.changePercent }}%</span>
-          <span v-else class="text-green">{{ Math.abs(row.changePercent) }}%</span>
+          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="text-gray">0%</span>
+          <span v-else-if="row.changePercent > 0" class="text-green">{{ row.changePercent }}%</span>
+          <span v-else class="text-red">{{ Math.abs(row.changePercent) }}%</span>
         </template>
       </el-table-column>
       <el-table-column label="走势图" align="center" width="100">
@@ -30,10 +31,11 @@
           <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
             <i-ep-arrow-right />
           </el-icon>
-          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-red" @click="handleTrendClick(row)">
+          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="trend-icon text-gray horizontal-line" @click="handleTrendClick(row)">─</span>
+          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
             <i-ep-arrow-up />
           </el-icon>
-          <el-icon v-else class="trend-icon text-green" @click="handleTrendClick(row)">
+          <el-icon v-else class="trend-icon text-red" @click="handleTrendClick(row)">
             <i-ep-arrow-down />
           </el-icon>
         </template>
@@ -212,6 +214,11 @@ const handleTrendClick = (row: any) => {
 onMounted(() => {
   getList();
 });
+
+// 暴露方法供父组件调用
+defineExpose({
+  getList
+});
 </script>
 
 <style scoped lang="scss">
@@ -248,6 +255,13 @@ onMounted(() => {
 .trend-icon {
   font-size: 18px;
   cursor: pointer;
+}
+
+.horizontal-line {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: bold;
 }
 
 .text-red {
