@@ -408,24 +408,25 @@ const fetchPriceExplanation = async () => {
       const data = response.data || {};
 
       // 处理价格走势：将数字转换为文字描述
+      // 1:趋于平稳、2:略有上升、3:大幅上升、4:略有下降、5:大幅下降
       let trendText = '趋于平稳';
       if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
         const trendValue = String(data.sevenDaysPriceTrend);
         switch (trendValue) {
           case '1':
-            trendText = '上涨';
+            trendText = '趋于平稳';
             break;
           case '2':
-            trendText = '下跌';
+            trendText = '略有上升';
             break;
           case '3':
-            trendText = '平稳';
+            trendText = '大幅上升';
             break;
           case '4':
-            trendText = '波动';
+            trendText = '略有下降';
             break;
           case '5':
-            trendText = '趋于平稳';
+            trendText = '大幅下降';
             break;
           default:
             trendText = '趋于平稳';
@@ -434,13 +435,13 @@ const fetchPriceExplanation = async () => {
 
       // 映射接口返回的数据到价格统计
       priceStats.value = {
-        todayPrice: Number(data.yesterdayPrice || 0), // 使用昨日价格作为当日价格显示
+        todayPrice: Number(data.yesterdayPrice || 0), // 当日均价
         yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
-        priceChange: Number(data.dayToDayChangeRate || 0), // 日环比变化率
-        maxPrice: Number(data.sevenDaysHighPrice || 0),
-        minPrice: Number(data.sevenDaysLowPrice || 0),
-        avgPrice: Number(data.sevenDaysPriceAvg || 0),
-        trend: trendText
+        priceChange: Number(data.dayToDayChangeRate || 0), // 相较昨日价格
+        maxPrice: Number(data.sevenDaysHighPrice || 0), // 近7日最高价
+        minPrice: Number(data.sevenDaysLowPrice || 0), // 近7日最低价
+        avgPrice: Number(data.sevenDaysPriceAvg || 0), // 近7日均价
+        trend: trendText // 近7日价格走势
       };
     } else {
       ElMessage.error(response?.msg || '获取价格说明数据失败');
