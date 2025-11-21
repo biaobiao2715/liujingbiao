@@ -77,6 +77,7 @@ import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
 import { Plus, Delete, ZoomIn, VideoPlay } from '@element-plus/icons-vue';
 import { uploadFile as uploadReportFile, deleteFile as deleteReportFile, report } from '@/api/mall/goods/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 interface ReportMaterial extends UploadUserFile {
   ossId?: string | number;
@@ -222,36 +223,63 @@ const removeFileManually = (file: ReportMaterial) => {
     console.error(error);
   }
 };
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
 const handleUpload = (file: any) =>
-  new Promise((resolve, reject) => {
-    const fd = new FormData();
-    fd.append('file', file.file);
-    uploadReportFile(fd)
-      .then((response: any) => {
-        const data = response?.data || {};
-        const fileName = data.fileName || file.file.name;
+  new Promise(async (resolve, reject) => {
+    const rawFile = file.file;
+    try {
+      // 大文件：使用分片上传
+      if (rawFile.size > MAX_SIZE) {
+        const res = await uploadByChunks(rawFile, (p) => {
+          console.log(`上传进度: ${p}%`);
+        });
+        // 后端返回结构兼容你的原始逻辑
         const newFile: ReportMaterial = {
-          fileName,
-          name: fileName,
-          url: data.url,
-          ossId: data.ossId,
-          fileType: isVideo({ name: fileName }) ? '1' : '0',
+          fileName: res.fileName || rawFile.name,
+          name: res.fileName || rawFile.name,
+          url: res.url,
+          ossId: res.ossId,
+          fileType: isVideo({ name: rawFile.name }) ? '1' : '0',
           status: 'success'
         };
+
         fileList.value.push(newFile);
         form.filesCount = fileList.value.length;
-        resolve(newFile);
-      })
-      .catch((error: any) => {
-        ElMessage.error(error?.msg || '文件上传失败，请重试');
-        try {
-          (uploaderRef.value as any)?.handleRemove(file);
-        } catch {
-          // ignore
-        }
-        reject(error);
-      });
+        return resolve(newFile);
+      }
+
+      // 小文件：走原来的 FormData 普通上传
+      const fd = new FormData();
+      fd.append('file', rawFile);
+
+      const response: any = await uploadReportFile(fd);
+      const data = response?.data || {};
+      const fileName = data.fileName || rawFile.name;
+      const newFile: ReportMaterial = {
+        fileName,
+        name: fileName,
+        url: data.url,
+        ossId: data.ossId,
+        fileType: isVideo({ name: fileName }) ? '1' : '0',
+        status: 'success'
+      };
+
+      fileList.value.push(newFile);
+      form.filesCount = fileList.value.length;
+
+      return resolve(newFile);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '文件上传失败，请重试');
+
+      try {
+        (uploaderRef.value as any)?.handleRemove(file);
+      } catch {}
+
+      reject(error);
+    }
   });
+
 const handleRemove = async (file: ReportMaterial) => {
   if (file?.ossId) {
     try {

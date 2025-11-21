@@ -1,3 +1,10 @@
+<!--
+  标题: LoanProductsComponent.vue
+  功能: 信贷产品组件
+  说明: 展示信贷产品列表
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-11-20
+-->
 <template>
   <div class="loan-products">
     <div class="section-title flex-center-between mb-12">
@@ -12,7 +19,7 @@
           <div class="header">
             <div class="flex-center gap-8">
               <span class="name">{{ product.productName }}</span>
-              <el-icon size="20" color="#ccc" v-if="!product.isCollected"><StarFilled /></el-icon>
+              <el-icon size="20" color="#ccc" v-if="!product.isFavorite"><StarFilled /></el-icon>
               <el-icon size="20" color="#108c58" v-else> <StarFilled /></el-icon>
             </div>
           </div>
