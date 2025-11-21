@@ -28,3 +28,19 @@ export function getCreditArticle(id: number | string) {
     method: 'get'
   });
 }
+
+// 获取企业贷款信息
+export function getEnterpriseLoanInfo(id: number | string) {
+  return request({
+    url: `/credit-server/loanApplications/entByUserId`,
+    method: 'get'
+  });
+}
+
+// 获取个人贷款信息
+export function getPersonalLoanInfo(id: number | string) {
+  return request({
+    url: `/credit-server/loanApplications/perByUserId/${id}`,
+    method: 'get'
+  });
+}

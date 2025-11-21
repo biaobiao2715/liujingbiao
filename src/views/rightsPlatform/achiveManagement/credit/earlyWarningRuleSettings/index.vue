@@ -31,16 +31,30 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+        <el-button v-throttle type="primary" @click="handleAdd" v-hasPermi="['safeguard:warnRule:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="success" :disabled="multiple" @click="handleBatchStatus('0')">启用</el-button>
+        <el-button
+          v-throttle
+          type="success"
+          :disabled="multiple"
+          @click="handleBatchStatus('0')"
+          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+          >启用</el-button
+        >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="warning" :disabled="multiple" @click="handleBatchStatus('1')">禁用</el-button>
+        <el-button
+          v-throttle
+          type="warning"
+          :disabled="multiple"
+          @click="handleBatchStatus('1')"
+          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+          >禁用</el-button
+        >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="danger" :disabled="multiple" @click="handleDelete()">删除</el-button>
+        <el-button v-throttle type="danger" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
       </el-col>
     </el-row>
 
@@ -67,13 +81,18 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="300">
         <template #default="scope">
-          <el-button v-throttle link type="primary" @click="handleEdit(scope.row)">修改</el-button>
-          <el-button v-throttle link type="info" @click="handleView(scope.row)">查看</el-button>
-          <el-button v-throttle link :type="scope.row.status == '0' ? 'warning' : 'success'" @click="toggleStatus(scope.row)">{{
-            scope.row.status == '0' ? '禁用' : '启用'
-          }}</el-button>
+          <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['safeguard:warnRule:edit']">修改</el-button>
+          <el-button v-throttle link type="info" @click="handleView(scope.row)" v-hasPermi="['safeguard:warnRule:query']">查看</el-button>
+          <el-button
+            v-throttle
+            link
+            :type="scope.row.status == '0' ? 'warning' : 'success'"
+            @click="toggleStatus(scope.row)"
+            v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+            >{{ scope.row.status == '0' ? '禁用' : '启用' }}</el-button
+          >
           <!-- 行内删除按钮改为统一方法 -->
-          <el-button v-throttle link type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button v-throttle link type="danger" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
