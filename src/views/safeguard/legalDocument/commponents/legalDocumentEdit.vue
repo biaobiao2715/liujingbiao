@@ -1,3 +1,10 @@
+<!--
+    标题: legalDocumentEdit.vue
+    功能: 编辑/查看法律文书模版
+    说明: 编辑/查看法律文书模版弹窗
+    当前版本: 1.0
+    开发信息: Created by 邓和杰 2025-11-20
+-->
 <template>
   <el-dialog
     :model-value="visible"
