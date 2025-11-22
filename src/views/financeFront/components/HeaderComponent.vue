@@ -12,8 +12,8 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu class="dropdown-menu">
-            <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
-            <el-dropdown-item command="application">信用申请管理</el-dropdown-item>
+            <el-dropdown-item command="collections">我的收藏</el-dropdown-item>
+            <el-dropdown-item command="applications">信用申请管理</el-dropdown-item>
             <el-dropdown-item command="loginout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
