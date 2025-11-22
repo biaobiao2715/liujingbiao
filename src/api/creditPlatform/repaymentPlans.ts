@@ -4,7 +4,7 @@ import request from '@/utils/request';
 // 查询贷后管理列表
 export function getloanApplicationsList(data: any) {
   return request({
-    url: '/credit-server/loanApplications/list',
+    url: '/credit-server/loanApplications/intList',
     method: 'get',
     params: data
   });

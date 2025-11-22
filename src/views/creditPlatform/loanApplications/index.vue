@@ -80,8 +80,8 @@
         @current-change="handlePageChange"
       />
     </div>
-    <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" :mode="detailDialogMode" />
-    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" :mode="detailDialogMode" />
+    <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" :mode="detailDialogMode" @refresh="getList" />
+    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" :mode="detailDialogMode" @refresh="getList" />
     <RepaymentPlanDialog v-model:visible="repaymentDialogVisible" :data="repaymentData" />
   </div>
 </template>
@@ -93,7 +93,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import LoanApplicationDetailDialog from './LoanApplicationDetailDialog.vue';
 import LoanApplicationBuyerDetailDialog from './LoanApplicationBuyerDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
-import { getloanApplicationsList } from '@/api/creditPlatform/loanApplications';
+import { getloanApplicationsList, deleteLoanApplication } from '@/api/creditPlatform/loanApplications';
 
 interface LoanApplication {
   id: number | string;
@@ -262,8 +262,22 @@ const handleDelete = (row: LoanApplication) => {
     cancelButtonText: '取消',
     type: 'warning'
   })
-    .then(() => {
-      ElMessage.success('删除成功（请接入真实接口）');
+    .then(async () => {
+      try {
+        loading.value = true;
+        const res = await deleteLoanApplication(row.id);
+        if (res.code === 200) {
+          ElMessage.success('删除成功');
+          getList();
+        } else {
+          ElMessage.error(res.msg || '删除失败');
+        }
+      } catch (error) {
+        console.error('删除失败:', error);
+        ElMessage.error('删除失败');
+      } finally {
+        loading.value = false;
+      }
     })
     .catch(() => {
       ElMessage.info('已取消删除');

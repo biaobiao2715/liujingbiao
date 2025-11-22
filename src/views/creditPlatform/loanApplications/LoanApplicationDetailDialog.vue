@@ -234,6 +234,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
+  (event: 'refresh'): void;
 }>();
 
 const approvalFormRef = ref<FormInstance>();
@@ -635,6 +636,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     const res = await auditLoanApplication(payload);
     if (res && res.code === 200) {
       ElMessage.success(action === 'agree' ? '审批通过成功' : '审批驳回成功');
+      emit('refresh');
       emit('update:visible', false);
     } else {
       throw new Error(res?.msg || '审批提交失败');

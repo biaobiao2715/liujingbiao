@@ -9,6 +9,13 @@ export function getloanApplicationsList(data: any) {
     params: data
   });
 }
+//删除信贷申请
+export function deleteLoanApplication(ids: string | number) {
+  return request({
+    url: `/credit-server/loanApplications/${ids}`,
+    method: 'delete'
+  });
+}
 //企业信息
 export function getEnterprise(data: any) {
   return request({

@@ -8,11 +8,14 @@
       <el-form-item label="申请人" prop="realName">
         <el-input v-model="queryParams.realName" placeholder="请输入申请人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="产品名称" prop="productName">
-        <el-input v-model="queryParams.productName" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="产品类型" prop="productType">
+        <el-select v-model="queryParams.productType" placeholder="全部" clearable>
+          <el-option label="全部" value="" />
+          <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="适用对象" prop="lenderTyp">
-        <el-select v-model="queryParams.lenderTyp" placeholder="全部" clearable>
+      <el-form-item label="适用对象" prop="applicableObject">
+        <el-select v-model="queryParams.applicableObject" placeholder="全部" clearable>
           <el-option label="全部" value="" />
           <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -74,6 +77,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { getloanApplicationsList } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -92,7 +96,7 @@ interface RepaymentPlan {
 }
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { applicable_object } = toRefs<any>(proxy?.useDict('applicable_object'));
+const { applicable_object, prod_credit_type } = toRefs<any>(proxy?.useDict('applicable_object', 'prod_credit_type'));
 
 const mockData: RepaymentPlan[] = [
   {
@@ -135,8 +139,8 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   realName: '',
-  productName: '',
-  lenderTyp: ''
+  productType: '',
+  applicableObject: ''
 });
 
 const tableData = ref<RepaymentPlan[]>([]);
@@ -148,31 +152,29 @@ const trackingDialogVisible = ref(false);
 const repaymentStatusDialogVisible = ref(false);
 const detailData = ref<RepaymentPlan | null>(null);
 
-const applyFilter = () => {
-  const { realName, productName, lenderTyp } = queryParams.value;
-  let data = [...mockData];
-  if (realName) {
-    data = data.filter((item) => item.realName.includes(realName));
-  }
-  if (productName) {
-    data = data.filter((item) => item.productName.includes(productName));
-  }
-  if (lenderTyp) {
-    data = data.filter((item) => item.lenderTyp === lenderTyp);
-  }
-  total.value = data.length;
-  // 简单分页
-  const start = (queryParams.value.pageNum - 1) * queryParams.value.pageSize;
-  const end = start + queryParams.value.pageSize;
-  tableData.value = data.slice(start, end);
-};
-
-const getList = () => {
+const getList = async () => {
   loading.value = true;
-  setTimeout(() => {
-    applyFilter();
+  try {
+    const params = {
+      ...queryParams.value
+    };
+    const res = await getloanApplicationsList(params);
+    if (res.code === 200) {
+      tableData.value = res.rows || [];
+      total.value = res.total || 0;
+    } else {
+      ElMessage.error(res.msg || '获取列表失败');
+      tableData.value = [];
+      total.value = 0;
+    }
+  } catch (error) {
+    console.error('获取列表失败:', error);
+    ElMessage.error('获取列表失败');
+    tableData.value = [];
+    total.value = 0;
+  } finally {
     loading.value = false;
-  }, 300);
+  }
 };
 
 const handleQuery = () => {
