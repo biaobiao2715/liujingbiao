@@ -22,6 +22,17 @@ export function getFirstLevelCategorySalesAmountTotal(params?: Record<string, an
   });
 }
 
+/**
+ * 获取订单履约率统计信息
+ */
+export function getOrdersComplianceRateInfo(params?: Record<string, any>) {
+  return request({
+    url: '/grain-sales/order/getOrdersComplianceRateInfo',
+    method: 'get',
+    params
+  });
+}
+
 export interface CategorySalesQuery {
   createDept?: number;
   createBy?: number;
