@@ -9,6 +9,15 @@ export function getloanApplicationsList(data: any) {
     params: data
   });
 }
+
+//查看追踪信息
+export function getTrackingInfo(data: number | string) {
+  return request({
+    url: `/credit-server/loanApplications/traceList`,
+    method: 'get',
+    params: data
+  });
+}
 //企业信息
 export function getEnterprise(data: any) {
   return request({

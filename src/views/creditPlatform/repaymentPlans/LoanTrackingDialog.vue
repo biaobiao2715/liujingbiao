@@ -78,6 +78,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { getTrackingInfo } from '@/api/creditPlatform/repaymentPlans';
 
 interface TrackingStep {
   title: string;
@@ -98,53 +100,10 @@ const emit = defineEmits<{
 }>();
 
 const loading = ref(false);
-
-// 模拟追踪数据
-const mockTrackingSteps: TrackingStep[] = [
-  {
-    title: '申请',
-    description: '贷款申请已提交',
-    time: '申请时间：2025-1-1',
-    operator: '张三',
-    status: 'finish'
-  },
-  {
-    title: '审批',
-    description: '审批通过',
-    time: '通过时间：2025-1-1',
-    operator: '审批员',
-    status: 'finish'
-  },
-  {
-    title: '合同签订',
-    description: '合同签订完成',
-    time: '签订时间：2025-1-1',
-    operator: '合同管理员',
-    status: 'finish'
-  },
-  {
-    title: '放款',
-    description: '放款已完成',
-    time: '放款时间：2025-1-1',
-    operator: '财务部',
-    status: 'finish'
-  },
-  {
-    title: '还款',
-    description: '等待还款',
-    times: ['一期还款时间：2025-1-1', '二期还款时间：2025-2-1'],
-    status: 'process'
-  },
-  {
-    title: '完结',
-    description: '贷款完结',
-    time: '预计完结时间：2025-2-1',
-    status: 'wait'
-  }
-];
+const trackingData = ref<TrackingStep[]>([]);
 
 const trackingSteps = computed(() => {
-  return mockTrackingSteps;
+  return trackingData.value;
 });
 
 // 获取步骤样式类
@@ -166,18 +125,20 @@ const isLineActive = (index: number) => {
          (nextStep.status === 'finish' || nextStep.status === 'process');
 };
 
-
-
 const fetchTrackingData = async () => {
   if (!props.data?.id) return;
   
   loading.value = true;
   try {
-    // 这里应该调用真实的API获取追踪数据
-    // const res = await getLoanTracking(props.data.id);
-    // trackingSteps.value = res.data;
+    const res = await getTrackingInfo({ id: props.data.id });
+    if (res.code === 200 && res.data) {
+      trackingData.value = res.data;
+    } else {
+      ElMessage.error(res.msg || '获取追踪信息失败');
+    }
   } catch (error) {
     console.error('获取追踪数据失败:', error);
+    ElMessage.error('获取追踪信息失败');
   } finally {
     loading.value = false;
   }
