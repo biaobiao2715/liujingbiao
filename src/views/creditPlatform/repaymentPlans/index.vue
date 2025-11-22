@@ -43,7 +43,7 @@
             <el-button size="small" type="primary" plain @click="handleComplete(scope.row)">完善信息</el-button>
             <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="info" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="warning" plain>追踪</el-button>
+            <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -63,6 +63,9 @@
         @current-change="handlePageChange"
       />
     </div>
+    <RepaymentDetailDialog v-model:visible="detailDialogVisible" :data="detailData" />
+    <RepaymentBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" />
+    <LoanTrackingDialog v-model:visible="trackingDialogVisible" :data="detailData" />
   </div>
 </template>
 
@@ -70,6 +73,9 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
+import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
+import LoanTrackingDialog from './LoanTrackingDialog.vue';
 
 interface RepaymentPlan {
   id: number | string;
@@ -92,7 +98,7 @@ const mockData: RepaymentPlan[] = [
     realName: '张三',
     productName: '农户信贷产品A',
     productType: '1',
-    lenderTyp: 'farmer',
+    lenderTyp: '1', // 对应个人/农户
     loanAmount: 100000,
     loanTerm: 12,
     approvalTime: '2025-01-01 10:00:00',
@@ -101,9 +107,9 @@ const mockData: RepaymentPlan[] = [
   {
     id: 2,
     realName: '李四',
-    productName: '农户信贷产品B',
+    productName: '采购商信贷产品B',
     productType: '1',
-    lenderTyp: 'farmer',
+    lenderTyp: '0', // 对应采购商
     loanAmount: 50000,
     loanTerm: 6,
     approvalTime: '2025-01-10 09:30:00',
@@ -114,7 +120,7 @@ const mockData: RepaymentPlan[] = [
     realName: '测试种子公司',
     productName: '企业信贷产品C',
     productType: '2',
-    lenderTyp: 'enterprise',
+    lenderTyp: '2', // 对应企业
     loanAmount: 300000,
     loanTerm: 24,
     approvalTime: '2025-02-05 15:20:00',
@@ -134,6 +140,10 @@ const queryParams = ref({
 const tableData = ref<RepaymentPlan[]>([]);
 const total = ref(0);
 const loading = ref(false);
+const detailDialogVisible = ref(false);
+const buyerDetailDialogVisible = ref(false);
+const trackingDialogVisible = ref(false);
+const detailData = ref<RepaymentPlan | null>(null);
 
 const applyFilter = () => {
   const { realName, productName, lenderTyp } = queryParams.value;
@@ -192,8 +202,38 @@ const handleRepayment = (row: RepaymentPlan) => {
   ElMessage.info(`查看还款情况：${row.productName}`);
 };
 
+const getApplicableLabel = (value: string | number | undefined) => {
+  if (value === undefined || value === null) return '';
+  const list = applicable_object?.value || [];
+  const match = list.find((item: any) => String(item.value) === String(value));
+  return match?.label || '';
+};
+
 const handleDetail = (row: RepaymentPlan) => {
-  ElMessage.info(`查看详情：${row.productName}`);
+  detailData.value = row;
+  const applicableValue = row.lenderTyp;
+  const label = getApplicableLabel(applicableValue).toLowerCase();
+  const rawValue = String(applicableValue || '').toLowerCase();
+  
+  // 判断是否为个人类型（采购商、农户等）
+  const isPersonal = label.includes('采购') || label.includes('农户') || 
+                    rawValue.includes('purchaser') || rawValue.includes('farmer') ||
+                    applicableValue === '0' || applicableValue === '1'; // 0=采购商, 1=农户
+  
+  // 先隐藏另一个弹窗，避免同时打开
+  detailDialogVisible.value = false;
+  buyerDetailDialogVisible.value = false;
+  
+  if (isPersonal) {
+    buyerDetailDialogVisible.value = true;
+  } else {
+    detailDialogVisible.value = true;
+  }
+};
+
+const handleTracking = (row: RepaymentPlan) => {
+  detailData.value = row;
+  trackingDialogVisible.value = true;
 };
 
 const handleDelete = (row: RepaymentPlan) => {
