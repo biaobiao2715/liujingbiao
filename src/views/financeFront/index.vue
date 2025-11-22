@@ -38,7 +38,7 @@
         <!-- 面包屑导航 -->
         <el-breadcrumb :separator-icon="ArrowRight" class="braed-navigate">
           <!--  <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item> -->
-          <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">首页</el-breadcrumb-item>
+          <el-breadcrumb-item @click="backToHome()" style="cursor: pointer">首页</el-breadcrumb-item>
           <el-breadcrumb-item v-for="item in naviteList" :key="item.id" @click="switchShowArea(item.type)">{{
             TITLE_MAP[item.type]
           }}</el-breadcrumb-item>
@@ -162,6 +162,8 @@ const switchShowArea = (type: DetailView) => {
 
 const selectNavigateByType = (type) => {
   const uniqueId = new Date().getTime();
+  console.log(type);
+
   switch (type) {
     case 'PersonalCenter':
       naviteList.value = [
@@ -176,15 +178,18 @@ const selectNavigateByType = (type) => {
       ];
       break;
     default:
-      console.log('default');
-      naviteList.value = [
-        {
-          id: uniqueId,
-          type: type
-        }
-      ];
+      naviteList.value.push({
+        id: uniqueId,
+        type: type
+      });
       break;
   }
+};
+
+// 回到首页
+const backToHome = () => {
+  showArea.value = 'area';
+  naviteList.value = [];
 };
 </script>
 
