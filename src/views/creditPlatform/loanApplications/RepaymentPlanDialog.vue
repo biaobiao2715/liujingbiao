@@ -5,6 +5,7 @@
       <div class="dialog-title">还款计划</div>
     </template>
 
+    <div v-loading="loading" class="dialog-content">
     <div class="top-actions">
       <div class="buttons">
         <el-button type="primary">提交修改信息</el-button>
@@ -59,6 +60,7 @@
         </div>
       </div>
     </div>
+    </div>
 
     <template #footer>
       <div class="dialog-footer">
@@ -70,21 +72,50 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
-
+import { getRepaymentPlan,updateRepaymentPlan,getRemainingDetail,uploadFile,deleteFile} from '@/api/creditPlatform/loanApplications';
 const props = defineProps<{
   visible: boolean
   data: {
-    plans: Array<{ period: number; repayDate: string; amount: number }>
+    id?: string | number
+    plans?: Array<{ period: number; repayDate: string; amount: number }>
     contractFiles?: string[]
   } | null
 }>()
 
 const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>()
 
-const plans = computed(() => props.data?.plans || [])
-
+const loading = ref(false)
+const plans = ref<Array<{ period: number; repayDate: string; amount: number }>>([])
 const contractFiles = ref<any[]>([])
 const objectUrls = new Map<string, string>()
+
+// 获取还款计划详情
+const fetchRepaymentPlan = async () => {
+  if (!props.data?.id) return
+  
+  loading.value = true
+  try {
+    const response = await getRepaymentPlan(props.data.id)
+    if (response.code === 200 && response.rows) {
+      // 接口返回的是rows数组
+      const planData = response.rows || []
+      plans.value = planData.map((item: any) => ({
+        period: item.period || item.repaymentPeriod,
+        repayDate: item.repaymentDate || item.repayDate,
+        amount: item.repaymentAmount || item.amount
+      }))
+      
+      // 如果有合同文件
+      if (response.data?.contractFiles) {
+        contractFiles.value = normalizeFiles(response.data.contractFiles)
+      }
+    }
+  } catch (error) {
+    console.error('获取还款计划失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 // 处理还款金额输入，确保为整数
 const handleAmountInput = (item: any, event: any) => {
@@ -115,6 +146,17 @@ const normalizeFiles = (files: Array<any> = []) =>
     }
     return item
   })
+
+// 监听弹窗打开，调用接口获取数据
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal && props.data?.id) {
+      fetchRepaymentPlan()
+    }
+  },
+  { immediate: true }
+)
 
 watch(
   () => props.data?.contractFiles,
@@ -161,6 +203,10 @@ onBeforeUnmount(() => {
     font-size: 18px;
     font-weight: 600;
   }
+}
+
+.dialog-content {
+  min-height: 400px;
 }
 
 .top-actions {

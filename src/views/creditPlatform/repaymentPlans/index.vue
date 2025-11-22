@@ -37,23 +37,14 @@
       <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
       <el-table-column label="贷款审批通过时间" prop="approvalTime" min-width="180" align="center" />
       <el-table-column label="贷款状态" prop="loanStatus" align="center" width="120" />
-      <el-table-column label="操作" align="center" width="280" fixed="right">
+      <el-table-column label="操作" align="center" width="340" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" link @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="success" link @click="handleRepayment(scope.row)">还款情况</el-button>
-            <el-button size="small" type="warning" link @click="handleTracking(scope.row)">追踪</el-button>
-            <el-dropdown trigger="click" @command="(command) => handleCommand(command, scope.row)">
-              <el-button size="small" type="info" link>
-                更多<el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="complete">完善信息</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button size="small" type="primary" plain @click="handleComplete(scope.row)">完结借贷</el-button>
+            <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
+            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
+            <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -83,7 +74,6 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ArrowDown } from '@element-plus/icons-vue';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -207,10 +197,6 @@ const handlePageSizeChange = (size: number) => {
   getList();
 };
 
-const handleComplete = (row: RepaymentPlan) => {
-  ElMessage.info(`完善信息：${row.productName}`);
-};
-
 const handleRepayment = (row: RepaymentPlan) => {
   detailData.value = row;
   repaymentStatusDialogVisible.value = true;
@@ -228,16 +214,20 @@ const handleDetail = (row: RepaymentPlan) => {
   const applicableValue = row.lenderTyp;
   const label = getApplicableLabel(applicableValue).toLowerCase();
   const rawValue = String(applicableValue || '').toLowerCase();
-  
+
   // 判断是否为个人类型（采购商、农户等）
-  const isPersonal = label.includes('采购') || label.includes('农户') || 
-                    rawValue.includes('purchaser') || rawValue.includes('farmer') ||
-                    applicableValue === '0' || applicableValue === '1'; // 0=采购商, 1=农户
-  
+  const isPersonal =
+    label.includes('采购') ||
+    label.includes('农户') ||
+    rawValue.includes('purchaser') ||
+    rawValue.includes('farmer') ||
+    applicableValue === '0' ||
+    applicableValue === '1'; // 0=采购商, 1=农户
+
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
-  
+
   if (isPersonal) {
     buyerDetailDialogVisible.value = true;
   } else {
@@ -250,16 +240,9 @@ const handleTracking = (row: RepaymentPlan) => {
   trackingDialogVisible.value = true;
 };
 
-// 下拉菜单命令处理
-const handleCommand = (command: string, row: RepaymentPlan) => {
-  switch (command) {
-    case 'complete':
-      handleComplete(row);
-      break;
-    case 'delete':
-      handleDelete(row);
-      break;
-  }
+const handleComplete = (row: RepaymentPlan) => {
+  // TODO: 调用API完结借贷
+  ElMessage.success('借贷已完结（演示）');
 };
 
 const handleDelete = (row: RepaymentPlan) => {
@@ -308,23 +291,10 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 
   .el-button {
     margin: 0;
-    padding: 0;
-    font-size: 13px;
-    
-    &.is-link {
-      padding: 0 4px;
-      height: auto;
-    }
-  }
-  
-  :deep(.el-dropdown) {
-    .el-button {
-      padding: 0 4px;
-    }
   }
 }
 

@@ -60,7 +60,7 @@
               审批
             </el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" plain @click="openRepaymentPlan(scope.row)">还款计划</el-button>
+            <el-button size="small" type="success" plain :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)">还款计划</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -237,20 +237,21 @@ const canAudit = (status: string | number | undefined) => {
   return pendingStatusValues.value.includes(String(status));
 };
 
-const openRepaymentPlan = (row: LoanApplication) => {
-  // 根据 loanTerm 生成对应数量的还款计划
-  const loanTerm = Number(row.loanTerm) || 1;
-  const loanAmount = Number(row.loanAmount) || 0;
-  // 计算每期还款金额（整数），如果贷款总额为0则默认为0
-  const perPeriodAmount = loanTerm > 0 ? Math.floor(loanAmount / loanTerm) : 0;
+// 判断是否审核通过
+const isApproved = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return false;
+  const dictList = application_status?.value || [];
+  const match = dictList.find((item: any) => String(item.value) === String(status));
+  if (!match) return false;
+  const label = (match.label || '').toString();
+  // 判断是否为审核通过状态（包含"通过"、"已通过"等）
+  return label.includes('通过') || label.includes('已审核');
+};
 
+const openRepaymentPlan = (row: LoanApplication) => {
+  // 传递id给弹窗，弹窗内部会调用接口获取数据
   repaymentData.value = {
-    contractFiles: row.contractFiles || [],
-    plans: Array.from({ length: loanTerm }, (_, index) => ({
-      period: index + 1,
-      repayDate: ['2025-02-01', '2025-03-01', '2025-04-01'][Math.floor(index / 3)],
-      amount: perPeriodAmount
-    }))
+    id: row.id
   };
   repaymentDialogVisible.value = true;
 };

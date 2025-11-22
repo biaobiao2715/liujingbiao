@@ -14,6 +14,12 @@
     </template>
     
     <div v-loading="loading" class="dialog-content">
+      <!-- 顶部操作按钮 -->
+      <div class="top-actions">
+        <el-button type="primary" @click="handleSubmit">提交修改信息</el-button>
+        <el-button @click="handleClose">返回</el-button>
+      </div>
+      
       <!-- 还款卡片列表 -->
       <div class="repayment-cards">
         <div 
@@ -78,12 +84,6 @@
         </div>
       </div>
     </div>
-    
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">关闭</el-button>
-      </div>
-    </template>
   </el-dialog>
 </template>
 
@@ -254,6 +254,29 @@ const handleConfirmRepayment = (item: RepaymentItem) => {
   ElMessage.success('收款卡号已确认');
 };
 
+// 提交修改信息
+const handleSubmit = () => {
+  // 验证是否有未填写的必填项
+  const hasError = repaymentList.value.some(item => {
+    if (canEditCardNumber(item) && !item.cardNumber) {
+      return true;
+    }
+    if (item.cardNumberError) {
+      return true;
+    }
+    return false;
+  });
+  
+  if (hasError) {
+    ElMessage.warning('请完善还款信息后再提交');
+    return;
+  }
+  
+  // TODO: 调用API提交数据
+  ElMessage.success('提交成功');
+  emit('update:visible', false);
+};
+
 const handleClose = () => {
   emit('update:visible', false);
 };
@@ -271,6 +294,16 @@ const handleClose = () => {
 .dialog-content {
   padding: 20px;
   min-height: 400px;
+}
+
+.top-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  
+  .el-button {
+    min-width: 120px;
+  }
 }
 
 // 还款卡片
@@ -356,10 +389,5 @@ const handleClose = () => {
   .el-button {
     width: 100%;
   }
-}
-
-// 弹窗底部
-.dialog-footer {
-  text-align: right;
 }
 </style>
