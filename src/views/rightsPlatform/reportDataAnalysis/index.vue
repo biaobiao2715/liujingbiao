@@ -342,7 +342,7 @@ const fetchMapData = async () => {
       params.reportTypeId = queryParams.reportTypeId;
     }
 
-    // 时间参数（可选），放在 params 里面，形如 params[startTime]、params[endTime]
+    // 时间参数（可选），放在 params 里面，形如 params[beginCreateTime]、params[endCreateTime]
     if (
       mapTimeRange.value &&
       Array.isArray(mapTimeRange.value) &&
@@ -350,8 +350,8 @@ const fetchMapData = async () => {
       mapTimeRange.value[0] &&
       mapTimeRange.value[1]
     ) {
-      params.params.startTime = mapTimeRange.value[0];
-      params.params.endTime = mapTimeRange.value[1];
+      params.params.beginCreateTime = mapTimeRange.value[0];
+      params.params.endCreateTime = mapTimeRange.value[1];
     }
 
     const response: any = await getReportCountByProvince(params);

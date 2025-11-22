@@ -14,7 +14,7 @@
         <div class="card-header">
           <div class="axis-wrapper">
             <div class="axis-title">销售量（单）</div>
-            <div class="category-switch">
+            <div class="category-switch" v-loading="categoryLoading">
               <div
                 v-for="item in categoryOptions"
                 :key="item.value"
@@ -23,6 +23,9 @@
                 @click="changeCategory(item.value)"
               >
                 {{ item.label }}
+              </div>
+              <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">
+                暂无类目数据
               </div>
             </div>
           </div>
@@ -48,7 +51,7 @@
         <div class="card-header">
           <div class="axis-wrapper">
             <div class="axis-title">销售额（万元）</div>
-            <div class="category-switch">
+            <div class="category-switch" v-loading="categoryLoading">
               <div
                 v-for="item in categoryOptions"
                 :key="item.value"
@@ -57,6 +60,9 @@
                 @click="changeCategory(item.value)"
               >
                 {{ item.label }}
+              </div>
+              <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">
+                暂无类目数据
               </div>
             </div>
           </div>
@@ -119,15 +125,13 @@
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
-import { getFirstLevelCategorySales, getFirstLevelCategorySalesAmountTotal } from '../../api/platformManage/home';
+import { getFirstLevelCategorySales, getFirstLevelCategorySalesAmountTotal } from '@/api/platformManage/home';
+import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 
 type TimeRange = '1' | '2' | '3' | '4';
 type ExportType = 'quantity' | 'amount';
 
-const categoryOptions = [
-  { label: '农资', value: 'agricultural', goodsCategoryId: 1 },
-  { label: '农具', value: 'tools', goodsCategoryId: 2 }
-];
+const categoryOptions = ref<Array<{ label: string; value: string; goodsCategoryId: number | string }>>([]);
 
 const timeRanges: { label: string; value: TimeRange }[] = [
   { label: '日', value: '1' },
@@ -136,10 +140,11 @@ const timeRanges: { label: string; value: TimeRange }[] = [
   { label: '年', value: '4' }
 ];
 
-const currentCategory = ref('agricultural');
+const currentCategory = ref<string>('');
 const quantityTimeRange = ref<TimeRange>('1');
 const amountTimeRange = ref<TimeRange>('1');
 const fulfillmentTimeRange = ref<TimeRange>('1');
+const categoryLoading = ref(false);
 
 const quantityChartRef = ref<HTMLDivElement | null>(null);
 const amountChartRef = ref<HTMLDivElement | null>(null);
@@ -152,7 +157,12 @@ const isMounted = ref(false);
 
 const { proxy } = getCurrentInstance() as any;
 
-const currentCategoryOption = computed(() => categoryOptions.find((item) => item.value === currentCategory.value) ?? categoryOptions[0]);
+const currentCategoryOption = computed(() => {
+  if (categoryOptions.value.length === 0) {
+    return { label: '', value: '', goodsCategoryId: '' };
+  }
+  return categoryOptions.value.find((item) => item.value === currentCategory.value) ?? categoryOptions.value[0];
+});
 
 const initCharts = () => {
   if (quantityChartRef.value && !quantityChart) {
@@ -270,11 +280,16 @@ const updateAmountChart = (data: { label: string; value: number }[]) => {
   );
 };
 
-const buildCommonParams = (range: TimeRange) => ({
-  goodsCategoryId: currentCategoryOption.value.goodsCategoryId,
-  goodsCategoryName: currentCategoryOption.value.label,
-  homeDaysType: range
-});
+const buildCommonParams = (range: TimeRange) => {
+  const category = currentCategoryOption.value;
+  if (!category || !category.goodsCategoryId) {
+    return { homeDaysType: range };
+  }
+  return {
+    goodsCategoryId: category.goodsCategoryId,
+    homeDaysType: range
+  };
+};
 
 const fetchQuantityData = async () => {
   if (!quantityChart) return;
@@ -319,6 +334,38 @@ const changeCategory = (value: string) => {
   currentCategory.value = value;
 };
 
+// 获取一级类目列表
+const fetchCategoryList = async () => {
+  categoryLoading.value = true;
+  try {
+    const response: any = await getProductCategoryList();
+    const list = response?.data || response?.rows || response?.list || response || [];
+    
+    // 过滤出一级类目（parentId为0、null、'0'或不存在parentId的）
+    const firstLevelCategories = list.filter((item: any) => {
+      const parentId = item.parentId;
+      return parentId === 0 || parentId === '0' || parentId === null || parentId === undefined;
+    });
+    
+    // 转换为categoryOptions格式
+    categoryOptions.value = firstLevelCategories.map((item: any, index: number) => ({
+      label: item.categoryName || item.name || `类目${index + 1}`,
+      value: String(item.id || item.categoryId || index),
+      goodsCategoryId: item.id || item.categoryId || ''
+    }));
+    
+    // 如果有数据，默认选中第一个
+    if (categoryOptions.value.length > 0 && !currentCategory.value) {
+      currentCategory.value = categoryOptions.value[0].value;
+    }
+  } catch (error) {
+    console.error('获取商品分类列表失败:', error);
+    ElMessage.error('获取商品分类列表失败，请稍后重试');
+  } finally {
+    categoryLoading.value = false;
+  }
+};
+
 const changeRange = (type: 'quantity' | 'amount' | 'fulfillment', value: TimeRange) => {
   if (type === 'quantity') quantityTimeRange.value = value;
   if (type === 'amount') amountTimeRange.value = value;
@@ -339,8 +386,12 @@ onMounted(async () => {
   initCharts();
   window.addEventListener('resize', handleResize);
   isMounted.value = true;
-  fetchQuantityData();
-  fetchAmountData();
+  // 先获取类目列表，再获取图表数据
+  await fetchCategoryList();
+  if (categoryOptions.value.length > 0) {
+    fetchQuantityData();
+    fetchAmountData();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -350,12 +401,12 @@ onBeforeUnmount(() => {
 });
 
 watch([currentCategory, quantityTimeRange], () => {
-  if (!isMounted.value) return;
+  if (!isMounted.value || !currentCategory.value) return;
   fetchQuantityData();
 });
 
 watch([currentCategory, amountTimeRange], () => {
-  if (!isMounted.value) return;
+  if (!isMounted.value || !currentCategory.value) return;
   fetchAmountData();
 });
 </script>
@@ -423,6 +474,13 @@ watch([currentCategory, amountTimeRange], () => {
   background: #ffe451;
   color: #333;
   font-weight: 600;
+}
+
+.category-empty {
+  padding: 4px 16px;
+  font-size: 14px;
+  color: #999;
+  background: #f7f7f7;
 }
 
 .chart-body {
