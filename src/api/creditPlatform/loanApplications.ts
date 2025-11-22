@@ -54,17 +54,21 @@ export function getRepaymentPlan(id: number | string) {
   });
 }
 //修改还款计划
-export function updateRepaymentPlan(data: any) {
+export function updateRepaymentPlan(id: string | number, ossId: string | undefined, data: any) {
+  const url = ossId 
+    ? `/credit-server/repaymentPlanDetails?ossId=${ossId}&id=${id}`
+    : `/credit-server/repaymentPlanDetails?id=${id}`;
+  
   return request({
-    url: '/credit-server/repaymentPlans',
-    method: 'post',
+    url: url,
+    method: 'put',
     data: data
   });
 }
 //文件上传
 export function uploadFile(data: any) {
   return request({
-    url: 'resource/oss/upload',
+    url: '/resource/oss/upload',
     method: 'post',
     data: data
   });

@@ -64,7 +64,7 @@ export function updateRepaymentPlan(data: any) {
 //文件上传
 export function uploadFile(data: any) {
   return request({
-    url: 'resource/oss/upload',
+    url: '/resource/oss/upload',
     method: 'post',
     data: data
   });
