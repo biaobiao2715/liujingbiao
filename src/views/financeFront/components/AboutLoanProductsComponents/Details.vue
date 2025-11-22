@@ -11,20 +11,22 @@
     <div class="details_title">
       <div class="item-left">
         <div class="item_productName">{{ form?.productName }}fffff</div>
-        <dict-text class="item_type" :options="product_insurance_type" :value="form.productType ?? ''" />
+        <dict-text class="item_type" :options="prod_credit_type" :value="form.productType ?? ''" />
         <div class="item_productIntro">{{ form?.productIntro }}</div>
         <div class="kpi-list">
           <div class="kpi-list-li">
-            <div class="kpi-list-li-num">500万</div>
+            <div class="kpi-list-li-num">{{ form?.maxLoanAmount }}万</div>
             <div class="kpi-list-li-text">最高额度</div>
           </div>
           <div class="kpi-list-li">
-            <div class="kpi-list-li-num">500万</div>
-            <div class="kpi-list-li-text">最高额度</div>
+            <div class="kpi-list-li-num">{{ form.loanCycle.split(',').pop() }}个月</div>
+            <div class="kpi-list-li-text">贷款最长周期</div>
           </div>
           <div class="kpi-list-li">
-            <div class="kpi-list-li-num">500万</div>
-            <div class="kpi-list-li-text">最高额度</div>
+            <div class="kpi-list-li-num">
+              <dict-text :options="repayment_method" :value="form.repaymentMethod.split(',').pop() ?? ''" />
+            </div>
+            <div class="kpi-list-li-text">还款方式</div>
           </div>
         </div>
       </div>
@@ -37,7 +39,7 @@
           </div>
           <div class="loan-card__field-label">贷款金额（万元）</div>
           <div class="loan-card__amount-box">
-            {{ showAmount ? estimatedAmount : '*******' }}
+            {{ showAmount ? form?.maxLoanAmount : '*******' }}
           </div>
           <div class="loan-card__actions">
             <el-button type="primary" class="loan-btn-main" @click="revealAmount">查看可贷金额</el-button>
@@ -48,13 +50,13 @@
     </div>
 
     <div class="detail-content">
-      <div class="detail-content_title">保险特点</div>
+      <div class="detail-content_title">产品优势</div>
       <div v-html="form?.productAdvantages"></div>
     </div>
 
     <div class="detail-content">
-      <div class="detail-content_title">保障计划</div>
-      <div v-html="form?.guaranteePlan"></div>
+      <div class="detail-content_title">适用说明</div>
+      <div v-html="form?.applicableInstructions"></div>
     </div>
 
     <div class="detail-content">
@@ -63,8 +65,12 @@
     </div>
 
     <div class="detail-content">
-      <div class="detail-content_title">网点清单</div>
-      <div>{{ form.branchOfficeAttachment }}</div>
+      <div class="detail-content_title">合作机构</div>
+      <div v-if="firstAttachment" class="attachment-item" @click="downloadAttachmentByObj(firstAttachment)">
+        <span>{{ firstAttachment.originalName }}</span>
+        <span class="attachment-click">下载</span>
+      </div>
+      <div v-else class="attachment-empty">暂无附件</div>
     </div>
 
     <div class="detail-content">
@@ -75,9 +81,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { ElMessage } from 'element-plus';
 import { eventBus } from '@/utils/eventBus';
-import { getCreditArticle } from '@/api/financeFront/LoanProducts/index';
+import { getCreditProductsVersionDetailNoTenant } from '@/api/financeFront/LoanProducts/index';
 const props = defineProps({
   id: {
     type: String || Number,
@@ -86,9 +93,11 @@ const props = defineProps({
 });
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { product_insurance_type } = toRefs<any>(proxy?.useDict('product_insurance_type'));
+const { prod_credit_type, loan_cycle, repayment_method } = toRefs<any>(proxy?.useDict('prod_credit_type', 'loan_cycle', 'repayment_method'));
 
 const form = ref({
+  productId: '', // 产品ID
+  productVersion: '', // 产品版本号
   productName: '',
   productType: '',
   productIntro: '',
@@ -96,11 +105,15 @@ const form = ref({
   guaranteePlan: '',
   applicationInstructions: '',
   branchOfficeAttachment: '',
-  productRemark: ''
+  productRemark: '',
+  applicableInstructions: '',
+  maxLoanAmount: '',
+  repaymentMethod: '',
+  loanCycle: ''
 });
+
 const addShow = ref(true);
 const showAmount = ref(false);
-const estimatedAmount = ref('100.56');
 
 const revealAmount = () => {
   showAmount.value = !showAmount.value;
@@ -108,7 +121,35 @@ const revealAmount = () => {
 
 // 立即申请
 const handleApply = () => {
-  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentApplyForm' });
+  eventBus.emit('showComponentByCommand', {
+    type: 'LoanProductsComponentApplyForm',
+    id: props.id
+  });
+};
+
+const attachments = computed(() => (form.value as any).ossFileVo || []);
+const firstAttachment = computed(() => attachments.value[0] || null);
+
+const downloadAttachmentByObj = async (file?: { originalName?: string; url?: string }) => {
+  if (!file?.url) {
+    ElMessage.warning('附件不存在或无下载地址');
+    return;
+  }
+  try {
+    const response = await fetch(file.url);
+    if (!response.ok) throw new Error('网络错误');
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.originalName || '附件';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('下载失败', error);
+    ElMessage.error('下载失败，请稍后重试');
+  }
 };
 
 onMounted(() => {
@@ -117,7 +158,7 @@ onMounted(() => {
 
 // 详情
 const getArticleDetail = async () => {
-  const res = await getCreditArticle(props.id);
+  const res = await getCreditProductsVersionDetailNoTenant(props.id);
   if (res.code === 200) {
     form.value = res.data || {};
   }
@@ -373,5 +414,30 @@ const getArticleDetail = async () => {
   color: #ffffff;
   height: 22px;
   line-height: 22px;
+}
+
+.attachment-item {
+  width: 232px;
+  height: 36px;
+  background: #f6f7fb;
+  border-radius: 4px 4px 4px 4px;
+  border: 1px solid #eaeaea;
+
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3d3d3d;
+  padding: 0px 19px 0px 16px;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attachment-click {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #108c58;
 }
 </style>

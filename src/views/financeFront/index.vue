@@ -116,7 +116,7 @@ interface DetailPayload {
 }
 
 const id = ref<string>(''); // 详情ID统一为字符串，便于下游组件类型一致
-
+const productVersion = ref<string>('1.0'); // 产品版本号，默认1.0
 const showArea = ref<DetailView>('area');
 
 const personalActivityTab = ref('');
