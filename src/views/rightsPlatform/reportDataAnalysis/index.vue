@@ -351,7 +351,11 @@ const fetchMapData = async () => {
       mapTimeRange.value[1]
     ) {
       params.params.beginCreateTime = mapTimeRange.value[0];
-      params.params.endCreateTime = mapTimeRange.value[1];
+      // 结束时间设置为当天的 23:59:59，确保包含整天的数据
+      const endTimeStr = mapTimeRange.value[1];
+      const endDate = new Date(endTimeStr);
+      endDate.setHours(23, 59, 59, 999);
+      params.params.endCreateTime = formatDateTime(endDate);
     }
 
     const response: any = await getReportCountByProvince(params);
@@ -636,7 +640,11 @@ const fetchChartData = async () => {
       chartTimeRange.value[1]
     ) {
       params.params.beginCreateTime = chartTimeRange.value[0];
-      params.params.endCreateTime = chartTimeRange.value[1];
+      // 结束时间设置为当天的 23:59:59，确保包含整天的数据
+      const endTimeStr = chartTimeRange.value[1];
+      const endDate = new Date(endTimeStr);
+      endDate.setHours(23, 59, 59, 999);
+      params.params.endCreateTime = formatDateTime(endDate);
     } else if (timeFilter.value === 'today') {
       const today = new Date();
       const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
