@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="760px" class="buyer-repayment-detail-dialog" append-to-body destroy-on-close
+  <el-dialog :model-value="visible" width="900px" class="buyer-repayment-detail-dialog" append-to-body destroy-on-close
     :close-on-click-modal="false" @close="handleClose">
     <template #header>
       <div class="dialog-title">贷后管理详情（个人）</div>

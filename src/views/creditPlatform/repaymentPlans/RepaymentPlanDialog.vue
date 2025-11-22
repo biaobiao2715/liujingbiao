@@ -1,42 +1,40 @@
 <template>
-  <el-dialog :model-value="visible" width="1200px" class="repayment-plan-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog 
+    :model-value="visible" 
+    width="1300px" 
+    class="repayment-plan-dialog" 
+    append-to-body 
+    destroy-on-close
+    :close-on-click-modal="false"
+    @close="handleClose"
+  >
     <template #header>
       <div class="dialog-title">还款计划</div>
     </template>
-    <div v-loading="loading" class="repayment-plan-content">
-      <div class="plan-header">
-        <div class="tabs">
-          <div class="tab-item active">还款计划</div>
-          <div class="tab-item">查看还款计划</div>
-        </div>
-      </div>
-      
+
+    <div v-loading="loading" class="dialog-content">
       <div class="plan-grid">
         <div v-for="(plan, index) in repaymentPlans" :key="index" class="plan-card">
-          <div class="plan-info">
-            <div class="info-row">
+          <div class="card-content">
+            <div class="form-row">
               <span class="label">还款期数：</span>
               <span class="value">{{ plan.period }}期</span>
             </div>
-            <div class="info-row">
+            <div class="form-row">
               <span class="label">还款日期：</span>
               <span class="value">{{ plan.repaymentDate }}</span>
             </div>
-            <div class="info-row">
+            <div class="form-row">
               <span class="label">还款金额：</span>
-              <span class="value amount">{{ plan.repaymentAmount }}元</span>
+              <span class="value amount">{{ plan.repaymentAmount }} 元</span>
             </div>
-            <div class="info-row">
-              <span class="label">还款本金：</span>
-              <span class="value">{{ plan.principal }}</span>
+            <div class="form-row">
+              <span class="label">还款卡号：</span>
+              <span class="value">{{ plan.cardNumber || '--' }}</span>
             </div>
-            <div class="info-row">
-              <span class="label">还款利息：</span>
-              <span class="value">{{ plan.interest }}</span>
-            </div>
-            <div class="info-row">
+            <div class="form-row">
               <span class="label">还款状态：</span>
-              <span class="value status" :class="getStatusClass(plan.status)">{{ plan.statusText }}</span>
+              <el-tag :type="getStatusType(plan.status)" size="small">{{ plan.statusText }}</el-tag>
             </div>
           </div>
         </div>
@@ -57,8 +55,7 @@ interface RepaymentPlan {
   period: number;
   repaymentDate: string;
   repaymentAmount: string;
-  principal: string;
-  interest: string;
+  cardNumber?: string;
   status: string;
   statusText: string;
 }
@@ -80,8 +77,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 1,
     repaymentDate: '2025-1-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '已还款',
+    cardNumber: '291931093390',
     status: 'paid',
     statusText: '已还款'
   },
@@ -89,8 +85,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 2,
     repaymentDate: '2025-2-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '已还款',
+    cardNumber: '291931093390',
     status: 'paid',
     statusText: '已还款'
   },
@@ -98,8 +93,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 3,
     repaymentDate: '2025-2-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '待还款',
+    cardNumber: '291931093390',
     status: 'pending',
     statusText: '待还款'
   },
@@ -107,8 +101,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 4,
     repaymentDate: '2025-1-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '已还款',
+    cardNumber: '291931093390',
     status: 'paid',
     statusText: '已还款'
   },
@@ -116,8 +109,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 5,
     repaymentDate: '2025-2-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '已还款',
+    cardNumber: '291931093390',
     status: 'paid',
     statusText: '已还款'
   },
@@ -125,8 +117,7 @@ const mockRepaymentPlans: RepaymentPlan[] = [
     period: 6,
     repaymentDate: '2025-2-1',
     repaymentAmount: '92992.2',
-    principal: '291931093390',
-    interest: '待还款',
+    cardNumber: '291931093390',
     status: 'pending',
     statusText: '待还款'
   }
@@ -136,11 +127,15 @@ const repaymentPlans = computed(() => {
   return mockRepaymentPlans;
 });
 
-const getStatusClass = (status: string) => {
-  return {
-    'status-paid': status === 'paid',
-    'status-pending': status === 'pending'
-  };
+const getStatusType = (status: string) => {
+  switch (status) {
+    case 'paid':
+      return 'success';
+    case 'pending':
+      return 'warning';
+    default:
+      return 'info';
+  }
 };
 
 const fetchRepaymentPlan = async () => {
@@ -174,92 +169,59 @@ const handleClose = () => {
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
-    color: #303133;
   }
 }
 
-.repayment-plan-content {
-  padding: 0 8px;
-}
-
-.plan-header {
-  margin-bottom: 20px;
-  
-  .tabs {
-    display: flex;
-    gap: 20px;
-    
-    .tab-item {
-      padding: 8px 16px;
-      cursor: pointer;
-      border-radius: 4px;
-      color: #606266;
-      
-      &.active {
-        background-color: #409eff;
-        color: white;
-      }
-    }
-  }
+.dialog-content {
+  padding: 0;
 }
 
 .plan-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
+  padding: 4px;
 }
 
 .plan-card {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  padding: 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: calc(33.333% - 11px);
+  min-width: 280px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .card-content {
+    padding: 20px 16px;
   }
 }
 
-.plan-info {
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .label {
+    font-size: 14px;
+    color: #606266;
+    min-width: 85px;
+    font-weight: 500;
+  }
+  
+  .value {
+    flex: 1;
+    font-size: 14px;
+    color: #303133;
     
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    .label {
-      color: #606266;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-    
-    .value {
-      color: #303133;
-      font-size: 14px;
-      font-weight: 500;
-      text-align: right;
-      
-      &.amount {
-        color: #e6a23c;
-        font-weight: 600;
-      }
-      
-      &.status {
-        &.status-paid {
-          color: #67c23a;
-        }
-        
-        &.status-pending {
-          color: #f56c6c;
-        }
-      }
+    &.amount {
+      color: #e6a23c;
+      font-weight: 600;
     }
   }
 }
@@ -269,15 +231,15 @@ const handleClose = () => {
 }
 
 // 响应式设计
-@media (max-width: 1024px) {
-  .plan-grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 1200px) {
+  .plan-card {
+    width: calc(50% - 8px);
   }
 }
 
 @media (max-width: 768px) {
-  .plan-grid {
-    grid-template-columns: 1fr;
+  .plan-card {
+    width: 100%;
   }
 }
 </style>
