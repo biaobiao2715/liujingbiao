@@ -48,7 +48,7 @@
         <!-- 信贷产品详情 -->
         <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
         <!-- 信贷产品申请表单 -->
-        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" />
+        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
         <!-- 保险产品列表 -->
         <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
         <!-- 保险产品详情 -->
@@ -80,7 +80,6 @@ import RiskCasesComponent from './components/RiskCasesComponent.vue';
 import PolicyRulesComponent from './components/PolicyRulesComponent.vue';
 import InsuranceproductComponent from './components/InsuranceproductComponent.vue';
 import { eventBus } from '@/utils/eventBus';
-import { de, sw } from 'element-plus/es/locale';
 
 // 详情相关组件按需异步加载，减少首屏体积
 const AboutLoanProductsComponentList = defineAsyncComponent(() => import('./components/AboutLoanProductsComponents/list.vue')); // 信贷产品列表组件
@@ -116,7 +115,7 @@ interface DetailPayload {
 }
 
 const id = ref<string>(''); // 详情ID统一为字符串，便于下游组件类型一致
-const productVersion = ref<string>('1.0'); // 产品版本号，默认1.0
+const productId = ref<string>(''); // 产品ID
 const showArea = ref<DetailView>('area');
 
 const personalActivityTab = ref('');
@@ -146,6 +145,7 @@ onMounted(() => {
   eventBus.on('showComponentByCommand', (data: any) => {
     showArea.value = data.type;
     id.value = data?.id;
+    productId.value = data?.productId || '';
     personalActivityTab.value = data.command;
     selectNavigateByType(data.type);
   });

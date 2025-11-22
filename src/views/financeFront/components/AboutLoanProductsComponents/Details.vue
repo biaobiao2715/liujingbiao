@@ -123,7 +123,7 @@ const revealAmount = () => {
 const handleApply = () => {
   eventBus.emit('showComponentByCommand', {
     type: 'LoanProductsComponentApplyForm',
-    id: props.id
+    productId: props.id
   });
 };
 

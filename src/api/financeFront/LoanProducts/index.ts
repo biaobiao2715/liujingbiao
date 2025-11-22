@@ -1,4 +1,4 @@
-// 风险案例模块的公共接口
+// 金融的公共接口
 import request from '@/utils/request';
 
 /* 查询金融文章列表
@@ -39,7 +39,7 @@ export function getCreditProductsVersionDetailNoTenant(id: number | string) {
   });
 }
 
-// 获取企业贷款信息
+// 获取企业信息
 export function getBaseEnterpriseInfo(id: number | string) {
   return request({
     url: `/credit-server/loanApplications/baseEnterpriseInfo/${id}`,
@@ -47,7 +47,7 @@ export function getBaseEnterpriseInfo(id: number | string) {
   });
 }
 
-// 获取个人贷款信息
+// 获取个人信息
 export function getBasePurchaser(id: number | string) {
   return request({
     url: `/credit-server/loanApplications/basePurchaser/${id}`,
@@ -63,7 +63,6 @@ export function applyPersonalLoan(data: any) {
     data
   });
 }
-
 // 企业贷款申请
 export function applyEnterpriseLoan(data: any) {
   return request({
@@ -73,6 +72,14 @@ export function applyEnterpriseLoan(data: any) {
   });
 }
 
+// 获取贷款申请详细信息
+
+export function getLoanApplicationsId(id: number | string) {
+  return request({
+    url: `/credit-server/loanApplications/${id}`,
+    method: 'get'
+  });
+}
 /**
  * 图片上传方法
  * @param data - 包含文件的对象，需包含 `file` 属性
