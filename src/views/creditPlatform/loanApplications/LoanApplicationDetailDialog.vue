@@ -499,7 +499,10 @@ const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.
 const approvalTipMessage = computed(() => {
   return '当前申请状态为待审核，请前往审批流程处理。';
 });
-const showApprovalForm = computed(() => isApprovalMode.value && !hasCompletedResult.value);
+const showApprovalForm = computed(() => 
+  (isApprovalMode.value && !hasCompletedResult.value) || 
+  (!isApprovalMode.value && hasCompletedResult.value)
+);
 
 watch(
   () => props.visible,
