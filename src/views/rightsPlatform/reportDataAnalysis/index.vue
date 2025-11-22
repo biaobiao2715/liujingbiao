@@ -46,7 +46,7 @@
 
     <!-- 地图区域 -->
     <div class="map-section">
-      <div ref="mapContainer" class="map-container"></div>
+      <ChinaMapHeatmap :data="mapData" :title="mapTitle" :min="mapMin" :max="mapMax" />
     </div>
 
     <!-- 底部数据分析区域 -->
@@ -157,23 +157,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, watch, toRefs, getCurrentInstance } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick, watch, toRefs, getCurrentInstance, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import type { ECharts } from 'echarts';
 import { getReportCountAnalysis, getReportCountByProvince } from '@/api/rightsPlatform/customerreport/index';
-// @ts-ignore
-import chinaGeoJson from '@/views/mall/Components/AboutMarketComponents/chinaMap.json';
+import ChinaMapHeatmap from './ChinaMapHeatmap.vue';
 
 // 数据定义
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { report_type_id, report_status } = toRefs<any>((proxy as any)?.useDict('report_type_id', 'report_status'));
 
 const loading = ref(false);
-const mapContainer = ref<HTMLElement | null>(null);
 const chartContainer = ref<HTMLElement | null>(null);
-let mapChartInstance: ECharts | null = null;
 let barChartInstance: ECharts | null = null;
 
 // 查询参数
@@ -237,132 +234,181 @@ watch(
 const chartData = ref<any[]>([]);
 const selectedDateData = ref<any>(null);
 
+// 地图数据
+const mapData = ref<Array<{ 
+  name: string; 
+  value: number;
+  status0Count?: number;
+  status1Count?: number;
+  status2Count?: number;
+  status3Count?: number;
+  status4Count?: number;
+  statusCount?: number;
+}>>([]);
+const mapTitle = computed(() => {
+  const selectedType = reportTypeOptions.value.find(item => item.value === queryParams.reportTypeId);
+  return selectedType ? `${selectedType.label}举报分布图` : '举报数据分布图';
+});
+const mapMin = ref(0);
+const mapMax = ref(100);
+
 // 初始化
 onMounted(async () => {
-  initMapChart();
   initBarChart();
   await fetchMapData();
   await fetchChartData();
 });
 
 onUnmounted(() => {
-  if (mapChartInstance) {
-    mapChartInstance.dispose();
-  }
   if (barChartInstance) {
     barChartInstance.dispose();
   }
 });
 
-// 初始化地图
-const initMapChart = () => {
-  if (!mapContainer.value) return;
+// 省份名称映射：将完整省份名称转换为地图使用的短名称
+const normalizeProvinceName = (provinceName: string): string => {
+  if (!provinceName) return '';
   
-  mapChartInstance = echarts.init(mapContainer.value);
-  
-  // 注册地图
-  try {
-    echarts.registerMap('china', chinaGeoJson as any);
-  } catch (error) {
-    console.error('注册地图失败:', error);
-  }
-  
-  nextTick(() => {
-    mapChartInstance?.resize();
-    updateMapChart();
-  });
-  
-  window.addEventListener('resize', () => {
-    mapChartInstance?.resize();
-  });
-};
-
-// 更新地图
-const updateMapChart = (data: any[] = []) => {
-  if (!mapChartInstance) return;
-  
-  const option = {
-    tooltip: {
-      trigger: 'item',
-      formatter: (params: any) => {
-        if (params.data) {
-          const d = params.data;
-          return `${params.name}<br/>
-            待处理: ${d.status0Count || 0}<br/>
-            处理中: ${d.status1Count || 0}<br/>
-            已驳回: ${d.status2Count || 0}<br/>
-            已撤回: ${d.status4Count || 0}<br/>
-            已结案: ${d.status3Count || 0}`;
-        }
-        return `${params.name}<br/>暂无数据`;
-      }
-    },
-    visualMap: {
-      min: 0,
-      max: 100,
-      left: 20,
-      bottom: 60,
-      text: ['高', '低'],
-      calculable: true,
-      inRange: {
-        color: ['#e0f3ff', '#409eff', '#1d39c4']
-      }
-    },
-    series: [
-      {
-        name: '举报数据',
-        type: 'map',
-        map: 'china',
-        roam: true,
-        zoom: 1.2,
-        label: {
-          show: true,
-          fontSize: 10
-        },
-        emphasis: {
-          label: {
-            show: true
-          },
-          itemStyle: {
-            areaColor: '#409eff'
-          }
-        },
-        data: data.map((item: any) => ({
-          name: item.provinceName || item.name,
-          value: Number(item.statusCount || 0),
-          status0Count: Number(item.status0Count || 0),
-          status1Count: Number(item.status1Count || 0),
-          status2Count: Number(item.status2Count || 0),
-          status3Count: Number(item.status3Count || 0),
-          status4Count: Number(item.status4Count || 0)
-        }))
-      }
-    ]
+  // 省份名称映射表
+  const provinceMap: Record<string, string> = {
+    '北京市': '北京',
+    '天津市': '天津',
+    '河北省': '河北',
+    '山西省': '山西',
+    '内蒙古自治区': '内蒙古',
+    '辽宁省': '辽宁',
+    '吉林省': '吉林',
+    '黑龙江省': '黑龙江',
+    '上海市': '上海',
+    '江苏省': '江苏',
+    '浙江省': '浙江',
+    '安徽省': '安徽',
+    '福建省': '福建',
+    '江西省': '江西',
+    '山东省': '山东',
+    '河南省': '河南',
+    '湖北省': '湖北',
+    '湖南省': '湖南',
+    '广东省': '广东',
+    '广西壮族自治区': '广西',
+    '海南省': '海南',
+    '重庆市': '重庆',
+    '四川省': '四川',
+    '贵州省': '贵州',
+    '云南省': '云南',
+    '西藏自治区': '西藏',
+    '陕西省': '陕西',
+    '甘肃省': '甘肃',
+    '青海省': '青海',
+    '宁夏回族自治区': '宁夏',
+    '新疆维吾尔自治区': '新疆',
+    '台湾省': '台湾',
+    '香港特别行政区': '香港',
+    '澳门特别行政区': '澳门'
   };
   
-  mapChartInstance.setOption(option, true);
+  // 如果已经在映射表中，直接返回
+  if (provinceMap[provinceName]) {
+    return provinceMap[provinceName];
+  }
+  
+  // 如果已经是短名称，直接返回
+  if (Object.values(provinceMap).includes(provinceName)) {
+    return provinceName;
+  }
+  
+  // 尝试去除常见后缀
+  let normalized = provinceName
+    .replace(/省$/, '')
+    .replace(/市$/, '')
+    .replace(/自治区$/, '')
+    .replace(/特别行政区$/, '')
+    .replace(/壮族自治区$/, '')
+    .replace(/回族自治区$/, '')
+    .replace(/维吾尔自治区$/, '');
+  
+  return normalized || provinceName;
 };
 
 // 获取地图数据
 const fetchMapData = async () => {
   loading.value = true;
   try {
-    const params: any = {};
-    if (queryParams.reportTypeId) {
+    // 与柱状图一致，查询条件统一包在 params 字段里
+    const params: any = { params: {} };
+
+    // 举报类别参数（可选）放在最外层
+    if (queryParams.reportTypeId !== undefined && queryParams.reportTypeId !== null) {
       params.reportTypeId = queryParams.reportTypeId;
     }
-    if (mapTimeRange.value && mapTimeRange.value.length === 2) {
-      params.startTime = mapTimeRange.value[0];
-      params.endTime = mapTimeRange.value[1];
+
+    // 时间参数（可选），放在 params 里面，形如 params[startTime]、params[endTime]
+    if (
+      mapTimeRange.value &&
+      Array.isArray(mapTimeRange.value) &&
+      mapTimeRange.value.length === 2 &&
+      mapTimeRange.value[0] &&
+      mapTimeRange.value[1]
+    ) {
+      params.params.startTime = mapTimeRange.value[0];
+      params.params.endTime = mapTimeRange.value[1];
     }
-    
+
     const response: any = await getReportCountByProvince(params);
     if (response && response.code === 200 && response.data) {
-      updateMapChart(response.data);
+      const data = response.data || [];
+      console.log('API返回的原始数据:', data);
+      
+      // 处理数据映射，确保省份名称正确，状态数据正确转换
+      mapData.value = data.map((item: any) => {
+        const provinceName = item.province || item.provinceName || item.name || '';
+        const normalizedName = normalizeProvinceName(provinceName);
+        
+        return {
+          name: normalizedName,
+          value: Number(item.statusCount || 0), // 地图颜色根据总数量显示
+          status0Count: Number(item.status0Count || 0), // 待处理
+          status1Count: Number(item.status1Count || 0), // 处理中
+          status2Count: Number(item.status2Count || 0), // 已驳回
+          status3Count: Number(item.status3Count || 0), // 已结案
+          status4Count: Number(item.status4Count || 0), // 已撤回
+          statusCount: Number(item.statusCount || 0) // 总数量
+        };
+      });
+      
+      // 计算地图颜色范围
+      if (data.length > 0) {
+        const values = data.map((item: any) => Number(item.statusCount || 0)).filter((v: number) => !isNaN(v) && v >= 0);
+        if (values.length > 0) {
+          mapMin.value = Math.min(...values);
+          mapMax.value = Math.max(...values);
+          // 如果最大值和最小值相同，设置一个合理的范围
+          if (mapMin.value === mapMax.value) {
+            mapMax.value = mapMin.value + 1;
+          }
+        } else {
+          mapMin.value = 0;
+          mapMax.value = 100;
+        }
+      } else {
+        mapMin.value = 0;
+        mapMax.value = 100;
+      }
+      
+      console.log('处理后的地图数据:', mapData.value);
+      console.log('地图颜色范围:', { min: mapMin.value, max: mapMax.value });
+    } else {
+      mapData.value = [];
+      mapMin.value = 0;
+      mapMax.value = 100;
+      console.log('API返回数据为空或失败');
     }
   } catch (error) {
     console.error('获取地图数据失败:', error);
     ElMessage.error('获取地图数据失败');
+    mapData.value = [];
+    mapMin.value = 0;
+    mapMax.value = 100;
   } finally {
     loading.value = false;
   }
@@ -384,6 +430,50 @@ const initBarChart = () => {
   });
 };
 
+// 构造 X 轴标签：优先使用周次或日期范围，其次使用具体日期
+const buildXAxisLabel = (item: any, index: number): string => {
+  // 1）如果后端返回了时间范围字段，优先使用
+  const start =
+    item.startTime ||
+    item.beginTime ||
+    item.startDate ||
+    item.weekStartTime ||
+    item.weekStartDate;
+  const end =
+    item.endTime ||
+    item.finishTime ||
+    item.endDate ||
+    item.weekEndTime ||
+    item.weekEndDate;
+
+  if (start && end) {
+    // 只保留日期部分，格式：YYYY-MM-DD至YYYY-MM-DD
+    const formatDatePart = (val: string) => (val || '').split(' ')[0] || val || '';
+    return `${formatDatePart(start)}至${formatDatePart(end)}`;
+  }
+
+  // 2）如果有周次字段，显示周次
+  if (item.weekNumber !== undefined && item.weekNumber !== null) {
+    return `第${item.weekNumber}周`;
+  }
+  if (item.week !== undefined && item.week !== null) {
+    return `第${item.week}周`;
+  }
+
+  // 3）使用单个日期字段
+  const date = item.createTime || item.date;
+  if (date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // 4）兜底：按顺序显示"第X周"
+  return `第${index + 1}周`;
+};
+
 // 更新柱状图
 const updateBarChart = (data: any[] = []) => {
   if (!barChartInstance) return;
@@ -394,15 +484,8 @@ const updateBarChart = (data: any[] = []) => {
     return;
   }
   
-  // 处理数据
-  const dates = data.map((item: any) => {
-    const date = item.createTime || item.date;
-    if (date) {
-      const d = new Date(date);
-      return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-    return '';
-  });
+  // 处理数据 - X轴标签
+  const labels = data.map((item: any, index: number) => buildXAxisLabel(item, index));
   
   const status0Data = data.map((item: any) => Number(item.status0Count || 0));
   const status1Data = data.map((item: any) => Number(item.status1Count || 0));
@@ -438,14 +521,25 @@ const updateBarChart = (data: any[] = []) => {
     },
     xAxis: {
       type: 'category',
-      data: dates,
+      data: labels,
       axisLabel: {
-        rotate: 0
+        rotate: 0,
+        interval: 0, // 显示所有标签
+        formatter: (value: string) => {
+          // 如果标签太长，可以适当截断或换行
+          if (value.length > 12) {
+            return value.substring(0, 12) + '...';
+          }
+          return value;
+        }
       }
     },
     yAxis: {
       type: 'value',
-      min: 0
+      min: 0,
+      name: '举报数量',
+      nameLocation: 'middle',
+      nameGap: 50
     },
     series: [
       {
@@ -454,7 +548,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status0Data,
         itemStyle: {
-          color: '#409eff'
+          color: '#409eff' // 蓝色
         }
       },
       {
@@ -463,7 +557,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status1Data,
         itemStyle: {
-          color: '#e6a23c'
+          color: '#e6a23c' // 橙色
         }
       },
       {
@@ -472,7 +566,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status2Data,
         itemStyle: {
-          color: '#f56c6c'
+          color: '#f56c6c' // 红色
         }
       },
       {
@@ -481,7 +575,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status4Data,
         itemStyle: {
-          color: '#909399'
+          color: '#909399' // 灰色
         }
       },
       {
@@ -490,7 +584,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status3Data,
         itemStyle: {
-          color: '#67c23a'
+          color: '#67c23a' // 绿色
         }
       }
     ]
@@ -505,7 +599,7 @@ const updateBarChart = (data: any[] = []) => {
     if (data[index]) {
       const item = data[index];
       selectedDateData.value = {
-        date: item.createTime || item.date || dates[index],
+        date: labels[index],
         status0Count: Number(item.status0Count || 0),
         status1Count: Number(item.status1Count || 0),
         status2Count: Number(item.status2Count || 0),
@@ -525,26 +619,37 @@ const updateBarChart = (data: any[] = []) => {
 const fetchChartData = async () => {
   loading.value = true;
   try {
-    const params: any = {};
-    if (queryParams.reportTypeId) {
+    // 按接口要求，所有查询条件都包在 params 对象里
+    const params: any = { params: {} };
+
+    // 举报类别（可选）放在最外层
+    if (queryParams.reportTypeId !== undefined && queryParams.reportTypeId !== null) {
       params.reportTypeId = queryParams.reportTypeId;
     }
-    if (chartTimeRange.value && chartTimeRange.value.length === 2) {
-      params.startTime = chartTimeRange.value[0];
-      params.endTime = chartTimeRange.value[1];
+
+    // 时间字段（可选），放在 params 里面，形如 params[beginCreateTime]、params[endCreateTime]
+    if (
+      chartTimeRange.value &&
+      Array.isArray(chartTimeRange.value) &&
+      chartTimeRange.value.length === 2 &&
+      chartTimeRange.value[0] &&
+      chartTimeRange.value[1]
+    ) {
+      params.params.beginCreateTime = chartTimeRange.value[0];
+      params.params.endCreateTime = chartTimeRange.value[1];
     } else if (timeFilter.value === 'today') {
       const today = new Date();
       const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
       const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-      params.startTime = formatDateTime(start);
-      params.endTime = formatDateTime(end);
+      params.params.beginCreateTime = formatDateTime(start);
+      params.params.endCreateTime = formatDateTime(end);
     } else if (timeFilter.value === 'yesterday') {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const start = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0);
       const end = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59);
-      params.startTime = formatDateTime(start);
-      params.endTime = formatDateTime(end);
+      params.params.beginCreateTime = formatDateTime(start);
+      params.params.endCreateTime = formatDateTime(end);
     } else if (timeFilter.value === 'week') {
       const today = new Date();
       const weekStart = new Date(today);
@@ -552,10 +657,10 @@ const fetchChartData = async () => {
       weekStart.setHours(0, 0, 0, 0);
       const weekEnd = new Date(today);
       weekEnd.setHours(23, 59, 59, 999);
-      params.startTime = formatDateTime(weekStart);
-      params.endTime = formatDateTime(weekEnd);
+      params.params.beginCreateTime = formatDateTime(weekStart);
+      params.params.endCreateTime = formatDateTime(weekEnd);
     }
-    
+
     const response: any = await getReportCountAnalysis(params);
     if (response && response.code === 200 && response.data) {
       chartData.value = response.data;
@@ -591,8 +696,12 @@ const handleMapTimeChange = () => {
 };
 
 const handleMapReset = () => {
+  // 重置地图筛选条件：时间和举报类别
   mapTimeRange.value = null;
+  queryParams.reportTypeId = undefined as any;
+  // 重新请求地图和柱状图数据，保持页面数据一致
   fetchMapData();
+  fetchChartData();
 };
 
 const handleCategoryClick = (value: number) => {
@@ -657,11 +766,6 @@ const handleChartReset = () => {
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 16px;
-  
-  .map-container {
-    width: 100%;
-    height: 600px;
-  }
 }
 
 .analysis-section {

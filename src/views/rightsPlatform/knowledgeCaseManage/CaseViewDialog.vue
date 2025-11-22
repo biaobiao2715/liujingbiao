@@ -42,10 +42,10 @@
         </div>
       </div>
 
-      <!-- 附件列表 -->
-      <div class="attachment-section" v-if="attachmentList.length > 0">
+      <!-- 附件列表：仅在附件类型有有效值时展示 -->
+      <div class="attachment-section" v-if="visibleAttachmentList.length > 0">
         <div class="section-title">附件</div>
-        <el-table :data="attachmentList" stripe border class="attachment-table">
+        <el-table :data="visibleAttachmentList" stripe border class="attachment-table">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column label="附件类型" width="120" align="center">
             <template #default="scope">
@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, nextTick, onMounted, onUnmounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Download } from '@element-plus/icons-vue';
 import { fetchKnowledgeCaseDetail } from '@/api/rightsPlatform/knowledgeCaseManage/index';
@@ -97,6 +97,8 @@ const emit = defineEmits<{
   (e: 'close'): void;
 }>();
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
 const loading = ref(false);
 const caseName = ref('');
 const caseContent = ref('');
@@ -112,6 +114,18 @@ const attachmentList = ref<Array<{
   fileType?: string;
   foreignType?: string;
 }>>([]);
+
+// 仅当附件类型有值时才显示在列表中；如果后端未返回附件类型或前端已清空附件，则不展示附件部分
+const visibleAttachmentList = computed(() =>
+  attachmentList.value.filter((item) => {
+    const type = item.fileType != null ? String(item.fileType).trim() : '';
+    const ossId = item.ossId != null ? String(item.ossId).trim() : '';
+    const originalName = (item.originalName ?? '').trim();
+    const fileName = (item.fileName ?? '').trim();
+    const nameProvided = originalName !== '' || fileName !== '';
+    return type !== '' && ossId !== '' && nameProvided;
+  })
+);
 
 // 获取文件类型文本
 const decodeRichText = (content?: string | null) => {
@@ -148,24 +162,35 @@ const getFileType = (fileName: string, fileType?: string): string => {
   return '99';
 };
 
-const normalizeAttachment = (item: any) => ({
-  ossId: item.ossId,
-  fileName: item.fileName || item.originalName,
-  originalName: item.originalName || item.fileName || '附件',
-  fileSuffix: item.fileSuffix || '',
-  url: item.url || '',
-  fileSize: item.fileSize || '--',
-  fileType: item.fileType || getFileType(item.originalName || item.fileName || '', item.fileType),
-  foreignType: item.foreignType || '1'
-});
+const normalizeAttachment = (item: any) => {
+  const remote = item.remote || item.remoteOssVos?.[0] || {};
+  return {
+    ossId: item.ossId || remote.ossId || remote.id,
+    fileName: item.fileName || remote.fileName || remote.originalName || '附件',
+    originalName: item.originalName || remote.originalName || item.fileName || '附件',
+    fileSuffix: item.fileSuffix || remote.fileSuffix || '',
+    url: item.url || remote.url || '',
+    fileSize: item.fileSize || remote.fileSize || '--',
+    fileType: item.fileType || getFileType(item.originalName || item.fileName || remote.originalName || '', item.fileType),
+    foreignType: item.foreignType || '1',
+    remote
+  };
+};
 
 // 下载文件
 const handleDownloadFile = (row: any) => {
-  if (row.url) {
-    downloadFileByUrl(row.url, row.originalName || row.fileName || '附件');
-  } else {
-    ElMessage.warning('文件地址不存在');
+  if (!row) return;
+  const ossId = row.ossId || row.remote?.ossId || row.remote?.id;
+  if (ossId) {
+    (proxy as any)?.$download?.oss(String(ossId));
+    return;
   }
+  const url = row.url || row.remote?.url;
+  if (url) {
+    downloadFileByUrl(url, row.originalName || row.fileName || '附件');
+    return;
+  }
+  ElMessage.warning('附件链接不存在，无法下载');
 };
 
 // 目录相关回调
@@ -283,11 +308,25 @@ const fetchDetail = async () => {
       }
 
       // 处理附件列表
+      // 判断附件是否为空：如果关键字段都是空字符串，则不显示附件
+      const isAttachmentEmpty = (file: any) => {
+        if (!file || typeof file !== 'object') return true;
+        const fileType = (file.fileType || '').trim();
+        const originalName = (file.originalName || '').trim();
+        // 如果 fileType 和 originalName 都是空字符串，则认为附件为空（即使 ossId 有值）
+        return fileType === '' && originalName === '';
+      };
+
       if (data.protectionFiles && Array.isArray(data.protectionFiles)) {
-        attachmentList.value = data.protectionFiles.length > 0 ? [normalizeAttachment(data.protectionFiles[0])] : [];
+        const validFiles = data.protectionFiles.filter(file => !isAttachmentEmpty(file));
+        attachmentList.value = validFiles.length > 0 ? [normalizeAttachment(validFiles[0])] : [];
       } else if (data.protectionFiles && typeof data.protectionFiles === 'object') {
         // 单个附件对象
-        attachmentList.value = [normalizeAttachment(data.protectionFiles)];
+        if (!isAttachmentEmpty(data.protectionFiles)) {
+          attachmentList.value = [normalizeAttachment(data.protectionFiles)];
+        } else {
+          attachmentList.value = [];
+        }
       } else {
         attachmentList.value = [];
       }
