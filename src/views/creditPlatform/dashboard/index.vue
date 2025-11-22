@@ -114,7 +114,7 @@
                   :key="tab.value"
                   :type="activeTab === tab.value ? 'primary' : 'default'"
                   size="small"
-                  @click="activeTab = tab.value"
+                  @click="handleTabChange(tab.value)"
                 >
                   {{ tab.label }}
                 </el-button>
@@ -128,10 +128,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import * as echarts from 'echarts';
 import { Money, Warning, TrendCharts } from '@element-plus/icons-vue';
-import { getDashboardStats } from '@/api/creditPlatform/dashboard';
+import { getDashboardStats, getDashboardLineChart } from '@/api/creditPlatform/dashboard';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { sys_year_month } = toRefs<any>(proxy?.useDict('sys_year_month'));
 
 interface DashboardData {
   pendingApprovals: number;
@@ -161,12 +164,9 @@ const dashboardData = ref<DashboardData>({
   monthlyOverdueAmount: 0
 });
 
-const chartTabs = [
-  { label: '月度', value: 'month' },
-  { label: '年度', value: 'year' },
-  { label: '自定义', value: 'custom' }
-];
-const activeTab = ref('month');
+// 从字典获取年度月度选项
+const chartTabs = ref<Array<{ label: string; value: string }>>([]);
+const activeTab = ref('1'); // 默认月度
 
 const defaultRateChart = ref<HTMLElement>();
 
@@ -180,14 +180,41 @@ const formatAmount = (amount: number) => {
 };
 
 const chartData = ref<any[]>([]);
+let chartInstance: echarts.ECharts | null = null;
 
 const initDefaultRateChart = () => {
   if (!defaultRateChart.value) return;
-  const chart = echarts.init(defaultRateChart.value);
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+  chartInstance = echarts.init(defaultRateChart.value);
   
-  const months = chartData.value.map(item => item.month.substring(5));
-  const cumulativeRates = chartData.value.map(item => item.cumulativeDefaultRate || 0);
-  const monthlyRates = chartData.value.map(item => item.defaultRate || 0);
+  updateChart();
+  
+  window.addEventListener('resize', () => {
+    chartInstance?.resize();
+  });
+};
+
+const updateChart = () => {
+  if (!chartInstance || !chartData.value || chartData.value.length === 0) return;
+  
+  // 根据数据格式处理，可能是 xAxis/yAxis 格式或数组格式
+  let xAxisData: string[] = [];
+  let yAxisData: number[] = [];
+  
+  if (chartData.value[0]?.xAxis && chartData.value[0]?.yAxis) {
+    // xAxis/yAxis 格式
+    xAxisData = chartData.value[0].xAxis || [];
+    yAxisData = (chartData.value[0].yAxis || []).map((v: any) => Number(v) || 0);
+  } else if (Array.isArray(chartData.value)) {
+    // 数组格式，假设有 time 或 month 字段
+    xAxisData = chartData.value.map((item: any) => item.time || item.month || item.date || '');
+    yAxisData = chartData.value.map((item: any) => {
+      const rate = item.defaultRate || item.rate || item.value || 0;
+      return Number(rate) || 0;
+    });
+  }
   
   const option = {
     backgroundColor: 'transparent',
@@ -198,7 +225,7 @@ const initDefaultRateChart = () => {
       }
     },
     legend: {
-      data: ['总违约率', '本月违约率'],
+      data: ['违约率'],
       textStyle: {
         color: '#fff'
       },
@@ -213,7 +240,7 @@ const initDefaultRateChart = () => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: months,
+      data: xAxisData,
       axisLabel: {
         color: '#fff'
       },
@@ -242,74 +269,116 @@ const initDefaultRateChart = () => {
     },
     series: [
       {
-        name: '总违约率',
+        name: '违约率',
         type: 'line',
         smooth: true,
-        data: cumulativeRates,
+        data: yAxisData,
         itemStyle: {
           color: '#f56c6c'
         },
         lineStyle: {
           color: '#f56c6c'
-        }
-      },
-      {
-        name: '本月违约率',
-        type: 'line',
-        smooth: true,
-        data: monthlyRates,
-        itemStyle: {
-          color: '#409eff'
         },
-        lineStyle: {
-          color: '#409eff'
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(245, 108, 108, 0.6)' },
+            { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
+          ])
         }
       }
     ]
   };
-  chart.setOption(option);
-  window.addEventListener('resize', () => {
-    chart.resize();
-  });
+  chartInstance.setOption(option);
 };
 
+// 获取顶部统计数据
 const fetchDashboardData = async () => {
   try {
     const res = await getDashboardStats();
     let data = null;
     
     if (res && res.code === 200) {
-      data = Array.isArray(res.data) ? res.data[0] : res.data;
-    } else if (Array.isArray(res)) {
-      data = res[0];
-    } else if (res && typeof res === 'object') {
-      data = res;
+      data = res.data;
     }
     
     if (data) {
       dashboardData.value = {
-        pendingApprovals: data.pendingApprovals || 0,
-        totalLoanApprovals: data.totalLoanApprovals || 0,
-        approvedLoans: data.approvedLoans || 0,
-        rejectedLoans: data.rejectedLoans || 0,
-        cancelledApplications: data.cancelledApplications || 0,
-        totalApprovedAmount: data.totalApprovedAmount || 0,
+        pendingApprovals: data.pendingCount || 0,
+        totalLoanApprovals: data.totalApproval || 0,
+        approvedLoans: data.totalApplications || 0,
+        rejectedLoans: data.rejectedCount || 0,
+        cancelledApplications: data.canceledCount || 0,
+        totalApprovedAmount: data.totalLoanAmount || 0,
         currentOverdueAmount: data.currentOverdueAmount || 0,
-        totalDefaultRate: data.totalDefaultRate || 0,
-        monthlyReceivableAmount: data.monthlyReceivableAmount || 0,
-        monthlyReceivedAmount: data.monthlyReceivedAmount || 0,
-        monthlyOverdueAmount: data.monthlyOverdueAmount || 0
+        totalDefaultRate: data.defaultRate || 0,
+        monthlyReceivableAmount: data.currentMonthDueAmount || 0,
+        monthlyReceivedAmount: data.currentMonthPaidAmount || 0,
+        monthlyOverdueAmount: data.currentMonthOverdueAmount || 0
       };
-      chartData.value = data.lastSixMonthsDefaultRates || [];
+    }
+  } catch (error) {
+    console.error('获取首页统计数据失败', error);
+  }
+};
+
+// 获取折线图数据
+const fetchChartData = async () => {
+  try {
+    const params: any = {
+      dateType: activeTab.value // '1' 月度, '2' 年度
+    };
+    
+    const res = await getDashboardLineChart(params);
+    
+    if (res && res.code === 200) {
+      // 处理返回的数据格式
+      if (res.data?.xAxis && res.data?.yAxis) {
+        chartData.value = [{ xAxis: res.data.xAxis, yAxis: res.data.yAxis }];
+      } else if (Array.isArray(res.data)) {
+        chartData.value = res.data;
+      } else {
+        chartData.value = [];
+      }
+      
       nextTick(() => {
-        initDefaultRateChart();
+        updateChart();
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error('获取折线图数据失败', error);
+  }
+};
+
+// 切换标签
+const handleTabChange = (value: string) => {
+  activeTab.value = value;
+  fetchChartData();
 };
 
 onMounted(() => {
+  // 初始化字典选项
+  if (sys_year_month.value && sys_year_month.value.length > 0) {
+    chartTabs.value = sys_year_month.value.map((item: any) => ({
+      label: item.label,
+      value: item.value
+    }));
+    // 默认选中第一个
+    if (chartTabs.value.length > 0) {
+      activeTab.value = chartTabs.value[0].value;
+    }
+  } else {
+    // 如果字典未加载，使用默认值
+    chartTabs.value = [
+      { label: '月度', value: '1' },
+      { label: '年度', value: '2' }
+    ];
+  }
+  
   fetchDashboardData();
+  nextTick(() => {
+    initDefaultRateChart();
+    fetchChartData();
+  });
 });
 </script>
 
