@@ -11,7 +11,7 @@
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <!-- 案件类型 -->
       <el-form-item label="案件类型" prop="caseTypeId">
-        <el-select v-model="queryParams.caseTypeId" placeholder="案件类型" filterable clearable>
+        <el-select v-model="queryParams.caseTypeId" placeholder="请选择" filterable clearable>
           <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>

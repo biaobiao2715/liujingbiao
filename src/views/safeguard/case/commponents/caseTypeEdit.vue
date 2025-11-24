@@ -31,7 +31,7 @@
           <span>案件类型</span>
         </template>
         <el-select v-model="formData.caseTypeId" placeholder="请选择" :disabled="isViewMode">
-          <el-option v-for="item in caseTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
         <p v-if="!formData.caseTypeId && !isViewMode" class="tip-text">请选择案件类型</p>
       </el-form-item>
@@ -269,6 +269,9 @@ import { UploadFilled, Document } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/supplier/productManagement/product';
 import { fetchCreateLegalDocumentList, getLegalDocumentDetail } from '@/api/safeguard/legalDocument';
 import { getCaseTypeDetail } from '@/api/safeguard/case';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { case_type } = toRefs<any>(proxy?.useDict('case_type'));
 
 interface KeyAttribute {
   name: string;
@@ -779,7 +782,7 @@ const handleCaseScoreInput = (value: string | number) => {
 };
 
 const applyData = (val?: typeof props.data) => {
-  formData.caseTypeId = val?.caseTypeId || '';
+  formData.caseTypeId = val?.caseTypeId ? String(val.caseTypeId) : '';
   formData.caseTypeCode = val?.caseTypeCode || '';
   formData.keyAttributes = val?.keyAttributes?.map((item) => ({ ...item })) || [];
   formData.legalBasisFiles = val?.legalBasisFiles?.map((item) => ({ ...item })) || [];
