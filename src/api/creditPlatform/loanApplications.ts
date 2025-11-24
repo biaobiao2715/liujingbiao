@@ -16,10 +16,10 @@ export function deleteLoanApplication(ids: string | number) {
     method: 'delete'
   });
 }
-//企业信息（路径参数传递企业ID）
-export function getEnterprise(id: string | number) {
+//企业信息（路径参数传递 lenderId）
+export function getEnterprise(lenderId: string | number) {
   return request({
-    url: `/credit-server/loanApplications/baseEnterpriselnfo/${id}`,
+    url: `/credit-server/loanApplications/entByUserId/${lenderId}`,
     method: 'get'
   });
 }
