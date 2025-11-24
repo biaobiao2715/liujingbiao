@@ -31,7 +31,11 @@
 
     <div class="detail-content">
       <div class="detail-content_title">网点清单</div>
-      <div>{{ form.branchOfficeAttachment }}</div>
+      <div v-if="firstAttachment" class="attachment-item" @click="downloadAttachmentByObj(firstAttachment)">
+        <span>{{ firstAttachment.originalName }}</span>
+        <span class="attachment-click">下载</span>
+      </div>
+      <div v-else class="attachment-empty">暂无附件</div>
     </div>
 
     <div class="detail-content">
@@ -62,8 +66,36 @@ const form = ref({
   guaranteePlan: '',
   applicationInstructions: '',
   branchOfficeAttachment: '',
-  productRemark: ''
+  productRemark: '',
+  remoteFile: {
+    originalName: '',
+    url: ''
+  }
 });
+
+const firstAttachment = computed(() => form.value?.remoteFile || null);
+
+const downloadAttachmentByObj = async (file?: { originalName?: string; url?: string }) => {
+  if (!file?.url) {
+    ElMessage.warning('附件不存在或无下载地址');
+    return;
+  }
+  try {
+    const response = await fetch(file.url);
+    if (!response.ok) throw new Error('网络错误');
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = file.originalName || '附件';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('下载失败', error);
+    ElMessage.error('下载失败，请稍后重试');
+  }
+};
 
 onMounted(() => {
   getArticleDetail();
@@ -172,5 +204,30 @@ const getArticleDetail = async () => {
   font-size: 14px;
   color: #3d3d3d;
   line-height: 24px;
+}
+
+.attachment-item {
+  width: 232px;
+  height: 36px;
+  background: #f6f7fb;
+  border-radius: 4px 4px 4px 4px;
+  border: 1px solid #eaeaea;
+
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3d3d3d;
+  padding: 0px 19px 0px 16px;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attachment-click {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #108c58;
 }
 </style>

@@ -9,12 +9,18 @@ export function getloanApplicationsList(data: any) {
     params: data
   });
 }
-//企业信息
-export function getEnterprise(data: any) {
+//删除信贷申请
+export function deleteLoanApplication(ids: string | number) {
   return request({
-    url: '/credit-server/loanApplications/entByUserId',
-    method: 'get',
-    params: data
+    url: `/credit-server/loanApplications/${ids}`,
+    method: 'delete'
+  });
+}
+//企业信息（路径参数传递企业ID）
+export function getEnterprise(id: string | number) {
+  return request({
+    url: `/credit-server/loanApplications/baseEnterpriselnfo/${id}`,
+    method: 'get'
   });
 }
 //个人信息（路径参数传递用户ID）
@@ -46,11 +52,38 @@ export function auditLoanApplication(data: any) {
     data: data
   });
 }
+//还款计划详情
+export function getRepaymentPlan(id: number | string) {
+  return request({
+    url: `/credit-server/repaymentPlanDetails/${id}`,
+    method: 'get',
+  });
+}
+//修改还款计划
+export function updateRepaymentPlan(id: string | number, ossId: string | undefined, data: any) {
+  const url = ossId 
+    ? `/credit-server/repaymentPlanDetails?ossId=${ossId}&id=${id}`
+    : `/credit-server/repaymentPlanDetails?id=${id}`;
+  
+  return request({
+    url: url,
+    method: 'put',
+    data: data
+  });
+}
 //文件上传
 export function uploadFile(data: any) {
   return request({
-    url: 'resource/oss/upload',
+    url: '/resource/oss/upload',
     method: 'post',
     data: data
+  });
+}
+// 删除文件
+export function deleteFile(ossIds: string | number | Array<string | number>) {
+  const ids = Array.isArray(ossIds) ? ossIds.join(',') : ossIds;
+  return request({
+    url: `/resource/oss/${ids}`,
+    method: 'delete'
   });
 }

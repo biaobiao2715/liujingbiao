@@ -275,50 +275,67 @@ const handleClose = () => {
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
+    color: #303133;
   }
 }
 
 .product-detail-content {
-  padding: 0;
+  padding: 20px;
+  background: #fafafa;
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  color: #303133;
   margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-
-  &::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    background-color: #409eff;
-    border-radius: 2px;
-    margin-right: 8px;
-  }
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 4px;
+  border-left: 3px solid #409eff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px 24px;
-  margin-bottom: 24px;
+  gap: 0;
+  margin-bottom: 20px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
 
   .info-item {
     display: flex;
     align-items: center;
-    min-height: 32px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+    min-height: 48px;
+
+    &:nth-child(2n) {
+      border-right: none;
+    }
+
+    &:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
 
     &.range {
       grid-column: span 2;
+      border-right: none;
+      
+      &:last-child {
+        border-bottom: none;
+      }
     }
 
     .label {
-      min-width: 100px;
+      min-width: 90px;
       color: #606266;
       font-size: 14px;
-      margin-right: 8px;
+      font-weight: 500;
     }
 
     .value {
@@ -331,36 +348,43 @@ const handleClose = () => {
 
 .info-block {
   display: flex;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   align-items: flex-start;
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
 
   .label {
-    min-width: 100px;
+    min-width: 90px;
     color: #606266;
     font-size: 14px;
-    margin-right: 8px;
+    font-weight: 500;
     padding-top: 8px;
+    flex-shrink: 0;
   }
 
   .readonly-textarea {
     flex: 1;
     :deep(.el-textarea__inner) {
-      background-color: #fff;
+      background-color: #f5f7fa;
       border: 1px solid #dcdfe6;
       cursor: default;
       color: #606266;
+      font-size: 14px;
     }
   }
 
   .rich-text-content {
     flex: 1;
     padding: 12px;
-    background-color: #fff;
+    background-color: #f5f7fa;
     border: 1px solid #dcdfe6;
     border-radius: 4px;
     min-height: 80px;
-    line-height: 1.6;
+    line-height: 1.8;
     color: #606266;
+    font-size: 14px;
 
     &.empty-content {
       color: #909399;
@@ -368,21 +392,32 @@ const handleClose = () => {
       display: flex;
       align-items: center;
       justify-content: center;
+      font-style: italic;
     }
   }
 
   .attachment-content {
     flex: 1;
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 6px;
 
     .file-link {
       font-size: 14px;
+      padding: 4px 12px;
+      background: #ecf5ff;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #d9ecff;
+      }
     }
 
     .empty-text {
       color: #909399;
       font-size: 14px;
+      font-style: italic;
     }
   }
 }
@@ -390,9 +425,15 @@ const handleClose = () => {
 .footer-actions {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid #ebeef5;
+  background: #fff;
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: -20px;
+  padding-bottom: 20px;
+  border-radius: 0 0 4px 4px;
 }
 </style>
 

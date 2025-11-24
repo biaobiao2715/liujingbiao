@@ -6,6 +6,9 @@ declare module '*.vue' {
 
 // 环境变量
 interface ImportMetaEnv {
+  readonly DEV: boolean;
+  readonly MODE: string;
+  readonly PROD: boolean;
   VITE_APP_TITLE: string;
   VITE_APP_PORT: number;
   VITE_APP_BASE_API: string;

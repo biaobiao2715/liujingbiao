@@ -307,12 +307,21 @@ const fetchCaseNameOptions = async () => {
 const fetchTableData = async () => {
   loading.value = true;
   try {
-    const params = pickBy(
+    const params: Record<string, any> = pickBy(
       {
         ...queryParams
       },
       (value) => value !== '' && value !== null && value !== undefined
     );
+    if (params.createTime) {
+      const createDate = params.createTime;
+      params.params = {
+        ...(params.params || {}),
+        beginCreateTime: `${createDate} 00:00:00`,
+        endCreateTime: `${createDate} 23:59:59`
+      };
+      delete params.createTime;
+    }
     const res = await fetchKnowledgeCaseList(params);
     tableData.value = res?.rows || res?.data?.records || res?.data || [];
     total.value = res?.total ?? res?.data?.total ?? 0;

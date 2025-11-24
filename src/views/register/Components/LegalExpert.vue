@@ -266,7 +266,7 @@ const ocrMap = {
   lawFirm: 'practiceInstitution',
   practiceType: 'practiceCertificateType',
   certificateType: 'practiceCertificateType',
-  barNumber: 'practiceCertificateNumber',
+  barNumber: 'legalPracticeQualification',
   certificateNumber: 'practiceCertificateNumber',
   issuingAuthority: 'issuingAuthority',
   issueDate: 'issueDate',

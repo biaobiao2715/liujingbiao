@@ -59,9 +59,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance } from 'vue';
+import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance, toRefs } from 'vue';
 import { View, Star } from '@element-plus/icons-vue';
 import { getArticle } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { ElMessage } from 'element-plus';
+import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['cancel']);
@@ -91,29 +93,36 @@ const buildAttachments = (data: any) => {
       raw: item,
       url: remote.url || remote.name || '',
       originalName: remote.originalName || remote.name || '',
+      fileName: remote.fileName || remote.originalName || remote.name || '',
       fileSuffix: remote.fileSuffix || suffix,
       fileSuffixDisplay: suffix ? suffix.replace(/^\./, '') : '--',
       fileSize,
       sizeText: formatSize(fileSize),
       isImage,
-      remote
+      remote,
+      ossId: remote.ossId || remote.id || item.ossId || item.id
     };
   });
 };
 
 const downloadFile = async (row: any) => {
+  if (!row) return;
   try {
-    const response = await fetch(row.url);
-    const blob = await response.blob();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = row.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    const ossId = row.ossId || row.remote?.ossId || row.remote?.id;
+    if (ossId) {
+      await (proxy as any)?.$download?.oss(String(ossId));
+      return;
+    }
+    const url = row.url || row.remote?.url;
+    if (url) {
+      const fileName = row.originalName || row.fileName || row.remote?.originalName || '附件';
+      downloadFileByUrl(url, fileName);
+      return;
+    }
+    ElMessage.warning('附件链接不存在，无法下载');
   } catch (error) {
-    console.error('下载失败', error);
+    console.error('下载失败:', error);
+    ElMessage.error('下载失败，请重试');
   }
 };
 

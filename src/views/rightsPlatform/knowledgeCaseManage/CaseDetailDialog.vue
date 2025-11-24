@@ -75,8 +75,8 @@
         </el-upload>
       </el-form-item>
 
-      <el-form-item label="附件列表" v-if="attachmentList.length > 0">
-        <el-table :data="attachmentList" stripe border class="attachment-table">
+      <el-form-item label="附件列表" v-if="visibleAttachmentList.length > 0">
+        <el-table :data="visibleAttachmentList" stripe border class="attachment-table">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column label="附件类型" width="120" align="center">
             <template #default="scope">
@@ -172,6 +172,18 @@ const attachmentList = ref<Array<{
   fileType?: string;
   foreignType?: string;
 }>>([]);
+
+// 仅当附件类型有值时才显示在列表中；如果后端未返回附件类型，则不展示附件部分
+const visibleAttachmentList = computed(() =>
+  attachmentList.value.filter((item) => {
+    const type = item.fileType != null ? String(item.fileType).trim() : '';
+    const ossId = item.ossId != null ? String(item.ossId).trim() : '';
+    const originalName = (item.originalName ?? '').trim();
+    const fileName = (item.fileName ?? '').trim();
+    const nameProvided = originalName !== '' || fileName !== '';
+    return type !== '' && ossId !== '' && nameProvided;
+  })
+);
 
 const rules: FormRules = {
   knowledgeCaseName: [
@@ -389,11 +401,25 @@ const fetchDetail = async () => {
       await nextTick();
 
       // 处理附件列表
+      // 判断附件是否为空：如果关键字段都是空字符串，则不显示附件
+      const isAttachmentEmpty = (file: any) => {
+        if (!file || typeof file !== 'object') return true;
+        const fileType = (file.fileType || '').trim();
+        const originalName = (file.originalName || '').trim();
+        // 如果 fileType 和 originalName 都是空字符串，则认为附件为空（即使 ossId 有值）
+        return fileType === '' && originalName === '';
+      };
+
       if (data.protectionFiles && Array.isArray(data.protectionFiles)) {
-        attachmentList.value = data.protectionFiles.length > 0 ? [normalizeAttachment(data.protectionFiles[0])] : [];
+        const validFiles = data.protectionFiles.filter(file => !isAttachmentEmpty(file));
+        attachmentList.value = validFiles.length > 0 ? [normalizeAttachment(validFiles[0])] : [];
       } else if (data.protectionFiles && typeof data.protectionFiles === 'object') {
         // 单个附件对象
-        attachmentList.value = [normalizeAttachment(data.protectionFiles)];
+        if (!isAttachmentEmpty(data.protectionFiles)) {
+          attachmentList.value = [normalizeAttachment(data.protectionFiles)];
+        } else {
+          attachmentList.value = [];
+        }
       } else {
         attachmentList.value = [];
       }
@@ -473,17 +499,26 @@ const handleSubmit = async () => {
       knowledgeCaseContent: contentContent
     };
 
-    // 如果有附件，添加protectionFiles
+    // 如果有附件，添加 protectionFiles；如果在编辑时删除了附件，主动传空字段让后端清空
     if (attachmentList.value.length > 0) {
-      // 根据接口文档，protectionFiles可以是单个对象或数组
-      // 这里先按单个对象处理，如果有多个附件，取第一个
+      // 根据接口文档，protectionFiles 可以是单个对象或数组
+      // 这里保持单对象结构，和后端 Bo 类型保持一致
       const attachment = attachmentList.value[0];
       submitData.protectionFiles = {
         foreignType: attachment.foreignType || '1',
         fileType: attachment.fileType || '2',
-        ossId: attachment.ossId,
+        ossId: attachment.ossId != null ? String(attachment.ossId) : '',
         fileSize: attachment.fileSize || '',
         originalName: attachment.originalName || attachment.fileName || ''
+      };
+    } else {
+      // 无附件（无论新增还是编辑场景），传递各字段为空字符串，避免 null，方便后端统一处理清空逻辑
+      submitData.protectionFiles = {
+        foreignType: '',
+        fileType: '',
+        ossId: '',
+        fileSize: '',
+        originalName: ''
       };
     }
 

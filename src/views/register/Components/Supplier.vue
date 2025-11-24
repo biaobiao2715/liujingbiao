@@ -291,6 +291,7 @@ import { reactive, ref } from 'vue';
 import { ElMessage, FormRules } from 'element-plus';
 import { FormData, Contact } from '@/api/register/supplier/types'; //ts类型
 import { uploadImage, ocrUploadImage } from '@/api/register'; //图片上传接口
+import { parseAddressToRegionCodes } from '@/utils/addressRegion';
 import { getPurchaserTypeDict } from '@/api/register/supplier'; //获取字典接口
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
@@ -844,6 +845,11 @@ const handleDiplomaChange = (file: UploadFile) => {
             form.value.signUpTime = brr.establishmentDate; // 注册日期
             form.value.signUpCapital = brr.registeredCapital; // 注册资本
             form.value.signUpAddress = brr.address; // 注册地址
+            // 根据营业执照地址尝试解析省市区编码自动回填
+            const regionCodes = parseAddressToRegionCodes(brr.address);
+            if (regionCodes.length) {
+              form.value.areaCodes = regionCodes;
+            }
             form.value.officeAddress = brr.address; // 办公地址
             form.value.businessScope = brr.businessScope; // 经营范围
             form.value.legalPerson = brr.legalRepresentative; // 法人

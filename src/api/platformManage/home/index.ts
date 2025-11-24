@@ -5,7 +5,7 @@ import request from '@/utils/request';
  */
 export function getFirstLevelCategorySales(params?: Record<string, any>) {
   return request({
-    url: '/marketAnalysisDaily/firstLevelCategorySales',
+    url: '/grain-sales/marketAnalysisDaily/firstLevelCategorySales',
     method: 'get',
     params
   });
@@ -16,7 +16,18 @@ export function getFirstLevelCategorySales(params?: Record<string, any>) {
  */
 export function getFirstLevelCategorySalesAmountTotal(params?: Record<string, any>) {
   return request({
-    url: '/marketAnalysisDaily/firstLevelCategorySalesAmountTotal',
+    url: '/grain-sales/marketAnalysisDaily/firstLevelCategorySalesAmountTotal',
+    method: 'get',
+    params
+  });
+}
+
+/**
+ * 获取订单履约率统计信息
+ */
+export function getOrdersComplianceRateInfo(params?: Record<string, any>) {
+  return request({
+    url: '/grain-sales/order/getOrdersComplianceRateInfo',
     method: 'get',
     params
   });

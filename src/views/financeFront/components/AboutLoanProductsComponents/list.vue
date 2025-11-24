@@ -9,33 +9,19 @@
   <div class="supplier-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="企业编码" prop="enterpriseNumber">
-        <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="产品名称" prop="productName">
+        <el-input v-model="queryParams.productName" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="企业名称" prop="companyName">
-        <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item label="统一社会信用代码" prop="licenseNumber">
-        <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item label="审核状态" prop="reviewStatus">
-        <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
-          <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+      <el-form-item label="产品类型" prop="productType">
+        <el-select v-model="queryParams.productType" placeholder="产品类型" filterable clearable>
+          <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="审核时间" prop="reviewTime">
-        <el-date-picker
-          v-model="queryParams.reviewTime"
-          type="datetimerange"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          format="YYYY-MM-DD HH:mm:ss"
-          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-          range-separator=" - "
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-        />
+      <el-form-item label="贷款周期" prop="loanCycle">
+        <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" filterable clearable>
+          <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
       </el-form-item>
-
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
@@ -45,71 +31,28 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="企业名称" align="center" prop="companyName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
-        <template #default="scope">
-          <!-- 跳转改为弹窗查看 -->
-          <el-link type="primary" :underline="false" @click="handleEdit(scope.row, 'view')">
-            {{ scope.row.enterpriseNumber }}
-          </el-link>
-        </template>
-      </el-table-column>
-      <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210" :show-overflow-tooltip="true"> </el-table-column>
-
-      <el-table-column label="资质等级" align="center" prop="credentialLevel">
+      <el-table-column label="产品名称" align="center" prop="productName" min-width="100" />
+      <el-table-column label="适用对象" align="center" prop="applicableObject" :show-overflow-tooltip="true">
         <template v-slot="scope">
-          <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
+          <dict-tag :options="plat_credit_rating" :value="scope.row.applicableObject" />
         </template>
       </el-table-column>
-      <el-table-column label="信用等级" align="center" prop="creditLevel">
+      <el-table-column label="产品类型" align="center" prop="productType">
         <template v-slot="scope">
-          <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
+          <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="审核状态" align="center" prop="reviewStatus">
+      <el-table-column label="额度（万元）" align="center" prop="maxLoanAmount" min-width="160"></el-table-column>
+
+      <el-table-column label="周期" align="center" prop="loanCycle" :show-overflow-tooltip="true">
         <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          <dict-tag :options="loan_cycle" :value="scope.row.loanCycle" />
         </template>
       </el-table-column>
-      <el-table-column label="申请时间" align="center" prop="createTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核人" align="center" prop="auditPerson"> </el-table-column>
-
+      <el-table-column label="产品简介" align="center" prop="productIntro" min-width="160" :show-overflow-tooltip="true"></el-table-column>
       <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button
-            v-throttle
-            v-hasPermi="['system:business:audit']"
-            v-if="scope.row.reviewStatus === '0'"
-            type="primary"
-            @click="handleEdit(scope.row, 'audit')"
-            >审核</el-button
-          >
-          <el-button
-            v-throttle
-            v-hasPermi="['system:business:queryByTenant']"
-            v-if="scope.row.reviewStatus !== '0'"
-            type="primary"
-            @click="handleEdit(scope.row, 'view')"
-            >查看</el-button
-          >
-          <!-- <el-button
-            v-throttle
-            v-hasPermi="['system:business:edit']"
-            v-if="scope.row.reviewStatus === '1'"
-            type="primary"
-            @click="handleEdit(scope.row, 'edit')"
-            >编辑</el-button
-          > -->
+          <el-button v-throttle type="primary" @click="handleEdit(scope.row, 'view')">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -129,31 +72,26 @@
       append-to-body
       width="80%"
     >
-      <editDetails :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
+      <editDetails :id="selectID" @refresh="refreshData" @cancel="cancelDlg" />
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { baseEnterpriseInfoList } from '@/api/platform/enterprise/index';
+import { getCreditProductsVersionNoTenantList } from '@/api/financeFront/LoanProducts/index';
 import editDetails from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
-);
+const { prod_credit_type, plat_credit_rating, loan_cycle } = toRefs<any>(proxy?.useDict('prod_credit_type', 'plat_credit_rating', 'loan_cycle'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  status: '',
-  reviewTime: [] as string[] | [],
-  reviewStatus: '',
-  licenseNumber: '',
-  companyName: '',
-  enterpriseNumber: '',
-  enterpriseType: '1'
+
+  productName: '',
+  productType: '',
+  loanCycle: ''
 });
 
 // 表格数据
@@ -171,11 +109,9 @@ const selectType = ref<'view' | 'edit' | 'audit'>('view');
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  const { reviewTime, ...rest } = queryParams.value as any;
-  const [reviewStartTime, reviewEndTime] = Array.isArray(reviewTime) ? reviewTime : [];
-  const params = { ...rest, ...(reviewStartTime && reviewEndTime ? { reviewStartTime, reviewEndTime } : {}) };
+  const params = { ...queryParams.value };
 
-  baseEnterpriseInfoList(params).then((res) => {
+  getCreditProductsVersionNoTenantList(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;

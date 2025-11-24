@@ -60,7 +60,7 @@
               审批
             </el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" plain @click="openRepaymentPlan(scope.row)">还款计划</el-button>
+            <el-button size="small" type="success" plain :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)">还款计划</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -80,8 +80,8 @@
         @current-change="handlePageChange"
       />
     </div>
-    <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" :mode="detailDialogMode" />
-    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" :mode="detailDialogMode" />
+    <LoanApplicationDetailDialog v-model:visible="detailDialogVisible" :data="detailData" :mode="detailDialogMode" @refresh="getList" />
+    <LoanApplicationBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" :mode="detailDialogMode" @refresh="getList" />
     <RepaymentPlanDialog v-model:visible="repaymentDialogVisible" :data="repaymentData" />
   </div>
 </template>
@@ -93,7 +93,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import LoanApplicationDetailDialog from './LoanApplicationDetailDialog.vue';
 import LoanApplicationBuyerDetailDialog from './LoanApplicationBuyerDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
-import { getloanApplicationsList } from '@/api/creditPlatform/loanApplications';
+import { getloanApplicationsList, deleteLoanApplication } from '@/api/creditPlatform/loanApplications';
 
 interface LoanApplication {
   id: number | string;
@@ -214,18 +214,22 @@ const getApplicableLabel = (value: string | number | undefined) => {
 };
 
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
-  detailDialogMode.value = mode;
   detailData.value = row;
-  const applicableValue = row.lenderTyp ?? row.lenderType ?? row.applicableObject;
-  const label = getApplicableLabel(applicableValue).toLowerCase();
-  const rawValue = String(applicableValue || '').toLowerCase();
-  const isPersonal = label.includes('采购') || rawValue.includes('purchaser');
+  detailDialogMode.value = mode;
+  
+  // 根据 lenderType 判断：0=采购商(个人)，1=企业，2=供应商(企业)
+  const lenderType = row.lenderType ?? row.lenderTyp;
+  const isPersonal = String(lenderType) === '0';
+  
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
+  
   if (isPersonal) {
+    // 采购商 - 个人
     buyerDetailDialogVisible.value = true;
   } else {
+    // 企业或供应商 - 企业
     detailDialogVisible.value = true;
   }
 };
@@ -235,20 +239,21 @@ const canAudit = (status: string | number | undefined) => {
   return pendingStatusValues.value.includes(String(status));
 };
 
-const openRepaymentPlan = (row: LoanApplication) => {
-  // 根据 loanTerm 生成对应数量的还款计划
-  const loanTerm = Number(row.loanTerm) || 1;
-  const loanAmount = Number(row.loanAmount) || 0;
-  // 计算每期还款金额（整数），如果贷款总额为0则默认为0
-  const perPeriodAmount = loanTerm > 0 ? Math.floor(loanAmount / loanTerm) : 0;
+// 判断是否审核通过
+const isApproved = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return false;
+  const dictList = application_status?.value || [];
+  const match = dictList.find((item: any) => String(item.value) === String(status));
+  if (!match) return false;
+  const label = (match.label || '').toString();
+  // 判断是否为审核通过状态（包含"通过"、"已通过"等）
+  return label.includes('通过') || label.includes('已审核');
+};
 
+const openRepaymentPlan = (row: LoanApplication) => {
+  // 传递id给弹窗，弹窗内部会调用接口获取数据
   repaymentData.value = {
-    contractFiles: row.contractFiles || [],
-    plans: Array.from({ length: loanTerm }, (_, index) => ({
-      period: index + 1,
-      repayDate: ['2025-02-01', '2025-03-01', '2025-04-01'][Math.floor(index / 3)],
-      amount: perPeriodAmount
-    }))
+    id: row.id
   };
   repaymentDialogVisible.value = true;
 };
@@ -259,8 +264,22 @@ const handleDelete = (row: LoanApplication) => {
     cancelButtonText: '取消',
     type: 'warning'
   })
-    .then(() => {
-      ElMessage.success('删除成功（请接入真实接口）');
+    .then(async () => {
+      try {
+        loading.value = true;
+        const res = await deleteLoanApplication(row.id);
+        if (res.code === 200) {
+          ElMessage.success('删除成功');
+          getList();
+        } else {
+          ElMessage.error(res.msg || '删除失败');
+        }
+      } catch (error) {
+        console.error('删除失败:', error);
+        ElMessage.error('删除失败');
+      } finally {
+        loading.value = false;
+      }
     })
     .catch(() => {
       ElMessage.info('已取消删除');

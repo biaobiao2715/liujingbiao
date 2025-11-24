@@ -36,16 +36,19 @@
       <!-- detail-container 设置背景颜色  detail-content 设置宽度 -->
       <div class="detail-content">
         <!-- 面包屑导航 -->
-        <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
-          <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">首页</el-breadcrumb-item>
-          <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item>
+        <el-breadcrumb :separator-icon="ArrowRight" class="braed-navigate">
+          <!--  <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item> -->
+          <el-breadcrumb-item @click="backToHome()" style="cursor: pointer">首页</el-breadcrumb-item>
+          <el-breadcrumb-item v-for="item in naviteList" :key="item.id" @click="switchShowArea(item.type)">{{
+            TITLE_MAP[item.type]
+          }}</el-breadcrumb-item>
         </el-breadcrumb>
         <!-- 信贷产品列表 -->
         <AboutLoanProductsComponentList v-if="showArea === 'LoanProductsComponentList'" />
         <!-- 信贷产品详情 -->
         <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
         <!-- 信贷产品申请表单 -->
-        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" />
+        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
         <!-- 保险产品列表 -->
         <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
         <!-- 保险产品详情 -->
@@ -101,7 +104,10 @@ type DetailView =
   | 'RiskCasesComponentDetails'
   | 'PolicyRulesComponentList'
   | 'PolicyRulesComponentDetails'
-  | 'PersonalCenter';
+  | 'PersonalCenter'
+  // 以下内容只用来展示，不参与交互，无实际意义
+  | 'MyCollections'
+  | 'CreditApplication';
 
 interface DetailPayload {
   id: string | number;
@@ -109,10 +115,12 @@ interface DetailPayload {
 }
 
 const id = ref<string>(''); // 详情ID统一为字符串，便于下游组件类型一致
-
+const productId = ref<string>(''); // 产品ID
 const showArea = ref<DetailView>('area');
 
 const personalActivityTab = ref('');
+
+const naviteList = ref<DetailPayload[]>([]);
 
 const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   LoanProductsComponentList: '信贷产品列表',
@@ -124,7 +132,11 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   RiskCasesComponentDetails: '风险案例详情',
   PolicyRulesComponentList: '政策法规列表',
   PolicyRulesComponentDetails: '政策法规详情',
-  PersonalCenter: '个人中心'
+  PersonalCenter: '个人中心',
+
+  // 以下内容只用来展示，不参与交互，无实际意义
+  MyCollections: '我的收藏',
+  CreditApplication: '信贷申请管理'
 };
 
 const secondTitle = computed(() => (showArea.value === 'area' ? '' : TITLE_MAP[showArea.value]));
@@ -133,13 +145,57 @@ onMounted(() => {
   eventBus.on('showComponentByCommand', (data: any) => {
     showArea.value = data.type;
     id.value = data?.id;
+    productId.value = data?.productId || '';
     personalActivityTab.value = data.command;
+    selectNavigateByType(data.type);
   });
 });
+
+const switchShowArea = (type: DetailView) => {
+  // 忽略无实际意义的类型
+  if (type === 'PersonalCenter' || type === 'MyCollections' || type === 'CreditApplication') {
+    return;
+  }
+  showArea.value = type;
+  selectNavigateByType(type);
+};
+
+const selectNavigateByType = (type) => {
+  const uniqueId = new Date().getTime();
+  console.log(type);
+
+  switch (type) {
+    case 'PersonalCenter':
+      naviteList.value = [
+        {
+          id: uniqueId,
+          type: type
+        },
+        {
+          id: uniqueId + 1,
+          type: 'MyCollections'
+        }
+      ];
+      break;
+    default:
+      naviteList.value.push({
+        id: uniqueId,
+        type: type
+      });
+      break;
+  }
+};
+
+// 回到首页
+const backToHome = () => {
+  showArea.value = 'area';
+  naviteList.value = [];
+};
 </script>
 
 <style scoped lang="scss">
 .finance-container {
+  height: 100%;
   // padding: 0 16%;
   min-width: 1400px;
   background-color: #f6f7fb;
@@ -154,12 +210,9 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.mb-24 {
-  height: 21px;
-  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+.braed-navigate {
   font-size: 14px;
   color: #7c7c7c;
-  line-height: 21px;
   padding: 10px 0;
 }
 </style>

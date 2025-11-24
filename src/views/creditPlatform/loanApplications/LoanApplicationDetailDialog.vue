@@ -79,13 +79,7 @@
           <div>银行卡号正反面：</div>
           <div class="bank-card-images">
             <template v-if="bankCardImages.length">
-              <el-image
-                v-for="(img, idx) in bankCardImages"
-                :key="idx"
-                :src="img"
-                :preview-src-list="bankCardImages"
-                class="license-image"
-              >
+              <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image">
                 <template #error>
                   <div class="image-placeholder">暂无图片</div>
                 </template>
@@ -101,15 +95,9 @@
 
       <div class="detail-section approval-section">
         <div class="section-title">审批信息</div>
-        <el-alert
-          v-if="isApprovalMode"
-          title="审核通过时需填写放款日期、第一期还款日期并上传合同；审批前需确认状态为待审核。"
-          type="warning"
-          show-icon
-          :closable="false"
-          class="tips"
-        />
+        <el-alert v-if="showApprovalTip" :title="approvalTipMessage" type="warning" show-icon :closable="false" class="tips" />
         <el-form
+          v-if="showApprovalForm"
           ref="approvalFormRef"
           :model="approvalForm"
           :rules="approvalRules"
@@ -133,19 +121,19 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate">
-            <el-date-picker
-              v-model="approvalForm.loanDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-            />
+          <el-form-item
+            v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)"
+            label="放款日期"
+            prop="loanDate"
+            :required="isApproveAgree"
+          >
+            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
           <el-form-item
             v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
             label="第一期还款日期"
             prop="firstRepaymentDate"
+            :required="isApproveAgree"
           >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
@@ -155,34 +143,40 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item label="贷款合同" prop="contractId" class="contract-field">
+          <el-form-item label="贷款合同" prop="contractId" class="contract-field" :required="isApproveAgree">
             <template v-if="isApprovalMode">
-              <el-upload
-                class="contract-uploader inline-uploader"
-                :disabled="contractUploading || submittingApproval"
-                accept=".pdf,.jpg,.png"
-                :limit="1"
-                :file-list="approvalForm.contractFiles"
-                :http-request="handleContractUpload"
-                :on-remove="handleRemoveFile"
-              >
-                <el-button type="primary" :loading="contractUploading" icon="Upload">
-                  点击上传
-                </el-button>
-                <template #tip>
-                  <div class="upload-tip">支持 pdf/jpg/png，单文件上传</div>
-                </template>
-              </el-upload>
+              <div class="contract-upload-wrapper">
+                <div class="contract-files" v-if="approvalForm.contractFiles.length">
+                  <div v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" class="contract-file-item">
+                    <el-link :href="file.url" target="_blank" type="primary">
+                      {{ file.name || `合同文件${idx + 1}` }}
+                    </el-link>
+                    <el-icon class="file-remove-icon" @click="handleRemoveFile" title="删除文件">
+                      <Close />
+                    </el-icon>
+                  </div>
+                </div>
+                <el-upload
+                  v-if="!approvalForm.contractFiles.length"
+                  class="contract-uploader inline-uploader"
+                  :disabled="contractUploading || submittingApproval"
+                  accept=".pdf,.doc,.docx"
+                  :limit="1"
+                  :file-list="approvalForm.contractFiles"
+                  :http-request="handleContractUpload"
+                  :on-remove="handleRemoveFile"
+                  :show-file-list="false"
+                >
+                  <el-button type="primary" :loading="contractUploading" icon="Upload"> 点击上传 </el-button>
+                  <template #tip>
+                    <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
+                  </template>
+                </el-upload>
+              </div>
             </template>
             <template v-else>
               <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                <el-link
-                  v-for="(file, idx) in approvalForm.contractFiles"
-                  :key="file.url || idx"
-                  :href="file.url"
-                  target="_blank"
-                  type="primary"
-                >
+                <el-link v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" :href="file.url" target="_blank" type="primary">
                   {{ file.name || `合同文件${idx + 1}` }}
                 </el-link>
               </div>
@@ -222,7 +216,8 @@
 import { computed, reactive, watch, ref, nextTick } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile,getProduct } from '@/api/creditPlatform/loanApplications';
+import { Close } from '@element-plus/icons-vue';
+import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile, getProduct } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = defineProps<{
@@ -233,6 +228,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
+  (event: 'refresh'): void;
 }>();
 
 const approvalFormRef = ref<FormInstance>();
@@ -378,10 +374,10 @@ const fetchDetail = async () => {
     if (res && res.code === 200 && res.data) {
       merged = { ...merged, ...res.data };
     }
-    const userId = merged.lenderId || merged.userId;
-    if (userId) {
+    const lenderId = merged.lenderId;
+    if (lenderId) {
       try {
-        const extra = await getEnterprise({ id: userId });
+        const extra = await getEnterprise(lenderId);
         if (extra && extra.code === 200 && extra.data) {
           merged = { ...merged, ...extra.data };
         }
@@ -478,12 +474,27 @@ const bankCardImages = computed(() => {
 });
 
 const dialogTitle = computed(() => {
-  return props.mode === 'approval' ? '企业贷款申请审批' : '贷款申请详情';
+  return props.mode === 'approval' ? '企业贷款申请审核' : '贷款申请详情（企业）';
 });
 
 const isApprovalMode = computed(() => props.mode === 'approval');
 const isApprovalReadonly = computed(() => !isApprovalMode.value);
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
+const isPendingStatus = computed(() => {
+  const status = detailRow.value?.applyStatus;
+  if (status === undefined || status === null || status === '') return false;
+  const label = applyStatusMap[String(status)] || detailRow.value?.applyStatusName || detailRow.value?.applyStatusLabel || '';
+  return String(label).includes('待审');
+});
+const hasCompletedResult = computed(() => {
+  const status = detailRow.value?.applyStatus;
+  return status === '2' || status === '3';
+});
+const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value);
+const approvalTipMessage = computed(() => {
+  return '当前申请状态为待审核，请前往审批流程处理。';
+});
+const showApprovalForm = computed(() => (isApprovalMode.value && !hasCompletedResult.value) || (!isApprovalMode.value && hasCompletedResult.value));
 
 watch(
   () => props.visible,
@@ -616,6 +627,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     const res = await auditLoanApplication(payload);
     if (res && res.code === 200) {
       ElMessage.success(action === 'agree' ? '审批通过成功' : '审批驳回成功');
+      emit('refresh');
       emit('update:visible', false);
     } else {
       throw new Error(res?.msg || '审批提交失败');
@@ -722,8 +734,52 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   :deep(.el-form-item__content) {
     width: 100%;
   }
+  .contract-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
   .contract-files {
-    margin-top: 4px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .contract-file-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    width: fit-content;
+
+    &:hover {
+      background-color: #f5f7fa;
+
+      .file-remove-icon {
+        opacity: 1;
+      }
+    }
+  }
+  .file-remove-icon {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 16px;
+    color: #f56c6c;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: white;
+    border-radius: 50%;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      color: #f23030;
+    }
   }
   .inline-uploader {
     display: inline-flex;
