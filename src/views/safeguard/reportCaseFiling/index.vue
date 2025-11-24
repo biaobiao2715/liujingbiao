@@ -168,7 +168,7 @@ import { Document } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination/index.vue';
 // import { reportList } from '@/api/mall/personalCenter/myReport';
 
-import { getReportChannelList, processReportCaseFiling, urgeReportCaseFiling } from '@/api/safeguard/reportCaseFiling';
+import { getReportChannelList, urgeReportCaseFiling } from '@/api/safeguard/reportCaseFiling';
 import Detail from './components/Detail.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
