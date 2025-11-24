@@ -21,7 +21,9 @@
                 class="license-image"
               />
             </template>
-            <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -45,13 +47,17 @@
             <template v-if="applicantIdPhotos.length">
               <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image" />
             </template>
-            <span v-else>--</span>
+            <template v-else>
+              <span>--</span>
+            </template>
           </el-descriptions-item>
           <el-descriptions-item label="授权文件" :span="2">
             <template v-if="applicantAuthFiles.length">
               <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image" />
             </template>
-            <span v-else>--</span>
+            <template v-else>
+              <span>--</span>
+            </template>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -75,7 +81,9 @@
                 class="license-image"
               />
             </template>
-            <span v-else>--</span>
+            <template v-else>
+              <span>--</span>
+            </template>
           </div>
         </div>
         <div class="product-link">
@@ -172,6 +180,32 @@ const mapValue = (map: Record<string, string>, value: any) => {
   return map[String(value)] || '--';
 };
 
+const extractBirthdayFromId = (id: string | undefined | null) => {
+  const value = (id || '').trim();
+  if (!value) return '';
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14);
+    const year = birth.substring(0, 4);
+    const month = birth.substring(4, 6);
+    const day = birth.substring(6, 8);
+    return `${year}-${month}-${day}`;
+  }
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12);
+    const year = `19${birth.substring(0, 2)}`;
+    const month = birth.substring(2, 4);
+    const day = birth.substring(4, 6);
+    return `${year}-${month}-${day}`;
+  }
+  return '';
+};
+
+const isLikelyUrl = (value: string) => {
+  if (!value) return false;
+  const lower = value.toLowerCase();
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/');
+};
+
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = [];
   const append = (item: any) => {
@@ -181,12 +215,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return;
     }
     if (typeof item === 'string') {
-      if (item) urls.push(item);
+      const trimmed = item.trim();
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed);
       return;
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src;
-      if (url) urls.push(url);
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim();
+      if (url && isLikelyUrl(url)) urls.push(url);
     }
   };
   sources.forEach(append);
@@ -267,8 +302,10 @@ const legalInfoList = computed(() => {
 
 const applicantInfoList = computed(() => {
   const row = detailRow.value;
+  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
   return [
     { label: '申请人', value: formatValue(row.realName || row.applicantName) },
+    { label: '出生年月', value: formatValue(birthday) },
     { label: '联系电话', value: formatValue(row.contactPhone || row.phone || row.applicantPhone) }
   ];
 });
@@ -285,10 +322,11 @@ const applicantAuthFiles = computed(() => {
 
 const loanInfoList = computed(() => {
   const row = detailRow.value;
+  const repayment = row.repaymentMethod || row.repaymentType;
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
-    { label: '还款方式', value: mapValue(repaymentMethodMap, row.repaymentMethod || row.repaymentType) },
+    { label: '还款方式', value: formatValue(repaymentMethodMap[String(repayment)] || repayment) },
     { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
     { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
     { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }

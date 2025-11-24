@@ -15,15 +15,17 @@
         <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
         <el-descriptions-item label="身份证正反面" :span="2">
           <template v-if="detail.user.idPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.user.idPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.user.idPhotos"
-                class="identity-image"
-              />
+            <el-image
+              v-for="(img, idx) in detail.user.idPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.user.idPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -39,15 +41,17 @@
         <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
         <el-descriptions-item label="银行卡正反面" :span="2">
           <template v-if="detail.loan.cardPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.loan.cardPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.loan.cardPhotos"
-                class="identity-image"
-              />
+            <el-image
+              v-for="(img, idx) in detail.loan.cardPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.loan.cardPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -101,6 +105,32 @@ const currentDetail = computed(() => detailRow.value || {})
 const productDetailVisible = ref(false)
 const repaymentPlanVisible = ref(false)
 
+const extractBirthdayFromId = (id: string | undefined | null) => {
+  const value = (id || '').trim()
+  if (!value) return ''
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14)
+    const year = birth.substring(0, 4)
+    const month = birth.substring(4, 6)
+    const day = birth.substring(6, 8)
+    return `${year}-${month}-${day}`
+  }
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12)
+    const year = `19${birth.substring(0, 2)}`
+    const month = birth.substring(2, 4)
+    const day = birth.substring(4, 6)
+    return `${year}-${month}-${day}`
+  }
+  return ''
+}
+
+const isLikelyUrl = (value: string) => {
+  if (!value) return false
+  const lower = value.toLowerCase()
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/')
+}
+
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = []
   const append = (item: any) => {
@@ -110,12 +140,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return
     }
     if (typeof item === 'string') {
-      urls.push(item)
+      const trimmed = item.trim()
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed)
       return
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src
-      if (url) urls.push(url)
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim()
+      if (url && isLikelyUrl(url)) urls.push(url)
     }
   }
   sources.forEach(append)
@@ -157,12 +188,20 @@ const fallback = (value: any) => {
   return value
 }
 
+const repaymentMethodMap: Record<string, string> = {
+  '0': '等额本息',
+  '2': '等额本金',
+  '3': '先息后本',
+  '4': '先本后息'
+}
+
 const detail = computed(() => {
   const row = detailRow.value || {}
+  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber)
   return {
     user: {
       name: fallback(row.realName || row.name),
-      birthday: fallback(row.birthday),
+      birthday: fallback(birthday),
       idNumber: fallback(row.idCardNumber),
       phone: fallback(row.contactPhone || row.phone),
       address: fallback(row.contactAddress || row.address),
@@ -172,7 +211,7 @@ const detail = computed(() => {
       applyDate: fallback(row.createTime || row.applyTime),
       amount: fallback(row.loanAmount),
       period: fallback(row.loanTerm),
-      repaymentType: fallback(row.repaymentMethod || row.repaymentType),
+      repaymentType: fallback(repaymentMethodMap[String(row.repaymentMethod || row.repaymentType)] || row.repaymentType),
       bank: fallback(row.collectionBankCode || row.bankName),
       bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
       cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
