@@ -568,7 +568,7 @@ import FormHeader from '@/components/FormHeader/index.vue';
 import supplierDetail from '@/views/rightsPlatform/achiveManagement/credit/violationRecords/supplierDetail.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { case_type, plat_credit_rating } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating'));
+const { case_type, plat_credit_rating, report_type_id } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating'));
 // 通过 props 接收父组件传参
 const props = defineProps<{
   id: string | number;

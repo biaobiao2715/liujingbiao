@@ -19,7 +19,7 @@
         <div class="detail-form-card">
           <div class="detail-form-card-header">
             <div class="card-title">企业基础信息</div>
-            <div class="card-close">产品详情</div>
+            <div class="card-close" @click="handleShowDetails">产品详情</div>
           </div>
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
@@ -435,7 +435,7 @@
       <!-- 操作按钮 -->
       <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px">
         <el-col :span="3"><el-button v-throttle type="primary" @click="submitApply">提交申请</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle type="primary" plain>返回</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowDetails" plain>返回</el-button></el-col>
       </el-row>
 
       <div style="height: 160px"></div>
@@ -457,6 +457,8 @@ import {
   ossUploadImage
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
+import { eventBus } from '@/utils/eventBus';
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 统一加载需要的字典（审核状态/资质等级/信用等级/证件类型/贷款周期/还款方式/银行代码）
 const { review_status, plat_qualification_grade, plat_credit_rating, card_type, loan_cycle, repayment_method, bank_code } = toRefs<any>(
@@ -668,8 +670,8 @@ const rules: FormRules = {
   authorizationFile: [{ required: true, message: '请上传授权文件PDF', trigger: 'change' }]
 };
 
+// ======================== 构建提交载荷 ========================
 function buildPayload() {
-  // ======================== 构建提交载荷 ========================
   // 说明: 根据产品详情与当前用户类型整合后端所需字段；未在表单里直接暴露的字段（productVersion / lenderType 等）一起塞入
   const base: any = {
     productId: productDetails.value.productId || '',
@@ -677,6 +679,7 @@ function buildPayload() {
     lenderType: userStore.userType,
     lenderId: userStore.userId,
 
+    applyStatus: '1',
     idCardType: '0',
     idCardNumber: formData.value.legalPersonIdCardNumber || '',
     collectionAccountName: formData.value.realName || '',
@@ -686,6 +689,7 @@ function buildPayload() {
   return base;
 }
 
+// 提交申请
 const submitApply = async () => {
   // ======================== 提交申请主流程 ========================
   // 1. 先整体校验
@@ -702,10 +706,20 @@ const submitApply = async () => {
     const res = await apiFn(payload);
     if (res.code === 200) {
       ElMessage.success('提交成功');
+      setTimeout(() => {
+        eventBus.emit('showComponentByCommand', {
+          type: 'LoanProductsComponentApplyForm',
+          productId: props.id
+        });
+      }, 3000);
     }
   } catch (e: any) {
   } finally {
   }
+};
+// 查看产品详情
+const handleShowDetails = () => {
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentDetails', id: props.productId });
 };
 
 interface SingleUploader {
@@ -869,7 +883,7 @@ onMounted(async () => {
   });
   // 采购商
   if (userStore.userType == '1') {
-    const res = await getBasePurchaser(userStore.userId);
+    const res = await getBasePurchaser();
     if (res.code === 200) {
       formData.value.realName = res.data.name ?? '';
       formData.value.contactPhone = res.data.phoneNumber ?? '';
@@ -877,7 +891,7 @@ onMounted(async () => {
   }
   // 供应商/企业
   if (userStore.userType == '2' || userStore.userType == '3') {
-    const res = await getBaseEnterpriseInfo(userStore.userId);
+    const res = await getBaseEnterpriseInfo();
     if (res.code === 200) {
       supplierDetails.value = res.data || {};
       formData.value = {

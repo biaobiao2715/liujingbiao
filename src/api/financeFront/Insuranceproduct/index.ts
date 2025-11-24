@@ -11,6 +11,16 @@ export function getInsuranceProductsVersionList(data: any) {
   });
 }
 
+/* 查询保险产品信息列表
+ */
+export function getInsuranceProductsVersionListInfo(data: any) {
+  return request({
+    url: '/credit-server/insuranceProductsVersion/list',
+    method: 'get',
+    params: data
+  });
+}
+
 /**
  * 获取保险产品信息详细信息(无租户)
  */
