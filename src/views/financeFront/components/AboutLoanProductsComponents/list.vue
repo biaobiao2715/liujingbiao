@@ -32,7 +32,7 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" align="center" prop="productName" min-width="100" />
-      <el-table-column label="适用对象" align="center" prop="applicableObject">
+      <el-table-column label="适用对象" align="center" prop="applicableObject" :show-overflow-tooltip="true">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.applicableObject" />
         </template>
