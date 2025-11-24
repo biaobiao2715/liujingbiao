@@ -50,6 +50,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { getRepaymentPlan } from '@/api/creditPlatform/loanApplications';
 
 interface RepaymentPlan {
   period: number;
@@ -70,62 +72,7 @@ const emit = defineEmits<{
 }>();
 
 const loading = ref(false);
-
-// 模拟还款计划数据
-const mockRepaymentPlans: RepaymentPlan[] = [
-  {
-    period: 1,
-    repaymentDate: '2025-1-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'paid',
-    statusText: '已还款'
-  },
-  {
-    period: 2,
-    repaymentDate: '2025-2-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'paid',
-    statusText: '已还款'
-  },
-  {
-    period: 3,
-    repaymentDate: '2025-2-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'pending',
-    statusText: '待还款'
-  },
-  {
-    period: 4,
-    repaymentDate: '2025-1-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'paid',
-    statusText: '已还款'
-  },
-  {
-    period: 5,
-    repaymentDate: '2025-2-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'paid',
-    statusText: '已还款'
-  },
-  {
-    period: 6,
-    repaymentDate: '2025-2-1',
-    repaymentAmount: '92992.2',
-    cardNumber: '291931093390',
-    status: 'pending',
-    statusText: '待还款'
-  }
-];
-
-const repaymentPlans = computed(() => {
-  return mockRepaymentPlans;
-});
+const repaymentPlans = ref<RepaymentPlan[]>([]);
 
 const getStatusType = (status: string) => {
   switch (status) {
@@ -133,8 +80,38 @@ const getStatusType = (status: string) => {
       return 'success';
     case 'pending':
       return 'warning';
+    case 'overdue':
+      return 'danger';
     default:
       return 'info';
+  }
+};
+
+// 将planStatus转换为组件需要的status
+const getStatusFromPlanStatus = (planStatus: number | string) => {
+  const status = Number(planStatus);
+  switch (status) {
+    case 1:
+      return 'paid'; // 已还款
+    case 2:
+      return 'overdue'; // 已逾期
+    case 0:
+    default:
+      return 'pending'; // 待还款
+  }
+};
+
+// 获取状态文本
+const getStatusText = (planStatus: number | string) => {
+  const status = Number(planStatus);
+  switch (status) {
+    case 1:
+      return '已还款';
+    case 2:
+      return '已逾期';
+    case 0:
+    default:
+      return '待还款';
   }
 };
 
@@ -143,11 +120,24 @@ const fetchRepaymentPlan = async () => {
   
   loading.value = true;
   try {
-    // 这里应该调用真实的API获取还款计划
-    // const res = await getRepaymentPlan(props.data.id);
-    // repaymentPlans.value = res.data;
+    const res = await getRepaymentPlan(props.data.id);
+    if (res && Array.isArray(res)) {
+      // 将接口返回的数据转换为组件需要的格式
+      repaymentPlans.value = res.map((item: any, index: number) => ({
+        period: item.loanPeriod || index + 1,
+        repaymentDate: item.repaymentDate || '--',
+        repaymentAmount: item.principalAmount || '0',
+        cardNumber: item.repaymentCardNo || item.collectionAccountNumber || '--',
+        status: getStatusFromPlanStatus(item.planStatus),
+        statusText: getStatusText(item.planStatus)
+      }));
+    } else {
+      repaymentPlans.value = [];
+    }
   } catch (error) {
     console.error('获取还款计划失败:', error);
+    ElMessage.error('获取还款计划失败');
+    repaymentPlans.value = [];
   } finally {
     loading.value = false;
   }
