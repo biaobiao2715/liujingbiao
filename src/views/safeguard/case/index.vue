@@ -73,7 +73,7 @@
       <!-- 案件类型名称 -->
       <el-table-column label="案件类型名称" align="center" prop="caseTypeId" min-width="150">
         <template #default="scope">
-          <span>{{ getCaseTypeName(scope.row.caseTypeId) }}</span>
+          <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
 
