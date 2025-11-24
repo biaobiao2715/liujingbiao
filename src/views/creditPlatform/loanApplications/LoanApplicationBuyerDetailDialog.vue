@@ -102,7 +102,7 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate">
+          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate" :required="isApproveAgree">
             <el-date-picker
               v-model="approvalForm.loanDate"
               type="date"
@@ -115,6 +115,7 @@
             v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
             label="第一期还款日期"
             prop="firstRepaymentDate"
+            :required="isApproveAgree"
           >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
@@ -124,24 +125,50 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item label="贷款合同" prop="contractId" class="contract-field">
+          <el-form-item label="贷款合同" prop="contractId" class="contract-field" :required="isApproveAgree">
             <template v-if="isApprovalMode">
-              <el-upload
-                class="contract-uploader inline-uploader"
-                :disabled="contractUploading || submittingApproval"
-                accept=".pdf,.jpg,.png"
-                :limit="1"
-                :file-list="approvalForm.contractFiles"
-                :http-request="handleContractUpload"
-                :on-remove="handleRemoveFile"
-              >
-                <el-button type="primary" :loading="contractUploading" icon="Upload">
-                  点击上传
-                </el-button>
-                <template #tip>
-                  <div class="upload-tip">支持 pdf/jpg/png，单文件上传</div>
-                </template>
-              </el-upload>
+              <div class="contract-upload-wrapper">
+                <div class="contract-files" v-if="approvalForm.contractFiles.length">
+                  <div
+                    v-for="(file, idx) in approvalForm.contractFiles"
+                    :key="file.url || idx"
+                    class="contract-file-item"
+                  >
+                    <el-link
+                      :href="file.url"
+                      target="_blank"
+                      type="primary"
+                    >
+                      {{ file.name || `合同文件${idx + 1}` }}
+                    </el-link>
+                    <el-icon
+                      class="file-remove-icon"
+                      @click="handleRemoveFile"
+                      title="删除文件"
+                    >
+                      <Close />
+                    </el-icon>
+                  </div>
+                </div>
+                <el-upload
+                  v-if="!approvalForm.contractFiles.length"
+                  class="contract-uploader inline-uploader"
+                  :disabled="contractUploading || submittingApproval"
+                  accept=".pdf,.doc,.docx"
+                  :limit="1"
+                  :file-list="approvalForm.contractFiles"
+                  :http-request="handleContractUpload"
+                  :on-remove="handleRemoveFile"
+                  :show-file-list="false"
+                >
+                  <el-button type="primary" :loading="contractUploading" icon="Upload">
+                    点击上传
+                  </el-button>
+                  <template #tip>
+                    <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
+                  </template>
+                </el-upload>
+              </div>
             </template>
             <template v-else>
               <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -189,6 +216,7 @@
 import { computed, ref, watch, reactive, nextTick } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
+import { Close } from '@element-plus/icons-vue'
 import { getRemainingDetail, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications'
 import ProductDetailDialog from './ProductDetailDialog.vue'
 
@@ -633,6 +661,57 @@ const handleViewProductDetail = () => {
 .contract-field {
   :deep(.el-form-item__content) {
     width: 100%;
+  }
+
+  .contract-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .contract-files {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .contract-file-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    width: fit-content;
+
+    &:hover {
+      background-color: #f5f7fa;
+
+      .file-remove-icon {
+        opacity: 1;
+      }
+    }
+  }
+
+  .file-remove-icon {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 16px;
+    color: #f56c6c;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: white;
+    border-radius: 50%;
+    padding: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      color: #f23030;
+    }
   }
 
   .inline-uploader {
