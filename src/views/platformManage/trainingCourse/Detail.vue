@@ -46,7 +46,7 @@
         <div class="content-details">
             <div class="detail-row">
                 <span class="detail-label">课程标题:</span>
-                <span class="detail-value">
+                <span class="detail-value" style="min-width: 0;">
                     <el-text truncated>{{ detailData.cultivateName }}</el-text>
                 </span>
             </div>
