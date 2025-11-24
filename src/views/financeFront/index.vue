@@ -41,29 +41,29 @@
         <el-breadcrumb-item
           :class="{ 'able-click': index + 1 !== naviteList.length }"
           v-for="(item, index) in naviteList"
-          :key="item.id"
-          @click="switchShowArea(item.type, index + 1 === naviteList.length)"
+          :key="item.uniqueId"
+          @click="switchShowArea(item, index + 1 === naviteList.length)"
           >{{ TITLE_MAP[item.type] }}</el-breadcrumb-item
         >
       </el-breadcrumb>
       <!-- 信贷产品列表 -->
       <AboutLoanProductsComponentList v-if="showArea === 'LoanProductsComponentList'" />
       <!-- 信贷产品详情 -->
-      <AboutLoanProductsComponentDetails v-show="showArea === 'LoanProductsComponentDetails'" :id="id" />
+      <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
       <!-- 信贷产品申请表单 -->
       <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
       <!-- 保险产品列表 -->
       <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
       <!-- 保险产品详情 -->
-      <AboutInsuranceproductComponentDetails v-show="showArea === 'InsuranceproductComponentDetails'" :id="id" />
+      <AboutInsuranceproductComponentDetails v-if="showArea === 'InsuranceproductComponentDetails'" :id="id" />
       <!-- 风险案例列表 -->
       <AboutRiskCasesComponentList v-if="showArea === 'RiskCasesComponentList'" />
       <!-- 风险案例详情 -->
-      <AboutRiskCasesComponentDetails v-show="showArea === 'RiskCasesComponentDetails'" :id="id" />
+      <AboutRiskCasesComponentDetails v-if="showArea === 'RiskCasesComponentDetails'" :id="id" />
       <!-- 政策法规列表 -->
       <AboutPolicyRulesComponentList v-if="showArea === 'PolicyRulesComponentList'" />
       <!-- 政策法规详情 -->
-      <AboutPolicyRulesComponentDetails v-show="showArea === 'PolicyRulesComponentDetails'" :id="id" />
+      <AboutPolicyRulesComponentDetails v-if="showArea === 'PolicyRulesComponentDetails'" :id="id" />
       <!-- 个人中心 -->
       <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
     </div>
@@ -112,7 +112,8 @@ type DetailView =
   | 'CreditApplication';
 
 interface DetailPayload {
-  id: string | number;
+  uniqueId: number;
+  id: string;
   type: Exclude<DetailView, 'area'>;
 }
 
@@ -143,6 +144,7 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
 
 onMounted(() => {
   eventBus.on('showComponentByCommand', (data: any) => {
+    console.log(data);
     showArea.value = data.type;
     id.value = data?.id;
     productId.value = data?.productId || '';
@@ -151,24 +153,24 @@ onMounted(() => {
   });
 });
 
-const switchShowArea = (type: DetailView, isLastItem: boolean) => {
+const switchShowArea = (item: DetailPayload, isLastItem: boolean) => {
   // 忽略无实际意义的类型
-  if (type === 'PersonalCenter' || type === 'MyCollections' || type === 'CreditApplication' || isLastItem) {
+  if (item.type === 'PersonalCenter' || item.type === 'MyCollections' || item.type === 'CreditApplication' || isLastItem) {
     return;
   }
-  showArea.value = type;
-
+  showArea.value = item.type;
+  id.value = item.id;
   //  如果点击的是已经存在的路径，那么就把该路径后面的路径都移除
-  const targetIndex = naviteList.value.findIndex((item) => item.type === type);
+  const targetIndex = naviteList.value.findIndex((item) => item.type === item.type);
   if (targetIndex !== -1) {
     naviteList.value = naviteList.value.slice(0, targetIndex + 1);
     return;
   }
 
-  selectNavigateByType(type);
+  selectNavigateByType(item.type);
 };
 
-const selectNavigateByType = (type) => {
+const selectNavigateByType = (type: Exclude<DetailView, 'area'>) => {
   const uniqueId = new Date().getTime();
   console.log(type);
 
@@ -176,18 +178,21 @@ const selectNavigateByType = (type) => {
     case 'PersonalCenter':
       naviteList.value = [
         {
-          id: uniqueId,
+          uniqueId,
+          id: id.value,
           type: type
         },
         {
-          id: uniqueId + 1,
+          uniqueId,
+          id: id.value,
           type: 'MyCollections'
         }
       ];
       break;
     default:
       naviteList.value.push({
-        id: uniqueId,
+        uniqueId,
+        id: id.value,
         type: type
       });
       break;
