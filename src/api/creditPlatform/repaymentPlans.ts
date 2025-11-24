@@ -11,11 +11,11 @@ export function getloanApplicationsList(data: any) {
 }
 
 //查看追踪信息
-export function getTrackingInfo(data: number | string) {
+export function getTrackingInfo(id: number | string) {
   return request({
     url: `/credit-server/loanApplications/traceList`,
     method: 'get',
-    params: data
+    params: { id }
   });
 }
 //企业信息

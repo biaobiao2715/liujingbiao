@@ -92,6 +92,7 @@
             </el-button>
             
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
+            <el-button size="small" type="info" plain @click="handleTracking(scope.row)">追踪</el-button>
             <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
@@ -270,6 +271,14 @@ const handleDetail = (row: RepaymentPlan) => {
   }
 };
 
+/**
+ * 追踪按钮 - 打开追踪弹窗
+ * @param row - 当前行数据
+ */
+const handleTracking = (row: RepaymentPlan) => {
+  detailData.value = row;
+  trackingDialogVisible.value = true;
+};
 
 /**
  * 通知按钮 - 根据还款状态发送不同的通知

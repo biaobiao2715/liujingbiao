@@ -312,10 +312,7 @@ watch(
   }
 );
 
-const handleReportSubmitData = (_payload: any) => {
-  // 举报请求已在 ReportDialog 组件内部完成，这里仅保留钩子
-  ElMessage.success('已提交举报');
-};
+const handleReportSubmitData = (_payload: any) => {};
 
 // 规格显示控制
 const showAllSpecs = ref(false);

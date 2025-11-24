@@ -160,9 +160,10 @@ const fetchTrackingData = async () => {
   
   loading.value = true;
   try {
-    const res = await getTrackingInfo({ id: props.data.id });
-    if (res.code === 200 && res.data) {
-      trackingData.value = res.data;
+    const res = await getTrackingInfo(props.data.id);
+    if (res) {
+      // 将原始数据转换为追踪步骤格式
+      trackingData.value = convertToTrackingSteps(res);
     } else {
       ElMessage.error(res.msg || '获取追踪信息失败');
     }
@@ -172,6 +173,66 @@ const fetchTrackingData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+/**
+ * 将原始数据转换为追踪步骤格式
+ * @param data - 接口返回的原始数据
+ * @returns 追踪步骤数组
+ */
+const convertToTrackingSteps = (data: any): TrackingStep[] => {
+  const steps: TrackingStep[] = [];
+  
+  // 1. 申请提交
+  steps.push({
+    title: '申请提交',
+    description: '用户提交贷款申请',
+    time: data.applicationDate || data.createTime,
+    status: data.applicationDate ? 'finish' : 'wait'
+  });
+  
+  // 2. 审核中
+  steps.push({
+    title: '审核中',
+    description: '审核申请人资质和贷款条件',
+    time: data.reviewDate,
+    status: data.applyStatus === 'approved' || data.approvedLoans ? 'finish' : 
+           data.applyStatus === 'reviewing' ? 'process' : 'wait'
+  });
+  
+  // 3. 合同签署
+  steps.push({
+    title: '合同签署',
+    description: '签署贷款合同',
+    time: data.contractSigningDate,
+    status: data.contractSigningDate ? 'finish' : 'wait'
+  });
+  
+  // 4. 放款
+  steps.push({
+    title: '放款',
+    description: '贷款资金到账',
+    time: data.loanDate,
+    status: data.loanDate ? 'finish' : 'wait'
+  });
+  
+  // 5. 还款中
+  steps.push({
+    title: '还款中',
+    description: '按期还款',
+    time: data.firstRepaymentDate,
+    status: data.firstRepaymentDate ? 'process' : 'wait'
+  });
+  
+  // 6. 结清
+  steps.push({
+    title: '结清',
+    description: '贷款全部还清',
+    time: data.completionDate,
+    status: data.completionDate ? 'finish' : 'wait'
+  });
+  
+  return steps;
 };
 
 /**
