@@ -61,7 +61,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Delete, Edit, Search, Share, Upload, Refresh } from '@element-plus/icons-vue';
-import { getLoanApplicationsPermissionList } from '@/api/financeFront/LoanProducts/index';
+import { getLoanPersonalCenterList } from '@/api/financeFront/LoanProducts/index';
 import ApplyForm from '../AboutLoanProductsComponents/ApplyForm.vue';
 import { eventBus } from '@/utils/eventBus';
 const tableData = ref([]);
@@ -120,7 +120,7 @@ onMounted(async () => {
 const fetchData = async () => {
   try {
     loading.value = true;
-    const res = await getLoanApplicationsPermissionList(queryParams.value);
+    const res = await getLoanPersonalCenterList(queryParams.value);
     if (res.code === 200) {
       tableData.value = res.rows || [];
     }
