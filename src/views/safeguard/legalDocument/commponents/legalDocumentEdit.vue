@@ -67,7 +67,7 @@
           <el-table-column v-if="!isViewMode" prop="uploadTime" label="最新上传时间" width="180" align="center" />
           <el-table-column v-if="!isViewMode" label="备注" min-width="180">
             <template #default>
-              <el-input v-model="formData.remark" placeholder="请输入备注内容" maxlength="100" />
+              <el-input v-model="formData.legalFiles[0].remark" placeholder="请输入备注内容" maxlength="100" />
             </template>
           </el-table-column>
           <el-table-column label="操作" width="100" align="center">
@@ -434,7 +434,8 @@ const handleSubmit = () => {
       ...formData,
       legalFiles: hasNewUpload ? formData.legalFiles : [],
       historyList: historyList.value,
-      currentVersion: currentVersion.value
+      currentVersion: currentVersion.value,
+      remark: formData.legalFiles[0].remark
     });
   });
 };
