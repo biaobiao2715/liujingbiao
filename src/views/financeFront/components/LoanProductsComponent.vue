@@ -14,7 +14,7 @@
     <el-row :gutter="20">
       <el-col :span="8" v-for="product in products" :key="product.id">
         <div class="item">
-          <span class="tag">热门</span>
+          <span class="tag" v-if="product.isTopThreeByViews">热门</span>
 
           <div class="header">
             <div class="flex-center favorite gap-8" @click="handleFavorite(product)">
