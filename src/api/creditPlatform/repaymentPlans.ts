@@ -86,3 +86,11 @@ export function deleteFile(ossIds: string | number | Array<string | number>) {
     method: 'delete'
   });
 }
+
+// 删除还款记录
+export function deleteRepaymentRecord(id: string | number) {
+  return request({
+    url: `/credit-server/loanApplications/${id}`,
+    method: 'delete'
+  });
+}

@@ -124,7 +124,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getloanApplicationsList } from '@/api/creditPlatform/repaymentPlans';
+import { getloanApplicationsList, deleteRepaymentRecord } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -311,17 +311,23 @@ const handleNotification = (row: RepaymentPlan, type: 'pending' | 'repaying' | '
  * 删除按钮 - 删除还款记录
  */
 const handleDelete = (row: RepaymentPlan) => {
-  ElMessageBox.confirm(`确定删除 ${row.productName} 的还款记录吗？（演示数据）`, '提示', {
+  ElMessageBox.confirm(`确认要删除「${row.productName}」的还款记录吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  })
-    .then(() => {
-      ElMessage.success('删除成功（演示）');
-    })
-    .catch(() => {
-      ElMessage.info('已取消删除');
-    });
+  }).then(async () => {
+    try {
+      const response = await deleteRepaymentRecord(row.id);
+      if (response && response.code === 200) {
+        ElMessage.success('删除成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '删除失败');
+      }
+    } catch (error) {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 // 组件挂载时获取列表数据
