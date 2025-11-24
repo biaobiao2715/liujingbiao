@@ -965,7 +965,6 @@ const handleProcessingFeedbackChange = (value: string[]) => {
 
 // 案件类型选择变化处理
 const handleCaseTypeChange = async (id: string | number) => {
-  console.log('id内容为,', id);
   if (!id) {
     caseTypeDetail.value = null;
     return;
@@ -1059,6 +1058,7 @@ const handleConfirm = async () => {
       }
     }
 
+    console.log('processFeedback.id',processFeedback.id);
     // 构建提交数据
     const submitData = {
       // 先展开 formData，避免覆盖处理反馈数据
@@ -1081,6 +1081,7 @@ const handleConfirm = async () => {
           }
         : {})
     };
+    submitData.hnCaseId = processFeedback.id;
 
     if (status === '0') {
       // 待处理状态：调用 editReportCaseFiling
