@@ -436,6 +436,50 @@
         </el-row>
       </div>
 
+      <!-- 非已驳回且非待处理且非处理中状态：显示处理反馈（只读） -->
+      <template v-if="!isRejected && !isPending && !isProcessing && !isWithdrawn">
+        <FormHeader title="处理反馈" />
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="24">
+            <el-form-item label="处理反馈：">
+              <span>{{ rejectBackLabel }}</span>
+            </el-form-item>
+          </el-col>
+          <template v-if="formData.rejectBack === '1'">
+            <el-col :span="12">
+              <el-form-item label="供应商名称/企业名称：">
+                <el-input v-model="formData.reporterName" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="案件类型：">
+                <el-input :model-value="formData.hnCase?.caseTypeName || ''" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="扣分：">
+                <el-input v-model="formData.caseScore" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="信用等级：">
+                <dict-text :options="plat_credit_rating" :value="formData.creditLevel ?? ''" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="剩余信用积分：">
+                <el-input v-model="formData.sore" disabled />
+              </el-form-item>
+            </el-col>
+          </template>
+          <el-col :span="24">
+            <el-form-item label="平台反馈处理结果：">
+              <el-input v-model="formData.dealResult" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </template>
+
       <!-- 按钮区域 -->
       <div style="margin-top: 20px; text-align: center">
         <template v-if="isViewMode">
@@ -522,45 +566,6 @@
         </el-row>
       </div>
     </el-dialog>
-
-    <!-- 非已驳回且非待处理且非处理中状态：显示处理反馈（只读） -->
-    <template v-if="!isRejected && !isPending && !isProcessing && !isWithdrawn">
-      <FormHeader title="处理反馈" />
-      <el-row :gutter="20" class="detail-form">
-        <el-col :span="24">
-          <el-form-item label="供应商名称/企业名称：">
-            <el-input v-model="formData.reporterName" type="textarea" :rows="4" disabled autosize />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="案件类型：">
-            <dict-text :options="case_type" :value="formData.caseType ?? ''" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="扣分分值：">
-            <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="信用等级：">
-            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable :disabled="true">
-              <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="信用分数：">
-            <el-input v-model="formData.sore" type="textarea" :rows="4" disabled autosize />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="平台反馈处理结果：">
-            <el-input v-model="formData.dealResult" type="textarea" :rows="4" disabled autosize />
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </template>
 
     <!-- 被举报人详情弹窗 -->
     <el-dialog v-model="supplierDialogVisible" title="供应商/企业信息" width="70%" append-to-body destroy-on-close>
@@ -671,6 +676,15 @@ const isWithdrawnPending = computed(() => isWithdrawn.value && !formData.value?.
 const isWithdrawnProcessing = computed(() => isWithdrawn.value && !!formData.value?.caseCode);
 const withdrawReasonText = computed(() => {
   return formData.value?.withdrawCause ?? formData.value?.withdrawReason ?? formData.value?.revokeReason ?? '';
+});
+const rejectBackLabel = computed(() => {
+  const map: Record<string, string> = {
+    '0': '驳回申诉',
+    '1': '平台结案',
+    '2': '申诉成功'
+  };
+  const val = formData.value?.rejectBack;
+  return map[String(val)] ?? '-';
 });
 
 const dialogMode = computed(() => props.type ?? 'view');
