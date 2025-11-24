@@ -7,6 +7,7 @@
 -->
 <template>
   <div class="supplier-management">
+    <div class="menu-title">保险产品列表</div>
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <el-form-item label="产品名称" prop="productName">
@@ -65,7 +66,7 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { getInsuranceProductsVersionList } from '@/api/financeFront/Insuranceproduct/index';
+import { getInsuranceProductsVersionListInfo } from '@/api/financeFront/Insuranceproduct/index';
 import Details from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -75,6 +76,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   productType: '',
+  isNoTenant: true,
   productName: ''
 });
 
@@ -93,7 +95,7 @@ const getList = () => {
   loading.value = true;
   const params = { ...queryParams.value };
 
-  getInsuranceProductsVersionList(params).then((res) => {
+  getInsuranceProductsVersionListInfo(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
@@ -136,7 +138,36 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .supplier-management {
-  padding: 24px;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+
+  padding: 20px;
+  margin-bottom: 90px;
+}
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  border-bottom: 1px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: #108c58;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 8px;
 }
 .pagination {
   margin-top: 24px;

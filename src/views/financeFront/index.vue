@@ -208,7 +208,7 @@ const backToHome = () => {
 
 <style scoped lang="scss">
 .finance-container {
-  height: 100%;
+  min-height: 100%;
   background-color: #f6f7fb;
 }
 
