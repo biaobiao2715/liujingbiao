@@ -1,0 +1,395 @@
+<!--
+    标题: index.vue
+    功能: 举报案件立案管理
+    说明: 举报案件立案列表页
+    当前版本: 1.0
+    开发信息: Created by 2025-11-21
+-->
+<template>
+  <div class="report-case-filing-container">
+    <!-- 搜索条件 -->
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+      <!-- 举报编号 -->
+      <el-form-item label="举报编号" prop="reportCode">
+        <el-input v-model="queryParams.reportCode" placeholder="请输入举报编号" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+
+      <!-- 案件编号 -->
+      <el-form-item label="案件编号" prop="caseCode">
+        <el-input v-model="queryParams.caseCode" placeholder="请输入案例编号" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+
+      <!-- 创建时间 -->
+      <el-form-item label="创建时间" prop="createTime">
+        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" clearable />
+      </el-form-item>
+
+      <!-- 举报人 -->
+      <el-form-item label="举报人" prop="createByName">
+        <el-input v-model="queryParams.createByName" placeholder="请输入举报人姓名" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+
+      <!-- 被举报人 -->
+      <el-form-item label="被举报人" prop="reportPersonName">
+        <el-input v-model="queryParams.reportPersonName" placeholder="请输入被举报人" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+
+      <!-- 所属状态 -->
+      <el-form-item label="所属状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择" clearable>
+          <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+
+      <!-- 查询和重置按钮 -->
+      <el-form-item class="search-actions">
+        <el-button class="search-btn" v-throttle type="primary" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" v-throttle type="primary" @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <!-- 表格展示 -->
+    <el-table :data="tableData" border v-loading="loading">
+      <!-- 序号 -->
+      <el-table-column type="index" width="80" label="序号" align="center" />
+
+      <!-- 举报编号 -->
+      <el-table-column label="举报编号" align="center" prop="reportCode" min-width="150">
+        <template #default="scope">
+          <span>{{ scope.row.reportCode || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 案件编号 -->
+      <el-table-column label="案件编号" align="center" prop="caseCode" min-width="150">
+        <template #default="scope">
+          <span>{{ scope.row.caseCode || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 举报类型 -->
+      <el-table-column label="举报类型" align="center" prop="reportTypeId" min-width="120">
+        <template #default="scope">
+          <dict-text :options="report_type_id" :value="scope.row.reportTypeId || ''" />
+        </template>
+      </el-table-column>
+
+      <!-- 举报人 -->
+      <el-table-column label="举报人" align="center" prop="createByName" min-width="120">
+        <template #default="scope">
+          <span>{{ scope.row.createByName || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 被举报人 -->
+      <el-table-column label="被举报人" align="center" prop="reporterName" min-width="150">
+        <template #default="scope">
+          <span>{{ scope.row.reporterName || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 创建时间 -->
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template #default="scope">
+          <span>{{ scope.row.createTime || '-' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- 所属状态 -->
+      <el-table-column label="所属状态" align="center" prop="status" width="120">
+        <template #default="scope">
+          <div class="status-cell-wrapper">
+            <el-tag :type="getStatusTagType(scope.row.status)">
+              {{ getStatusName(scope.row.status) }}
+            </el-tag>
+            <el-icon v-if="scope.row.status === '1' && scope.row.appealTime" class="status-icon">
+              <Document />
+            </el-icon>
+          </div>
+        </template>
+      </el-table-column>
+
+      <!-- 操作 -->
+      <el-table-column label="操作" align="center" fixed="right" width="200">
+        <template #default="scope">
+          <div class="operation-buttons-wrapper">
+            <!-- 文档图标 - 处理中状态且appeal_time有值时显示在右上角 -->
+            <el-icon v-if="scope.row.status === '1' && scope.row.appeal_time" class="operation-icon">
+              <Document />
+            </el-icon>
+            <div class="operation-buttons">
+              <!-- 待处理状态：只显示处理按钮 -->
+              <template v-if="scope.row.status === '0'">
+                <el-button v-throttle type="primary" size="small" @click="handleProcess(scope.row)">处理</el-button>
+              </template>
+              <!-- 处理中状态 -->
+              <template v-else-if="scope.row.status === '1'">
+                <!-- 处理按钮 - 处理中状态且appeal_time有值时显示 -->
+                <el-button v-if="scope.row.appealTime" v-throttle type="primary" size="small" @click="handleProcess(scope.row)">处理</el-button>
+                <!-- 处理按钮 - 处理中状态且appeal_time没有值时显示（置灰、不可点击） -->
+                <el-button v-if="!scope.row.appealTime" v-throttle type="primary" size="small" disabled>处理</el-button>
+                <!-- 查看按钮 - 处理中状态显示 -->
+                <el-button v-if="!scope.row.appealTime" v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+                <!-- 催促按钮 - 处理中状态且appeal_time没有值时显示 -->
+                <el-button v-if="!scope.row.appealTime" v-throttle type="warning" size="small" @click="handleUrge(scope.row)">催促</el-button>
+              </template>
+              <!-- 其他状态：只显示查看按钮 -->
+              <template v-else>
+                <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+              </template>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      <Pagination
+        v-show="total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        v-model:total="total"
+        @pagination="getList"
+      />
+    </div>
+
+    <!-- 查看/处理弹窗 -->
+    <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
+      <Detail v-if="dlgPreviewVisible" :id="selectID" :status="selectStatus" @cancel="cancelDlg" @success="refreshData" />
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Document } from '@element-plus/icons-vue';
+import Pagination from '@/components/Pagination/index.vue';
+// import { reportList } from '@/api/mall/personalCenter/myReport';
+import { getReportChannelList, processReportCaseFiling, urgeReportCaseFiling } from '@/api/safeguard/reportCaseFiling';
+import Detail from './components/Detail.vue';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { report_type_id } = toRefs<any>(proxy?.useDict('report_type_id'));
+
+// 搜索表单引用
+const queryFormRef = ref();
+
+// 是否显示搜索
+const showSearch = ref(true);
+
+// 加载状态
+const loading = ref(false);
+
+// 表格数据
+const tableData = ref<any[]>([]);
+
+// 总条数
+const total = ref(0);
+
+// 查询参数
+const queryParams = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  reportCode: '', // 举报编号
+  caseCode: '', // 案件编号
+  createTime: '', // 创建时间
+  createByName: '', // 举报人
+  reporterName: '', // 被举报人
+  status: '' // 所属状态
+});
+
+// 状态选项
+const statusOptions = [
+  { value: '0', label: '待处理' },
+  { value: '1', label: '处理中' },
+  { value: '2', label: '已驳回' },
+  { value: '3', label: '已结案' },
+  { value: '4', label: '已撤回' }
+];
+
+// 获取状态名称
+const getStatusName = (status: string | undefined | null) => {
+  if (status === undefined || status === null || status === '') return '-';
+  const option = statusOptions.find((item) => item.value === String(status));
+  return option?.label || '-';
+};
+
+// 获取状态标签类型
+const getStatusTagType = (status: string | undefined | null) => {
+  const statusMap: Record<string, string> = {
+    '0': 'info', // 待处理
+    '1': 'warning', // 处理中
+    '2': 'danger', // 已驳回
+    '3': 'success', // 已结案
+    '4': '' // 已撤回
+  };
+  return statusMap[String(status)] || '';
+};
+
+// 获取列表数据
+const getList = async () => {
+  loading.value = true;
+  try {
+    const res = await getReportChannelList(queryParams);
+    if (res && res.code === 200) {
+      tableData.value = res.rows || res.data || [];
+      total.value = res.total || 0;
+    } else {
+      ElMessage.error(res?.msg || '获取列表失败');
+      tableData.value = [];
+      total.value = 0;
+    }
+  } catch (error: any) {
+    console.error('获取举报立案列表失败:', error);
+    ElMessage.error(error?.msg || error?.message || '获取列表失败');
+    tableData.value = [];
+    total.value = 0;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 查询
+const handleQuery = () => {
+  queryParams.pageNum = 1;
+  getList();
+};
+
+// 重置
+const handleReset = () => {
+  queryFormRef.value?.resetFields();
+  queryParams.pageNum = 1;
+  queryParams.pageSize = 10;
+  queryParams.reportCode = '';
+  queryParams.caseCode = '';
+  queryParams.createTime = '';
+  queryParams.createByName = ''; // 举报人
+  queryParams.reporterName = '';
+  queryParams.status = '';
+  handleQuery();
+};
+
+// 对话框相关状态
+const dlgPreviewVisible = ref(false);
+const dlgTitle = ref('');
+const selectID = ref<string | number>('');
+const selectType = ref<'view' | 'process'>('view');
+const selectStatus = ref<string>(''); // 当前选中行的状态
+
+// 打开对话框：查看/处理
+const handleView = (row: any) => {
+  selectID.value = row.id;
+  selectType.value = 'view';
+  selectStatus.value = row.status || '';
+  dlgTitle.value = '查看举报立案详情';
+  dlgPreviewVisible.value = true;
+};
+
+// 打开对话框：处理
+const handleProcess = (row: any) => {
+  selectID.value = row.id;
+  selectType.value = 'process';
+  selectStatus.value = row.status || '';
+  dlgTitle.value = '处理举报立案';
+  dlgPreviewVisible.value = true;
+};
+
+// 关闭对话框
+const cancelDlg = () => {
+  dlgPreviewVisible.value = false;
+  selectID.value = '';
+  selectType.value = 'view';
+  selectStatus.value = '';
+};
+
+// 子组件刷新回调
+const refreshData = () => {
+  dlgPreviewVisible.value = false;
+  getList();
+};
+
+// 催促
+const handleUrge = async (row: any) => {
+  try {
+    await urgeReportCaseFiling({ id: row.id, reportPersonId: row.reportPersonId });
+    ElMessage.success('催促成功');
+    getList();
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('催促失败:', error);
+      ElMessage.error(error?.msg || error?.message || '催促失败');
+    }
+  }
+};
+
+// 初始化
+onMounted(() => {
+  getList();
+});
+</script>
+
+<style scoped lang="scss">
+.report-case-filing-container {
+  padding: 20px 0 0;
+
+  .search-actions {
+    margin-left: auto;
+  }
+
+  .search-btn,
+  .reset-btn {
+    margin-left: 10px;
+  }
+
+  .operation-buttons-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .status-cell-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .status-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 24px;
+    color: #409eff;
+    z-index: 10;
+    background: #fff;
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .operation-icon {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 18px;
+    color: #409eff;
+    z-index: 10;
+    background: #fff;
+    border-radius: 50%;
+    padding: 2px;
+  }
+
+  .operation-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+</style>
