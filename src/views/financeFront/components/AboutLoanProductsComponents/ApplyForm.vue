@@ -19,59 +19,59 @@
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
               <el-form-item label="企业编码">
-                <el-input v-model="formData.enterpriseNumber" disabled></el-input>
+                <el-input v-model="supplierDetails.enterpriseNumber" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="企业名称">
-                <el-input v-model="formData.companyName" disabled></el-input>
+                <el-input v-model="supplierDetails.companyName" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="注册资本">
-                <el-input v-model="formData.signUpCapital" disabled></el-input>
+                <el-input v-model="supplierDetails.signUpCapital" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="注册地址">
-                <el-input v-model="formData.signUpAddress" disabled></el-input>
+                <el-input v-model="supplierDetails.signUpAddress" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="办公地址">
-                <el-input v-model="formData.officeAddress" disabled></el-input>
+                <el-input v-model="supplierDetails.officeAddress" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="资质等级">
-                <el-select v-model="formData.credentialLevel" placeholder="资质等级" filterable clearable disabled>
+                <el-select v-model="supplierDetails.credentialLevel" placeholder="资质等级" filterable clearable disabled>
                   <el-option v-for="dict in plat_qualification_grade" :key="dict.value" :label="dict.label" :value="dict.value" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="信用等级">
-                <el-select v-model="formData.creditLevel" placeholder="信用等级" filterable clearable disabled>
+                <el-select v-model="supplierDetails.creditLevel" placeholder="信用等级" filterable clearable disabled>
                   <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
                 </el-select>
               </el-form-item>
               <el-form-item label="审核状态">
-                <el-select v-model="formData.reviewStatus" placeholder="审核状态" filterable clearable disabled>
+                <el-select v-model="supplierDetails.reviewStatus" placeholder="审核状态" filterable clearable disabled>
                   <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
                 </el-select>
               </el-form-item>
 
               <el-form-item label="社会统一信用代码">
-                <el-input v-model="formData.licenseNumber" disabled></el-input>
+                <el-input v-model="supplierDetails.licenseNumber" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="注册日期">
-                <el-input v-model="formData.signUpTime" disabled></el-input>
+                <el-input v-model="supplierDetails.signUpTime" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="营业执照">
-                <img :src="formData.url" height="80px" width="126px" alt="营业执照" />
+                <img :src="supplierDetails.url" height="80px" width="126px" alt="营业执照" />
               </el-form-item>
             </el-col>
 
             <el-col :span="24">
               <el-form-item label="企业经营范围">
-                <el-input v-model="formData.businessScope" type="textarea" autosize disabled></el-input>
+                <el-input v-model="supplierDetails.businessScope" type="textarea" autosize disabled></el-input>
               </el-form-item>
             </el-col>
           </el-row>
@@ -95,7 +95,7 @@
             <el-col :span="12">
               <el-form-item label="证件类型" prop="legalPersonIdCardType">
                 <el-select v-model="formData.legalPersonIdCardType" placeholder="证件类型" filterable clearable disabled>
-                  <el-option v-for="dict in lender_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+                  <el-option v-for="dict in card_type" :key="dict.value" :label="dict.label" :value="dict.value" />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -223,6 +223,7 @@
                 <el-upload
                   :file-list="uploaderAuthorization.files.value"
                   :limit="1"
+                  list-type="picture-card"
                   action="#"
                   accept=".pdf"
                   :before-upload="uploaderAuthorization.beforeUpload"
@@ -231,11 +232,11 @@
                   :on-exceed="uploaderAuthorization.handleExceed"
                 >
                   <template #default>
-                    <div v-if="uploaderAuthorization.files.value.length < 1" class="avatar-uploader" style="width: 120px; height: 64px">
+                    <div v-if="uploaderAuthorization.files.value.length < 1" class="avatar-uploader">
                       <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
                       <div class="avatar-uploader-text">上传PDF</div>
                     </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 120px; text-align: center">已上传</div>
+                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已上传</div>
                   </template>
                 </el-upload>
               </el-form-item>
@@ -275,6 +276,7 @@
                 <el-input v-model="formData.contactAddress"></el-input>
               </el-form-item>
             </el-col>
+            <el-col :span="12"></el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
                 <el-upload
@@ -356,7 +358,7 @@
           <el-col :span="12">
             <el-form-item label="收款卡银行" prop="collectionBankCode">
               <el-select v-model="formData.collectionBankCode" placeholder="收款卡银行" filterable clearable>
-                <el-option v-for="dict in repayment_method" :key="dict.value" :label="dict.label" :value="dict.value" />
+                <el-option v-for="dict in bank_code" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -438,15 +440,20 @@ import {
   getCreditProductsVersionDetailNoTenant,
   applyPersonalLoan,
   applyEnterpriseLoan,
+  getLoanApplicationsId,
   ossUploadImage
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating, lender_type, loan_cycle, repayment_method } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'lender_type', 'loan_cycle', 'repayment_method')
+const { review_status, plat_qualification_grade, plat_credit_rating, card_type, loan_cycle, repayment_method, bank_code } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'card_type', 'loan_cycle', 'repayment_method', 'bank_code')
 );
 
 const props = defineProps({
+  productId: {
+    type: String || Number,
+    required: null
+  },
   id: {
     type: String || Number,
     required: null
@@ -564,8 +571,8 @@ const rules: FormRules = {
   idCardBirthday: [{ required: true, message: '请输入出生年月', trigger: 'blur' }],
   // 上传图片校验（均需两张）
   // 新校验：根据单张正反面 ossId 字段
-  idCardPhotoFront2: [{ required: false, message: '请上传法人证件正面', trigger: 'change' }],
-  idCardPhotoBack2: [{ required: false, message: '请上传法人证件反面', trigger: 'change' }],
+  idCardPhotoFront2: [{ required: true, message: '请上传法人证件正面', trigger: 'change' }],
+  idCardPhotoBack2: [{ required: true, message: '请上传法人证件反面', trigger: 'change' }],
   idCardPhotoFront: [{ required: true, message: '请上传身份证正面', trigger: 'change' }],
   idCardPhotoBack: [{ required: true, message: '请上传身份证反面', trigger: 'change' }],
   bankCardPhotoFront: [{ required: true, message: '请上传银行卡正面', trigger: 'change' }],
@@ -579,7 +586,12 @@ function buildPayload() {
     productVersion: productDetails.value.productVersion || '',
     lenderType: userStore.userType,
     lenderId: userStore.userId,
-    ...formData
+
+    idCardType: '0',
+    idCardNumber: formData.value.legalPersonIdCardNumber || '',
+    collectionAccountName: formData.value.realName || '',
+
+    ...formData.value
   };
   return base;
 }
@@ -596,11 +608,8 @@ const submitApply = async () => {
     const res = await apiFn(payload);
     if (res.code === 200) {
       ElMessage.success('提交成功');
-    } else {
-      ElMessage.error(res.msg || '提交失败');
     }
   } catch (e: any) {
-    ElMessage.error(e?.message || '提交异常');
   } finally {
   }
 };
@@ -747,11 +756,9 @@ const repaymentMethodOptions = computed(() => {
 });
 
 onMounted(async () => {
-  getCreditProductsVersionDetailNoTenant(props.id).then((res) => {
+  getCreditProductsVersionDetailNoTenant(props.productId).then((res) => {
     if (res.code === 200) {
       productDetails.value = res.data || {};
-      // 产品详情到位后重新校验贷款金额（防止先填后拉数据不提示最大值）
-      // formRef.value?.validateField('loanAmount');
     }
   });
   // 采购商
@@ -776,6 +783,16 @@ onMounted(async () => {
         legalPersonIdCardType: '0'
       };
     }
+  }
+  if (props.id) {
+    getLoanApplicationsId(props.id).then((v) => {
+      if (v.code === 200) {
+        formData.value = {
+          ...formData.value,
+          ...(v.data || {})
+        };
+      }
+    });
   }
 });
 </script>
