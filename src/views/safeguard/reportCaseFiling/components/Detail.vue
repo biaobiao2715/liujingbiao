@@ -179,7 +179,7 @@
                 >
                   <el-option v-for="item in caseTypeOptions" :key="item.id" :label="item.label" :value="item.id" />
                 </el-select>
-                <div v-if="!processFeedback.caseTypeId" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请选择案件类型</div>
+                <div v-if="!processFeedback.id" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请选择案件类型</div>
               </el-form-item>
             </el-col>
 
@@ -303,8 +303,8 @@
             </el-col>
 
             <el-col :span="24">
-              <el-form-item label="平台驳回申诉理由：">
-                <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+              <el-form-item label="平台驳回申诉理由11：">
+                <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
               </el-form-item>
             </el-col>
           </el-row>
@@ -559,8 +559,9 @@
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
+            {{ appealDetail }}
+            <el-form-item label="平台驳回申诉理由22：">
+              <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -1016,7 +1017,7 @@ const handleConfirm = async () => {
         }
       } else if (processFeedback.handleBack === '1') {
         // 平台受理：验证案件类型
-        if (!processFeedback.caseTypeId) {
+        if (!processFeedback.id) {
           ElMessage.error('请选择案件类型');
           submitLoading.value = false;
           return;
