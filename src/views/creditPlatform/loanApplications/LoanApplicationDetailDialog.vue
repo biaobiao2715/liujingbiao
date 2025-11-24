@@ -49,9 +49,19 @@
           </el-descriptions-item>
           <el-descriptions-item label="授权文件" :span="2">
             <template v-if="applicantAuthFiles.length">
-              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image" />
+              <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
+                <el-button 
+                  type="primary" 
+                  link 
+                  @click="handleViewFile(file)"
+                  class="file-link"
+                >
+                  <el-icon><Document /></el-icon>
+                  授权文件{{ applicantAuthFiles.length > 1 ? (idx + 1) : '' }}
+                </el-button>
+              </div>
             </template>
-            <div v-else class="image-placeholder">暂无图片</div>
+            <div v-else class="file-placeholder">暂无文件</div>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -187,7 +197,7 @@
 import { computed, reactive, watch, ref, nextTick } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
-import { Close } from '@element-plus/icons-vue';
+import { Close, Document } from '@element-plus/icons-vue';
 import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile, getProduct } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
@@ -387,7 +397,19 @@ const companyInfoList = computed(() => {
 
 const companyLicenseList = computed(() => {
   const row = detailRow.value;
-  return Array.isArray(row.licenses) ? row.licenses : [];
+  const licenses = [];
+  
+  // 从 licenses 数组获取
+  if (Array.isArray(row.licenses)) {
+    licenses.push(...row.licenses);
+  }
+  
+  // 从 url 字段获取营业执照
+  if (row.url) {
+    licenses.push({ url: row.url });
+  }
+  
+  return licenses;
 });
 
 const legalInfoList = computed(() => {
@@ -417,7 +439,7 @@ const applicantIdPhotos = computed(() => {
 
 const applicantAuthFiles = computed(() => {
   const row = detailRow.value;
-  return collectUrls(row.authorizationFiles, row.authorizationUrl);
+  return collectUrls(row.authorizationUrl);
 });
 
 const loanInfoList = computed(() => {
@@ -475,6 +497,17 @@ watch(
 
 const handleClose = () => {
   emit('update:visible', false);
+};
+
+// 处理文件查看
+const handleViewFile = (fileUrl: string) => {
+  if (!fileUrl) {
+    ElMessage.warning('文件地址不存在');
+    return;
+  }
+  
+  // 在新窗口中打开文件
+  window.open(fileUrl, '_blank');
 };
 
 const handleViewProductDetail = () => {
