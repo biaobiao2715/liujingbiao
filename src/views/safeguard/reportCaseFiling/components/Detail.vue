@@ -310,7 +310,7 @@
       </template>
 
       <!--历史申诉材料  -->
-      <div v-if="!isRejected && formData.historyAppealList && formData.historyAppealList.length > 0">
+      <div v-if="isProcessing || (!isRejected && !isPending)">
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
           <el-table-column type="index" min-width="55" label="序号" align="center" />
@@ -562,6 +562,7 @@ import {
   editAppealReportCaseFiling
 } from '@/api/safeguard/reportCaseFiling';
 import { fetchCaseTypeOptions, getCaseTypeDetail } from '@/api/safeguard/case';
+
 import { ElMessage } from 'element-plus';
 import FormHeader from '@/components/FormHeader/index.vue';
 import supplierDetail from './supplierDetail.vue';

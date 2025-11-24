@@ -167,6 +167,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Document } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination/index.vue';
 // import { reportList } from '@/api/mall/personalCenter/myReport';
+
 import { getReportChannelList, processReportCaseFiling, urgeReportCaseFiling } from '@/api/safeguard/reportCaseFiling';
 import Detail from './components/Detail.vue';
 
@@ -318,8 +319,8 @@ const handleUrge = async (row: any) => {
     getList();
   } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('催促失败:', error);
-      ElMessage.error(error?.msg || error?.message || '催促失败');
+      console.error('催促失败了:', error);
+      ElMessage.error(error?.msg || error?.message || '催促失败了');
     }
   }
 };
