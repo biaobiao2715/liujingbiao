@@ -170,14 +170,14 @@
             <el-col :span="24">
               <el-form-item label="案件类型：" required>
                 <el-select
-                  v-model="processFeedback.caseTypeId"
+                  v-model="processFeedback.id"
                   placeholder="请选择"
                   filterable
                   clearable
                   style="width: 100%"
-                  @change="handleCaseTypeChange"
+                  @change="handleCaseTypeChange(processFeedback.id)"
                 >
-                  <el-option v-for="item in caseTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+                  <el-option v-for="item in caseTypeOptions" :key="item.id" :label="item.label" :value="item.id" />
                 </el-select>
                 <div v-if="!processFeedback.caseTypeId" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请选择案件类型</div>
               </el-form-item>
@@ -219,7 +219,7 @@
       </div>
 
       <!-- 非已驳回状态：显示案件类型 -->
-      <template v-if="!isRejected && !isPending">
+      <template v-if="!isRejected && !isPending && !isWithdrawnPending">
         <FormHeader title="案件类型" />
         <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
           <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
@@ -251,66 +251,68 @@
         </el-table>
 
         <!-- 非已驳回状态：显示申诉材料 -->
-        <FormHeader title="申诉材料" />
-        <el-row :gutter="20" class="detail-form">
-          <el-col :span="24">
-            <el-form-item label="申诉理由：">
-              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
+        <template v-if="!hideProcessingViewSection && !isWithdrawnPending">
+          <FormHeader title="申诉材料" />
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="24">
+              <el-form-item label="申诉理由：">
+                <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉时间：">
-              <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="申诉时间：">
+                <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉图片：">
-              <div class="evidence">
-                <template v-if="appealImageList.length">
-                  <el-image
-                    v-for="(img, idx) in appealImageList"
-                    :key="img.url + idx"
-                    :src="img.url"
-                    :preview-src-list="appealImagePreviewUrls"
-                    :initial-index="idx"
-                    fit="cover"
-                    class="evidence-image-item"
-                  />
-                </template>
-                <span v-else class="evidence-empty">暂无图片</span>
-              </div>
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="申诉图片：">
+                <div class="evidence">
+                  <template v-if="appealImageList.length">
+                    <el-image
+                      v-for="(img, idx) in appealImageList"
+                      :key="img.url + idx"
+                      :src="img.url"
+                      :preview-src-list="appealImagePreviewUrls"
+                      :initial-index="idx"
+                      fit="cover"
+                      class="evidence-image-item"
+                    />
+                  </template>
+                  <span v-else class="evidence-empty">暂无图片</span>
+                </div>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉视频：">
-              <div class="evidence">
-                <template v-if="appealVideoList.length">
-                  <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
-                    <div class="size">{{ v.sizeText }}</div>
-                    <div class="icon">视频</div>
-                    <div class="ops">
-                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+            <el-col :span="24">
+              <el-form-item label="申诉视频：">
+                <div class="evidence">
+                  <template v-if="appealVideoList.length">
+                    <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
+                      <div class="size">{{ v.sizeText }}</div>
+                      <div class="icon">视频</div>
+                      <div class="ops">
+                        <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                      </div>
                     </div>
-                  </div>
-                </template>
-                <span v-else class="evidence-empty">暂无视频</span>
-              </div>
-            </el-form-item>
-          </el-col>
+                  </template>
+                  <span v-else class="evidence-empty">暂无视频</span>
+                </div>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
-        </el-row>
+            <el-col :span="24">
+              <el-form-item label="平台驳回申诉理由：">
+                <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </template>
       </template>
 
       <!--历史申诉材料  -->
-      <div v-if="isProcessing || (!isRejected && !isPending)">
+      <div v-if="!hideProcessingViewSection && !isWithdrawnPending && (isProcessing || (!isRejected && !isPending))">
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
           <el-table-column type="index" min-width="55" label="序号" align="center" />
@@ -323,8 +325,19 @@
         </el-table>
       </div>
 
+      <template v-if="isWithdrawn">
+        <FormHeader title="举报人撤回原因" />
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="24">
+            <el-form-item label="撤回原因：">
+              <el-input :model-value="withdrawReasonText || '暂无撤回原因'" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </template>
+
       <!-- 处理中状态：显示新的处理反馈 -->
-      <div v-show="isProcessing">
+      <div v-show="isProcessing && !hideProcessingViewSection">
         <FormHeader title="处理反馈" />
         <el-row :gutter="20">
           <el-col :span="24">
@@ -425,19 +438,24 @@
 
       <!-- 按钮区域 -->
       <div style="margin-top: 20px; text-align: center">
-        <!-- 待处理状态：显示提交和返回按钮 -->
-        <template v-if="isPending">
-          <el-button v-throttle @click="handleSave">返回</el-button>
-          <el-button v-throttle type="primary" :loading="submitLoading" @click="handleConfirm">提交</el-button>
-        </template>
-        <!-- 处理中状态：显示确认按钮 -->
-        <template v-else-if="formData.status === '1'">
-          <el-button v-throttle @click="handleSave">取消</el-button>
-          <el-button v-throttle type="primary" :loading="submitLoading" @click="handleConfirm">确认</el-button>
-        </template>
-        <!-- 其他状态：显示返回按钮 -->
-        <template v-else>
+        <template v-if="isViewMode">
           <el-button v-throttle type="primary" @click="handleSave">返回</el-button>
+        </template>
+        <template v-else>
+          <!-- 待处理状态：显示提交和返回按钮 -->
+          <template v-if="isPending">
+            <el-button v-throttle @click="handleSave">返回</el-button>
+            <el-button v-throttle type="primary" :loading="submitLoading" @click="handleConfirm">提交</el-button>
+          </template>
+          <!-- 处理中状态：显示确认按钮 -->
+          <template v-else-if="formData.status === '1'">
+            <el-button v-throttle @click="handleSave">取消</el-button>
+            <el-button v-throttle type="primary" :loading="submitLoading" @click="handleConfirm">确认</el-button>
+          </template>
+          <!-- 其他状态：显示返回按钮 -->
+          <template v-else>
+            <el-button v-throttle type="primary" @click="handleSave">返回</el-button>
+          </template>
         </template>
       </div>
 
@@ -506,7 +524,7 @@
     </el-dialog>
 
     <!-- 非已驳回且非待处理且非处理中状态：显示处理反馈（只读） -->
-    <template v-if="!isRejected && !isPending && !isProcessing">
+    <template v-if="!isRejected && !isPending && !isProcessing && !isWithdrawn">
       <FormHeader title="处理反馈" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
@@ -573,6 +591,8 @@ const { case_type, plat_credit_rating, report_type_id } = toRefs<any>(proxy?.use
 const props = defineProps<{
   id: string | number;
   status?: string; // 当前行的状态，用于判断调用哪个 API
+  type?: 'view' | 'process';
+  appealTime?: string;
 }>();
 // 子组件对外事件
 const emit = defineEmits<{
@@ -646,6 +666,17 @@ const isProcessing = computed(() => {
   return formData.value?.status === '1';
 });
 
+const isWithdrawn = computed(() => formData.value?.status === '4');
+const isWithdrawnPending = computed(() => isWithdrawn.value && !formData.value?.caseCode);
+const isWithdrawnProcessing = computed(() => isWithdrawn.value && !!formData.value?.caseCode);
+const withdrawReasonText = computed(() => {
+  return formData.value?.withdrawCause ?? formData.value?.withdrawReason ?? formData.value?.revokeReason ?? '';
+});
+
+const dialogMode = computed(() => props.type ?? 'view');
+const isViewMode = computed(() => dialogMode.value === 'view');
+const hideProcessingViewSection = computed(() => isProcessing.value && dialogMode.value === 'view');
+
 // 提交加载状态
 const submitLoading = ref(false);
 
@@ -653,7 +684,8 @@ const submitLoading = ref(false);
 const processFeedback = reactive({
   handleBack: '0', // '0' 举报驳回 | '1' 平台受理
   rejectReason: '', // 驳回原因
-  caseTypeId: '' // 案件类型ID（用于显示和选择）
+  caseTypeId: '', // 案件类型ID（用于显示和选择）
+  id: '' // 案件类型的列表ID
 });
 
 // 处理中状态的处理反馈表单数据
@@ -784,6 +816,22 @@ const currentScenario = computed(() => {
     stages: template.stages.map((stage: any) => ({ ...stage }))
   };
 
+  if (status === '1') {
+    const thirdStage = scenario.stages.find((stage: any) => stage.id === 3);
+    if (thirdStage) {
+      thirdStage.name = props.appealTime ? '已驳回' : '已结案';
+    }
+  }
+
+  if (status === '4' && isWithdrawnProcessing.value) {
+    scenario.stages = [
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: '', active: true, show: true },
+      { id: 3, name: '已撤回', time: '', active: true, show: true }
+    ];
+    scenario.currentStageId = 3;
+  }
+
   // 如果有 statusAndDate，使用它来更新时间和状态
   const statusAndDate = (formData.value as any)?.statusAndDate || [];
   if (Array.isArray(statusAndDate) && statusAndDate.length > 0) {
@@ -793,7 +841,10 @@ const currentScenario = computed(() => {
         if (stage.id === 1) return stageStatus === '0';
         if (stage.id === 2) {
           if (status === '2') return stageStatus === '2';
-          if (status === '4') return stageStatus === '4';
+          if (status === '4') {
+            if (isWithdrawnProcessing.value) return stageStatus === '1';
+            return stageStatus === '4';
+          }
           return stageStatus === '1';
         }
         if (stage.id === 3) {
@@ -860,7 +911,8 @@ const loadCaseTypeOptions = async () => {
     caseTypeOptions.value = (Array.isArray(list) ? list : []).map((item: any) => ({
       value: item.id ?? item.caseTypeId ?? item.value ?? '',
       label: item.caseTypeName ?? item.label ?? '',
-      caseTypeId: item.caseTypeId // 保存 caseTypeId 用于显示
+      caseTypeId: item.caseTypeId, // 保存 caseTypeId 用于显示
+      id: item.id
     }));
   } catch (error) {
     console.error('获取案件类型列表失败:', error);
@@ -897,15 +949,16 @@ const handleProcessingFeedbackChange = (value: string[]) => {
 };
 
 // 案件类型选择变化处理
-const handleCaseTypeChange = async (caseTypeId: string | number) => {
-  if (!caseTypeId) {
+const handleCaseTypeChange = async (id: string | number) => {
+  console.log('id内容为,', id);
+  if (!id) {
     caseTypeDetail.value = null;
     return;
   }
 
   caseTypeDetailLoading.value = true;
   try {
-    const res = await getCaseTypeDetail(String(caseTypeId));
+    const res = await getCaseTypeDetail(String(id));
     if (res && res.code === 200) {
       caseTypeDetail.value = res.data || {};
     } else {
@@ -1211,9 +1264,9 @@ const fetchDetail = async () => {
   if (!props.id) return;
   try {
     // 根据状态调用不同的 API
-    // 待处理状态调用 getPendingReportCaseFilingDetail，否则调用 getReportCaseFilingDetail
-    const isPendingStatus = props.status === '0';
-    const res = isPendingStatus
+    // 待处理/已撤回/已驳回状态调用 getPendingReportCaseFilingDetail，其它状态调用正式详情
+    const shouldUsePendingApi = props.status === '0' || props.status === '2' || props.status === '4';
+    const res = shouldUsePendingApi
       ? await getPendingReportCaseFilingDetail(String(props.id))
       : await getSafeguardReportCaseFilingDetail(String(props.id));
 
@@ -1247,6 +1300,7 @@ const resetProcessFeedback = () => {
   processFeedback.handleBack = '0';
   processFeedback.rejectReason = '';
   processFeedback.caseTypeId = '';
+  processFeedback.id = '';
   caseTypeDetail.value = null;
   // 重置处理中状态的处理反馈
   processingFeedback.feedbackCascader = [];
@@ -1256,7 +1310,7 @@ const resetProcessFeedback = () => {
 };
 
 onMounted(() => {
-  // resetProcessFeedback();
+  resetProcessFeedback();
   fetchDetail();
   // 如果是待处理状态，加载案件类型选项
   if (isPending.value) {
