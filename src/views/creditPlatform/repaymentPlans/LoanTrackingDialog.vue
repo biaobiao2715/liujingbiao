@@ -1,3 +1,9 @@
+<!--
+  文件: creditPlatform/repaymentPlans/LoanTrackingDialog.vue
+  功能: 贷款追踪弹窗 - 显示贷款申请的各个阶段和时间节点
+  作者: [Your Name]
+  日期: 2025-11-24
+-->
 <template>
   <el-dialog 
     :model-value="visible" 
@@ -81,50 +87,74 @@ import { computed, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getTrackingInfo } from '@/api/creditPlatform/repaymentPlans';
 
+/**
+ * 追踪步骤数据结构
+ */
 interface TrackingStep {
-  title: string;
-  description: string;
-  time?: string;
-  times?: string[]; // 支持多个时间
-  operator?: string;
-  status: 'wait' | 'process' | 'finish' | 'error';
+  title: string;                                    // 步骤标题
+  description: string;                              // 步骤描述
+  time?: string;                                    // 单个时间点
+  times?: string[];                                 // 多个时间点（用于一个步骤有多个时间记录）
+  operator?: string;                                // 操作人
+  status: 'wait' | 'process' | 'finish' | 'error';  // 步骤状态：等待/进行中/完成/错误
 }
 
+// 组件属性
 const props = defineProps<{
-  visible: boolean;
-  data: Record<string, any> | null;
+  visible: boolean;                  // 弹窗显示状态
+  data: Record<string, any> | null;  // 贷款申请数据
 }>();
 
+// 组件事件
 const emit = defineEmits<{
-  (event: 'update:visible', payload: boolean): void;
+  (event: 'update:visible', payload: boolean): void;  // 更新弹窗显示状态
 }>();
 
+// 加载状态
 const loading = ref(false);
+
+// 追踪步骤数据
 const trackingData = ref<TrackingStep[]>([]);
 
+/**
+ * 计算属性 - 追踪步骤列表
+ */
 const trackingSteps = computed(() => {
   return trackingData.value;
 });
 
-// 获取步骤样式类
+/**
+ * 获取步骤样式类
+ * @param status - 步骤状态
+ * @returns 样式类对象
+ */
 const getStepClass = (status: string) => {
   return {
-    'step-finished': status === 'finish',
-    'step-processing': status === 'process',
-    'step-waiting': status === 'wait',
-    'step-error': status === 'error'
+    'step-finished': status === 'finish',    // 已完成
+    'step-processing': status === 'process',  // 进行中
+    'step-waiting': status === 'wait',        // 等待中
+    'step-error': status === 'error'          // 错误
   };
 };
 
-// 判断连接线是否激活
+/**
+ * 判断连接线是否激活
+ * @param index - 当前步骤索引
+ * @returns 是否激活
+ */
 const isLineActive = (index: number) => {
   const currentStep = trackingSteps.value[index];
   const nextStep = trackingSteps.value[index + 1];
   
+  // 当前步骤已完成，且下一步骤已完成或进行中时，连接线激活
   return currentStep.status === 'finish' && 
          (nextStep.status === 'finish' || nextStep.status === 'process');
 };
 
+/**
+ * 获取追踪数据
+ * 从后端 API 获取贷款申请的追踪信息
+ */
 const fetchTrackingData = async () => {
   if (!props.data?.id) return;
   
@@ -144,12 +174,19 @@ const fetchTrackingData = async () => {
   }
 };
 
+/**
+ * 监听弹窗显示状态和数据 ID 变化
+ * 当弹窗打开或数据 ID 变化时，重新获取追踪数据
+ */
 watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
   if (visible && (!prevVisible || id !== prevId)) {
     fetchTrackingData();
   }
 });
 
+/**
+ * 关闭弹窗
+ */
 const handleClose = () => {
   emit('update:visible', false);
 };

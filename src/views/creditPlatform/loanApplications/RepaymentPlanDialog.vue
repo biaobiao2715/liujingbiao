@@ -68,7 +68,7 @@
       <div class="plan-grid">
         <div class="plan-card" v-for="item in plans" :key="item.loanPeriod">
           <div class="card-content">
-            <el-form label-width="70px" class="plan-form">
+            <el-form label-width="80px" class="plan-form">
               <el-form-item label="期数：">
                 <el-input v-model="item.loanPeriod" disabled />
               </el-form-item>
@@ -77,7 +77,7 @@
               </el-form-item>
               <el-form-item label="还款金额：">
                 <div class="amount-input">
-                  <el-input v-model="item.totalAmount" type="number" :min="0" :step="1" />
+                  <el-input v-model="item.principalAmount" type="number" :min="0" :step="1" />
                   <span class="unit">元</span>
                 </div>
               </el-form-item>
