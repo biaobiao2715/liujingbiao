@@ -1,26 +1,28 @@
 <template>
-  <div class="search-container flex-between">
-    <!-- 麦穗图片 -->
-    <img src="@/assets/images/finance/wheat.png" width="60" class="wheat-ong" />
+  <div class="search-container">
+    <div class="content flex-between">
+      <!-- 麦穗图片 -->
+      <img src="@/assets/images/finance/wheat.png" width="60" class="wheat-ong" />
 
-    <div class="left-space flex-center gap-12">
-      <div class="point"></div>
-      <div class="search-title">种子金融服务平台</div>
-    </div>
+      <div class="left-space flex-center gap-12">
+        <div class="point"></div>
+        <div class="search-title">种子金融服务平台</div>
+      </div>
 
-    <div class="right-search">
-      <el-input v-model="searchQuery" placeholder="请输入搜索的内容" class="search-input">
-        <template #prepend>
-          <el-select v-model="selectedCategory" placeholder="商品名称" class="category-select">
-            <el-option v-for="option in categories" :key="option.value" :label="option.label" :value="option.value" />
-          </el-select>
-        </template>
-        <template #append>
-          <el-button @click="handleSearch">搜索</el-button>
-        </template>
-      </el-input>
+      <div class="right-search">
+        <el-input v-model="searchQuery" placeholder="请输入搜索的内容" class="search-input">
+          <template #prepend>
+            <el-select v-model="selectedCategory" placeholder="商品名称" class="category-select">
+              <el-option v-for="option in categories" :key="option.value" :label="option.label" :value="option.value" />
+            </el-select>
+          </template>
+          <template #append>
+            <el-button @click="handleSearch">搜索</el-button>
+          </template>
+        </el-input>
 
-      <div class="hot-search">热门搜索：玉米种子 小麦种子 水稻种子 油菜种子</div>
+        <div class="hot-search">热门搜索：玉米种子 小麦种子 水稻种子 油菜种子</div>
+      </div>
     </div>
   </div>
 </template>
@@ -48,9 +50,13 @@ const handleSearch = () => {
 .search-container {
   background: url('../../../assets/images/finance-bg.png') no-repeat center center;
   background-size: cover;
-  padding: 20px;
-  text-align: center;
-  position: relative;
+  .content {
+    width: 1500px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    padding: 20px;
+  }
   .left-space {
     .point {
       width: 26px;
