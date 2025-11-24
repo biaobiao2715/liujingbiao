@@ -19,7 +19,7 @@
     <!-- 内容区域 -->
     <div class="content">
       <!-- 信贷 -->
-      <el-row :gutter="20" v-show="activeTab === 'credit'">
+      <el-row :gutter="20" v-show="activeTab === 'credit' && creditProducts.length > 0">
         <el-col :span="8" v-for="product in creditProducts" :key="product.productId">
           <div class="item">
             <span class="tag">热门</span>
@@ -65,8 +65,11 @@
         </el-col>
       </el-row>
 
+      <el-empty description="暂无收藏信贷产品" v-if="activeTab === 'credit' && creditProducts.length === 0" class="mt-24">
+      </el-empty>
+
       <!-- 保险 -->
-      <el-row :gutter="20" v-show="activeTab === 'insurance'">
+      <el-row :gutter="20" v-show="activeTab === 'insurance' && insuranceProducts.length > 0">
         <el-col :span="8" v-for="item in insuranceProducts" :key="item.id">
           <el-card>
             <div class="product-header flex-center-between">
@@ -93,6 +96,8 @@
           </el-card>
         </el-col>
       </el-row>
+      <el-empty description="暂无收藏保险产品" v-if="activeTab === 'insurance' && insuranceProducts.length === 0" class="mt-24">
+      </el-empty>
     </div>
   </div>
 </template>

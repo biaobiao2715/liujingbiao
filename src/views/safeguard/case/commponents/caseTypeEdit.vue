@@ -111,7 +111,7 @@
           </template>
         </el-table-column>
         <el-table-column label="版本号" width="120" align="center">
-          <template #default>1.0</template>
+          <template #default>{{ currentVersion }}</template>
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row, $index }">
@@ -499,6 +499,7 @@ const getNextVersion = (version?: string) => {
   if (Number.isNaN(major)) major = 1;
   if (Number.isNaN(minor)) minor = 0;
   minor = Math.max(0, Math.floor(minor));
+  // 版本号变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
   if (minor >= 9) {
     major += 1;
     minor = 0;
@@ -558,12 +559,14 @@ const handleLegalBasisUploadChange = async (file: any) => {
     const response = await ossUploadImage({ file: raw });
     const data = response?.data || {};
     let nextVersion = currentVersion.value;
+    // 版本号只在第一次上传时变化，后续上传使用相同的版本号
+    // 变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
     if (!isUpload.value) {
       nextVersion = getNextVersion(currentVersion.value);
       currentVersion.value = nextVersion;
-      isUpload.value = true;
+      isUpload.value = true; // 标记已上传，后续上传不再变化版本号
     } else {
-      nextVersion = currentVersion.value;
+      nextVersion = currentVersion.value; // 使用已变化的版本号
     }
     const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
     const uploadTimeText = formatDateTime(uploadTimestamp);

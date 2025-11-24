@@ -20,7 +20,8 @@
     </div>
     <!-- 右侧内容区域 -->
     <div class="right-content">
-      <MyCollections v-if="activeTab === 'collections'"></MyCollections>
+      <MyCollections v-show="activeTab === 'collections'"></MyCollections>
+      <MyApplications v-show="activeTab === 'applications'"></MyApplications>
     </div>
   </div>
 </template>
@@ -31,7 +32,8 @@ const props = defineProps<{
   activeTab: string;
 }>();
 
-const MyCollections = defineAsyncComponent(() => import('./MyCollections.vue')); // 信贷产品列表组件
+const MyCollections = defineAsyncComponent(() => import('./MyCollections.vue')); // 我的收藏组件
+const MyApplications = defineAsyncComponent(() => import('./CreditApplication.vue')); // 信贷申请管理组件
 
 const activeTab = ref(props.activeTab || 'collections');
 

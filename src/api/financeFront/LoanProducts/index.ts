@@ -98,3 +98,14 @@ export const ossUploadImage = (data: { file: File }) => {
     }
   });
 };
+
+/*
+ * 获取贷款申请权限列表
+ */
+export function getLoanApplicationsPermissionList(data: any) {
+  return request({
+    url: '/credit-server/loanApplications/permissionList',
+    method: 'get',
+    params: data
+  });
+}

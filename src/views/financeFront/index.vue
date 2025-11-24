@@ -12,9 +12,10 @@
     <!-- 搜索组件 -->
     <SearchComponent />
 
-    <div v-show="showArea === 'area'">
-      <!-- banner -->
-      <BannerComponent />
+    <!-- banner -->
+    <BannerComponent v-if="showArea === 'area'" />
+
+    <div v-show="showArea === 'area'" class="detail-content">
       <!-- 贷款产品 -->
       <LoanProductsComponent />
       <el-row>
@@ -32,38 +33,39 @@
       <PolicyRulesComponent />
     </div>
 
-    <div v-if="showArea !== 'area'" class="detail-container">
-      <!-- detail-container 设置背景颜色  detail-content 设置宽度 -->
-      <div class="detail-content">
-        <!-- 面包屑导航 -->
-        <el-breadcrumb :separator-icon="ArrowRight" class="braed-navigate">
-          <!--  <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item> -->
-          <el-breadcrumb-item @click="backToHome()" style="cursor: pointer">首页</el-breadcrumb-item>
-          <el-breadcrumb-item v-for="item in naviteList" :key="item.id" @click="switchShowArea(item.type)">{{
-            TITLE_MAP[item.type]
-          }}</el-breadcrumb-item>
-        </el-breadcrumb>
-        <!-- 信贷产品列表 -->
-        <AboutLoanProductsComponentList v-if="showArea === 'LoanProductsComponentList'" />
-        <!-- 信贷产品详情 -->
-        <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
-        <!-- 信贷产品申请表单 -->
-        <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
-        <!-- 保险产品列表 -->
-        <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
-        <!-- 保险产品详情 -->
-        <AboutInsuranceproductComponentDetails v-if="showArea === 'InsuranceproductComponentDetails'" :id="id" />
-        <!-- 风险案例列表 -->
-        <AboutRiskCasesComponentList v-if="showArea === 'RiskCasesComponentList'" />
-        <!-- 风险案例详情 -->
-        <AboutRiskCasesComponentDetails v-if="showArea === 'RiskCasesComponentDetails'" :id="id" />
-        <!-- 政策法规列表 -->
-        <AboutPolicyRulesComponentList v-if="showArea === 'PolicyRulesComponentList'" />
-        <!-- 政策法规详情 -->
-        <AboutPolicyRulesComponentDetails v-if="showArea === 'PolicyRulesComponentDetails'" :id="id" />
-        <!-- 个人中心 -->
-        <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
-      </div>
+    <div class="detail-content" v-if="showArea !== 'area'">
+      <!-- 面包屑导航 -->
+      <el-breadcrumb :separator-icon="ArrowRight" class="braed-navigate">
+        <!--  <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item> -->
+        <el-breadcrumb-item @click="backToHome()" class="able-click">首页</el-breadcrumb-item>
+        <el-breadcrumb-item
+          :class="{ 'able-click': index + 1 !== naviteList.length }"
+          v-for="(item, index) in naviteList"
+          :key="item.id"
+          @click="switchShowArea(item.type, index + 1 === naviteList.length)"
+          >{{ TITLE_MAP[item.type] }}</el-breadcrumb-item
+        >
+      </el-breadcrumb>
+      <!-- 信贷产品列表 -->
+      <AboutLoanProductsComponentList v-if="showArea === 'LoanProductsComponentList'" />
+      <!-- 信贷产品详情 -->
+      <AboutLoanProductsComponentDetails v-show="showArea === 'LoanProductsComponentDetails'" :id="id" />
+      <!-- 信贷产品申请表单 -->
+      <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
+      <!-- 保险产品列表 -->
+      <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
+      <!-- 保险产品详情 -->
+      <AboutInsuranceproductComponentDetails v-show="showArea === 'InsuranceproductComponentDetails'" :id="id" />
+      <!-- 风险案例列表 -->
+      <AboutRiskCasesComponentList v-if="showArea === 'RiskCasesComponentList'" />
+      <!-- 风险案例详情 -->
+      <AboutRiskCasesComponentDetails v-show="showArea === 'RiskCasesComponentDetails'" :id="id" />
+      <!-- 政策法规列表 -->
+      <AboutPolicyRulesComponentList v-if="showArea === 'PolicyRulesComponentList'" />
+      <!-- 政策法规详情 -->
+      <AboutPolicyRulesComponentDetails v-show="showArea === 'PolicyRulesComponentDetails'" :id="id" />
+      <!-- 个人中心 -->
+      <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
     </div>
   </div>
 </template>
@@ -139,8 +141,6 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   CreditApplication: '信贷申请管理'
 };
 
-const secondTitle = computed(() => (showArea.value === 'area' ? '' : TITLE_MAP[showArea.value]));
-
 onMounted(() => {
   eventBus.on('showComponentByCommand', (data: any) => {
     showArea.value = data.type;
@@ -151,12 +151,20 @@ onMounted(() => {
   });
 });
 
-const switchShowArea = (type: DetailView) => {
+const switchShowArea = (type: DetailView, isLastItem: boolean) => {
   // 忽略无实际意义的类型
-  if (type === 'PersonalCenter' || type === 'MyCollections' || type === 'CreditApplication') {
+  if (type === 'PersonalCenter' || type === 'MyCollections' || type === 'CreditApplication' || isLastItem) {
     return;
   }
   showArea.value = type;
+
+  //  如果点击的是已经存在的路径，那么就把该路径后面的路径都移除
+  const targetIndex = naviteList.value.findIndex((item) => item.type === type);
+  if (targetIndex !== -1) {
+    naviteList.value = naviteList.value.slice(0, targetIndex + 1);
+    return;
+  }
+
   selectNavigateByType(type);
 };
 
@@ -196,17 +204,15 @@ const backToHome = () => {
 <style scoped lang="scss">
 .finance-container {
   height: 100%;
-  // padding: 0 16%;
-  min-width: 1400px;
   background-color: #f6f7fb;
 }
 
 .detail-container {
-  background: #f6f7fb;
+  // background: #f6f7fb;
 }
 
 .detail-content {
-  width: 1495px;
+  width: 1500px;
   margin: 0 auto;
 }
 
@@ -214,5 +220,11 @@ const backToHome = () => {
   font-size: 14px;
   color: #7c7c7c;
   padding: 10px 0;
+  .able-click {
+    cursor: pointer;
+    ::v-deep .el-breadcrumb__inner:hover {
+      color: #108c58 !important;
+    }
+  }
 }
 </style>
