@@ -156,7 +156,15 @@
 
     <!-- 查看/处理弹窗 -->
     <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
-      <Detail v-if="dlgPreviewVisible" :id="selectID" :status="selectStatus" @cancel="cancelDlg" @success="refreshData" />
+      <Detail
+        v-if="dlgPreviewVisible"
+        :id="selectID"
+        :status="selectStatus"
+        :type="selectType"
+        :appeal-time="selectAppealTime"
+        @cancel="cancelDlg"
+        @success="refreshData"
+      />
     </el-dialog>
   </div>
 </template>
@@ -278,12 +286,14 @@ const dlgTitle = ref('');
 const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'process'>('view');
 const selectStatus = ref<string>(''); // 当前选中行的状态
+const selectAppealTime = ref<string>('');
 
 // 打开对话框：查看/处理
 const handleView = (row: any) => {
   selectID.value = row.id;
   selectType.value = 'view';
   selectStatus.value = row.status || '';
+  selectAppealTime.value = row.appealTime || '';
   dlgTitle.value = '查看举报立案详情';
   dlgPreviewVisible.value = true;
 };
@@ -293,6 +303,7 @@ const handleProcess = (row: any) => {
   selectID.value = row.id;
   selectType.value = 'process';
   selectStatus.value = row.status || '';
+  selectAppealTime.value = row.appealTime || '';
   dlgTitle.value = '处理举报立案';
   dlgPreviewVisible.value = true;
 };
@@ -303,6 +314,7 @@ const cancelDlg = () => {
   selectID.value = '';
   selectType.value = 'view';
   selectStatus.value = '';
+  selectAppealTime.value = '';
 };
 
 // 子组件刷新回调

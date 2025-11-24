@@ -36,7 +36,7 @@ export function getReportCaseFilingList(query: any) {
   });
 }
 
-// 获取举报立案详细信息(不包含 待处理 状态)
+// 获取举报立案详细信息(不包含 待处理、已撤回、已驳回 状态)
 export function getReportCaseFilingDetail(id: number | string) {
   return request({
     url: `/safeguard-server/reportCaseFiling/${id}`,
@@ -44,7 +44,7 @@ export function getReportCaseFilingDetail(id: number | string) {
   });
 }
 
-// 获取举报立案详细信息(只有 待处理 状态)
+// 获取举报立案详细信息(待处理、已撤回、已驳回 状态)
 export function getPendingReportCaseFilingDetail(id: number | string) {
   return request({
     url: `/safeguard-server/reportCaseFiling/pending/${id}`,
