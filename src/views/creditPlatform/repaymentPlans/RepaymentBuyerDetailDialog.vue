@@ -232,7 +232,22 @@ const handleViewProductDetail = () => {
 }
 
 const handleViewContract = () => {
-  ElMessage.info('查看合同详情功能待开发')
+  // 从多个可能的位置获取合同地址
+  const contractUrl = detail.value?.contractUrl || 
+                     detail.value?.loan?.contractUrl || 
+                     props.data?.contractUrl ||
+                     currentDetail.value?.contractUrl;
+  
+  console.log('合同地址:', contractUrl);
+  console.log('详情数据:', detail.value);
+  
+  if (!contractUrl) {
+    ElMessage.warning('暂无合同文件');
+    return;
+  }
+  
+  // 在新窗口中打开合同地址
+  window.open(contractUrl, '_blank');
 }
 
 const handleViewRepaymentPlan = () => {
