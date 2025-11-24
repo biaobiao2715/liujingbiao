@@ -7,6 +7,7 @@
 -->
 <template>
   <div class="supplier-management">
+    <div class="menu-title">信贷产品列表</div>
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <el-form-item label="产品名称" prop="productName">
@@ -18,7 +19,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="贷款周期" prop="loanCycle">
-        <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" filterable clearable>
+        <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" multiple filterable clearable>
           <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -32,7 +33,7 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" align="center" prop="productName" min-width="100" />
-      <el-table-column label="适用对象" align="center" prop="applicableObject">
+      <el-table-column label="适用对象" align="center" prop="applicableObject" :show-overflow-tooltip="true">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.applicableObject" />
         </template>
@@ -44,7 +45,7 @@
       </el-table-column>
       <el-table-column label="额度（万元）" align="center" prop="maxLoanAmount" min-width="160"></el-table-column>
 
-      <el-table-column label="周期" align="center" prop="loanCycle" :show-overflow-tooltip="true">
+      <el-table-column label="周期(月)" align="center" prop="loanCycle" :show-overflow-tooltip="true">
         <template v-slot="scope">
           <dict-tag :options="loan_cycle" :value="scope.row.loanCycle" />
         </template>
@@ -79,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { getCreditProductsVersionNoTenantList } from '@/api/financeFront/LoanProducts/index';
+import { getCreditProductsVersionNoTenantListInfo } from '@/api/financeFront/LoanProducts/index';
 import editDetails from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -91,7 +92,9 @@ const queryParams = ref({
 
   productName: '',
   productType: '',
-  loanCycle: ''
+  isNoTenant: true,
+  // 多选的贷款周期，提交时转换为逗号分隔字符串
+  loanCycle: [] as string[]
 });
 
 // 表格数据
@@ -109,9 +112,13 @@ const selectType = ref<'view' | 'edit' | 'audit'>('view');
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  const params = { ...queryParams.value };
+  const params: any = { ...queryParams.value };
+  // 多选数组转换为后端需要的逗号分隔字符串
+  if (Array.isArray(params.loanCycle)) {
+    params.loanCycle = params.loanCycle.length ? params.loanCycle.join(',') : '';
+  }
 
-  getCreditProductsVersionNoTenantList(params).then((res) => {
+  getCreditProductsVersionNoTenantListInfo(params).then((res) => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
@@ -167,7 +174,38 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .supplier-management {
-  padding: 24px;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+
+  padding: 20px;
+  margin-bottom: 90px;
+}
+/* 页面布局样式 */
+.menu-title {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #333333;
+  background: #fff;
+  border-bottom: 1px solid #d8d8d8;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+.menu-title::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 8px;
+}
+.menu-title::before {
+  background-image: url('@/assets/mall/60.png');
 }
 .pagination {
   margin-top: 24px;

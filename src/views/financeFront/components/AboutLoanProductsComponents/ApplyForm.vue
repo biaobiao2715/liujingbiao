@@ -1,9 +1,14 @@
 <!--
-  标题: EditDetails.vue
-  功能: 企业编辑详情页
-  说明: 用于企业编辑自己的详细信息
-  当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-10-15
+  文件: ApplyForm.vue
+  功能: 信贷产品申请统一表单（支持采购商个人与供应商/企业两种主体）
+  描述:
+    1. 根据 userType 动态展示不同信息块（企业基础信息 + 法人信息 + 申请人 / 或 个人信息）
+    2. 贷款信息区统一：金额/周期/还款方式/收款账户等
+    3. 多处单文件上传（身份证/法人证件/银行卡/授权PDF）均抽象成通用上传器
+    4. 使用字典筛选产品限定的贷款周期与还款方式
+  维护:
+    - 初始创建: 2025-10-15 刘景彪
+    - 注释补充: 2025-11-24 Copilot
 -->
 <template>
   <div class="supplier-edit-details">
@@ -14,7 +19,7 @@
         <div class="detail-form-card">
           <div class="detail-form-card-header">
             <div class="card-title">企业基础信息</div>
-            <div class="card-close">产品详情</div>
+            <div class="card-close" @click="handleShowDetails">产品详情</div>
           </div>
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
@@ -258,7 +263,14 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="出生年月" prop="idCardBirthday">
-                <el-input v-model="formData.idCardBirthday"></el-input>
+                <el-date-picker
+                  v-model="formData.idCardBirthday"
+                  value-format="YYYY-MM-DD"
+                  type="date"
+                  style="width: 100%"
+                  :disabled-date="disableFutureDate"
+                  placeholder="请选择出生年月"
+                ></el-date-picker>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -423,7 +435,7 @@
       <!-- 操作按钮 -->
       <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px">
         <el-col :span="3"><el-button v-throttle type="primary" @click="submitApply">提交申请</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle type="primary" plain>返回</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowDetails" plain>返回</el-button></el-col>
       </el-row>
 
       <div style="height: 160px"></div>
@@ -432,6 +444,7 @@
 </template>
 
 <script setup lang="ts">
+// ======================== 引入与初始化 ========================
 import { ref, getCurrentInstance, toRefs, onMounted, computed, watch, type ComponentInternalInstance } from 'vue';
 import { ElMessage, type UploadFile, type UploadRawFile, type UploadRequestOptions, type FormInstance, type FormRules } from 'element-plus';
 import {
@@ -444,11 +457,16 @@ import {
   ossUploadImage
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
+import { eventBus } from '@/utils/eventBus';
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+// 统一加载需要的字典（审核状态/资质等级/信用等级/证件类型/贷款周期/还款方式/银行代码）
 const { review_status, plat_qualification_grade, plat_credit_rating, card_type, loan_cycle, repayment_method, bank_code } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'card_type', 'loan_cycle', 'repayment_method', 'bank_code')
 );
 
+// ======================== 组件属性 ========================
+// productId: 信贷产品ID  id: 编辑时贷款申请ID（回显）
 const props = defineProps({
   productId: {
     type: String || Number,
@@ -460,10 +478,12 @@ const props = defineProps({
   }
 });
 const userStore = useUserStore();
-const productDetails = ref<any>({}); // 产品详情信息
-const supplierDetails = ref<any>({}); // 供应商详情信息
+// 产品详情信息（包含限制条件：最大额度/可选周期/可选还款方式等）
+const productDetails = ref<any>({});
+// 企业/供应商详情信息（仅在 userType 为 2 / 3 时使用）
+const supplierDetails = ref<any>({});
 const formRef = ref<FormInstance>();
-// 表单数据
+// ======================== 表单数据（核心申请字段 + 上传对应的 ossId） ========================
 const formData = ref<any>({
   // 法人信息
   legalPersonName: '',
@@ -494,7 +514,28 @@ const formData = ref<any>({
 const dialogImageUrl = ref('');
 const dialogVisible = ref(false);
 
-// 表单校验规则：必填 + 业务自定义校验
+// 出生年月不可选择未来时间
+const disableFutureDate = (time: Date) => {
+  return time.getTime() > Date.now();
+};
+
+// ======================== 表单校验规则 ========================
+// 覆盖基础必填/手机号格式/身份证格式/贷款金额合法性/上传完成性等场景
+function parseIdCardBirthday(id: string): string | null {
+  if (!id) return null;
+  const clean = id.trim();
+  if (clean.length === 18) {
+    const part = clean.slice(6, 14); // YYYYMMDD
+    if (/^\d{8}$/.test(part)) return part;
+  } else if (/^\d{15}$/.test(clean)) {
+    const part = clean.slice(6, 12); // YYMMDD
+    if (/^\d{6}$/.test(part)) return '19' + part; // 15位默认 19xx 年
+  }
+  return null;
+}
+function normalizeBirthdayInput(v: string): string {
+  return (v || '').trim().replace(/-/g, '').replace(/\//g, '');
+}
 const rules: FormRules = {
   legalPersonName: [{ required: true, message: '请输入法人姓名', trigger: 'blur' }],
   legalPersonContactPhone: [
@@ -567,8 +608,57 @@ const rules: FormRules = {
   bankAccountNumber: [{ required: true, message: '请输入银行卡号', trigger: 'blur' }],
   legalPersonIdCardType: [{ required: true, message: '请选择证件类型', trigger: 'change' }],
   contactAddress: [{ required: true, message: '请输入联系地址', trigger: 'blur' }],
-  idCardNumber: [{ required: true, message: '请输入证件号码', trigger: 'blur' }],
-  idCardBirthday: [{ required: true, message: '请输入出生年月', trigger: 'blur' }],
+  idCardNumber: [
+    { required: true, message: '请输入证件号码', trigger: 'blur' },
+    {
+      validator: (_: any, value: any, cb: any) => {
+        const val = String(value || '').trim();
+        if (!val) return cb(new Error('请输入证件号码'));
+        const reg = /^\d{6}(18|19|20)?\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[0-9Xx]$/;
+        if (!reg.test(val)) return cb(new Error('身份证号码格式不正确'));
+        const birthdayFromId = parseIdCardBirthday(val);
+        if (formData.value.idCardBirthday) {
+          const inputBirthday = normalizeBirthdayInput(formData.value.idCardBirthday);
+          if (birthdayFromId && inputBirthday && !birthdayFromId.startsWith(inputBirthday)) {
+            return cb(new Error('证件号码中的出生年月与填写的不一致'));
+          }
+        }
+        cb();
+      },
+      trigger: 'blur'
+    }
+  ],
+  idCardBirthday: [
+    { required: true, message: '请输入出生年月', trigger: 'blur' },
+    {
+      validator: (_: any, value: any, cb: any) => {
+        const v = String(value || '').trim();
+        if (!v) return cb(new Error('请输入出生年月'));
+        // 不允许未来日期
+        const dateObj = new Date(v.replace(/-/g, '/') + ' 00:00:00');
+        const today = new Date();
+        // 将今日置零点方便比较
+        today.setHours(0, 0, 0, 0);
+        if (isNaN(dateObj.getTime())) {
+          return cb(new Error('出生年月格式不正确'));
+        }
+        if (dateObj.getTime() > today.getTime()) {
+          return cb(new Error('出生年月不能晚于今天'));
+        }
+        const idVal = String(formData.value.idCardNumber || '').trim();
+        if (!idVal) return cb();
+        const birthdayFromId = parseIdCardBirthday(idVal);
+        if (birthdayFromId) {
+          const inputBirthday = normalizeBirthdayInput(v);
+          if (inputBirthday && !birthdayFromId.startsWith(inputBirthday)) {
+            return cb(new Error('出生年月与证件号码信息不匹配'));
+          }
+        }
+        cb();
+      },
+      trigger: 'change'
+    }
+  ],
   // 上传图片校验（均需两张）
   // 新校验：根据单张正反面 ossId 字段
   idCardPhotoFront2: [{ required: true, message: '请上传法人证件正面', trigger: 'change' }],
@@ -580,13 +670,16 @@ const rules: FormRules = {
   authorizationFile: [{ required: true, message: '请上传授权文件PDF', trigger: 'change' }]
 };
 
+// ======================== 构建提交载荷 ========================
 function buildPayload() {
+  // 说明: 根据产品详情与当前用户类型整合后端所需字段；未在表单里直接暴露的字段（productVersion / lenderType 等）一起塞入
   const base: any = {
     productId: productDetails.value.productId || '',
     productVersion: productDetails.value.productVersion || '',
     lenderType: userStore.userType,
     lenderId: userStore.userId,
 
+    applyStatus: '1',
     idCardType: '0',
     idCardNumber: formData.value.legalPersonIdCardNumber || '',
     collectionAccountName: formData.value.realName || '',
@@ -596,7 +689,12 @@ function buildPayload() {
   return base;
 }
 
+// 提交申请
 const submitApply = async () => {
+  // ======================== 提交申请主流程 ========================
+  // 1. 先整体校验
+  // 2. 根据主体类型选择不同接口（个人 / 企业）
+  // 3. 成功后提示
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) {
     ElMessage.error('表单校验未通过，请完善必填项');
@@ -608,10 +706,20 @@ const submitApply = async () => {
     const res = await apiFn(payload);
     if (res.code === 200) {
       ElMessage.success('提交成功');
+      setTimeout(() => {
+        eventBus.emit('showComponentByCommand', {
+          type: 'LoanProductsComponentApplyForm',
+          productId: props.id
+        });
+      }, 3000);
     }
   } catch (e: any) {
   } finally {
   }
+};
+// 查看产品详情
+const handleShowDetails = () => {
+  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentDetails', id: props.productId });
 };
 
 interface SingleUploader {
@@ -622,6 +730,9 @@ interface SingleUploader {
   handleExceed: () => void;
 }
 function createSingleUploader(targetField: keyof typeof formData.value, exceedMsg: string): SingleUploader {
+  // ======================== 图片单文件上传器工厂 ========================
+  // targetField: 绑定 formData 中对应的 ossId 字段
+  // exceedMsg: 已存在文件时的提示语
   const files = ref<UploadFile[]>([]);
   const beforeUpload = (raw: UploadRawFile) => {
     if (!raw.type.startsWith('image/')) {
@@ -665,6 +776,8 @@ function createSingleUploader(targetField: keyof typeof formData.value, exceedMs
 
 // PDF 上传（授权文件）
 function createPdfUploader(targetField: keyof typeof formData.value, exceedMsg: string) {
+  // ======================== PDF 授权文件上传器工厂 ========================
+  // 校验 MIME 与后缀，复用与图片类似的流程
   const files = ref<UploadFile[]>([]);
   const beforeUpload = (raw: UploadRawFile) => {
     if (raw.type !== 'application/pdf' && !/\.pdf$/i.test(raw.name)) {
@@ -717,6 +830,7 @@ const uploaderBankBack = createSingleUploader('bankCardPhotoBack', '银行卡反
 
 // 统一预览方法
 const handlePictureCardPreview = (file: UploadFile) => {
+  // 统一图片预览弹窗控制
   dialogImageUrl.value = file.url || '';
   dialogVisible.value = true;
 };
@@ -742,6 +856,7 @@ watch(
 // ========== 字典筛选（根据产品详情限制可选项） ==========
 // 贷款周期可选项（由产品详情的 loanCycle 决定）
 const loanCycleOptions = computed(() => {
+  // 根据产品配置的 loanCycle 字符串过滤可选周期字典项
   const cycleStr = productDetails.value?.loanCycle ?? '';
   if (!cycleStr) return [];
   const allowed = cycleStr.split(',');
@@ -749,6 +864,7 @@ const loanCycleOptions = computed(() => {
 });
 // 还款方式可选项（由产品详情的 repaymentMethod 决定）
 const repaymentMethodOptions = computed(() => {
+  // 根据产品配置的 repaymentMethod 字符串过滤可选还款方式字典项
   const repayStr = productDetails.value?.repaymentMethod ?? '';
   if (!repayStr) return [];
   const allowed = repayStr.split(',');
@@ -756,6 +872,10 @@ const repaymentMethodOptions = computed(() => {
 });
 
 onMounted(async () => {
+  // ======================== 生命周期: 初始化加载 ========================
+  // 1. 拉取产品详情
+  // 2. 根据 userType 拉取采购商或企业基本信息并填充表单
+  // 3. 若存在 props.id 则回显已有申请信息
   getCreditProductsVersionDetailNoTenant(props.productId).then((res) => {
     if (res.code === 200) {
       productDetails.value = res.data || {};
@@ -763,16 +883,15 @@ onMounted(async () => {
   });
   // 采购商
   if (userStore.userType == '1') {
-    const res = await getBasePurchaser(userStore.userId);
+    const res = await getBasePurchaser();
     if (res.code === 200) {
-      formData.value = {
-        ...formData.value
-      };
+      formData.value.realName = res.data.name ?? '';
+      formData.value.contactPhone = res.data.phoneNumber ?? '';
     }
   }
   // 供应商/企业
   if (userStore.userType == '2' || userStore.userType == '3') {
-    const res = await getBaseEnterpriseInfo(userStore.userId);
+    const res = await getBaseEnterpriseInfo();
     if (res.code === 200) {
       supplierDetails.value = res.data || {};
       formData.value = {

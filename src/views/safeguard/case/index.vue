@@ -12,7 +12,7 @@
       <!-- 案件类型 -->
       <el-form-item label="案件类型" prop="caseTypeId">
         <el-select v-model="queryParams.caseTypeId" placeholder="请选择" filterable clearable>
-          <el-option v-for="item in caseTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
 
@@ -73,7 +73,7 @@
       <!-- 案件类型名称 -->
       <el-table-column label="案件类型名称" align="center" prop="caseTypeId" min-width="150">
         <template #default="scope">
-          <span>{{ getCaseTypeName(scope.row.caseTypeId) }}</span>
+          <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
 
@@ -164,6 +164,9 @@ import {
   enableAndDisabledCaseType
 } from '@/api/safeguard/case';
 import CaseTypeEdit from './commponents/caseTypeEdit.vue';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { case_type } = toRefs<any>(proxy?.useDict('case_type'));
 
 // 搜索表单引用
 const queryFormRef = ref();

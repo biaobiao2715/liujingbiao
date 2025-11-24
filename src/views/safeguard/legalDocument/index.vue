@@ -264,6 +264,7 @@ const editDialogData = ref({
   legalDocumentName: '',
   legalDocumentCode: '',
   status: '',
+  remark: '',
   legalFiles: [] as any[],
   historyList: [] as any[]
 });
@@ -433,6 +434,7 @@ const handleEdit = async (row: any) => {
     legalDocumentName: '',
     legalDocumentCode: '',
     status: '',
+    remark: '',
     legalFiles: [],
     historyList: []
   };
@@ -448,6 +450,7 @@ const handleEdit = async (row: any) => {
       legalDocumentName: data.legalDocumentName || '',
       legalDocumentCode: data.legalDocumentCode || '',
       status: data.status || '0',
+      remark: data.remark || '',
       legalFiles: latestFile ? [mapLatestFile(latestFile, data.currentVersion)] : [],
       historyList: (data.legalFiles || []).map(mapHistoryFile)
     };
@@ -677,12 +680,12 @@ const handleEditSubmit = async (data: any) => {
     legalDocumentName: data.legalDocumentName,
     legalDocumentCode: data.legalDocumentCode,
     status: data.status,
+    remark: data.remark || '',
     legalFiles: hasNewUpload
       ? data.legalFiles.map((item: any) => ({
           ossId: item.ossId,
           originalName: item.originalName,
-          fileSize: item.fileSize || 0,
-          remark: item.remark
+          fileSize: item.fileSize || 0
         }))
       : [],
     historyList: data.historyList || [],

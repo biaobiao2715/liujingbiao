@@ -26,10 +26,10 @@
           v-for="(item, index) in repaymentList" 
           :key="index"
           class="repayment-card"
-          :class="getCardClass(item.status)"
+          :class="getCardClass(item.planStatus)"
         >
           <div class="card-header">
-            <span class="period-label">期数：{{ item.period }}</span>
+            <span class="period-label">期数：{{ item.loanPeriod }}</span>
           </div>
           
           <div class="card-body">
@@ -40,22 +40,31 @@
             
             <div class="info-row">
               <span class="label">还款金额：</span>
-              <span class="value amount">{{ item.amount }} 元</span>
+              <span class="value amount">{{ item.principalAmount }} 元</span>
             </div>
             
             <div class="info-row">
               <span class="label">还款卡号：</span>
-              <el-input 
-                v-if="canEditCardNumber(item)"
-                v-model="item.cardNumber" 
-                placeholder="请输入收款卡号" 
-                size="small"
-                class="card-number-input"
-                maxlength="19"
-                show-word-limit
-                @input="validateCardNumber(item)"
-              />
-              <span v-else class="value">{{ item.cardNumber || '--' }}</span>
+              <div v-if="canEditCardNumber(item)" class="card-number-wrapper">
+                <el-input 
+                  v-model="item.repaymentCardNo" 
+                  placeholder="请输入收款卡号" 
+                  size="small"
+                  class="card-number-input"
+                  maxlength="19"
+                  show-word-limit
+                  @input="validateCardNumber(item)"
+                />
+                <el-button 
+                  type="primary" 
+                  size="small"
+                  @click="handleReadCardNumber(item)"
+                  class="read-card-btn"
+                >
+                  读取收款卡号
+                </el-button>
+              </div>
+              <span v-else class="value">{{ item.repaymentCardNo || '--' }}</span>
             </div>
             <div v-if="canEditCardNumber(item) && item.cardNumberError" class="error-tip">
               {{ item.cardNumberError }}
@@ -64,19 +73,21 @@
             <div class="info-row">
               <span class="label">还款状态：</span>
               <el-select 
-                v-model="item.status" 
+                v-if="canEditStatus(item)"
+                v-model="item.planStatus" 
                 placeholder="请选择" 
                 size="small"
                 class="status-select"
               >
-                <el-option label="已还款" value="已还款" />
-                <el-option label="未还款" value="未还款" />
-                <el-option label="待还款" value="待还款" />
+                <el-option label="待还款" :value="0" />
+                <el-option label="已还款" :value="1" />
+                <el-option label="已逾期" :value="2" />
               </el-select>
+              <span v-else class="value" :class="getStatusClass(item.planStatus)">{{ getStatusText(item.planStatus) }}</span>
             </div>
           </div>
           
-          <div v-if="canEditCardNumber(item) && item.cardNumber && !item.cardNumberError" class="card-footer">
+          <div v-if="canEditCardNumber(item) && item.repaymentCardNo && !item.cardNumberError" class="card-footer">
             <el-button type="primary" @click="handleConfirmRepayment(item)">
               确认收款卡号
             </el-button>
@@ -88,16 +99,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
+import { getRepaymentPlan } from '@/api/creditPlatform/loanApplications';
 
 interface RepaymentItem {
-  period: number;
-  repaymentDate: string;
-  amount: number;
-  cardNumber?: string;
-  cardNumberError?: string;
-  status: string;
+  loanPeriod: number;        // 期数
+  repaymentDate: string;     // 还款日期
+  principalAmount: number;   // 还款金额
+  repaymentCardNo?: string;  // 还款卡号
+  cardNumberError?: string;  // 卡号错误信息
+  planStatus: number;        // 还款状态：0=待还款, 1=已还款, 2=已逾期
+  originalStatus?: number;   // 原始状态（用于判断是否可编辑）
 }
 
 const props = defineProps<{
@@ -111,13 +124,20 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 
-// 获取当前年月（格式：2025-1）
+/**
+ * 获取当前年月
+ * @returns 当前年月（格式：2025-1）
+ */
 const getCurrentYearMonth = () => {
   const now = new Date();
   return `${now.getFullYear()}-${now.getMonth() + 1}`;
 };
 
-// 判断是否是当月或历史月份
+/**
+ * 判断是否是当月或历史月份
+ * @param dateStr - 日期字符串（格式：YYYY-MM-DD）
+ * @returns 是否是当月或历史月份
+ */
 const isCurrentOrPastMonth = (dateStr: string) => {
   const [year, month] = dateStr.split('-').map(Number);
   const now = new Date();
@@ -129,57 +149,130 @@ const isCurrentOrPastMonth = (dateStr: string) => {
   return false;
 };
 
-// 模拟还款数据
-const mockRepaymentList: RepaymentItem[] = [
-  {
-    period: 1,
-    repaymentDate: '2025-1-1',
-    amount: 9000,
-    cardNumber: '555555555555',
-    status: '已还款'
-  },
-  {
-    period: 2,
-    repaymentDate: '2025-2-1',
-    amount: 9000,
-    cardNumber: '',
-    status: '未还款' // 当月或历史未还款
-  },
-  {
-    period: 3,
-    repaymentDate: '2025-3-1',
-    amount: 9000,
-    cardNumber: '',
-    status: '待还款' // 未到还款月
-  },
-  {
-    period: 4,
-    repaymentDate: '2025-4-1',
-    amount: 9000,
-    cardNumber: '',
-    status: '待还款' // 未到还款月
-  }
-];
+/**
+ * 判断还款日期是否已到
+ * @param dateStr - 还款日期（格式：YYYY-MM-DD HH:mm:ss）
+ * @returns 还款日期是否已到或已过
+ */
+const isRepaymentDateReached = (dateStr: string) => {
+  const repaymentDate = new Date(dateStr);
+  const now = new Date();
+  return repaymentDate <= now;
+};
 
-const repaymentList = ref<RepaymentItem[]>(mockRepaymentList);
+const repaymentList = ref<RepaymentItem[]>([]);
+
+// 获取还款计划数据
+const fetchRepaymentPlan = async () => {
+  if (!props.data?.id) {
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const response: any = await getRepaymentPlan(props.data.id);
+    // 保存原始状态，并确保 planStatus 是数字类型
+    repaymentList.value = (response || []).map((item: any) => ({
+      ...item,
+      planStatus: Number(item.planStatus),
+      originalStatus: Number(item.planStatus)
+    }));
+  } catch (error) {
+    console.error('获取还款计划失败:', error);
+    ElMessage.error('获取还款计划失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 监听弹窗显示状态，显示时获取数据
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal) {
+      fetchRepaymentPlan();
+    }
+  },
+  { immediate: true }
+);
+
+/**
+ * 获取还款状态文本
+ * @param status - 状态值：0=待还款, 1=已还款, 2=已逾期
+ * @returns 状态文本
+ */
+const getStatusText = (status: number | undefined) => {
+  const statusMap: Record<number, string> = {
+    0: '待还款',
+    1: '已还款',
+    2: '已逾期'
+  };
+  return status !== undefined ? statusMap[status] || '--' : '--';
+};
+
+/**
+ * 获取状态样式类
+ * @param status - 状态值
+ * @returns 样式类名
+ */
+const getStatusClass = (status: number | undefined) => {
+  const classMap: Record<number, string> = {
+    0: 'status-pending',  // 待还款
+    1: 'status-paid',     // 已还款
+    2: 'status-overdue'   // 已逾期
+  };
+  return status !== undefined ? classMap[status] || '' : '';
+};
 
 // 获取卡片样式类
-const getCardClass = (status: string) => {
+const getCardClass = (status: number) => {
   return {
-    'card-paid': status === '已还款',
-    'card-pending': status === '待还款',
-    'card-unpaid': status === '未还款'
+    'card-paid': status === 1, // 已还款
+    'card-pending': status === 0, // 待还款
+    'card-unpaid': status === 2 // 已逾期
   };
 };
 
-// 判断是否可以编辑还款卡号
-// 规则：当月有应还款的和历史有未还款的，可以进行编辑填写
+/**
+ * 判断是否可以编辑还款卡号
+ * 规则：
+ * 1. 已还款(status=1) - 不可编辑
+ * 2. 已逾期(status=2) - 可以编辑
+ * 3. 待还款(status=0) - 只有还款日期已到的可以编辑
+ * @param item - 还款项目
+ * @returns 是否可以编辑
+ */
 const canEditCardNumber = (item: RepaymentItem) => {
-  // 如果是当月或历史月份，且状态为未还款，可以编辑
-  if (isCurrentOrPastMonth(item.repaymentDate) && item.status === '未还款') {
+  // 使用原始状态进行判断，而不是当前修改后的状态
+  const status = Number(item.originalStatus ?? item.planStatus);
+  
+  // 已还款，不可编辑
+  if (status === 1) {
+    return false;
+  }
+  
+  // 已逾期，可以编辑
+  if (status === 2) {
     return true;
   }
+  
+  // 待还款，只有还款日期已到的可以编辑
+  if (status === 0) {
+    return isRepaymentDateReached(item.repaymentDate);
+  }
+  
   return false;
+};
+
+/**
+ * 判断是否可以编辑还款状态
+ * 规则与还款卡号相同，但使用原始状态判断
+ * 这样在用户修改状态时，下拉框不会立即消失
+ * @param item - 还款项目
+ * @returns 是否可以编辑
+ */
+const canEditStatus = (item: RepaymentItem) => {
+  return canEditCardNumber(item);
 };
 
 // Luhn算法校验银行卡号
@@ -211,7 +304,7 @@ const luhnCheck = (cardNumber: string): boolean => {
 
 // 校验银行卡号
 const validateCardNumber = (item: RepaymentItem) => {
-  const cardNumber = (item.cardNumber || '').replace(/\s/g, ''); // 去除空格
+  const cardNumber = (item.repaymentCardNo || '').replace(/\s/g, ''); // 去除空格
   
   // 清空之前的错误
   item.cardNumberError = '';
@@ -239,9 +332,23 @@ const validateCardNumber = (item: RepaymentItem) => {
   }
 };
 
+// 读取收款卡号
+const handleReadCardNumber = (item: RepaymentItem) => {
+  // 从贷款申请数据中读取收款卡号
+  const savedCardNumber = props.data?.bankAccountNumber || props.data?.bankCardNo || props.data?.collectionAccountNumber;
+  
+  if (savedCardNumber) {
+    item.repaymentCardNo = savedCardNumber;
+    validateCardNumber(item);
+    ElMessage.success('已读取收款卡号');
+  } else {
+    ElMessage.warning('未找到收款卡号信息');
+  }
+};
+
 // 确认收款卡号
 const handleConfirmRepayment = (item: RepaymentItem) => {
-  if (!item.cardNumber) {
+  if (!item.repaymentCardNo) {
     ElMessage.warning('请先填写收款卡号');
     return;
   }
@@ -258,7 +365,7 @@ const handleConfirmRepayment = (item: RepaymentItem) => {
 const handleSubmit = () => {
   // 验证是否有未填写的必填项
   const hasError = repaymentList.value.some(item => {
-    if (canEditCardNumber(item) && !item.cardNumber) {
+    if (canEditCardNumber(item) && !item.repaymentCardNo) {
       return true;
     }
     if (item.cardNumberError) {
@@ -359,15 +466,42 @@ const handleClose = () => {
         color: #f56c6c;
         font-weight: 600;
       }
+      
+      // 还款状态样式
+      &.status-pending {
+        color: #e6a23c;
+        font-weight: 600;
+      }
+      
+      &.status-paid {
+        color: #67c23a;
+        font-weight: 600;
+      }
+      
+      &.status-overdue {
+        color: #f56c6c;
+        font-weight: 600;
+      }
     }
     
     .status-select {
       width: 110px;
     }
     
+    .card-number-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    
     .card-number-input {
       flex: 1;
       max-width: 180px;
+    }
+    
+    .read-card-btn {
+      white-space: nowrap;
     }
   }
 }

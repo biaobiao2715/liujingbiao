@@ -61,7 +61,9 @@ const handleLogout = () => {
 
 <style scoped lang="scss">
 .header {
+  width: 1500px;
   height: 35px;
+  margin: 0 auto;
 }
 .logo {
   flex-grow: 1;

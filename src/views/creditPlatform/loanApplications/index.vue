@@ -215,19 +215,21 @@ const getApplicableLabel = (value: string | number | undefined) => {
 
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
   detailData.value = row;
-  const applicableValue = row.lenderTyp ?? row.lenderType ?? row.applicableObject;
-  const label = getApplicableLabel(applicableValue).toLowerCase();
-  const rawValue = String(applicableValue || '').toLowerCase();
-  const isPersonal = label.includes('采购') || rawValue.includes('purchaser');
-  const status = row.applyStatus;
-  const isPending = status === '0' || status === '1';
   detailDialogMode.value = mode;
+  
+  // 根据 lenderType 判断：0=采购商(个人)，1=企业，2=供应商(企业)
+  const lenderType = row.lenderType ?? row.lenderTyp;
+  const isPersonal = String(lenderType) === '0';
+  
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
+  
   if (isPersonal) {
+    // 采购商 - 个人
     buyerDetailDialogVisible.value = true;
   } else {
+    // 企业或供应商 - 企业
     detailDialogVisible.value = true;
   }
 };

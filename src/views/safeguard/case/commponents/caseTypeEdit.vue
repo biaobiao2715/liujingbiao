@@ -31,9 +31,8 @@
           <span>案件类型</span>
         </template>
         <el-select v-model="formData.caseTypeId" placeholder="请选择" :disabled="isViewMode">
-          <el-option v-for="item in caseTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
-        <p v-if="!formData.caseTypeId && !isViewMode" class="tip-text">请选择案件类型</p>
       </el-form-item>
 
       <!-- 2. 案件编号 -->
@@ -51,7 +50,6 @@
         </template>
         <div class="key-attributes-section">
           <el-button v-if="!isViewMode" type="primary" @click="handleAddKeyAttribute">添加</el-button>
-          <p v-if="hasEmptyKeyAttribute && !isViewMode" class="tip-text">请填写所有关键属性名称</p>
         </div>
       </el-form-item>
       <el-table :data="formData.keyAttributes" border class="key-attributes-table" size="small">
@@ -111,7 +109,7 @@
           </template>
         </el-table-column>
         <el-table-column label="版本号" width="120" align="center">
-          <template #default>1.0</template>
+          <template #default>{{ currentVersion }}</template>
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row, $index }">
@@ -169,7 +167,7 @@
           </el-select>
         </div>
       </el-form-item>
-      <el-table :data="formData.legalDocumentFiles" border class="file-table" size="small" style="margin-top: 6px">
+      <el-table :data="formData.legalDocumentFiles" border class="file-table" size="small" style="margin-top: 20px">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="fileTypeText" label="附件类型" width="120" align="center" />
         <el-table-column prop="originalName" label="附件名称" min-width="200" />
@@ -269,6 +267,9 @@ import { UploadFilled, Document } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/supplier/productManagement/product';
 import { fetchCreateLegalDocumentList, getLegalDocumentDetail } from '@/api/safeguard/legalDocument';
 import { getCaseTypeDetail } from '@/api/safeguard/case';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { case_type } = toRefs<any>(proxy?.useDict('case_type'));
 
 interface KeyAttribute {
   name: string;
@@ -499,6 +500,7 @@ const getNextVersion = (version?: string) => {
   if (Number.isNaN(major)) major = 1;
   if (Number.isNaN(minor)) minor = 0;
   minor = Math.max(0, Math.floor(minor));
+  // 版本号变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
   if (minor >= 9) {
     major += 1;
     minor = 0;
@@ -558,12 +560,14 @@ const handleLegalBasisUploadChange = async (file: any) => {
     const response = await ossUploadImage({ file: raw });
     const data = response?.data || {};
     let nextVersion = currentVersion.value;
+    // 版本号只在第一次上传时变化，后续上传使用相同的版本号
+    // 变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
     if (!isUpload.value) {
       nextVersion = getNextVersion(currentVersion.value);
       currentVersion.value = nextVersion;
-      isUpload.value = true;
+      isUpload.value = true; // 标记已上传，后续上传不再变化版本号
     } else {
-      nextVersion = currentVersion.value;
+      nextVersion = currentVersion.value; // 使用已变化的版本号
     }
     const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
     const uploadTimeText = formatDateTime(uploadTimestamp);
@@ -776,7 +780,7 @@ const handleCaseScoreInput = (value: string | number) => {
 };
 
 const applyData = (val?: typeof props.data) => {
-  formData.caseTypeId = val?.caseTypeId || '';
+  formData.caseTypeId = val?.caseTypeId ? String(val.caseTypeId) : '';
   formData.caseTypeCode = val?.caseTypeCode || '';
   formData.keyAttributes = val?.keyAttributes?.map((item) => ({ ...item })) || [];
   formData.legalBasisFiles = val?.legalBasisFiles?.map((item) => ({ ...item })) || [];
@@ -900,7 +904,7 @@ const handleClose = () => {
   }
 
   :global(.key-attributes-table) {
-    margin-top: 4px;
+    margin-top: 20px;
     margin-bottom: 20px !important;
   }
 
