@@ -41,6 +41,7 @@
                   class="card-number-input"
                   maxlength="19"
                   show-word-limit
+                  @input="validateCardNumber(item)"
                 />
                 <!-- @input="validateCardNumber(item)" -->
                 <el-button type="primary" size="small" @click="handleReadCardNumber(item)" class="read-card-btn"> 读取收款卡号 </el-button>
@@ -62,9 +63,6 @@
             </div>
           </div>
 
-          <div v-if="canEditCardNumber(item) && item.repaymentCardNo && !item.cardNumberError" class="card-footer">
-            <el-button type="primary" @click="handleConfirmRepayment(item)"> 确认收款卡号 </el-button>
-          </div>
         </div>
       </div>
     </div>
@@ -84,6 +82,7 @@ interface RepaymentItem {
   cardNumberError?: string; // 卡号错误信息
   planStatus: number; // 还款状态：0=待还款, 1=已还款, 2=已逾期
   originalStatus?: number; // 原始状态（用于判断是否可编辑）
+  [key: string]: any; // 其余字段保持与后端一致
 }
 
 const props = defineProps<{
@@ -147,8 +146,10 @@ const fetchRepaymentPlan = async () => {
     // 保存原始状态，并确保 planStatus 是数字类型
     repaymentList.value = (response || []).map((item: any) => ({
       ...item,
+      repaymentCardNo: item.repaymentCardNo ?? item.collectionAccountNumber ?? '',
       planStatus: Number(item.planStatus),
-      originalStatus: Number(item.planStatus)
+      originalStatus: Number(item.planStatus),
+      cardNumberError: ''
     }));
   } catch (error) {
     console.error('获取还款计划失败:', error);
@@ -276,34 +277,30 @@ const luhnCheck = (cardNumber: string): boolean => {
 };
 
 // 校验银行卡号
-// const validateCardNumber = (item: RepaymentItem) => {
-//   const cardNumber = (item.repaymentCardNo || '').replace(/\s/g, ''); // 去除空格
+const validateCardNumber = (item: RepaymentItem) => {
+  const cardNumber = (item.repaymentCardNo || '').replace(/\s/g, '');
 
-//   // 清空之前的错误
-//   item.cardNumberError = '';
+  item.cardNumberError = '';
 
-//   if (!cardNumber) {
-//     return;
-//   }
+  if (!cardNumber) {
+    return;
+  }
 
-//   // 只允许数字
-//   if (!/^\d+$/.test(cardNumber)) {
-//     item.cardNumberError = '请输入正确的卡号';
-//     return;
-//   }
+  if (!/^\d+$/.test(cardNumber)) {
+    item.cardNumberError = '请输入正确的卡号';
+    return;
+  }
 
-//   // 长度校验（银行卡号一般为16-19位）
-//   if (cardNumber.length < 16 || cardNumber.length > 19) {
-//     item.cardNumberError = '请输入正确的卡号';
-//     return;
-//   }
+  if (cardNumber.length < 16 || cardNumber.length > 19) {
+    item.cardNumberError = '请输入正确的卡号';
+    return;
+  }
 
-//   // Luhn算法校验
-//   if (!luhnCheck(cardNumber)) {
-//     item.cardNumberError = '请输入正确的卡号';
-//     return;
-//   }
-// };
+  if (!luhnCheck(cardNumber)) {
+    item.cardNumberError = '请输入正确的卡号';
+    return;
+  }
+};
 
 // 读取收款卡号
 const handleReadCardNumber = (item: RepaymentItem) => {
@@ -312,26 +309,11 @@ const handleReadCardNumber = (item: RepaymentItem) => {
 
   if (savedCardNumber) {
     item.repaymentCardNo = savedCardNumber;
-    // validateCardNumber(item);
+    validateCardNumber(item);
     ElMessage.success('已读取收款卡号');
   } else {
     ElMessage.warning('未找到收款卡号信息');
   }
-};
-
-// 确认收款卡号
-const handleConfirmRepayment = (item: RepaymentItem) => {
-  if (!item.repaymentCardNo) {
-    ElMessage.warning('请先填写收款卡号');
-    return;
-  }
-
-  if (item.cardNumberError) {
-    ElMessage.warning('请输入正确的收款卡号');
-    return;
-  }
-
-  ElMessage.success('收款卡号已确认');
 };
 
 /**
@@ -339,19 +321,34 @@ const handleConfirmRepayment = (item: RepaymentItem) => {
  * 调用 updateRepaymentPlan 接口提交还款卡号和还款状态
  */
 const handleSubmit = async () => {
-  // 验证是否有未填写的必填项
-  const hasError = repaymentList.value.some((item) => {
-    if (canEditCardNumber(item) && !item.repaymentCardNo) {
-      return true;
+  // 首先对所有可编辑的银行卡号进行校验
+  let hasValidationError = false;
+  const errorMessages: string[] = [];
+
+  repaymentList.value.forEach((item, index) => {
+    if (canEditCardNumber(item)) {
+      // 检查银行卡号是否为空
+      if (!item.repaymentCardNo || !item.repaymentCardNo.trim()) {
+        hasValidationError = true;
+        errorMessages.push(`第${item.loanPeriod}期还款卡号不能为空`);
+        return;
+      }
+
+      // 重新校验银行卡号格式
+      validateCardNumber(item);
+      
+      // 检查是否有校验错误
+      if (item.cardNumberError) {
+        hasValidationError = true;
+        errorMessages.push(`第${item.loanPeriod}期${item.cardNumberError}`);
+      }
     }
-    if (item.cardNumberError) {
-      return true;
-    }
-    return false;
   });
 
-  if (hasError) {
-    ElMessage.warning('请完善还款信息后再提交');
+  // 如果有校验错误，显示具体错误信息
+  if (hasValidationError) {
+    const errorMsg = errorMessages.length > 0 ? errorMessages.join('；') : '请完善还款信息后再提交';
+    ElMessage.warning(errorMsg);
     return;
   }
 
@@ -363,13 +360,14 @@ const handleSubmit = async () => {
   loading.value = true;
   try {
     // 准备提交数据：提交完整的还款计划数组（包含所有字段）
-    const submitData = repaymentList.value.map((item) => ({
-      loanPeriod: item.loanPeriod,
-      repaymentDate: item.repaymentDate,
-      principalAmount: item.principalAmount,
-      repaymentCardNo: item.repaymentCardNo || '',
-      planStatus: Number(item.planStatus)
-    }));
+    const submitData = repaymentList.value.map((item) => {
+      const { cardNumberError, originalStatus, ...rest } = item;
+      return {
+        ...rest,
+        repaymentCardNo: rest.repaymentCardNo || '',
+        planStatus: Number(rest.planStatus)
+      };
+    });
 
     // 调用更新接口（与RepaymentPlanDialog相同，但不传递ossId）
     const response = await updateRepaymentPlan(props.data.id, undefined, submitData);
