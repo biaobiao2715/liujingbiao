@@ -565,7 +565,7 @@ import { fetchCaseTypeOptions, getCaseTypeDetail } from '@/api/safeguard/case';
 
 import { ElMessage } from 'element-plus';
 import FormHeader from '@/components/FormHeader/index.vue';
-import supplierDetail from './supplierDetail.vue';
+import supplierDetail from '@/views/rightsPlatform/achiveManagement/credit/violationRecords/supplierDetail.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { case_type, plat_credit_rating } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating'));
