@@ -174,7 +174,7 @@ const fetchContentDetail = async () => {
 
     loading.value = true;
     try {
-        const response: any = await getcourseCultivatequeryDetail({ id: props.id as number, isView: true });
+        const response: any = await getcourseCultivatequeryDetail({ id: props.id as number });
 
         if (response && response.code === 200) {
             const data = response.data;
