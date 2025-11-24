@@ -105,6 +105,26 @@ const currentDetail = computed(() => detailRow.value || {})
 const productDetailVisible = ref(false)
 const repaymentPlanVisible = ref(false)
 
+const extractBirthdayFromId = (id: string | undefined | null) => {
+  const value = (id || '').trim()
+  if (!value) return ''
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14)
+    const year = birth.substring(0, 4)
+    const month = birth.substring(4, 6)
+    const day = birth.substring(6, 8)
+    return `${year}-${month}-${day}`
+  }
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12)
+    const year = `19${birth.substring(0, 2)}`
+    const month = birth.substring(2, 4)
+    const day = birth.substring(4, 6)
+    return `${year}-${month}-${day}`
+  }
+  return ''
+}
+
 const isLikelyUrl = (value: string) => {
   if (!value) return false
   const lower = value.toLowerCase()
@@ -168,12 +188,20 @@ const fallback = (value: any) => {
   return value
 }
 
+const repaymentMethodMap: Record<string, string> = {
+  '0': '等额本息',
+  '2': '等额本金',
+  '3': '先息后本',
+  '4': '先本后息'
+}
+
 const detail = computed(() => {
   const row = detailRow.value || {}
+  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber)
   return {
     user: {
       name: fallback(row.realName || row.name),
-      birthday: fallback(row.birthday),
+      birthday: fallback(birthday),
       idNumber: fallback(row.idCardNumber),
       phone: fallback(row.contactPhone || row.phone),
       address: fallback(row.contactAddress || row.address),
@@ -183,7 +211,7 @@ const detail = computed(() => {
       applyDate: fallback(row.createTime || row.applyTime),
       amount: fallback(row.loanAmount),
       period: fallback(row.loanTerm),
-      repaymentType: fallback(row.repaymentMethod || row.repaymentType),
+      repaymentType: fallback(repaymentMethodMap[String(row.repaymentMethod || row.repaymentType)] || row.repaymentType),
       bank: fallback(row.collectionBankCode || row.bankName),
       bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
       cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
