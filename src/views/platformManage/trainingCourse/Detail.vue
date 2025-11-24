@@ -45,6 +45,13 @@
         <!-- 内容详细信息 -->
         <div class="content-details">
             <div class="detail-row">
+                <span class="detail-label">课程标题:</span>
+                <span class="detail-value">
+                    <el-text truncated>{{ detailData.cultivateName }}</el-text>
+                </span>
+            </div>
+
+            <div class="detail-row">
                 <span class="detail-label">培训课程类别:</span>
                 <span class="detail-value">
                     <dict-tag :options="cultivate_type" :value="detailData.cultivateType" />
@@ -133,6 +140,7 @@ const processedContent = ref('');
 const detailData = ref({
     id: undefined as number | undefined,
     contentNo: '',
+    cultivateName: '',
     contentTitle: '',
     cultivateType: '',
     cultivateContent: '',
@@ -190,6 +198,7 @@ const fetchContentDetail = async () => {
             detailData.value = {
                 id: data.id,
                 contentNo: data.contentNo || '',
+                cultivateName:data.cultivateName || '',
                 contentTitle: data.contentTitle || '',
                 cultivateType: data.cultivateType || '',
                 cultivateContent: data.cultivateContent || '',
