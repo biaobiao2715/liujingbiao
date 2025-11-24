@@ -14,7 +14,7 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="课程标题" prop="cultivateName" required>
-            <el-input v-model="formData.cultivateName" placeholder="请输入课程标题标题内容" maxlength="30" show-word-limit clearable />
+            <el-input v-model="formData.cultivateName" placeholder="请输入课程标题内容" maxlength="30" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
