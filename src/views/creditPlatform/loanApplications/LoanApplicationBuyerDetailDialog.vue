@@ -21,11 +21,7 @@
                 :src="img"
                 :preview-src-list="detail.user.idPhotos"
                 class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+              />
           </template>
           <span v-else>--</span>
         </el-descriptions-item>
@@ -49,11 +45,7 @@
                 :src="img"
                 :preview-src-list="detail.loan.cardPhotos"
                 class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+              />
           </template>
           <span v-else>--</span>
         </el-descriptions-item>
@@ -237,6 +229,12 @@ const detailRow = ref<Record<string, any>>(props.data || {})
 const currentDetail = computed(() => detailRow.value || {})
 const productDetailVisible = ref(false)
 
+const isLikelyUrl = (value: string) => {
+  if (!value) return false
+  const lower = value.toLowerCase()
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/')
+}
+
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = []
   const append = (item: any) => {
@@ -246,12 +244,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return
     }
     if (typeof item === 'string') {
-      urls.push(item)
+      const trimmed = item.trim()
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed)
       return
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src
-      if (url) urls.push(url)
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim()
+      if (url && isLikelyUrl(url)) urls.push(url)
     }
   }
   sources.forEach(append)

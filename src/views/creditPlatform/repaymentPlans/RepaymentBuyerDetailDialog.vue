@@ -15,19 +15,17 @@
         <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
         <el-descriptions-item label="身份证正反面" :span="2">
           <template v-if="detail.user.idPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.user.idPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.user.idPhotos"
-                class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+            <el-image
+              v-for="(img, idx) in detail.user.idPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.user.idPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -43,19 +41,17 @@
         <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
         <el-descriptions-item label="银行卡正反面" :span="2">
           <template v-if="detail.loan.cardPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.loan.cardPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.loan.cardPhotos"
-                class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+            <el-image
+              v-for="(img, idx) in detail.loan.cardPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.loan.cardPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -92,6 +88,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getRemainingDetail } from '@/api/creditPlatform/loanApplications'
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue'
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue'
 
@@ -108,6 +105,12 @@ const currentDetail = computed(() => detailRow.value || {})
 const productDetailVisible = ref(false)
 const repaymentPlanVisible = ref(false)
 
+const isLikelyUrl = (value: string) => {
+  if (!value) return false
+  const lower = value.toLowerCase()
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/')
+}
+
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = []
   const append = (item: any) => {
@@ -117,12 +120,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return
     }
     if (typeof item === 'string') {
-      urls.push(item)
+      const trimmed = item.trim()
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed)
       return
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src
-      if (url) urls.push(url)
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim()
+      if (url && isLikelyUrl(url)) urls.push(url)
     }
   }
   sources.forEach(append)
@@ -136,10 +140,12 @@ const fetchDetail = async () => {
   }
   loading.value = true
   try {
-    // 这里应该调用真实的API获取详细信息
-    // const res = await getRepaymentDetail(props.data.id)
-    // detailRow.value = res.data
-    detailRow.value = props.data || {}
+    let merged: Record<string, any> = props.data ? { ...props.data } : {}
+    const res = await getRemainingDetail(props.data.id)
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data }
+    }
+    detailRow.value = merged
   } catch (error) {
     console.error('获取贷后详情失败:', error)
     detailRow.value = props.data || {}
