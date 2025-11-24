@@ -995,13 +995,13 @@ const handleConfirm = async () => {
     const submitData = {
       // 先展开 formData，避免覆盖处理反馈数据
       ...formData.value,
-      id: formData.value.id,
+      id: props.id ?? formData.value.id,
       // 待处理状态：添加处理反馈数据（放在最后，确保不被覆盖）
       ...(status === '0'
         ? {
             handleBack: processFeedback.handleBack,
             ...(processFeedback.handleBack === '0' ? { rejectReason: processFeedback.rejectReason } : {}),
-            ...(processFeedback.handleBack === '1' ? { id: processFeedback.caseTypeId } : {})
+            ...(processFeedback.handleBack === '1' ? { hnCaseId: processFeedback.caseTypeId } : {})
           }
         : {}),
       // 处理中状态：添加处理反馈数据（只需要传 rejectBack）

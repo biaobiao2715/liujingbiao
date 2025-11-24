@@ -19,7 +19,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="贷款周期" prop="loanCycle">
-        <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" filterable clearable>
+        <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" multiple filterable clearable>
           <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -93,7 +93,8 @@ const queryParams = ref({
   productName: '',
   productType: '',
   isNoTenant: true,
-  loanCycle: ''
+  // 多选的贷款周期，提交时转换为逗号分隔字符串
+  loanCycle: [] as string[]
 });
 
 // 表格数据
@@ -111,7 +112,11 @@ const selectType = ref<'view' | 'edit' | 'audit'>('view');
 /** 查询企业列表 */
 const getList = () => {
   loading.value = true;
-  const params = { ...queryParams.value };
+  const params: any = { ...queryParams.value };
+  // 多选数组转换为后端需要的逗号分隔字符串
+  if (Array.isArray(params.loanCycle)) {
+    params.loanCycle = params.loanCycle.length ? params.loanCycle.join(',') : '';
+  }
 
   getCreditProductsVersionNoTenantListInfo(params).then((res) => {
     tableData.value = res.rows;
@@ -196,9 +201,11 @@ onMounted(() => {
   display: inline-block;
   width: 24px;
   height: 24px;
-  background: #108c58;
   border-radius: 4px 4px 4px 4px;
   margin-right: 8px;
+}
+.menu-title::before {
+  background-image: url('@/assets/mall/60.png');
 }
 .pagination {
   margin-top: 24px;
