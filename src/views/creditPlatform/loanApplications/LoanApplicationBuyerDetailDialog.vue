@@ -85,24 +85,13 @@
           label-width="100px"
           class="approval-form no-wrap-label"
         >
-          <el-form-item label="审批结果" prop="opinion">
+          <el-form-item label="审批意见" prop="opinion">
             <el-select v-model="approvalForm.opinion" :disabled="isApprovalReadonly">
               <el-option label="同意" value="agree" />
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item label="审批意见" prop="rejectionReason">
-            <el-input
-              v-model="approvalForm.rejectionReason"
-              type="textarea"
-              :rows="3"
-              maxlength="200"
-              show-word-limit
-              placeholder="请输入审批意见"
-              :disabled="isApprovalReadonly"
-            />
-          </el-form-item>
-          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate" :required="isApproveAgree">
+          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate">
             <el-date-picker
               v-model="approvalForm.loanDate"
               type="date"
@@ -115,7 +104,6 @@
             v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
             label="第一期还款日期"
             prop="firstRepaymentDate"
-            :required="isApproveAgree"
           >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
@@ -125,7 +113,7 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item label="贷款合同" prop="contractId" class="contract-field" :required="isApproveAgree">
+          <el-form-item label="贷款合同" prop="contractId" class="contract-field">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -357,44 +345,7 @@ const applyStatusMap: Record<string, string> = {
 }
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批结果', trigger: 'change' }],
-  rejectionReason: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
-  loanDate: [
-    {
-      validator: (_rule, value, callback) => {
-        if (approvalForm.opinion === 'agree' && !value) {
-          callback(new Error('请选择放款日期'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'change'
-    }
-  ],
-  firstRepaymentDate: [
-    {
-      validator: (_rule, value, callback) => {
-        if (approvalForm.opinion === 'agree' && !value) {
-          callback(new Error('请选择第一期还款日期'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'change'
-    }
-  ],
-  contractId: [
-    {
-      validator: (_rule, _value, callback) => {
-        if (approvalForm.opinion === 'agree' && !approvalForm.contractId) {
-          callback(new Error('请上传贷款合同'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'change'
-    }
-  ]
+  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
 }
 
 const isApprovalMode = computed(() => props.mode === 'approval')
