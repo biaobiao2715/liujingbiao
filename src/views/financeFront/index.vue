@@ -153,7 +153,8 @@ onMounted(() => {
   });
 });
 
-const switchShowArea = (item: DetailPayload, isLastItem: boolean) => {
+// 点击面包屑导航切换显示区域
+const switchShowArea = (item: DetailPayload, isLastItem?: boolean) => {
   // 忽略无实际意义的类型
   if (item.type === 'PersonalCenter' || item.type === 'MyCollections' || item.type === 'CreditApplication' || isLastItem) {
     return;
