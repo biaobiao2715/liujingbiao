@@ -33,7 +33,6 @@
         <el-select v-model="formData.caseTypeId" placeholder="请选择" :disabled="isViewMode">
           <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
-        <p v-if="!formData.caseTypeId && !isViewMode" class="tip-text">请选择案件类型</p>
       </el-form-item>
 
       <!-- 2. 案件编号 -->
@@ -51,7 +50,6 @@
         </template>
         <div class="key-attributes-section">
           <el-button v-if="!isViewMode" type="primary" @click="handleAddKeyAttribute">添加</el-button>
-          <p v-if="hasEmptyKeyAttribute && !isViewMode" class="tip-text">请填写所有关键属性名称</p>
         </div>
       </el-form-item>
       <el-table :data="formData.keyAttributes" border class="key-attributes-table" size="small">
@@ -169,7 +167,7 @@
           </el-select>
         </div>
       </el-form-item>
-      <el-table :data="formData.legalDocumentFiles" border class="file-table" size="small" style="margin-top: 6px">
+      <el-table :data="formData.legalDocumentFiles" border class="file-table" size="small" style="margin-top: 20px">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="fileTypeText" label="附件类型" width="120" align="center" />
         <el-table-column prop="originalName" label="附件名称" min-width="200" />
@@ -906,7 +904,7 @@ const handleClose = () => {
   }
 
   :global(.key-attributes-table) {
-    margin-top: 4px;
+    margin-top: 20px;
     margin-bottom: 20px !important;
   }
 
