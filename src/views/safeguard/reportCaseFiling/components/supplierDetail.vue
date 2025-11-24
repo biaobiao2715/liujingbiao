@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="supplier-edit-details">
-    <!-- 基础信息 -->
+    <!-- 基础的信息 -->
     <el-form :model="formData" label-width="140px">
       <FormHeader title="企业基础信息" />
       <el-row :gutter="20" class="detail-form">
