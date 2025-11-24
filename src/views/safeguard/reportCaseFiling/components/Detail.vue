@@ -386,7 +386,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="案件类型：">
-                <dict-text :options="case_type" :value="formData.caseType ?? ''" />
+                <dict-text :options="case_type" :value="formData.hnCase.caseTypeId ?? ''" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -396,7 +396,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="信用等级：">
-                <dict-text :options="plat_credit_rating" :value="formData.caseType ?? ''" />
+                <dict-text :options="plat_credit_rating" :value="formData.creditLevel ?? ''" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
