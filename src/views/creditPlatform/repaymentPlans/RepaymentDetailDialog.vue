@@ -19,11 +19,7 @@
                 :preview-src-list="companyLicenseList"
                 fit="cover"
                 class="license-image"
-              >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              />
             </template>
             <span v-else>--</span>
           </el-descriptions-item>
@@ -47,23 +43,15 @@
           </el-descriptions-item>
           <el-descriptions-item label="个人身份证明" :span="2">
             <template v-if="applicantIdPhotos.length">
-              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image">
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image" />
             </template>
             <span v-else>--</span>
           </el-descriptions-item>
           <el-descriptions-item label="授权文件" :span="2">
             <template v-if="applicantAuthFiles.length">
-              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image">
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image" />
             </template>
-            <div v-else class="image-placeholder">暂无图片</div>
+            <span v-else>--</span>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -85,13 +73,9 @@
                 :src="img"
                 :preview-src-list="bankCardImages"
                 class="license-image"
-              >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              />
             </template>
-            <div v-else class="card-placeholder">暂无图片</div>
+            <span v-else>--</span>
           </div>
         </div>
         <div class="product-link">
@@ -126,6 +110,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
+import { getRemainingDetail, getEnterprise } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
 
@@ -215,10 +200,24 @@ const fetchDetail = async () => {
   }
   loading.value = true;
   try {
-    // 这里应该调用真实的API获取详细信息
-    // const res = await getRepaymentDetail(props.data.id);
-    // detailRow.value = res.data;
-    detailRow.value = props.data || {};
+    let merged: Record<string, any> = props.data ? { ...props.data } : {};
+    const res = await getRemainingDetail(props.data.id);
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data };
+    }
+    // 获取企业信息
+    const lenderId = merged.lenderId;
+    if (lenderId) {
+      try {
+        const extra = await getEnterprise(lenderId);
+        if (extra && extra.code === 200 && extra.data) {
+          merged = { ...merged, ...extra.data };
+        }
+      } catch (error) {
+        console.error('获取企业信息失败:', error);
+      }
+    }
+    detailRow.value = merged;
   } catch (error) {
     console.error('获取贷后详情失败:', error);
     detailRow.value = props.data || {};

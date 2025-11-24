@@ -21,11 +21,7 @@
                 :src="img"
                 :preview-src-list="detail.user.idPhotos"
                 class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+              />
           </template>
           <span v-else>--</span>
         </el-descriptions-item>
@@ -49,11 +45,7 @@
                 :src="img"
                 :preview-src-list="detail.loan.cardPhotos"
                 class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+              />
           </template>
           <span v-else>--</span>
         </el-descriptions-item>
@@ -92,6 +84,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getRemainingDetail } from '@/api/creditPlatform/loanApplications'
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue'
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue'
 
@@ -136,10 +129,12 @@ const fetchDetail = async () => {
   }
   loading.value = true
   try {
-    // 这里应该调用真实的API获取详细信息
-    // const res = await getRepaymentDetail(props.data.id)
-    // detailRow.value = res.data
-    detailRow.value = props.data || {}
+    let merged: Record<string, any> = props.data ? { ...props.data } : {}
+    const res = await getRemainingDetail(props.data.id)
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data }
+    }
+    detailRow.value = merged
   } catch (error) {
     console.error('获取贷后详情失败:', error)
     detailRow.value = props.data || {}
