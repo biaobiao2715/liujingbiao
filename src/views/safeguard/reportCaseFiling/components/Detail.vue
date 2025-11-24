@@ -12,7 +12,7 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="举报类型：">
-            <dict-text :options="report_type_id" :value="formData.reportType ?? ''" />
+            <dict-text :options="report_type_id" :value="String(formData.reportTypeId ?? '')" />
           </el-form-item>
         </el-col>
         <el-col :span="12" v-if="formData.caseCode">
@@ -560,7 +560,7 @@
 
           <el-col :span="24">
             <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="appealDetail.rejectReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -588,10 +588,10 @@ import { fetchCaseTypeOptions, getCaseTypeDetail } from '@/api/safeguard/case';
 
 import { ElMessage } from 'element-plus';
 import FormHeader from '@/components/FormHeader/index.vue';
-import supplierDetail from '@/views/rightsPlatform/achiveManagement/credit/violationRecords/supplierDetail.vue';
+import supplierDetail from './supplierDetail.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { case_type, plat_credit_rating, report_type_id } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating'));
+const { case_type, plat_credit_rating, report_type_id } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating', 'report_type_id'));
 // 通过 props 接收父组件传参
 const props = defineProps<{
   id: string | number;
