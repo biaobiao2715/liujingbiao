@@ -303,7 +303,7 @@
             </el-col>
 
             <el-col :span="24">
-              <el-form-item label="平台驳回申诉理由11：">
+              <el-form-item label="平台驳回申诉理由：">
                 <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
               </el-form-item>
             </el-col>
@@ -560,7 +560,7 @@
 
           <el-col :span="24">
             {{ appealDetail }}
-            <el-form-item label="平台驳回申诉理由22：">
+            <el-form-item label="平台驳回申诉理由：">
               <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
