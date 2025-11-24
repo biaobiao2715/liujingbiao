@@ -19,6 +19,15 @@ export function getCreditProductsVersionNoTenantList(data?: any) {
     params: data
   });
 }
+
+// 查询金融产品信息列表
+export function getCreditProductsVersionNoTenantListInfo(data?: any) {
+  return request({
+    url: '/credit-server/creditProductsVersion/list',
+    method: 'get',
+    params: data
+  });
+}
 /**
  * 获取金融文章详情
  */
@@ -40,17 +49,17 @@ export function getCreditProductsVersionDetailNoTenant(id: number | string) {
 }
 
 // 获取企业信息
-export function getBaseEnterpriseInfo(id: number | string) {
+export function getBaseEnterpriseInfo() {
   return request({
-    url: `/credit-server/loanApplications/baseEnterpriseInfo/${id}`,
+    url: `/credit-server/loanApplications/baseEnterpriseInfo`,
     method: 'get'
   });
 }
 
 // 获取个人信息
-export function getBasePurchaser(id: number | string) {
+export function getBasePurchaser() {
   return request({
-    url: `/credit-server/loanApplications/basePurchaser/${id}`,
+    url: `/credit-server/loanApplications/basePurchaser`,
     method: 'get'
   });
 }
