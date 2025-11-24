@@ -1,6 +1,8 @@
 <!--
-  标题: creditPlatform/loanApplications/index.vue
-  功能: 贷款申请管理（接口数据）
+  文件: creditPlatform/repaymentPlans/index.vue
+  功能: 还款管理 - 显示已审批通过的贷款申请，管理还款情况、追踪和完结
+  作者: [Your Name]
+  日期: 2025-11-24
 -->
 <template>
   <div class="loan-applications">
@@ -83,75 +85,52 @@ import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
 import RepaymentStatusDialog from './RepaymentStatusDialog.vue';
 
+/**
+ * 还款计划数据结构
+ */
 interface RepaymentPlan {
-  id: number | string;
-  realName: string;
-  productName: string;
-  productType?: string;
-  lenderTyp: string;
-  loanAmount?: string | number;
-  loanTerm?: string | number;
-  approvalTime?: string;
-  loanStatus?: string;
+  id: number | string;           // 申请ID
+  realName: string;              // 申请人姓名
+  productName: string;           // 产品名称
+  productType?: string;          // 产品类型
+  lenderTyp: string;             // 适用对象: 0=采购商, 1=企业, 2=供应商
+  loanAmount?: string | number;  // 贷款金额
+  loanTerm?: string | number;    // 贷款期限
+  approvalTime?: string;         // 审批通过时间
+  loanStatus?: string;           // 贷款状态：还款中/已结清/逾期
 }
 
+// 获取字典数据
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { applicable_object, prod_credit_type } = toRefs<any>(proxy?.useDict('applicable_object', 'prod_credit_type'));
 
-const mockData: RepaymentPlan[] = [
-  {
-    id: 1,
-    realName: '张三',
-    productName: '农户信贷产品A',
-    productType: '1',
-    lenderTyp: '1', // 对应个人/农户
-    loanAmount: 100000,
-    loanTerm: 12,
-    approvalTime: '2025-01-01 10:00:00',
-    loanStatus: '还款中'
-  },
-  {
-    id: 2,
-    realName: '李四',
-    productName: '采购商信贷产品B',
-    productType: '1',
-    lenderTyp: '0', // 对应采购商
-    loanAmount: 50000,
-    loanTerm: 6,
-    approvalTime: '2025-01-10 09:30:00',
-    loanStatus: '已结清'
-  },
-  {
-    id: 3,
-    realName: '测试种子公司',
-    productName: '企业信贷产品C',
-    productType: '2',
-    lenderTyp: '2', // 对应企业
-    loanAmount: 300000,
-    loanTerm: 24,
-    approvalTime: '2025-02-05 15:20:00',
-    loanStatus: '逾期'
-  }
-];
-
+// 查询表单引用
 const queryFormRef = ref();
+
+// 查询参数
 const queryParams = ref({
-  pageNum: 1,
-  pageSize: 10,
-  realName: '',
-  productType: '',
-  applicableObject: ''
+  pageNum: 1,           // 当前页码
+  pageSize: 10,         // 每页条数
+  realName: '',         // 申请人姓名
+  productType: '',      // 产品类型
+  applicableObject: ''  // 适用对象
 });
 
-const tableData = ref<RepaymentPlan[]>([]);
-const total = ref(0);
-const loading = ref(false);
-const detailDialogVisible = ref(false);
-const buyerDetailDialogVisible = ref(false);
-const trackingDialogVisible = ref(false);
-const repaymentStatusDialogVisible = ref(false);
-const detailData = ref<RepaymentPlan | null>(null);
+// 表格数据和状态
+const tableData = ref<RepaymentPlan[]>([]);  // 表格数据
+const total = ref(0);                        // 总条数
+const loading = ref(false);                  // 加载状态
 
+// 弹窗显示状态
+const detailDialogVisible = ref(false);            // 企业详情弹窗
+const buyerDetailDialogVisible = ref(false);       // 个人详情弹窗
+const trackingDialogVisible = ref(false);          // 追踪弹窗
+const repaymentStatusDialogVisible = ref(false);   // 还款情况弹窗
+const detailData = ref<RepaymentPlan | null>(null); // 当前选中的数据
+
+/**
+ * 获取还款管理列表数据
+ */
 const getList = async () => {
   loading.value = true;
   try {
@@ -177,76 +156,91 @@ const getList = async () => {
   }
 };
 
+/**
+ * 查询按钮 - 重置到第一页并查询
+ */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
 
+/**
+ * 重置按钮 - 清空查询条件并重新查询
+ */
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   queryParams.value.pageNum = 1;
   getList();
 };
 
+/**
+ * 分页 - 页码变化处理
+ */
 const handlePageChange = (page: number) => {
   queryParams.value.pageNum = page;
   getList();
 };
 
+/**
+ * 分页 - 每页条数变化处理
+ */
 const handlePageSizeChange = (size: number) => {
   queryParams.value.pageSize = size;
   queryParams.value.pageNum = 1;
   getList();
 };
 
+/**
+ * 还款情况按钮 - 打开还款情况弹窗
+ */
 const handleRepayment = (row: RepaymentPlan) => {
   detailData.value = row;
   repaymentStatusDialogVisible.value = true;
 };
 
-const getApplicableLabel = (value: string | number | undefined) => {
-  if (value === undefined || value === null) return '';
-  const list = applicable_object?.value || [];
-  const match = list.find((item: any) => String(item.value) === String(value));
-  return match?.label || '';
-};
-
+/**
+ * 详情按钮 - 根据适用对象类型打开对应的详情弹窗
+ * @param row - 当前行数据
+ */
 const handleDetail = (row: RepaymentPlan) => {
   detailData.value = row;
-  const applicableValue = row.lenderTyp;
-  const label = getApplicableLabel(applicableValue).toLowerCase();
-  const rawValue = String(applicableValue || '').toLowerCase();
-
-  // 判断是否为个人类型（采购商、农户等）
-  const isPersonal =
-    label.includes('采购') ||
-    label.includes('农户') ||
-    rawValue.includes('purchaser') ||
-    rawValue.includes('farmer') ||
-    applicableValue === '0' ||
-    applicableValue === '1'; // 0=采购商, 1=农户
+  
+  // 根据 lenderTyp 判断：0=采购商(个人)，1=企业，2=供应商(企业)
+  const lenderType = row.lenderTyp;
+  const isPersonal = String(lenderType) === '0';
 
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
 
   if (isPersonal) {
+    // 采购商 - 个人
     buyerDetailDialogVisible.value = true;
   } else {
+    // 企业或供应商 - 企业
     detailDialogVisible.value = true;
   }
 };
 
+/**
+ * 追踪按钮 - 打开贷款追踪弹窗
+ */
 const handleTracking = (row: RepaymentPlan) => {
   detailData.value = row;
   trackingDialogVisible.value = true;
 };
 
+/**
+ * 完结借贷按钮 - 将贷款状态设置为已完结
+ */
 const handleComplete = (row: RepaymentPlan) => {
   // TODO: 调用API完结借贷
   ElMessage.success('借贷已完结（演示）');
 };
 
+/**
+ * 删除按钮 - 删除还款记录
+ */
 const handleDelete = (row: RepaymentPlan) => {
   ElMessageBox.confirm(`确定删除 ${row.productName} 的还款记录吗？（演示数据）`, '提示', {
     confirmButtonText: '确定',
@@ -261,6 +255,7 @@ const handleDelete = (row: RepaymentPlan) => {
     });
 };
 
+// 组件挂载时获取列表数据
 onMounted(() => {
   getList();
 });
