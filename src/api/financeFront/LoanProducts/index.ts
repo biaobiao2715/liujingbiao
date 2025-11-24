@@ -111,9 +111,9 @@ export const ossUploadImage = (data: { file: File }) => {
 /*
  * 获取贷款申请权限列表
  */
-export function getLoanApplicationsPermissionList(data: any) {
+export function getLoanPersonalCenterList(data: any) {
   return request({
-    url: '/credit-server/loanApplications/permissionList',
+    url: '/credit-server/loanApplications/personalCenterList',
     method: 'get',
     params: data
   });
