@@ -79,13 +79,7 @@
           <div>银行卡号正反面：</div>
           <div class="bank-card-images">
             <template v-if="bankCardImages.length">
-              <el-image
-                v-for="(img, idx) in bankCardImages"
-                :key="idx"
-                :src="img"
-                :preview-src-list="bankCardImages"
-                class="license-image"
-              >
+              <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image">
                 <template #error>
                   <div class="image-placeholder">暂无图片</div>
                 </template>
@@ -101,14 +95,7 @@
 
       <div class="detail-section approval-section">
         <div class="section-title">审批信息</div>
-        <el-alert
-          v-if="showApprovalTip"
-          :title="approvalTipMessage"
-          type="warning"
-          show-icon
-          :closable="false"
-          class="tips"
-        />
+        <el-alert v-if="showApprovalTip" :title="approvalTipMessage" type="warning" show-icon :closable="false" class="tips" />
         <el-form
           v-if="showApprovalForm"
           ref="approvalFormRef"
@@ -134,14 +121,13 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate" :required="isApproveAgree">
-            <el-date-picker
-              v-model="approvalForm.loanDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-            />
+          <el-form-item
+            v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)"
+            label="放款日期"
+            prop="loanDate"
+            :required="isApproveAgree"
+          >
+            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
           <el-form-item
             v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
@@ -161,23 +147,11 @@
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                  <div
-                    v-for="(file, idx) in approvalForm.contractFiles"
-                    :key="file.url || idx"
-                    class="contract-file-item"
-                  >
-                    <el-link
-                      :href="file.url"
-                      target="_blank"
-                      type="primary"
-                    >
+                  <div v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" class="contract-file-item">
+                    <el-link :href="file.url" target="_blank" type="primary">
                       {{ file.name || `合同文件${idx + 1}` }}
                     </el-link>
-                    <el-icon
-                      class="file-remove-icon"
-                      @click="handleRemoveFile"
-                      title="删除文件"
-                    >
+                    <el-icon class="file-remove-icon" @click="handleRemoveFile" title="删除文件">
                       <Close />
                     </el-icon>
                   </div>
@@ -193,9 +167,7 @@
                   :on-remove="handleRemoveFile"
                   :show-file-list="false"
                 >
-                  <el-button type="primary" :loading="contractUploading" icon="Upload">
-                    点击上传
-                  </el-button>
+                  <el-button type="primary" :loading="contractUploading" icon="Upload"> 点击上传 </el-button>
                   <template #tip>
                     <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
                   </template>
@@ -204,13 +176,7 @@
             </template>
             <template v-else>
               <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                <el-link
-                  v-for="(file, idx) in approvalForm.contractFiles"
-                  :key="file.url || idx"
-                  :href="file.url"
-                  target="_blank"
-                  type="primary"
-                >
+                <el-link v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" :href="file.url" target="_blank" type="primary">
                   {{ file.name || `合同文件${idx + 1}` }}
                 </el-link>
               </div>
@@ -251,7 +217,7 @@ import { computed, reactive, watch, ref, nextTick } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { Close } from '@element-plus/icons-vue';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile,getProduct } from '@/api/creditPlatform/loanApplications';
+import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile, getProduct } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = defineProps<{
@@ -408,10 +374,10 @@ const fetchDetail = async () => {
     if (res && res.code === 200 && res.data) {
       merged = { ...merged, ...res.data };
     }
-    const userId = merged.lenderId || merged.userId;
-    if (userId) {
+    const lenderId = merged.lenderId;
+    if (lenderId) {
       try {
-        const extra = await getEnterprise({ id: userId });
+        const extra = await getEnterprise(lenderId);
         if (extra && extra.code === 200 && extra.data) {
           merged = { ...merged, ...extra.data };
         }
@@ -528,10 +494,7 @@ const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.
 const approvalTipMessage = computed(() => {
   return '当前申请状态为待审核，请前往审批流程处理。';
 });
-const showApprovalForm = computed(() => 
-  (isApprovalMode.value && !hasCompletedResult.value) || 
-  (!isApprovalMode.value && hasCompletedResult.value)
-);
+const showApprovalForm = computed(() => (isApprovalMode.value && !hasCompletedResult.value) || (!isApprovalMode.value && hasCompletedResult.value));
 
 watch(
   () => props.visible,

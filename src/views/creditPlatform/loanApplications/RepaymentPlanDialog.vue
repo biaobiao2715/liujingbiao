@@ -22,25 +22,43 @@
           <div class="upload-row">
             <div class="label">贷款合同：</div>
             <div class="upload-inline">
-              <div class="file-preview" v-if="contractFiles.length" @click="previewFile">
-                <div class="file-icon">
-                  <el-icon><i-ep-document /></el-icon>
+              <div class="contract-files" v-if="contractFiles.length">
+                <div class="contract-file-item">
+                  <el-link
+                    :href="contractFiles[0].url"
+                    target="_blank"
+                    type="primary"
+                    class="contract-link"
+                  >
+                    {{ contractFiles[0].displayName || contractFiles[0].name }}
+                  </el-link>
+                  <el-icon
+                    class="file-remove-icon"
+                    @click="handleDeleteFile"
+                    title="删除文件"
+                  >
+                    <Close />
+                  </el-icon>
                 </div>
-                <div class="file-name">{{ contractFiles[0].displayName || contractFiles[0].name }}</div>
               </div>
               <el-upload
+                v-if="!contractFiles.length"
                 :auto-upload="true"
                 action="#"
+                accept=".pdf,.doc,.docx"
                 :file-list="contractFiles"
                 list-type="text"
                 :show-file-list="false"
                 :http-request="handleUpload"
                 :before-upload="beforeUpload"
                 :on-remove="handleContractRemove"
+                class="contract-uploader"
               >
-                <el-button type="primary" plain icon="UploadFilled">点击上传</el-button>
+                <el-button type="primary" icon="Upload">点击上传</el-button>
+                <template #tip>
+                  <div class="upload-tip">支持 Word/PDF 格式</div>
+                </template>
               </el-upload>
-              <el-button v-if="contractFiles.length" type="danger" plain icon="Delete" @click="handleDeleteFile">删除</el-button>
             </div>
           </div>
           <div class="tips-card">贷款合同可重复上传，还款计划的期数、日期需生成的，请仔细校验，允许修改，还款金额需为整数。</div>
@@ -80,6 +98,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Close } from '@element-plus/icons-vue';
 import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail, uploadFile, deleteFile } from '@/api/creditPlatform/loanApplications';
 const props = defineProps<{
   visible: boolean;
@@ -165,11 +184,15 @@ watch(
 
 // 上传前验证
 const beforeUpload = (file: any) => {
-  const isValidType = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
+  const isValidType = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ].includes(file.type);
   const isLt10M = file.size / 1024 / 1024 < 10;
 
   if (!isValidType) {
-    ElMessage.error('只能上传 PDF、JPG、PNG 格式的文件！');
+    ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
   if (!isLt10M) {
@@ -321,34 +344,61 @@ onBeforeUnmount(() => {
       flex-wrap: wrap;
     }
 
-    .file-preview {
+    .contract-files {
       display: flex;
       align-items: center;
+    }
+
+    .contract-file-item {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      cursor: pointer;
-      color: #409eff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
 
-      .file-icon {
-        width: 48px;
-        height: 48px;
-        border: 1px solid #dcdfe6;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f5f7fa;
+      &:hover {
+        background-color: #f5f7fa;
 
-        .el-icon {
-          font-size: 24px;
+        .file-remove-icon {
+          opacity: 1;
         }
       }
     }
 
-    .file-name {
-      max-width: 160px;
-      color: #606266;
-      font-size: 13px;
-      word-break: break-all;
+    .contract-link {
+      font-size: 14px;
+    }
+
+    .file-remove-icon {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 16px;
+      color: #f56c6c;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: white;
+      border-radius: 50%;
+      padding: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        color: #f23030;
+      }
+    }
+
+    .contract-uploader {
+      display: inline-flex;
+      align-items: center;
+      
+      .upload-tip {
+        color: #909399;
+        font-size: 12px;
+        margin-left: 12px;
+      }
     }
 
     .tips-card {

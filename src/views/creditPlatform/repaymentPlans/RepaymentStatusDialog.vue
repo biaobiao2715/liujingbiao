@@ -45,16 +45,25 @@
             
             <div class="info-row">
               <span class="label">还款卡号：</span>
-              <el-input 
-                v-if="canEditCardNumber(item)"
-                v-model="item.cardNumber" 
-                placeholder="请输入收款卡号" 
-                size="small"
-                class="card-number-input"
-                maxlength="19"
-                show-word-limit
-                @input="validateCardNumber(item)"
-              />
+              <div v-if="canEditCardNumber(item)" class="card-number-wrapper">
+                <el-input 
+                  v-model="item.cardNumber" 
+                  placeholder="请输入收款卡号" 
+                  size="small"
+                  class="card-number-input"
+                  maxlength="19"
+                  show-word-limit
+                  @input="validateCardNumber(item)"
+                />
+                <el-button 
+                  type="primary" 
+                  size="small"
+                  @click="handleReadCardNumber(item)"
+                  class="read-card-btn"
+                >
+                  读取收款卡号
+                </el-button>
+              </div>
               <span v-else class="value">{{ item.cardNumber || '--' }}</span>
             </div>
             <div v-if="canEditCardNumber(item) && item.cardNumberError" class="error-tip">
@@ -239,6 +248,20 @@ const validateCardNumber = (item: RepaymentItem) => {
   }
 };
 
+// 读取收款卡号
+const handleReadCardNumber = (item: RepaymentItem) => {
+  // 从贷款申请数据中读取收款卡号
+  const savedCardNumber = props.data?.bankAccountNumber || props.data?.bankCardNo || props.data?.collectionAccountNumber;
+  
+  if (savedCardNumber) {
+    item.cardNumber = savedCardNumber;
+    validateCardNumber(item);
+    ElMessage.success('已读取收款卡号');
+  } else {
+    ElMessage.warning('未找到收款卡号信息');
+  }
+};
+
 // 确认收款卡号
 const handleConfirmRepayment = (item: RepaymentItem) => {
   if (!item.cardNumber) {
@@ -365,9 +388,20 @@ const handleClose = () => {
       width: 110px;
     }
     
+    .card-number-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    
     .card-number-input {
       flex: 1;
       max-width: 180px;
+    }
+    
+    .read-card-btn {
+      white-space: nowrap;
     }
   }
 }
