@@ -99,7 +99,7 @@
 
       <el-table-column label="报名人数" align="center" prop="enrollCount" width="120">
         <template #default="scope">
-          <span>{{ scope.row.enrollCount || '0.00' }}</span>
+          <span>{{ scope.row.enrollCount || '0' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="publishTime" width="120">
