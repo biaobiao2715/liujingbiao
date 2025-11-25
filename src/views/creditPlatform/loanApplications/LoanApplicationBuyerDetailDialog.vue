@@ -193,8 +193,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, reactive, nextTick } from 'vue'
+import { computed, ref, watch, reactive, nextTick, getCurrentInstance, toRefs } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import type { ComponentInternalInstance } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
 import { getRemainingDetail, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications'
@@ -211,6 +212,17 @@ const emit = defineEmits<{
   (event: 'refresh'): void;
 }>()
 
+// ==================== 字典数据 ====================
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+const { repayment_method, review_status } = toRefs<any>(
+  proxy?.useDict('repayment_method', 'review_status')
+)
+
+// ==================== 状态管理 ====================
+const loading = ref(false)
+const detailData = ref<Record<string, any>>({})
+const productDetailVisible = ref(false)
+
 const approvalFormRef = ref<FormInstance>()
 const approvalForm = reactive({
   opinion: 'agree',
@@ -224,92 +236,335 @@ const submittingApproval = ref(false)
 const contractUploading = ref(false)
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null)
 
-const loading = ref(false)
-const detailRow = ref<Record<string, any>>(props.data || {})
-const currentDetail = computed(() => detailRow.value || {})
-const productDetailVisible = ref(false)
-
-const extractBirthdayFromId = (id: string | undefined | null) => {
-  const value = (id || '').trim()
-  if (!value) return ''
-  if (/^\d{17}[\dXx]$/.test(value)) {
-    const birth = value.substring(6, 14)
-    const year = birth.substring(0, 4)
-    const month = birth.substring(4, 6)
-    const day = birth.substring(6, 8)
-    return `${year}-${month}-${day}`
-  }
-  if (/^\d{15}$/.test(value)) {
-    const birth = value.substring(6, 12)
-    const year = `19${birth.substring(0, 2)}`
-    const month = birth.substring(2, 4)
-    const day = birth.substring(4, 6)
-    return `${year}-${month}-${day}`
-  }
-  return ''
-}
-
-const repaymentMethodMap: Record<string, string> = {
+// ==================== 常量定义 ====================
+// 还款方式备用映射（当字典数据不可用时使用）
+const REPAYMENT_METHOD_MAP: Record<string, string> = {
   '0': '等额本息',
   '2': '等额本金',
   '3': '先息后本',
   '4': '先本后息'
 }
 
-const isLikelyUrl = (value: string) => {
+// 申请状态备用映射（当字典数据不可用时使用）
+const APPLY_STATUS_MAP: Record<string, string> = {
+  '0': '待审核',
+  '1': '待审核',
+  '2': '审批通过',
+  '3': '审批驳回',
+  '99': '审批异常'
+}
+
+const approvalRules: FormRules = {
+  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
+}
+
+// ==================== 工具函数 ====================
+/**
+ * 格式化值，空值返回 '--'
+ */
+const formatValue = (value: any): string => {
+  if (value === undefined || value === null || value === '') return '--'
+  return String(value)
+}
+
+/**
+ * 从身份证号提取生日
+ */
+const extractBirthdayFromId = (id: string | undefined | null): string => {
+  const value = (id || '').trim()
+  if (!value) return ''
+  
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14)
+    return `${birth.substring(0, 4)}-${birth.substring(4, 6)}-${birth.substring(6, 8)}`
+  }
+  
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12)
+    return `19${birth.substring(0, 2)}-${birth.substring(2, 4)}-${birth.substring(4, 6)}`
+  }
+  
+  return ''
+}
+
+/**
+ * 判断是否为URL
+ */
+const isUrl = (value: string): boolean => {
   if (!value) return false
   const lower = value.toLowerCase()
   return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/')
 }
 
+/**
+ * 收集URL列表
+ */
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = []
-  const append = (item: any) => {
+  
+  const processItem = (item: any) => {
     if (!item) return
+    
     if (Array.isArray(item)) {
-      item.forEach(append)
+      item.forEach(processItem)
       return
     }
+    
     if (typeof item === 'string') {
       const trimmed = item.trim()
-      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed)
+      if (trimmed && isUrl(trimmed)) urls.push(trimmed)
       return
     }
+    
     if (typeof item === 'object') {
       const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim()
-      if (url && isLikelyUrl(url)) urls.push(url)
+      if (url && isUrl(url)) urls.push(url)
     }
   }
-  sources.forEach(append)
+  
+  sources.forEach(processItem)
   return urls
 }
 
+/**
+ * 获取字段值（支持多个备选字段名）
+ */
+const getFieldValue = (row: Record<string, any>, fieldNames: string[]): any => {
+  for (const fieldName of fieldNames) {
+    if (row[fieldName] !== undefined && row[fieldName] !== null && row[fieldName] !== '') {
+      return row[fieldName]
+    }
+  }
+  return undefined
+}
+
+/**
+ * 从字典获取标签（优先使用字典，否则使用备用映射）
+ */
+const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--'
+  
+  // 优先使用字典数据
+  if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
+    const match = repayment_method.value.find((item: any) => String(item.value) === String(value))
+    if (match?.label) {
+      return match.label
+    }
+  }
+  
+  // 备用映射
+  return REPAYMENT_METHOD_MAP[String(value)] || '--'
+}
+
+/**
+ * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
+ */
+const getApplyStatusLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--'
+  
+  // 优先使用字典数据
+  if (review_status?.value && Array.isArray(review_status.value) && review_status.value.length > 0) {
+    const match = review_status.value.find((item: any) => String(item.value) === String(value))
+    if (match?.label) {
+      return match.label
+    }
+  }
+  
+  // 备用映射
+  return APPLY_STATUS_MAP[String(value)] || '--'
+}
+
+// ==================== 数据获取 ====================
+/**
+ * 获取详情数据
+ */
 const fetchDetail = async () => {
   if (!props.data?.id) {
-    detailRow.value = props.data || {}
+    detailData.value = props.data || {}
     return
   }
+  
   loading.value = true
   try {
-    let merged: Record<string, any> = props.data ? { ...props.data } : {}
     const res = await getRemainingDetail(props.data.id)
-    if (res && res.code === 200 && res.data) {
-      merged = { ...merged, ...res.data }
+    if (res?.code === 200 && res.data) {
+      detailData.value = { ...props.data, ...res.data }
+    } else {
+      detailData.value = props.data || {}
     }
-    detailRow.value = merged
+    
+    // 初始化审批表单
     if (props.mode === 'approval') {
       resetApprovalForm()
     } else {
-      hydrateApprovalForm(merged)
+      hydrateApprovalForm(detailData.value)
     }
   } catch (error) {
     console.error('获取申请详情失败:', error)
-    detailRow.value = props.data || {}
+    detailData.value = props.data || {}
   } finally {
     loading.value = false
   }
 }
 
+// ==================== 数据映射 ====================
+/**
+ * 映射用户信息
+ */
+const mapUserInfo = (row: Record<string, any>) => {
+  const birthday = getFieldValue(row, ['birthday', 'birthDate']) || 
+                   extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']))
+  
+  return {
+    name: formatValue(getFieldValue(row, ['realName', 'name'])),
+    birthday: formatValue(birthday),
+    idNumber: formatValue(getFieldValue(row, ['idCardNumber'])),
+    phone: formatValue(getFieldValue(row, ['contactPhone', 'phone'])),
+    address: formatValue(getFieldValue(row, ['contactAddress', 'address'])),
+    idPhotos: collectUrls(
+      row.idFrontUrl,
+      row.idBackUrl,
+      row.idCardPhotoFront,
+      row.idCardPhotoBack
+    )
+  }
+}
+
+/**
+ * 映射贷款信息
+ */
+const mapLoanInfo = (row: Record<string, any>) => {
+  const repaymentMethod = getFieldValue(row, ['repaymentMethod', 'repaymentType'])
+  const repaymentTypeText = repaymentMethod 
+    ? getRepaymentMethodLabel(repaymentMethod)
+    : undefined
+  
+  return {
+    applyDate: formatValue(getFieldValue(row, ['createTime', 'applyTime'])),
+    amount: formatValue(row.loanAmount),
+    period: formatValue(row.loanTerm),
+    repaymentType: formatValue(repaymentTypeText),
+    bank: formatValue(getFieldValue(row, ['collectionBankCode', 'bankName'])),
+    bankCardNo: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])),
+    cardPhotos: collectUrls(
+      row.bankFrontUrl,
+      row.bankBackUrl,
+      row.bankCardPhotoFront,
+      row.bankCardPhotoBack
+    )
+  }
+}
+
+/**
+ * 映射审批信息
+ */
+const mapApprovalInfo = (row: Record<string, any>) => {
+  return {
+    opinion: formatValue(getFieldValue(row, ['reviewNotes', 'rejectionReason'])),
+    loanDate: formatValue(row.loanDate),
+    firstRepaymentDate: formatValue(row.firstRepaymentDate),
+    contractFiles: collectUrls(row.contractFiles, row.contractUrl)
+  }
+}
+
+// ==================== 计算属性 ====================
+const currentDetail = computed(() => detailData.value || {})
+
+const detail = computed(() => {
+  const row = detailData.value || {}
+  return {
+    user: mapUserInfo(row),
+    loan: mapLoanInfo(row),
+    approval: mapApprovalInfo(row)
+  }
+})
+
+const dialogTitle = computed(() => {
+  return props.mode === 'approval' ? '个人贷款申请审核' : '贷款申请详情（采购商）'
+})
+
+const isApprovalMode = computed(() => props.mode === 'approval')
+const isApprovalReadonly = computed(() => !isApprovalMode.value)
+const isApproveAgree = computed(() => approvalForm.opinion === 'agree')
+
+const isPendingStatus = computed(() => {
+  const status = detailData.value?.applyStatus
+  if (status === undefined || status === null || status === '') return false
+  const label = getApplyStatusLabel(status) || 
+                detailData.value?.applyStatusName || 
+                detailData.value?.applyStatusLabel || ''
+  return String(label).includes('待审')
+})
+
+const hasCompletedResult = computed(() => {
+  const status = detailData.value?.applyStatus
+  return status === '2' || status === '3'
+})
+
+const showApprovalTip = computed(() => 
+  !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value
+)
+
+const approvalTipMessage = computed(() => 
+  '当前申请状态为待审核，请前往审批流程处理。'
+)
+
+const showApprovalForm = computed(() => 
+  (isApprovalMode.value && !hasCompletedResult.value) || 
+  (!isApprovalMode.value && hasCompletedResult.value)
+)
+
+// ==================== 审批表单处理 ====================
+/**
+ * 规范化合同文件
+ */
+const normalizeContractFiles = (row: Record<string, any>) => {
+  const baseName = row.contractFileName || '合同文件'
+  const files = collectUrls(row.contractFiles, row.contractFileUrl, row.contractUrl)
+  if (!files.length) return []
+  
+  return files.map((url: string, index: number) => ({
+    name: files.length === 1 ? baseName : `${baseName}${index + 1}`,
+    url,
+    id: row.contractId || ''
+  }))
+}
+
+/**
+ * 填充审批表单
+ */
+const hydrateApprovalForm = (row: Record<string, any>) => {
+  approvalForm.rejectionReason = row.rejectionReason || ''
+  approvalForm.loanDate = row.loanDate || ''
+  approvalForm.firstRepaymentDate = row.firstRepaymentDate || ''
+  approvalForm.contractId = row.contractId || ''
+  
+  if (row.applyStatus === '3') {
+    approvalForm.opinion = 'reject'
+  } else if (row.applyStatus === '2') {
+    approvalForm.opinion = 'agree'
+  }
+  
+  approvalForm.contractFiles = normalizeContractFiles(row)
+}
+
+/**
+ * 重置审批表单
+ */
+const resetApprovalForm = () => {
+  approvalForm.opinion = 'agree'
+  approvalForm.rejectionReason = ''
+  approvalForm.loanDate = ''
+  approvalForm.firstRepaymentDate = ''
+  approvalForm.contractId = ''
+  approvalForm.contractFiles = []
+  currentApprovalAction.value = null
+  nextTick(() => {
+    approvalFormRef.value?.clearValidate()
+  })
+}
+
+// ==================== 监听器 ====================
 watch(
   [() => props.visible, () => props.data?.id],
   ([visible, id], [prevVisible, prevId]) => {
@@ -328,118 +583,7 @@ watch(
   }
 )
 
-const fallback = (value: any) => {
-  if (value === undefined || value === null || value === '') return '--'
-  return value
-}
-
-const detail = computed(() => {
-  const row = detailRow.value || {}
-  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber)
-  return {
-    user: {
-      name: fallback(row.realName || row.name),
-      birthday: fallback(birthday),
-      idNumber: fallback(row.idCardNumber),
-      phone: fallback(row.contactPhone || row.phone),
-      address: fallback(row.contactAddress || row.address),
-      idPhotos: collectUrls(row.idFrontUrl, row.idBackUrl, row.idCardPhotoFront, row.idCardPhotoBack)
-    },
-    loan: {
-      applyDate: fallback(row.createTime || row.applyTime),
-      amount: fallback(row.loanAmount),
-      period: fallback(row.loanTerm),
-      repaymentType: fallback(
-        repaymentMethodMap[String(row.repaymentMethod || row.repaymentType)] || row.repaymentType
-      ),
-      bank: fallback(row.collectionBankCode || row.bankName),
-      bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
-      cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
-    },
-    approval: {
-      opinion: fallback(row.reviewNotes || row.rejectionReason),
-      loanDate: fallback(row.loanDate),
-      firstRepaymentDate: fallback(row.firstRepaymentDate),
-      contractFiles: collectUrls(row.contractFiles, row.contractUrl)
-    }
-  }
-})
-
-const applyStatusMap: Record<string, string> = {
-  '0': '待审核',
-  '1': '待审核',
-  '2': '审批通过',
-  '3': '审批驳回',
-  '99': '审批异常'
-}
-
-const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
-}
-
-const isApprovalMode = computed(() => props.mode === 'approval')
-const isApprovalReadonly = computed(() => !isApprovalMode.value)
-const isApproveAgree = computed(() => approvalForm.opinion === 'agree')
-const isPendingStatus = computed(() => {
-  const status = detailRow.value?.applyStatus
-  if (status === undefined || status === null || status === '') return false
-  const label = applyStatusMap[String(status)] || detailRow.value?.applyStatusName || detailRow.value?.applyStatusLabel || ''
-  return String(label).includes('待审')
-})
-const hasCompletedResult = computed(() => {
-  const status = detailRow.value?.applyStatus
-  return status === '2' || status === '3'
-})
-const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value)
-const approvalTipMessage = computed(() => {
-  return '当前申请状态为待审核，请前往审批流程处理。'
-})
-const showApprovalForm = computed(() => 
-  (isApprovalMode.value && !hasCompletedResult.value) || 
-  (!isApprovalMode.value && hasCompletedResult.value)
-)
-
-const dialogTitle = computed(() => {
-  return props.mode === 'approval' ? '个人贷款申请审核' : '贷款申请详情（采购商）'
-})
-
-const normalizeContractFiles = (row: Record<string, any>) => {
-  const baseName = row.contractFileName || '合同文件'
-  const files = collectUrls(row.contractFiles, row.contractFileUrl, row.contractUrl)
-  if (!files.length) return []
-  return files.map((url: string, index: number) => ({
-    name: files.length === 1 ? baseName : `${baseName}${index + 1}`,
-    url,
-    id: row.contractId || ''
-  }))
-}
-
-const hydrateApprovalForm = (row: Record<string, any>) => {
-  approvalForm.rejectionReason = row.rejectionReason || ''
-  approvalForm.loanDate = row.loanDate || ''
-  approvalForm.firstRepaymentDate = row.firstRepaymentDate || ''
-  approvalForm.contractId = row.contractId || ''
-  if (row.applyStatus === '3') {
-    approvalForm.opinion = 'reject'
-  } else if (row.applyStatus === '2') {
-    approvalForm.opinion = 'agree'
-  }
-  approvalForm.contractFiles = normalizeContractFiles(row)
-}
-
-const resetApprovalForm = () => {
-  approvalForm.opinion = 'agree'
-  approvalForm.rejectionReason = ''
-  approvalForm.loanDate = ''
-  approvalForm.firstRepaymentDate = ''
-  approvalForm.contractId = ''
-  approvalForm.contractFiles = []
-  currentApprovalAction.value = null
-  nextTick(() => {
-    approvalFormRef.value?.clearValidate()
-  })
-}
-
+// ==================== 事件处理 ====================
 const handleContractUpload = async (options: any) => {
   if (isApprovalReadonly.value) {
     options?.onError?.(new Error('仅可查看'))
@@ -494,7 +638,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     currentApprovalAction.value = null
     return
   }
-  if (!detailRow.value?.id && !props.data?.id) {
+  if (!detailData.value?.id && !props.data?.id) {
     ElMessage.error('缺少申请ID，无法提交审批')
     currentApprovalAction.value = null
     return
@@ -502,8 +646,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   submittingApproval.value = true
   try {
     const payload = {
-      ...detailRow.value,
-      id: detailRow.value?.id || props.data?.id,
+      ...detailData.value,
+      id: detailData.value?.id || props.data?.id,
       applyStatus: action === 'agree' ? '2' : '3',
       rejectionReason: approvalForm.rejectionReason,
       loanDate: approvalForm.loanDate,
