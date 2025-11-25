@@ -1,6 +1,9 @@
 <!--
   标题: creditPlatform/loanApplications/index.vue
-  功能: 贷款申请管理（真实接口）
+  功能: 信贷申请列表
+  说明: 展示信贷申请列表
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
 -->
 <template>
   <div class="loan-applications">
@@ -60,7 +63,9 @@
               审批
             </el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" plain :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)">还款计划</el-button>
+            <el-button size="small" type="success" plain :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
+              >还款计划</el-button
+            >
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -216,15 +221,15 @@ const getApplicableLabel = (value: string | number | undefined) => {
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
   detailData.value = row;
   detailDialogMode.value = mode;
-  
+
   // 根据 lenderType 判断：0=采购商(个人)，1=企业，2=供应商(企业)
   const lenderType = row.lenderType ?? row.lenderTyp;
   const isPersonal = String(lenderType) === '0';
-  
+
   // 先隐藏另一个弹窗，避免同时打开
   detailDialogVisible.value = false;
   buyerDetailDialogVisible.value = false;
-  
+
   if (isPersonal) {
     // 采购商 - 个人
     buyerDetailDialogVisible.value = true;

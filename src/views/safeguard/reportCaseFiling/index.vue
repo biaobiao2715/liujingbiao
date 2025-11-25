@@ -102,7 +102,7 @@
             <el-tag :type="getStatusTagType(scope.row.status)">
               {{ getStatusName(scope.row.status) }}
             </el-tag>
-            <el-icon v-if="scope.row.status === '1' && scope.row.appealTime" class="status-icon">
+            <el-icon v-if="scope.row.status === '1' && scope.row.noUrge === '0'" class="status-icon">
               <Document />
             </el-icon>
           </div>
@@ -124,14 +124,14 @@
               </template>
               <!-- 处理中状态 -->
               <template v-else-if="scope.row.status === '1'">
-                <!-- 处理按钮 - 处理中状态且appeal_time有值时显示 -->
-                <el-button v-if="scope.row.appealTime" v-throttle type="primary" size="small" @click="handleProcess(scope.row)">处理</el-button>
-                <!-- 处理按钮 - 处理中状态且appeal_time没有值时显示（置灰、不可点击） -->
-                <el-button v-if="!scope.row.appealTime" v-throttle type="primary" size="small" disabled>处理</el-button>
-                <!-- 查看按钮 - 处理中状态显示 -->
-                <el-button v-if="!scope.row.appealTime" v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
-                <!-- 催促按钮 - 处理中状态且appeal_time没有值时显示 -->
-                <el-button v-if="!scope.row.appealTime" v-throttle type="warning" size="small" @click="handleUrge(scope.row)">催促</el-button>
+                <!-- 处理按钮 - 处理中状态且noUrge为0时显示 -->
+                <el-button v-if="scope.row.noUrge === '0'" v-throttle type="primary" size="small" @click="handleProcess(scope.row)">处理</el-button>
+                <!-- 处理按钮 - 处理中状态且noUrge为1时显示（置灰、不可点击） -->
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="primary" size="small" disabled>处理</el-button>
+                <!-- 查看按钮 - 处理中状态且noUrge为1时显示 -->
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+                <!-- 催促按钮 - 处理中状态且且noUrge为1时显示 -->
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="warning" size="small" @click="handleUrge(scope.row)">催促</el-button>
               </template>
               <!-- 其他状态：只显示查看按钮 -->
               <template v-else>

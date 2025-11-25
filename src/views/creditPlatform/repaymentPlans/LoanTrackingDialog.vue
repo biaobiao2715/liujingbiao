@@ -1,119 +1,85 @@
-<!--
-  文件: creditPlatform/repaymentPlans/LoanTrackingDialog.vue
-  功能: 贷款追踪弹窗 - 显示贷款申请的各个阶段和时间节点
-  作者: [Your Name]
-  日期: 2025-11-24
--->
 <template>
-  <el-dialog 
-    :model-value="visible" 
-    width="1000px" 
-    class="loan-tracking-dialog" 
-    append-to-body 
-    destroy-on-close 
-    @close="handleClose"
-  >
+  <el-dialog :model-value="visible" width="1000px" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-header">
         <span class="dialog-title">贷款追踪</span>
       </div>
     </template>
-    
+
     <div v-loading="loading" class="dialog-content">
       <!-- 步骤条 -->
       <div class="steps-container">
-        <div 
-          v-for="(step, index) in trackingData" 
-          :key="index"
-          class="step-item"
-          :class="getStepClass(step.status)"
-        >
+        <div v-for="(step, index) in trackingData" :key="index" class="step-item" :class="getStepClass(step.status)">
           <!-- 步骤圆圈 -->
           <div class="step-circle">
             <span class="step-number">{{ index + 1 }}</span>
           </div>
-          
+
           <!-- 连接线 -->
-          <div 
-            v-if="index < trackingData.length - 1" 
-            class="step-line"
-            :class="{ 'active': isLineActive(index) }"
-          ></div>
-          
+          <div v-if="index < trackingData.length - 1" class="step-line" :class="{ 'active': isLineActive(index) }"></div>
+
           <!-- 步骤标题 -->
           <div class="step-title">{{ step.title }}</div>
         </div>
       </div>
-      
+
       <!-- 时间信息 -->
       <div class="time-details">
-        <div 
-          v-for="(step, index) in trackingData" 
-          :key="index"
-          class="time-item"
-        >
+        <div v-for="(step, index) in trackingData" :key="index" class="time-item">
           <!-- 单个时间 -->
           <div v-if="step.time && !step.times" class="time-tag">
             {{ step.time }}
           </div>
-          
+
           <!-- 多个时间 -->
-          <div 
-            v-else-if="step.times && step.times.length > 0" 
+          <div
+            v-else-if="step.times && step.times.length > 0"
             class="time-group"
             :class="{ 'expanded': repaymentExpanded[index] && step.times.length > DEFAULT_REPAYMENT_DISPLAY_COUNT }"
           >
             <template v-if="step.times.length <= DEFAULT_REPAYMENT_DISPLAY_COUNT">
-              <div 
-                v-for="(time, timeIndex) in step.times" 
-                :key="timeIndex" 
-                class="time-tag"
-              >
+              <div v-for="(time, timeIndex) in step.times" :key="timeIndex" class="time-tag">
                 <template v-if="typeof time === 'string'">
                   {{ time }}
                 </template>
                 <template v-else>
-                  <span class="period-text">{{ time.period }}</span>{{ time.date }}
+                  <span class="period-text">{{ time.period }}</span
+                  >{{ time.date }}
                 </template>
               </div>
             </template>
             <template v-else>
               <!-- 显示前N个日期或全部日期 -->
-              <div 
-                v-for="(time, timeIndex) in (repaymentExpanded[index] ? step.times : step.times.slice(0, DEFAULT_REPAYMENT_DISPLAY_COUNT))" 
-                :key="timeIndex" 
+              <div
+                v-for="(time, timeIndex) in repaymentExpanded[index] ? step.times : step.times.slice(0, DEFAULT_REPAYMENT_DISPLAY_COUNT)"
+                :key="timeIndex"
                 class="time-tag"
               >
                 <template v-if="typeof time === 'string'">
                   {{ time }}
                 </template>
                 <template v-else>
-                  <span class="period-text">{{ time.period }}</span>{{ time.date }}
+                  <span class="period-text">{{ time.period }}</span
+                  >{{ time.date }}
                 </template>
               </div>
               <!-- 展开/收起按钮 -->
-              <el-button
-                type="primary"
-                link
-                size="small"
-                @click="toggleRepaymentExpand(index)"
-                class="expand-btn"
-              >
+              <el-button type="primary" link size="small" @click="toggleRepaymentExpand(index)" class="expand-btn">
                 {{ repaymentExpanded[index] ? '收起' : `展开全部(${step.times.length})` }}
-                <el-icon style="margin-left: 4px;">
+                <el-icon style="margin-left: 4px">
                   <ArrowDown v-if="!repaymentExpanded[index]" />
                   <ArrowUp v-else />
                 </el-icon>
               </el-button>
             </template>
           </div>
-          
+
           <!-- 空占位 -->
           <div v-else class="time-tag empty">--</div>
         </div>
       </div>
     </div>
-    
+
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleClose">关闭</el-button>
@@ -132,29 +98,29 @@ import { getTrackingInfo } from '@/api/creditPlatform/repaymentPlans';
  * 还款日期项数据结构
  */
 interface RepaymentDateItem {
-  period: string;  // 期数文本，如"第一期"、"第二期"
-  date: string;   // 日期字符串
+  period: string; // 期数文本，如"第一期"、"第二期"
+  date: string; // 日期字符串
 }
 
 /**
  * 追踪步骤数据结构
  */
 interface TrackingStep {
-  title: string;                                    // 步骤标题
-  time?: string;                                    // 单个时间点
-  times?: string[] | RepaymentDateItem[];          // 多个时间点（用于一个步骤有多个时间记录）
-  status: 'wait' | 'process' | 'finish' | 'error';  // 步骤状态：等待/进行中/完成/错误
+  title: string; // 步骤标题
+  time?: string; // 单个时间点
+  times?: string[] | RepaymentDateItem[]; // 多个时间点（用于一个步骤有多个时间记录）
+  status: 'wait' | 'process' | 'finish' | 'error'; // 步骤状态：等待/进行中/完成/错误
 }
 
 // 组件属性
 const props = defineProps<{
-  visible: boolean;                  // 弹窗显示状态
-  data: Record<string, any> | null;  // 贷款申请数据
+  visible: boolean; // 弹窗显示状态
+  data: Record<string, any> | null; // 贷款申请数据
 }>();
 
 // 组件事件
 const emit = defineEmits<{
-  (event: 'update:visible', payload: boolean): void;  // 更新弹窗显示状态
+  (event: 'update:visible', payload: boolean): void; // 更新弹窗显示状态
 }>();
 
 // 加载状态
@@ -169,7 +135,6 @@ const repaymentExpanded = ref<Record<number, boolean>>({});
 // 默认显示的还款日期数量
 const DEFAULT_REPAYMENT_DISPLAY_COUNT = 5;
 
-
 /**
  * 获取步骤样式类
  * @param status - 步骤状态
@@ -177,10 +142,10 @@ const DEFAULT_REPAYMENT_DISPLAY_COUNT = 5;
  */
 const getStepClass = (status: string) => {
   return {
-    'step-finished': status === 'finish',    // 已完成
-    'step-processing': status === 'process',  // 进行中
-    'step-waiting': status === 'wait',        // 等待中
-    'step-error': status === 'error'          // 错误
+    'step-finished': status === 'finish', // 已完成
+    'step-processing': status === 'process', // 进行中
+    'step-waiting': status === 'wait', // 等待中
+    'step-error': status === 'error' // 错误
   };
 };
 
@@ -192,10 +157,9 @@ const getStepClass = (status: string) => {
 const isLineActive = (index: number) => {
   const currentStep = trackingData.value[index];
   const nextStep = trackingData.value[index + 1];
-  
+
   // 当前步骤已完成，且下一步骤已完成或进行中时，连接线激活
-  return currentStep.status === 'finish' && 
-         (nextStep.status === 'finish' || nextStep.status === 'process');
+  return currentStep.status === 'finish' && (nextStep.status === 'finish' || nextStep.status === 'process');
 };
 
 /**
@@ -204,7 +168,7 @@ const isLineActive = (index: number) => {
  */
 const fetchTrackingData = async () => {
   if (!props.data?.id) return;
-  
+
   loading.value = true;
   try {
     const res = await getTrackingInfo(props.data.id);
@@ -229,21 +193,21 @@ const fetchTrackingData = async () => {
  */
 const formatDateOnly = (dateStr: string | null | undefined): string => {
   if (!dateStr) return '';
-  
+
   const str = String(dateStr).trim();
   if (!str || str === '--' || str === 'null') return '';
-  
+
   // 如果已经是 YYYY-MM-DD 格式，直接返回
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
     return str;
   }
-  
+
   // 如果是 YYYY-MM-DD HH:mm:ss 格式，提取日期部分
   const dateMatch = str.match(/^(\d{4}-\d{2}-\d{2})/);
   if (dateMatch) {
     return dateMatch[1];
   }
-  
+
   // 尝试解析日期对象
   try {
     const date = new Date(str);
@@ -256,7 +220,7 @@ const formatDateOnly = (dateStr: string | null | undefined): string => {
   } catch (e) {
     // 解析失败，返回原字符串
   }
-  
+
   return str;
 };
 
@@ -267,34 +231,34 @@ const formatDateOnly = (dateStr: string | null | undefined): string => {
  */
 const parseRepaymentDateList = (repaymentDateList: string | null | undefined): RepaymentDateItem[] => {
   if (!repaymentDateList) return [];
-  
+
   const dateStr = String(repaymentDateList).trim();
   if (!dateStr || dateStr === '--' || dateStr === 'null') return [];
-  
+
   // 判断格式：如果包含"第X期:"，则是期数格式（分号分隔）
   if (dateStr.includes('期:')) {
     // 解析期数格式：第24期:2048-11-28 00:00:00;第23期:2046-12-28 00:00:00;
     const items: RepaymentDateItem[] = [];
     const parts = dateStr.split(';');
-    
-    parts.forEach(part => {
+
+    parts.forEach((part) => {
       const trimmed = part.trim();
       if (!trimmed) return;
-      
+
       // 提取期数和日期部分
       const colonIndex = trimmed.indexOf(':');
       if (colonIndex !== -1) {
         const periodPart = trimmed.substring(0, colonIndex).trim();
         const datePart = trimmed.substring(colonIndex + 1).trim();
-        
+
         if (datePart && datePart !== '--' && datePart !== 'null') {
           // 提取期数数字
           const periodMatch = periodPart.match(/(\d+)/);
           const periodNum = periodMatch ? parseInt(periodMatch[1]) : 0;
-          
+
           // 格式化日期，只显示年月日
           const formattedDate = formatDateOnly(datePart);
-          
+
           items.push({
             period: `第${periodNum}期`,
             date: formattedDate
@@ -302,27 +266,27 @@ const parseRepaymentDateList = (repaymentDateList: string | null | undefined): R
         }
       }
     });
-    
+
     // 按期数从小到大排序（从第一期开始）
     items.sort((a, b) => {
       const numA = parseInt(a.period.match(/(\d+)/)?.[1] || '0');
       const numB = parseInt(b.period.match(/(\d+)/)?.[1] || '0');
       return numA - numB;
     });
-    
+
     return items;
   } else {
     // 逗号分隔格式：2023-10-01,2023-11-01,2023-12-01
     const dates = dateStr
       .split(',')
-      .map(date => date.trim())
-      .filter(date => date && date !== '--' && date !== 'null');
-    
+      .map((date) => date.trim())
+      .filter((date) => date && date !== '--' && date !== 'null');
+
     // 按日期排序（从早到晚）
     dates.sort((a, b) => {
       return new Date(a).getTime() - new Date(b).getTime();
     });
-    
+
     // 转换为带期数的格式，并格式化日期
     return dates.map((date, index) => ({
       period: `第${index + 1}期`,
@@ -338,35 +302,35 @@ const parseRepaymentDateList = (repaymentDateList: string | null | undefined): R
  */
 const convertToTrackingSteps = (data: any): TrackingStep[] => {
   const steps: TrackingStep[] = [];
-  
+
   // 1. 申请提交
   steps.push({
     title: '申请',
     time: formatDateOnly(data.createTime),
     status: data.createTime ? 'finish' : 'wait'
   });
-  
+
   // 2. 审核中
   steps.push({
     title: '审批',
     time: formatDateOnly(data.reviewedAt),
     status: data.reviewedAt ? 'finish' : 'wait'
   });
-  
+
   // 3. 合同签署
   steps.push({
     title: '合同签订',
     time: formatDateOnly(data.contractSigningDate),
     status: data.contractSigningDate ? 'finish' : 'wait'
   });
-  
+
   // 4. 放款
   steps.push({
     title: '放贷',
     time: formatDateOnly(data.loanDate),
     status: data.loanDate ? 'finish' : 'wait'
   });
-  
+
   // 5. 还款中
   const repaymentDates = parseRepaymentDateList(data.repaymentDateList);
   const hasRepaymentDates = repaymentDates.length > 0;
@@ -375,14 +339,14 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
     ...(hasRepaymentDates ? { times: repaymentDates } : {}),
     status: hasRepaymentDates ? (data.completionDate ? 'finish' : 'process') : 'wait'
   });
-  
+
   // 6. 结清
   steps.push({
     title: '完结',
     time: formatDateOnly(data.completionDate),
     status: data.completionDate ? 'finish' : 'wait'
   });
-  
+
   return steps;
 };
 
@@ -421,17 +385,17 @@ const handleClose = () => {
     border-radius: 8px;
     overflow: hidden;
   }
-  
+
   :deep(.el-dialog__header) {
     padding: 20px 24px;
     background: #fafafa;
     border-bottom: 1px solid #e8e8e8;
   }
-  
+
   :deep(.el-dialog__body) {
     padding: 0;
   }
-  
+
   :deep(.el-dialog__footer) {
     padding: 16px 24px;
     background: #fafafa;
@@ -463,7 +427,7 @@ const handleClose = () => {
   padding: 0 15px;
   align-items: start;
   overflow: visible;
-  
+
   // 确保还款列有足够宽度
   > :nth-child(5) {
     min-width: 0;
@@ -483,7 +447,7 @@ const handleClose = () => {
   flex-direction: column;
   align-items: center;
   position: relative;
-  
+
   // 步骤圆圈
   .step-circle {
     width: 32px;
@@ -496,14 +460,14 @@ const handleClose = () => {
     background: #fff;
     position: relative;
     z-index: 2;
-    
+
     .step-number {
       font-size: 14px;
       font-weight: 600;
       color: #999;
     }
   }
-  
+
   // 连接线
   .step-line {
     position: absolute;
@@ -513,12 +477,12 @@ const handleClose = () => {
     height: 2px;
     background: #e8e8e8;
     z-index: 1;
-    
+
     &.active {
       background: #52c41a;
     }
   }
-  
+
   // 步骤标题
   .step-title {
     margin-top: 12px;
@@ -527,66 +491,66 @@ const handleClose = () => {
     color: #666;
     text-align: center;
   }
-  
+
   // 已完成状态
   &.step-finished {
     .step-circle {
       background: #52c41a;
       border-color: #52c41a;
-      
+
       .step-number {
         color: #fff;
       }
     }
-    
+
     .step-title {
       color: #52c41a;
     }
   }
-  
+
   // 进行中状态
   &.step-processing {
     .step-circle {
       background: #1890ff;
       border-color: #1890ff;
-      
+
       .step-number {
         color: #fff;
       }
     }
-    
+
     .step-title {
       color: #1890ff;
     }
   }
-  
+
   // 等待状态
   &.step-waiting {
     .step-circle {
       background: #f5f5f5;
       border-color: #d9d9d9;
-      
+
       .step-number {
         color: #999;
       }
     }
-    
+
     .step-title {
       color: #999;
     }
   }
-  
+
   // 错误状态
   &.step-error {
     .step-circle {
       background: #ff4d4f;
       border-color: #ff4d4f;
-      
+
       .step-number {
         color: #fff;
       }
     }
-    
+
     .step-title {
       color: #ff4d4f;
     }
@@ -602,7 +566,7 @@ const handleClose = () => {
   min-width: 0; // 允许内容收缩
   width: 100%;
   overflow: visible;
-  
+
   .time-group {
     display: flex;
     flex-direction: column;
@@ -611,51 +575,51 @@ const handleClose = () => {
     width: 100%;
     padding: 4px 0;
     overflow: visible;
-    
+
     // 当展开时，添加滚动容器
     &.expanded {
       max-height: 300px;
       overflow-y: auto;
       overflow-x: visible;
       padding-right: 8px;
-      
+
       // 自定义滚动条样式
       &::-webkit-scrollbar {
         width: 6px;
       }
-      
+
       &::-webkit-scrollbar-track {
         background: #f5f5f5;
         border-radius: 3px;
       }
-      
+
       &::-webkit-scrollbar-thumb {
         background: #d9d9d9;
         border-radius: 3px;
-        
+
         &:hover {
           background: #bfbfbf;
         }
       }
     }
   }
-  
+
   .expand-btn {
     margin-top: 2px;
     font-size: 12px;
     padding: 4px 8px;
     color: #1890ff;
     white-space: nowrap;
-    
+
     &:hover {
       color: #40a9ff;
     }
-    
+
     .el-icon {
       transition: transform 0.3s ease;
     }
   }
-  
+
   .time-tag {
     font-size: 11px;
     color: #262626;
@@ -677,26 +641,26 @@ const handleClose = () => {
     overflow: visible;
     word-wrap: normal;
     word-break: keep-all;
-    
+
     // 期数文本样式
     .period-text {
       color: #1890ff;
       font-weight: 600;
       margin-right: 4px;
     }
-    
+
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       border-color: #1890ff;
       background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
     }
-    
+
     &.empty {
       color: #bfbfbf;
       background: #fafafa;
       border-color: #e8e8e8;
-      
+
       &:hover {
         transform: none;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -710,7 +674,7 @@ const handleClose = () => {
 // 弹窗底部
 .dialog-footer {
   text-align: center;
-  
+
   .el-button {
     min-width: 80px;
   }
@@ -721,11 +685,11 @@ const handleClose = () => {
   .dialog-content {
     padding: 20px 16px;
   }
-  
+
   .time-details {
     padding: 0 10px;
   }
-  
+
   .time-tag {
     min-width: 100px !important;
     font-size: 11px !important;

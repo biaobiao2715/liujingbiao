@@ -783,10 +783,16 @@ const getStatusScenarios = (): Record<string, any> => ({
   // 处理中状态 '1'
   '1': {
     title: '处理中',
+    appealTime: '',
     stages: [
       { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '处理中', time: '', active: true, show: true },
       { id: 3, name: '已驳回', time: '', active: false, show: true }
+    ],
+    stagesOther: [
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: '', active: true, show: true },
+      { id: 3, name: '已结案', time: '', active: false, show: true }
     ],
     currentStageId: 2
   },
@@ -812,7 +818,13 @@ const getStatusScenarios = (): Record<string, any> => ({
   // 已撤回状态 '4'
   '4': {
     title: '已撤回',
+    caseCode: '',
     stages: [
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: '', active: true, show: true },
+      { id: 3, name: '已撤回', time: '', active: true, show: true }
+    ],
+    stagesOther: [
       { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '已撤回', time: '', active: true, show: true }
     ],
@@ -822,21 +834,22 @@ const getStatusScenarios = (): Record<string, any> => ({
 
 // 当前状态场景
 const currentScenario = computed(() => {
-  const status = formData.value?.status || '0';
+  const status = String(props.status ?? formData.value?.status ?? '0');
   const statusScenarios = getStatusScenarios();
   const template = statusScenarios[status] || statusScenarios['0'];
+  const appealTime = (formData.value as any)?.appealTime ?? props.appealTime;
+  const caseCode = (formData.value as any)?.caseCode;
+  let baseStages = template.stages;
+  if (status === '1' && template.stagesOther) {
+    baseStages = appealTime ? template.stages : template.stagesOther;
+  } else if (status === '4' && template.stagesOther) {
+    baseStages = caseCode ? template.stages : template.stagesOther;
+  }
   const scenario = {
     title: template.title,
     currentStageId: template.currentStageId,
-    stages: template.stages.map((stage: any) => ({ ...stage }))
+    stages: baseStages.map((stage: any) => ({ ...stage }))
   };
-
-  if (status === '1') {
-    const thirdStage = scenario.stages.find((stage: any) => stage.id === 3);
-    if (thirdStage) {
-      thirdStage.name = props.appealTime ? '已驳回' : '已结案';
-    }
-  }
 
   if (status === '4' && isWithdrawnProcessing.value) {
     scenario.stages = [
