@@ -284,6 +284,8 @@ const REPAYMENT_METHOD_MAP: Record<string, string> = {
   '4': '先本后息'
 };
 
+const PENDING_STATUS_CODES = new Set(['0', '1']);
+
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
   loanDate: [
@@ -586,11 +588,16 @@ const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
 
 const isPendingStatus = computed(() => {
   const status = detailData.value?.applyStatus;
-  if (status === undefined || status === null || status === '') return false;
+  if (status !== undefined && status !== null && status !== '') {
+    if (PENDING_STATUS_CODES.has(String(status))) {
+      return true;
+    }
+  }
   const label = getApplyStatusLabel(status) || 
                 detailData.value?.applyStatusName || 
                 detailData.value?.applyStatusLabel || '';
-  return String(label).includes('待审');
+  const labelText = String(label);
+  return labelText.includes('待审') || labelText.includes('待审核');
 });
 
 const hasCompletedResult = computed(() => {
