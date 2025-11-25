@@ -1,7 +1,7 @@
 <template>
   <div class="price-prediction-component">
     <!-- 查询表单 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80" class="query-form">
+    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="110" class="query-form">
       <el-form-item label="产地:" prop="origin">
         <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 200px" />
       </el-form-item>
@@ -17,7 +17,7 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="handleQuery">查询</el-button>
+        <el-button type="primary" @click="handleQuery" style="margin-right: 12px">查询</el-button>
         <el-button @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
@@ -420,31 +420,55 @@ defineExpose({
 
 <style scoped lang="scss">
 .price-prediction-component {
-  padding: 12px;
+  padding: 24px;
   background-color: #fff;
 
   .query-form {
-    margin-bottom: 16px;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 10;
 
-    .el-form-item {
-      margin-bottom: 0;
+    :deep(.el-form-item) {
+      margin-right: 24px !important;
+      margin-bottom: 0 !important;
+    }
+
+    // 最后一个表单项不需要右边距
+    :deep(.el-form-item:last-child) {
+      margin-right: 0 !important;
+    }
+
+    :deep(.el-form-item__label) {
+      padding-right: 8px;
+    }
+
+    :deep(.el-form-item__content) {
+      margin-left: 0 !important;
     }
 
     :deep(.goods-category) {
       width: 200px;
     }
+
+    // 确保下拉菜单不被遮挡
+    :deep(.el-select-dropdown),
+    :deep(.el-popper) {
+      z-index: 3000 !important;
+    }
   }
 
   .chart-analysis-wrapper {
     display: flex;
-    gap: 20px;
+    gap: 24px;
     margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
 
     .chart-section {
       flex: 2;
       background-color: #fff;
       border-radius: 4px;
-      padding: 16px;
+      padding: 24px;
       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
@@ -454,7 +478,7 @@ defineExpose({
         font-size: 16px;
         font-weight: bold;
         text-align: center;
-        margin-bottom: 16px;
+        margin-bottom: 24px;
         color: #303133;
         flex-shrink: 0;
       }
@@ -477,23 +501,27 @@ defineExpose({
       .analysis-card {
         background-color: #fffbe6; // 浅黄色背景
         border-radius: 4px;
-        padding: 16px;
+        padding: 24px;
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
         border: 1px solid #ffe58f;
 
         .analysis-title {
           font-size: 16px;
           font-weight: bold;
-          margin-bottom: 12px;
+          margin-bottom: 20px;
           color: #303133;
         }
 
         .analysis-content {
           p {
-            margin-bottom: 12px;
+            margin-bottom: 18px;
             font-size: 14px;
             color: #606266;
             line-height: 1.8;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
 
             strong {
               color: #303133;

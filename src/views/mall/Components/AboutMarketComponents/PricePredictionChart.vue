@@ -98,13 +98,15 @@ const updateChart = () => {
       ],
       top: 10,
       textStyle: {
-        fontSize: 12
+        fontSize: 13,
+        color: '#303133',
+        fontWeight: 'normal'
       }
     },
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '3%',
+      bottom: '8%',
       top: '15%',
       containLabel: true
     },
@@ -114,10 +116,18 @@ const updateChart = () => {
       data: props.months,
       name: '时间 (月份)',
       nameLocation: 'middle',
-      nameGap: 30,
+      nameGap: 40,
+      nameTextStyle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#303133'
+      },
       axisLabel: {
-        fontSize: 12,
-        color: '#606266'
+        fontSize: 13,
+        color: '#303133',
+        fontWeight: 'normal',
+        rotate: 0,
+        margin: 12
       },
       axisLine: {
         lineStyle: {
@@ -129,12 +139,19 @@ const updateChart = () => {
       type: 'value',
       name: '价格 (元/斤)',
       nameLocation: 'end',
+      nameTextStyle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#303133',
+        padding: [0, 0, 0, 10]
+      },
       min: props.yAxisMin,
       max: props.yAxisMax,
       interval: props.yAxisInterval,
       axisLabel: {
-        fontSize: 12,
-        color: '#606266'
+        fontSize: 13,
+        color: '#303133',
+        fontWeight: 'normal'
       },
       axisLine: {
         lineStyle: {
