@@ -11,15 +11,15 @@
     - 注释补充: 2025-11-24 Copilot
 -->
 <template>
-  <div class="supplier-edit-details">
+  <div class="supplier-edit-details" :class="{ 'details-mode': DetailsStatus === 'details' }">
     <!-- 基础信息 -->
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px">
       <!-- 供应商/企业 -->
-      <div v-if="userStore.userType === '2' || userStore.userType === '3'">
+      <div v-if="userType === '2' || userType === '3'">
         <div class="detail-form-card">
           <div class="detail-form-card-header">
             <div class="card-title">企业基础信息</div>
-            <div class="card-close" @click="handleShowDetails">产品详情</div>
+            <el-button v-throttle type="primary" class="card-close" @click="handleShowDetails">产品详情</el-button>
           </div>
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
@@ -86,15 +86,15 @@
           <div class="detail-form-card-header">
             <div class="card-title">法人信息</div>
           </div>
-          <el-row :gutter="20">
+          <el-row :gutter="20" :class="DetailsStatus === 'details' ? 'detail-form' : ''">
             <el-col :span="12">
               <el-form-item label="法人姓名" prop="legalPersonName">
-                <el-input v-model="formData.legalPersonName"></el-input>
+                <el-input v-model="formData.legalPersonName" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="联系电话" prop="legalPersonContactPhone">
-                <el-input v-model="formData.legalPersonContactPhone"></el-input>
+                <el-input v-model="formData.legalPersonContactPhone" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -106,7 +106,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="证件号码" prop="legalPersonIdCardNumber">
-                <el-input v-model="formData.legalPersonIdCardNumber"></el-input>
+                <el-input v-model="formData.legalPersonIdCardNumber" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -164,15 +164,15 @@
           <div class="detail-form-card-header">
             <div class="card-title">申请人</div>
           </div>
-          <el-row :gutter="20">
+          <el-row :gutter="20" :class="DetailsStatus === 'details' ? 'detail-form' : ''">
             <el-col :span="12">
               <el-form-item label="申请人" prop="realName">
-                <el-input v-model="formData.realName"></el-input>
+                <el-input v-model="formData.realName" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="联系电话" prop="contactPhone">
-                <el-input v-model="formData.contactPhone"></el-input>
+                <el-input v-model="formData.contactPhone" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -183,6 +183,7 @@
                   list-type="picture-card"
                   action="#"
                   accept="image/*"
+                  DetailsStatus
                   :on-preview="handlePictureCardPreview"
                   :before-upload="uploaderIdFront.beforeUpload"
                   :http-request="uploaderIdFront.uploadRequest"
@@ -224,7 +225,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="授权文件 (PDF)" prop="authorizationFile" class="uploadcss">
+              <el-form-item label="授权文件" prop="authorizationFile" class="uploadcss">
                 <el-upload
                   :file-list="uploaderAuthorization.files.value"
                   :limit="1"
@@ -255,10 +256,10 @@
           <div class="detail-form-card-header">
             <div class="card-title">个人信息</div>
           </div>
-          <el-row :gutter="20">
+          <el-row :gutter="20" :class="DetailsStatus === 'details' ? 'detail-form' : ''">
             <el-col :span="12">
               <el-form-item label="姓名" prop="realName">
-                <el-input v-model="formData.realName"></el-input>
+                <el-input v-model="formData.realName" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -269,23 +270,24 @@
                   type="date"
                   style="width: 100%"
                   :disabled-date="disableFutureDate"
+                  :disabled="DetailsStatus === 'details'"
                   placeholder="请选择出生年月"
                 ></el-date-picker>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="证件号码" prop="idCardNumber">
-                <el-input v-model="formData.idCardNumber"></el-input>
+                <el-input v-model="formData.idCardNumber" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="手机号" prop="contactPhone">
-                <el-input v-model="formData.contactPhone"></el-input>
+                <el-input v-model="formData.contactPhone" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="联系地址" prop="contactAddress">
-                <el-input v-model="formData.contactAddress"></el-input>
+                <el-input v-model="formData.contactAddress" :disabled="DetailsStatus === 'details'"></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12"></el-col>
@@ -345,31 +347,32 @@
         <div class="detail-form-card-header">
           <div class="card-title">贷款信息</div>
         </div>
-        <el-row :gutter="20">
+        <el-row :gutter="20" :class="DetailsStatus === 'details' ? 'detail-form' : ''">
           <el-col :span="12">
             <el-form-item label="贷款金额" prop="loanAmount">
-              <el-input v-model="formData.loanAmount">
+              <div v-if="DetailsStatus === 'details'" style="color: #a8abb2; padding-left: 12px">{{ formData.loanAmount }}万元</div>
+              <el-input v-model="formData.loanAmount" v-else>
                 <template #append>万元</template>
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="贷款周期" prop="loanTerm">
-              <el-select v-model="formData.loanTerm" placeholder="贷款周期" filterable clearable>
+              <el-select v-model="formData.loanTerm" placeholder="贷款周期" filterable clearable :disabled="DetailsStatus === 'details'">
                 <el-option v-for="dict in loanCycleOptions" :key="dict.value" :label="dict.label + '期'" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="还款方式" prop="repaymentMethod">
-              <el-select v-model="formData.repaymentMethod" placeholder="还款方式" filterable clearable>
+              <el-select v-model="formData.repaymentMethod" placeholder="还款方式" filterable clearable :disabled="DetailsStatus === 'details'">
                 <el-option v-for="dict in repaymentMethodOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="收款卡银行" prop="collectionBankCode">
-              <el-select v-model="formData.collectionBankCode" placeholder="收款卡银行" filterable clearable>
+              <el-select v-model="formData.collectionBankCode" placeholder="收款卡银行" filterable clearable :disabled="DetailsStatus === 'details'">
                 <el-option v-for="dict in bank_code" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
@@ -377,7 +380,7 @@
 
           <el-col :span="12">
             <el-form-item label="银行卡号" prop="bankAccountNumber">
-              <el-input v-model="formData.bankAccountNumber"></el-input>
+              <el-input v-model="formData.bankAccountNumber" :disabled="DetailsStatus === 'details'"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12"></el-col>
@@ -433,9 +436,14 @@
       </div>
 
       <!-- 操作按钮 -->
-      <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px">
+      <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px" v-if="DetailsStatus === 'add'">
         <el-col :span="3"><el-button v-throttle type="primary" @click="submitApply">提交申请</el-button></el-col>
         <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowDetails" plain>返回</el-button></el-col>
+      </el-row>
+
+      <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px" v-if="formData.applyStatus === '1' && DetailsStatus === 'details'">
+        <el-col :span="3"><el-button v-throttle type="primary" @click="submitPutApply">申请退回</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowClsoe" plain>返回</el-button></el-col>
       </el-row>
 
       <div style="height: 160px"></div>
@@ -454,6 +462,7 @@ import {
   applyPersonalLoan,
   applyEnterpriseLoan,
   getLoanApplicationsId,
+  putLoanApplications,
   ossUploadImage
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
@@ -477,11 +486,23 @@ const props = defineProps({
     required: null
   }
 });
+// 子组件对外事件
+const emit = defineEmits<{
+  (e: 'switchShowArea', payload: { type: string; id: string | number }): void;
+}>();
+// 根据是否存在 props.id 来决定初始详情/编辑模式：存在申请ID则进入详情模式
+const hasExistingApplyId = !!(props.id || props.id === 0);
+const DetailsStatus = ref<'add' | 'details'>(hasExistingApplyId ? 'details' : 'add');
+// userType 计算：只取一次 store 引用，避免多次调用 useUserStore()
 const userStore = useUserStore();
+const userType = computed(() => userStore.userType);
 // 产品详情信息（包含限制条件：最大额度/可选周期/可选还款方式等）
 const productDetails = ref<any>({});
+// 采购商详情信息（仅在 userType 为 1 时使用）
+const buyerDetails = ref<any>({});
 // 企业/供应商详情信息（仅在 userType 为 2 / 3 时使用）
 const supplierDetails = ref<any>({});
+// 表单引用
 const formRef = ref<FormInstance>();
 // ======================== 表单数据（核心申请字段 + 上传对应的 ossId） ========================
 const formData = ref<any>({
@@ -499,6 +520,11 @@ const formData = ref<any>({
   repaymentMethod: '',
   collectionBankCode: '',
   bankAccountNumber: '',
+  // 图片直链回显（可选）
+  idFrontUrl: '',
+  idBackUrl: '',
+  bankFrontUrl: '',
+  bankBackUrl: '',
   // 后端字段：法人身份证正反面
   idCardPhotoFront2: '',
   idCardPhotoBack2: '',
@@ -671,22 +697,25 @@ const rules: FormRules = {
 };
 
 // ======================== 构建提交载荷 ========================
+function mapLenderTypeByUserType(ut: string | number) {
+  const v = String(ut);
+  if (v === '1') return '0';
+  if (v === '2') return '2';
+  if (v === '3') return '1';
+  return '1';
+}
 function buildPayload() {
-  // 说明: 根据产品详情与当前用户类型整合后端所需字段；未在表单里直接暴露的字段（productVersion / lenderType 等）一起塞入
-  const base: any = {
-    productId: productDetails.value.productId || '',
+  return {
+    productId: productDetails.value.id || '',
     productVersion: productDetails.value.productVersion || '',
-    lenderType: userStore.userType,
-    lenderId: userStore.userId,
-
+    lenderType: mapLenderTypeByUserType(userType.value),
+    lenderId: userType.value === '1' ? buyerDetails.value.id || '' : supplierDetails.value.id || '',
     applyStatus: '1',
     idCardType: '0',
     idCardNumber: formData.value.legalPersonIdCardNumber || '',
     collectionAccountName: formData.value.realName || '',
-
     ...formData.value
   };
-  return base;
 }
 
 // 提交申请
@@ -702,14 +731,13 @@ const submitApply = async () => {
   }
   const payload = buildPayload();
   try {
-    const apiFn = userStore.userType === '1' ? applyPersonalLoan : applyEnterpriseLoan;
+    const apiFn = userType.value === '1' ? applyPersonalLoan : applyEnterpriseLoan;
     const res = await apiFn(payload);
     if (res.code === 200) {
       ElMessage.success('提交成功');
       setTimeout(() => {
         eventBus.emit('showComponentByCommand', {
-          type: 'LoanProductsComponentApplyForm',
-          productId: props.id
+          type: 'area'
         });
       }, 3000);
     }
@@ -719,7 +747,37 @@ const submitApply = async () => {
 };
 // 查看产品详情
 const handleShowDetails = () => {
-  eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentDetails', id: props.productId });
+  const id = props.productId ?? productDetails.value?.id;
+  emit('switchShowArea', { type: 'LoanProductsComponentDetails', id });
+};
+
+const submitPutApply = async () => {
+  // ======================== 提交退回主流程 ========================
+  // 1. 直接调用退回接口
+  // 2. 成功后提示
+  const payload = {
+    ...formData.value,
+    applyStatus: '99'
+  };
+  try {
+    const res = await putLoanApplications(payload);
+    if (res.code === 200) {
+      ElMessage.success('申请退回成功');
+      setTimeout(() => {
+        eventBus.emit('showComponentByCommand', {
+          type: 'area'
+        });
+      }, 3000);
+    }
+  } catch (e: any) {
+  } finally {
+  }
+};
+
+const handleShowClsoe = () => {
+  eventBus.emit('showComponentByCommand', {
+    type: 'area'
+  });
 };
 
 interface SingleUploader {
@@ -760,6 +818,8 @@ function createSingleUploader(targetField: keyof typeof formData.value, exceedMs
         // 写入 ossId
         formData.value[targetField] = res.data?.ossId || '';
       } else {
+        files.value = [];
+        formData.value[targetField] = '';
         ElMessage.error(res.msg || '上传失败');
       }
     } catch (e: any) {
@@ -856,62 +916,105 @@ watch(
 // ========== 字典筛选（根据产品详情限制可选项） ==========
 // 贷款周期可选项（由产品详情的 loanCycle 决定）
 const loanCycleOptions = computed(() => {
-  // 根据产品配置的 loanCycle 字符串过滤可选周期字典项
-  const cycleStr = productDetails.value?.loanCycle ?? '';
+  // 详情模式下直接返回全部周期字典
+  if (DetailsStatus.value === 'details') return loan_cycle.value || [];
+  // 普通模式：仅按后端给定的枚举值精确匹配；若后端仅返回单个数字字符串如 "36"，则只返回对应这一项
+  const cycleStr = (productDetails.value?.loanCycle ?? '').trim();
   if (!cycleStr) return [];
-  const allowed = cycleStr.split(',');
-  return (loan_cycle.value || []).filter((item: any) => allowed.includes(item.value));
+  const allowed = cycleStr
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const dict = loan_cycle.value || [];
+  return dict.filter((item: any) => allowed.includes(String(item.value)));
 });
 // 还款方式可选项（由产品详情的 repaymentMethod 决定）
 const repaymentMethodOptions = computed(() => {
+  if (DetailsStatus.value === 'details') return repayment_method.value || [];
   // 根据产品配置的 repaymentMethod 字符串过滤可选还款方式字典项
   const repayStr = productDetails.value?.repaymentMethod ?? '';
   if (!repayStr) return [];
   const allowed = repayStr.split(',');
   return (repayment_method.value || []).filter((item: any) => allowed.includes(item.value));
 });
-
+// ========== 初始化加载逻辑 ==========
+async function loadProductDetails() {
+  const pid = props.productId || productDetails.value.id || formData.value.productId;
+  if (!pid) return;
+  const res = await getCreditProductsVersionDetailNoTenant(pid).catch(() => null);
+  if (res && res.code === 200) productDetails.value = res.data || {};
+}
+// 加载采购商详情（新增/编辑模式下补充生日字段）
+async function loadPurchaserDetails() {
+  const res = await getBasePurchaser().catch(() => null);
+  if (res && res.code === 200) {
+    buyerDetails.value = res.data || {};
+    formData.value.realName = res.data.name ?? formData.value.realName;
+    formData.value.contactPhone = res.data.phoneNumber ?? formData.value.contactPhone;
+  }
+}
+// 加载供应商/企业详情（新增/编辑模式下补充生日字段）
+async function loadEnterpriseDetails() {
+  const res = await getBaseEnterpriseInfo().catch(() => null);
+  if (res && res.code === 200) {
+    supplierDetails.value = res.data || {};
+    formData.value.legalPersonName = res.data.legalPerson ?? formData.value.legalPersonName;
+    formData.value.legalPersonContactPhone = res.data.phoneNumber ?? formData.value.legalPersonContactPhone;
+    formData.value.legalPersonIdCardType = '0';
+  }
+}
+// 新增/编辑模式下补充生日字段（若已有则不覆盖）
+async function populateBirthdayIfNeeded(src: any) {
+  if (userType.value !== '1') return; // 仅个人需要生日解析
+  const rawBirthday = src?.idCardBirthday ?? formData.value.idCardBirthday;
+  if (rawBirthday) {
+    formData.value.idCardBirthday = rawBirthday;
+    return;
+  }
+  const sourceId = src?.idCardNumber || formData.value.idCardNumber;
+  const parsed = parseIdCardBirthday(String(sourceId || ''));
+  formData.value.idCardBirthday = parsed ? `${parsed.slice(0, 4)}-${parsed.slice(4, 6)}-${parsed.slice(6, 8)}` : '';
+}
 onMounted(async () => {
-  // ======================== 生命周期: 初始化加载 ========================
-  // 1. 拉取产品详情
-  // 2. 根据 userType 拉取采购商或企业基本信息并填充表单
-  // 3. 若存在 props.id 则回显已有申请信息
-  getCreditProductsVersionDetailNoTenant(props.productId).then((res) => {
-    if (res.code === 200) {
-      productDetails.value = res.data || {};
-    }
-  });
-  // 采购商
-  if (userStore.userType == '1') {
-    const res = await getBasePurchaser();
-    if (res.code === 200) {
-      formData.value.realName = res.data.name ?? '';
-      formData.value.contactPhone = res.data.phoneNumber ?? '';
-    }
-  }
-  // 供应商/企业
-  if (userStore.userType == '2' || userStore.userType == '3') {
-    const res = await getBaseEnterpriseInfo();
-    if (res.code === 200) {
-      supplierDetails.value = res.data || {};
-      formData.value = {
-        ...formData.value,
-        // 法人信息
-        legalPersonName: res.data.legalPerson ?? '',
-        legalPersonContactPhone: res.data.phoneNumber ?? '',
-        legalPersonIdCardType: '0'
+  // 统一的加载顺序：若是编辑模式先加载申请详情，再补充产品与主体详情；否则直接加载产品 + 主体详情
+  if (hasExistingApplyId) {
+    const applyRes = await getLoanApplicationsId(props.id as any).catch(() => null);
+    if (applyRes && applyRes.code === 200) {
+      formData.value = { ...formData.value, ...(applyRes.data || {}) };
+      // 根据详情返回的直链回显图片（可选）
+      const setFromUrl = (uploader: ReturnType<typeof createSingleUploader>, url?: string) => {
+        const u = String(url || '').trim();
+        if (!u) {
+          uploader.files.value = [];
+          return;
+        }
+        uploader.files.value = [
+          {
+            name: '已上传',
+            status: 'success',
+            url: u,
+            uid: Math.random().toString(36).slice(2)
+          } as any
+        ];
       };
+      // 身份证（申请人/个人）
+      setFromUrl(uploaderIdFront, formData.value.idFrontUrl);
+      setFromUrl(uploaderIdBack, formData.value.idBackUrl);
+      // 银行卡
+      setFromUrl(uploaderBankFront, formData.value.bankFrontUrl);
+      setFromUrl(uploaderBankBack, formData.value.bankBackUrl);
+      await populateBirthdayIfNeeded(applyRes.data);
+      // 编辑模式下也尝试加载产品详情（可能限制显示）
+      await loadProductDetails();
     }
+  } else {
+    await loadProductDetails();
   }
-  if (props.id) {
-    getLoanApplicationsId(props.id).then((v) => {
-      if (v.code === 200) {
-        formData.value = {
-          ...formData.value,
-          ...(v.data || {})
-        };
-      }
-    });
+  // 主体详情加载
+  if (userType.value === '1') {
+    await loadPurchaserDetails();
+  } else if (userType.value === '2' || userType.value === '3') {
+    await loadEnterpriseDetails();
   }
 });
 </script>
@@ -1011,5 +1114,9 @@ onMounted(async () => {
   line-height: 64px;
   margin-right: 10px;
   float: left;
+}
+/* 详情模式下隐藏上传的占位卡片 */
+.supplier-edit-details.details-mode ::v-deep .el-upload--picture-card {
+  display: none;
 }
 </style>

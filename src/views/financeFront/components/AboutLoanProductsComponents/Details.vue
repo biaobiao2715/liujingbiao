@@ -10,7 +10,7 @@
   <div>
     <div class="details_title">
       <div class="item-left">
-        <div class="item_productName">{{ form?.productName }}fffff</div>
+        <div class="item_productName">{{ form?.productName }}</div>
         <dict-text class="item_type" :options="prod_credit_type" :value="form.productType ?? ''" />
         <div class="item_productIntro">{{ form?.productIntro }}</div>
         <div class="kpi-list">
@@ -283,7 +283,6 @@ const getArticleDetail = async () => {
 }
 
 .item_productName {
-  width: 394px;
   height: 69px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
@@ -294,6 +293,7 @@ const getArticleDetail = async () => {
   font-style: normal;
   text-transform: none;
   margin-bottom: 22px;
+  white-space: nowrap;
 }
 
 .item_type {
@@ -305,12 +305,11 @@ const getArticleDetail = async () => {
   font-size: 30px;
   color: #ffffff;
   text-align: left;
-  font-style: normal;
-  text-transform: none;
   background: linear-gradient(270deg, rgba(5, 238, 130, 0) 0%, rgba(255, 255, 255, 0.34) 100%);
   border-radius: 0px 0px 0px 0px;
   margin-bottom: 19px;
   padding-left: 20px;
+  white-space: nowrap;
 }
 
 .item_productIntro {
