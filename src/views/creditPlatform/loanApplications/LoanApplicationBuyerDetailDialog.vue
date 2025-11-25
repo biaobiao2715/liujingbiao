@@ -90,10 +90,10 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item label="放款日期" prop="loanDate" required>
+          <el-form-item label="放款日期" prop="loanDate" :required="approvalForm.opinion !== 'reject'">
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item label="第一期还款日期" prop="firstRepaymentDate" required>
+          <el-form-item label="第一期还款日期" prop="firstRepaymentDate" :required="approvalForm.opinion !== 'reject'">
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
               type="date"
@@ -102,7 +102,7 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item label="贷款合同" prop="contractId" class="contract-field">
+          <el-form-item label="贷款合同" prop="contractId" class="contract-field" :required="approvalForm.opinion !== 'reject'">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -213,6 +213,20 @@ const approvalForm = reactive({
   contractId: '',
   contractFiles: [] as any[]
 });
+
+const createConditionalRequiredValidator = (message: string) => {
+  return (_rule: any, value: any, callback: (error?: Error) => void) => {
+    if (approvalForm.opinion === 'reject') {
+      callback();
+      return;
+    }
+    if (value === undefined || value === null || value === '') {
+      callback(new Error(message));
+    } else {
+      callback();
+    }
+  };
+};
 const submittingApproval = ref(false);
 const contractUploading = ref(false);
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
@@ -236,9 +250,9 @@ const APPLY_STATUS_MAP: Record<string, string> = {
 
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
-  loanDate: [{ required: true, message: '请选择放款日期', trigger: 'change' }],
-  firstRepaymentDate: [{ required: true, message: '请选择第一期还款日期', trigger: 'change' }],
-  contractId: [{ required: true, message: '请上传贷款合同', trigger: 'change' }]
+  loanDate: [{ validator: createConditionalRequiredValidator('请选择放款日期'), trigger: 'change' }],
+  firstRepaymentDate: [{ validator: createConditionalRequiredValidator('请选择第一期还款日期'), trigger: 'change' }],
+  contractId: [{ validator: createConditionalRequiredValidator('请上传贷款合同'), trigger: 'change' }]
 };
 /**
  * 格式化值，空值返回 '--'
@@ -536,6 +550,20 @@ watch(
   (val) => {
     if (val) {
       resetApprovalForm();
+    }
+  }
+);
+
+watch(
+  () => approvalForm.opinion,
+  (val) => {
+    if (!approvalFormRef.value) return;
+    if (val === 'reject') {
+      approvalFormRef.value.clearValidate?.(['loanDate', 'firstRepaymentDate', 'contractId']);
+    } else {
+      nextTick(() => {
+        approvalFormRef.value?.validateField?.(['loanDate', 'firstRepaymentDate', 'contractId']);
+      });
     }
   }
 );
