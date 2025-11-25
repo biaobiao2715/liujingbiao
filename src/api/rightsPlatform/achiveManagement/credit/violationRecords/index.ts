@@ -111,6 +111,9 @@ export interface HnReportHistoryVo {
   reportTypeId?: number;
   status?: string;
   [property: string]: any;
+  appealReason?: any;
+  appealTime?: any;
+  backAppealReason?: any;
 }
 
 export interface MapDate {

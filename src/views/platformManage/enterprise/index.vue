@@ -23,7 +23,7 @@
           <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="审核时间" prop="reviewTime">
+      <!-- <el-form-item label="审核时间" prop="reviewTime">
         <el-date-picker
           v-model="queryParams.reviewTime"
           type="datetimerange"
@@ -34,7 +34,7 @@
           start-placeholder="开始时间"
           end-placeholder="结束时间"
         />
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>

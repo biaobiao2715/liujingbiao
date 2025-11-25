@@ -20,11 +20,11 @@
             <el-input v-model="formData.companyName" disabled></el-input>
           </el-form-item>
 
-          <el-form-item label="注册地址">
-            <el-input v-model="areaCodes" disabled></el-input>
+          <el-form-item label="注册资本">
+            <el-input v-model="formData.signUpCapital" disabled></el-input>
           </el-form-item>
 
-          <el-form-item label="详情地址">
+          <el-form-item label="注册地址">
             <el-input v-model="formData.signUpAddress" disabled></el-input>
           </el-form-item>
 
@@ -48,7 +48,8 @@
           </el-form-item>
 
           <el-form-item label="注册日期">
-            <el-input v-model="formData.signUpTime" disabled></el-input>
+            <!-- <el-input v-model="formData.signUpTime" disabled></el-input> -->
+            <div style="color: #a8abb2; padding-left: 12px">{{ proxy.parseTime(formData.signUpTime, 'yyyy-MM-dd') }}</div>
           </el-form-item>
 
           <el-form-item label="营业执照">
@@ -366,27 +367,25 @@ const getSupplierDetails = async () => {
  * @returns 是否通过校验
  */
 const validateAudit = (status: number): boolean => {
-  // 资质等级必选
-  if (!formData.value.credentialLevel) {
-    ElMessage.error('请选择资质等级');
-    return false;
-  }
-
-  // 信用等级必选
-  if (!formData.value.creditLevel) {
-    ElMessage.error('请选择信用等级');
-    return false;
-  }
-
-  // 审核不通过：必须填写审核意见
+  // 审核退回：审核意见必填
   if (status === 99 && !formData.value.reviewRemark?.trim()) {
     ElMessage.error('请填写审核意见');
     return false;
   }
 
-  // 审核通过：可在这里添加额外的必填校验（按业务需要开启）
-  // if (status === 1) {
-  // }
+  // 审核通过：统一校验必填字段，便于后续扩展
+  if (status === 1) {
+    const requiredForPass: Array<{ key: keyof FormData; msg: string }> = [
+      { key: 'credentialLevel', msg: '请选择资质等级' },
+      { key: 'creditLevel', msg: '请选择信用等级' }
+    ];
+    for (const { key, msg } of requiredForPass) {
+      if (!formData.value[key]) {
+        ElMessage.error(msg);
+        return false;
+      }
+    }
+  }
 
   return true;
 };
