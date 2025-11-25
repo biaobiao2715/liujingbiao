@@ -87,6 +87,10 @@
             <span v-else>--</span>
           </el-descriptions-item>
         </el-descriptions>
+      </div>
+
+      <div class="detail-section">
+        <div class="section-title">产品信息</div>
         <div class="product-link">
           <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
