@@ -108,9 +108,10 @@ div<!--
               v-throttle
               type="success"
               size="small"
+              :disabled="scope.row.rejectTimes === '3' || scope.row.appealTime != 'null'"
               @click="handleAppeal(scope.row)"
             >
-              申述
+              申诉
             </el-button>
 
             <!-- 撤回按钮 - 只在待处理和处理中状态显示 -->
