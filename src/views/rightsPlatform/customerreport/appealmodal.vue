@@ -40,11 +40,42 @@
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
       <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
-        <el-step title="待处理"></el-step>
-        <el-step title="处理中"></el-step>
-        <el-step v-show="Number(formData.status) == 2" title="已驳回"></el-step>
-        <el-step v-show="Number(formData.status) == 3" title="已结案"></el-step>
-        <el-step v-show="Number(formData.status) == 4" title="已撤回"></el-step>
+        <el-step title="待处理">
+          <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList[0] && hnReportHistoryList[0].createTime">
+              {{ hnReportHistoryList[0].createTime }}
+          </div>
+          </template>
+        </el-step>
+        <el-step title="处理中">
+          <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList[1] && hnReportHistoryList[1].createTime">
+            {{ hnReportHistoryList[1].createTime }}
+          </div>
+        </template>
+        </el-step>
+        <el-step title="已驳回">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList[2] && hnReportHistoryList[2].createTime">
+              {{ hnReportHistoryList[2].createTime }}
+            </div>
+          </template>
+
+        </el-step>
+        <el-step title="已结案">
+          <template #description>
+              <div v-if="hnReportHistoryList && hnReportHistoryList[3] && hnReportHistoryList[3].createTime">
+              {{ hnReportHistoryList[3].createTime }}
+            </div>
+            </template>
+        </el-step>
+        <el-step title="已撤回">
+            <template #description>
+              <div v-if="hnReportHistoryList && hnReportHistoryList[4] && hnReportHistoryList[4].createTime">
+                {{ hnReportHistoryList[4].createTime }}
+              </div>
+            </template>
+        </el-step>
       </el-steps>
     </el-form>
     <div class="section-title">案件类型</div>
@@ -180,6 +211,7 @@ const emit = defineEmits<{
 const tocSidebarRef = ref();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const casetableData = ref([]); //案件类型list
+const hnReportHistoryList = ref([]); //案件类型list
 const count = ref(0);
 // 使用字典数据
 const { report_status, report_type_id } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id'));
@@ -285,6 +317,8 @@ const fetchContentDetail = async () => {
         status: data.status || ''
       };
       casetableData.value = data.reportCaseFiling || [];
+      hnReportHistoryList.value = data.hnReportHistoryList || [];
+      presentarguments.value= data.appealReason  
       // 加载附件数据
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
         attachmentList.value = data.ossVoList.map((item: any) => {
