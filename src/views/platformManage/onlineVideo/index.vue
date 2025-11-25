@@ -98,7 +98,7 @@
             <el-button v-if="scope.row.videoStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
-            <el-button v-throttle type="danger" size="small" v-hasPermi="['skill:onlineVideo:remove']" @click="handleDeleteSingle(scope.row)">
+            <el-button v-throttle v-show="scope.row.videoStatus === '2'" type="danger" size="small" v-hasPermi="['skill:onlineVideo:remove']" @click="handleDeleteSingle(scope.row)">
               删除
             </el-button>
           </div>

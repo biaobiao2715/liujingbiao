@@ -232,10 +232,9 @@ const handleRemove = () => {
 // 处理提交
 const handleSubmit = async () => {
   if (!formRef.value) return;
+  const valid = await formRef.value.validate();
+  if (!valid) return;
   try {
-    const valid = await formRef.value.validate();
-    if (!valid) return;
-
     saving.value = true;
     const apiMethod = props.type === 'add' ? hnOnlineVideoadd : hnOnlineVideoupdate;
     await apiMethod(formData.value);

@@ -108,7 +108,7 @@
             {{ formatFileSize(row.fileSize) }}
           </template>
         </el-table-column>
-        <el-table-column label="版本号" width="120" align="center">
+        <el-table-column label="版本号11" width="120" align="center">
           <template #default>{{ currentVersion }}</template>
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
@@ -128,13 +128,13 @@
         <el-table :data="pagedLegalBasisHistoryList" border size="small">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column prop="updateTime" label="修改时间" width="180" align="center" />
-          <el-table-column prop="fileName" label="附件名称" min-width="200" />
+          <el-table-column prop="originalName" label="附件名称" min-width="200" />
           <el-table-column prop="fileSize" label="附件大小" width="120" align="center">
             <template #default="{ row }">
               {{ formatFileSize(row.fileSize) }}
             </template>
           </el-table-column>
-          <el-table-column prop="version" label="历史版本" width="120" align="center" />
+          <el-table-column prop="versionNo" label="历史版本" width="120" align="center" />
           <el-table-column prop="remark" label="备注" min-width="180" />
           <el-table-column label="操作" width="100" align="center">
             <template #default="{ row }">
@@ -560,14 +560,20 @@ const handleLegalBasisUploadChange = async (file: any) => {
     const response = await ossUploadImage({ file: raw });
     const data = response?.data || {};
     let nextVersion = currentVersion.value;
-    // 版本号只在第一次上传时变化，后续上传使用相同的版本号
+    // 编辑模式：版本号只在第一次上传时变化，后续上传使用相同版本
     // 变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
-    if (!isUpload.value) {
-      nextVersion = getNextVersion(currentVersion.value);
-      currentVersion.value = nextVersion;
-      isUpload.value = true; // 标记已上传，后续上传不再变化版本号
+    if (!isAddMode.value) {
+      if (!isUpload.value) {
+        nextVersion = getNextVersion(currentVersion.value);
+        currentVersion.value = nextVersion;
+        isUpload.value = true; // 标记已上传，后续上传不再变化版本号
+      } else {
+        nextVersion = currentVersion.value; // 使用已变化的版本号
+      }
     } else {
-      nextVersion = currentVersion.value; // 使用已变化的版本号
+      // 新增模式：版本号始终为 1.0
+      nextVersion = '1.0';
+      currentVersion.value = '1.0';
     }
     const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
     const uploadTimeText = formatDateTime(uploadTimestamp);
@@ -620,16 +626,16 @@ const handleDownloadLegalBasisFile = async (file: LegalFile) => {
 };
 
 const handleDownloadLegalBasisHistory = async (file: HistoryFile) => {
-  if (!file.url) {
+  if (!file.ossInfo.url) {
     ElMessage.error('下载地址不存在');
     return;
   }
   try {
-    const response = await fetch(file.url);
+    const response = await fetch(file.ossInfo.url);
     const blob = await response.blob();
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = file.fileName || '文件';
+    link.download = file.ossInfo.originalName || '文件';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

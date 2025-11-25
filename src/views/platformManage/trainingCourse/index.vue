@@ -138,7 +138,7 @@
             <el-button v-if="scope.row.cultivateStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
-            <el-button v-throttle type="danger" size="small" @click="handleDeleteSingle(scope.row)" v-hasPermi="['skill:courseCultivate:remove']">
+            <el-button v-throttle v-show="scope.row.cultivateStatus === '2'" type="danger" size="small" @click="handleDeleteSingle(scope.row)" v-hasPermi="['skill:courseCultivate:remove']">
               删除
             </el-button>
           </div>
@@ -208,7 +208,9 @@ const queryParams = ref({
   cultivateStatus: '', // 所属状态
   publishStartTime: '', // 发布开始时间
   publishEndTime: '', // 发布结束时间
-  cultivateName: '' // 课程标题
+  cultivateName: '', // 课程标题
+  orderByColumn:'publishTime', // 需要排序的列名
+  isAsc:'desc' // 排序方式
 });
 
 // 表格数据
@@ -284,7 +286,9 @@ const handleReset = () => {
     cultivateStatus: '', // 所属状态
     publishStartTime: '', // 发布开始时间
     publishEndTime: '', // 发布结束时间
-    cultivateName: '' // 课程标题
+    cultivateName: '', // 课程标题
+    orderByColumn:'publishTime', // 需要排序的列名
+    isAsc:'desc' // 排序方式
   };
   handleQuery();
 };
