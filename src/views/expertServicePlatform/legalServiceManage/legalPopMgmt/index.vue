@@ -70,7 +70,7 @@
         </el-col>
       </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
