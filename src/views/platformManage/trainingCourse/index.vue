@@ -33,8 +33,8 @@
         />
       </el-form-item>
       <!-- 发布人 -->
-      <el-form-item label="发布人" prop="publishUse">
-        <el-input v-model="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="发布人" prop="publishUser">
+        <el-input v-model="queryParams.publishUser" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="cultivateStatus">
@@ -114,6 +114,13 @@
       <el-table-column label="状态" align="center" prop="cultivateStatus" width="100">
         <template #default="scope">
           <dict-tag :options="cultivate_status" :value="scope.row.cultivateStatus" />
+        </template>
+      </el-table-column>
+
+      <!-- 发布人 -->
+      <el-table-column label="发布人" align="center" prop="publishUser" width="120">
+        <template #default="scope">
+          <span>{{ scope.row.publishUser }}</span>
         </template>
       </el-table-column>
 
@@ -197,7 +204,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   cultivateType: '', //所属类别
-  publishUse: '', // 发布人
+  publishUser: '', // 发布人
   cultivateStatus: '', // 所属状态
   publishStartTime: '', // 发布开始时间
   publishEndTime: '', // 发布结束时间
@@ -273,7 +280,7 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     cultivateType: '', //所属类别
-    publishUse: '', // 发布人
+    publishUser: '', // 发布人
     cultivateStatus: '', // 所属状态
     publishStartTime: '', // 发布开始时间
     publishEndTime: '', // 发布结束时间
