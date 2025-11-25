@@ -208,7 +208,9 @@ const queryParams = ref({
   cultivateStatus: '', // 所属状态
   publishStartTime: '', // 发布开始时间
   publishEndTime: '', // 发布结束时间
-  cultivateName: '' // 课程标题
+  cultivateName: '', // 课程标题
+  orderByColumn:'publishTime', // 需要排序的列名
+  isAsc:'desc' // 排序方式
 });
 
 // 表格数据
@@ -284,7 +286,9 @@ const handleReset = () => {
     cultivateStatus: '', // 所属状态
     publishStartTime: '', // 发布开始时间
     publishEndTime: '', // 发布结束时间
-    cultivateName: '' // 课程标题
+    cultivateName: '', // 课程标题
+    orderByColumn:'publishTime', // 需要排序的列名
+    isAsc:'desc' // 排序方式
   };
   handleQuery();
 };
