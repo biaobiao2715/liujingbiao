@@ -72,8 +72,8 @@
           </el-table-column>
           <el-table-column label="操作" width="100" align="center">
             <template #default="{ row, $index }">
-              <el-button v-if="isViewMode" type="text" @click="handleDownloadFile(row)">下载</el-button>
-              <el-button v-else type="text" @click="handleRemoveFile($index)">删除</el-button>
+              <el-button v-if="isViewMode" link type="primary" @click="handleDownloadFile(row)">下载</el-button>
+              <el-button v-else link type="danger" @click="handleRemoveFile($index)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -97,7 +97,7 @@
           <el-table-column prop="remark" label="备注" min-width="180" />
           <el-table-column label="操作" width="100" align="center">
             <template #default="{ row }">
-              <el-button type="text" @click="handleDownload(row)">下载</el-button>
+              <el-button link type="primary" @click="handleDownload(row)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
