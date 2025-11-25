@@ -197,7 +197,7 @@ onMounted(async () => {
 .cover {
   margin: 16px auto;
   width: 100%;
-  max-width: 1040px;
+  // max-width: 1040px;
   border-radius: 4px;
   overflow: hidden;
   background: #f5f7fa;
@@ -207,7 +207,7 @@ onMounted(async () => {
   width: 100%;
 }
 .content {
-  max-width: 1040px;
+  // max-width: 1040px;
   margin: 0 auto;
   padding: 12px 0 8px;
   line-height: 1.8;
@@ -215,7 +215,7 @@ onMounted(async () => {
   word-break: break-word;
 }
 .attachments {
-  max-width: 1040px;
+  // max-width: 1040px;
   margin: 12px auto 0;
 }
 .section-title {

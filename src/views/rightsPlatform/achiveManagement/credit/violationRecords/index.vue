@@ -87,6 +87,7 @@ const { case_status, case_type } = toRefs<any>(proxy?.useDict('case_status', 'ca
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  status: 3,
   caseCode: '',
   caseTypeId: '',
   reporterName: ''

@@ -39,7 +39,7 @@
           </div>
           <div class="loan-card__field-label">贷款金额（万元）</div>
           <div class="loan-card__amount-box">
-            {{ showAmount ? form?.maxLoanAmount : '*******' }}
+            {{ showAmount ? LoanAmount : '*******' }}
           </div>
           <div class="loan-card__actions">
             <el-button type="primary" class="loan-btn-main" @click="revealAmount">查看可贷金额</el-button>
@@ -86,7 +86,7 @@
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { eventBus } from '@/utils/eventBus';
-import { getCreditProductsVersionDetailNoTenant } from '@/api/financeFront/LoanProducts/index';
+import { getCreditProductsVersionDetailNoTenant, getCreditProductMoney } from '@/api/financeFront/LoanProducts/index';
 const props = defineProps({
   id: {
     type: String || Number,
@@ -116,6 +116,7 @@ const form = ref({
 
 const addShow = ref(true);
 const showAmount = ref(false);
+const LoanAmount = ref('');
 
 const revealAmount = () => {
   showAmount.value = !showAmount.value;
@@ -156,6 +157,7 @@ const downloadAttachmentByObj = async (file?: { originalName?: string; url?: str
 
 onMounted(() => {
   getArticleDetail();
+  getLoanAmount();
 });
 
 // 详情
@@ -163,6 +165,13 @@ const getArticleDetail = async () => {
   const res = await getCreditProductsVersionDetailNoTenant(props.id);
   if (res.code === 200) {
     form.value = res.data || {};
+  }
+};
+
+const getLoanAmount = async () => {
+  const res = await getCreditProductMoney(props.id);
+  if (res.code === 200) {
+    LoanAmount.value = res.data || {};
   }
 };
 </script>

@@ -73,11 +73,11 @@
         <el-table-column prop="fileName" label="附件名" align="center" />
         <el-table-column label="操作" width="250" align="center">
           <template #default="scope">
-            <el-button v-throttle text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+            <el-button v-throttle text @click="previewFile()" style="color: #108c58; border-color: #108c58; margin-right: 10px">
               <img src="@/assets/images/register1.svg" class="el-icon-view" />
-              <span style="height: 16px; line-height: 16px">预览</span>
+              <span style="height: 16px; line-height: 16px">重新上传</span>
             </el-button>
-            <el-button v-throttle text v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
+            <el-button v-throttle text @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
               <img src="@/assets/images/register4.svg" class="el-icon-view" />
               <span style="height: 16px; line-height: 16px">删除</span>
             </el-button>
@@ -108,7 +108,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-
+import { uploadByChunks } from '@/utils/chunkUpload';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['success', 'cancel']);
 
@@ -140,24 +140,46 @@ const rules = {
 
 const emitCancel = () => emit('cancel');
 
-// 监听内容变化，自动生成目录
+// 防止 watch 内部再次赋值造成递归
+const internalUpdating = ref(false);
+// 监听内容变化，自动生成目录（只在需要时回写）
 watch(
   () => form.value.articleContent,
   (val) => {
+    if (internalUpdating.value) return; // 跳过内部更新触发
+    if (!val) {
+      tocList.value = [];
+      return;
+    }
     const div = document.createElement('div');
     div.innerHTML = val;
     const headings = div.querySelectorAll('h1, h2, h3');
-    tocList.value = Array.from(headings).map((el, idx) => {
-      el.id = `toc-${idx}`; // 给标题加 id
-      return {
-        text: el.innerText,
-        tag: el.tagName,
-        id: el.id
-      };
+    const newToc: Array<any> = [];
+    let changed = false;
+    headings.forEach((el, idx) => {
+      // 保留已有 id，若无则生成（减少不必要的整体 HTML 重写）
+      if (!el.id) {
+        el.id = `toc-${idx}`;
+        changed = true;
+      }
+      newToc.push({
+        text: (el.textContent || '').trim(),
+        tag: el.tagName.toLowerCase(),
+        id: el.id,
+        level: Number(el.tagName.substring(1))
+      });
     });
-    // 把加了 id 的内容写回编辑器
-    form.value.articleContent = div.innerHTML;
-  }
+    tocList.value = newToc;
+    if (changed) {
+      const newHtml = div.innerHTML;
+      if (newHtml !== val) {
+        internalUpdating.value = true;
+        form.value.articleContent = newHtml;
+        queueMicrotask(() => (internalUpdating.value = false));
+      }
+    }
+  },
+  { flush: 'post' }
 );
 
 function scrollTo(id: string) {
@@ -206,45 +228,53 @@ const validateFile = (file: File) => {
   return true;
 };
 
-const handleChange = (file: any) => {
-  if (!validateFile(file.raw)) return;
+const handleChange = async (file: any) => {
+  const raw: File | undefined = file?.raw;
+  if (!raw) return;
+  if (!validateFile(raw)) return;
   proxy?.$modal.loading('正在上传附件，请稍候...');
-  ossUploadImage({ file: file.raw })
-    .then((res) => {
-      if (res.code === 200 && res.data?.ossId) {
-        fileListtable.value.push({
-          ossId: res.data.ossId,
-          fileName: res.data.fileName,
-          originalName: file.raw.name,
-          fileSuffix: file.raw.type,
-          url: res.data.url
-        });
-      } else {
-        ElMessage.error('上传失败，请重试');
-      }
-    })
-    .catch((error) => {
-      console.error('上传失败:', error);
-      ElMessage.error('上传失败，请重试');
-    })
-    .finally(() => proxy?.$modal.closeLoading());
-};
-
-const previewFile = async (file: any) => {
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   try {
-    const response = await fetch(file.url);
-    const blob = await response.blob();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = file.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    // 大文件：使用分片上传
+    if (raw.size > MAX_SIZE) {
+      const res = await uploadByChunks(raw, (p: number) => {
+        console.log(`上传进度: ${p}%`);
+      });
+      if (!res || !res.ossId) throw new Error('分片上传失败');
+      fileListtable.value.push({
+        uid: file.uid,
+        ossId: res.ossId,
+        fileName: res.fileName || raw.name,
+        name: res.fileName || raw.name,
+        originalName: res.fileName || raw.name,
+        fileSuffix: raw.type,
+        url: res.url
+      });
+    } else {
+      // 小文件：走原来的 FormData 普通上传
+      const response = await ossUploadImage({ file: raw });
+      if (response.code !== 200 || !response.data?.ossId) {
+        throw new Error(response?.msg || '上传失败');
+      }
+      fileListtable.value.push({
+        uid: file.uid,
+        ossId: response.data.ossId,
+        fileName: response.data.fileName || raw.name,
+        name: response.data.fileName || raw.name,
+        originalName: response.data.fileName || raw.name,
+        fileSuffix: raw.type,
+        url: response.data.url
+      });
+    }
   } catch (error) {
-    console.error('下载失败', error);
+    console.error('上传失败:', error);
+    ElMessage.error('上传失败，请重试');
+  } finally {
+    proxy?.$modal.closeLoading();
   }
 };
+
+const previewFile = async () => {};
 
 const removeFile = (file: any) => {
   const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
@@ -263,9 +293,8 @@ onMounted(async () => {
       };
       // 主图和规格数据不带入
       fileListtable.value = res.data.commonRelevanceFilesVos.map((file: any) => ({
-        fileName: file.originalName || '商品主图',
+        fileName: file.originalName || '文章附件',
         url: file.url,
-        fileType: '1',
         ossId: file.ossId,
         path: file.url
       }));
