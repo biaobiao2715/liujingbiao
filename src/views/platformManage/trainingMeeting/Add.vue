@@ -153,7 +153,7 @@ div<!--
           v-model:page="registrationParams.pageNum"
           v-model:limit="registrationParams.pageSize"
           v-model:total="registrationTotal"
-          @pagination="getRegistrationInfo"
+          @pagination="() => getRegistrationInfo(props?.data?.data?.id)"
         />
       </div>
       <!-- 底部按钮 -->
