@@ -22,7 +22,7 @@
       <el-row :gutter="20" v-show="activeTab === 'credit' && creditProducts.length > 0">
         <el-col :span="8" v-for="product in creditProducts" :key="product.productId">
           <div class="item">
-            <span class="tag">热门</span>
+            <span class="tag" v-if="product.creditProductsVersionVo.isTopThreeByViews">热门</span>
             <div class="header">
               <div class="flex-center favorite gap-8" @click="handleFavorite(product, 'credit')">
                 <span class="name">{{ product.creditProductsVersionVo.productName }}</span>

@@ -47,7 +47,8 @@ const liveData = ref<any[]>([]);
 const value = ref(0); // 0 默认，1 最新发布时间
 const options = ref([
   { label: '默认', value: 0 },
-  { label: '最新发布时间', value: 1 }
+  { label: '最新发布时间', value: 1 },
+  { label: '最多播放量', value: 2 }
 ]);
 
 // 获取直播列表
@@ -55,7 +56,8 @@ const getVideoList = async () => {
   loading.value = true;
   try {
     const res = await VideoList({
-      type: value.value // 0 默认，1 最新发布时间
+      videoStatus: '1', // 启用
+      type: value.value // 0 默认，1 最新发布时间 2 最多播放量
     });
     if (res.code === 200) {
       liveData.value = res.rows || res.data || [];

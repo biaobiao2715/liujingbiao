@@ -22,7 +22,7 @@
           <el-col :span="6" v-for="(course, index) in courseList" :key="index">
             <el-card shadow="hover">
               <div class="course-item" @click="handleDetail('courseDetail', course.id)">
-                <img :src="course.imageFile.url" class="course-image"  width="100"/>
+                <img :src="course.imageFile.url" class="course-image" width="100" />
                 <div class="hot flex-center gap-12">
                   <div class="views flex-center gap-2">
                     <el-icon size="20"><View /></el-icon>
@@ -36,8 +36,8 @@
                 </div>
                 <div class="course-info">
                   <div class="course-title">{{ course.cultivateName }}</div>
-                  <div class="course-type">{{ '课程类型 ' + course.cultivateType === '0' ? '农业知识' : '法律知识' }}</div>
-                  <div class="course-time">{{ '发布时间 ' + course.publishTime }}</div>
+                  <div class="course-type">{{ '课程类型: ' + (course.cultivateType === '0' ? '农业知识' : '法律知识') }}</div>
+                  <div class="course-time">{{ '发布时间: ' + course.publishTime }}</div>
                 </div>
               </div>
             </el-card>
