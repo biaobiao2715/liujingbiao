@@ -1,8 +1,9 @@
 <!--
-  文件: creditPlatform/repaymentPlans/index.vue
-  功能: 还款管理 - 显示已审批通过的贷款申请，管理还款情况、追踪和完结
-  作者: [Your Name]
-  日期: 2025-11-24
+  标题: creditPlatform/repaymentPlans/index.vue
+  功能: 显示已审批通过的贷款申请，管理还款情况、追踪和完结
+  说明: 展示贷后管理列表
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
 -->
 <template>
   <div class="loan-applications">
@@ -54,40 +55,16 @@
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据还款状态显示不同的提示按钮 -->
-            <el-button 
-              v-if="scope.row.planStatus === '0'" 
-              size="small" 
-              type="info" 
-              plain 
-              @click="handleNotification(scope.row, 'pending')"
-            >
+            <el-button v-if="scope.row.planStatus === '0'" size="small" type="info" plain @click="handleNotification(scope.row, 'pending')">
               待还款提示
             </el-button>
-            <el-button 
-              v-else-if="scope.row.planStatus === '1'" 
-              size="small" 
-              type="warning" 
-              plain 
-              @click="handleNotification(scope.row, 'repaying')"
-            >
+            <el-button v-else-if="scope.row.planStatus === '1'" size="small" type="warning" plain @click="handleNotification(scope.row, 'repaying')">
               还款提示
             </el-button>
-            <el-button 
-              v-else-if="scope.row.planStatus === '2'" 
-              size="small" 
-              type="success" 
-              plain 
-              @click="handleNotification(scope.row, 'completed')"
-            >
+            <el-button v-else-if="scope.row.planStatus === '2'" size="small" type="success" plain @click="handleNotification(scope.row, 'completed')">
               完结通知
             </el-button>
-            <el-button 
-              v-else-if="scope.row.planStatus === '3'" 
-              size="small" 
-              type="danger" 
-              plain 
-              @click="handleNotification(scope.row, 'overdue')"
-            >
+            <el-button v-else-if="scope.row.planStatus === '3'" size="small" type="danger" plain @click="handleNotification(scope.row, 'overdue')">
               逾期提示
             </el-button>
             <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
@@ -133,17 +110,17 @@ import RepaymentStatusDialog from './RepaymentStatusDialog.vue';
  * 还款计划数据结构
  */
 interface RepaymentPlan {
-  id: number | string;                // 申请ID
-  realName: string;                   // 申请人姓名
-  productName: string;                // 产品名称
-  productType?: string;               // 产品类型
-  applicableObject?: string;          // 适用对象
-  lenderType?: string;                // 适用对象类型: 0=采购商(个人), 1=企业, 2=供应商(企业)
-  lenderTyp?: string;                 // 适用对象(兼容字段)
-  loanAmount?: string | number;       // 贷款金额
-  loanTerm?: string | number;         // 贷款期限
-  reviewedAt?: string;                // 贷款审批通过时间
-  planStatus?: string;                // 还款状态: 0=待还款, 1=还款中, 2=已还清, 3=已逾期
+  id: number | string; // 申请ID
+  realName: string; // 申请人姓名
+  productName: string; // 产品名称
+  productType?: string; // 产品类型
+  applicableObject?: string; // 适用对象
+  lenderType?: string; // 适用对象类型: 0=采购商(个人), 1=企业, 2=供应商(企业)
+  lenderTyp?: string; // 适用对象(兼容字段)
+  loanAmount?: string | number; // 贷款金额
+  loanTerm?: string | number; // 贷款期限
+  reviewedAt?: string; // 贷款审批通过时间
+  planStatus?: string; // 还款状态: 0=待还款, 1=还款中, 2=已还清, 3=已逾期
 }
 
 // 获取字典数据
@@ -157,23 +134,23 @@ const queryFormRef = ref();
 
 // 查询参数
 const queryParams = ref({
-  pageNum: 1,           // 当前页码
-  pageSize: 10,         // 每页条数
-  realName: '',         // 申请人姓名
-  productType: '',      // 产品类型
-  applicableObject: ''  // 适用对象
+  pageNum: 1, // 当前页码
+  pageSize: 10, // 每页条数
+  realName: '', // 申请人姓名
+  productType: '', // 产品类型
+  applicableObject: '' // 适用对象
 });
 
 // 表格数据和状态
-const tableData = ref<RepaymentPlan[]>([]);  // 表格数据
-const total = ref(0);                        // 总条数
-const loading = ref(false);                  // 加载状态
+const tableData = ref<RepaymentPlan[]>([]); // 表格数据
+const total = ref(0); // 总条数
+const loading = ref(false); // 加载状态
 
 // 弹窗显示状态
-const detailDialogVisible = ref(false);            // 企业详情弹窗
-const buyerDetailDialogVisible = ref(false);       // 个人详情弹窗
-const trackingDialogVisible = ref(false);          // 追踪弹窗
-const repaymentStatusDialogVisible = ref(false);   // 还款情况弹窗
+const detailDialogVisible = ref(false); // 企业详情弹窗
+const buyerDetailDialogVisible = ref(false); // 个人详情弹窗
+const trackingDialogVisible = ref(false); // 追踪弹窗
+const repaymentStatusDialogVisible = ref(false); // 还款情况弹窗
 const detailData = ref<RepaymentPlan | null>(null); // 当前选中的数据
 
 /**
@@ -252,7 +229,7 @@ const handleRepayment = (row: RepaymentPlan) => {
  */
 const handleDetail = (row: RepaymentPlan) => {
   detailData.value = row;
-  
+
   // 根据 lenderType、applicableObject 或 lenderTyp 判断：0=采购商(个人)，1=企业，2=供应商(企业)
   const lenderType = row.lenderType ?? row.applicableObject ?? row.lenderTyp;
   const isPersonal = String(lenderType) === '0';
@@ -291,7 +268,7 @@ const handleNotification = (row: RepaymentPlan, type: 'pending' | 'repaying' | '
     completed: '完结通知',
     overdue: '逾期提示'
   };
-  
+
   ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[type]}吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -314,19 +291,21 @@ const handleDelete = (row: RepaymentPlan) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const response = await deleteRepaymentRecord(row.id);
-      if (response && response.code === 200) {
-        ElMessage.success('删除成功');
-        getList();
-      } else {
-        ElMessage.error(response?.msg || '删除失败');
+  })
+    .then(async () => {
+      try {
+        const response = await deleteRepaymentRecord(row.id);
+        if (response && response.code === 200) {
+          ElMessage.success('删除成功');
+          getList();
+        } else {
+          ElMessage.error(response?.msg || '删除失败');
+        }
+      } catch (error) {
+        ElMessage.error('删除失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('删除失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 // 每次页面激活时执行（从缓存中恢复）
