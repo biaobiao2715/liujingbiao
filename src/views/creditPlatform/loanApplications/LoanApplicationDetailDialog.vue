@@ -72,18 +72,15 @@
           <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
             {{ item.value }}
           </el-descriptions-item>
-        </el-descriptions>
-        <div class="bank-card-preview">
-          <div>银行卡号正反面：</div>
-          <div class="bank-card-images">
+          <el-descriptions-item label="银行卡正反面" :span="2">
             <template v-if="bankCardImages.length">
               <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
             </template>
-            <div v-else class="card-placeholder">暂无图片</div>
-          </div>
-        </div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+        </el-descriptions>
         <div class="product-link">
-          <el-button type="primary" plain size="large" @click="handleViewProductDetail">查看产品详情</el-button>
+          <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
       </div>
 
@@ -104,15 +101,13 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item
-            label="放款日期"
-            prop="loanDate"
-          >
+          <el-form-item label="放款日期" prop="loanDate" required>
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
           <el-form-item
             label="第一期还款日期"
             prop="firstRepaymentDate"
+            required
           >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
@@ -191,9 +186,7 @@
       </div>
     </div>
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">{{ isApprovalMode ? '关闭' : '返回' }}</el-button>
-      </div>
+      <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
   </el-dialog>
@@ -801,23 +794,30 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
+    color: #303133;
   }
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  background: #fefefe;
+  border-radius: 8px;
+  border: 1px solid #f0f2f5;
+  padding: 16px 20px;
+  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
+  color: #303133;
 
   &::before {
     content: '';
-    width: 6px;
+    width: 4px;
     height: 16px;
     background-color: #409eff;
     border-radius: 2px;
@@ -826,37 +826,28 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 }
 
 .license-image {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
+  border-radius: 4px;
   margin-right: 8px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
 }
 
 .image-placeholder,
 .card-placeholder {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
   border: 1px dashed #dcdfe6;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   color: #909399;
   font-size: 12px;
+  background: #fff;
 }
 
-.bank-card-preview {
-  margin-top: 12px;
-
-  .bank-card-images {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-  }
-}
 
 .product-link {
-  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
@@ -868,7 +859,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 }
 
 .approval-actions {
-  margin-top: 40px;
+  margin-top: 32px;
   display: flex;
   justify-content: center;
   gap: 12px;
@@ -884,6 +875,31 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.file-item {
+  margin-bottom: 8px;
+}
+
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  
+  .el-icon {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.file-placeholder {
+  color: #909399;
+  font-size: 14px;
 }
 
 .contract-view-btn {
@@ -964,7 +980,4 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   }
 }
 
-.dialog-footer {
-  text-align: right;
-}
 </style>

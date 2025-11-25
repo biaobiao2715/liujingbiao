@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="760px" class="buyer-detail-dialog" append-to-body destroy-on-close
+  <el-dialog :model-value="visible" width="900px" class="buyer-detail-dialog" append-to-body destroy-on-close
     :close-on-click-modal="false" @close="handleClose">
     <template #header>
       <div class="dialog-title">{{ dialogTitle }}</div>
@@ -83,7 +83,7 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item label="放款日期" prop="loanDate">
+          <el-form-item label="放款日期" prop="loanDate" required>
             <el-date-picker
               v-model="approvalForm.loanDate"
               type="date"
@@ -95,6 +95,7 @@
           <el-form-item
             label="第一期还款日期"
             prop="firstRepaymentDate"
+            required
           >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
