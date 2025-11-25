@@ -80,7 +80,6 @@ export function applyEnterpriseLoan(data: any) {
     data
   });
 }
-
 // 获取贷款申请详细信息
 
 export function getLoanApplicationsId(id: number | string) {
