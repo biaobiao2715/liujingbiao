@@ -41,7 +41,7 @@
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
-import { getOrdersComplianceRateInfo } from '@/api/platformManage/home';
+import { getOrdersComplianceRateInfo, exportOrdersComplianceRate } from '@/api/platformManage/home';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 
 type TimeRange = '1' | '2' | '3' | '4';
@@ -304,11 +304,21 @@ const changeRange = (value: TimeRange) => {
 };
 
 const handleExport = () => {
-  if (!proxy) return;
-  const params = buildCommonParams();
-  const fileName = '履约率统计.xlsx';
-  const url = '/grain-sales/marketAnalysisDaily/ordersComplianceRateExport';
-  proxy.download(url, params, fileName);
+  const dimensionMap: Record<TimeRange, string> = {
+    '1': 'day',
+    '2': 'week',
+    '3': 'month',
+    '4': 'year'
+  };
+  const dimension = dimensionMap[timeRange.value] || 'day';
+  const cat = categoryOption.value;
+  const categoryId = cat?.goodsCategoryId || '';
+  
+  const params = {
+    dimension: dimension,
+    categoryId: categoryId
+  };
+  exportOrdersComplianceRate(params);
 };
 
 onMounted(async () => {

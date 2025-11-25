@@ -6,6 +6,7 @@
 -->
 <template>
   <div class="content-detail-dialog" v-loading="loading">
+     <div class="title">{{ detailData?.contentTitle }}</div>
     <div class="article-meta">
       <div class="meta-left">
         <div class="author-info">
@@ -31,10 +32,6 @@
     <el-divider />
 
     <div class="content-details">
-      <div class="detail-row">
-        <span class="detail-value">{{ detailData.contentSummary || '-' }}</span>
-      </div>
-      
       <div class="detail-row content-row">
         <div class="detail-content" v-html="detailData.contentContent || '-'"></div>
       </div>
@@ -238,6 +235,14 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-detail-dialog {
   padding: 20px;
+}
+
+.title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16px;
 }
 
 .article-meta {
