@@ -261,7 +261,7 @@ onMounted(async () => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 200px;
-  height: auto;
+  width: 106px;
+  height: 106px;
 }
 </style>

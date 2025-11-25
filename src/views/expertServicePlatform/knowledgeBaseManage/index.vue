@@ -53,7 +53,7 @@
         <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleDisableBatch">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:delete']" type="primary" @click="handleDeleteBatch">删除</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:remove']" type="primary" @click="handleDeleteBatch">删除</el-button>
       </el-col>
     </el-row>
 
@@ -109,7 +109,7 @@
             >禁用</el-button
           >
           <el-button v-throttle v-hasPermi="['system:article:query']" type="primary" text @click="handleView(scope.row)">查看</el-button>
-          <el-button v-throttle v-hasPermi="['system:article:delete']" type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
+          <el-button v-throttle v-hasPermi="['system:article:remove']" type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -144,7 +144,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated, getCurrentInstance, type ComponentInternalInstance, computed, defineAsyncComponent, Suspense } from 'vue';
-import { useRoute } from 'vue-router';
 import { listArticles, delArticle, changeArticleStatus } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
