@@ -205,7 +205,7 @@ onMounted(() => {
   margin-right: 8px;
 }
 .menu-title::before {
-  background-image: url('@/assets/mall/60.png');
+  background-image: url('@/assets/images/finance/loan-header-icon.png');
 }
 .pagination {
   margin-top: 24px;

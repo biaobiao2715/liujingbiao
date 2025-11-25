@@ -49,25 +49,27 @@
       </div>
     </div>
 
-    <div class="detail-content">
+    <div class="detail-content detail-content--advantages">
       <div class="detail-content_title">产品优势</div>
       <div v-html="form?.productAdvantages"></div>
     </div>
 
-    <div class="detail-content">
-      <div class="detail-content_title">适用说明</div>
-      <div v-html="form?.applicableInstructions"></div>
-    </div>
+    <div class="detail-flex">
+      <div class="detail-content detail-content--applicable">
+        <div class="detail-content_title">适用对象</div>
+        <div v-html="form?.applicableInstructions"></div>
+      </div>
 
-    <div class="detail-content">
-      <div class="detail-content_title">申请条件</div>
-      <div v-html="form?.applicationInstructions"></div>
+      <div class="detail-content detail-content--conditions">
+        <div class="detail-content_title">申请条件</div>
+        <div v-html="form?.applicationInstructions"></div>
+      </div>
     </div>
 
     <div class="detail-content">
       <div class="detail-content_title">合作机构</div>
       <div v-if="firstAttachment" class="attachment-item" @click="downloadAttachmentByObj(firstAttachment)">
-        <span>{{ firstAttachment.originalName }}</span>
+        <span class="attachment-name">{{ firstAttachment.originalName }}</span>
         <span class="attachment-click">下载</span>
       </div>
       <div v-else class="attachment-empty">暂无附件</div>
@@ -174,7 +176,10 @@ const getArticleDetail = async () => {
   margin-bottom: 20px;
   padding: 40px 30px;
   border-radius: 8px 8px 8px 8px;
-  background: linear-gradient(319deg, #108c58 0%, rgba(16, 140, 105, 0.76) 100%);
+  /* 图片在上层，渐变在底层，确保图片可见 */
+  background:
+    url('@/assets/images/finance/loan-hero-decoration.png') right bottom / 224px 231px no-repeat,
+    linear-gradient(319deg, #108c58 0%, rgba(16, 140, 105, 0.76) 100%);
 }
 .item-left {
   flex: 1 1 auto;
@@ -183,7 +188,6 @@ const getArticleDetail = async () => {
 .item-right {
   width: 317px;
   height: 305px;
-  background: #ffffff;
   border-radius: 8px;
   flex: 0 0 317px;
   padding: 0 20px;
@@ -192,6 +196,12 @@ const getArticleDetail = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  /* 背景优化：保留白色底色 + 分离尺寸，稍作内边距偏移避免紧贴边缘 */
+  background: #ffffff url('@/assets/images/finance/loan-card-corner.png') no-repeat right 12px top 12px;
+  background-size: 71px 77px;
+  /* 视网膜屏细节提升（可选） */
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* 贷款卡片内部布局 */
@@ -331,12 +341,34 @@ const getArticleDetail = async () => {
   text-transform: none;
 }
 
+.detail-flex {
+  display: flex;
+  gap: 20px;
+}
+
 .detail-content {
   width: 100%;
   padding: 20px;
   background: #ffffff;
   border-radius: 8px 8px 8px 8px;
   margin-bottom: 20px;
+}
+
+/* 右下角背景图（根据需要替换各自的图片路径） */
+.detail-content--advantages {
+  min-height: 105px;
+  background: #ffffff url('@/assets/images/finance/section-advantages-decoration.png') no-repeat right 18px bottom 10px;
+  background-size: 85px auto;
+}
+.detail-content--applicable {
+  min-height: 111px;
+  background: #ffffff url('@/assets/images/finance/loan-applicable-decoration.png') no-repeat right 0px bottom 0px;
+  background-size: 135px 111px auto;
+}
+.detail-content--conditions {
+  min-height: 111px;
+  background: #ffffff url('@/assets/images/finance/loan-conditions-decoration.png') no-repeat right 0px bottom 0px;
+  background-size: 135px 111px auto;
 }
 
 .detail-content_title {
@@ -416,21 +448,28 @@ const getArticleDetail = async () => {
 }
 
 .attachment-item {
-  width: 232px;
-  height: 36px;
+  display: inline-flex; /* 允许宽度随内容撑开 */
+  align-items: center; /* 垂直居中 "下载" */
+  width: fit-content; /* 根据内容自适应宽度 */
+  max-width: 100%; /* 避免超出父容器 */
+  padding: 8px 16px; /* 内边距 */
+  margin-top: 15px;
   background: #f6f7fb;
-  border-radius: 4px 4px 4px 4px;
   border: 1px solid #eaeaea;
-
+  border-radius: 4px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 14px;
   color: #3d3d3d;
-  padding: 0px 19px 0px 16px;
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+.attachment-name {
+  flex: 0 1 auto; /* 不强制占满，跟随内容 */
+  word-break: break-all; /* 避免超长不换行导致溢出 */
+  white-space: nowrap; /* 与自适应宽度匹配，单行展示 */
+  line-height: 20px;
 }
 
 .attachment-click {
@@ -438,5 +477,7 @@ const getArticleDetail = async () => {
   font-weight: 500;
   font-size: 14px;
   color: #108c58;
+  cursor: pointer;
+  margin-left: 58px;
 }
 </style>

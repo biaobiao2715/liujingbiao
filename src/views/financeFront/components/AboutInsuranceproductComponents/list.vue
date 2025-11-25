@@ -169,7 +169,7 @@ onMounted(() => {
   margin-right: 8px;
 }
 .menu-title::before {
-  background-image: url('@/assets/mall/59.png');
+  background-image: url('@/assets/images/finance/insurance-header-icon.png');
 }
 .pagination {
   margin-top: 24px;

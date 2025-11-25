@@ -14,17 +14,17 @@
       <div class="item_productIntro">{{ form?.productIntro }}</div>
     </div>
 
-    <div class="detail-content">
+    <div class="detail-content detail-content--advantages">
       <div class="detail-content_title">保险特点</div>
       <div v-html="form?.productAdvantages"></div>
     </div>
 
-    <div class="detail-content">
+    <div class="detail-content detail-content--applicable">
       <div class="detail-content_title">保障计划</div>
       <div v-html="form?.guaranteePlan"></div>
     </div>
 
-    <div class="detail-content">
+    <div class="detail-content detail-content--conditions">
       <div class="detail-content_title">申请条件</div>
       <div v-html="form?.applicationInstructions"></div>
     </div>
@@ -116,7 +116,10 @@ const getArticleDetail = async () => {
   margin-bottom: 20px;
   padding: 40px 30px;
   border-radius: 8px 8px 8px 8px;
-  background: linear-gradient(319deg, #108c58 0%, rgba(16, 140, 105, 0.76) 100%);
+  /* 图片在上层，渐变在底层，确保图片可见 */
+  background:
+    url('@/assets/images/finance/loan-hero-decoration.png') right bottom / 224px 231px no-repeat,
+    linear-gradient(319deg, #108c58 0%, rgba(16, 140, 105, 0.76) 100%);
 }
 
 .item_productName {
@@ -174,6 +177,23 @@ const getArticleDetail = async () => {
   background: #ffffff;
   border-radius: 8px 8px 8px 8px;
   margin-bottom: 20px;
+}
+
+/* 右下角背景图（根据需要替换各自的图片路径） */
+.detail-content--advantages {
+  min-height: 105px;
+  background: #ffffff url('@/assets/images/finance/section-advantages-decoration.png') no-repeat right 18px bottom 10px;
+  background-size: 85px 85px auto;
+}
+.detail-content--applicable {
+  min-height: 105px;
+  background: #ffffff url('@/assets/images/finance/section-guarantee-decoration.png') no-repeat right 18px bottom 10px;
+  background-size: 85px 85px auto;
+}
+.detail-content--conditions {
+  min-height: 105px;
+  background: #ffffff url('@/assets/images/finance/section-conditions-decoration.png') no-repeat right 0px bottom 0px;
+  background-size: 85px 85px auto;
 }
 
 .detail-content_title {
