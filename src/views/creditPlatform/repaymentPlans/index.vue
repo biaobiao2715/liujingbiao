@@ -92,7 +92,7 @@
             </el-button>
             
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="info" plain @click="handleTracking(scope.row)">追踪</el-button>
+            <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
             <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getloanApplicationsList, deleteRepaymentRecord } from '@/api/creditPlatform/repaymentPlans';
@@ -330,6 +330,11 @@ const handleDelete = (row: RepaymentPlan) => {
   }).catch(() => {});
 };
 
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
+
 // 组件挂载时获取列表数据
 onMounted(() => {
   getList();
@@ -362,11 +367,15 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   .el-button {
     margin: 0;
+    flex-shrink: 0;
+    padding: 5px 10px;
+    font-size: 12px;
   }
 }
 
