@@ -647,7 +647,14 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
       throw new Error(res?.msg || '审批提交失败');
     }
   } catch (error: any) {
-    ElMessage.error(error?.message || '审批提交失败');
+    const responseData = error?.response?.data || error?.data || error;
+    const backendMessage =
+      responseData?.msg || error?.msg || error?.message || responseData?.message;
+    const isCancelledError =
+     backendMessage?.includes('该贷款申请已取消，不能进行审核');
+    if (!isCancelledError) {
+      ElMessage.error(backendMessage || '审批提交失败');
+    }
   } finally {
     submittingApproval.value = false;
     currentApprovalAction.value = null;
