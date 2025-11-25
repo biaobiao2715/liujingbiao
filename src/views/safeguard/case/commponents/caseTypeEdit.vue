@@ -571,9 +571,10 @@ const handleLegalBasisUploadChange = async (file: any) => {
         nextVersion = currentVersion.value; // 使用已变化的版本号
       }
     } else {
-      // 新增模式：版本号始终为 1.0
+      // 新增模式：版本号始终为 1.0，但仍需标记为已上传以便提交文件
       nextVersion = '1.0';
       currentVersion.value = '1.0';
+      isUpload.value = true;
     }
     const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
     const uploadTimeText = formatDateTime(uploadTimestamp);
