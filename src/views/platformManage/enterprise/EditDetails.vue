@@ -25,7 +25,7 @@
           </el-form-item>
 
           <el-form-item label="注册地址">
-            <el-input v-model="formData.signUpAddress" disabled></el-input>
+            <el-input v-model="AddressText" disabled></el-input>
           </el-form-item>
 
           <el-form-item label="办公地址">
@@ -49,7 +49,7 @@
 
           <el-form-item label="注册日期">
             <!-- <el-input v-model="formData.signUpTime" disabled></el-input> -->
-            <div style="color: #a8abb2; padding-left: 12px">{{ proxy.parseTime(formData.signUpTime, 'yyyy-MM-dd') }}</div>
+            <div style="color: #a8abb2; padding-left: 12px">{{ proxy.parseTime(formData.signUpTime, '{y}-{m}-{d}') }}</div>
           </el-form-item>
 
           <el-form-item label="营业执照">
@@ -360,6 +360,10 @@ const getSupplierDetails = async () => {
     loading.value = false;
   }
 };
+
+const AddressText = computed(() => {
+  return formData.value.province + formData.value.city + formData.value.district + formData.value.signUpAddress;
+});
 
 /**
  * 审核前置校验

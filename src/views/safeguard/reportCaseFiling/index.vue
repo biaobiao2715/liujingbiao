@@ -234,14 +234,14 @@ const getStatusName = (status: string | undefined | null) => {
 
 // 获取状态标签类型
 const getStatusTagType = (status: string | undefined | null) => {
-  const statusMap: Record<string, string> = {
+  const statusMap: Record<string, string | undefined> = {
     '0': 'info', // 待处理
     '1': 'warning', // 处理中
     '2': 'danger', // 已驳回
     '3': 'success', // 已结案
-    '4': '' // 已撤回
+    '4': undefined // 已撤回无需类型
   };
-  return statusMap[String(status)] || '';
+  return statusMap[String(status)];
 };
 
 // 获取列表数据

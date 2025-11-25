@@ -88,19 +88,19 @@
         <template #default="scope">
           <el-button
             v-throttle
-            v-hasPermi="['system:baseEnterpriseInfo:audit']"
-            v-if="scope.row.reviewStatus === '0'"
-            type="primary"
-            @click="handleEdit(scope.row, 'audit')"
-            >审核</el-button
-          >
-          <el-button
-            v-throttle
             v-hasPermi="['system:baseEnterpriseInfo:query']"
             v-if="scope.row.reviewStatus !== '0'"
             type="primary"
             @click="handleEdit(scope.row, 'view')"
             >查看</el-button
+          >
+          <el-button
+            v-throttle
+            v-hasPermi="['system:baseEnterpriseInfo:audit']"
+            v-if="scope.row.reviewStatus === '0'"
+            type="primary"
+            @click="handleEdit(scope.row, 'audit')"
+            >审核</el-button
           >
           <!-- <el-button
             v-throttle

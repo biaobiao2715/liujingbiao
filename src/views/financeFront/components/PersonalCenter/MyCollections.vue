@@ -65,8 +65,7 @@
         </el-col>
       </el-row>
 
-      <el-empty description="暂无收藏信贷产品" v-if="activeTab === 'credit' && creditProducts.length === 0" class="mt-24">
-      </el-empty>
+      <el-empty description="暂无收藏信贷产品" v-if="activeTab === 'credit' && creditProducts.length === 0" class="mt-24"> </el-empty>
 
       <!-- 保险 -->
       <el-row :gutter="20" v-show="activeTab === 'insurance' && insuranceProducts.length > 0">
@@ -96,8 +95,7 @@
           </el-card>
         </el-col>
       </el-row>
-      <el-empty description="暂无收藏保险产品" v-if="activeTab === 'insurance' && insuranceProducts.length === 0" class="mt-24">
-      </el-empty>
+      <el-empty description="暂无收藏保险产品" v-if="activeTab === 'insurance' && insuranceProducts.length === 0" class="mt-24"> </el-empty>
     </div>
   </div>
 </template>

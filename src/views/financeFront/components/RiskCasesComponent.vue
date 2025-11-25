@@ -17,6 +17,7 @@
         <div class="article-title mb-12" @click="handleDetail(item)">{{ item.articleTitle }}</div>
         <div class="article-summary">{{ item.articleSummary }}</div>
       </div>
+      <el-empty v-if="cases.length === 0" description="暂无风险案例"></el-empty>
     </div>
   </div>
 </template>

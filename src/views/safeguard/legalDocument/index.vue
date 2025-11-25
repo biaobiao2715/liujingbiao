@@ -174,7 +174,7 @@
             placeholder="请输入备注内容，最多输入200个字"
             maxlength="200"
             show-word-limit
-            rows="4"
+            :rows="4"
           />
         </el-form-item>
       </el-form>

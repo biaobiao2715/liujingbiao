@@ -192,7 +192,7 @@
                     <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
                   </template>
                 </el-table-column>
-                <el-table-column label="执法依据111" align="center">
+                <el-table-column label="执法依据" align="center">
                   <template v-slot="scope">
                     <span
                       style="color: #108c58; cursor: pointer"
@@ -202,7 +202,7 @@
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column label="执法文书模版111" align="center">
+                <el-table-column label="执法文书模版" align="center">
                   <template v-slot="scope">
                     <span
                       style="color: #108c58; cursor: pointer"

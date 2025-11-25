@@ -69,7 +69,7 @@
         </el-table-column>
         <el-table-column label="操作" v-if="!isViewMode" width="100" align="center">
           <template #default="{ $index }">
-            <el-button type="text" @click="handleRemoveKeyAttribute($index)">删除</el-button>
+            <el-button link type="danger" @click="handleRemoveKeyAttribute($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -108,13 +108,13 @@
             {{ formatFileSize(row.fileSize) }}
           </template>
         </el-table-column>
-        <el-table-column label="版本号11" width="120" align="center">
+        <el-table-column label="版本号" width="120" align="center">
           <template #default>{{ currentVersion }}</template>
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row, $index }">
-            <el-button v-if="isViewMode" type="text" @click="handleDownloadLegalBasisFile(row)">下载</el-button>
-            <el-button v-else type="text" @click="handleRemoveLegalBasisFile($index)">删除</el-button>
+            <el-button v-if="isViewMode" link type="primary" @click="handleDownloadLegalBasisFile(row)">下载</el-button>
+            <el-button v-else link type="danger" @click="handleRemoveLegalBasisFile($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -138,7 +138,7 @@
           <el-table-column prop="remark" label="备注" min-width="180" />
           <el-table-column label="操作" width="100" align="center">
             <template #default="{ row }">
-              <el-button type="text" @click="handleDownloadLegalBasisHistory(row)">下载</el-button>
+              <el-button link type="primary" @click="handleDownloadLegalBasisHistory(row)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -179,8 +179,8 @@
         <el-table-column prop="version" label="版本号" width="120" align="center" />
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row, $index }">
-            <el-button v-if="isViewMode || isAddMode" type="text" @click="handleDownloadLegalDocumentFile(row)">下载</el-button>
-            <el-button v-else type="text" @click="handleRemoveLegalDocumentFile($index)">删除</el-button>
+            <el-button v-if="isViewMode || isAddMode" link type="primary" @click="handleDownloadLegalDocumentFile(row)">下载</el-button>
+            <el-button v-else link type="danger" @click="handleRemoveLegalDocumentFile($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -204,7 +204,7 @@
           <el-table-column prop="remark" label="备注" min-width="180" />
           <el-table-column label="操作" width="100" align="center">
             <template #default="{ row }">
-              <el-button type="text" @click="handleDownloadLegalDocumentHistory(row)">下载</el-button>
+              <el-button link type="primary" @click="handleDownloadLegalDocumentHistory(row)">下载</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -571,9 +571,10 @@ const handleLegalBasisUploadChange = async (file: any) => {
         nextVersion = currentVersion.value; // 使用已变化的版本号
       }
     } else {
-      // 新增模式：版本号始终为 1.0
+      // 新增模式：版本号始终为 1.0，但仍需标记为已上传以便提交文件
       nextVersion = '1.0';
       currentVersion.value = '1.0';
+      isUpload.value = true;
     }
     const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
     const uploadTimeText = formatDateTime(uploadTimestamp);

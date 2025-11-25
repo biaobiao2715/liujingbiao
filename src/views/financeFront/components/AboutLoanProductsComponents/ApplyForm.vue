@@ -1004,8 +1004,8 @@ onMounted(async () => {
       setFromUrl(uploaderBankBack, formData.value.bankBackUrl);
 
       // 法人身份证
-      // setFromUrl(uploaderLegalFront, formData.value.legalPersonIdFrontUrl);
-      // setFromUrl(uploaderLegalBack, formData.value.legalPersonIdBackUrl);
+      setFromUrl(uploaderLegalFront, formData.value.frontCardUrl);
+      setFromUrl(uploaderLegalBack, formData.value.bankCardUrl);
       setFromUrl(uploaderAuthorization, formData.value.authorizationUrl);
       await populateBirthdayIfNeeded(applyRes.data);
       // 编辑模式下也尝试加载产品详情（可能限制显示）

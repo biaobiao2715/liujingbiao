@@ -1,3 +1,5 @@
+import type { UploadUserFile } from 'element-plus';
+import request from '@/utils/request';
 /**
  * 查询文章列表
  * GET skill-server/article/list
@@ -106,16 +108,6 @@ export const ossUploadImage = (data: { file: File }) => {
 };
 
 /**
- * 知识库文章接口
- * 模块说明：
- * - 列表查询、详情、增改、删除、批量状态修改（启用/禁用）
- * - 时间范围参数采用 params.beginTime / params.endTime（YYYY-MM-DD）
- * - 状态枚举：articleStatus => 0草稿 1待审核 2已发布(启用) 3已下架(禁用) 4审核不通过 99已关闭
- * - 类型枚举：articleType => 1种子技术类 2农资农具技术类 99其他
- */
-import request from '@/utils/request';
-
-/**
  * 列表查询参数
  * - pageNum 当前页数
  * - pageSize 分页大小
@@ -176,4 +168,11 @@ export interface ArticleDTO {
 export interface ChangeStatusPayload {
   ids: Array<number | string>;
   articleStatus: string | number; // 2 启用, 3 禁用
+}
+
+export interface ReportMaterial extends UploadUserFile {
+  ossId?: string | number;
+  fileName?: string;
+  fileType?: string;
+  url?: string;
 }

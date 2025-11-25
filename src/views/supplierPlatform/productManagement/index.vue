@@ -8,7 +8,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <el-form-item label="商品编码" prop="goodsCode">
         <el-input v-model="queryParams.goodsCode" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -86,7 +86,6 @@
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
       </el-col>
-      <right-toolbar :show-search="showSearch" @query-table="getList" />
     </el-row>
 
     <!-- 表格展示 -->
@@ -208,7 +207,6 @@ const tableData = ref<any[]>([]);
 const total = ref(0);
 const loading = ref(true);
 const queryFormRef = ref();
-const showSearch = ref(true);
 const actionLoading = ref<'shelf' | 'unshelf' | 'delete' | null>(null);
 // 选择集
 const selectedIds = ref<(string | number)[]>([]);

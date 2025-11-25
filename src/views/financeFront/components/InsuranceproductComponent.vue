@@ -33,6 +33,7 @@
           </div>
         </div>
       </div>
+      <el-empty v-if="cases.length === 0" description="保险产品对接中"></el-empty>
     </div>
   </div>
 </template>
@@ -52,7 +53,8 @@ const loading = ref(false);
 // 基础查询参数（如需筛选可在此扩展）
 const queryParams = ref({
   pageNum: 1,
-  pageSize: 10
+  pageSize: 10,
+  productStatus: '2'
 });
 
 // 产品类型（0成本保险、1价格保险、2收入保险、3气象指数保险

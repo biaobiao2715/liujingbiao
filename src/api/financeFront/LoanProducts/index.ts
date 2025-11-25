@@ -127,3 +127,11 @@ export function getLoanPersonalCenterList(data: any) {
     params: data
   });
 }
+
+// 获取角色对应的贷款金额
+export function getCreditProductMoney(id: number | string) {
+  return request({
+    url: `/credit-server/creditProductsVersion/getCreditProductMoney/${id}`,
+    method: 'get'
+  });
+}

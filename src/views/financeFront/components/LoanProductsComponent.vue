@@ -58,6 +58,7 @@
         </div>
       </el-col>
     </el-row>
+    <el-empty v-if="products.length === 0" description="金融产品对接中"></el-empty>
   </div>
 </template>
 

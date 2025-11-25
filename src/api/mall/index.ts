@@ -24,3 +24,12 @@ export function checkFavorite(data: any) {
     params: data
   });
 }
+
+// 获取信贷，保险产品轮播图
+export function getCreditProductCarousel(data) {
+  return request({
+    url: 'credit-server/creditProductsVersion/images',
+    method: 'get',
+    params: data
+  });
+}
