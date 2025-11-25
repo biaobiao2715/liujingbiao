@@ -17,7 +17,7 @@ export const reviewStatusMap = {
   '2': '分配账号',
   '3': '分配权限',
   '4': '入驻成功',
-  '99': '入驻失败'
+  '99': '审核失败'
 };
 
 export const getLegalExpertList = (query?: LegalExpertListRequest): Promise<IPublicResult<LegalExpertList>> => {
@@ -47,6 +47,14 @@ interface TechUpdateOrSaveDataRequest {
     startStopStatus?: '0' | '1';
     id?: number;
     reviewStatus?: '99' | '1' | '2' | '3' | '4';
+    folder?: {
+      folderName?: string;
+      folderType?: '0' | '1';
+      folderPath?: string;
+      ossBucketName?: string;
+      ossObjectName?: string;
+      ossUrl?: string;
+    }[];
   };
 }
 // 法务专家注册、审核、修改、启停

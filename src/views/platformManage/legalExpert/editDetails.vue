@@ -1,14 +1,14 @@
 <!-- 
 标题: legalExpertEditDetails.vue
-功能: 法律专家编辑详情
-说明: 
+功能: 法务专家编辑详情页
+说明: 用于法务专家编辑自己的详细信息
 开发信息: Create by 李刘超 2025-10-18 17:05:13
 当前版本: 1.0
 -->
 
 <template>
   <el-dialog
-    :title="operateMode === 'edit' ? '供应商编辑' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
+    :title="operateMode === 'edit' ? '法务专家编辑' : operateMode === 'audit' ? '法务专家审核' : '法务专家详情'"
     v-model="dialogVisible"
     width="80%"
   >
@@ -166,6 +166,11 @@ import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 import { getLegalExpertDetail, legalUpdateOrSaveData } from '@/api/platform/legalExpert';
 import { LegalExpertList } from '@/api/platform/legalExpert/types';
+// 子组件对外事件
+const emit = defineEmits<{
+  (e: 'refresh'): void;
+  (e: 'cancel'): void;
+}>();
 
 const route = useRoute();
 const { id, type } = route.query;
@@ -210,12 +215,18 @@ const handleSave = async () => {
     const response = await legalUpdateOrSaveData({
       // @ts-ignore
       hnBaseLegalExpertInfoBo: {
-        ...formData.value
+        ...formData.value,
+        folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
+          ...item,
+          ...(item.ossInfo || {})
+        }))
       },
       optType: '2'
     });
     if (response.code === 200) {
       ElMessage.success('保存成功');
+      emit('refresh');
+      dialogVisible.value = false;
     }
   } catch (error) {
     console.error('保存失败', error);
@@ -231,7 +242,11 @@ const handleAudit = async (status: '99' | '1') => {
       // @ts-ignore
       hnBaseLegalExpertInfoBo: {
         ...formData.value,
-        reviewStatus: status
+        reviewStatus: status,
+        folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
+          ...item,
+          ...(item.ossInfo || {})
+        }))
       },
       folder: formData.value.hnBaseRegisterFolderVoList,
       optType: '3'
@@ -240,6 +255,8 @@ const handleAudit = async (status: '99' | '1') => {
     if (res.code === 200) {
       ElMessage.success(status === '99' ? '审核退回成功' : '审核通过成功');
       operateMode.value = 'view';
+      emit('refresh');
+      dialogVisible.value = false;
     }
   } catch (error) {
     ElMessage.error('审核失败');

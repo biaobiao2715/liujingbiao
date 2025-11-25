@@ -68,7 +68,7 @@
               </el-form-item>
               <el-form-item label="还款金额：">
                 <div class="amount-input">
-                  <el-input v-model="item.principalAmount" type="number" :min="0" :step="1" />
+                  <el-input v-model="item.totalAmount" type="number" :min="0" :step="1" />
                   <span class="unit">元</span>
                 </div>
               </el-form-item>

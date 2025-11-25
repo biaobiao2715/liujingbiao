@@ -41,12 +41,12 @@
         </el-form>
 
         <!-- 表格 -->
-        <el-table ref="tableRef" :data="list" border style="width: 100%" :header-cell-style="{ fontWeight: 500 }">
+        <el-table ref="tableRef" :data="list" border :header-cell-style="{ fontWeight: 500 }" v-loading="loading">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column label="专家姓名" prop="expertName" align="center" :show-overflow-tooltip="true" />
           <el-table-column label="专家编号" prop="expertNumber" align="center" :show-overflow-tooltip="true">
             <template #default="scope">
-              <el-link type="primary">{{ scope.row.expertNumber }}</el-link>
+              <el-link type="primary" @click="handleEdit(scope.row, 'view')">{{ scope.row.expertNumber }}</el-link>
             </template>
           </el-table-column>
           <el-table-column label="联系电话" prop="contactPhone" align="center" :show-overflow-tooltip="true" />
@@ -57,7 +57,7 @@
           </el-table-column>
           <el-table-column label="审核状态" prop="reviewStatus" align="center">
             <template #default="scope">
-              {{ reviewStatusMap[scope.row.reviewStatus] || '未知' }}
+              <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
             </template>
           </el-table-column>
           <el-table-column label="入库状态" prop="storageStatus" align="center">
@@ -119,7 +119,7 @@
         </el-dialog>
       </el-card>
     </div>
-    <EditDetails ref="editDetailsRef" />
+    <EditDetails ref="editDetailsRef" @refresh="refreshData" />
   </div>
 </template>
 
@@ -135,7 +135,6 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
 );
-// console.log('review_status', review_status);
 // 查询参数
 const registrationTime = ref<Array<string>>([]);
 const queryParams = reactive<TechnicalExpertListRequest>({
@@ -194,14 +193,6 @@ const tableRef = ref();
 const queryFormRef = ref();
 const loading = ref(false);
 
-const reviewStatusMap = {
-  '0': '待审核',
-  '1': '审核通过',
-  '2': '分配账号',
-  '3': '分配权限',
-  '4': '入驻成功',
-  '99': '入驻失败'
-};
 const getList = () => {
   loading.value = true;
   getTechnicalExpertList({
@@ -217,6 +208,11 @@ const getList = () => {
     .finally(() => {
       loading.value = false;
     });
+};
+
+// 刷新数据
+const refreshData = () => {
+  getList();
 };
 
 // 查询
@@ -256,6 +252,9 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
 
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {
+  handleQuery();
+});
+onMounted(() => {
   handleQuery();
 });
 </script>

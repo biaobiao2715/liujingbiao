@@ -255,6 +255,7 @@
         <div class="detail-form-card">
           <div class="detail-form-card-header">
             <div class="card-title">个人信息</div>
+            <el-button v-throttle type="primary" class="card-close" @click="handleShowDetails">产品详情</el-button>
           </div>
           <el-row :gutter="20" :class="DetailsStatus === 'details' ? 'detail-form' : ''">
             <el-col :span="12">
@@ -488,7 +489,7 @@ const props = defineProps({
 });
 // 子组件对外事件
 const emit = defineEmits<{
-  (e: 'switchShowArea', payload: { type: string; id: string | number }): void;
+  (e: 'switchShowArea', payload: { type: string; id: string | number; uniqueId: number }): void;
 }>();
 // 根据是否存在 props.id 来决定初始详情/编辑模式：存在申请ID则进入详情模式
 const hasExistingApplyId = !!(props.id || props.id === 0);
@@ -747,8 +748,8 @@ const submitApply = async () => {
 };
 // 查看产品详情
 const handleShowDetails = () => {
-  const id = props.productId ?? productDetails.value?.id ?? formData.value.productId;
-  emit('switchShowArea', { type: 'LoanProductsComponentDetails', id });
+  const id = props.productId || formData.value.productId;
+  emit('switchShowArea', { type: 'LoanProductsComponentDetails', id, uniqueId: new Date().getTime() });
 };
 
 const submitPutApply = async () => {
@@ -775,9 +776,7 @@ const submitPutApply = async () => {
 };
 
 const handleShowClsoe = () => {
-  eventBus.emit('showComponentByCommand', {
-    type: 'area'
-  });
+  emit('switchShowArea', { type: 'PersonalCenter', id: null, uniqueId: new Date().getTime() });
 };
 
 interface SingleUploader {

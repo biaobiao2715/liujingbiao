@@ -37,7 +37,12 @@
                           <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
                         </div>
                       </div>
-                      <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                      <div v-if="diplomaUrl" class="image-with-delete">
+                        <img :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                        <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removeDiploma">
+                          <el-icon><Close /></el-icon>
+                        </el-button>
+                      </div>
                     </div>
                   </el-upload>
                 </div>
@@ -56,6 +61,7 @@
                     :on-change="handlePhotoChange"
                     accept=".jpg,.jpeg,.png"
                     drag
+                    :before-upload="beforeUpload"
                   >
                     <div class="upload-content">
                       <div v-if="!photoUrl">
@@ -90,7 +96,7 @@
                 <el-date-picker
                   v-model="formData.birthDate"
                   type="date"
-                  value-format="YYYY-MM"
+                  value-format="YYYY-MM-DD"
                   placeholder="OCR识别，可编辑"
                   style="width: 100%"
                 /> </el-form-item
@@ -196,13 +202,7 @@
               </div>
             </el-upload>
           </div>
-          <el-table
-            :data="qualificationList"
-            style="width: 100%"
-            :cell-style="{ textAlign: 'center' }"
-            :header-cell-style="{ textAlign: 'center' }"
-            border
-          >
+          <el-table :data="qualificationList" :cell-style="{ textAlign: 'center' }" :header-cell-style="{ textAlign: 'center' }" border>
             <el-table-column prop="index" label="序号" width="80" />
             <el-table-column prop="name" label="附件名" />
             <el-table-column prop="remark" label="备注">
@@ -282,6 +282,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { Close } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/technicalExpert/types';
 import { ocrUploadImage, uploadImage } from '@/api/register';
@@ -369,8 +370,8 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
         if (!value) {
           callback(new Error('请选择出生年月'));
           //   格式 YYYY-MM
-        } else if (!/^\d{4}-\d{2}$/.test(value)) {
-          callback(new Error('请输入有效的出生年月，格式为YYYY-MM'));
+        } else if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          callback(new Error('请输入有效的出生年月，格式为YYYY-MM-DD'));
         } else {
           callback();
         }
@@ -656,7 +657,7 @@ const handleDiplomaChange = (file: any) => {
               if (id) {
                 formData.value.idCard = id;
               }
-              const sexMatch = rawText.match(/性别[:：]?\s*([男女])/);
+              const sexMatch = rawText.match(/性别[:： ]?\s*([男女])/);
               const sex = sexMatch?.[1] || null;
               if (sex) {
                 formData.value.sex = sex === '男' ? '0' : '1';
@@ -688,6 +689,15 @@ const deleteQualification = (index: number) => {
   qualificationList.value.forEach((item, i) => {
     item.index = i + 1;
   });
+};
+const removeDiploma = () => {
+  diplomaUrl.value = '';
+  const idx = qualificationList.value.findIndex((item) => item.fileType === '2');
+  if (idx !== -1) {
+    qualificationList.value.splice(idx, 1);
+    qualificationList.value.forEach((item, i) => (item.index = i + 1));
+  }
+  formRef.value?.validateField('diploma');
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {
@@ -730,21 +740,12 @@ const addQualification = (file: any) => {
 
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    ElMessage.error('文件大小不能超过5MB');
-    return false;
-  }
-
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
+  //   const maxSize = 5 * 1024 * 1024; // 5MB
+  //   if (file.size > maxSize) {
+  //     ElMessage.error('文件大小不能超过5MB');
+  //     return false;
+  //   }
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
     ElMessage.error('不支持的文件类型');
     return false;
@@ -874,6 +875,7 @@ const previewQualification = async (file: any) => {
           border: 1px solid #108c58;
           padding: 29px 0;
           cursor: pointer;
+          position: relative;
           .upload-text {
             margin-top: 10px;
             text-align: center;
@@ -897,6 +899,17 @@ const previewQualification = async (file: any) => {
     .upload-image {
       width: 100%;
       height: 150px;
+    }
+    .image-with-delete {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 2;
     }
     .qualification-list {
       padding: 0 16px 10px;
