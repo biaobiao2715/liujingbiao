@@ -255,7 +255,9 @@ const queryParams = ref({
   meetingStatus: '', //会议状态
   meetingName: '', // 会议标题
   meetingEndTime: '', // 会议结束时间
-  meetingStartTime: '' // 会议开始时间
+  meetingStartTime: '', // 会议开始时间
+  orderByColumn:'publishTime', // 需要排序的列名
+  isAsc:'desc' // 排序方式
 });
 /* 发货配送信息 */
 const shipmentForm = ref({
@@ -302,7 +304,9 @@ const handleReset = () => {
     meetingStatus: '', //会议状态
     meetingName: '', // 会议标题
     meetingEndTime: '', // 会议结束时间
-    meetingStartTime: '' // 会议开始时间
+    meetingStartTime: '', // 会议开始时间
+    orderByColumn:'publishTime', // 需要排序的列名
+    isAsc:'desc' // 排序方式
   };
   dateRange.value = [];
   getTableData();
