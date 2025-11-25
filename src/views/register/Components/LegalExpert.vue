@@ -36,7 +36,12 @@
                         <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
                       </div>
                     </div>
-                    <img v-if="diplomaUrl" :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                    <div v-if="diplomaUrl" class="image-with-delete">
+                      <img :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                      <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removeDiploma">
+                        <el-icon><Close /></el-icon>
+                      </el-button>
+                    </div>
                   </div>
                 </el-upload>
               </div>
@@ -54,6 +59,7 @@
                   :show-file-list="false"
                   :on-change="handlePhotoChange"
                   accept=".jpg,.jpeg,.png"
+                  :before-upload="beforeUpload"
                   drag
                 >
                   <div class="upload-content">
@@ -154,13 +160,7 @@
               </div>
             </el-upload>
           </div>
-          <el-table
-            :data="qualificationList"
-            style="width: 100%"
-            :cell-style="{ textAlign: 'center' }"
-            :header-cell-style="{ textAlign: 'center' }"
-            border
-          >
+          <el-table :data="qualificationList" :cell-style="{ textAlign: 'center' }" :header-cell-style="{ textAlign: 'center' }" border>
             <el-table-column prop="index" label="序号" width="80" />
             <el-table-column prop="name" label="附件名" />
             <el-table-column prop="remark" label="备注">
@@ -240,6 +240,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { Close } from '@element-plus/icons-vue';
 import { isIdCard } from '@/utils/validate';
 import { ocrUploadImage, uploadImage } from '@/api/register';
 import { LegalExpert } from '@/api/register/legalExpert/types';
@@ -511,11 +512,11 @@ const qualificationList = ref<
 >([]);
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    ElMessage.error('文件大小不能超过5MB');
-    return false;
-  }
+  //   const maxSize = 5 * 1024 * 1024; // 5MB
+  //   if (file.size > maxSize) {
+  //     ElMessage.error('文件大小不能超过5MB');
+  //     return false;
+  //   }
 
   const allowedTypes = [
     'image/jpeg',
@@ -576,6 +577,15 @@ const deleteQualification = (index: number) => {
     item.index = i + 1;
   });
 };
+const removeDiploma = () => {
+  diplomaUrl.value = '';
+  const idx = qualificationList.value.findIndex((item) => item.fileType === '2');
+  if (idx !== -1) {
+    qualificationList.value.splice(idx, 1);
+    qualificationList.value.forEach((item, i) => (item.index = i + 1));
+  }
+  formRef.value?.validateField('diploma');
+};
 
 // 上传律师证
 const handleDiplomaChange = (file: any) => {
@@ -613,7 +623,7 @@ const handleDiplomaChange = (file: any) => {
             formData.value.idCard = id;
           }
           //   提取男女
-          const sexMatch = rawText.match(/性别[:：]?\s*([男女])/);
+          const sexMatch = rawText.match(/性别[:： ]?\s*([男女])/);
           const sex = sexMatch?.[1] || null;
           if (sex) {
             formData.value.sex = sex === '男' ? '0' : '1';
@@ -805,6 +815,7 @@ onMounted(async () => {
           background-color: var(--bg-color);
           padding: 29px 0px;
           cursor: pointer;
+          position: relative;
           .upload-text {
             margin-top: 10px;
             text-align: center;
@@ -864,5 +875,16 @@ onMounted(async () => {
 .upload-image {
   width: 100%;
   height: 150px;
+}
+.image-with-delete {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+.delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
 }
 </style>

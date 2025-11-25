@@ -39,6 +39,14 @@ interface TechUpdateOrSaveDataRequest {
     startStopStatus?: '0' | '1';
     id?: number;
     reviewStatus?: '99' | '1' | '2' | '3' | '4';
+    folder?: {
+      folderName?: string;
+      folderType?: '0' | '1';
+      folderPath?: string;
+      ossBucketName?: string;
+      ossObjectName?: string;
+      ossUrl?: string;
+    }[];
   };
 }
 

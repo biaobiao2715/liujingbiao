@@ -46,7 +46,6 @@
         v-loading="loading"
         border
         :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
-        style="width: 100%"
       >
         <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
@@ -55,16 +54,16 @@
           </template>
         </el-table-column>
         <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
-        <el-table-column label="专家编码" min-width="140" align="center">
+        <el-table-column label="专家编号" min-width="140" align="center">
           <template #default="scope">
-            <el-link type="primary">{{ scope.row.expertNumber || '--' }}</el-link>
+            <el-link type="primary" @click="handleEdit(scope.row, 'view')">{{ scope.row.expertNumber || '--' }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
         <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
         <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
           <template #default="scope">
-            {{ reviewStatusMap[scope.row.reviewStatus] || '--' }}
+            <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
           </template>
         </el-table-column>
         <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
@@ -126,14 +125,14 @@
         </template>
       </el-dialog>
     </el-card>
-    <EditDetails ref="editDetailsRef" />
+    <EditDetails ref="editDetailsRef" @refresh="refreshData" />
   </div>
 </template>
 
 <script setup name="LegalExpert" lang="ts">
 import { ref } from 'vue';
 import { LegalExpertListRequest, LegalExpertList } from '@/api/platform/legalExpert/types';
-import { getLegalExpertList, legalUpdateOrSaveData, reviewStatusMap } from '@/api/platform/legalExpert';
+import { getLegalExpertList, legalUpdateOrSaveData } from '@/api/platform/legalExpert';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
@@ -209,6 +208,11 @@ const getList = () => {
     });
 };
 
+// 刷新数据
+const refreshData = () => {
+  getList();
+};
+
 // 搜索
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -241,6 +245,9 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
 
 // 每次页面激活时执行（从缓存中恢复）
 onActivated(() => {
+  getList();
+});
+onMounted(() => {
   getList();
 });
 </script>
