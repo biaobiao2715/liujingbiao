@@ -89,6 +89,16 @@ export function getLoanApplicationsId(id: number | string) {
     method: 'get'
   });
 }
+
+// 修改贷款申请
+export function putLoanApplications(data: any) {
+  return request({
+    url: `/credit-server/loanApplications`,
+    method: 'put',
+    data
+  });
+}
+
 /**
  * 图片上传方法
  * @param data - 包含文件的对象，需包含 `file` 属性

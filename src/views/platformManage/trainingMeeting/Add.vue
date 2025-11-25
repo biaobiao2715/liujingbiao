@@ -8,7 +8,7 @@ div<!--
 修改内容：新增,编辑，详情会议
  -->
 <template>
-  <el-dialog v-model="visible" :fullscreen="true" :close-on-click-modal="false" :show-close="false" class="add-meeting-dialog">
+  <el-dialog v-model="visible" width="80%" :close-on-click-modal="false" :show-close="false" class="add-meeting-dialog">
     <!-- 顶部标题栏 -->
     <div class="dialog-header">
       <span class="dialog-title">
@@ -89,7 +89,7 @@ div<!--
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="专家类型" align="center" prop="expertType" width="180">
           <template #default="scope">
-            <dict-tag :options="expert_type" :value="scope.row.expertType" />
+            {{ scope.row.expertType === '1' ? '技术专家' : '法务专家' }}
           </template>
         </el-table-column>
         <el-table-column label="专家姓名" align="center" prop="expertName" width="180" :show-overflow-tooltip="true">
@@ -666,7 +666,7 @@ const confirmExperts = () => {
   dialogVisible.value = false;
   formRef.value?.validateField('experts');
   formloading.value = false;
-  console.log('form.value123', form.value.experts);
+  console.log('form.value123', form.value.experts, paginatedSelectedExperts.value);
 };
 const handleSave = async () => {
   console.log('props.mode', props.mode);
@@ -731,7 +731,7 @@ const handleSave = async () => {
 .dialog-body {
   padding: 20px;
   height: calc(100vh - 60px);
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 
 .addmeetingtitle {

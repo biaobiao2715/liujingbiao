@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
+import { ref, onMounted, onActivated, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import LoanApplicationDetailDialog from './LoanApplicationDetailDialog.vue';
@@ -285,6 +285,11 @@ const handleDelete = (row: LoanApplication) => {
       ElMessage.info('已取消删除');
     });
 };
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
 
 onMounted(() => {
   getList();

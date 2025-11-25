@@ -51,7 +51,12 @@
       <!-- 信贷产品详情 -->
       <AboutLoanProductsComponentDetails v-if="showArea === 'LoanProductsComponentDetails'" :id="id" />
       <!-- 信贷产品申请表单 -->
-      <AboutLoanProductsComponentApplyForm v-if="showArea === 'LoanProductsComponentApplyForm'" :id="id" :productId="productId" />
+      <AboutLoanProductsComponentApplyForm
+        v-if="showArea === 'LoanProductsComponentApplyForm'"
+        :id="id"
+        :productId="productId"
+        @switchShowArea="switchShowArea"
+      />
       <!-- 保险产品列表 -->
       <AboutInsuranceproductComponentList v-if="showArea === 'InsuranceproductComponentList'" />
       <!-- 保险产品详情 -->

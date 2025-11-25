@@ -195,6 +195,7 @@ const interestRateRangeText = computed(() => {
 
 const loanCycleText = computed(() => getDictLabels(loan_cycle?.value, productDetail.value.loanCycle));
 
+// 还款方式备用映射（当字典数据不可用时使用）
 const repaymentMethodLabelsMap: Record<string, string> = {
   '0': '等额本息',
   '2': '等额本金',
@@ -206,7 +207,15 @@ const repaymentMethodText = computed(() => {
   const values = normalizeArrayValue(productDetail.value.repaymentMethod);
   if (!values.length) return '--';
   const labels = values
-    .map((item) => repaymentMethodLabelsMap[String(item)] || getDictLabel(repayment_method?.value, item))
+    .map((item) => {
+      // 优先使用字典数据
+      const dictLabel = getDictLabel(repayment_method?.value, item);
+      if (dictLabel && dictLabel !== '--') {
+        return dictLabel;
+      }
+      // 备用映射
+      return repaymentMethodLabelsMap[String(item)] || '--';
+    })
     .filter((label) => label && label !== '--');
   return labels.length ? labels.join('、') : '--';
 });

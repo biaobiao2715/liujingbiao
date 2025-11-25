@@ -176,18 +176,28 @@ service.interceptors.response.use(
   }
 );
 // 通用下载方法
-export function download(url: string, params: any, fileName: string) {
+export function download(url: string, params: any, fileName: string, method: 'get' | 'post' = 'post') {
   downloadLoadingInstance = ElLoading.service({ text: '正在下载数据，请稍候', background: 'rgba(0, 0, 0, 0.7)' });
+  
+  const config: any = {
+    responseType: 'blob'
+  };
+  
+  if (method === 'get') {
+    config.params = params;
+  } else {
+    config.transformRequest = [
+      (params: any) => {
+        return tansParams(params);
+      }
+    ];
+    config.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+  }
+  
   // prettier-ignore
-  return service.post(url, params, {
-      transformRequest: [
-        (params: any) => {
-          return tansParams(params);
-        }
-      ],
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      responseType: 'blob'
-    }).then(async (resp: any) => {
+  const request = method === 'get' ? service.get(url, config) : service.post(url, params, config);
+  
+  return request.then(async (resp: any) => {
       const isLogin = blobValidate(resp);
       if (isLogin) {
         const blob = new Blob([resp]);

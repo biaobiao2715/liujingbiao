@@ -32,23 +32,68 @@
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column label="申请人" prop="realName" align="center" width="120" />
       <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />
-      <el-table-column label="产品类型" prop="productType" align="center" width="120" />
-      <el-table-column label="适用对象" prop="lenderTyp" align="center" width="120">
+      <el-table-column label="产品类型" prop="productType" align="center" width="120">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="scope.row.lenderTyp" />
+          <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
+        </template>
+      </el-table-column>
+      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
+        <template #default="scope">
+          <dict-tag :options="applicable_object" :value="scope.row.applicableObject || scope.row.lenderTyp" />
         </template>
       </el-table-column>
       <el-table-column label="贷款金额(元)" prop="loanAmount" align="center" width="140" />
       <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
-      <el-table-column label="贷款审批通过时间" prop="approvalTime" min-width="180" align="center" />
-      <el-table-column label="贷款状态" prop="loanStatus" align="center" width="120" />
+      <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" align="center" />
+      <el-table-column label="还款状态" prop="planStatus" align="center" width="120">
+        <template #default="scope">
+          <dict-tag :options="repayment_status" :value="scope.row.planStatus" />
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="340" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" plain @click="handleComplete(scope.row)">完结借贷</el-button>
+            <!-- 根据还款状态显示不同的提示按钮 -->
+            <el-button 
+              v-if="scope.row.planStatus === '0'" 
+              size="small" 
+              type="info" 
+              plain 
+              @click="handleNotification(scope.row, 'pending')"
+            >
+              待还款提示
+            </el-button>
+            <el-button 
+              v-else-if="scope.row.planStatus === '1'" 
+              size="small" 
+              type="warning" 
+              plain 
+              @click="handleNotification(scope.row, 'repaying')"
+            >
+              还款提示
+            </el-button>
+            <el-button 
+              v-else-if="scope.row.planStatus === '2'" 
+              size="small" 
+              type="success" 
+              plain 
+              @click="handleNotification(scope.row, 'completed')"
+            >
+              完结通知
+            </el-button>
+            <el-button 
+              v-else-if="scope.row.planStatus === '3'" 
+              size="small" 
+              type="danger" 
+              plain 
+              @click="handleNotification(scope.row, 'overdue')"
+            >
+              逾期提示
+            </el-button>
+            
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
+            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
@@ -76,10 +121,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs } from 'vue';
+import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getloanApplicationsList } from '@/api/creditPlatform/repaymentPlans';
+import { getloanApplicationsList, deleteRepaymentRecord } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -89,20 +134,24 @@ import RepaymentStatusDialog from './RepaymentStatusDialog.vue';
  * 还款计划数据结构
  */
 interface RepaymentPlan {
-  id: number | string;           // 申请ID
-  realName: string;              // 申请人姓名
-  productName: string;           // 产品名称
-  productType?: string;          // 产品类型
-  lenderTyp: string;             // 适用对象: 0=采购商, 1=企业, 2=供应商
-  loanAmount?: string | number;  // 贷款金额
-  loanTerm?: string | number;    // 贷款期限
-  approvalTime?: string;         // 审批通过时间
-  loanStatus?: string;           // 贷款状态：还款中/已结清/逾期
+  id: number | string;                // 申请ID
+  realName: string;                   // 申请人姓名
+  productName: string;                // 产品名称
+  productType?: string;               // 产品类型
+  applicableObject?: string;          // 适用对象
+  lenderType?: string;                // 适用对象类型: 0=采购商(个人), 1=企业, 2=供应商(企业)
+  lenderTyp?: string;                 // 适用对象(兼容字段)
+  loanAmount?: string | number;       // 贷款金额
+  loanTerm?: string | number;         // 贷款期限
+  reviewedAt?: string;                // 贷款审批通过时间
+  planStatus?: string;                // 还款状态: 0=待还款, 1=还款中, 2=已还清, 3=已逾期
 }
 
 // 获取字典数据
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { applicable_object, prod_credit_type } = toRefs<any>(proxy?.useDict('applicable_object', 'prod_credit_type'));
+const { applicable_object, prod_credit_type, repayment_status } = toRefs<any>(
+  proxy?.useDict('applicable_object', 'prod_credit_type', 'repayment_status')
+);
 
 // 查询表单引用
 const queryFormRef = ref();
@@ -205,8 +254,8 @@ const handleRepayment = (row: RepaymentPlan) => {
 const handleDetail = (row: RepaymentPlan) => {
   detailData.value = row;
   
-  // 根据 lenderTyp 判断：0=采购商(个人)，1=企业，2=供应商(企业)
-  const lenderType = row.lenderTyp;
+  // 根据 lenderType、applicableObject 或 lenderTyp 判断：0=采购商(个人)，1=企业，2=供应商(企业)
+  const lenderType = row.lenderType ?? row.applicableObject ?? row.lenderTyp;
   const isPersonal = String(lenderType) === '0';
 
   // 先隐藏另一个弹窗，避免同时打开
@@ -223,7 +272,8 @@ const handleDetail = (row: RepaymentPlan) => {
 };
 
 /**
- * 追踪按钮 - 打开贷款追踪弹窗
+ * 追踪按钮 - 打开追踪弹窗
+ * @param row - 当前行数据
  */
 const handleTracking = (row: RepaymentPlan) => {
   detailData.value = row;
@@ -231,29 +281,59 @@ const handleTracking = (row: RepaymentPlan) => {
 };
 
 /**
- * 完结借贷按钮 - 将贷款状态设置为已完结
+ * 通知按钮 - 根据还款状态发送不同的通知
+ * @param row - 当前行数据
+ * @param type - 通知类型: pending=待还款, repaying=还款中, completed=已还清, overdue=已逾期
  */
-const handleComplete = (row: RepaymentPlan) => {
-  // TODO: 调用API完结借贷
-  ElMessage.success('借贷已完结（演示）');
+const handleNotification = (row: RepaymentPlan, type: 'pending' | 'repaying' | 'completed' | 'overdue') => {
+  const messages = {
+    pending: '待还款提示',
+    repaying: '还款提示',
+    completed: '完结通知',
+    overdue: '逾期提示'
+  };
+  
+  ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[type]}吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      // TODO: 调用API发送通知
+      ElMessage.success(`${messages[type]}已发送`);
+    })
+    .catch(() => {
+      ElMessage.info('已取消发送');
+    });
 };
 
 /**
  * 删除按钮 - 删除还款记录
  */
 const handleDelete = (row: RepaymentPlan) => {
-  ElMessageBox.confirm(`确定删除 ${row.productName} 的还款记录吗？（演示数据）`, '提示', {
+  ElMessageBox.confirm(`确认要删除「${row.productName}」的还款记录吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  })
-    .then(() => {
-      ElMessage.success('删除成功（演示）');
-    })
-    .catch(() => {
-      ElMessage.info('已取消删除');
-    });
+  }).then(async () => {
+    try {
+      const response = await deleteRepaymentRecord(row.id);
+      if (response && response.code === 200) {
+        ElMessage.success('删除成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '删除失败');
+      }
+    } catch (error) {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
+
+// 每次页面激活时执行（从缓存中恢复）
+onActivated(() => {
+  getList();
+});
 
 // 组件挂载时获取列表数据
 onMounted(() => {
@@ -287,11 +367,15 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   .el-button {
     margin: 0;
+    flex-shrink: 0;
+    padding: 5px 10px;
+    font-size: 12px;
   }
 }
 

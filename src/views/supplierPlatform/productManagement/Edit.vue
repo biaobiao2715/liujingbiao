@@ -79,7 +79,6 @@
               ref="refShop"
               list-type="picture-card"
               action="#"
-              multiple
               :on-preview="handlePictureCardPreview"
               :before-upload="handleBeforeUpload"
               :http-request="uploadFile"

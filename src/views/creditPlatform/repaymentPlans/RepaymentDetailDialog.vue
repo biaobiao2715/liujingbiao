@@ -15,15 +15,11 @@
               <el-image
                 v-for="(img, idx) in companyLicenseList"
                 :key="idx"
-                :src="img.url"
-                :preview-src-list="companyLicenseList"
+                :src="img.url || img"
+                :preview-src-list="companyLicenseList.map((item: any) => item.url || item)"
                 fit="cover"
                 class="license-image"
-              >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              />
             </template>
             <span v-else>--</span>
           </el-descriptions-item>
@@ -47,23 +43,27 @@
           </el-descriptions-item>
           <el-descriptions-item label="个人身份证明" :span="2">
             <template v-if="applicantIdPhotos.length">
-              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image">
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image" />
             </template>
-            <span v-else>--</span>
+            <template v-else>
+              <span>--</span>
+            </template>
           </el-descriptions-item>
           <el-descriptions-item label="授权文件" :span="2">
             <template v-if="applicantAuthFiles.length">
-              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image">
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
+                <el-button 
+                  type="primary" 
+                  link 
+                  @click="handleViewFile(file)"
+                  class="file-link"
+                >
+                  <el-icon><Document /></el-icon>
+                  授权文件{{ applicantAuthFiles.length > 1 ? (idx + 1) : '' }}
+                </el-button>
+              </div>
             </template>
-            <div v-else class="image-placeholder">暂无图片</div>
+            <div v-else class="file-placeholder">暂无文件</div>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -74,10 +74,7 @@
           <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
             {{ item.value }}
           </el-descriptions-item>
-        </el-descriptions>
-        <div class="bank-card-preview">
-          <div>银行卡号正反面：</div>
-          <div class="bank-card-images">
+          <el-descriptions-item label="银行卡正反面" :span="2">
             <template v-if="bankCardImages.length">
               <el-image
                 v-for="(img, idx) in bankCardImages"
@@ -85,17 +82,13 @@
                 :src="img"
                 :preview-src-list="bankCardImages"
                 class="license-image"
-              >
-                <template #error>
-                  <div class="image-placeholder">暂无图片</div>
-                </template>
-              </el-image>
+              />
             </template>
-            <div v-else class="card-placeholder">暂无图片</div>
-          </div>
-        </div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+        </el-descriptions>
         <div class="product-link">
-          <el-button type="primary" plain size="large" @click="handleViewProductDetail">查看产品详情</el-button>
+          <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
       </div>
 
@@ -114,9 +107,7 @@
       </div>
     </div>
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">返回</el-button>
-      </div>
+      <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
     <RepaymentPlanDialog v-model:visible="repaymentPlanVisible" :data="props.data" />
@@ -124,8 +115,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Document } from '@element-plus/icons-vue';
+import { getRemainingDetail, getEnterprise } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
 
@@ -138,6 +132,13 @@ const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
 }>();
 
+// ==================== 字典数据 ====================
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { repayment_method } = toRefs<any>(
+  proxy?.useDict('repayment_method')
+);
+
+// ==================== 状态管理 ====================
 const loading = ref(false);
 const detailRow = ref<Record<string, any>>(props.data || {});
 const currentDetail = computed(() => detailRow.value || {});
@@ -170,21 +171,68 @@ const idCardTypeMap: Record<string, string> = {
   '2': '其他'
 };
 
-const repaymentMethodMap: Record<string, string> = {
+// ==================== 常量定义 ====================
+// 还款方式备用映射（当字典数据不可用时使用）
+const REPAYMENT_METHOD_MAP: Record<string, string> = {
   '0': '等额本息',
   '2': '等额本金',
   '3': '先息后本',
   '4': '先本后息'
 };
 
+// ==================== 工具函数 ====================
 const formatValue = (value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return value;
 };
 
+/**
+ * 从字典获取还款方式标签（优先使用字典，否则使用备用映射）
+ */
+const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  
+  // 优先使用字典数据
+  if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
+    const match = repayment_method.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  
+  // 备用映射
+  return REPAYMENT_METHOD_MAP[String(value)] || '--';
+};
+
 const mapValue = (map: Record<string, string>, value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return map[String(value)] || '--';
+};
+
+const extractBirthdayFromId = (id: string | undefined | null) => {
+  const value = (id || '').trim();
+  if (!value) return '';
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14);
+    const year = birth.substring(0, 4);
+    const month = birth.substring(4, 6);
+    const day = birth.substring(6, 8);
+    return `${year}-${month}-${day}`;
+  }
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12);
+    const year = `19${birth.substring(0, 2)}`;
+    const month = birth.substring(2, 4);
+    const day = birth.substring(4, 6);
+    return `${year}-${month}-${day}`;
+  }
+  return '';
+};
+
+const isLikelyUrl = (value: string) => {
+  if (!value) return false;
+  const lower = value.toLowerCase();
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/');
 };
 
 const collectUrls = (...sources: any[]): string[] => {
@@ -196,12 +244,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return;
     }
     if (typeof item === 'string') {
-      if (item) urls.push(item);
+      const trimmed = item.trim();
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed);
       return;
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src;
-      if (url) urls.push(url);
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim();
+      if (url && isLikelyUrl(url)) urls.push(url);
     }
   };
   sources.forEach(append);
@@ -215,10 +264,24 @@ const fetchDetail = async () => {
   }
   loading.value = true;
   try {
-    // 这里应该调用真实的API获取详细信息
-    // const res = await getRepaymentDetail(props.data.id);
-    // detailRow.value = res.data;
-    detailRow.value = props.data || {};
+    let merged: Record<string, any> = props.data ? { ...props.data } : {};
+    const res = await getRemainingDetail(props.data.id);
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data };
+    }
+    // 获取企业信息
+    const lenderId = merged.lenderId;
+    if (lenderId) {
+      try {
+        const extra = await getEnterprise(lenderId);
+        if (extra && extra.code === 200 && extra.data) {
+          merged = { ...merged, ...extra.data };
+        }
+      } catch (error) {
+        console.error('获取企业信息失败:', error);
+      }
+    }
+    detailRow.value = merged;
   } catch (error) {
     console.error('获取贷后详情失败:', error);
     detailRow.value = props.data || {};
@@ -253,7 +316,19 @@ const companyInfoList = computed(() => {
 
 const companyLicenseList = computed(() => {
   const row = detailRow.value;
-  return Array.isArray(row.licenses) ? row.licenses : [];
+  const licenses = [];
+  
+  // 从 licenses 数组获取
+  if (Array.isArray(row.licenses)) {
+    licenses.push(...row.licenses);
+  }
+  
+  // 从 url 字段获取营业执照
+  if (row.url) {
+    licenses.push({ url: row.url });
+  }
+  
+  return licenses;
 });
 
 const legalInfoList = computed(() => {
@@ -268,8 +343,10 @@ const legalInfoList = computed(() => {
 
 const applicantInfoList = computed(() => {
   const row = detailRow.value;
+  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
   return [
     { label: '申请人', value: formatValue(row.realName || row.applicantName) },
+    { label: '出生年月', value: formatValue(birthday) },
     { label: '联系电话', value: formatValue(row.contactPhone || row.phone || row.applicantPhone) }
   ];
 });
@@ -281,15 +358,17 @@ const applicantIdPhotos = computed(() => {
 
 const applicantAuthFiles = computed(() => {
   const row = detailRow.value;
-  return collectUrls(row.authorizationFiles, row.authorizationUrl);
+  return collectUrls(row.authorizationUrl);
 });
 
 const loanInfoList = computed(() => {
   const row = detailRow.value;
+  const repayment = row.repaymentMethod || row.repaymentType;
+  const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
-    { label: '还款方式', value: mapValue(repaymentMethodMap, row.repaymentMethod || row.repaymentType) },
+    { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
     { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
     { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }
@@ -313,8 +392,29 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
+// 处理文件查看
+const handleViewFile = (fileUrl: string) => {
+  if (!fileUrl) {
+    ElMessage.warning('文件地址不存在');
+    return;
+  }
+  window.open(fileUrl, '_blank');
+};
+
 const handleViewContract = () => {
-  ElMessage.info('查看合同详情功能待开发');
+  // 从多个可能的位置获取合同地址
+  const contractUrl = currentDetail.value?.contractUrl || 
+                     currentDetail.value?.contractFileUrl ||
+                     props.data?.contractUrl ||
+                     props.data?.contractFileUrl;
+  
+  if (!contractUrl) {
+    ElMessage.warning('暂无合同文件');
+    return;
+  }
+  
+  // 在新窗口中打开合同地址
+  window.open(contractUrl, '_blank');
 };
 
 const handleViewRepaymentPlan = () => {
@@ -327,23 +427,30 @@ const handleViewRepaymentPlan = () => {
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
+    color: #303133;
   }
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  background: #fefefe;
+  border-radius: 8px;
+  border: 1px solid #f0f2f5;
+  padding: 16px 20px;
+  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
+  color: #303133;
 
   &::before {
     content: '';
-    width: 6px;
+    width: 4px;
     height: 16px;
     background-color: #409eff;
     border-radius: 2px;
@@ -352,37 +459,52 @@ const handleViewRepaymentPlan = () => {
 }
 
 .license-image {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
+  border-radius: 4px;
   margin-right: 8px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
 }
 
 .image-placeholder,
 .card-placeholder {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
   border: 1px dashed #dcdfe6;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   color: #909399;
   font-size: 12px;
+  background: #fff;
 }
 
-.bank-card-preview {
-  margin-top: 12px;
+.file-item {
+  margin-bottom: 8px;
+}
 
-  .bank-card-images {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  
+  .el-icon {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
   }
 }
 
+.file-placeholder {
+  color: #909399;
+  font-size: 14px;
+}
+
 .product-link {
-  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
@@ -391,10 +513,5 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
-}
-
-.dialog-footer {
-  text-align: right;
 }
 </style>

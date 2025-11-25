@@ -12,7 +12,9 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="举报类型：">
-            <dict-text :options="report_type_id" :value="formData.reportType ?? ''" />
+            <el-select v-model="reportTypeIdComputed" placeholder="请选择举报类型" disabled>
+              <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -150,13 +152,13 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
           <el-form-item label="申诉理由：">
-            <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.newAppealFile.appealReason" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
 
         <el-col :span="24">
           <el-form-item label="申诉时间：">
-            <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.newAppealFile.appealTime" disabled autosize />
           </el-form-item>
         </el-col>
 
@@ -198,7 +200,7 @@
 
         <el-col :span="24">
           <el-form-item label="平台驳回申诉理由：">
-            <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.newAppealFile.backAppealReason" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
       </el-row>
@@ -220,17 +222,18 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
           <el-form-item label="供应商名称/企业名称：">
-            <el-input v-model="formData.reporterName" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.reporterName" disabled autosize />
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="案件类型：">
-            <dict-text :options="case_type" :value="formData.caseType ?? ''" />
+            <el-input v-model="formData.hnCase.caseTypeName" disabled autosize />
+            <!-- <dict-text :options="case_type" :value="formData.caseType ?? ''" /> -->
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="扣分分值：">
-            <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.caseScore" disabled autosize />
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -242,7 +245,7 @@
         </el-col>
         <el-col :span="24">
           <el-form-item label="信用分数：">
-            <el-input v-model="formData.sore" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.sore" disabled autosize />
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -266,13 +269,13 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
             <el-form-item label="申诉理由：">
-              <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.appealReason" disabled autosize />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
             <el-form-item label="申诉时间：">
-              <el-input v-model="appealDetail.updateTime" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.appealTime" disabled autosize />
             </el-form-item>
           </el-col>
 
@@ -314,7 +317,7 @@
 
           <el-col :span="24">
             <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="appealDetail.rejectReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -334,6 +337,7 @@ import { ref, computed, onMounted, getCurrentInstance, toRefs, ComponentInternal
 import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 import FormHeader from '@/components/FormHeader/index.vue';
 import supplierDetail from './supplierDetail.vue';
+import { string } from 'vue-types';
 // 通过 props 接收父组件传参
 const props = defineProps<{
   id: string | number;
@@ -373,7 +377,9 @@ const formData = ref<FormData>({
   // 案件相关
   caseType: '',
   hnCaseId: undefined,
-  hnCase: undefined as any,
+  hnCase: {
+    caseTypeName: ''
+  },
   caseScore: undefined,
   // 信用相关
   creditLevel: '',
@@ -389,7 +395,11 @@ const formData = ref<FormData>({
   rejectBack: '',
   // 历史与材料
   historyAppealList: [],
-  newAppealFile: undefined as any,
+  newAppealFile: {
+    appealReason: '',
+    appealTime: '',
+    backAppealReason: ''
+  },
   reportFiles: [],
   statusAndDate: []
 });
@@ -411,10 +421,10 @@ const appealVideoList = ref<FileViewItem[]>([]); // 申诉视频列表
 // 弹窗：历史申诉材料
 const appealDialogVisible = ref(false);
 const appealDialogLoading = ref(false);
-const appealDetail = ref<{ appealReason: string; updateTime: string; rejectReason: string }>({
+const appealDetail = ref<{ appealReason: string; appealTime: string; backAppealReason: string }>({
   appealReason: '',
-  updateTime: '',
-  rejectReason: ''
+  appealTime: '',
+  backAppealReason: ''
 });
 const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
 const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
@@ -424,6 +434,10 @@ const histAppealVideoList = ref<FileViewItem[]>([]); // 历史申诉视频列表
 const handleSave = async () => {
   emit('cancel');
 };
+// 获取违规记录详情
+const reportTypeIdComputed = computed(() => {
+  return formData.value.reportTypeId ? String(formData.value.reportTypeId) : '';
+});
 
 // 新增: 状态字典缓存映射与通用取文本方法
 const caseStatusLabelMap = computed(() => {
@@ -482,12 +496,12 @@ const handlePreview = async (row: any) => {
     // 等接口切换后，获取违规记录详情
     const res = await getlookDetail(String(id)); //获取违规记录详情
     const data: any = res?.data ?? {};
-    console.log('历史申诉详情数据:', data);
+    // console.log('历史申诉详情数据:', data);
 
     // 文本信息
     appealDetail.value.appealReason = data.appealReason ?? '';
-    appealDetail.value.updateTime = data.updateTime ?? '';
-    appealDetail.value.rejectReason = data.rejectReason ?? '';
+    appealDetail.value.appealTime = data.appealTime ?? '';
+    appealDetail.value.backAppealReason = data.backAppealReason ?? '';
 
     // 附件信息（兼容多种字段命名）
     const files =
@@ -507,8 +521,8 @@ const handlePreview = async (row: any) => {
     histAppealImagePreviewUrls.value = [];
     histAppealVideoList.value = [];
     appealDetail.value.appealReason = '';
-    appealDetail.value.updateTime = '';
-    appealDetail.value.rejectReason = '';
+    appealDetail.value.appealTime = '';
+    appealDetail.value.backAppealReason = '';
   } finally {
     appealDialogLoading.value = false;
   }
@@ -518,7 +532,7 @@ const handlePreview = async (row: any) => {
 /** 关闭弹窗并重置数据 */
 const closeAppealDialog = () => {
   appealDialogVisible.value = false;
-  appealDetail.value = { appealReason: '', updateTime: '', rejectReason: '' };
+  appealDetail.value = { appealReason: '', appealTime: '', backAppealReason: '' };
   histAppealImageList.value = [];
   histAppealImagePreviewUrls.value = [];
   histAppealVideoList.value = [];

@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request, { download } from '@/utils/request';
 
 /**
  * 根据商品一级类目获取销量统计图
@@ -31,6 +31,27 @@ export function getOrdersComplianceRateInfo(params?: Record<string, any>) {
     method: 'get',
     params
   });
+}
+
+/**
+ * 导出一级类目销量统计
+ */
+export function exportFirstLevelCategorySales(params?: Record<string, any>) {
+  return download('/grain-sales/marketAnalysisDaily/firstLevelCategorySalesExport', params, '一级类目销量统计.xlsx');
+}
+
+/**
+ * 导出一级类目销售额统计
+ */
+export function exportSalesAmountTotal(params?: Record<string, any>) {
+  return download('/grain-sales/marketAnalysisDaily/salesAmountTotalExport', params, '一级类目销售额统计.xlsx');
+}
+
+/**
+ * 导出订单履约率统计
+ */
+export function exportOrdersComplianceRate(params?: Record<string, any>) {
+  return download('/grain-sales/order/exportOrdersComplianceRateInfo', params, '履约率统计.xlsx', 'get');
 }
 
 export interface CategorySalesQuery {

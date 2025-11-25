@@ -11,11 +11,11 @@ export function getloanApplicationsList(data: any) {
 }
 
 //查看追踪信息
-export function getTrackingInfo(data: number | string) {
+export function getTrackingInfo(id: number | string) {
   return request({
     url: `/credit-server/loanApplications/traceList`,
     method: 'get',
-    params: data
+    params: { id }
   });
 }
 //企业信息
@@ -83,6 +83,14 @@ export function deleteFile(ossIds: string | number | Array<string | number>) {
   const ids = Array.isArray(ossIds) ? ossIds.join(',') : ossIds;
   return request({
     url: `/resource/oss/${ids}`,
+    method: 'delete'
+  });
+}
+
+// 删除还款记录
+export function deleteRepaymentRecord(id: string | number) {
+  return request({
+    url: `/credit-server/loanApplications/${id}`,
     method: 'delete'
   });
 }

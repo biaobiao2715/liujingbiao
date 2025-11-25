@@ -41,7 +41,7 @@
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
-import { getFirstLevelCategorySales } from '@/api/platformManage/home';
+import { getFirstLevelCategorySales, exportFirstLevelCategorySales } from '@/api/platformManage/home';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 
 type TimeRange = '1' | '2' | '3' | '4';
@@ -219,11 +219,8 @@ const changeRange = (value: TimeRange) => {
 };
 
 const handleExport = () => {
-  if (!proxy) return;
   const params = buildCommonParams();
-  const fileName = '一级类目销量统计.xlsx';
-  const url = '/grain-sales/marketAnalysisDaily/firstLevelCategorySalesExport';
-  proxy.download(url, params, fileName);
+  exportFirstLevelCategorySales(params);
 };
 
 onMounted(async () => {

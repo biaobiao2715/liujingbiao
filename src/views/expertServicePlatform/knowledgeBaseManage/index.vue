@@ -8,7 +8,7 @@
 <template>
   <div class="kb-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <el-form-item label="文章类别" prop="articleType">
         <el-select v-model="queryParams.articleType" placeholder="请选择" clearable filterable>
           <el-option v-for="dict in article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
@@ -55,7 +55,6 @@
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:article:delete']" type="primary" @click="handleDeleteBatch">删除</el-button>
       </el-col>
-      <right-toolbar :show-search="showSearch" @query-table="getList" />
     </el-row>
 
     <!-- 表格 -->
@@ -172,7 +171,6 @@ const queryParams = ref({
 const tableData = ref<any[]>([]);
 const total = ref(0);
 const loading = ref(false);
-const showSearch = ref(true);
 const queryFormRef = ref();
 
 // 选中

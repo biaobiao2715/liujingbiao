@@ -15,19 +15,17 @@
         <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
         <el-descriptions-item label="身份证正反面" :span="2">
           <template v-if="detail.user.idPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.user.idPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.user.idPhotos"
-                class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+            <el-image
+              v-for="(img, idx) in detail.user.idPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.user.idPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -43,19 +41,17 @@
         <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
         <el-descriptions-item label="银行卡正反面" :span="2">
           <template v-if="detail.loan.cardPhotos.length">
-              <el-image
-                v-for="(img, idx) in detail.loan.cardPhotos"
-                :key="idx"
-                :src="img"
-                :preview-src-list="detail.loan.cardPhotos"
-                class="identity-image"
-              >
-              <template #error>
-                <div class="image-placeholder">暂无图片</div>
-              </template>
-            </el-image>
+            <el-image
+              v-for="(img, idx) in detail.loan.cardPhotos"
+              :key="idx"
+              :src="img"
+              :preview-src-list="detail.loan.cardPhotos"
+              class="identity-image"
+            />
           </template>
-          <span v-else>--</span>
+          <template v-else>
+            <span>--</span>
+          </template>
         </el-descriptions-item>
       </el-descriptions>
     </div>
@@ -90,8 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, getCurrentInstance, toRefs } from 'vue'
+import type { ComponentInternalInstance } from 'vue'
 import { ElMessage } from 'element-plus'
+import { getRemainingDetail } from '@/api/creditPlatform/loanApplications'
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue'
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue'
 
@@ -102,11 +100,44 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>()
 
+// ==================== 字典数据 ====================
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+const { repayment_method } = toRefs<any>(
+  proxy?.useDict('repayment_method')
+)
+
+// ==================== 状态管理 ====================
 const loading = ref(false)
 const detailRow = ref<Record<string, any>>(props.data || {})
 const currentDetail = computed(() => detailRow.value || {})
 const productDetailVisible = ref(false)
 const repaymentPlanVisible = ref(false)
+
+const extractBirthdayFromId = (id: string | undefined | null) => {
+  const value = (id || '').trim()
+  if (!value) return ''
+  if (/^\d{17}[\dXx]$/.test(value)) {
+    const birth = value.substring(6, 14)
+    const year = birth.substring(0, 4)
+    const month = birth.substring(4, 6)
+    const day = birth.substring(6, 8)
+    return `${year}-${month}-${day}`
+  }
+  if (/^\d{15}$/.test(value)) {
+    const birth = value.substring(6, 12)
+    const year = `19${birth.substring(0, 2)}`
+    const month = birth.substring(2, 4)
+    const day = birth.substring(4, 6)
+    return `${year}-${month}-${day}`
+  }
+  return ''
+}
+
+const isLikelyUrl = (value: string) => {
+  if (!value) return false
+  const lower = value.toLowerCase()
+  return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/')
+}
 
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = []
@@ -117,12 +148,13 @@ const collectUrls = (...sources: any[]): string[] => {
       return
     }
     if (typeof item === 'string') {
-      urls.push(item)
+      const trimmed = item.trim()
+      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed)
       return
     }
     if (typeof item === 'object') {
-      const url = item.url || item.fileUrl || item.path || item.src
-      if (url) urls.push(url)
+      const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim()
+      if (url && isLikelyUrl(url)) urls.push(url)
     }
   }
   sources.forEach(append)
@@ -136,10 +168,12 @@ const fetchDetail = async () => {
   }
   loading.value = true
   try {
-    // 这里应该调用真实的API获取详细信息
-    // const res = await getRepaymentDetail(props.data.id)
-    // detailRow.value = res.data
-    detailRow.value = props.data || {}
+    let merged: Record<string, any> = props.data ? { ...props.data } : {}
+    const res = await getRemainingDetail(props.data.id)
+    if (res && res.code === 200 && res.data) {
+      merged = { ...merged, ...res.data }
+    }
+    detailRow.value = merged
   } catch (error) {
     console.error('获取贷后详情失败:', error)
     detailRow.value = props.data || {}
@@ -157,17 +191,49 @@ watch(
   }
 )
 
+// ==================== 工具函数 ====================
 const fallback = (value: any) => {
   if (value === undefined || value === null || value === '') return '--'
   return value
 }
 
+// 还款方式备用映射（当字典数据不可用时使用）
+const REPAYMENT_METHOD_MAP: Record<string, string> = {
+  '0': '等额本息',
+  '2': '等额本金',
+  '3': '先息后本',
+  '4': '先本后息'
+}
+
+/**
+ * 从字典获取还款方式标签（优先使用字典，否则使用备用映射）
+ */
+const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--'
+  
+  // 优先使用字典数据
+  if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
+    const match = repayment_method.value.find((item: any) => String(item.value) === String(value))
+    if (match?.label) {
+      return match.label
+    }
+  }
+  
+  // 备用映射
+  return REPAYMENT_METHOD_MAP[String(value)] || '--'
+}
+
+// ==================== 计算属性 ====================
 const detail = computed(() => {
   const row = detailRow.value || {}
+  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber)
+  const repaymentMethod = row.repaymentMethod || row.repaymentType
+  const repaymentTypeText = repaymentMethod ? getRepaymentMethodLabel(repaymentMethod) : undefined
+  
   return {
     user: {
       name: fallback(row.realName || row.name),
-      birthday: fallback(row.birthday),
+      birthday: fallback(birthday),
       idNumber: fallback(row.idCardNumber),
       phone: fallback(row.contactPhone || row.phone),
       address: fallback(row.contactAddress || row.address),
@@ -177,7 +243,7 @@ const detail = computed(() => {
       applyDate: fallback(row.createTime || row.applyTime),
       amount: fallback(row.loanAmount),
       period: fallback(row.loanTerm),
-      repaymentType: fallback(row.repaymentMethod || row.repaymentType),
+      repaymentType: fallback(repaymentTypeText),
       bank: fallback(row.collectionBankCode || row.bankName),
       bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
       cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
@@ -198,7 +264,19 @@ const handleViewProductDetail = () => {
 }
 
 const handleViewContract = () => {
-  ElMessage.info('查看合同详情功能待开发')
+  // 从多个可能的位置获取合同地址
+  const contractUrl = currentDetail.value?.contractUrl || 
+                     currentDetail.value?.contractFileUrl ||
+                     props.data?.contractUrl ||
+                     props.data?.contractFileUrl;
+  
+  if (!contractUrl) {
+    ElMessage.warning('暂无合同文件');
+    return;
+  }
+  
+  // 在新窗口中打开合同地址
+  window.open(contractUrl, '_blank');
 }
 
 const handleViewRepaymentPlan = () => {
@@ -271,6 +349,5 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
 }
 </style>
