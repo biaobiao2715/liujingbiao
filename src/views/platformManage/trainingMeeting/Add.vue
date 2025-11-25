@@ -684,7 +684,7 @@ const handleSave = async () => {
     emit('save', form.value);
     handleClose();
   } catch (error) {
-    ElMessage.error(error);
+    ElMessage.error('请检查必填项是否填写正确');
   } finally {
     saveloading.value = false;
   }
