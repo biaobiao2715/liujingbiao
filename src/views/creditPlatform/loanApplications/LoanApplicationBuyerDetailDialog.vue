@@ -491,7 +491,7 @@ const detail = computed(() => {
 })
 
 const dialogTitle = computed(() => {
-  return props.mode === 'approval' ? '个人贷款申请审核' : '贷款申请详情（采购商）'
+  return props.mode === 'approval' ? '个人贷款申请审核' : '贷款申请详情（个人）'
 })
 
 const isApprovalMode = computed(() => props.mode === 'approval')
