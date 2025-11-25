@@ -112,9 +112,9 @@ const meetingData = ref({
   experts: []
 });
 const expertList = ref([]);
-const expertPage = ref({ pageNum: 1, pageSize: 5, total: 0 });
+const expertPage = ref({ pageNum: 1, pageSize: 10, total: 0 });
 const signUpList = ref([]);
-const signUpPage = ref({ pageNum: 1, pageSize: 5, total: 0 });
+const signUpPage = ref({ pageNum: 1, pageSize: 10, total: 0 });
 
 // 专家人员列表
 const getexpertList = () => {
