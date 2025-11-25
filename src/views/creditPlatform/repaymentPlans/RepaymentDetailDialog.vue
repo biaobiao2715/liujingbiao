@@ -21,9 +21,7 @@
                 class="license-image"
               />
             </template>
-          <template v-else>
-            <span>--</span>
-          </template>
+            <span v-else>--</span>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -53,11 +51,19 @@
           </el-descriptions-item>
           <el-descriptions-item label="授权文件" :span="2">
             <template v-if="applicantAuthFiles.length">
-              <el-image v-for="(img, idx) in applicantAuthFiles" :key="idx" :src="img" :preview-src-list="applicantAuthFiles" class="license-image" />
+              <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
+                <el-button 
+                  type="primary" 
+                  link 
+                  @click="handleViewFile(file)"
+                  class="file-link"
+                >
+                  <el-icon><Document /></el-icon>
+                  授权文件{{ applicantAuthFiles.length > 1 ? (idx + 1) : '' }}
+                </el-button>
+              </div>
             </template>
-            <template v-else>
-              <span>--</span>
-            </template>
+            <div v-else class="file-placeholder">暂无文件</div>
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -116,8 +122,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Document } from '@element-plus/icons-vue';
 import { getRemainingDetail, getEnterprise } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
@@ -131,6 +139,13 @@ const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
 }>();
 
+// ==================== 字典数据 ====================
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { repayment_method } = toRefs<any>(
+  proxy?.useDict('repayment_method')
+);
+
+// ==================== 状态管理 ====================
 const loading = ref(false);
 const detailRow = ref<Record<string, any>>(props.data || {});
 const currentDetail = computed(() => detailRow.value || {});
@@ -163,16 +178,37 @@ const idCardTypeMap: Record<string, string> = {
   '2': '其他'
 };
 
-const repaymentMethodMap: Record<string, string> = {
+// ==================== 常量定义 ====================
+// 还款方式备用映射（当字典数据不可用时使用）
+const REPAYMENT_METHOD_MAP: Record<string, string> = {
   '0': '等额本息',
   '2': '等额本金',
   '3': '先息后本',
   '4': '先本后息'
 };
 
+// ==================== 工具函数 ====================
 const formatValue = (value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return value;
+};
+
+/**
+ * 从字典获取还款方式标签（优先使用字典，否则使用备用映射）
+ */
+const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  
+  // 优先使用字典数据
+  if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
+    const match = repayment_method.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  
+  // 备用映射
+  return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
 
 const mapValue = (map: Record<string, string>, value: any) => {
@@ -287,7 +323,19 @@ const companyInfoList = computed(() => {
 
 const companyLicenseList = computed(() => {
   const row = detailRow.value;
-  return Array.isArray(row.licenses) ? row.licenses : [];
+  const licenses = [];
+  
+  // 从 licenses 数组获取
+  if (Array.isArray(row.licenses)) {
+    licenses.push(...row.licenses);
+  }
+  
+  // 从 url 字段获取营业执照
+  if (row.url) {
+    licenses.push({ url: row.url });
+  }
+  
+  return licenses;
 });
 
 const legalInfoList = computed(() => {
@@ -317,16 +365,17 @@ const applicantIdPhotos = computed(() => {
 
 const applicantAuthFiles = computed(() => {
   const row = detailRow.value;
-  return collectUrls(row.authorizationFiles, row.authorizationUrl);
+  return collectUrls(row.authorizationUrl);
 });
 
 const loanInfoList = computed(() => {
   const row = detailRow.value;
   const repayment = row.repaymentMethod || row.repaymentType;
+  const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
-    { label: '还款方式', value: formatValue(repaymentMethodMap[String(repayment)] || repayment) },
+    { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
     { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
     { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }
@@ -350,15 +399,21 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
+// 处理文件查看
+const handleViewFile = (fileUrl: string) => {
+  if (!fileUrl) {
+    ElMessage.warning('文件地址不存在');
+    return;
+  }
+  window.open(fileUrl, '_blank');
+};
+
 const handleViewContract = () => {
   // 从多个可能的位置获取合同地址
-  const contractUrl = detail.value?.contractUrl || 
-                     detail.value?.loan?.contractUrl || 
+  const contractUrl = currentDetail.value?.contractUrl || 
+                     currentDetail.value?.contractFileUrl ||
                      props.data?.contractUrl ||
-                     currentDetail.value?.contractUrl;
-  
-  console.log('合同地址:', contractUrl);
-  console.log('详情数据:', detail.value);
+                     props.data?.contractFileUrl;
   
   if (!contractUrl) {
     ElMessage.warning('暂无合同文件');
@@ -421,6 +476,22 @@ const handleViewRepaymentPlan = () => {
   align-items: center;
   color: #909399;
   font-size: 12px;
+}
+
+.file-item {
+  margin-bottom: 8px;
+  
+  .file-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.file-placeholder {
+  color: #909399;
+  font-size: 14px;
+  font-style: italic;
 }
 
 .bank-card-preview {
