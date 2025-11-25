@@ -747,7 +747,7 @@ const submitApply = async () => {
 };
 // 查看产品详情
 const handleShowDetails = () => {
-  const id = props.productId ?? productDetails.value?.id;
+  const id = props.productId ?? productDetails.value?.id ?? formData.value.productId;
   emit('switchShowArea', { type: 'LoanProductsComponentDetails', id });
 };
 
@@ -939,7 +939,7 @@ const repaymentMethodOptions = computed(() => {
 });
 // ========== 初始化加载逻辑 ==========
 async function loadProductDetails() {
-  const pid = props.productId || productDetails.value.id || formData.value.productId;
+  const pid = props.productId || formData.value.productId;
   if (!pid) return;
   const res = await getCreditProductsVersionDetailNoTenant(pid).catch(() => null);
   if (res && res.code === 200) productDetails.value = res.data || {};
@@ -1003,6 +1003,11 @@ onMounted(async () => {
       // 银行卡
       setFromUrl(uploaderBankFront, formData.value.bankFrontUrl);
       setFromUrl(uploaderBankBack, formData.value.bankBackUrl);
+
+      // 法人身份证
+      // setFromUrl(uploaderLegalFront, formData.value.legalPersonIdFrontUrl);
+      // setFromUrl(uploaderLegalBack, formData.value.legalPersonIdBackUrl);
+      setFromUrl(uploaderAuthorization, formData.value.authorizationUrl);
       await populateBirthdayIfNeeded(applyRes.data);
       // 编辑模式下也尝试加载产品详情（可能限制显示）
       await loadProductDetails();
