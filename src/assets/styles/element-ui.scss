@@ -150,3 +150,9 @@
 .el-message-box .el-message-box__message {
   word-break: break-word;
 }
+
+//  表格头部和内容居中对齐
+.el-table th,
+.el-table td {
+  text-align: center !important;
+}
