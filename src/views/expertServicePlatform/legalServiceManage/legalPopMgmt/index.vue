@@ -11,7 +11,6 @@
       <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
         <el-form-item label="普法类型" prop="contentType">
           <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
-            <el-option label="请选择" value="" />
             <el-option 
               v-for="item in legal_popularize_type" 
               :key="item.value" 

@@ -11,6 +11,7 @@
     <div class="title">{{ detail?.contentTitle }}</div>
     <!-- 课程描述 -->
     <div class="description flex-center-between gap-24 mt-24 mb-24">
+      <div class="content-title-box">{{ detail?.contentTitle }}</div>
       <div class="flex-center gap-24">
         <div>{{ '发布人：  ' + detail?.authorName }}</div>
         <div>{{ '发布时间：  ' + detail?.createTime }}</div>
@@ -28,7 +29,7 @@
       </div>
     </div>
     <!-- 编辑器内容 -->
-    <ContentWithToc :content="detail?.contentContent" style="height: 400px; overflow: auto" />
+    <div class="content-display" v-html="detail?.contentContent"></div>
     <!-- 附件部分 -->
     <el-table :data="detail?.sysOssLists" class="mt-24">
       <el-table-column prop="fileSuffix" label="附件类型" width="180" />
@@ -155,8 +156,36 @@ const handleCollection = async () => {
     font-weight: bold;
   }
   .description {
+    .content-title-box {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
     .collection {
       cursor: pointer;
+    }
+  }
+  
+  .content-display {
+    padding: 20px;
+    background: #fff;
+    border-radius: 4px;
+    line-height: 1.8;
+    min-height: 400px;
+    
+    :deep(img) {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    :deep(p) {
+      margin-bottom: 1em;
+    }
+    
+    :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+      margin-top: 1.5em;
+      margin-bottom: 0.8em;
+      font-weight: 600;
     }
   }
 }

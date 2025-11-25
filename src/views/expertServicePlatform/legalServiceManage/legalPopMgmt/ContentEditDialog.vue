@@ -89,12 +89,13 @@
         <div class="attachment-title">附件上传</div>
         <el-upload
           action="#"
-          :auto-upload="false"
           accept=".jpg,.jpeg,.png,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
+          multiple
           :show-file-list="false"
-          :on-change="handleFileChange"
+          :before-upload="beforeAttachmentUpload"
+          :http-request="handleAttachmentUpload"
         >
-          <el-button v-throttle v-hasPermi="['system:oss:upload']" type="primary" plain>
+          <el-button v-throttle type="primary" plain>
             <el-icon class="el-icon--left"><Upload /></el-icon>
             添加附件
           </el-button>
@@ -118,7 +119,7 @@
                 <el-icon><Download /></el-icon>
                 下载
               </el-button>
-              <el-button type="primary" link @click="handleReuploadFile(scope.row)" v-hasPermi="['system:oss:upload']">
+              <el-button type="primary" link @click="handleReuploadFile(scope.row)">
                 <el-icon><Upload /></el-icon>
                 重新上传
               </el-button>
@@ -144,7 +145,7 @@
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, toRefs, watch, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox, type UploadRequestHandler, type UploadRawFile } from 'element-plus';
 import { Upload, View, Delete, Document, Download } from '@element-plus/icons-vue';
 import { 
   getContentDetail, 
@@ -152,6 +153,7 @@ import {
   editContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 
@@ -186,7 +188,7 @@ const formData = ref({
 });
 
 const attachmentList = ref<Array<{
-  ossId?: number;
+  ossId?: number | string;
   fileName: string;
   originalName: string;
   fileSuffix: string;
@@ -397,6 +399,9 @@ const scrollToHeading = (id: string) => {
   }
 };
 
+const MB = 1024 * 1024;
+const CHUNK_UPLOAD_THRESHOLD = 5 * MB; // 超过 5MB 走分片上传（与举报材料一致）
+
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -416,7 +421,6 @@ const validateFile = (file: File): boolean => {
     return false;
   }
 
-  const MB = 1024 * 1024;
   const limit = imageExt.includes(ext) ? 10 * MB : 100 * MB;
   if (file.size > limit) {
     ElMessage.error(imageExt.includes(ext) ? '图片文件最大10MB' : '文档文件最大100MB');
@@ -426,32 +430,64 @@ const validateFile = (file: File): boolean => {
   return true;
 };
 
-const handleFileChange = async (file: any) => {
-  if (!validateFile(file.raw)) return;
-  
-  (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
-  
+const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
+  const useChunkUpload = file.size > CHUNK_UPLOAD_THRESHOLD;
+  const modal = (proxy as any)?.$modal;
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+
   try {
-    const response = await ossUploadImage({ file: file.raw });
-    
-    if (response.code === 200 && response.data?.ossId) {
-      attachmentList.value.push({
-        ossId: response.data.ossId,
-        fileName: response.data.fileName,
-        originalName: file.raw.name,
-        fileSuffix: file.raw.type,
-        url: response.data.url,
-        fileSize: formatFileSize(file.raw.size),
-        uid: file.uid
+    let payload: { ossId?: number | string; fileName?: string; url?: string } = {};
+
+    if (useChunkUpload) {
+      const chunkRes = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
       });
-      ElMessage.success('附件上传成功');
+      payload = {
+        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
+        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
+        url: chunkRes?.url || chunkRes?.fileUrl || chunkRes?.data?.url || ''
+      };
     } else {
-      ElMessage.error(response?.msg || '上传失败，请重试');
+      const response = await ossUploadImage({ file });
+      const data = response?.data || {};
+      payload = {
+        ossId: data.ossId,
+        fileName: data.fileName || file.name,
+        url: data.url
+      };
     }
-  } catch (error) {
-    ElMessage.error('上传失败，请重试');
+
+    if (!payload?.ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
+    return {
+      ossId: payload.ossId,
+      fileName: payload.fileName || file.name,
+      originalName: file.name,
+      fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
+      url: payload.url || '',
+      fileSize: formatFileSize(file.size),
+      uid: options?.uid || String(Date.now() + Math.random())
+    };
   } finally {
-    (proxy as any)?.$modal?.closeLoading();
+    modal?.closeLoading?.();
+  }
+};
+
+const beforeAttachmentUpload = (file: File) => validateFile(file);
+
+const handleAttachmentUpload: UploadRequestHandler = async (options) => {
+  const rawFile = options.file as UploadRawFile;
+  try {
+    const result = await uploadAttachmentFile(rawFile, { uid: rawFile?.uid ? String(rawFile.uid) : undefined });
+    attachmentList.value.push(result);
+    ElMessage.success('附件上传成功');
+    options.onSuccess?.(result as any);
+  } catch (error: any) {
+    console.error('附件上传失败:', error);
+    ElMessage.error(error?.message || '上传失败，请重试');
+    options.onError?.(error as any);
   }
 };
 
@@ -467,34 +503,22 @@ const handleReuploadFile = async (row: any) => {
     const file = e?.target?.files?.[0];
     if (!file) return;
     if (!validateFile(file)) return;
-    
-    (proxy as any)?.$modal?.loading('正在重新上传，请稍候...');
     try {
-      const response = await ossUploadImage({ file });
-      if (response.code === 200 && response.data?.ossId) {
-        const idx = attachmentList.value.findIndex((it: any) => (it.uid && row.uid && it.uid === row.uid) || (it.ossId && row.ossId && String(it.ossId) === String(row.ossId)));
-        const newItem = {
-          ossId: response.data.ossId,
-          fileName: response.data.fileName || file.name,
-          originalName: file.name,
-          fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
-          url: response.data.url,
-          fileSize: formatFileSize(file.size),
-          uid: row.uid || String(Date.now() + Math.random())
-        };
-        if (idx !== -1) {
-          attachmentList.value.splice(idx, 1, newItem);
-        } else {
-          attachmentList.value.push(newItem);
-        }
-        ElMessage.success('重新上传成功');
+      const newItem = await uploadAttachmentFile(file, { uid: row.uid });
+      const idx = attachmentList.value.findIndex(
+        (it: any) =>
+          (it.uid && row.uid && it.uid === row.uid) ||
+          (it.ossId && row.ossId && String(it.ossId) === String(row.ossId))
+      );
+      if (idx !== -1) {
+        attachmentList.value.splice(idx, 1, newItem);
       } else {
-        ElMessage.error(response?.msg || '重新上传失败，请重试');
+        attachmentList.value.push(newItem);
       }
+      ElMessage.success('重新上传成功');
     } catch (error) {
-      ElMessage.error('重新上传失败，请重试');
-    } finally {
-      (proxy as any)?.$modal?.closeLoading();
+      console.error('重新上传失败:', error);
+      ElMessage.error((error as Error)?.message || '重新上传失败，请重试');
     }
   };
   input.click();
