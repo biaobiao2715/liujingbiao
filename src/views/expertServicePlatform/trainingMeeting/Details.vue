@@ -11,7 +11,7 @@
     <h2 class="meeting-title">{{ meetingData.meetingName }}</h2>
     <div class="flex-between">
       <div>
-        <span>发布人：{{ meetingData.meetingContact }}</span>
+        <span>发布人：{{ meetingData.publishUser }}</span>
         <span style="margin-left: 40px">发布时间：{{ meetingData.publishTime }}</span>
       </div>
       <div style="display: flex">
@@ -41,7 +41,11 @@
       <el-table :data="expertList" border>
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column prop="expertCode" label="专家编码" align="center" />
-        <el-table-column prop="expertType" label="专家类型" align="center" />
+        <el-table-column prop="expertType" label="专家类型" align="center">
+          <template #default="scope">
+            <dict-tag :options="meet_expert_type" :value="scope.row.expertType" />
+          </template>
+        </el-table-column>
         <el-table-column prop="expertName" label="专家姓名" align="center" />
         <el-table-column prop="expertSex" label="专家性别" align="center">
           <template #default="scope">
@@ -86,7 +90,7 @@
 import { ref, onMounted } from 'vue';
 import { getcultivateExpert, activityEnrollList, cultivateExpertList } from '@/api/expertServicePlatform/trainingMeeting/index';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { meeting_status, meeting_type, sys_user_sex } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type', 'sys_user_sex'));
+const { meeting_status, meeting_type, sys_user_sex, meet_expert_type } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type', 'sys_user_sex', 'meet_expert_type'));
 
 // 接收父组件传参
 const props = defineProps<{ id: string | number; type: string }>();
