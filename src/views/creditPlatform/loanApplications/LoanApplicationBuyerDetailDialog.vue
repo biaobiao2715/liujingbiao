@@ -83,7 +83,7 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)" label="放款日期" prop="loanDate">
+          <el-form-item label="放款日期" prop="loanDate">
             <el-date-picker
               v-model="approvalForm.loanDate"
               type="date"
@@ -93,7 +93,6 @@
             />
           </el-form-item>
           <el-form-item
-            v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
             label="第一期还款日期"
             prop="firstRepaymentDate"
           >
@@ -151,16 +150,18 @@
             </div>
           </template>
             <template v-else>
-              <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                <el-link
+              <div class="contract-files-view" v-if="approvalForm.contractFiles.length">
+                <el-button
                   v-for="(file, idx) in approvalForm.contractFiles"
                   :key="file.url || idx"
-                  :href="file.url"
-                  target="_blank"
                   type="primary"
+                  link
+                  @click="handleViewFile(file.url)"
+                  class="contract-view-btn"
                 >
+                  <el-icon><Document /></el-icon>
                   {{ file.name || `合同文件${idx + 1}` }}
-                </el-link>
+                </el-button>
               </div>
           <span v-else>--</span>
             </template>
@@ -197,7 +198,7 @@ import { computed, ref, watch, reactive, nextTick, getCurrentInstance, toRefs } 
 import type { FormInstance, FormRules } from 'element-plus'
 import type { ComponentInternalInstance } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Close } from '@element-plus/icons-vue'
+import { Close, Document } from '@element-plus/icons-vue'
 import { getRemainingDetail, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications'
 import ProductDetailDialog from './ProductDetailDialog.vue'
 
@@ -255,7 +256,16 @@ const APPLY_STATUS_MAP: Record<string, string> = {
 }
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
+  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
+  loanDate: [
+    { required: true, message: '请选择放款日期', trigger: 'change' }
+  ],
+  firstRepaymentDate: [
+    { required: true, message: '请选择第一期还款日期', trigger: 'change' }
+  ],
+  contractId: [
+    { required: true, message: '请上传贷款合同', trigger: 'change' }
+  ]
 }
 
 // ==================== 工具函数 ====================
@@ -674,6 +684,14 @@ const handleClose = () => {
   emit('update:visible', false)
 }
 
+const handleViewFile = (fileUrl: string) => {
+  if (!fileUrl) {
+    ElMessage.warning('文件地址不存在')
+    return
+  }
+  window.open(fileUrl, '_blank')
+}
+
 const handleViewProductDetail = () => {
   if (!currentDetail.value.productId) {
     ElMessage.warning('产品ID不存在')
@@ -779,6 +797,28 @@ const handleViewProductDetail = () => {
     span {
       color: #606266;
     }
+  }
+}
+
+.contract-files-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contract-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  
+  .el-icon {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
   }
 }
 

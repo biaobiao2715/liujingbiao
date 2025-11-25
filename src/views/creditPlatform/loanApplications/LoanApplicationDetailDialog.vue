@@ -105,14 +105,12 @@
             </el-select>
           </el-form-item>
           <el-form-item
-            v-if="isApproveAgree || (!isApprovalMode && approvalForm.loanDate)"
             label="放款日期"
             prop="loanDate"
           >
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
           <el-form-item
-            v-if="isApproveAgree || (!isApprovalMode && approvalForm.firstRepaymentDate)"
             label="第一期还款日期"
             prop="firstRepaymentDate"
           >
@@ -156,10 +154,18 @@
               </div>
             </template>
             <template v-else>
-              <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                <el-link v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" :href="file.url" target="_blank" type="primary">
+              <div class="contract-files-view" v-if="approvalForm.contractFiles.length">
+                <el-button
+                  v-for="(file, idx) in approvalForm.contractFiles"
+                  :key="file.url || idx"
+                  type="primary"
+                  link
+                  @click="handleViewFile(file.url)"
+                  class="contract-view-btn"
+                >
+                  <el-icon><Document /></el-icon>
                   {{ file.name || `合同文件${idx + 1}` }}
-                </el-link>
+                </el-button>
               </div>
               <span v-else>--</span>
             </template>
@@ -282,7 +288,16 @@ const REPAYMENT_METHOD_MAP: Record<string, string> = {
 };
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
+  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
+  loanDate: [
+    { required: true, message: '请选择放款日期', trigger: 'change' }
+  ],
+  firstRepaymentDate: [
+    { required: true, message: '请选择第一期还款日期', trigger: 'change' }
+  ],
+  contractId: [
+    { required: true, message: '请上传贷款合同', trigger: 'change' }
+  ]
 };
 
 // ==================== 工具函数 ====================
@@ -863,6 +878,28 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.contract-files-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contract-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  
+  .el-icon {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .contract-field {
