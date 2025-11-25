@@ -90,10 +90,9 @@
             >
               逾期提示
             </el-button>
-            
+            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
             <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
-            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
