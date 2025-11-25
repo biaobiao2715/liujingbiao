@@ -1,7 +1,7 @@
 <!--
   标题: CourseDetailComponent.vue
-  功能: 课程详情组件
-  说明: 显示课程的详细信息，包括课程名称、课程描述、课程图片、课程价格、课程时长、课程讲师等。
+  功能: 法律活动详情组件
+  说明: 显示法律活动的详细信息，包括法律活动名称、法律活动描述、法律活动图片、法律活动价格、法律活动时长、法律活动讲师等。
   当前版本: 1.0
   开发信息: Created by 李春雷 2025-10-29
 -->
@@ -29,11 +29,12 @@
     <el-divider></el-divider>
     <!-- 详细信息 -->
     <div class="detail">
-      <div>会议主题：{{ detail?.activityTitle }}</div>
-      <div>会议联系人：{{ detail?.activityContact }}</div>
-      <div>会议类别：{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</div>
-      <div>会议时间：{{ detail?.startTime + ' - ' + detail?.endTime }}</div>
-      <div>会议地点：{{ detail?.activityAddress }}</div>
+      <div>活动主题：{{ detail?.activityTitle }}</div>
+      <div>活动简介：{{ detail?.activitySummary }}</div>
+      <div>活动联系人：{{ detail?.activityContact }}</div>
+      <div>活动联系人电话：{{ detail?.activityContactPhone }}</div>
+      <div>活动时间：{{ detail?.startTime + ' - ' + detail?.endTime }}</div>
+      <div>活动地址：{{ detail?.activityAddress }}</div>
       <div v-if="detail?.status === '99'">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
@@ -114,6 +115,12 @@ const handleApply = async () => {
   .description {
     .collection {
       cursor: pointer;
+    }
+  }
+
+  .detail {
+    div {
+      margin-bottom: 12px;
     }
   }
 }

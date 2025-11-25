@@ -13,8 +13,8 @@
       </el-form-item>
 
       <el-form-item label="图片上传" prop="questionImage">
-        <imageUpload v-model="form.questionImage" @uploadSuccess="handleUploadSuccess" />
-        <div slot="tip" class="el-upload__tip">支持jpg、gif、png三种格式，最多上传九张图片，每张图片大小不超过10MB</div>
+        <imageUpload v-model="form.questionImage" :limit="6" @uploadSuccess="handleUploadSuccess" />
+        <div slot="tip" class="el-upload__tip">支持jpg、gif、png三种格式，最多上传6张图片，每张图片大小不超过10MB</div>
       </el-form-item>
 
       <el-form-item>
@@ -48,7 +48,7 @@ const rules = {
     { required: true, message: '描述不能为空', trigger: 'blur' },
     { min: 10, message: '描述不能少于10个字', trigger: 'blur' }
   ],
-  questionImage: [{ message: '请上传图片', trigger: 'change' }]
+  questionImage: [{required: true, message: '请上传图片', trigger: 'change' }]
 };
 
 const fileList = ref([]);

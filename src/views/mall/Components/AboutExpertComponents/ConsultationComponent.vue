@@ -95,7 +95,7 @@ const getLegalExpertList = async () => {
 
 // 获取头像url
 const getAvatarUrl = (imgList) => {
-  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo.url;
+  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo?.url;
 };
 
 // 处理立即咨询按钮点击
