@@ -2,7 +2,6 @@
   <div class="price-trend-chart">
     <div class="chart-header" v-if="showHeader">
       <h3 class="chart-title">{{ title }}</h3>
-      <span class="chart-unit">{{ unit }}</span>
     </div>
     <div ref="chartContainer" class="chart-container"></div>
   </div>
@@ -96,9 +95,15 @@ const updateChart = () => {
       type: 'category',
       boundaryGap: false,
       data: props.dates,
+      nameTextStyle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#303133'
+      },
       axisLabel: {
-        fontSize: 12,
-        color: '#606266',
+        fontSize: 13,
+        color: '#303133',
+        fontWeight: 'normal',
         interval: (index: number) => labelIndices.has(index)
       },
       axisTick: {
@@ -116,16 +121,18 @@ const updateChart = () => {
       name: props.unit,
       nameLocation: 'end',
       nameTextStyle: {
-        color: '#909399',
-        fontSize: 12,
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#303133',
         padding: [0, 0, 0, 10]
       },
       min: props.yAxisMin,
       max: props.yAxisMax,
       interval: props.yAxisInterval,
       axisLabel: {
-        fontSize: 12,
-        color: '#606266'
+        fontSize: 13,
+        color: '#303133',
+        fontWeight: 'normal'
       },
       axisLine: {
         lineStyle: {
@@ -242,7 +249,7 @@ onUnmounted(() => {
 
   .chart-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 16px;
     flex-shrink: 0;
@@ -252,11 +259,6 @@ onUnmounted(() => {
       font-weight: bold;
       color: #303133;
       margin: 0;
-    }
-
-    .chart-unit {
-      font-size: 12px;
-      color: #909399;
     }
   }
 
