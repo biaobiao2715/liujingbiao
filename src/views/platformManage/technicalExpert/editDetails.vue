@@ -1,13 +1,13 @@
 <!--
   标题: EditDetails.vue
-  功能: 供应商编辑详情页
-  说明: 用于供应商编辑自己的详细信息
+  功能: 技术专家编辑详情页
+  说明: 用于技术专家编辑自己的详细信息
   当前版本: 1.0
   开发信息: Created by 李春雷 2025-10-15
 -->
 <template>
   <el-dialog
-    :title="operateMode === 'edit' ? '供应商编辑' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
+    :title="operateMode === 'edit' ? '技术专家编辑' : operateMode === 'audit' ? '技术专家审核' : '技术专家详情'"
     v-model="dialogVisible"
     width="80%"
   >
@@ -165,6 +165,11 @@ import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
 import { getTechnicalExpertDetail, techUpdateOrSaveData } from '@/api/platform/technicalExpert';
 import { TechnicalExpertList } from '@/api/platform/technicalExpert/types';
+// 子组件对外事件
+const emit = defineEmits<{
+  (e: 'refresh'): void;
+  (e: 'cancel'): void;
+}>();
 
 const route = useRoute();
 const { id, type } = route.query;
@@ -204,11 +209,17 @@ const handleSave = async () => {
     const response = await techUpdateOrSaveData({
       // @ts-ignore
       hnBaseTechExpertInfoBo: {
-        ...formData.value
+        ...formData.value,
+        folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
+          ...item,
+          ...(item.ossInfo || {})
+        }))
       }
     });
     if (response.code === 200) {
       ElMessage.success('保存成功');
+      emit('refresh');
+      dialogVisible.value = false;
     }
   } catch (error) {
     console.error('保存失败', error);
@@ -218,20 +229,30 @@ const handleSave = async () => {
 };
 
 const handleAudit = async (status: '99' | '1') => {
+  if (!formData.value.reviewRemark) {
+    ElMessage.error('请填写审核意见');
+    return;
+  }
   try {
     loading.value = true;
+    const folder = formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
+      ...item,
+      ...(item.ossInfo || {})
+    }));
     const res = await techUpdateOrSaveData({
       // @ts-ignore
       hnBaseTechExpertInfoBo: {
         ...formData.value,
-        reviewStatus: status
+        reviewStatus: status,
+        folder
       },
-      folder: formData.value.hnBaseRegisterFolderVoList,
       optType: '3'
     });
     if (res.code === 200) {
       ElMessage.success(status === '99' ? '审核退回成功' : '审核通过成功');
       operateMode.value = 'view';
+      emit('refresh');
+      dialogVisible.value = false;
     }
   } catch (error) {
     ElMessage.error('审核失败');
