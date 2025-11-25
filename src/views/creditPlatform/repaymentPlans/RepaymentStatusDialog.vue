@@ -28,7 +28,7 @@
 
             <div class="info-row">
               <span class="label">还款金额：</span>
-              <span class="value amount">{{ item.principalAmount }} 元</span>
+              <span class="value amount">{{ item.totalAmount }} 元</span>
             </div>
 
             <div class="info-row">
@@ -62,7 +62,6 @@
               <span v-else class="value" :class="getStatusClass(item.planStatus)">{{ getStatusText(item.planStatus) }}</span>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -77,7 +76,7 @@ import { getRepaymentPlan, updateRepaymentPlan } from '@/api/creditPlatform/loan
 interface RepaymentItem {
   loanPeriod: number; // 期数
   repaymentDate: string; // 还款日期
-  principalAmount: number; // 还款金额
+  totalAmount: number; // 还款金额
   repaymentCardNo?: string; // 还款卡号
   cardNumberError?: string; // 卡号错误信息
   planStatus: number; // 还款状态：0=待还款, 1=已还款, 2=已逾期
@@ -336,7 +335,7 @@ const handleSubmit = async () => {
 
       // 重新校验银行卡号格式
       validateCardNumber(item);
-      
+
       // 检查是否有校验错误
       if (item.cardNumberError) {
         hasValidationError = true;

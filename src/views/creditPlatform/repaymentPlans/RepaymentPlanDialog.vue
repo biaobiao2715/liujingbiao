@@ -1,9 +1,9 @@
 <template>
-  <el-dialog 
-    :model-value="visible" 
-    width="1300px" 
-    class="repayment-plan-dialog" 
-    append-to-body 
+  <el-dialog
+    :model-value="visible"
+    width="1300px"
+    class="repayment-plan-dialog"
+    append-to-body
     destroy-on-close
     :close-on-click-modal="false"
     @close="handleClose"
@@ -117,7 +117,7 @@ const getStatusText = (planStatus: number | string) => {
 
 const fetchRepaymentPlan = async () => {
   if (!props.data?.id) return;
-  
+
   loading.value = true;
   try {
     const res = await getRepaymentPlan(props.data.id);
@@ -126,7 +126,7 @@ const fetchRepaymentPlan = async () => {
       repaymentPlans.value = res.map((item: any, index: number) => ({
         period: item.loanPeriod || index + 1,
         repaymentDate: item.repaymentDate || '--',
-        repaymentAmount: item.principalAmount || '0',
+        repaymentAmount: item.totalAmount || '0',
         cardNumber: item.repaymentCardNo || item.collectionAccountNumber || '--',
         status: getStatusFromPlanStatus(item.planStatus),
         statusText: getStatusText(item.planStatus)
@@ -182,7 +182,7 @@ const handleClose = () => {
   width: calc(33.333% - 11px);
   min-width: 280px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  
+
   .card-content {
     padding: 20px 16px;
   }
@@ -192,23 +192,23 @@ const handleClose = () => {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
-  
+
   .label {
     font-size: 14px;
     color: #606266;
     min-width: 85px;
     font-weight: 500;
   }
-  
+
   .value {
     flex: 1;
     font-size: 14px;
     color: #303133;
-    
+
     &.amount {
       color: #e6a23c;
       font-weight: 600;
