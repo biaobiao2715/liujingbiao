@@ -161,12 +161,13 @@ const updateChart = () => {
         type: 'map',
         map: 'china',
         roam: true, // 开启缩放和平移
-        zoom: 1.2, // 【修改1】初始缩放放大（1.2倍，更清晰）
-        layoutCenter: ['50%', '50%'], // 【修改2】完全居中（水平+垂直居中）
-        layoutSize: {
-          width: '90%', // 【修改3】宽度占容器90%（原75%，更大）
-          height: '92%' // 【修改4】高度占容器92%（原80%，更大）
-        },
+        zoom: 1.15, // 适度缩小以保留四周留白
+        layoutCenter: ['50%', '65%'], // 控制垂直位置稍向下
+        layoutSize: '100%', // 适中尺寸
+        left: '5%',
+        right: '5%',
+        top: '3%',
+        bottom: '5%',
         aspectScale: 0.7, // 【修改5】微调宽高比，避免放大后变形
         label: {
           show: true,
@@ -343,8 +344,9 @@ defineExpose({
 
 <style scoped lang="scss">
 .china-map-heatmap {
-  width: 100%; // 【修改7】原120%（可能溢出），改为100%适配父容器
-  height: 800px; // 【修改8】固定高度（比原600px更高，支撑更大地图）
-  margin: 0 auto; // 【修改9】确保容器本身在页面水平居中
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  margin: 0 auto;
 }
 </style>
