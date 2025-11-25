@@ -22,7 +22,7 @@
           <el-col :span="6" v-for="(course, index) in courseList" :key="index">
             <el-card shadow="hover">
               <div class="course-item" @click="handleDetail('courseDetail', course.id)">
-                <img :src="course.cultivateCoverId" class="course-image" />
+                <img :src="course.imageFile.url" class="course-image"  width="100"/>
                 <div class="hot flex-center gap-12">
                   <div class="views flex-center gap-2">
                     <el-icon size="20"><View /></el-icon>

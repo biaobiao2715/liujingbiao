@@ -106,10 +106,10 @@ type DetailView =
   | 'RiskCasesComponentDetails'
   | 'PolicyRulesComponentList'
   | 'PolicyRulesComponentDetails'
-  | 'PersonalCenter'
-  // 以下内容只用来展示，不参与交互，无实际意义
-  | 'MyCollections'
-  | 'CreditApplication';
+  | 'PersonalCenter';
+// // 以下内容只用来展示，不参与交互，无实际意义
+// | 'MyCollections'
+// | 'CreditApplication';
 
 interface DetailPayload {
   uniqueId: number;
@@ -135,16 +135,15 @@ const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
   RiskCasesComponentDetails: '风险案例详情',
   PolicyRulesComponentList: '政策法规列表',
   PolicyRulesComponentDetails: '政策法规详情',
-  PersonalCenter: '个人中心',
+  PersonalCenter: '个人中心'
 
-  // 以下内容只用来展示，不参与交互，无实际意义
-  MyCollections: '我的收藏',
-  CreditApplication: '信贷申请管理'
+  // // 以下内容只用来展示，不参与交互，无实际意义
+  // MyCollections: '我的收藏',
+  // CreditApplication: '信贷申请管理'
 };
 
 onMounted(() => {
   eventBus.on('showComponentByCommand', (data: any) => {
-    console.log(data);
     showArea.value = data.type;
     id.value = data?.id;
     productId.value = data?.productId || '';
@@ -156,13 +155,13 @@ onMounted(() => {
 // 点击面包屑导航切换显示区域
 const switchShowArea = (item: DetailPayload, isLastItem?: boolean) => {
   // 忽略无实际意义的类型
-  if (item.type === 'PersonalCenter' || item.type === 'MyCollections' || item.type === 'CreditApplication' || isLastItem) {
+  if (isLastItem) {
     return;
   }
   showArea.value = item.type;
   id.value = item.id;
   //  如果点击的是已经存在的路径，那么就把该路径后面的路径都移除
-  const targetIndex = naviteList.value.findIndex((item) => item.type === item.type);
+  const targetIndex = naviteList.value.findIndex((e) => e.type === item.type);
   if (targetIndex !== -1) {
     naviteList.value = naviteList.value.slice(0, targetIndex + 1);
     return;
@@ -182,11 +181,6 @@ const selectNavigateByType = (type: Exclude<DetailView, 'area'>) => {
           uniqueId,
           id: id.value,
           type: type
-        },
-        {
-          uniqueId,
-          id: id.value,
-          type: 'MyCollections'
         }
       ];
       break;

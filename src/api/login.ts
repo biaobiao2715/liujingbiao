@@ -185,3 +185,15 @@ export function mergeChunkUpload(data: any) {
     data
   });
 }
+
+// 销售平台的跳转到溯源平台
+export function thirdPartyLogin(data: any) {
+  return request({
+    url: '/auth/thirdParty/login',
+    method: 'post',
+    headers: {
+      Authorization: ''
+    },
+    data
+  });
+}

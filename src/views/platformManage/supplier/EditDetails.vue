@@ -17,17 +17,19 @@
         <FormHeader title="供应商基础信息" />
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="企业编号">
+            <el-form-item label="供应商编号">
               <el-input v-model="formData.enterpriseNumber" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="企业类型">
-              <el-input v-model="formData.enterpriseType" disabled></el-input>
+            <el-form-item label="审核状态">
+              <span style="color: var(--el-disabled-text-color); padding-left: 11px">
+                {{ formData.reviewStatus === '0' ? '待审核' : formData.reviewStatus === '1' ? '审核通过' : '审核拒绝' }}
+              </span>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="企业名称">
+            <el-form-item label="供应商名称">
               <el-input v-model="formData.companyName" disabled></el-input>
             </el-form-item>
           </el-col>
@@ -43,12 +45,12 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="注册日期">
-              <el-input v-model="formData.signUpTime" disabled></el-input>
+              <el-input :value="formattedSignUpTime" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="注册地址">
-              <el-input v-model="formData.signUpAddress"></el-input>
+              <el-input :value="formattedSignAddress" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -84,13 +86,13 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="证件号码">
-              <el-input v-model="contactF.contactIdCard"></el-input>
+            <el-form-item label="证件类型">
+              <el-input v-model="idType"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="证件类型">
-              <el-input v-model="idType"></el-input>
+            <el-form-item label="证件号码">
+              <el-input v-model="contactF.contactIdCard"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -168,9 +170,9 @@
           </el-table-column>
         </el-table>
       </el-form>
-      <!-- 企业画像 -->
+      <!-- 供应商画像 -->
       <el-form :model="activityInfo" label-width="140px" v-if="formData.reviewStatus === '1'">
-        <FormHeader title="企业画像" />
+        <FormHeader title="供应商画像" />
         <el-segmented v-model="enterpriseProfileType" :options="enterpriseProfileTypeOptions" class="mb-12" />
 
         <!-- 交易活动 -->
@@ -270,6 +272,9 @@ interface SupplierDetails {
   auditPerson?: number;
   accountName?: string;
   licenseImage?: string;
+  province?: string;
+  city?: string;
+  district?: string;
   contacts: Array<{
     contactUserType?: string;
     contactUserName?: string;
@@ -351,7 +356,7 @@ const formData = ref<SupplierDetails>({
   }
 });
 
-const enterpriseProfileType = ref('1'); // 企业画像类型 1：交易活跃度 2：违规记录
+const enterpriseProfileType = ref('1'); // 供应商画像类型 1：交易活跃度 2：违规记录
 
 const enterpriseProfileTypeOptions = ref([
   { label: '交易活跃度', value: '1' },
@@ -368,6 +373,13 @@ const contactF = ref({
   contactPhone: ''
 });
 const idType = ref('身份认证');
+
+const formattedSignUpTime = computed(() => formData.value.signUpTime?.substring(0, 10) || '');
+
+const formattedSignAddress = computed(() => {
+  return formData.value.province + formData.value.city + formData.value.district + formData.value.signUpAddress || '';
+});
+
 const getSupplierDetails = async () => {
   if (formData.value.id) {
     loading.value = true;
@@ -383,7 +395,7 @@ const getSupplierDetails = async () => {
       //  营业执照
       formData.value.licenseImage = formData.value.folders?.find((folder) => folder.fileType === '1')?.ossInfo?.url || '';
       formData.value.enterpriseType = '供应商'; //固定死
-
+      contactZ.value = [];
       if (response.data?.contacts?.length > 0) {
         response.data.contacts.forEach((element) => {
           if (element.contactUserType == 1) {

@@ -31,11 +31,23 @@
     <!-- 编辑器内容 -->
     <ContentWithToc :content="detail?.cultivateContent" ref="contentWithTocRef" />
     <!-- 附件部分 -->
-    <el-table :data="detail?.attachments">
-      <el-table-column prop="type" label="附件类型" width="180" />
-      <el-table-column prop="name" label="文件名" />
-      <el-table-column prop="size" label="文件大小" width="180" />
-      <el-table-column prop="downloadUrl" label="下载链接" />
+    <el-table :data="detail?.ossVoList" class="mt-24">
+      <el-table-column prop="type" label="附件类型" width="180">
+        <template #default="scope">
+          {{ scope.row.originalName.split('.')[1] }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="originalName" label="文件名" />
+      <el-table-column prop="size" label="文件大小" width="180">
+        <template #default="scope">
+          {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="downloadUrl" label="下载">
+        <template #default="scope">
+          <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
@@ -45,6 +57,7 @@ import { ref } from 'vue';
 import { courseDetail } from '@/api/mall/expert';
 import { addToFavorites, checkFavorite } from '@/api/mall/index';
 import ContentWithToc from '@/components/ContentWithToc/index.vue';
+import { formatFileSize } from '@/utils/fileUtils';
 
 const props = defineProps({
   id: {
@@ -97,6 +110,18 @@ const handleCollection = async () => {
     // 刷新收藏状态
     await getIsCollect();
   }
+};
+
+const addDownloadCount = async (item: any) => {
+  // 利用a标签 下载文件到本地
+  const a = document.createElement('a');
+  a.href = item.url;
+  a.target = '_blank';
+  a.download = item.name || '';
+  document.body.appendChild(a);
+  a.click();
+  // 移除a标签
+  document.body.removeChild(a);
 };
 </script>
 

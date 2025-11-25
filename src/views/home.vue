@@ -36,10 +36,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getInfo } from '@/api/login';
+import { getInfo, thirdPartyLogin } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
+
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -119,10 +122,22 @@ const applications = ref([
     bg: 'application-bg-7.svg',
     redirect: '/financeFront/index',
     type: ['1', '2', '3']
+  },
+  {
+    title: '全链条溯源服务系统',
+    description: '全链条溯源服务系统是一种通过技术手段对产品或服务从初始阶段到最终交付的全生命周期各环节进行信息采集、记录、关联和追踪的管理系统。',
+    icon: 'application-icon-7.svg',
+    bg: 'application-bg-7.svg',
+    redirect: 'thirdPartyLogin',
+    type: ['1', '2', '3', '4', '5', '6', '7']
   }
 ]);
 
 const currentPlatform = ref([]);
+
+const SECRET_KEY = 'grain_sales_secret_key';
+
+const tenantType = ref('');
 
 onMounted(() => {
   getUserInfo();
@@ -131,6 +146,7 @@ onMounted(() => {
 const getUserInfo = async () => {
   const res: any = await getInfo();
   userInfo.value = res.data.user;
+  tenantType.value = res.data.tenantType;
   console.log(res);
   // 采购商
   currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
@@ -141,14 +157,45 @@ const getIcon = (svgName: string) => {
   return new URL(`../assets/images/${svgName}`, import.meta.url).href;
 };
 
-// 处理点击跳转
+// 处理点击跳转 用axios原始请求方式
 const handleRedirect = (path: string) => {
+  if (path === 'thirdPartyLogin') {
+    axios.post('http://192.168.2.149:8000/auth/thirdParty/login', getCacheInfo()).then((res: any) => {
+      if (res.code === 200) {
+        router.push(res.data);
+      }
+    });
+    return;
+  }
   if (path) {
     router.push(path);
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
     }, 2000);
   }
+};
+
+// 获取用户信息
+const getCacheInfo = () => {
+  const rememberedAccount = localStorage.getItem('rememberedAccount');
+  const decryptedData = CryptoJS.AES.decrypt(rememberedAccount, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+  const clientId = import.meta.env.VITE_APP_CLIENT_ID;
+
+  return {
+    // username: JSON.parse(decryptedData).phone,
+    // password: JSON.parse(decryptedData).password,
+
+    // clientId,
+    // tenantId: userInfo.value.tenantId,
+    // 'form': true,
+    // 'grantType': 'password'
+    'username': '18000000000',
+    'password': '$2a$10$N.zmdr9k7uOCQb0bta/Oaurb.NyTiOcx0XaRiPURlbFsy6f.dRqNS',
+    'tenantId': '000000',
+    'form': true,
+    'grantType': 'password',
+    'clientId': 'e5cd7e4891bf95d1d19206ce24a7b32e'
+  };
 };
 
 const handleLogout = () => {
