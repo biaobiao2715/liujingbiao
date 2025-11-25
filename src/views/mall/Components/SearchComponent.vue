@@ -64,7 +64,8 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, reactive, watch, onMounted, toRaw } from 'vue';
+import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 
@@ -116,25 +117,38 @@ onMounted(() => {
 
 // 搜索
 const handleSearch = () => {
-  // 验证价格不能为负数（只有当值不为空时才验证）
-  if (filterState.minPrice !== undefined && filterState.minPrice !== null && filterState.minPrice < 0) {
-    ElMessage.error('价格不能为负数');
+  // 验证价格输入：必须同时输入最低价和最高价，或者都不输入
+  const hasMinPrice = filterState.minPrice !== undefined && filterState.minPrice !== null;
+  const hasMaxPrice = filterState.maxPrice !== undefined && filterState.maxPrice !== null;
+  
+  // 如果只输入了最低价，提示需要输入最高价
+  if (hasMinPrice && !hasMaxPrice) {
+    ElMessage.error('请输入最高价');
     return;
   }
-  if (filterState.maxPrice !== undefined && filterState.maxPrice !== null && filterState.maxPrice < 0) {
-    ElMessage.error('价格不能为负数');
+  
+  // 如果只输入了最高价，提示需要输入最低价
+  if (!hasMinPrice && hasMaxPrice) {
+    ElMessage.error('请输入最低价');
     return;
   }
-  // 验证最高价不能小于最低价（只有当两个值都不为空时才验证）
-  if (
-    filterState.minPrice !== undefined &&
-    filterState.minPrice !== null &&
-    filterState.maxPrice !== undefined &&
-    filterState.maxPrice !== null &&
-    filterState.minPrice > filterState.maxPrice
-  ) {
-    ElMessage.error('最高价不能小于最低价');
-    return;
+  
+  // 如果两个价格都输入了，进行进一步验证
+  if (hasMinPrice && hasMaxPrice) {
+    // 验证价格不能为负数
+    if (filterState.minPrice < 0) {
+      ElMessage.error('价格不能为负数');
+      return;
+    }
+    if (filterState.maxPrice < 0) {
+      ElMessage.error('价格不能为负数');
+      return;
+    }
+    // 验证最高价不能小于最低价
+    if (filterState.minPrice > filterState.maxPrice) {
+      ElMessage.error('最高价不能小于最低价');
+      return;
+    }
   }
   
   // 构建搜索参数，空值转换为 undefined，0 值保持为 0

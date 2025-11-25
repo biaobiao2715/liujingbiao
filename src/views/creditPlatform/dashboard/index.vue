@@ -304,13 +304,13 @@ const fetchDashboardData = async () => {
     if (data) {
       dashboardData.value = {
         pendingApprovals: data.pendingCount || 0,
-        totalLoanApprovals: data.totalApproval || 0,
-        approvedLoans: data.totalApplications || 0,
+        totalLoanApprovals: data.totalApplications || 0,
+        approvedLoans: data.approvedCount || 0,
         rejectedLoans: data.rejectedCount || 0,
         cancelledApplications: data.canceledCount || 0,
         totalApprovedAmount: data.totalLoanAmount || 0,
         currentOverdueAmount: data.currentOverdueAmount || 0,
-        totalDefaultRate: data.defaultRate || 0,
+        totalDefaultRate: Number(data.defaultRate || 0),
         monthlyReceivableAmount: data.currentMonthDueAmount || 0,
         monthlyReceivedAmount: data.currentMonthPaidAmount || 0,
         monthlyOverdueAmount: data.currentMonthOverdueAmount || 0

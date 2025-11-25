@@ -349,6 +349,5 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
 }
 </style>

@@ -15,8 +15,8 @@
               <el-image
                 v-for="(img, idx) in companyLicenseList"
                 :key="idx"
-                :src="img.url"
-                :preview-src-list="companyLicenseList"
+                :src="img.url || img"
+                :preview-src-list="companyLicenseList.map((item: any) => item.url || item)"
                 fit="cover"
                 class="license-image"
               />
@@ -74,10 +74,7 @@
           <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
             {{ item.value }}
           </el-descriptions-item>
-        </el-descriptions>
-        <div class="bank-card-preview">
-          <div>银行卡号正反面：</div>
-          <div class="bank-card-images">
+          <el-descriptions-item label="银行卡正反面" :span="2">
             <template v-if="bankCardImages.length">
               <el-image
                 v-for="(img, idx) in bankCardImages"
@@ -87,13 +84,11 @@
                 class="license-image"
               />
             </template>
-            <template v-else>
-              <span>--</span>
-            </template>
-          </div>
-        </div>
+            <span v-else>--</span>
+          </el-descriptions-item>
+        </el-descriptions>
         <div class="product-link">
-          <el-button type="primary" plain size="large" @click="handleViewProductDetail">查看产品详情</el-button>
+          <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
       </div>
 
@@ -112,9 +107,7 @@
       </div>
     </div>
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">返回</el-button>
-      </div>
+      <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
     <RepaymentPlanDialog v-model:visible="repaymentPlanVisible" :data="props.data" />
@@ -434,23 +427,30 @@ const handleViewRepaymentPlan = () => {
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
+    color: #303133;
   }
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  background: #fefefe;
+  border-radius: 8px;
+  border: 1px solid #f0f2f5;
+  padding: 16px 20px;
+  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
+  color: #303133;
 
   &::before {
     content: '';
-    width: 6px;
+    width: 4px;
     height: 16px;
     background-color: #409eff;
     border-radius: 2px;
@@ -459,53 +459,52 @@ const handleViewRepaymentPlan = () => {
 }
 
 .license-image {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
+  border-radius: 4px;
   margin-right: 8px;
   border: 1px solid #ebeef5;
-  border-radius: 4px;
 }
 
 .image-placeholder,
 .card-placeholder {
-  width: 100px;
-  height: 70px;
+  width: 92px;
+  height: 64px;
   border: 1px dashed #dcdfe6;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   color: #909399;
   font-size: 12px;
+  background: #fff;
 }
 
 .file-item {
   margin-bottom: 8px;
+}
+
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
   
-  .file-link {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  .el-icon {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    opacity: 0.8;
   }
 }
 
 .file-placeholder {
   color: #909399;
   font-size: 14px;
-  font-style: italic;
-}
-
-.bank-card-preview {
-  margin-top: 12px;
-
-  .bank-card-images {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-  }
 }
 
 .product-link {
-  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
@@ -514,10 +513,5 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
-}
-
-.dialog-footer {
-  text-align: right;
 }
 </style>
