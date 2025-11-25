@@ -194,11 +194,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, ref, nextTick } from 'vue';
+import { computed, reactive, watch, ref, nextTick, getCurrentInstance, toRefs } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close, Document } from '@element-plus/icons-vue';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile, getProduct } from '@/api/creditPlatform/loanApplications';
+import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = defineProps<{
@@ -211,6 +212,17 @@ const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
   (event: 'refresh'): void;
 }>();
+
+// ==================== 字典数据 ====================
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { repayment_method, review_status } = toRefs<any>(
+  proxy?.useDict('repayment_method', 'review_status')
+);
+
+// ==================== 状态管理 ====================
+const loading = ref(false);
+const detailData = ref<Record<string, any>>({});
+const productDetailVisible = ref(false);
 
 const approvalFormRef = ref<FormInstance>();
 const approvalForm = reactive({
@@ -225,24 +237,20 @@ const submittingApproval = ref(false);
 const contractUploading = ref(false);
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
 
-const loading = ref(false);
-const detailRow = ref<Record<string, any>>(props.data || {});
-const currentDetail = computed(() => detailRow.value || {});
-const productDetailVisible = ref(false);
-
-const reviewStatusMap: Record<string, string> = {
+// ==================== 常量定义 ====================
+const REVIEW_STATUS_MAP: Record<string, string> = {
   '0': '待审核',
   '1': '审核通过',
   '99': '审核退回'
 };
 
-const credentialLevelMap: Record<string, string> = {
+const CREDENTIAL_LEVEL_MAP: Record<string, string> = {
   '0': '一级认证',
   '1': '二级认证',
   '2': '三级认证'
 };
 
-const creditLevelMap: Record<string, string> = {
+const CREDIT_LEVEL_MAP: Record<string, string> = {
   '0': '优秀',
   '1': '良好',
   '2': '一般',
@@ -250,7 +258,8 @@ const creditLevelMap: Record<string, string> = {
   '99': '较差'
 };
 
-const applyStatusMap: Record<string, string> = {
+// 申请状态备用映射（当字典数据不可用时使用）
+const APPLY_STATUS_MAP: Record<string, string> = {
   '0': '待审核',
   '1': '待审核',
   '2': '审批通过',
@@ -258,106 +267,184 @@ const applyStatusMap: Record<string, string> = {
   '99': '审批异常'
 };
 
-const idCardTypeMap: Record<string, string> = {
+const ID_CARD_TYPE_MAP: Record<string, string> = {
   '0': '身份证',
   '1': '护照',
   '2': '其他'
 };
 
-const repaymentMethodMap: Record<string, string> = {
+// 还款方式备用映射（当字典数据不可用时使用）
+const REPAYMENT_METHOD_MAP: Record<string, string> = {
   '0': '等额本息',
   '2': '等额本金',
   '3': '先息后本',
   '4': '先本后息'
 };
 
-const formatValue = (value: any) => {
-  if (value === undefined || value === null || value === '') return '--';
-  return value;
+const approvalRules: FormRules = {
+  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
 };
 
-const mapValue = (map: Record<string, string>, value: any) => {
+// ==================== 工具函数 ====================
+/**
+ * 格式化值，空值返回 '--'
+ */
+const formatValue = (value: any): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  return String(value);
+};
+
+/**
+ * 映射值到对应文本
+ */
+const mapValue = (map: Record<string, string>, value: any): string => {
   if (value === undefined || value === null || value === '') return '--';
   return map[String(value)] || '--';
 };
 
-const extractBirthdayFromId = (id: string | undefined | null) => {
+/**
+ * 从身份证号提取生日
+ */
+const extractBirthdayFromId = (id: string | undefined | null): string => {
   const value = (id || '').trim();
   if (!value) return '';
+  
   if (/^\d{17}[\dXx]$/.test(value)) {
     const birth = value.substring(6, 14);
-    const year = birth.substring(0, 4);
-    const month = birth.substring(4, 6);
-    const day = birth.substring(6, 8);
-    return `${year}-${month}-${day}`;
+    return `${birth.substring(0, 4)}-${birth.substring(4, 6)}-${birth.substring(6, 8)}`;
   }
+  
   if (/^\d{15}$/.test(value)) {
     const birth = value.substring(6, 12);
-    const year = `19${birth.substring(0, 2)}`;
-    const month = birth.substring(2, 4);
-    const day = birth.substring(4, 6);
-    return `${year}-${month}-${day}`;
+    return `19${birth.substring(0, 2)}-${birth.substring(2, 4)}-${birth.substring(4, 6)}`;
   }
+  
   return '';
 };
 
-const isLikelyUrl = (value: string) => {
+/**
+ * 判断是否为URL
+ */
+const isUrl = (value: string): boolean => {
   if (!value) return false;
   const lower = value.toLowerCase();
   return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/');
 };
 
+/**
+ * 收集URL列表
+ */
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = [];
-  const append = (item: any) => {
+  
+  const processItem = (item: any) => {
     if (!item) return;
+    
     if (Array.isArray(item)) {
-      item.forEach(append);
+      item.forEach(processItem);
       return;
     }
+    
     if (typeof item === 'string') {
       const trimmed = item.trim();
-      if (trimmed && isLikelyUrl(trimmed)) urls.push(trimmed);
+      if (trimmed && isUrl(trimmed)) urls.push(trimmed);
       return;
     }
+    
     if (typeof item === 'object') {
       const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim();
-      if (url && isLikelyUrl(url)) urls.push(url);
+      if (url && isUrl(url)) urls.push(url);
     }
   };
-  sources.forEach(append);
+  
+  sources.forEach(processItem);
   return urls;
 };
 
-const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }]
+/**
+ * 获取字段值（支持多个备选字段名）
+ */
+const getFieldValue = (row: Record<string, any>, fieldNames: string[]): any => {
+  for (const fieldName of fieldNames) {
+    if (row[fieldName] !== undefined && row[fieldName] !== null && row[fieldName] !== '') {
+      return row[fieldName];
+    }
+  }
+  return undefined;
 };
 
+/**
+ * 从字典获取标签（优先使用字典，否则使用备用映射）
+ */
+const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  
+  // 优先使用字典数据
+  if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
+    const match = repayment_method.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  
+  // 备用映射
+  return REPAYMENT_METHOD_MAP[String(value)] || '--';
+};
+
+/**
+ * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
+ */
+const getApplyStatusLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  
+  // 优先使用字典数据
+  if (review_status?.value && Array.isArray(review_status.value) && review_status.value.length > 0) {
+    const match = review_status.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  
+  // 备用映射
+  return APPLY_STATUS_MAP[String(value)] || '--';
+};
+
+// ==================== 数据获取 ====================
+/**
+ * 获取详情数据
+ */
 const fetchDetail = async () => {
   if (!props.data?.id) {
-    detailRow.value = props.data || {};
+    detailData.value = props.data || {};
     return;
   }
+  
   loading.value = true;
   try {
-    let merged: Record<string, any> = props.data ? { ...props.data } : {};
+    // 获取申请详情
     const res = await getRemainingDetail(props.data.id);
-    if (res && res.code === 200 && res.data) {
+    let merged: Record<string, any> = props.data ? { ...props.data } : {};
+    
+    if (res?.code === 200 && res.data) {
       merged = { ...merged, ...res.data };
     }
+    
     // 获取企业信息
     const lenderId = merged.lenderId;
     if (lenderId) {
       try {
         const extra = await getEnterprise(lenderId);
-        if (extra && extra.code === 200 && extra.data) {
+        if (extra?.code === 200 && extra.data) {
           merged = { ...merged, ...extra.data };
         }
       } catch (error) {
         console.error('获取企业信息失败:', error);
       }
     }
-    detailRow.value = merged;
+    
+    detailData.value = merged;
+    
+    // 初始化审批表单
     if (props.mode === 'approval') {
       resetApprovalForm();
     } else {
@@ -365,46 +452,90 @@ const fetchDetail = async () => {
     }
   } catch (error) {
     console.error('获取申请详情失败:', error);
-    detailRow.value = props.data || {};
+    detailData.value = props.data || {};
   } finally {
     loading.value = false;
   }
 };
 
-watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
-  if (visible && (!prevVisible || id !== prevId)) {
-    fetchDetail();
-  }
-});
-
-const companyInfoList = computed(() => {
-  const row = detailRow.value;
+// ==================== 数据映射 ====================
+/**
+ * 映射企业基础信息
+ */
+const mapCompanyInfo = (row: Record<string, any>) => {
   const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
+  
   return [
-    { label: '供应商编号', value: formatValue(row.enterpriseNumber || row.supplierNo) },
-    { label: '审核状态', value: mapValue(reviewStatusMap, row.reviewStatus) },
+    { label: '供应商编号', value: formatValue(getFieldValue(row, ['enterpriseNumber', 'supplierNo'])) },
+    { label: '审核状态', value: mapValue(REVIEW_STATUS_MAP, row.reviewStatus) },
     { label: '供应商名称', value: formatValue(row.companyName) },
-    { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
-    { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
-    { label: '注册日期', value: formatValue(row.createTime || row.registerDate) },
-    { label: '注册地址', value: registerRegion ? registerRegion : formatValue(row.registerAddress) },
+    { label: '社会统一信用代码', value: formatValue(getFieldValue(row, ['licenseNumber', 'creditCode'])) },
+    { label: '注册资本', value: formatValue(getFieldValue(row, ['signUpCapital', 'registeredCapital'])) },
+    { label: '注册日期', value: formatValue(getFieldValue(row, ['createTime', 'registerDate'])) },
+    { label: '注册地址', value: registerRegion || formatValue(row.registerAddress) },
     { label: '办公地址', value: formatValue(row.officeAddress) },
-    { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
-    { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
+    { label: '资质等级', value: mapValue(CREDENTIAL_LEVEL_MAP, getFieldValue(row, ['credentialLevel', 'qualification'])) },
+    { label: '信用等级', value: mapValue(CREDIT_LEVEL_MAP, row.creditLevel) },
     { label: '经营范围', value: formatValue(row.businessScope) }
   ];
-});
+};
+
+/**
+ * 映射法人信息
+ */
+const mapLegalInfo = (row: Record<string, any>) => {
+  return [
+    { label: '法人姓名', value: formatValue(getFieldValue(row, ['legalPersonName', 'legalPerson'])) },
+    { label: '证件类型', value: mapValue(ID_CARD_TYPE_MAP, getFieldValue(row, ['legalPersonIdCardType', 'certificateType'])) },
+    { label: '证件号码', value: formatValue(getFieldValue(row, ['legalPersonIdCardNumber', 'certificateNumber', 'legalPersonContactPhone'])) },
+    { label: '联系电话', value: formatValue(getFieldValue(row, ['legalPersonContactPhone', 'phoneNumber'])) }
+  ];
+};
+
+/**
+ * 映射申请人信息
+ */
+const mapApplicantInfo = (row: Record<string, any>) => {
+  const birthday = getFieldValue(row, ['birthday', 'birthDate']) || 
+                   extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']));
+  
+  return [
+    { label: '申请人', value: formatValue(getFieldValue(row, ['realName', 'applicantName'])) },
+    { label: '出生年月', value: formatValue(birthday) },
+    { label: '联系电话', value: formatValue(getFieldValue(row, ['contactPhone', 'phone', 'applicantPhone'])) }
+  ];
+};
+
+/**
+ * 映射贷款信息
+ */
+const mapLoanInfo = (row: Record<string, any>) => {
+  const repayment = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
+  const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
+  
+  return [
+    { label: '贷款金额', value: formatValue(row.loanAmount) },
+    { label: '贷款期限', value: formatValue(row.loanTerm) },
+    { label: '还款方式', value: formatValue(repaymentText) },
+    { label: '收款银行卡', value: formatValue(getFieldValue(row, ['collectionAccountName', 'bankName'])) },
+    { label: '银行卡号', value: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])) },
+    { label: '申请时间', value: formatValue(getFieldValue(row, ['createTime', 'applyTime'])) }
+  ];
+};
+
+// ==================== 计算属性 ====================
+const currentDetail = computed(() => detailData.value || {});
+
+const companyInfoList = computed(() => mapCompanyInfo(detailData.value || {}));
 
 const companyLicenseList = computed(() => {
-  const row = detailRow.value;
+  const row = detailData.value || {};
   const licenses = [];
   
-  // 从 licenses 数组获取
   if (Array.isArray(row.licenses)) {
     licenses.push(...row.licenses);
   }
   
-  // 从 url 字段获取营业执照
   if (row.url) {
     licenses.push({ url: row.url });
   }
@@ -412,54 +543,24 @@ const companyLicenseList = computed(() => {
   return licenses;
 });
 
-const legalInfoList = computed(() => {
-  const row = detailRow.value;
-  return [
-    { label: '法人姓名', value: formatValue(row.legalPersonName || row.legalPerson) },
-    { label: '证件类型', value: mapValue(idCardTypeMap, row.legalPersonIdCardType || row.certificateType) },
-    { label: '证件号码', value: formatValue(row.legalPersonIdCardNumber || row.certificateNumber || row.legalPersonContactPhone) },
-    { label: '联系电话', value: formatValue(row.legalPersonContactPhone || row.phoneNumber) }
-  ];
-});
+const legalInfoList = computed(() => mapLegalInfo(detailData.value || {}));
 
-const applicantInfoList = computed(() => {
-  const row = detailRow.value;
-  const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
-  return [
-    { label: '申请人', value: formatValue(row.realName || row.applicantName) },
-    { label: '出生年月', value: formatValue(birthday) },
-    { label: '联系电话', value: formatValue(row.contactPhone || row.phone || row.applicantPhone) }
-  ];
-});
+const applicantInfoList = computed(() => mapApplicantInfo(detailData.value || {}));
 
 const applicantIdPhotos = computed(() => {
-  const row = detailRow.value;
+  const row = detailData.value || {};
   return collectUrls(row.idFrontUrl, row.idBackUrl, row.idBackUr, row.idCardUrl, row.idcardUrl, row.idcardUr);
 });
 
 const applicantAuthFiles = computed(() => {
-  const row = detailRow.value;
+  const row = detailData.value || {};
   return collectUrls(row.authorizationUrl);
 });
 
-const loanInfoList = computed(() => {
-  const row = detailRow.value;
-  const repayment = row.repaymentMethod || row.repaymentType;
-  return [
-    { label: '贷款金额', value: formatValue(row.loanAmount) },
-    { label: '贷款期限', value: formatValue(row.loanTerm) },
-    {
-      label: '还款方式',
-      value: formatValue(repaymentMethodMap[String(repayment)] || repayment)
-    },
-    { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
-    { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
-    { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }
-  ];
-});
+const loanInfoList = computed(() => mapLoanInfo(detailData.value || {}));
 
 const bankCardImages = computed(() => {
-  const row = detailRow.value;
+  const row = detailData.value || {};
   return collectUrls(row.bankFrontUrl, row.bankBackUrl);
 });
 
@@ -470,58 +571,43 @@ const dialogTitle = computed(() => {
 const isApprovalMode = computed(() => props.mode === 'approval');
 const isApprovalReadonly = computed(() => !isApprovalMode.value);
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
+
 const isPendingStatus = computed(() => {
-  const status = detailRow.value?.applyStatus;
+  const status = detailData.value?.applyStatus;
   if (status === undefined || status === null || status === '') return false;
-  const label = applyStatusMap[String(status)] || detailRow.value?.applyStatusName || detailRow.value?.applyStatusLabel || '';
+  const label = getApplyStatusLabel(status) || 
+                detailData.value?.applyStatusName || 
+                detailData.value?.applyStatusLabel || '';
   return String(label).includes('待审');
 });
+
 const hasCompletedResult = computed(() => {
-  const status = detailRow.value?.applyStatus;
+  const status = detailData.value?.applyStatus;
   return status === '2' || status === '3';
 });
-const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value);
-const approvalTipMessage = computed(() => {
-  return '当前申请状态为待审核，请前往审批流程处理。';
-});
-const showApprovalForm = computed(() => (isApprovalMode.value && !hasCompletedResult.value) || (!isApprovalMode.value && hasCompletedResult.value));
 
-watch(
-  () => props.visible,
-  (val) => {
-    if (val) {
-      resetApprovalForm();
-    }
-  }
+const showApprovalTip = computed(() => 
+  !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value
 );
 
-const handleClose = () => {
-  emit('update:visible', false);
-};
+const approvalTipMessage = computed(() => 
+  '当前申请状态为待审核，请前往审批流程处理。'
+);
 
-// 处理文件查看
-const handleViewFile = (fileUrl: string) => {
-  if (!fileUrl) {
-    ElMessage.warning('文件地址不存在');
-    return;
-  }
-  
-  // 在新窗口中打开文件
-  window.open(fileUrl, '_blank');
-};
+const showApprovalForm = computed(() => 
+  (isApprovalMode.value && !hasCompletedResult.value) || 
+  (!isApprovalMode.value && hasCompletedResult.value)
+);
 
-const handleViewProductDetail = () => {
-  if (!currentDetail.value.productId) {
-    ElMessage.warning('产品ID不存在');
-    return;
-  }
-  productDetailVisible.value = true;
-};
-
+// ==================== 审批表单处理 ====================
+/**
+ * 规范化合同文件
+ */
 const normalizeContractFiles = (row: Record<string, any>) => {
   const baseName = row.contractFileName || '合同文件';
   const files = collectUrls(row.contractFiles, row.contractFileUrl, row.contractUrl);
   if (!files.length) return [];
+  
   return files.map((url: string, index: number) => ({
     name: files.length === 1 ? baseName : `${baseName}${index + 1}`,
     url,
@@ -529,19 +615,27 @@ const normalizeContractFiles = (row: Record<string, any>) => {
   }));
 };
 
+/**
+ * 填充审批表单
+ */
 const hydrateApprovalForm = (row: Record<string, any>) => {
   approvalForm.rejectionReason = row.rejectionReason || '';
   approvalForm.loanDate = row.loanDate || '';
   approvalForm.firstRepaymentDate = row.firstRepaymentDate || '';
   approvalForm.contractId = row.contractId || '';
+  
   if (row.applyStatus === '3') {
     approvalForm.opinion = 'reject';
   } else if (row.applyStatus === '2') {
     approvalForm.opinion = 'agree';
   }
+  
   approvalForm.contractFiles = normalizeContractFiles(row);
 };
 
+/**
+ * 重置审批表单
+ */
 const resetApprovalForm = () => {
   approvalForm.opinion = 'agree';
   approvalForm.rejectionReason = '';
@@ -553,6 +647,46 @@ const resetApprovalForm = () => {
   nextTick(() => {
     approvalFormRef.value?.clearValidate();
   });
+};
+
+// ==================== 监听器 ====================
+watch(
+  [() => props.visible, () => props.data?.id],
+  ([visible, id], [prevVisible, prevId]) => {
+    if (visible && (!prevVisible || id !== prevId)) {
+      fetchDetail();
+    }
+  }
+);
+
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      resetApprovalForm();
+    }
+  }
+);
+
+// ==================== 事件处理 ====================
+const handleClose = () => {
+  emit('update:visible', false);
+};
+
+const handleViewFile = (fileUrl: string) => {
+  if (!fileUrl) {
+    ElMessage.warning('文件地址不存在');
+    return;
+  }
+  window.open(fileUrl, '_blank');
+};
+
+const handleViewProductDetail = () => {
+  if (!currentDetail.value.productId) {
+    ElMessage.warning('产品ID不存在');
+    return;
+  }
+  productDetailVisible.value = true;
 };
 
 const handleContractUpload = async (options: any) => {
@@ -609,7 +743,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     currentApprovalAction.value = null;
     return;
   }
-  if (!detailRow.value?.id && !props.data?.id) {
+  if (!detailData.value?.id && !props.data?.id) {
     ElMessage.error('缺少申请ID，无法提交审批');
     currentApprovalAction.value = null;
     return;
@@ -617,8 +751,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   submittingApproval.value = true;
   try {
     const payload = {
-      ...detailRow.value,
-      id: detailRow.value?.id || props.data?.id,
+      ...detailData.value,
+      id: detailData.value?.id || props.data?.id,
       applyStatus: action === 'agree' ? '2' : '3',
       rejectionReason: approvalForm.rejectionReason,
       loanDate: approvalForm.loanDate,
