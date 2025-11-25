@@ -53,16 +53,13 @@
         @pagination="fetchData"
       />
     </div>
-    <!-- 详情组件 -->
-    <!-- <ApplyForm :id="detailId" /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Delete, Edit, Search, Share, Upload, Refresh } from '@element-plus/icons-vue';
+import { Search, Refresh } from '@element-plus/icons-vue';
 import { getLoanPersonalCenterList } from '@/api/financeFront/LoanProducts/index';
-import ApplyForm from '../AboutLoanProductsComponents/ApplyForm.vue';
 import { eventBus } from '@/utils/eventBus';
 const tableData = ref([]);
 
@@ -143,7 +140,6 @@ const resetQueryParams = () => {
 };
 
 const handleDetail = (row) => {
-  console.log(row);
   detailId.value = row.id;
   eventBus.emit('showComponentByCommand', { type: 'LoanProductsComponentApplyForm', id: row.id });
 };

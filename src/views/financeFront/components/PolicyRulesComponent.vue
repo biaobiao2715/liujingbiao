@@ -19,6 +19,7 @@
           </div>
         </el-col>
       </el-row>
+      <el-empty v-if="cases.length === 0" description="暂无政策法规"></el-empty>
     </div>
   </div>
 </template>

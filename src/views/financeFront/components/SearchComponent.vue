@@ -31,7 +31,7 @@
 import { ref } from 'vue';
 
 const categories = [
-  { label: '金融产品', value: 'financial' },
+  { label: '信贷产品', value: 'financial' },
   { label: '保险产品', value: 'insurance' },
   { label: '政策法规', value: 'policy' },
   { label: '风险案例', value: 'risk' }
