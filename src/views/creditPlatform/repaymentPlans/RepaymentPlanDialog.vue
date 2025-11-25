@@ -127,7 +127,7 @@ const fetchRepaymentPlan = async () => {
         period: item.loanPeriod || index + 1,
         repaymentDate: item.repaymentDate || '--',
         repaymentAmount: item.totalAmount || '0',
-        cardNumber: item.repaymentCardNo || item.collectionAccountNumber || '--',
+        cardNumber: item.repaymentCardNo || '--',
         status: getStatusFromPlanStatus(item.planStatus),
         statusText: getStatusText(item.planStatus)
       }));
