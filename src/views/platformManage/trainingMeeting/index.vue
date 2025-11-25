@@ -28,7 +28,7 @@
         />
       </el-form-item>
       <el-form-item label="发布人">
-        <el-input v-model="queryParams.publishUse" placeholder="请输入发布人" clearable />
+        <el-input v-model="queryParams.publishUser" placeholder="请输入发布人" clearable />
       </el-form-item>
       <el-form-item label="所属类型">
         <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类别">
@@ -115,6 +115,12 @@
       <el-table-column label="所属状态" align="center" prop="meetingStatus" width="100">
         <template #default="scope">
           <dict-tag :options="meeting_status" :value="scope.row.meetingStatus" />
+        </template>
+      </el-table-column>
+
+      <el-table-column label="发布人" align="center" prop="publishUser" width="120">
+        <template #default="scope">
+          <span>{{ scope.row.publishUser || '-' }}</span>
         </template>
       </el-table-column>
 
@@ -245,7 +251,7 @@ const queryParams = ref({
   pageSize: 10,
   meetingType: '', //会议类别
   publishTime: '', //发布时间
-  publishUse: '', //发布人
+  publishUser: '', //发布人
   meetingStatus: '', //会议状态
   meetingName: '', // 会议标题
   meetingEndTime: '', // 会议结束时间
@@ -292,7 +298,7 @@ const handleReset = () => {
     pageSize: 10,
     meetingType: '', //会议类别
     publishTime: '', //发布时间
-    publishUse: '', //发布人
+    publishUser: '', //发布人
     meetingStatus: '', //会议状态
     meetingName: '', // 会议标题
     meetingEndTime: '', // 会议结束时间
