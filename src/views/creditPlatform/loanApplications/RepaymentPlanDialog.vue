@@ -24,19 +24,10 @@
             <div class="upload-inline">
               <div class="contract-files" v-if="contractFiles.length">
                 <div class="contract-file-item">
-                  <el-link
-                    :href="contractFiles[0].url"
-                    target="_blank"
-                    type="primary"
-                    class="contract-link"
-                  >
+                  <el-link :href="contractFiles[0].url" target="_blank" type="primary" class="contract-link">
                     {{ contractFiles[0].displayName || contractFiles[0].name }}
                   </el-link>
-                  <el-icon
-                    class="file-remove-icon"
-                    @click="handleDeleteFile"
-                    title="删除文件"
-                  >
+                  <el-icon class="file-remove-icon" @click="handleDeleteFile" title="删除文件">
                     <Close />
                   </el-icon>
                 </div>
@@ -61,7 +52,7 @@
               </el-upload>
             </div>
           </div>
-          <div class="tips-card">贷款合同可重复上传，还款计划的期数、日期需生成的，请仔细校验，允许修改，还款金额需为整数。</div>
+          <!-- <div class="tips-card">贷款合同可重复上传，还款计划的期数、日期需生成的，请仔细校验，允许修改，还款金额需为整数。</div> -->
         </div>
       </div>
 
@@ -184,11 +175,9 @@ watch(
 
 // 上传前验证
 const beforeUpload = (file: any) => {
-  const isValidType = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ].includes(file.type);
+  const isValidType = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
+    file.type
+  );
   const isLt10M = file.size / 1024 / 1024 < 10;
 
   if (!isValidType) {
@@ -267,14 +256,10 @@ const handleSubmit = async () => {
 
   try {
     loading.value = true;
-    
+
     // 直接传递还款计划数组
-    const response = await updateRepaymentPlan(
-      props.data.id,
-      uploadedOssId.value || undefined,
-      plans.value
-    );
-    
+    const response = await updateRepaymentPlan(props.data.id, uploadedOssId.value || undefined, plans.value);
+
     if (response.code === 200) {
       ElMessage.success('提交成功');
       emit('update:visible', false);
@@ -393,7 +378,7 @@ onBeforeUnmount(() => {
     .contract-uploader {
       display: inline-flex;
       align-items: center;
-      
+
       .upload-tip {
         color: #909399;
         font-size: 12px;

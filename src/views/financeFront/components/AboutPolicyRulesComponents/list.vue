@@ -182,7 +182,7 @@ onMounted(() => {
   margin-right: 8px;
 }
 .menu-title::before {
-  background-image: url('@/assets/mall/58.png');
+  background-image: url('@/assets/images/finance/policy-risk-header-icon.png');
 }
 .pagination {
   margin-top: 24px;
