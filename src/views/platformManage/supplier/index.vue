@@ -41,42 +41,38 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="computedTableData" border style="width: 100%" v-loading="loading">
+    <el-table :data="computedTableData" border v-loading="loading">
       <el-table-column type="index" label="序号" width="60"></el-table-column>
-      <el-table-column prop="companyName" label="供应商名称" min-width="100" :show-overflow-tooltip="true"></el-table-column>
+      <el-table-column prop="companyName" label="供应商名称" width="160" show-overflow-tooltip></el-table-column>
       <el-table-column prop="enterpriseNumber" label="供应商编号" width="210"> </el-table-column>
       <el-table-column prop="licenseNumber" label="统一社会信用代码" width="210"></el-table-column>
-      <el-table-column prop="credentialLevel" label="资质等级">
+      <el-table-column prop="credentialLevel" label="资质等级" width="100">
         <template v-slot="scope">
-          <div class="flex-center-center">
+          <div class="flex-center">
             <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级">
+      <el-table-column prop="creditLevel" label="信用等级" width="100">
         <template v-slot="scope">
-          <div class="flex-center-center">
+          <div class="flex-center">
             <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="reviewStatus" label="审核状态">
+      <el-table-column prop="reviewStatus" label="审核状态" width="100">
         <template v-slot="scope">
-          <div class="flex-center-center">
+          <div class="flex-center">
             <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="signUpTime" label="申请时间" width="120">
-        <template #default="scope">
-          {{ scope.row.formattedSignUpTime }}
-        </template>
-      </el-table-column>
+      <el-table-column prop="createTime" label="申请时间" width="180"> </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
       <el-table-column prop="auditPerson" label="审核人" width="100"></el-table-column>
-      <el-table-column label="操作" width="260">
+      <el-table-column label="操作" width="180">
         <template #default="scope">
-          <div class="flex-center-center operation-btns">
+          <div class="flex-center operation-btns">
             <el-button
               v-throttle
               type="primary"
@@ -175,7 +171,7 @@ const computedTableData = computed(() =>
               ? '一般以下'
               : '较差',
     reviewStatusText: row.reviewStatus === '0' ? '待审核' : row.reviewStatus === '1' ? '审核通过' : '审核退回',
-    formattedSignUpTime: row.signUpTime ? row.signUpTime.substring(0, 10) : ''
+    formattedSignUpTime: row.createTime ? row.createTime.substring(0, 10) : ''
   }))
 );
 

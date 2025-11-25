@@ -89,7 +89,7 @@ div<!--
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="专家类型" align="center" prop="expertType" width="180">
           <template #default="scope">
-            <dict-tag :options="expert_type" :value="scope.row.expertType" />
+            {{ scope.row.expertType === '1' ? '技术专家' : '法务专家' }}
           </template>
         </el-table-column>
         <el-table-column label="专家姓名" align="center" prop="expertName" width="180" :show-overflow-tooltip="true">
@@ -666,7 +666,7 @@ const confirmExperts = () => {
   dialogVisible.value = false;
   formRef.value?.validateField('experts');
   formloading.value = false;
-  console.log('form.value123', form.value.experts);
+  console.log('form.value123', form.value.experts, paginatedSelectedExperts.value);
 };
 const handleSave = async () => {
   console.log('props.mode', props.mode);
@@ -684,7 +684,7 @@ const handleSave = async () => {
     emit('save', form.value);
     handleClose();
   } catch (error) {
-    ElMessage.error(error);
+    ElMessage.error('请检查必填项是否填写正确');
   } finally {
     saveloading.value = false;
   }
