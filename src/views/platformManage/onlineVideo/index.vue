@@ -75,7 +75,7 @@
       </el-table-column>
 
       <!-- 发布时间 -->
-      <el-table-column label="发布时间" align="center" prop="createTime">
+      <el-table-column label="发布时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
@@ -84,6 +84,12 @@
       <el-table-column label="所属状态" align="center" prop="videoStatus">
         <template #default="scope">
           <dict-tag :options="video_status" :value="scope.row.videoStatus" />
+        </template>
+      </el-table-column>
+      <!-- 发布人 -->
+      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
+        <template #default="scope">
+          {{ scope.row.publishUser || '-' }}
         </template>
       </el-table-column>
 

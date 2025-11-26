@@ -102,7 +102,7 @@
           <span>{{ scope.row.enrollCount || '0' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" align="center" prop="publishTime" width="120">
+      <el-table-column label="发布时间" align="center" prop="publishTime" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishTime || '-' }}</span>
         </template>
@@ -118,7 +118,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="发布人" align="center" prop="publishUser" width="120">
+      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishUser || '-' }}</span>
         </template>
