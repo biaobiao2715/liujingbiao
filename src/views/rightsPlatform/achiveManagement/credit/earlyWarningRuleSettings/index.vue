@@ -23,8 +23,8 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button v-throttle @click="resetQuery">重置</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" type="primary" @click="handleQuery">查询</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 

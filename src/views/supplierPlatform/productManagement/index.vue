@@ -547,9 +547,6 @@ const onDialogSuccess = () => {
 onMounted(async () => {
   getList();
 });
-onActivated(() => {
-  getList();
-});
 </script>
 
 <style scoped lang="scss">

@@ -20,8 +20,7 @@
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="价格调整日期">
-        <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期"
-          @change="handleSelectDate" />
+        <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
@@ -33,15 +32,12 @@
       <el-button v-throttle type="primary" @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
     </div>
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%"
-      @selection-change="handleSelectionChange">
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
         <template #default="scope">
-          <router-link
-            :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'"
-            class="link-type">
+          <router-link :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
             <span>{{ scope.row.goodsCode }}</span>
           </router-link>
         </template>
@@ -66,14 +62,30 @@
 
     <!-- 分页 -->
     <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-        :total="total" @pagination="getTableData" />
+      <pagination
+        v-show="total > 0"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :total="total"
+        @pagination="getTableData"
+      />
     </div>
 
     <!-- 价格调整明细弹窗 -->
-    <PriceDetailDialog v-model="detailDialogVisible" :data="detailData" :total="detailTotal" :loading="detailLoading"
+    <PriceDetailDialog
+      v-model="detailDialogVisible"
+      :data="detailData"
+      :total="detailTotal"
+      :loading="detailLoading"
       :query-params="detailQueryParams"
-      @pagination="(pagination) => { detailQueryParams.pageNum = pagination.page; detailQueryParams.pageSize = pagination.limit; fetchDetailData(); }" />
+      @pagination="
+        (pagination) => {
+          detailQueryParams.pageNum = pagination.page;
+          detailQueryParams.pageSize = pagination.limit;
+          fetchDetailData();
+        }
+      "
+    />
   </div>
 </template>
 
@@ -233,11 +245,6 @@ const fetchDetailData = async () => {
     detailLoading.value = false;
   }
 };
-
-// 每次页面激活时执行（从缓存中恢复）
-onActivated(() => {
-  getTableData();
-});
 </script>
 
 <style scoped lang="scss">

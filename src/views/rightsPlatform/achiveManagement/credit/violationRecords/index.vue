@@ -21,8 +21,8 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -153,11 +153,6 @@ const refreshData = () => {
   dlgPreviewVisible.value = false;
   getList();
 };
-
-// 每次页面激活时执行（从缓存中恢复）
-onActivated(() => {
-  getList();
-});
 
 onMounted(() => {
   getList();

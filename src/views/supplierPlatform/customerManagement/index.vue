@@ -99,10 +99,6 @@ const handleReset = () => {
   handleQuery();
 };
 
-onActivated(() => {
-  getList();
-});
-
 onMounted(() => {
   getList();
 });

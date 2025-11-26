@@ -30,13 +30,13 @@
     <!-- 表格 -->
     <el-table :data="tableData" border style="width: 100%" v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column prop="categoryName" label="发布类型" width="180" align="center" />
-      <el-table-column prop="purchaseRegion" label="发布区域" width="180" align="center">
+      <el-table-column prop="categoryName" label="发布类型" align="center" :show-overflow-tooltip="true" />
+      <el-table-column prop="purchaseRegion" label="发布区域" align="center" :show-overflow-tooltip="true">
         <template #default="{ row }">
           {{ [row.province, row.city, row.district].filter(Boolean).join(' - ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="supplyDescription" label="发布说明" min-width="180" align="center" />
+      <el-table-column prop="supplyDescription" label="发布说明" align="center" :show-overflow-tooltip="true" />
       <el-table-column label="操作" width="200" align="center">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" text size="small" @click="handleDetail(scope.row)"
