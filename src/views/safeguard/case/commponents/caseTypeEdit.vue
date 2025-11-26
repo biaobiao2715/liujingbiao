@@ -838,6 +838,12 @@ watch(
 );
 
 const resetForm = () => {
+  // 在清空数据之前，如果是编辑模式，先保存最新的版本号
+  let latestVersion = '1.0';
+  if (!isAddMode.value) {
+    latestVersion = formData.legalBasisFiles?.[0]?.version;
+  }
+
   formData.caseTypeId = '';
   formData.caseTypeCode = '';
   formData.keyAttributes = [];
@@ -851,7 +857,8 @@ const resetForm = () => {
   legalBasisHistoryPagination.page = 1;
   legalDocumentHistoryPagination.page = 1;
   isUpload.value = false;
-  currentVersion.value = '1.0';
+  // 如果是新增模式，版本号为 '1.0'；如果是编辑模式，使用最新的版本号
+  currentVersion.value = isAddMode.value ? '1.0' : latestVersion;
   legalBasisUploadRef.value?.clearFiles?.();
   formRef.value?.resetFields?.();
 };
@@ -860,6 +867,8 @@ const handleSubmit = () => {
   formRef.value?.validate((valid: boolean) => {
     if (!valid) return;
     const hasNewUpload = isUpload.value;
+    formData.currentVersion = isAddMode.value ? '1.0' : formData.legalBasisFiles[0].version;
+    console.log('formData', formData);
     emit('submit', {
       ...formData,
       legalBasisFiles: hasNewUpload ? formData.legalBasisFiles : [],

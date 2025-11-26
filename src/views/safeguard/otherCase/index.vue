@@ -2,7 +2,7 @@
   <div class="p-2">
     <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
       <div v-show="showSearch" class="mb-[10px]">
-        <el-card shadow="hover">
+        <el-card shadow="hover" style="background: none; border: none">
           <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="130">
             <el-form-item label="其他渠道案件名称" prop="caseName">
               <el-input v-model="queryParams.caseName" placeholder="请输入其他渠道案件名称" clearable @keyup.enter="handleQuery" />
@@ -15,26 +15,21 @@
             </el-form-item>
             <el-form-item>
               <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button type="primary" icon="Refresh" @click="resetQuery">重置</el-button>
+            </el-form-item>
+            <br />
+            <el-form-item>
+              <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
+              <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:otherCase:remove']">
+                删除
+              </el-button>
             </el-form-item>
           </el-form>
         </el-card>
       </div>
     </transition>
 
-    <el-card shadow="never">
-      <template #header>
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:otherCase:remove']">删除</el-button>
-          </el-col>
-          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
-        </el-row>
-      </template>
-
+    <el-card shadow="never" style="background: none; border: none; margin-top: -40px">
       <el-table v-loading="loading" border :data="otherCaseList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="55" align="center" />
@@ -60,7 +55,7 @@
     <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
       <el-form ref="otherCaseFormRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="案件名称" prop="caseName">
-          <el-input v-model="form.caseName" placeholder="请输入其他渠道案件名称" />
+          <el-input v-model="form.caseName" placeholder="请输入案件名称" />
         </el-form-item>
         <el-form-item label="链接地址" prop="linkAddress">
           <el-input v-model="form.linkAddress" placeholder="请输入链接地址" />
@@ -77,6 +72,7 @@
 </template>
 
 <script setup name="OtherCase" lang="ts">
+import { ElMessageBox } from 'element-plus';
 import { listOtherCase, getOtherCase, delOtherCase, addOtherCase, updateOtherCase } from '@/api/safeguard/otherCase';
 import { OtherCaseVO, OtherCaseQuery, OtherCaseForm } from '@/api/safeguard/otherCase/types';
 
@@ -102,22 +98,19 @@ const dialog = reactive<DialogOption>({
 const initFormData: OtherCaseForm = {
   id: undefined,
   linkAddress: undefined,
-  caseName: undefined,
-}
+  caseName: undefined
+};
 const data = reactive<PageData<OtherCaseForm, OtherCaseQuery>>({
-  form: {...initFormData},
+  form: { ...initFormData },
   queryParams: {
     pageNum: 1,
     pageSize: 10,
     linkAddress: undefined,
     caseName: undefined,
-    params: {
-    }
+    params: {}
   },
   rules: {
-    id: [
-      { required: true, message: "id不能为空", trigger: "blur" }
-    ],
+    id: [{ required: true, message: 'id不能为空', trigger: 'blur' }],
     caseName: [
       { required: true, message: '案件名称不能为空', trigger: 'blur' },
       { min: 1, max: 25, message: '长度应在 1-25个字符内', trigger: 'blur' }
@@ -125,7 +118,7 @@ const data = reactive<PageData<OtherCaseForm, OtherCaseQuery>>({
     linkAddress: [
       { required: true, message: '链接地址不能为空', trigger: 'blur' },
       { min: 1, max: 125, message: '长度应在 1-125 个字符内', trigger: 'blur' }
-    ],
+    ]
   }
 });
 
@@ -138,55 +131,55 @@ const getList = async () => {
   otherCaseList.value = res.rows;
   total.value = res.total;
   loading.value = false;
-}
+};
 
 /** 取消按钮 */
 const cancel = () => {
   reset();
   dialog.visible = false;
-}
+};
 
 /** 表单重置 */
 const reset = () => {
-  form.value = {...initFormData};
+  form.value = { ...initFormData };
   otherCaseFormRef.value?.resetFields();
-}
+};
 
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
-}
+};
 
 /** 重置按钮操作 */
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   handleQuery();
-}
+};
 
 /** 多选框选中数据 */
 const handleSelectionChange = (selection: OtherCaseVO[]) => {
-  ids.value = selection.map(item => item.id);
+  ids.value = selection.map((item) => item.id);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
-}
+};
 
 /** 新增按钮操作 */
 const handleAdd = () => {
   reset();
   dialog.visible = true;
-  dialog.title = "新增渠道案件";
-}
+  dialog.title = '新增渠道案件';
+};
 
 /** 修改按钮操作 */
 const handleUpdate = async (row?: OtherCaseVO) => {
   reset();
-  const _id = row?.id || ids.value[0]
+  const _id = row?.id || ids.value[0];
   const res = await getOtherCase(_id);
   Object.assign(form.value, res.data);
   dialog.visible = true;
-  dialog.title = "编辑渠道案件";
-}
+  dialog.title = '编辑渠道案件';
+};
 
 /** 提交按钮 */
 const submitForm = () => {
@@ -194,32 +187,40 @@ const submitForm = () => {
     if (valid) {
       buttonLoading.value = true;
       if (form.value.id) {
-        await updateOtherCase(form.value).finally(() =>  buttonLoading.value = false);
+        await updateOtherCase(form.value).finally(() => (buttonLoading.value = false));
       } else {
-        await addOtherCase(form.value).finally(() =>  buttonLoading.value = false);
+        await addOtherCase(form.value).finally(() => (buttonLoading.value = false));
       }
-      proxy?.$modal.msgSuccess("操作成功");
+      proxy?.$modal.msgSuccess('操作成功');
       dialog.visible = false;
       await getList();
     }
   });
-}
+};
 
 /** 删除按钮操作 */
 const handleDelete = async (row?: OtherCaseVO) => {
   const _ids = row?.id || ids.value;
-  await proxy?.$modal.confirm('是否确认删除？').finally(() => loading.value = false);
+  await ElMessageBox.confirm('是否确认删除？', '操作确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).finally(() => (loading.value = false));
   await delOtherCase(_ids);
-  proxy?.$modal.msgSuccess("删除成功");
+  proxy?.$modal.msgSuccess('删除成功');
   await getList();
-}
+};
 
 /** 导出按钮操作 */
 const handleExport = () => {
-  proxy?.download('system/otherCase/export', {
-    ...queryParams.value
-  }, `otherCase_${new Date().getTime()}.xlsx`)
-}
+  proxy?.download(
+    'system/otherCase/export',
+    {
+      ...queryParams.value
+    },
+    `otherCase_${new Date().getTime()}.xlsx`
+  );
+};
 
 onMounted(() => {
   getList();

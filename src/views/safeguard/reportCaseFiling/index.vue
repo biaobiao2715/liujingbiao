@@ -8,7 +8,7 @@
 <template>
   <div class="report-case-filing-container">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline>
       <!-- 举报编号 -->
       <el-form-item label="举报编号" prop="reportCode">
         <el-input v-model="queryParams.reportCode" placeholder="请输入举报编号" clearable @keyup.enter="handleQuery" />
@@ -192,9 +192,6 @@ const { report_type_id } = toRefs<any>(proxy?.useDict('report_type_id'));
 // 搜索表单引用
 const queryFormRef = ref();
 
-// 是否显示搜索
-const showSearch = ref(true);
-
 // 加载状态
 const loading = ref(false);
 
@@ -352,7 +349,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .report-case-filing-container {
-  padding: 20px 0 0;
+  padding: 20px;
 
   .search-actions {
     margin-left: auto;

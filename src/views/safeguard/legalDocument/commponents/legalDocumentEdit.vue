@@ -49,7 +49,7 @@
             <el-icon class="el-icon--left"><UploadFilled /></el-icon>
             上传文件
           </el-button>
-          <span class="upload-placeholder">请上传文件</span>
+          <span v-if="!formData.legalFiles || formData.legalFiles.length === 0" class="upload-placeholder">请上传文件</span>
         </el-upload>
       </el-form-item>
 

@@ -84,7 +84,7 @@
               </el-table-column>
               <el-table-column prop="action" label="操作" width="100" fixed="right">
                 <template #default="{ row }">
-                  <el-button type="text" size="small" style="color: #f56c6c" @click="handleFileRemove(row, fileList)"> 删除 </el-button>
+                  <el-button link type="danger" size="small" @click="handleFileRemove(row, fileList)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
