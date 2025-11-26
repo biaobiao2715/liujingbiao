@@ -21,6 +21,8 @@
     </div>
 
     <div class="detail-content" v-html="form?.articleContent"></div>
+
+    <div style="height: 78px"></div>
   </div>
 </template>
 

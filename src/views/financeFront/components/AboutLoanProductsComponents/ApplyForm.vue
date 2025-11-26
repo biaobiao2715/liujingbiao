@@ -447,7 +447,7 @@
         <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowClsoe" plain>返回</el-button></el-col>
       </el-row>
 
-      <div style="height: 160px"></div>
+      <div style="height: 213px"></div>
     </el-form>
   </div>
 </template>
@@ -464,6 +464,7 @@ import {
   applyEnterpriseLoan,
   getLoanApplicationsId,
   putLoanApplications,
+  getCreditProductMoney,
   ossUploadImage
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
@@ -499,6 +500,8 @@ const userStore = useUserStore();
 const userType = computed(() => userStore.userType);
 // 产品详情信息（包含限制条件：最大额度/可选周期/可选还款方式等）
 const productDetails = ref<any>({});
+// 用户贷款额度（包含限制条件：最大额度）
+const amountData = ref<any>({});
 // 采购商详情信息（仅在 userType 为 1 时使用）
 const buyerDetails = ref<any>({});
 // 企业/供应商详情信息（仅在 userType 为 2 / 3 时使用）
@@ -616,10 +619,10 @@ const rules: FormRules = {
           return callback(new Error('贷款金额需为正数且最多2位小数'));
         }
         const num = Number(str);
-        if (num <= 0) {
+        if (num <= amountData.value.minAmount) {
           return callback(new Error('贷款金额必须大于0'));
         }
-        const maxRaw = productDetails.value?.maxLoanAmount;
+        const maxRaw = amountData.value?.maxAmount;
         const max = maxRaw !== undefined && maxRaw !== null && maxRaw !== '' ? Number(maxRaw) : undefined;
         if (max !== undefined && !isNaN(max) && num > max) {
           return callback(new Error(`贷款金额不能超过最大额度${max}`));
@@ -942,6 +945,8 @@ async function loadProductDetails() {
   if (!pid) return;
   const res = await getCreditProductsVersionDetailNoTenant(pid).catch(() => null);
   if (res && res.code === 200) productDetails.value = res.data || {};
+  const arr = await getCreditProductMoney(pid).catch(() => null);
+  if (arr && arr.code === 200) amountData.value = arr.data || {};
 }
 // 加载采购商详情（新增/编辑模式下补充生日字段）
 async function loadPurchaserDetails() {

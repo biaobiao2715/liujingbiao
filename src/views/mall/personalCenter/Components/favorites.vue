@@ -40,11 +40,13 @@
             >
               <div class="goods">
                 <img class="li-img" :src="item.googsImageUrl || defaultImg" alt="商品图片" />
-                <div class="flex-between">
-                  <div>{{ getPrice(item.googsPrice, item.spread) }} {{ specificationText(item.goodsSpecificationId) }}</div>
-                  <div>{{ priceDelta(item.spread) }}</div>
+                <div class="flex-center-between">
+                  <div class="one-line-ellipsis price-spec">
+                    {{ getPrice(item.googsPrice, item.spread) }} {{ specificationText(item.goodsSpecificationId) }}
+                  </div>
+                  <div class="one-line-ellipsis price-delta">{{ priceDelta(item.spread) }}</div>
                 </div>
-                <div class="flex-between">
+                <div class="flex-center-between">
                   <div class="name-ellipsis">{{ item.googsName }}</div>
                   <el-button
                     v-hasPermi="['system:common:favorite']"
@@ -57,9 +59,9 @@
                     <el-icon><StarFilled /></el-icon>
                   </el-button>
                 </div>
-                <div class="flex-between">
+                <div class="flex-center-between">
                   <div>
-                    <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px">{{
+                    <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px; margin-bottom: 4px">{{
                       vs.attributeName
                     }}</el-tag>
                   </div>
@@ -81,11 +83,11 @@
             >
               <div class="goods article">
                 <img class="li-img" :src="getArticleCover(item)" alt="封面图片" />
-                <div class="name" :title="getArticleTitle(item)">
+                <div class="article-name" :title="getArticleTitle(item)">
                   {{ getArticleTitle(item) }}
                 </div>
-                <div class="flex-between">
-                  <div class="author">{{ getArticleAuthor(item) }}</div>
+                <div class="flex-center-between">
+                  <div class="article-author">{{ getArticleAuthor(item) }}</div>
                   <el-button
                     v-hasPermi="['system:common:favorite']"
                     @click.stop="onUnfav(item)"
@@ -377,6 +379,26 @@ onBeforeUnmount(() => {
   background: #f7f8fa;
 }
 
+/* 顶部价格/规格行：不换行且省略 */
+.flex-center-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.one-line-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.price-spec {
+  max-width: 30%;
+}
+.price-delta {
+  max-width: 70%;
+  text-align: right;
+}
+
 /* 文本省略 */
 .name-ellipsis {
   max-width: 65%;
@@ -407,20 +429,22 @@ onBeforeUnmount(() => {
 
 /* ========== 文章卡片样式优化 ========== */
 
-.article .name {
+.article .article-name {
   font-weight: 600;
   line-height: 1.5;
   color: var(--el-text-color-primary);
-  display: -webkit-box;
-  line-clamp: 2; /* 标准属性，提升兼容性 */
-  -webkit-line-clamp: 2; /* 两行省略 */
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.article .author {
+.article .article-author {
   color: var(--el-text-color-secondary);
   font-size: 13px;
+  max-width: 70%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* 文章块保持原有自适应即可 */

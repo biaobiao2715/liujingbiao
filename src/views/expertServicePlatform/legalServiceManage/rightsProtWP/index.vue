@@ -57,13 +57,13 @@
         </el-col>
       </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
+        <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.createTime }}</span>
+            <span>{{ scope.row.updateTime || scope.row.createTime }}</span>
           </template>
         </el-table-column>
         
@@ -329,7 +329,8 @@ const versionDialog = ref({
 });
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
+// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -406,15 +407,22 @@ const getList = () => {
     if (res && res.code === 200) {
       const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
 
+      // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
       rows.sort((a: any, b: any) => {
-        const versionDiff = parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
-        if (versionDiff !== 0) return versionDiff;
-        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
         const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
-        return timeB - timeA;
+        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
+        const timeDiff = timeB - timeA;
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+        // 如果发布时间相同，再按版本号倒序排列
+        return parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
       });
 
-      tableData.value = rows;
+      tableData.value = rows.map((item: any) => ({
+        ...item,
+        updateTime: item.updateTime || item.publishTime || item.createTime || ''
+      }));
       total.value = res.total || 0;
     } else {
       tableData.value = [];
@@ -714,11 +722,18 @@ const uploadWhitePaperVersionFile = async (file: File) => {
 
   try {
     if (useChunkUpload) {
-      const chunkRes = await uploadByChunks(file, (percent) => {
+      let chunkRes = await uploadByChunks(file, (percent) => {
         modal?.setLoadingText?.(`正在分片上传...${percent}%`);
       });
+      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
+      // 统一处理，兼容不同的返回格式
+      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
+        chunkRes = chunkRes.data;
+      }
+      // 兼容 ossId 和 ossid 两种字段名
+      const ossId = chunkRes?.ossId || chunkRes?.ossid || chunkRes?.data?.ossId || chunkRes?.data?.ossid;
       return {
-        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
+        ossId: ossId,
         fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
         url: chunkRes?.url || chunkRes?.data?.url,
         originalName: file.name
@@ -778,7 +793,8 @@ const handleVersionConfirm = async () => {
         
         const ossVoList = [{
           ossId: ossData.ossId || 0,
-          fileName: ossData.fileName || ossData.originalName || rawFile.name,
+          // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+          fileName: ossData.originalName || rawFile.name,
           originalName: rawFile.name,
           fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
           url: ossData.url || '',
