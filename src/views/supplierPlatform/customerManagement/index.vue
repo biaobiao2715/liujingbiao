@@ -30,15 +30,15 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="客户名称" align="center" prop="customerName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="客户编码" align="center" prop="customerNo" width="210" />
-      <el-table-column label="客户类型" align="center" prop="customerType" width="100">
+      <el-table-column label="客户编码" align="center" prop="customerNo" :show-overflow-tooltip="true" />
+      <el-table-column label="客户类型" align="center" prop="customerType">
         <template v-slot="scope">
           <dict-tag :options="purchaser_type" :value="scope.row.customerType" />
         </template>
       </el-table-column>
-      <el-table-column label="购买类型" align="center" prop="purchaseType" width="120" />
-      <el-table-column label="联系方式" align="center" prop="mobile" width="150" />
-      <el-table-column label="录入时间" align="center" prop="updateTime" min-width="160">
+      <el-table-column label="购买类型" align="center" prop="purchaseType" :show-overflow-tooltip="true" />
+      <el-table-column label="联系方式" align="center" prop="mobile" :show-overflow-tooltip="true" />
+      <el-table-column label="录入时间" align="center" prop="updateTime" min-width="160" :show-overflow-tooltip="true">
         <template #default="scope">
           {{ proxy.parseTime(scope.row.updateTime) }}
         </template>
