@@ -16,8 +16,8 @@
         </el-form-item>
       </el-form>
       <!-- 数据表格 -->
-      <el-table :data="tableList" style="width: 100%" v-loading="loading">
-        <el-table-column prop="categoryName" label="发布类型" width="200"></el-table-column>
+      <el-table :data="tableList"  v-loading="loading">
+        <el-table-column prop="categoryName" label="发布类型" width="200" show-overflow-tooltip></el-table-column>
         <el-table-column prop="region" label="配送范围" width="200" show-overflow-tooltip>
           <template #default="scope">
             <el-tooltip class="item" :content="scope.row.region" placement="bottom">

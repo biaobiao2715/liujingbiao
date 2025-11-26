@@ -72,6 +72,8 @@
       <!-- 个人中心 -->
       <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
     </div>
+    <!-- 底部 -->
+    <FooterComponents />
   </div>
 </template>
 
@@ -86,6 +88,8 @@ import LoanProductsComponent from './components/LoanProductsComponent.vue';
 import RiskCasesComponent from './components/RiskCasesComponent.vue';
 import PolicyRulesComponent from './components/PolicyRulesComponent.vue';
 import InsuranceproductComponent from './components/InsuranceproductComponent.vue';
+import FooterComponents from './components/FooterComponents.vue';
+
 import { eventBus } from '@/utils/eventBus';
 
 // 详情相关组件按需异步加载，减少首屏体积
