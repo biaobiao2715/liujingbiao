@@ -329,7 +329,8 @@ const versionDialog = ref({
 });
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
+// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -714,11 +715,18 @@ const uploadWhitePaperVersionFile = async (file: File) => {
 
   try {
     if (useChunkUpload) {
-      const chunkRes = await uploadByChunks(file, (percent) => {
+      let chunkRes = await uploadByChunks(file, (percent) => {
         modal?.setLoadingText?.(`正在分片上传...${percent}%`);
       });
+      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
+      // 统一处理，兼容不同的返回格式
+      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
+        chunkRes = chunkRes.data;
+      }
+      // 兼容 ossId 和 ossid 两种字段名
+      const ossId = chunkRes?.ossId || chunkRes?.ossid || chunkRes?.data?.ossId || chunkRes?.data?.ossid;
       return {
-        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
+        ossId: ossId,
         fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
         url: chunkRes?.url || chunkRes?.data?.url,
         originalName: file.name
@@ -778,7 +786,8 @@ const handleVersionConfirm = async () => {
         
         const ossVoList = [{
           ossId: ossData.ossId || 0,
-          fileName: ossData.fileName || ossData.originalName || rawFile.name,
+          // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+          fileName: ossData.originalName || rawFile.name,
           originalName: rawFile.name,
           fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
           url: ossData.url || '',
