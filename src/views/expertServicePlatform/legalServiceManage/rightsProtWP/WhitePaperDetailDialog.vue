@@ -109,8 +109,9 @@ const loadCurrentAttachments = async () => {
   if (ossIds.length === 0) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
+      // 优先使用 originalName（用户上传时的原始文件名）
       originalName: item.originalName || item.fileName || item.name || '',
-      fileName: item.fileName || item.originalName || item.name || '',
+      fileName: item.originalName || item.fileName || item.name || '',
       updateTime: item.updateTime || detailData.value.updateTime || '',
       version: item.version || item.versionNo || detailData.value.currentVersion || '',
       url: item.url || ''
@@ -134,8 +135,9 @@ const loadCurrentAttachments = async () => {
       
       return {
         ossId: item.ossId,
-        originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || item.fileName || item.name || '',
-        fileName: ossInfo.fileName || item.fileName || ossInfo.originalName || item.originalName || item.name || '',
+        // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+        originalName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || item.name || '',
+        fileName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || item.name || '',
         updateTime: item.updateTime || detailData.value.updateTime || '',
         version: item.version || item.versionNo || detailData.value.currentVersion || '',
         url: ossInfo.url || item.url || ''
@@ -144,8 +146,9 @@ const loadCurrentAttachments = async () => {
   } catch (error) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
+      // 优先使用 originalName（用户上传时的原始文件名）
       originalName: item.originalName || item.fileName || item.name || '',
-      fileName: item.fileName || item.originalName || item.name || '',
+      fileName: item.originalName || item.fileName || item.name || '',
       updateTime: item.updateTime || detailData.value.updateTime || '',
       version: item.version || item.versionNo || detailData.value.currentVersion || '',
       url: item.url || ''

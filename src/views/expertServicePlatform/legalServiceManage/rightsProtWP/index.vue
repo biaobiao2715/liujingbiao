@@ -62,8 +62,9 @@
         <el-table-column type="index" label="序号" width="55" align="center" />
         
         <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
+        <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.updateTime || scope.row.publishTime || scope.row.createTime }}</span>
+            <span>{{ scope.row.createTime }}</span>
           </template>
         </el-table-column>
         
@@ -409,12 +410,23 @@ const getList = () => {
 
       // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
       rows.sort((a: any, b: any) => {
+        const versionDiff = parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
+        if (versionDiff !== 0) return versionDiff;
         const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
         const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
-        return timeB - timeA;
+        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
+        const timeDiff = timeB - timeA;
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+        // 如果发布时间相同，再按版本号倒序排列
+        return parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
       });
 
-      tableData.value = rows;
+      tableData.value = rows.map((item: any) => ({
+        ...item,
+        updateTime: item.updateTime || item.publishTime || item.createTime || ''
+      }));
       total.value = res.total || 0;
     } else {
       tableData.value = [];

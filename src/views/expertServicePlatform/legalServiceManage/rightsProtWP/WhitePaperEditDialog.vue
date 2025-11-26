@@ -17,7 +17,7 @@
         <div v-if="!formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
-      <el-form-item label="上传附件" prop="attachment" :required="props.type === 'add'" :show-message="false">
+      <el-form-item label="上传附件" prop="attachment" required :show-message="false">
         <div class="attachment-section">
           <el-upload
             action="#"
@@ -181,7 +181,8 @@ const emit = defineEmits<{
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
+// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const formRef = ref();
 const saving = ref(false);
@@ -220,12 +221,18 @@ const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
       uploadResult = await uploadByChunks(file, (percent) => {
         modal?.setLoadingText?.(`正在分片上传...${percent}%`);
       });
+      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
+      // 兼容处理不同的返回格式和字段名
+      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
+        uploadResult = uploadResult.data;
+      }
     } else {
       const response = await ossUploadImage({ file });
       uploadResult = response?.data || {};
     }
 
-    const ossId = uploadResult?.ossId || uploadResult?.data?.ossId;
+    // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
     if (!ossId) {
       throw new Error('上传失败，未获取到文件标识');
     }
@@ -234,7 +241,8 @@ const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
 
     return {
       ossId,
-      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || uploadResult?.originalName || file.name,
+      // 优先使用用户上传时的原始文件名，而不是后端返回的 fileName（可能包含路径）
+      fileName: file.name,
       originalName: file.name,
       url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
       fileSuffix,
@@ -307,8 +315,9 @@ const loadCurrentAttachments = async () => {
       
       return {
         ossId: item.ossId,
-        fileName: ossInfo.fileName || item.fileName || '',
-        originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || '',
+        // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+        fileName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || '',
+        originalName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || '',
         fileType: getFileTypeName(ossInfo.fileSuffix || item.fileSuffix || ''),
         version: item.versionNo || item.version || detailData.value.currentVersion || '',
         url: ossInfo.url || item.url || '',
@@ -318,7 +327,8 @@ const loadCurrentAttachments = async () => {
   } catch (error) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
-      fileName: item.fileName || '',
+      // 优先使用 originalName（用户上传时的原始文件名）
+      fileName: item.originalName || item.fileName || '',
       originalName: item.originalName || item.fileName || '',
       fileType: getFileTypeName(item.fileSuffix || ''),
       version: item.versionNo || item.version || detailData.value.currentVersion || '',
@@ -373,7 +383,7 @@ const rules = {
   attachment: [
     {
       validator: (_rule: any, _value: any, callback: any) => {
-        if (props.type === 'add' && attachmentList.value.length === 0) {
+        if (attachmentList.value.length === 0) {
           callback(new Error('请上传一个附件'));
         } else {
           callback();
@@ -584,8 +594,9 @@ const handleFileChange = async (file: any) => {
       
       const newAttachment = {
         ossId: ossData.ossId,
-        fileName: ossData.fileName || ossData.originalName || rawFile.name,
-        originalName: ossData.originalName,
+        // 优先使用用户上传时的原始文件名
+        fileName: ossData.originalName || rawFile.name,
+        originalName: ossData.originalName || rawFile.name,
         fileType: getFileTypeName(fileSuffix),
         fileSuffix: fileSuffix,
         url: ossData.url,
@@ -830,8 +841,9 @@ const fetchWhitePaperDetail = async () => {
               
               return {
                 ossId: item.ossId,
-                fileName: ossInfo.fileName || item.fileName || '',
-                originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || '',
+                // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+                fileName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || '',
+                originalName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || '',
                 fileType: getFileTypeName(ossInfo.fileSuffix || item.fileSuffix || ''),
                 fileSuffix: ossInfo.fileSuffix || item.fileSuffix || '',
                 url: ossInfo.url || item.url || '',
@@ -844,7 +856,8 @@ const fetchWhitePaperDetail = async () => {
           } catch (error) {
             attachmentList.value = attachmentsForEdit.map((item: any, index: number) => ({
               ossId: item.ossId,
-              fileName: item.fileName || '',
+              // 优先使用 originalName（用户上传时的原始文件名）
+              fileName: item.originalName || item.fileName || '',
               originalName: item.originalName || item.fileName || '',
               fileType: getFileTypeName(item.fileSuffix || ''),
               fileSuffix: item.fileSuffix || '',
@@ -907,7 +920,8 @@ const handleSubmit = async () => {
     const ossVoList = attachmentList.value.map(item => {
       const ossItem: any = {
         ossId: item.ossId || 0,
-        fileName: item.fileName || item.originalName || '',
+        // 优先使用 originalName（用户上传时的原始文件名）
+        fileName: item.originalName || item.fileName || '',
         originalName: item.originalName || '',
         fileSuffix: item.fileSuffix || '',
         url: item.url || '',
