@@ -55,6 +55,7 @@ const handleCommand = (command: string) => {
     handleLogout();
     return;
   }
+  eventBus.emit('navigateToPersonalCenter', command);
 };
 
 // 退出登录
