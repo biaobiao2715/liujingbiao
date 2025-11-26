@@ -105,7 +105,7 @@
         </div>
 
         <div class="box-actions">
-          <el-button type="success" class="start-compare-btn" :disabled="compareGoodsList.length < 1"
+          <el-button type="success" class="start-compare-btn" :disabled="compareGoodsList.length < 2"
             @click="startCompare">
             开始对比
           </el-button>
@@ -270,21 +270,18 @@ const getPrice = (goods: Goods) => {
 
 const isInCompare = (goodsId?: number) => {
   if (!goodsId) return false;
-  if (currentGoods.value && currentGoods.value.id === goodsId) {
-    return false;
-  }
   return compareGoodsList.value.some(item => item.id === goodsId);
 };
 
 const toggleCompare = (goods: Goods) => {
-  if (currentGoods.value && currentGoods.value.id === goods.id) {
-    ElMessage.info('当前商品已作为基准商品，无需添加到对比列表');
-    return;
-  }
-
   const index = compareGoodsList.value.findIndex(item => item.id === goods.id);
 
   if (index > -1) {
+    // 如果是对比框中的唯一商品，不允许移除
+    if (compareGoodsList.value.length === 1) {
+      ElMessage.warning('至少需要保留1个商品在对比框中');
+      return;
+    }
     compareGoodsList.value.splice(index, 1);
   } else {
     if (compareGoodsList.value.length >= 5) {
@@ -304,41 +301,57 @@ const toggleCompare = (goods: Goods) => {
 };
 
 const removeGoods = (index: number) => {
+  if (compareGoodsList.value.length === 1) {
+    ElMessage.warning('至少需要保留1个商品在对比框中');
+    return;
+  }
   compareGoodsList.value.splice(index, 1);
   saveToLocalStorage();
 };
 
 const clearCompare = () => {
-  compareGoodsList.value = [];
+  // 如果是从商品详情页跳转过来的，保留当前商品
+  if (currentGoods.value && currentGoods.value.id) {
+    const price = getPrice(currentGoods.value);
+    compareGoodsList.value = [{
+      ...currentGoods.value,
+      price: price.toString(),
+      location: currentGoods.value.hnBaseEnterpriseInfo?.province
+    }];
+  } else {
+    compareGoodsList.value = [];
+  }
   saveToLocalStorage();
 };
 
 // 开始对比
 const startCompare = async () => {
-  if (compareGoodsList.value.length < 1) {
-    ElMessage.warning('至少需要选择1个商品进行对比');
+  if (compareGoodsList.value.length < 2) {
+    ElMessage.warning('至少需要选择2个商品进行对比');
     return;
   }
 
   try {
     const params: any = {};
 
-    if (currentGoods.value && currentGoods.value.id) {
-      params.id = String(currentGoods.value.id);
-    } else if (goodsIdFromRoute.value) {
-      params.id = String(goodsIdFromRoute.value);
+    // 使用对比框中的第一个商品作为主商品
+    const mainGoods = compareGoodsList.value[0];
+    if (mainGoods && mainGoods.id) {
+      params.id = String(mainGoods.id);
     } else {
       ElMessage.warning('缺少主商品信息，无法进行对比');
       return;
     }
 
+    // 其他商品作为对比商品（排除第一个）
     const compareIds = compareGoodsList.value
+      .slice(1) // 跳过第一个商品（主商品）
       .map(item => item.id)
       .filter((id) => id !== undefined && id !== null)
       .map(id => String(id));
 
     if (compareIds.length === 0) {
-      ElMessage.warning('请至少选择一个商品进行对比');
+      ElMessage.warning('请至少选择2个商品进行对比');
       return;
     }
 
@@ -380,6 +393,18 @@ const fetchCurrentGoods = async () => {
     const res = await goodsDetail(goodsIdFromRoute.value);
     if (res && res.code === 200 && res.data) {
       currentGoods.value = res.data;
+      
+      // 自动将当前商品添加到对比框（如果还没有添加）
+      const exists = compareGoodsList.value.some(item => item.id === res.data.id);
+      if (!exists) {
+        const price = getPrice(res.data);
+        compareGoodsList.value.unshift({
+          ...res.data,
+          price: price.toString(),
+          location: res.data.hnBaseEnterpriseInfo?.province
+        });
+        saveToLocalStorage();
+      }
     }
   } catch (error) {
     // 忽略错误
@@ -421,12 +446,7 @@ const fetchGoodsList = async () => {
 
     const response = await goodsCompareList(params);
     if (response.code === 200) {
-      let records = response.rows || [];
-
-      if (currentGoods.value && currentGoods.value.id) {
-        records = records.filter(item => item.id !== currentGoods.value!.id);
-      }
-
+      const records = response.rows || [];
       goodsData.value = records;
       total.value = response.total || 0;
     }
@@ -438,13 +458,25 @@ const fetchGoodsList = async () => {
 };
 
 
-onMounted(() => {
-  compareGoodsList.value = [];
-  saveToLocalStorage();
-
+onMounted(async () => {
+  // 如果从商品详情页跳转过来，先清空对比框，然后加载当前商品（会自动添加）
+  // 如果不是从商品详情页跳转，尝试从本地存储恢复
   if (goodsIdFromRoute.value) {
-    fetchCurrentGoods();
+    compareGoodsList.value = [];
+    saveToLocalStorage();
+    await fetchCurrentGoods();
+  } else {
+    // 尝试从本地存储恢复对比列表
+    try {
+      const stored = localStorage.getItem('compareGoodsList');
+      if (stored) {
+        compareGoodsList.value = JSON.parse(stored);
+      }
+    } catch (error) {
+      // 忽略解析错误
+    }
   }
+  
   fetchGoodsList();
 });
 </script>
