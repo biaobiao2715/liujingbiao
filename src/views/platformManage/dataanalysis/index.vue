@@ -10,7 +10,7 @@
 
 <template>
   <div class="p-2 legal-expert-page">
-    <el-card shadow="hover"> 
+    <el-card shadow="hover">
       <!-- 顶部展示区域 -->
       <div style="margin-bottom: 2%">
         <el-row :gutter="20">
@@ -49,7 +49,7 @@
         <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
           <el-form-item label="专家类型" prop="expertType">
             <el-select v-model="queryParams.expertType" placeholder="请选择专家类型" filterable clearable>
-              <el-option v-for="dict in expert_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+              <el-option v-for="dict in static_expert_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="专家姓名" prop="expertName">
@@ -103,7 +103,7 @@
         </el-table-column>
         <el-table-column prop="expertType" label="专家类型" min-width="100" align="center">
           <template #default="scope">
-            <dict-tag :options="expert_type" :value="scope.row.expertType" />
+            <dict-tag :options="static_expert_type" :value="scope.row.expertType" />
           </template>
         </el-table-column>
         <el-table-column label="专家姓名" min-width="140" align="center" prop="expertName">
@@ -155,7 +155,7 @@ import { getqueryExpertStaticData, getexpertTotalStaticData } from '@/api/platfo
 import router from '@/router';
 import dayjs from 'dayjs';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { expert_type } = toRefs<any>(proxy?.useDict('expert_type'));
+const { static_expert_type } = toRefs<any>(proxy?.useDict('static_expert_type'));
 const expertList = ref([]);
 const loading = ref(false);
 const total = ref(0);
