@@ -42,6 +42,7 @@
       <div class="detail-content_title">产品备注</div>
       <div class="remark">{{ form?.productRemark }}</div>
     </div>
+    <div style="height: 87px"></div>
   </div>
 </template>
 

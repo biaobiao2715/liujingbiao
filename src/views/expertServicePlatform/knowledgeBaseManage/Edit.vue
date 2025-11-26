@@ -52,33 +52,29 @@
       </el-row>
 
       <div class="title-text">附件上传</div>
-      <el-upload
-        action="#"
-        :auto-upload="false"
-        accept=".jpg,.jpeg,.png,.mp4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
-        :show-file-list="false"
-        :on-change="handleChange"
-      >
+      <el-upload action="#" :auto-upload="false" :accept="acceptTypes" :show-file-list="false" :on-change="handleChange">
         <div class="upload-btn">
           <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
-            <img src="@/assets/images/register5.svg" class="el-icon-view" />添加附件</el-button
-          >
+            <img src="@/assets/images/register5.svg" class="el-icon-view" />添加附件
+          </el-button>
         </div>
       </el-upload>
 
-      <div class="h20"></div>
+      <!-- 隐藏的重新上传文件选择器 -->
+      <input ref="reuploadInputRef" type="file" style="display: none" :accept="acceptTypes" @change="handleReuploadChange" />
 
+      <div class="h20"></div>
+      <!-- <img src="@/assets/images/register1.svg" class="el-icon-view" /> -->
+      <!-- <img src="@/assets/images/register4.svg" class="el-icon-view" /> -->
       <el-table :data="fileListtable" stripe>
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column prop="fileName" label="附件名" align="center" />
         <el-table-column label="操作" width="250" align="center">
           <template #default="scope">
-            <el-button v-throttle text @click="previewFile()" style="color: #108c58; border-color: #108c58; margin-right: 10px">
-              <img src="@/assets/images/register1.svg" class="el-icon-view" />
+            <el-button v-throttle text @click="reuploadFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
               <span style="height: 16px; line-height: 16px">重新上传</span>
             </el-button>
             <el-button v-throttle text @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
-              <img src="@/assets/images/register4.svg" class="el-icon-view" />
               <span style="height: 16px; line-height: 16px">删除</span>
             </el-button>
           </template>
@@ -137,6 +133,28 @@ const rules = {
   articleContent: [{ required: true, message: '请输入正文内容', trigger: 'blur' }],
   articleStatus: [{ required: true, message: '请选择文章状态', trigger: 'change' }]
 };
+
+// 文件类型分类与锁
+const imageExt = ['jpg', 'jpeg', 'png'];
+const videoExt = ['mp4', 'mov', 'avi'];
+const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+const allExt = [...imageExt, ...videoExt, ...docExt];
+const lockedCategory = ref<'image' | 'video' | 'doc' | null>(null);
+
+const getCategoryByExt = (ext: string) => {
+  if (imageExt.includes(ext)) return 'image' as const;
+  if (videoExt.includes(ext)) return 'video' as const;
+  if (docExt.includes(ext)) return 'doc' as const;
+  return null;
+};
+
+// 根据锁定类别动态限制选择器的 accept
+const acceptTypes = computed(() => {
+  if (lockedCategory.value === 'image') return '.jpg,.jpeg,.png';
+  if (lockedCategory.value === 'video') return '.mp4,.mov,.avi';
+  if (lockedCategory.value === 'doc') return '.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
+  return '.jpg,.jpeg,.png,.mp4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
+});
 
 const emitCancel = () => emit('cancel');
 
@@ -209,23 +227,65 @@ const submit = async () => {
 
 const validateFile = (file: File) => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const imageExt = ['jpg', 'jpeg', 'png'];
-  const videoExt = ['mp4', 'mov', 'avi'];
-  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
-  const all = [...imageExt, ...videoExt, ...docExt];
-
-  if (!all.includes(ext)) {
+  if (!allExt.includes(ext)) {
     ElMessage.error(`${ext.toUpperCase() || '该'}文件格式不正确，上传失败`);
     return false;
   }
-
+  const category = getCategoryByExt(ext);
+  if (!category) {
+    ElMessage.error('不支持的文件类型');
+    return false;
+  }
+  // 锁定类别不匹配时拒绝
+  if (lockedCategory.value && lockedCategory.value !== category) {
+    ElMessage.error(
+      lockedCategory.value === 'image'
+        ? '当前已锁定为图片类型，只能继续上传图片'
+        : lockedCategory.value === 'video'
+          ? '当前已锁定为视频类型，只能继续上传视频'
+          : '当前已锁定为文档类型，只能继续上传文档'
+    );
+    return false;
+  }
   const MB = 1024 * 1024;
-  const limit = imageExt.includes(ext) ? 10 * MB : videoExt.includes(ext) ? 500 * MB : 100 * MB;
+  const limit = category === 'image' ? 10 * MB : category === 'video' ? 500 * MB : 100 * MB;
   if (file.size > limit) {
-    ElMessage.error(imageExt.includes(ext) ? '图片最大10MB' : videoExt.includes(ext) ? '视频最大500MB' : '文档最大100MB');
+    ElMessage.error(category === 'image' ? '图片最大10MB' : category === 'video' ? '视频最大500MB' : '文档最大100MB');
     return false;
   }
   return true;
+};
+
+// 统一的大小阈值（>5MB 走分片）
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+// 通过文件对象执行上传，返回标准化的附件对象
+const buildUploadPayload = async (file: File, progressPrefix: string) => {
+  let result: any;
+  if (file.size > MAX_SIZE) {
+    const res = await uploadByChunks(file, (p: number) => console.log(`${progressPrefix}进度: ${p}%`));
+    if (!res || !res.ossId) throw new Error('分片上传失败');
+    result = {
+      ossId: res.ossId,
+      fileName: res.fileName || file.name,
+      name: res.fileName || file.name,
+      originalName: res.fileName || file.name,
+      fileSuffix: file.type,
+      url: res.url
+    };
+  } else {
+    const response = await ossUploadImage({ file });
+    if (response.code !== 200 || !response.data?.ossId) throw new Error(response?.msg || '上传失败');
+    result = {
+      ossId: response.data.ossId,
+      fileName: response.data.fileName || file.name,
+      name: response.data.fileName || file.name,
+      originalName: response.data.fileName || file.name,
+      fileSuffix: file.type,
+      url: response.data.url
+    };
+  }
+  return result;
 };
 
 const handleChange = async (file: any) => {
@@ -233,38 +293,13 @@ const handleChange = async (file: any) => {
   if (!raw) return;
   if (!validateFile(raw)) return;
   proxy?.$modal.loading('正在上传附件，请稍候...');
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   try {
-    // 大文件：使用分片上传
-    if (raw.size > MAX_SIZE) {
-      const res = await uploadByChunks(raw, (p: number) => {
-        console.log(`上传进度: ${p}%`);
-      });
-      if (!res || !res.ossId) throw new Error('分片上传失败');
-      fileListtable.value.push({
-        uid: file.uid,
-        ossId: res.ossId,
-        fileName: res.fileName || raw.name,
-        name: res.fileName || raw.name,
-        originalName: res.fileName || raw.name,
-        fileSuffix: raw.type,
-        url: res.url
-      });
-    } else {
-      // 小文件：走原来的 FormData 普通上传
-      const response = await ossUploadImage({ file: raw });
-      if (response.code !== 200 || !response.data?.ossId) {
-        throw new Error(response?.msg || '上传失败');
-      }
-      fileListtable.value.push({
-        uid: file.uid,
-        ossId: response.data.ossId,
-        fileName: response.data.fileName || raw.name,
-        name: response.data.fileName || raw.name,
-        originalName: response.data.fileName || raw.name,
-        fileSuffix: raw.type,
-        url: response.data.url
-      });
+    const payload = await buildUploadPayload(raw, '上传');
+    fileListtable.value.push({ uid: file.uid || Date.now().toString(), ...payload });
+    // 首次成功上传后锁定类别
+    if (!lockedCategory.value && fileListtable.value.length === 1) {
+      const ext = (payload.fileName.split('.').pop() || '').toLowerCase();
+      lockedCategory.value = getCategoryByExt(ext);
     }
   } catch (error) {
     console.error('上传失败:', error);
@@ -274,13 +309,47 @@ const handleChange = async (file: any) => {
   }
 };
 
-const previewFile = async () => {};
-
-const removeFile = (file: any) => {
-  const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
-  if (index !== -1) {
-    fileListtable.value.splice(index, 1);
+// 重新上传功能：点击后弹出文件选择并替换该行内容
+const reuploadIndex = ref<number | null>(null);
+const reuploadInputRef = ref<HTMLInputElement | null>(null);
+const reuploadFile = (row: any) => {
+  reuploadIndex.value = fileListtable.value.indexOf(row);
+  if (reuploadIndex.value === -1) {
+    ElMessage.error('未找到要替换的附件');
+    return;
   }
+  reuploadInputRef.value?.click();
+};
+
+const handleReuploadChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  input.value = '';
+  if (!validateFile(file)) return;
+  if (reuploadIndex.value == null || reuploadIndex.value < 0) {
+    ElMessage.error('未指定替换行');
+    return;
+  }
+  proxy?.$modal.loading('正在重新上传，请稍候...');
+  try {
+    const payload = await buildUploadPayload(file, '重新上传');
+    fileListtable.value.splice(reuploadIndex.value, 1, { uid: Date.now().toString(), ...payload });
+    ElMessage.success('重新上传成功');
+  } catch (err) {
+    console.error('重新上传失败:', err);
+    ElMessage.error('重新上传失败，请重试');
+  } finally {
+    proxy?.$modal.closeLoading();
+    reuploadIndex.value = null;
+  }
+};
+
+// 删除：支持 uid / ossId / url 任一匹配
+const removeFile = (file: any) => {
+  const index = fileListtable.value.findIndex((f) => f.uid === file?.uid || f.ossId === file?.ossId || f.url === file?.url);
+  if (index !== -1) fileListtable.value.splice(index, 1);
+  if (fileListtable.value.length === 0) lockedCategory.value = null;
 };
 
 onMounted(async () => {
@@ -292,12 +361,21 @@ onMounted(async () => {
         ...res.data
       };
       // 主图和规格数据不带入
-      fileListtable.value = res.data.commonRelevanceFilesVos.map((file: any) => ({
-        fileName: file.originalName || '文章附件',
-        url: file.url,
-        ossId: file.ossId,
-        path: file.url
+      fileListtable.value = res.data.commonRelevanceFilesVos.map((f: any) => ({
+        fileName: f.remoteOssVos?.[0]?.originalName || '文章附件',
+        url: f.remoteOssVos?.[0]?.url,
+        ossId: f.remoteOssVos?.[0]?.ossId,
+        path: f.remoteOssVos?.[0]?.url,
+        name: f.remoteOssVos?.[0]?.originalName,
+        originalName: f.remoteOssVos?.[0]?.originalName,
+        fileSuffix: f.remoteOssVos?.[0]?.fileSuffix
       }));
+      // 根据已有附件确定锁定类别
+      const first = fileListtable.value[0];
+      if (first?.fileName) {
+        const ext = (String(first.fileName).split('.').pop() || '').toLowerCase();
+        lockedCategory.value = getCategoryByExt(ext);
+      }
     } else {
       ElMessage.error(res?.msg ?? '获取文章信息失败');
     }
