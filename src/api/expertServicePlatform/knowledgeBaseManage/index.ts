@@ -80,10 +80,10 @@ export function delArticle(ids: Array<number | string> | number | string) {
  * PUT skill-server/article/status
  * @param data { ids: number[]; articleStatus: 2|3 }
  */
-export function changeArticleStatus(ids: ChangeStatusPayload) {
+export function changeArticleStatus({ ids, articleStatus }: ChangeStatusPayload) {
   const idStr = Array.isArray(ids) ? ids.join(',') : ids;
   return request({
-    url: `skill-server/article/enableAndDisabled/${idStr}`,
+    url: `skill-server/article/enableAndDisabled/${idStr}?status=${articleStatus}`,
     method: 'get'
   });
 }

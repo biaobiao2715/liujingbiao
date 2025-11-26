@@ -227,11 +227,23 @@ const ensureSelected = () => {
 
 const handleEnableBatch = async () => {
   if (!ensureSelected()) return;
-  await changeStatusConfirm(selectedIds.value, '2', `确定启用选中的 ${selectedIds.value.length} 条数据吗？`);
+  // 仅允许对当前为禁用状态的数据执行批量启用
+  const invalid = selectedRows.value.some((row) => String(row.articleStatus) !== '3');
+  if (invalid) {
+    ElMessage.warning('选中数据存在非“禁用”状态，不能执行批量启用');
+    return;
+  }
+  await changeStatusConfirm(selectedIds.value, '2', `确定启用选中的 ${selectedIds.value.length} 条禁用数据吗？`);
 };
 const handleDisableBatch = async () => {
   if (!ensureSelected()) return;
-  await changeStatusConfirm(selectedIds.value, '3', `确定禁用选中的 ${selectedIds.value.length} 条数据吗？`);
+  // 仅允许对当前为启用状态的数据执行批量禁用
+  const invalid = selectedRows.value.some((row) => String(row.articleStatus) !== '2');
+  if (invalid) {
+    ElMessage.warning('选中数据存在非“启用”状态，不能执行批量禁用');
+    return;
+  }
+  await changeStatusConfirm(selectedIds.value, '3', `确定禁用选中的 ${selectedIds.value.length} 条启用数据吗？`);
 };
 const handleDeleteBatch = async () => {
   if (!ensureSelected()) return;
