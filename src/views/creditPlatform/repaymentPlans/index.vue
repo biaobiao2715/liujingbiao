@@ -29,7 +29,7 @@
       </el-form-item>
     </el-form>
 
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+    <el-table :data="tableData" border v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column label="申请人" prop="realName" align="center" width="120" />
       <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />

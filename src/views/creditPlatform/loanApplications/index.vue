@@ -35,8 +35,7 @@
       </el-form-item>
     </el-form>
 
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="50" />
+    <el-table :data="tableData" border v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column label="申请人" prop="realName" align="center" width="120" />
       <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />
@@ -205,17 +204,6 @@ const handlePageSizeChange = (size: number) => {
   queryParams.value.pageSize = size;
   queryParams.value.pageNum = 1;
   getList();
-};
-
-const handleSelectionChange = () => {
-  // 预留批量操作
-};
-
-const getApplicableLabel = (value: string | number | undefined) => {
-  if (value === undefined || value === null) return '';
-  const list = applicable_object?.value || [];
-  const match = list.find((item: any) => String(item.value) === String(value));
-  return match?.label || '';
 };
 
 const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detail') => {
