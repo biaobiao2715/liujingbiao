@@ -154,11 +154,12 @@ export function getRecommendDemand(data?: any) {
 
 // --==---==-分片上传相关的接口--=-=-=-=
 //  初始化分片上传
-export function initChunkUpload(data: any) {
+export function initChunkUpload(data: any, config: Record<string, any> = {}) {
   return request({
     url: '/resource/oss/init',
     method: 'post',
-    params: data
+    params: data,
+    ...config
   });
 }
 
@@ -178,11 +179,12 @@ export function uploadChunk(params, data: FormData, config = {}) {
 }
 
 //合并分片，完成整个文件上传
-export function mergeChunkUpload(data: any) {
+export function mergeChunkUpload(data: any, config: Record<string, any> = {}) {
   return request({
     url: '/resource/oss/merge',
     method: 'post',
-    data
+    data,
+    ...config
   });
 }
 
