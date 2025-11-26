@@ -21,7 +21,12 @@ export const useAppStore = defineStore('app', () => {
     zh_CN: zhCN
   };
   const locale = computed(() => {
-    return languageObj[language.value];
+    // return languageObj[language.value];
+    // 覆盖 Element Plus Upload 的 deleteTip，去除“按 Delete 键可删除”提示
+    const base: any = languageObj[language.value] || {};
+    const upload = { ...(base?.el?.upload || {}), deleteTip: '' };
+    const el = { ...(base?.el || {}), upload };
+    return { ...base, el };
   });
 
   const toggleSideBar = (withoutAnimation: boolean) => {
