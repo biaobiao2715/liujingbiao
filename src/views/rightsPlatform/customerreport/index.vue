@@ -93,7 +93,7 @@ div<!--
           <div class="operation-buttons">
             <!-- 查看按钮 - 已结案和已撤回显示 -->
             <el-button
-              v-if="scope.row.status === '3' || scope.row.status === '4'"
+              v-if="scope.row.status === '3' || scope.row.status === '4' || scope.row.status === '0'"
               v-hasPermi="['safeguard:report:query']"
               v-throttle
               type="primary"
