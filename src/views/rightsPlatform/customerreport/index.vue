@@ -94,7 +94,7 @@ div<!--
             <!-- 查看按钮 - 已结案和已撤回显示 -->
             <el-button
               v-if="scope.row.status === '3' || scope.row.status === '4'"
-              v-hasPermi="['safeguard:report:back']"
+              v-hasPermi="['safeguard:report:query']"
               v-throttle
               type="primary"
               size="small"
@@ -108,14 +108,14 @@ div<!--
               v-throttle
               type="success"
               size="small"
-              :disabled="scope.row.rejectTimes === '3' || scope.row.appealTime != 'null'"
+              :disabled="scope.row.rejectTimes == '3' || (scope.row.appealTime != null && scope.row.status === '1') || (scope.row.caseCode == null && scope.row.status === '2')"
               @click="handleAppeal(scope.row)"
             >
               申诉
             </el-button>
 
             <!-- 撤回按钮 - 只在待处理和处理中状态显示 -->
-            <el-button
+            <!-- <el-button
               v-if="scope.row.status === '0' || scope.row.status === '1'"
               v-hasPermi="['safeguard:report:back']"
               v-throttle
@@ -124,7 +124,7 @@ div<!--
               @click="handleWithdraw(scope.row)"
             >
               撤回
-            </el-button>
+            </el-button> -->
           </div>
         </template>
       </el-table-column>

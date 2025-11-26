@@ -39,44 +39,48 @@
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-      <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
+    <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
         <el-step title="待处理">
           <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList[0] && hnReportHistoryList[0].createTime">
-              {{ hnReportHistoryList[0].createTime }}
+              <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '0')">
+            {{ hnReportHistoryList.find(item => item.status === '0').time }}
           </div>
           </template>
         </el-step>
-        <el-step title="处理中">
+        
+        <el-step v-if="Number(formData.status) >= 1 && Number(formData.status) <= 3 || (Number(formData.status) === 4 && formData.caseCode)" 
+          title="处理中">
           <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList[1] && hnReportHistoryList[1].createTime">
-            {{ hnReportHistoryList[1].createTime }}
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '1')">
+          {{ hnReportHistoryList.find(item => item.status === '1').time }}
           </div>
+          </template>
+        </el-step>
+        
+        <el-step v-if="Number(formData.status) === 2" title="已驳回">
+          <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '2')">
+          {{ hnReportHistoryList.find(item => item.status === '2').time }}
+        </div>
+          </template>
+        </el-step>
+        
+        <el-step v-if="Number(formData.status) === 3" title="已结案">
+          <template #description>
+        <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '3')">
+              {{ hnReportHistoryList.find(item => item.status === '3').time }}
+            </div>
+          </template>
+        </el-step>
+  
+      <el-step v-if="Number(formData.status) === 4" title="已撤回">
+        <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '4')">
+        {{ hnReportHistoryList.find(item => item.status === '4').time }}
+       </div>
         </template>
-        </el-step>
-        <el-step title="已驳回">
-          <template #description>
-            <div v-if="hnReportHistoryList && hnReportHistoryList[2] && hnReportHistoryList[2].createTime">
-              {{ hnReportHistoryList[2].createTime }}
-            </div>
-          </template>
-
-        </el-step>
-        <el-step title="已结案">
-          <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList[3] && hnReportHistoryList[3].createTime">
-              {{ hnReportHistoryList[3].createTime }}
-            </div>
-            </template>
-        </el-step>
-        <el-step title="已撤回">
-            <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList[4] && hnReportHistoryList[4].createTime">
-                {{ hnReportHistoryList[4].createTime }}
-              </div>
-            </template>
-        </el-step>
-      </el-steps>
+      </el-step>
+    </el-steps>
     </el-form>
     <div class="section-title">案件类型</div>
     <el-table :data="casetableData" border v-loading="loading" style="table-layout: fixed">
@@ -136,7 +140,7 @@
         :auto-upload="false"
         accept=".png,.jpg,.MP4,.jpeg,.mov,.avi"
         :show-file-list="false"
-        :limit="1"
+        :before-upload="beforeUpload"
         :on-change="handleFileChange"
       >
         <el-button type="primary" plain>
@@ -278,15 +282,31 @@ const statusText = computed(() => {
 // 添加这两个计算属性用于附件计数显示
 const currentImageCount = computed(() => {
   return attachmentList.value.filter(item => {
+    // 同时检查文件后缀和MIME类型
     const suffix = (item.fileSuffix || '').toLowerCase();
-    return ['.jpg', '.jpeg', '.png'].includes(suffix);
+    const isImageSuffix = ['.jpg', '.jpeg', '.png'].includes(suffix);
+    
+    // 检查MIME类型
+    const mimeType = (item.fileSuffix || '').toLowerCase();
+    const isImageMime = mimeType.startsWith('image/') && 
+                       ['image/jpeg', 'image/png', 'image/jpg'].includes(mimeType);
+    
+    return isImageSuffix || isImageMime;
   }).length;
 });
 
 const currentVideoCount = computed(() => {
   return attachmentList.value.filter(item => {
+    // 同时检查文件后缀和MIME类型
     const suffix = (item.fileSuffix || '').toLowerCase();
-    return ['.mp4', '.mov', '.avi'].includes(suffix);
+    const isVideoSuffix = ['.mp4', '.mov', '.avi'].includes(suffix);
+    
+    // 检查MIME类型
+    const mimeType = (item.fileSuffix || '').toLowerCase();
+    const isVideoMime = mimeType.startsWith('video/') &&
+                       ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(mimeType);
+    
+    return isVideoSuffix || isVideoMime;
   }).length;
 });
 /** 获取内容详情 */
@@ -317,7 +337,7 @@ const fetchContentDetail = async () => {
         status: data.status || ''
       };
       casetableData.value = data.reportCaseFiling || [];
-      hnReportHistoryList.value = data.hnReportHistoryList || [];
+      hnReportHistoryList.value = data.statusAndDate || [];
       presentarguments.value= data.appealReason  
       // 加载附件数据
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
@@ -365,6 +385,16 @@ const load = () => {
 /** 提交表单 */
 const handleSubmit = async () => {
   if (!formRef.value) return;
+    // 添加校验逻辑
+  if (!presentarguments.value || presentarguments.value.trim() === '') {
+    ElMessage.warning('请输入申述理由');
+    return;
+  }
+
+  if (!attachmentList.value || attachmentList.value.length === 0) {
+    ElMessage.warning('请上传申述材料');
+    return;
+  }
 
   try {
     saving.value = true;
@@ -472,10 +502,54 @@ const valiImgFile = (file: File): boolean => {
 
   return true;
 };
+/** 上传前检查文件数量限制 */
+const beforeUpload = (file: File): boolean => {
+    const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
+  const fileMimeType = (file.type || '').toLowerCase();
+  
+  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) ||
+                  ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
+                  
+  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) ||
+                  ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
+
+  if (isImage && currentImageCount.value >= 6) {
+    ElMessage.warning('最多只能上传6张图片');
+    return false;
+  }
+
+  if (isVideo && currentVideoCount.value >= 3) {
+    ElMessage.warning('最多只能上传3个视频');
+    return false;
+  }
+
+  return true;
+};
+
 
 /** 处理文件上传 */
 const handleFileChange = async (file: any) => {
   console.log('正常上传的文件', file);
+
+    // 先验证文件数量限制
+  const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
+  const fileMimeType = (file.raw.type || '').toLowerCase();
+  
+  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) ||
+                  ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
+                  
+  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) ||
+                  ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
+
+  if (isImage && currentImageCount.value >= 6) {
+    ElMessage.warning('最多只能上传6张图片');
+    return;
+  }
+
+  if (isVideo && currentVideoCount.value >= 3) {
+    ElMessage.warning('最多只能上传3个视频');
+    return;
+  }
 
   if (!validateFile(file.raw)) return;
 
@@ -574,6 +648,50 @@ const handleReuploadChange = (event: Event) => {
   }
 
   const file = files[0];
+  // 对于重新上传，我们需要特殊处理数量限制检查
+  // 先获取原文件的类型（如果是重新上传的话）
+  if (currentReuploadIndex.value >= 0) {
+    const oldFile = attachmentList.value[currentReuploadIndex.value];
+    const oldFileSuffix = (oldFile.fileSuffix || '').toLowerCase();
+    const newFileExtension = (file.name.split('.').pop() || '').toLowerCase();
+    
+    const oldIsImage = ['.jpg', '.jpeg', '.png'].includes(oldFileSuffix);
+    const oldIsVideo = ['.mp4', '.mov', '.avi'].includes(oldFileSuffix);
+    const newIsImage = ['jpg', 'jpeg', 'png'].includes(newFileExtension);
+    const newIsVideo = ['mp4', 'mov', 'avi'].includes(newFileExtension);
+    
+    // 如果原来是图片，现在要替换成视频，需要检查视频数量限制
+    if (oldIsImage && newIsVideo && currentVideoCount.value >= 3) {
+      ElMessage.warning('最多只能上传3个视频');
+      target.value = '';
+      return;
+    }
+    
+    // 如果原来是视频，现在要替换成图片，需要检查图片数量限制
+    if (oldIsVideo && newIsImage && currentImageCount.value >= 6) {
+      ElMessage.warning('最多只能上传6张图片');
+      target.value = '';
+      return;
+    }
+  } else {
+    // 这里是新增上传的情况
+    const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension);
+    const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension);
+
+    if (isImage && currentImageCount.value >= 6) {
+      ElMessage.warning('最多只能上传6张图片');
+      target.value = '';
+      return;
+    }
+
+    if (isVideo && currentVideoCount.value >= 3) {
+      ElMessage.warning('最多只能上传3个视频');
+      target.value = '';
+      return;
+    }
+  }
+
   // 验证文件
   if (!validateFile(file)) {
     // 清空input值，允许重新选择
