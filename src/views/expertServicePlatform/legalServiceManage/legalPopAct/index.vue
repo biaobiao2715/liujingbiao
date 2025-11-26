@@ -153,7 +153,7 @@
                 查看
               </el-button>
               <el-button 
-                v-if="String(scope.row.activityStatus) === '1' || Number(scope.row.activityStatus) === 1" 
+                v-if="canCancelActivity(scope.row)" 
                 v-hasPermi="['skill:lawActivity:cancel']" 
                 v-throttle 
                 type="warning" 
@@ -163,6 +163,7 @@
                 取消活动
               </el-button>
               <el-button 
+                v-if="canDeleteActivity(scope.row)"
                 v-throttle 
                 v-hasPermi="['skill:lawActivity:remove']" 
                 type="danger" 
@@ -276,7 +277,16 @@ const getList = async () => {
     const response: any = await getActivityList(params);
     
     if (response.code === 200) {
-      tableData.value = response.rows || [];
+      const list = Array.isArray(response.rows) ? response.rows.slice() : [];
+
+      // 按发布时间倒序展示（最新发布时间在最前）
+      list.sort((a: any, b: any) => {
+        const aTime = a?.publishTime ? new Date(a.publishTime).getTime() : 0;
+        const bTime = b?.publishTime ? new Date(b.publishTime).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      tableData.value = list;
       total.value = response.total || 0;
     } else {
       tableData.value = [];
@@ -306,6 +316,53 @@ const getStatusType = (status: string | number) => {
     default:
       return 'info';
   }
+};
+
+/**
+ * 判断活动是否为待开始状态
+ * @param row 活动数据
+ * @returns 是否为待开始状态（状态为1）
+ */
+const isPendingStatus = (row: any): boolean => {
+  const status = String(row.activityStatus || '');
+  return status === '1';
+};
+
+/**
+ * 判断活动是否可以取消
+ * 规则：只有待开始状态（状态为1）且自然时间早于普法活动开始时间的活动才能取消
+ * @param row 活动数据
+ * @returns 是否可以取消
+ */
+const canCancelActivity = (row: any): boolean => {
+  // 检查状态是否为待开始（1）
+  if (!isPendingStatus(row)) {
+    return false;
+  }
+  
+  // 检查活动开始时间是否存在
+  if (!row.startTime) {
+    return false;
+  }
+  
+  // 检查当前时间是否早于活动开始时间
+  const now = new Date();
+  const startTime = new Date(row.startTime);
+  
+  // 如果当前时间已经大于等于开始时间，则不能取消
+  return now < startTime;
+};
+
+/**
+ * 判断活动是否可以删除
+ * 规则：只能删除已结束（状态为3）和已取消（状态为99）的活动
+ * @param row 活动数据
+ * @returns 是否可以删除
+ */
+const canDeleteActivity = (row: any): boolean => {
+  const status = String(row.activityStatus || '');
+  // 只有已结束（3）和已取消（99）状态的活动才能删除
+  return status === '3' || status === '99';
 };
 
 const handleSearch = () => {
@@ -359,6 +416,13 @@ const handleDelete = async () => {
   
   if (ids.length === 0) {
     ElMessage.warning('请先选择要删除的活动');
+    return;
+  }
+  
+  // 验证：只能删除已结束和已取消的活动
+  const invalidRows = selectedRows.value.filter((row: any) => !canDeleteActivity(row));
+  if (invalidRows.length > 0) {
+    ElMessage.warning('只能删除已结束和已取消的活动');
     return;
   }
   
@@ -416,6 +480,23 @@ const handleCancelActivity = async (row: any) => {
       return;
     }
     
+    // 验证：只有待开始状态且自然时间早于普法活动开始时间的活动才能取消
+    if (!canCancelActivity(row)) {
+      const status = String(row.activityStatus || '');
+      if (status !== '1') {
+        ElMessage.warning('只有待开始状态下的普法活动才可取消');
+      } else if (!row.startTime) {
+        ElMessage.warning('活动开始时间不存在，无法取消');
+      } else {
+        const now = new Date();
+        const startTime = new Date(row.startTime);
+        if (now >= startTime) {
+          ElMessage.warning('活动已开始，无法取消');
+        }
+      }
+      return;
+    }
+    
     const { value: cancelReason } = await ElMessageBox.prompt(
       `请输入取消活动"${row.activityTitle}"的原因：`,
       '取消活动',
@@ -468,6 +549,12 @@ const handleDeleteSingle = async (row: any) => {
   try {
     if (!row.id) {
       ElMessage.error('活动ID不存在，无法删除');
+      return;
+    }
+    
+    // 验证：只能删除已结束和已取消的活动
+    if (!canDeleteActivity(row)) {
+      ElMessage.warning('只能删除已结束和已取消的活动');
       return;
     }
     

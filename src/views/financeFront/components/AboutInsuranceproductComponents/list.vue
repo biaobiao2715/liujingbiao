@@ -6,49 +6,52 @@
   开发信息: Created by 刘景彪 2025-11-18
 -->
 <template>
-  <div class="supplier-management">
-    <div class="menu-title">保险产品列表</div>
-    <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="产品名称" prop="productName">
-        <el-input v-model="queryParams.productName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item label="产品类型" prop="productType">
-        <el-select v-model="queryParams.productType" placeholder="产品类型" filterable clearable>
-          <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
-      </el-form-item>
-    </el-form>
+  <div>
+    <div class="supplier-management">
+      <div class="menu-title">保险产品列表</div>
+      <!-- 搜索条件 -->
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
+        <el-form-item label="产品名称" prop="productName">
+          <el-input v-model="queryParams.productName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="产品类型" prop="productType">
+          <el-select v-model="queryParams.productType" placeholder="产品类型" filterable clearable>
+            <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
+          <el-button v-throttle @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
 
-    <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
-      <el-table-column label="产品名称" align="center" prop="productName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="适用对象" align="center" prop="applicableObject" width="210" style="color: #0000ff">
-        <template #default="scope">
-          <dict-text :options="applicable_object" :value="scope.row.applicableObject" />
-        </template>
-      </el-table-column>
-      <el-table-column label="产品类型" align="center" prop="productType">
-        <template v-slot="scope">
-          <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
-        </template>
-      </el-table-column>
-      <el-table-column label="产品简介" align="center" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button v-throttle type="primary" @click="handleEdit(scope.row)">详情</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- 分页 -->
-    <div class="flex-center pagination">
-      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      <!-- 表格展示 -->
+      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+        <el-table-column label="产品名称" align="center" prop="productName" min-width="100" :show-overflow-tooltip="true" />
+        <el-table-column label="适用对象" align="center" prop="applicableObject" width="210" style="color: #0000ff">
+          <template #default="scope">
+            <dict-text :options="applicable_object" :value="scope.row.applicableObject" />
+          </template>
+        </el-table-column>
+        <el-table-column label="产品类型" align="center" prop="productType">
+          <template v-slot="scope">
+            <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
+          </template>
+        </el-table-column>
+        <el-table-column label="产品简介" align="center" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+          <template #default="scope">
+            <el-button v-throttle type="primary" @click="handleEdit(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <!-- 分页 -->
+      <div class="flex-center pagination">
+        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
+      </div>
     </div>
+
+    <div style="height: 91px"></div>
 
     <el-dialog
       class="dialog-preview"
@@ -144,7 +147,6 @@ onMounted(() => {
   border-radius: 8px 8px 8px 8px;
 
   padding: 20px;
-  margin-bottom: 90px;
 }
 /* 页面布局样式 */
 .menu-title {

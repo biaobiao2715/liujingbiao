@@ -109,8 +109,9 @@ const loadCurrentAttachments = async () => {
   if (ossIds.length === 0) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
+      // 优先使用 originalName（用户上传时的原始文件名）
       originalName: item.originalName || item.fileName || item.name || '',
-      fileName: item.fileName || item.originalName || item.name || '',
+      fileName: item.originalName || item.fileName || item.name || '',
       updateTime: item.updateTime || detailData.value.updateTime || '',
       version: item.version || item.versionNo || detailData.value.currentVersion || '',
       url: item.url || ''
@@ -134,8 +135,9 @@ const loadCurrentAttachments = async () => {
       
       return {
         ossId: item.ossId,
-        originalName: ossInfo.originalName || item.originalName || ossInfo.fileName || item.fileName || item.name || '',
-        fileName: ossInfo.fileName || item.fileName || ossInfo.originalName || item.originalName || item.name || '',
+        // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+        originalName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || item.name || '',
+        fileName: ossInfo.originalName || item.originalName || item.fileName || ossInfo.fileName || item.name || '',
         updateTime: item.updateTime || detailData.value.updateTime || '',
         version: item.version || item.versionNo || detailData.value.currentVersion || '',
         url: ossInfo.url || item.url || ''
@@ -144,8 +146,9 @@ const loadCurrentAttachments = async () => {
   } catch (error) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
+      // 优先使用 originalName（用户上传时的原始文件名）
       originalName: item.originalName || item.fileName || item.name || '',
-      fileName: item.fileName || item.originalName || item.name || '',
+      fileName: item.originalName || item.fileName || item.name || '',
       updateTime: item.updateTime || detailData.value.updateTime || '',
       version: item.version || item.versionNo || detailData.value.currentVersion || '',
       url: item.url || ''
@@ -153,25 +156,42 @@ const loadCurrentAttachments = async () => {
   }
 };
 
+const parseVersionValue = (version: string) => {
+  if (!version) return 0;
+  const parts = version.split('.');
+  const major = Number(parts[0]) || 0;
+  const minor = Number(parts[1]) || 0;
+  return major * 1000 + minor;
+};
+
+const resolveVersion = (item: any) =>
+  item.versionNo ||
+  item.version ||
+  item.versionNum ||
+  item.currentVersion ||
+  (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].version) ||
+  '';
+
 const historyVersions = computed(() => {
   if (!detailData.value.historyVersionsList || !Array.isArray(detailData.value.historyVersionsList)) {
     return [];
   }
-  
-  return detailData.value.historyVersionsList.map((item: any) => {
-    const version = item.versionNo 
-      || item.version 
-      || item.versionNum
-      || item.currentVersion
-      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].version)
-      || '';
-    
+
+  const sortedList = [...detailData.value.historyVersionsList].sort((a: any, b: any) => {
+    const versionDiff = parseVersionValue(resolveVersion(b)) - parseVersionValue(resolveVersion(a));
+    if (versionDiff !== 0) return versionDiff;
+    const timeA = new Date(a.updateTime || a.createTime || 0).getTime();
+    const timeB = new Date(b.updateTime || b.createTime || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return sortedList.map((item: any) => {
+    const version = resolveVersion(item);
     const attachment = item.ossVoList && item.ossVoList[0] ? item.ossVoList[0] : item;
-    
     return {
       ...item,
       updateTime: item.updateTime || item.createTime || '',
-      version: version,
+      version,
       remark: item.remark || '',
       ossId: item.ossId || attachment.ossId,
       url: item.url || attachment.url || ''

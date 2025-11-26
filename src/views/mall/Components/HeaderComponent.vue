@@ -5,9 +5,9 @@
       <!-- 消息 -->
       <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
         <template #reference>
-          <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
+          <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99" class="badge">
             <div class="right-menu-item hover-effect" style="display: block">
-              <el-icon size="26"><Bell /></el-icon>
+              <el-icon size="16"><Bell /></el-icon>
             </div>
           </el-badge>
         </template>
@@ -18,7 +18,7 @@
 
       <el-dropdown @command="handleCommand" style="margin-left: 12px">
         <div class="flex-center gap-12">
-          <img src="../../../assets/images/avatar.svg" width="32" />
+          <img src="../../../assets/images/avatar.svg" width="20" />
           <div class="my-center">个人中心</div>
         </div>
         <template #dropdown>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElHeader, ElDropdown, ElDropdownMenu, ElDropdownItem, ElButton, ElBadge, ElMessageBox } from 'element-plus';
+import { ElDropdown, ElDropdownMenu, ElDropdownItem, ElBadge, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { Bell } from '@element-plus/icons-vue';
 import { eventBus } from '@/utils/eventBus';
@@ -55,14 +55,6 @@ const handleCommand = (command: string) => {
     handleLogout();
     return;
   }
-  eventBus.emit('navigateToPersonalCenter', command);
-};
-
-// 进入后台管理 拼接基础地址加路由
-const handleAdminLogin = () => {
-  const env = import.meta.env.VITE_APP_BASE_URL;
-  console.log(env);
-  window.open(env + '/index');
 };
 
 // 退出登录
@@ -96,10 +88,9 @@ watch(
 
 <style scoped lang="scss">
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 15%;
+  width: 1500px;
+  height: 35px;
+  margin: 0 auto;
 }
 .logo {
   flex-grow: 1;
@@ -110,7 +101,7 @@ watch(
   text-align: left;
 }
 .badge {
-  margin-left: 16px;
+  margin-top: 8px;
 }
 .my-center {
   font-size: 14px;

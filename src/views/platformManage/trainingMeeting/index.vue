@@ -138,7 +138,7 @@
                 <span v-else>查看</span>
               </el-link>
               <el-link v-hasPermi="['skill:HnMeetingCultivate:cancel']" type="primary" @click="handleCancelMeeting(scope.row)">取消会议</el-link>
-              <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
+              <!-- <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link> -->
             </template>
 
             <!-- 进行中、已结束、已取消 -->
@@ -147,7 +147,7 @@
                 <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
                 <span v-else>查看</span>
               </el-link>
-              <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
+              <el-link v-if="['3', '99'].includes(scope.row.meetingStatus)" v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
             </template>
           </div>
         </template>

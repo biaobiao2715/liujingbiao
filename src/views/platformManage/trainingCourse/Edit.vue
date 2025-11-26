@@ -79,12 +79,13 @@
       <div class="attachment-section">
         <div class="attachment-title">附件上传</div>
         <el-upload
+          ref="uploadRef"
           action="#"
-          :auto-upload="false"
           accept=".png,.jpg,.MP4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt"
           :show-file-list="false"
           :limit="1"
-          :on-change="handleFileChange"
+          :before-upload="onBeforeUpload"
+          :http-request="handleFileChange"
         >
           <el-button type="primary" plain>
             <el-icon class="el-icon--left">
@@ -162,6 +163,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, watch } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import type {UploadRawFile} from 'element-plus'
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
@@ -450,17 +452,19 @@ const valiImgFile = (file: File): boolean => {
   return true;
 };
 /** 处理文件上传 */
-const handleFileChange = async (file: any) => {
+const uploadRef = ref(null);
+const onBeforeUpload = (rawFile: UploadRawFile)=>{
+  return validateFile(rawFile)
+}
+const handleFileChange = async ({file}: any) => {
   console.log('正常上传的文件', file);
-  if (!validateFile(file.raw)) return;
-
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_SIZE) {
       // 使用分片上传
-      const res = await uploadByChunks(file.raw, (p) => {
+      const res = await uploadByChunks(file, (p) => {
         console.log(`上传进度: ${p}%`);
       });
       console.log(res,file,'切片成功了');
@@ -468,27 +472,27 @@ const handleFileChange = async (file: any) => {
       attachmentList.value.push({
         ossId: res.ossId,
         fileName: res.fileName,
-        originalName: file.raw.name,
-        fileSuffix: file.raw.type,
+        originalName: file.name,
+        fileSuffix: file.type,
         url: res.url,
-        fileSize: formatFileSize(file.raw.size),
+        fileSize: formatFileSize(file.size),
         uid: file.uid
       });
       console.log(attachmentList.value, '切片后push的');
       
       ElMessage.success('附件上传成功');
     }else{
-      let rawFile = file.raw;
+      let rawFile = file;
       console.log('最终上传的参数', rawFile);
       const response = await ossUploadImage({ file: rawFile });
       if (response.code === 200 && response.data?.ossId) {
         attachmentList.value.push({
           ossId: response.data.ossId,
           fileName: response.data.fileName,
-          originalName: file.raw.name,
-          fileSuffix: file.raw.type,
+          originalName: file.name,
+          fileSuffix: file.type,
           url: response.data.url,
-          fileSize: formatFileSize(file.raw.size),
+          fileSize: formatFileSize(file.size),
           uid: file.uid
         });
         ElMessage.success('附件上传成功');
@@ -501,6 +505,7 @@ const handleFileChange = async (file: any) => {
     ElMessage.error('上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
+    uploadRef.value?.clearFiles();
   }
 };
 /* 处理超出限制 */

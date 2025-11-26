@@ -44,7 +44,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增知识库</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增文章</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleEnableBatch">启用</el-button>
@@ -121,7 +121,7 @@
     <!-- 方案B弹窗：父级统一控制，异步引入，销毁关闭 -->
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增知识库' : dialog.type === 'edit' ? '编辑知识库' : '查看知识库'"
+      :title="dialog.type === 'add' ? '新增文章' : dialog.type === 'edit' ? '编辑文章' : '查看文章'"
       width="80%"
       destroy-on-close
       :close-on-click-modal="false"

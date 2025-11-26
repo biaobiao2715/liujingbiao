@@ -68,6 +68,8 @@
                 value-format="YYYY-MM-DD HH:mm:ss"
                 style="width: 200px"
                 clearable
+                :disabled-date="disabledStartDate"
+                :disabled-time="disabledStartTime"
                 @change="handleStartTimeChange"
               />
             </el-form-item>
@@ -83,6 +85,7 @@
                 value-format="YYYY-MM-DD HH:mm:ss"
                 style="width: 200px"
                 clearable
+                :disabled-date="disabledEndDate"
                 @change="handleEndTimeChange"
               />
             </el-form-item>
@@ -187,8 +190,16 @@ const formRules = {
           return;
         }
         
+        // 检查开始时间不能早于当前时间
+        const startDate = new Date(value);
+        const now = new Date();
+        
+        if (startDate < now) {
+          callback(new Error('开始时间不能早于当前时间'));
+          return;
+        }
+        
         if (formData.value.endTime) {
-          const startDate = new Date(value);
           const endDate = new Date(formData.value.endTime);
           
           if (startDate >= endDate) {
@@ -216,9 +227,20 @@ const formRules = {
           return;
         }
         
+        const endDate = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endDateOnly = new Date(endDate);
+        endDateOnly.setHours(0, 0, 0, 0);
+        
+        // 结束时间不得早于今天
+        if (endDateOnly < today) {
+          callback(new Error('结束时间不得早于今天'));
+          return;
+        }
+        
         if (formData.value.startTime) {
           const startDate = new Date(formData.value.startTime);
-          const endDate = new Date(value);
           
           if (endDate <= startDate) {
             callback(new Error('结束时间必须晚于开始时间'));
@@ -354,6 +376,70 @@ const handleSubmit = async () => {
 
 const emitCancel = () => {
   emit('cancel');
+};
+
+// 禁用今天之前的日期（用于结束时间选择器）
+const disabledEndDate = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const timeOnly = new Date(time);
+  timeOnly.setHours(0, 0, 0, 0);
+  return timeOnly < today;
+};
+
+// 禁用早于当前时间的日期（用于开始时间选择器）
+const disabledStartDate = (time: Date) => {
+  const now = new Date();
+  const timeOnly = new Date(time);
+  timeOnly.setHours(0, 0, 0, 0);
+  const nowOnly = new Date(now);
+  nowOnly.setHours(0, 0, 0, 0);
+  return timeOnly < nowOnly;
+};
+
+// 禁用早于当前时间的时间（用于开始时间选择器）
+const disabledStartTime = (time: Date) => {
+  const now = new Date();
+  const selectedDate = new Date(time);
+  
+  // 如果选择的日期是今天，则禁用早于当前时间的时间点
+  if (
+    selectedDate.getFullYear() === now.getFullYear() &&
+    selectedDate.getMonth() === now.getMonth() &&
+    selectedDate.getDate() === now.getDate()
+  ) {
+    return {
+      disabledHours: () => {
+        const hours = [];
+        for (let i = 0; i < now.getHours(); i++) {
+          hours.push(i);
+        }
+        return hours;
+      },
+      disabledMinutes: (selectedHour: number) => {
+        if (selectedHour === now.getHours()) {
+          const minutes = [];
+          for (let i = 0; i <= now.getMinutes(); i++) {
+            minutes.push(i);
+          }
+          return minutes;
+        }
+        return [];
+      },
+      disabledSeconds: (selectedHour: number, selectedMinute: number) => {
+        if (selectedHour === now.getHours() && selectedMinute === now.getMinutes()) {
+          const seconds = [];
+          for (let i = 0; i <= now.getSeconds(); i++) {
+            seconds.push(i);
+          }
+          return seconds;
+        }
+        return [];
+      }
+    };
+  }
+  
+  return {};
 };
 
 const handleStartTimeChange = () => {

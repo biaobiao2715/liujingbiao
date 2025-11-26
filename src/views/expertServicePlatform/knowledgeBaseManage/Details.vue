@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column label="操作" width="140" align="center">
           <template #default="scope">
-            <el-button v-throttle type="primary" text @click="downloadFile(scope.row)">下载</el-button>
+            <el-button v-throttle type="primary" text @click="downloadAttachment(scope.row)">下载</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -105,24 +105,19 @@ const buildAttachments = (data: any) => {
   });
 };
 
-const downloadFile = async (row: any) => {
-  if (!row) return;
+const downloadAttachment = async (row: any) => {
   try {
-    const ossId = row.ossId || row.remote?.ossId || row.remote?.id;
-    if (ossId) {
-      await (proxy as any)?.$download?.oss(String(ossId));
-      return;
-    }
-    const url = row.url || row.remote?.url;
-    if (url) {
-      const fileName = row.originalName || row.fileName || row.remote?.originalName || '附件';
-      downloadFileByUrl(url, fileName);
-      return;
-    }
-    ElMessage.warning('附件链接不存在，无法下载');
+    const response = await fetch(row.url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = row.originalName || row.fileName || '附件'; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
   } catch (error) {
-    console.error('下载失败:', error);
-    ElMessage.error('下载失败，请重试');
+    console.error('下载失败', error);
   }
 };
 
@@ -142,7 +137,6 @@ onMounted(async () => {
     ElMessage.error('缺少文章ID');
     return;
   }
-  console.log('[sss]', props.id);
   const res = await getArticle(props.id);
   const data = res?.data ?? res ?? {};
   form.value = data;

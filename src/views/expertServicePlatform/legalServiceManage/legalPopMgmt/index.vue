@@ -72,30 +72,25 @@
       <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
-        
-        <el-table-column label="内容编号" align="center" prop="contentNo" min-width="160">
+
+         <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.contentNo }}</span>
+            <span>{{ scope.row.publishTime }}</span>
           </template>
         </el-table-column>
-        
-        <el-table-column label="内容标题" align="center" prop="contentTitle" :show-overflow-tooltip="true" min-width="200">
-          <template #default="scope">
-            <span>{{ scope.row.contentTitle }}</span>
-          </template>
-        </el-table-column>
-        
+
         <el-table-column label="普法类型" align="center" prop="contentType" width="120">
           <template #default="scope">
             <dict-tag :options="legal_popularize_type" :value="scope.row.contentType" />
           </template>
         </el-table-column>
         
-        <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+        <el-table-column label="普法标题" align="center" prop="contentTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
-            <span>{{ scope.row.publishTime }}</span>
+            <span>{{ scope.row.contentTitle }}</span>
           </template>
         </el-table-column>
+        
         
         <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
           <template #default="scope">

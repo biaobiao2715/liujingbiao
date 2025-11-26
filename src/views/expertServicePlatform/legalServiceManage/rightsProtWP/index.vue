@@ -57,13 +57,13 @@
         </el-col>
       </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
+        <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.createTime }}</span>
+            <span>{{ scope.row.updateTime || scope.row.createTime }}</span>
           </template>
         </el-table-column>
         
@@ -279,6 +279,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
@@ -326,6 +327,10 @@ const versionDialog = ref({
   rowId: null as string | number | null,
   uploading: false
 });
+
+const MB = 1024 * 1024;
+// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -376,6 +381,15 @@ const isDisabled = (status: string | number) => {
   return normalizeStatus(status) === '0';
 };
 
+const parseVersionNumber = (version: string | number | null | undefined) => {
+  const str = String(version ?? '').trim();
+  if (!str) return 0;
+  const parts = str.split('.');
+  const major = Number(parts[0]) || 0;
+  const minor = Number(parts[1]) || 0;
+  return major * 1000 + minor;
+};
+
 const getList = () => {
   loading.value = true;
   
@@ -391,7 +405,24 @@ const getList = () => {
   
   getWhitePaperList(params).then((res: any) => {
     if (res && res.code === 200) {
-      tableData.value = res.rows || [];
+      const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
+
+      // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
+      rows.sort((a: any, b: any) => {
+        const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
+        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
+        const timeDiff = timeB - timeA;
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+        // 如果发布时间相同，再按版本号倒序排列
+        return parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
+      });
+
+      tableData.value = rows.map((item: any) => ({
+        ...item,
+        updateTime: item.updateTime || item.publishTime || item.createTime || ''
+      }));
       total.value = res.total || 0;
     } else {
       tableData.value = [];
@@ -683,6 +714,45 @@ const validateVersionFile = (file: File): boolean => {
   return true;
 };
 
+const uploadWhitePaperVersionFile = async (file: File) => {
+  const modal = (proxy as any)?.$modal;
+  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传文件，请稍候...');
+
+  try {
+    if (useChunkUpload) {
+      let chunkRes = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
+      // 统一处理，兼容不同的返回格式
+      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
+        chunkRes = chunkRes.data;
+      }
+      // 兼容 ossId 和 ossid 两种字段名
+      const ossId = chunkRes?.ossId || chunkRes?.ossid || chunkRes?.data?.ossId || chunkRes?.data?.ossid;
+      return {
+        ossId: ossId,
+        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
+        url: chunkRes?.url || chunkRes?.data?.url,
+        originalName: file.name
+      };
+    }
+
+    const response = await ossUploadImage({ file });
+    const data = response?.data || {};
+    return {
+      ossId: data.ossId,
+      fileName: data.fileName || data.originalName || file.name,
+      url: data.url,
+      originalName: file.name
+    };
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
+
 const handleVersionConfirm = async () => {
   if (!versionFormRef.value) {
     return;
@@ -711,15 +781,11 @@ const handleVersionConfirm = async () => {
     
     versionDialog.value.uploading = true;
     
-    if ((proxy as any)?.$modal) {
-      (proxy as any).$modal.loading('正在上传文件，请稍候...');
-    }
-    
     try {
-      const uploadResponse = await ossUploadImage({ file: rawFile });
+      const uploadResult = await uploadWhitePaperVersionFile(rawFile);
       
-      if (uploadResponse && uploadResponse.code === 200 && uploadResponse.data?.ossId) {
-        const ossData = uploadResponse.data;
+      if (uploadResult?.ossId) {
+        const ossData = uploadResult;
         const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
         
         const currentVersion = versionDialog.value.currentVersion || '1.0';
@@ -727,7 +793,8 @@ const handleVersionConfirm = async () => {
         
         const ossVoList = [{
           ossId: ossData.ossId || 0,
-          fileName: ossData.fileName || ossData.originalName || rawFile.name,
+          // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+          fileName: ossData.originalName || rawFile.name,
           originalName: rawFile.name,
           fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
           url: ossData.url || '',
@@ -757,7 +824,7 @@ const handleVersionConfirm = async () => {
           ElMessage.error(errorMsg);
         }
       } else {
-        const errorMsg = (uploadResponse as any)?.msg || (uploadResponse as any)?.data?.msg || '上传失败，请重试';
+        const errorMsg = '上传失败，请重试';
         ElMessage.error(errorMsg);
       }
     } catch (error: any) {
@@ -769,9 +836,6 @@ const handleVersionConfirm = async () => {
       ElMessage.error(errorMsg);
     } finally {
       versionDialog.value.uploading = false;
-      if ((proxy as any)?.$modal) {
-        (proxy as any).$modal.closeLoading();
-      }
     }
   });
 };
