@@ -166,6 +166,7 @@ import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -448,31 +449,52 @@ const valiImgFile = (file: File): boolean => {
 
   return true;
 };
-
 /** 处理文件上传 */
 const handleFileChange = async (file: any) => {
   console.log('正常上传的文件', file);
-
   if (!validateFile(file.raw)) return;
 
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
-    const response = await ossUploadImage({ file: file.raw });
-
-    if (response.code === 200 && response.data?.ossId) {
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_SIZE) {
+      // 使用分片上传
+      const res = await uploadByChunks(file.raw, (p) => {
+        console.log(`上传进度: ${p}%`);
+      });
+      console.log(res,file,'切片成功了');
+      
       attachmentList.value.push({
-        ossId: response.data.ossId,
-        fileName: response.data.fileName,
+        ossId: res.ossId,
+        fileName: res.fileName,
         originalName: file.raw.name,
         fileSuffix: file.raw.type,
-        url: response.data.url,
+        url: res.url,
         fileSize: formatFileSize(file.raw.size),
         uid: file.uid
       });
+      console.log(attachmentList.value, '切片后push的');
+      
       ElMessage.success('附件上传成功');
-    } else {
-      ElMessage.error(response?.msg || '上传失败，请重试');
+    }else{
+      let rawFile = file.raw;
+      console.log('最终上传的参数', rawFile);
+      const response = await ossUploadImage({ file: rawFile });
+      if (response.code === 200 && response.data?.ossId) {
+        attachmentList.value.push({
+          ossId: response.data.ossId,
+          fileName: response.data.fileName,
+          originalName: file.raw.name,
+          fileSuffix: file.raw.type,
+          url: response.data.url,
+          fileSize: formatFileSize(file.raw.size),
+          uid: file.uid
+        });
+        ElMessage.success('附件上传成功');
+      } else {
+        ElMessage.error(response?.msg || '上传失败，请重试');
+      }
     }
   } catch (error) {
     console.error('附件上传失败:', error);
