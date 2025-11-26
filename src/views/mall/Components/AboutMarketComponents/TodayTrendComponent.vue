@@ -31,7 +31,12 @@
           <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
             <i-ep-arrow-right />
           </el-icon>
-          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="trend-icon text-gray horizontal-line" @click="handleTrendClick(row)">─</span>
+          <span
+            v-else-if="row.changePercent === 0 || row.changePercent === '0'"
+            class="trend-icon text-gray horizontal-line"
+            @click="handleTrendClick(row)"
+            >─</span
+          >
           <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
             <i-ep-arrow-up />
           </el-icon>
@@ -279,5 +284,8 @@ defineExpose({
 .pagination {
   margin-top: 24px;
   justify-content: end;
+}
+::v-deep .el-form-item--default .el-form-item__content {
+  margin-right: 30px;
 }
 </style>
