@@ -57,13 +57,13 @@
         </el-col>
       </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" :style="{ width: '100%' }" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
-        <el-table-column label="创建时间" align="center" prop="createTime" min-width="160">
+        <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
           <template #default="scope">
-            <span>{{ scope.row.createTime }}</span>
+            <span>{{ scope.row.updateTime || scope.row.publishTime || scope.row.createTime }}</span>
           </template>
         </el-table-column>
         
@@ -407,9 +407,8 @@ const getList = () => {
     if (res && res.code === 200) {
       const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
 
+      // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
       rows.sort((a: any, b: any) => {
-        const versionDiff = parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
-        if (versionDiff !== 0) return versionDiff;
         const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
         const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
         return timeB - timeA;
