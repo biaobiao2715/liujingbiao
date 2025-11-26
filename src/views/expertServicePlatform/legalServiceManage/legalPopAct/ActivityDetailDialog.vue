@@ -72,7 +72,7 @@
 
     <div class="enroll-section">
       <h3 class="section-title">报名参加活动人员信息</h3>
-      <el-table :data="enrollList" border class="enroll-table" empty-text="暂无数据">
+      <el-table :data="paginatedEnrollList" border class="enroll-table" empty-text="暂无数据" v-loading="enrollLoading">
         <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="name" label="报名人姓名" align="center" />
         <el-table-column prop="phone" label="报名人联系电话" align="center" />
@@ -96,7 +96,9 @@
 import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import dayjs from 'dayjs';
 import { getActivityDetail } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
+import { activityEnrollList } from '@/api/expertServicePlatform/trainingMeeting';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -152,6 +154,13 @@ const enrollPage = ref({
   pageSize: 10,
   total: 0
 });
+const enrollLoading = ref(false);
+
+const paginatedEnrollList = computed(() => {
+  const start = (enrollPage.value.pageNum - 1) * enrollPage.value.pageSize;
+  const end = start + enrollPage.value.pageSize;
+  return enrollList.value.slice(start, end);
+});
 
 const getStatusType = (status: string) => {
   const map: Record<string, any> = {
@@ -189,28 +198,48 @@ const formatTime = (timeStr: string) => {
 
 const formatPublishTime = (timeStr: string) => {
   if (!timeStr) return '-';
-  const match = timeStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (match) {
-    return `${match[1]}年${match[2]}月${match[3]}日`;
+  const parsed = dayjs(timeStr);
+  if (parsed.isValid()) {
+    return parsed.format('YYYY年MM月DD日 HH:mm:ss');
   }
   return timeStr;
 };
 
 const fetchEnrollList = async () => {
   if (!props.id) return;
-  
+
+  enrollLoading.value = true;
   try {
-    const mockData = [
-      { name: '张三', phone: '13000000000' },
-      { name: '李四', phone: '13000000000' },
-      { name: '李四', phone: '13000000000' },
-      { name: '李四', phone: '13000000000' },
-      { name: '李四', phone: '13000000000' }
-    ];
-    
-    enrollList.value = mockData;
-    enrollPage.value.total = mockData.length;
+    const response: any = await activityEnrollList({
+      foreignId: props.id,
+      pageNum: enrollPage.value.pageNum,
+      pageSize: enrollPage.value.pageSize
+    });
+
+    if (response && response.code === 200) {
+      const rows = Array.isArray(response.rows)
+        ? response.rows
+        : Array.isArray(response.data?.rows)
+          ? response.data.rows
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
+
+      enrollList.value = rows.map((item: any) => ({
+        name: item.enrollUserName || item.userName || item.name || '未知',
+        phone: item.enrollUserPhone || item.userPhone || item.phone || '-'
+      }));
+      enrollPage.value.total = Number(response.total ?? rows.length ?? 0);
+    } else {
+      enrollList.value = [];
+      enrollPage.value.total = 0;
+    }
   } catch (error) {
+    console.error('获取报名人员失败', error);
+    enrollList.value = [];
+    enrollPage.value.total = 0;
+  } finally {
+    enrollLoading.value = false;
   }
 };
 
@@ -261,15 +290,7 @@ const fetchActivityDetail = async () => {
         avatar: data.avatar
       };
       
-      if (data.enrollList && Array.isArray(data.enrollList)) {
-        enrollList.value = data.enrollList.map((item: any) => ({
-          name: item.enrollUserName || item.userName || item.name || '未知',
-          phone: item.enrollUserPhone || item.userPhone || item.phone || '-'
-        }));
-        enrollPage.value.total = enrollList.value.length;
-      } else {
-        await fetchEnrollList();
-      }
+      await fetchEnrollList();
     } else {
       ElMessage.error(response?.msg || '获取活动详情失败');
     }

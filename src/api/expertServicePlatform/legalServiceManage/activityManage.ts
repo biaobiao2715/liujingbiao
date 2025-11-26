@@ -13,6 +13,7 @@ export interface ActivityListQuery {
   activityType?: string; // 活动类型
   publishTimeStart?: string; // 发布时间开始
   publishTimeEnd?: string; // 发布时间结束
+  createBy?: number; // 创建者ID（用于数据隔离）
   orderByColumn?: string; // 排序列
   isAsc?: string; // 排序的方向desc或者asc
 }

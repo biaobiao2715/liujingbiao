@@ -118,7 +118,7 @@
       </el-table-column>
 
       <!-- 发布人 -->
-      <el-table-column label="发布人" align="center" prop="publishUser" width="120">
+      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishUser }}</span>
         </template>
