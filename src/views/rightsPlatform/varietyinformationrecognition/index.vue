@@ -252,11 +252,11 @@ const getListType = async () => {
       // 假设返回的数据结构中data字段包含选项数组
       cultivateTypeOptions.value = res.data || [];
     } else {
-      ElMessage.error(res.msg || '获取类型数据失败');
+      ElMessage.error(res.msg);
     }
   } catch (error) {
     console.error('获取类型失败:', error);
-    ElMessage.error('获取类型时发生错误');
+    // ElMessage.error('获取类型时发生错误');
   }
 };
 </script>
