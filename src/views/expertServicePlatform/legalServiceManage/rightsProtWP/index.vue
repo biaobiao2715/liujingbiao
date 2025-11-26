@@ -279,6 +279,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
@@ -326,6 +327,9 @@ const versionDialog = ref({
   rowId: null as string | number | null,
   uploading: false
 });
+
+const MB = 1024 * 1024;
+const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -376,6 +380,15 @@ const isDisabled = (status: string | number) => {
   return normalizeStatus(status) === '0';
 };
 
+const parseVersionNumber = (version: string | number | null | undefined) => {
+  const str = String(version ?? '').trim();
+  if (!str) return 0;
+  const parts = str.split('.');
+  const major = Number(parts[0]) || 0;
+  const minor = Number(parts[1]) || 0;
+  return major * 1000 + minor;
+};
+
 const getList = () => {
   loading.value = true;
   
@@ -391,7 +404,17 @@ const getList = () => {
   
   getWhitePaperList(params).then((res: any) => {
     if (res && res.code === 200) {
-      tableData.value = res.rows || [];
+      const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
+
+      rows.sort((a: any, b: any) => {
+        const versionDiff = parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
+        if (versionDiff !== 0) return versionDiff;
+        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
+        const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
+        return timeB - timeA;
+      });
+
+      tableData.value = rows;
       total.value = res.total || 0;
     } else {
       tableData.value = [];
@@ -683,6 +706,38 @@ const validateVersionFile = (file: File): boolean => {
   return true;
 };
 
+const uploadWhitePaperVersionFile = async (file: File) => {
+  const modal = (proxy as any)?.$modal;
+  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传文件，请稍候...');
+
+  try {
+    if (useChunkUpload) {
+      const chunkRes = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+      return {
+        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
+        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
+        url: chunkRes?.url || chunkRes?.data?.url,
+        originalName: file.name
+      };
+    }
+
+    const response = await ossUploadImage({ file });
+    const data = response?.data || {};
+    return {
+      ossId: data.ossId,
+      fileName: data.fileName || data.originalName || file.name,
+      url: data.url,
+      originalName: file.name
+    };
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
+
 const handleVersionConfirm = async () => {
   if (!versionFormRef.value) {
     return;
@@ -711,15 +766,11 @@ const handleVersionConfirm = async () => {
     
     versionDialog.value.uploading = true;
     
-    if ((proxy as any)?.$modal) {
-      (proxy as any).$modal.loading('正在上传文件，请稍候...');
-    }
-    
     try {
-      const uploadResponse = await ossUploadImage({ file: rawFile });
+      const uploadResult = await uploadWhitePaperVersionFile(rawFile);
       
-      if (uploadResponse && uploadResponse.code === 200 && uploadResponse.data?.ossId) {
-        const ossData = uploadResponse.data;
+      if (uploadResult?.ossId) {
+        const ossData = uploadResult;
         const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
         
         const currentVersion = versionDialog.value.currentVersion || '1.0';
@@ -757,7 +808,7 @@ const handleVersionConfirm = async () => {
           ElMessage.error(errorMsg);
         }
       } else {
-        const errorMsg = (uploadResponse as any)?.msg || (uploadResponse as any)?.data?.msg || '上传失败，请重试';
+        const errorMsg = '上传失败，请重试';
         ElMessage.error(errorMsg);
       }
     } catch (error: any) {
@@ -769,9 +820,6 @@ const handleVersionConfirm = async () => {
       ElMessage.error(errorMsg);
     } finally {
       versionDialog.value.uploading = false;
-      if ((proxy as any)?.$modal) {
-        (proxy as any).$modal.closeLoading();
-      }
     }
   });
 };

@@ -14,10 +14,15 @@ export const uploadByChunks = async (file: File, onProgress: (p: number) => void
   // ---------------------------
   // 2. 调用初始化接口
   // ---------------------------
-  const initRes = await initChunkUpload({
-    fileName: file.name,
-    contentType: file.type
-  });
+  const timeoutConfig = { timeout: 0 };
+
+  const initRes = await initChunkUpload(
+    {
+      fileName: file.name,
+      contentType: file.type
+    },
+    timeoutConfig
+  );
 
   // 后端返回的 uploadId
   const uploadId = initRes.data.uploadId;
@@ -34,19 +39,24 @@ export const uploadByChunks = async (file: File, onProgress: (p: number) => void
 
     const formData = new FormData();
     formData.append('file', chunks[index]);
-    const res = await uploadChunk({ uploadId, partNumber: (index + 1).toString() }, formData, {
-      onUploadProgress: (e: ProgressEvent) => {
-        // 当前分片已上传多少字节
-        const currentChunkUploaded = e.loaded;
+    const res = await uploadChunk(
+      { uploadId, partNumber: (index + 1).toString() },
+      formData,
+      {
+        timeout: 0,
+        onUploadProgress: (e: ProgressEvent) => {
+          // 当前分片已上传多少字节
+          const currentChunkUploaded = e.loaded;
 
-        // 当前总上传 = 已完成分片的字节 + 当前片上传的字节
-        const totalUploaded = uploadedBytes + currentChunkUploaded;
+          // 当前总上传 = 已完成分片的字节 + 当前片上传的字节
+          const totalUploaded = uploadedBytes + currentChunkUploaded;
 
-        const percent = Number(((totalUploaded / totalBytes) * 100).toFixed(2));
+          const percent = Number(((totalUploaded / totalBytes) * 100).toFixed(2));
 
-        onProgress(percent);
+          onProgress(percent);
+        }
       }
-    });
+    );
 
     // 当前分片上传完成，累计字节
     uploadedBytes += chunk.size;
@@ -55,10 +65,13 @@ export const uploadByChunks = async (file: File, onProgress: (p: number) => void
   // ---------------------------
   // 4. 告诉后端合并分片
   // ---------------------------
-  const mergeRes = await mergeChunkUpload({
-    uploadId,
-    parts: partList
-  });
+  const mergeRes = await mergeChunkUpload(
+    {
+      uploadId,
+      parts: partList
+    },
+    timeoutConfig
+  );
 
   return mergeRes.data;
 };
