@@ -276,7 +276,16 @@ const getList = async () => {
     const response: any = await getActivityList(params);
     
     if (response.code === 200) {
-      tableData.value = response.rows || [];
+      const list = Array.isArray(response.rows) ? response.rows.slice() : [];
+
+      // 按发布时间倒序展示（最新发布时间在最前）
+      list.sort((a: any, b: any) => {
+        const aTime = a?.publishTime ? new Date(a.publishTime).getTime() : 0;
+        const bTime = b?.publishTime ? new Date(b.publishTime).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      tableData.value = list;
       total.value = response.total || 0;
     } else {
       tableData.value = [];

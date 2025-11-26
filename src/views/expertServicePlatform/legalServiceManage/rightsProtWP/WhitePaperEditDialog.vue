@@ -7,17 +7,17 @@
 <template>
   <div class="whitepaper-edit-dialog" v-loading="loading">
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px">
-      <el-form-item label="维权白皮书标题" prop="paperTitle" required>
+      <el-form-item label="维权白皮书标题" prop="paperTitle" required :show-message="false">
         <el-input 
           v-model="formData.paperTitle" 
           placeholder="请输入标题内容" 
           maxlength="30"
           clearable
         />
-        <div class="form-tip">请输入标题内容，最多支持30个汉字</div>
+        <div v-if="!formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
-      <el-form-item label="上传附件" prop="attachment" :required="props.type === 'add'">
+      <el-form-item label="上传附件" prop="attachment" :required="props.type === 'add'" :show-message="false">
         <div class="attachment-section">
           <el-upload
             action="#"
@@ -33,7 +33,13 @@
               添加附件
             </el-button>
             <template #tip>
-              <div class="upload-tip">支持格式：PDF、Word、Excel、PPT、TXT，单个文件最大100MB，最多上传10个文件</div>
+              <div
+                v-if="attachmentList.length === 0"
+                class="upload-tip warning"
+                style="color: #f56c6c; font-weight: 500;"
+              >
+                请上传一个附件
+              </div>
             </template>
           </el-upload>
         </div>
@@ -103,7 +109,7 @@
         <el-icon><Paperclip /></el-icon>
         <span class="section-title">附件</span>
       </div>
-      <el-table :data="currentAttachments" border style="width: 100%">
+      <el-table :data="currentAttachments" border :style="{ width: '100%' }">
         <el-table-column label="附件类型" width="120" align="center">
           <template #default>
             <el-icon class="file-icon"><Document /></el-icon>
@@ -131,7 +137,7 @@
         <span class="section-title">历史版本 ({{ historyVersions.length }})</span>
       </div>
 
-      <el-table :data="historyVersions" border style="width: 100%" empty-text="暂无历史版本">
+      <el-table :data="historyVersions" border :style="{ width: '100%' }" empty-text="暂无历史版本">
         <el-table-column label="修改时间" prop="updateTime" width="180" align="center" />
         <el-table-column label="历史版本" prop="version" width="120" align="center" />
         <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
@@ -153,12 +159,14 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Delete, Document, Paperclip, FolderOpened } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
 import { 
   getWhitePaperDetail, 
   addWhitePaper,
   editWhitePaper
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
+import dayjs from 'dayjs';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -171,6 +179,9 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+const MB = 1024 * 1024;
+const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
 
 const formRef = ref();
 const saving = ref(false);
@@ -195,6 +206,48 @@ const attachmentList = ref<Array<{
   versionError?: string;
   uid?: string;
 }>>([]);
+
+const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
+  const modal = (proxy as any)?.$modal;
+  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+
+  try {
+    let uploadResult: any = {};
+
+    if (useChunkUpload) {
+      uploadResult = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+    } else {
+      const response = await ossUploadImage({ file });
+      uploadResult = response?.data || {};
+    }
+
+    const ossId = uploadResult?.ossId || uploadResult?.data?.ossId;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
+    const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
+
+    return {
+      ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || uploadResult?.originalName || file.name,
+      originalName: file.name,
+      url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
+      fileSuffix,
+      fileSize: formatFileSize(file.size),
+      uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
+    };
+  } catch (error) {
+    console.error('上传文件失败', error);
+    throw error;
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
 
 const originalData = ref({
   paperTitle: '',
@@ -502,16 +555,12 @@ const handleFileChange = async (file: any) => {
   
   uploadingFiles.value.add(fileKey);
   
-  if ((proxy as any)?.$modal) {
-    (proxy as any).$modal.loading('正在上传附件，请稍候...');
-  }
-  
   try {
-    const response = await ossUploadImage({ file: rawFile });
+    const uploadResult = await uploadAttachmentFile(rawFile);
     
-    if (response && response.code === 200 && response.data?.ossId) {
-      const ossData = response.data;
-      const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
+    if (uploadResult?.ossId) {
+      const ossData = uploadResult;
+      const fileSuffix = ossData.fileSuffix;
       
       let newVersion = '1.0';
       if (props.type === 'edit') {
@@ -536,14 +585,14 @@ const handleFileChange = async (file: any) => {
       const newAttachment = {
         ossId: ossData.ossId,
         fileName: ossData.fileName || ossData.originalName || rawFile.name,
-        originalName: rawFile.name,
+        originalName: ossData.originalName,
         fileType: getFileTypeName(fileSuffix),
         fileSuffix: fileSuffix,
         url: ossData.url,
-        fileSize: formatFileSize(rawFile.size),
+        fileSize: ossData.fileSize || formatFileSize(rawFile.size),
         version: newVersion,
         versionError: '',
-        uid: file.uid || Date.now() + Math.random()
+        uid: ossData.uid || file.uid || Date.now() + Math.random()
       };
       
       attachmentList.value.push(newAttachment);
@@ -557,7 +606,7 @@ const handleFileChange = async (file: any) => {
           originalName: rawFile.name,
           url: ossData.url,
           fileSuffix: fileSuffix,
-          uploadTime: new Date().toISOString()
+          uploadTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
         });
       }
       
@@ -566,17 +615,13 @@ const handleFileChange = async (file: any) => {
       
       ElMessage.success('附件上传成功');
     } else {
-      const errorMsg = (response as any)?.msg || (response as any)?.data?.msg || '上传失败，请重试';
-      ElMessage.error(errorMsg);
+      ElMessage.error('上传失败，请重试');
     }
   } catch (error: any) {
     const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '上传失败，请重试';
     ElMessage.error(errorMsg);
   } finally {
     uploadingFiles.value.delete(fileKey);
-    if ((proxy as any)?.$modal) {
-      (proxy as any).$modal.closeLoading();
-    }
   }
 };
 
@@ -591,14 +636,12 @@ const handleReplaceFile = async (row: any) => {
     
     if (!validateFile(file)) return;
     
-    (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
-    
     try {
-      const response = await ossUploadImage({ file: file });
+      const uploadResult = await uploadAttachmentFile(file, { uid: row.uid ? String(row.uid) : undefined });
       
-      if (response.code === 200 && response.data?.ossId) {
-        const ossData = response.data;
-        const fileSuffix = (file.name.split('.').pop() || '').toLowerCase();
+      if (uploadResult?.ossId) {
+        const ossData = uploadResult;
+        const fileSuffix = ossData.fileSuffix;
         
         // 重新上传时保持当前版本号
         let keepVersion = row.version;
@@ -619,30 +662,28 @@ const handleReplaceFile = async (row: any) => {
             originalName: file.name,
             url: ossData.url,
             fileSuffix: fileSuffix,
-            uploadTime: new Date().toISOString()
+            uploadTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
           });
         }
         
         Object.assign(row, {
           ossId: ossData.ossId,
-          fileName: ossData.fileName,
-          originalName: file.name,
+          fileName: ossData.fileName || file.name,
+          originalName: ossData.originalName || file.name,
           fileType: getFileTypeName(fileSuffix),
           fileSuffix: fileSuffix,
           url: ossData.url,
-          fileSize: formatFileSize(file.size),
+          fileSize: ossData.fileSize || formatFileSize(file.size),
           version: keepVersion,
           versionError: ''
         });
         
         ElMessage.success('文件替换成功');
       } else {
-        ElMessage.error(response?.msg || '文件上传失败');
+        ElMessage.error('文件上传失败');
       }
     } catch (error) {
       ElMessage.error('文件上传失败，请稍后重试');
-    } finally {
-      (proxy as any)?.$modal?.closeLoading();
     }
   };
   
@@ -937,14 +978,6 @@ const handleSubmit = async () => {
     }
     
     const submitData: any = {
-      createDept: 0,
-      createBy: 0,
-      createTime: '',
-      updateBy: 0,
-      updateTime: '',
-      params: {
-        '': {}
-      },
       ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
       paperNo: '',
       paperTitle: formData.value.paperTitle?.trim() || '',
@@ -956,7 +989,6 @@ const handleSubmit = async () => {
       beginTime: '',
       endTime: '',
       ossVoList: ossVoList,
-      ids: [0],
       historyVersionsList: historyVersionsList
     };
     
@@ -1004,6 +1036,24 @@ watch(
   },
   { immediate: true }
 );
+
+watch(
+  () => formData.value.paperTitle,
+  (val) => {
+    if (val && formRef.value?.clearValidate) {
+      formRef.value.clearValidate(['paperTitle']);
+    }
+  }
+);
+
+watch(
+  () => attachmentList.value.length,
+  (len) => {
+    if (len > 0 && formRef.value?.clearValidate) {
+      formRef.value.clearValidate(['attachment']);
+    }
+  }
+);
 </script>
 
 <style scoped lang="scss">
@@ -1028,6 +1078,11 @@ watch(
       color: #909399;
       font-size: 12px;
       line-height: 1.5;
+    }
+    
+    .upload-tip.warning {
+      color: #f56c6c;
+      font-weight: 500;
     }
   }
 }
