@@ -101,7 +101,7 @@
           <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" align="center" prop="applicableObject" width="150">
+      <el-table-column label="适用对象" align="center" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
         </template>

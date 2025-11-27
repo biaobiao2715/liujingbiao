@@ -6,7 +6,7 @@
         <el-icon color="#fff"><Bell /></el-icon>
         <div class="dept-name">{{ userInfo?.deptName }}</div>
         <el-button type="primary" @click="handleLogout">退出登录</el-button>
-        <div class="user-name flex-center-center">{{ userInfo?.userName }}</div>
+        <div class="user-name flex-center-center">{{ userInfo?.nickName }}</div>
       </div>
     </div>
     <!-- 页面标题 -->

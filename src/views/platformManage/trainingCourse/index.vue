@@ -34,7 +34,7 @@
       </el-form-item>
       <!-- 发布人 -->
       <el-form-item label="发布人" prop="publishUser">
-        <el-input v-model="queryParams.publishUser" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+        <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="cultivateStatus">
@@ -45,7 +45,7 @@
 
       <!-- 课程标题标题搜索框 -->
       <el-form-item label="课程标题" prop="cultivateName">
-        <el-input v-model="queryParams.cultivateName" placeholder="请输入课程标题" clearable @keyup.enter="handleQuery" />
+        <el-input v-model.trim="queryParams.cultivateName" placeholder="请输入课程标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
 
       <!-- 查询和重置按钮 -->
@@ -138,7 +138,14 @@
             <el-button v-if="scope.row.cultivateStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
-            <el-button v-throttle v-show="scope.row.cultivateStatus === '2'" type="danger" size="small" @click="handleDeleteSingle(scope.row)" v-hasPermi="['skill:courseCultivate:remove']">
+            <el-button
+              v-throttle
+              v-show="scope.row.cultivateStatus === '2'"
+              type="danger"
+              size="small"
+              @click="handleDeleteSingle(scope.row)"
+              v-hasPermi="['skill:courseCultivate:remove']"
+            >
               删除
             </el-button>
           </div>
@@ -209,8 +216,8 @@ const queryParams = ref({
   publishStartTime: '', // 发布开始时间
   publishEndTime: '', // 发布结束时间
   cultivateName: '', // 课程标题
-  orderByColumn:'publishTime', // 需要排序的列名
-  isAsc:'desc' // 排序方式
+  orderByColumn: 'publishTime', // 需要排序的列名
+  isAsc: 'desc' // 排序方式
 });
 
 // 表格数据
@@ -287,8 +294,8 @@ const handleReset = () => {
     publishStartTime: '', // 发布开始时间
     publishEndTime: '', // 发布结束时间
     cultivateName: '', // 课程标题
-    orderByColumn:'publishTime', // 需要排序的列名
-    isAsc:'desc' // 排序方式
+    orderByColumn: 'publishTime', // 需要排序的列名
+    isAsc: 'desc' // 排序方式
   };
   handleQuery();
 };

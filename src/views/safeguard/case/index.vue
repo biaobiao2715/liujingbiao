@@ -8,7 +8,7 @@
 <template>
   <div class="case-type-container">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline>
       <!-- 案件类型 -->
       <el-form-item label="案件类型" prop="caseTypeId">
         <el-select v-model="queryParams.caseTypeId" placeholder="请选择" filterable clearable>
@@ -17,7 +17,7 @@
       </el-form-item>
 
       <!-- 案件类型编号 -->
-      <el-form-item label="案件类型编号" prop="caseTypeCode">
+      <el-form-item label="案件类型编号" prop="caseTypeCode" :label-width="100">
         <el-input v-model="queryParams.caseTypeCode" placeholder="请输入案件类型编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
 
@@ -539,7 +539,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .case-type-container {
-  padding: 20px 0 0;
+  padding: 20px;
 
   .search-actions {
     margin-left: auto;
@@ -551,7 +551,7 @@ onMounted(() => {
   }
 
   .mb8 {
-    margin: 0 0 8px 56px !important;
+    margin: 0 0 8px -4px !important;
   }
 
   .operation-buttons {

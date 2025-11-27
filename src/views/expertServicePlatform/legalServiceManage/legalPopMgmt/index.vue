@@ -7,69 +7,73 @@
 -->
 <template>
   <div class="content-management">
-    <div class="main-content-box">
-      <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
-        <el-form-item label="普法类型" prop="contentType">
-          <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
-            <el-option 
-              v-for="item in legal_popularize_type" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="发布时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
+    <!-- 搜索条件 -->
+    <el-form
+      v-show="showSearch"
+      ref="queryFormRef"
+      :model="queryParams"
+      inline
+      :label-width="100"
+      class="search-form"
+    >
+      <el-form-item label="普法标题" prop="title">
+        <el-input v-model="queryParams.title" placeholder="请输入普法标题" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="发布时间" prop="publishTime">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator=" - "
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        />
+      </el-form-item>
+      <el-form-item label="普法类型" prop="contentType">
+        <el-select v-model="queryParams.contentType" placeholder="全部" filterable clearable>
+          <el-option label="全部" value="" />
+          <el-option 
+            v-for="dict in legal_popularize_type" 
+            :key="dict.value" 
+            :label="dict.label" 
+            :value="dict.value" 
           />
-        </el-form-item>
-        
-        <el-form-item label="所属状态" prop="contentStatus">
-          <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
-            <el-option 
-              v-for="item in legal_popularize_status" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="普法内容标题" prop="title">
-          <el-input v-model="queryParams.title" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        
-        <el-form-item>
-          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-          <el-button v-throttle @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="状态" prop="contentStatus">
+        <el-select v-model="queryParams.contentStatus" placeholder="全部" filterable clearable>
+          <el-option label="全部" value="" />
+          <el-option 
+            v-for="dict in legal_popularize_status" 
+            :key="dict.value" 
+            :label="dict.label" 
+            :value="dict.value" 
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label-width="0">
+        <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
 
-      <el-row :gutter="10" class="mb8">
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawContent:add']" type="primary" @click="handleAdd">新增</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="success" @click="handleEnable">启用</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="warning" @click="handleDisable">禁用</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawContent:remove']" type="danger" @click="handleDelete">删除</el-button>
-        </el-col>
-      </el-row>
+    <!-- 操作栏 -->
+    <el-row :gutter="12" class="operation-bar">
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:lawContent:add']" type="primary" icon="Plus" @click="handleAdd">
+          新增
+        </el-button>
+      </el-col>
+    </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
+    <!-- 表格 -->
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loading"
+      :style="{ width: '100%' }"
+      @selection-change="handleSelectionChange"
+    >
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
 
@@ -112,71 +116,53 @@
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" align="center" width="280" fixed="right">
+        <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
           <template #default="scope">
-            <div class="operation-buttons">
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:lawContent:edit']" 
-                type="primary" 
-                size="small" 
-                @click="handleEdit(scope.row)"
-              >
-                编辑
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:lawContent:query']" 
-                type="info" 
-                size="small" 
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
-              <el-button 
-                v-if="scope.row.status === '启用'" 
-                v-throttle 
-                v-hasPermi="['skill:lawContent:edit']" 
-                type="warning" 
-                size="small" 
-                @click="handleStatusChange(scope.row, '3')"
-              >
-                禁用
-              </el-button>
-              <el-button 
-                v-if="scope.row.status === '禁用'" 
-                v-throttle 
-                v-hasPermi="['skill:lawContent:edit']" 
-                type="success" 
-                size="small" 
-                @click="handleStatusChange(scope.row, '2')"
-              >
-                启用
-              </el-button>
-              <el-button 
-                v-if="scope.row.status === '禁用'" 
-                v-throttle 
-                v-hasPermi="['skill:lawContent:remove']" 
-                type="danger" 
-                size="small" 
-                @click="handleDeleteSingle(scope.row)"
-              >
-                删除
-              </el-button>
-            </div>
+            <el-button v-throttle v-hasPermi="['skill:lawContent:query']" type="primary" @click="handleView(scope.row)">详情</el-button>
+            <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:lawContent:edit']"
+              v-if="scope.row.status === '启用'"
+              type="primary"
+              @click="handleStatusChange(scope.row, '3')"
+            >
+              禁用
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:lawContent:edit']"
+              v-if="scope.row.status === '禁用'"
+              type="primary"
+              @click="handleStatusChange(scope.row, '2')"
+            >
+              启用
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:lawContent:remove']"
+              v-if="scope.row.status === '禁用'"
+              type="primary"
+              @click="handleDeleteSingle(scope.row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <div class="flex-center pagination">
-        <Pagination 
-          v-if="total > 0" 
-          v-model:total="total"
-          v-model:page="queryParams.pageNum" 
-          v-model:limit="queryParams.pageSize" 
-          @pagination="getList" 
-        />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination">
+      <pagination
+        v-show="total > 0"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
+        @pagination="getList"
+      />
     </div>
 
     <el-dialog
@@ -312,18 +298,23 @@ const handleQuery = () => {
   getList();
 };
 
-const handleReset = () => {
+const resetQuery = () => {
   queryFormRef.value?.resetFields();
   dateRange.value = ['', ''];
   queryParams.value.startTime = '';
   queryParams.value.endTime = '';
-  queryParams.value.contentType = '';
-  queryParams.value.contentStatus = '';
-  queryParams.value.contentSummary = '';
-  queryParams.value.title = '';
-  queryParams.value.orderByColumn = '';
-  queryParams.value.isAsc = '';
   handleQuery();
+};
+
+const handlePageChange = (page: number) => {
+  queryParams.value.pageNum = page;
+  getList();
+};
+
+const handlePageSizeChange = (size: number) => {
+  queryParams.value.pageSize = size;
+  queryParams.value.pageNum = 1;
+  getList();
 };
 
 const handleSelectionChange = (selection: any[]) => {
@@ -575,120 +566,66 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
-  background-color: #f5f5f5;
-  min-height: 100vh;
-}
-
-.main-content-box {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 24px;
-  
-  .el-form {
-    margin-bottom: 20px;
-    
-    .el-form-item {
-      margin-bottom: 16px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  .mb8 {
-    margin-bottom: 16px;
-  }
-  
-  .el-table {
-    margin-bottom: 20px;
-    
-    :deep(.el-table__header) {
-      background-color: #fafafa;
-      
-      th {
-        background-color: #fafafa !important;
-        color: #606266;
-        font-weight: 600;
-      }
-    }
-    
-    :deep(.el-table__body) {
-      tr {
-        &:hover {
-          background-color: #f5f7fa;
-        }
-      }
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    justify-content: end;
-  }
-}
-
-.el-button {
-  border-radius: 4px;
-  font-weight: 500;
-  
-  &.el-button--small {
-    padding: 5px 12px;
-    font-size: 12px;
-  }
-}
-
-.el-tag {
-  border-radius: 4px;
-  font-weight: 500;
-  
-  &.el-tag--success {
-    background-color: #f0f9ff;
-    border-color: #67c23a;
-    color: #67c23a;
-  }
-  
-  &.el-tag--danger {
-    background-color: #fef0f0;
-    border-color: #f56c6c;
-    color: #f56c6c;
-  }
-}
-
-@media (max-width: 768px) {
-  .content-management {
-    padding: 16px;
-  }
-  
-  .main-content-box {
-    padding: 16px;
-  }
-}
-
-.operation-buttons {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #f7f8fa;
+  min-height: calc(100vh - 120px);
+}
+
+.search-form {
+  background: #fff;
+  padding: 20px 24px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  :deep(.el-form-item) {
+    min-width: 260px;
+    margin-bottom: 12px;
+    margin-right: 10px;
+  }
+
+  :deep(.el-form-item:last-child) {
+    margin-left: 0;
+    margin-right: 0;
     min-width: auto;
     flex-shrink: 0;
   }
 }
 
-:deep(.el-table__body-wrapper) {
-  .operation-buttons {
-    .el-button + .el-button {
-      margin-left: 0;
-    }
+.operation-bar {
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+
+  .el-col {
+    display: flex;
+    justify-content: flex-start;
   }
+
+  .el-button {
+    width: auto;
+    min-width: 80px;
+  }
+}
+
+.el-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 </style>

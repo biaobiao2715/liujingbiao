@@ -47,12 +47,12 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="8">
             <el-form-item label="销售订单号">
-              <el-input v-model="formData.orderSn" disabled></el-input>
+              <el-input v-model.trim="formData.orderSn" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="下单时间">
-              <el-input v-model="formData.createTime" disabled></el-input>
+              <el-input v-model.trim="formData.createTime" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -78,17 +78,17 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="发货人电话">
-                <el-input v-model="formData.enterprisePhone" disabled></el-input>
+                <el-input v-model.trim="formData.enterprisePhone" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="6">
               <el-form-item label="发货时间">
-                <el-input v-model="formData.deliveryTime" disabled></el-input>
+                <el-input v-model.trim="formData.deliveryTime" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="6">
               <el-form-item label="物流单号">
-                <el-input v-model="formData.deliverySn" disabled></el-input>
+                <el-input v-model.trim="formData.deliverySn" disabled></el-input>
               </el-form-item>
             </el-col>
           </el-row>
@@ -100,12 +100,12 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="8">
             <el-form-item label="收货人姓名">
-              <el-input v-model="formData.receiverName" disabled></el-input>
+              <el-input v-model.trim="formData.receiverName" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="收货人电话">
-              <el-input v-model="formData.receiverPhone" disabled></el-input>
+              <el-input v-model.trim="formData.receiverPhone" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -115,7 +115,7 @@
           </el-col>
         </el-row>
       </el-form>
-      <el-table :data="[formData]" border style="width: 100%">
+      <el-table :data="[formData]" border :style="{ width: '100%' }">
         <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default="{ row }">
             {{ row.goodsName || '-' }}
@@ -145,18 +145,18 @@
     <el-dialog v-model="editVisible" title="修改收货人信息" width="600px">
       <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="150px">
         <el-form-item label="收货人姓名：" prop="receiverName" :required="true">
-          <el-input v-model="editForm.receiverName" maxlength="20" show-word-limit></el-input>
+          <el-input v-model.trim="editForm.receiverName" maxlength="20" show-word-limit></el-input>
         </el-form-item>
 
         <el-form-item label="收货人电话：" prop="receiverPhone" :required="true">
-          <el-input v-model="editForm.receiverPhone" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="editForm.receiverPhone" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes" :required="true">
           <RegionSelect v-model="editForm.areaCodes" @regionChange="handleAreaChange" />
         </el-form-item>
         <el-form-item label="详细地址：" prop="receiverDetailAddress" :required="true">
-          <el-input v-model="editForm.receiverDetailAddress"></el-input>
+          <el-input v-model.trim="editForm.receiverDetailAddress"></el-input>
         </el-form-item>
       </el-form>
 
@@ -168,7 +168,7 @@
     <!-- 发货 -->
     <el-dialog v-model="shipmentVisible" title="订单发货" width="600px">
       <span style="display: inline-block; padding-bottom: 10px; color: #abaeb5; font-weight: 700">商品信息</span>
-      <el-table :data="[formData]" border style="width: 100%">
+      <el-table :data="[formData]" border :style="{ width: '100%' }">
         <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default="{ row }">
             {{ row.goodsName || '-' }}
@@ -203,11 +203,11 @@
         </el-form-item>
 
         <el-form-item label="收货人姓名：" prop="receiverName">
-          <el-input v-model="formData.receiverName" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="formData.receiverName" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货人电话：" prop="receiverPhone">
-          <el-input v-model="formData.receiverPhone" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="formData.receiverPhone" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes">
@@ -218,11 +218,11 @@
         <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
         <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
           <el-form-item label="快递公司：" prop="deliveryCompany">
-            <el-input v-model="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
           </el-form-item>
 
           <el-form-item label="物流单号：" prop="deliverySn">
-            <el-input v-model="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
           </el-form-item>
         </el-form>
       </template>
@@ -235,7 +235,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, getCurrentInstance, toRefs } from 'vue';
+import { ElMessage } from 'element-plus';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { getorderdetail, modifypersonnel } from '@/api/supplier/productManagement/ordermanagement';
 import RegionSelect from '@/components/RegionSelect/index.vue';
@@ -439,7 +440,18 @@ const openEditReceiver = () => {
 };
 /* 选中地区 */
 const handleAreaChange = (val) => {
-  console.log('val', val);
+  if (!val || !Array.isArray(val.regionPath) || val.regionPath.length < 3) {
+    Object.assign(editForm.value, {
+      areaCodes: [],
+      receiverProvinceCode: '',
+      receiverProvince: '',
+      receiverCityCode: '',
+      receiverCity: '',
+      receiverRegionCode: '',
+      receiverRegion: ''
+    });
+    return;
+  }
 
   const { regionPath, provinceCode, province, cityCode, city, regionCode, region } = val;
   Object.assign(editForm.value, {
@@ -460,20 +472,40 @@ const shipment = () => {
 /* 保存修改收货人信息 */
 const saveReceiverInfo = async () => {
   try {
-    const valid = await editFormRef.value.validate(); // 直接 await
-    if (!valid) return;
+    await editFormRef.value?.validate();
+  } catch (_err) {
+    // 表单校验未通过，阻止提交
+    return;
+  }
 
+  try {
     editloading.value = true;
+
+    if (!Array.isArray(editForm.value.areaCodes) || editForm.value.areaCodes.length < 3) {
+      ElMessage.warning('请选择收货地址');
+      editloading.value = false;
+      return;
+    }
+
+    if (!editForm.value.receiverDetailAddress || !editForm.value.receiverDetailAddress.trim()) {
+      ElMessage.warning('请输入详细地址');
+      editloading.value = false;
+      return;
+    }
+
+    editForm.value.receiverDetailAddress = editForm.value.receiverDetailAddress.trim();
+
+    const [provinceCode, cityCode, regionCode] = editForm.value.areaCodes;
 
     const params = {
       id: detailId.value,
       receiverName: editForm.value.receiverName.trim(),
       receiverPhone: editForm.value.receiverPhone,
-      receiverProvinceCode: editForm.value.receiverProvinceCode,
+      receiverProvinceCode: provinceCode,
       receiverProvince: editForm.value.receiverProvince,
-      receiverCityCode: editForm.value.receiverCityCode,
+      receiverCityCode: cityCode,
       receiverCity: editForm.value.receiverCity,
-      receiverRegionCode: editForm.value.receiverRegionCode,
+      receiverRegionCode: regionCode,
       receiverRegion: editForm.value.receiverRegion,
       receiverDetailAddress: editForm.value.receiverDetailAddress
     };
@@ -490,29 +522,31 @@ const saveReceiverInfo = async () => {
 };
 /* 发货信息修改 */
 const shipmentInfo = async () => {
+  // 先校验表单，若校验失败直接返回，不弹出全局报错
   try {
-    // 先校验配送方式
-    const shipmentValid = await shipmentFormFormRef.value.validate();
-    if (!shipmentValid) return;
+    await shipmentFormFormRef.value.validate();
     if (shipmentForm.value.deliveryOptions === '2') {
-      const valid = await logisticsFormFormRef.value.validate(); // 校验物流信息
-      if (!valid) return; // 校验不通过，终止操作
+      await logisticsFormFormRef.value.validate();
     }
+  } catch (err) {
+    return;
+  }
+
+  try {
     shipmentloading.value = true;
-    let params = {
+    const params: Record<string, any> = {
       id: detailId.value,
       orderStatus: '2',
       deliveryOptions: shipmentForm.value.deliveryOptions
     };
-    // 如果选择的是快递，追加物流信息
     if (shipmentForm.value.deliveryOptions === '2') {
-      params['deliveryCompany'] = logisticsForm.value.deliveryCompany.trim();
-      params['deliverySn'] = logisticsForm.value.deliverySn.trim();
+      params.deliveryCompany = logisticsForm.value.deliveryCompany.trim();
+      params.deliverySn = logisticsForm.value.deliverySn.trim();
     }
 
     await modifypersonnel(params);
     shipmentVisible.value = false;
-    getdetail(); //更新页面
+    getdetail();
     ElMessage.success('发货成功');
   } catch (error) {
     ElMessage.error(error);

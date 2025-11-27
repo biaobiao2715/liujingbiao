@@ -35,7 +35,8 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      <el-form-item>
+      <div style="width: 100%"></div>
+      <el-form-item label-width="0">
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
@@ -227,11 +228,25 @@ const ensureSelected = () => {
 
 const handleEnableBatch = async () => {
   if (!ensureSelected()) return;
-  await changeStatusConfirm(selectedIds.value, '2', `确定启用选中的 ${selectedIds.value.length} 条数据吗？`);
+  // 仅允许对当前为禁用状态的数据执行批量启用
+  const invalid = selectedRows.value.some((row) => String(row.articleStatus) !== '3');
+  if (invalid) {
+    // ElMessage.warning('选中数据存在非“禁用”状态，不能执行批量启用');
+    ElMessage.warning('只能启用已禁用的数据，请重新选择。');
+    return;
+  }
+  await changeStatusConfirm(selectedIds.value, '2', `确定启用选中的 ${selectedIds.value.length} 条禁用数据吗？`);
 };
 const handleDisableBatch = async () => {
   if (!ensureSelected()) return;
-  await changeStatusConfirm(selectedIds.value, '3', `确定禁用选中的 ${selectedIds.value.length} 条数据吗？`);
+  // 仅允许对当前为启用状态的数据执行批量禁用
+  const invalid = selectedRows.value.some((row) => String(row.articleStatus) !== '2');
+  if (invalid) {
+    // ElMessage.warning('选中数据存在非“启用”状态，不能执行批量禁用');
+    ElMessage.warning('只能禁用已启用的数据，请重新选择。');
+    return;
+  }
+  await changeStatusConfirm(selectedIds.value, '3', `确定禁用选中的 ${selectedIds.value.length} 条启用数据吗？`);
 };
 const handleDeleteBatch = async () => {
   if (!ensureSelected()) return;

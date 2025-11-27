@@ -40,7 +40,7 @@
       <el-table-column prop="originalName" label="文件名" />
       <el-table-column prop="size" label="文件大小" width="180">
         <template #default="scope">
-          {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
+          {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize||0) }}
         </template>
       </el-table-column>
       <el-table-column prop="downloadUrl" label="下载">

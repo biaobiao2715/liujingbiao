@@ -39,44 +39,48 @@
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-      <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
+    <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
         <el-step title="待处理">
           <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList[0] && hnReportHistoryList[0].createTime">
-              {{ hnReportHistoryList[0].createTime }}
+              <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '0')">
+            {{ hnReportHistoryList.find(item => item.status === '0').time }}
           </div>
           </template>
         </el-step>
-        <el-step title="处理中">
+        
+        <el-step v-if="Number(formData.status) >= 1 && Number(formData.status) <= 3 || (Number(formData.status) === 4 && formData.caseCode)" 
+          title="处理中">
           <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList[1] && hnReportHistoryList[1].createTime">
-            {{ hnReportHistoryList[1].createTime }}
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '1')">
+          {{ hnReportHistoryList.find(item => item.status === '1').time }}
           </div>
+          </template>
+        </el-step>
+        
+        <el-step v-if="Number(formData.status) === 2" title="已驳回">
+          <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '2')">
+          {{ hnReportHistoryList.find(item => item.status === '2').time }}
+        </div>
+          </template>
+        </el-step>
+        
+        <el-step v-if="Number(formData.status) === 3" title="已结案">
+          <template #description>
+        <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '3')">
+              {{ hnReportHistoryList.find(item => item.status === '3').time }}
+            </div>
+          </template>
+        </el-step>
+  
+      <el-step v-if="Number(formData.status) === 4" title="已撤回">
+        <template #description>
+          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '4')">
+        {{ hnReportHistoryList.find(item => item.status === '4').time }}
+       </div>
         </template>
-        </el-step>
-        <el-step title="已驳回">
-          <template #description>
-            <div v-if="hnReportHistoryList && hnReportHistoryList[2] && hnReportHistoryList[2].createTime">
-              {{ hnReportHistoryList[2].createTime }}
-            </div>
-          </template>
-
-        </el-step>
-        <el-step title="已结案">
-          <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList[3] && hnReportHistoryList[3].createTime">
-              {{ hnReportHistoryList[3].createTime }}
-            </div>
-            </template>
-        </el-step>
-        <el-step title="已撤回">
-            <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList[4] && hnReportHistoryList[4].createTime">
-                {{ hnReportHistoryList[4].createTime }}
-              </div>
-            </template>
-        </el-step>
-      </el-steps>
+      </el-step>
+    </el-steps>
     </el-form>
     <div class="section-title">案件类型</div>
     <el-table :data="casetableData" border v-loading="loading" style="table-layout: fixed">
@@ -127,15 +131,101 @@
         </template>
       </el-table-column>
     </el-table>
+    <div class="section-title">申诉时间:{{ formData.appealTime }}</div>
+       <el-row :gutter="20" class="detail-form">
+        <el-col :span="12"> 
+        <div v-if="formData.enterpriseType=='0'" class="detail-form-title">供应商申诉:</div>
+        <div v-else class="detail-form-title">企业申诉:</div>
  
-   
+        </el-col>
+         <el-col :span="24">
+            <el-form-item label="申诉描述：">
+              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
  
-    <div class="section-title">举报人撤回原因</div>
-    <div>
-      <el-input type="textarea" maxlength="200" show-word-limit :rows="2" placeholder="无" v-model="withdrawCause"> </el-input>
-    </div>
-    <div class="form-actions">
+          <el-col :span="24">
+            <el-form-item label="申诉图片：">
+              <div class="evidence">
+                <template v-if="histAppealImageList.length">
+                  <el-image
+                    v-for="(img, idx) in histAppealImageList"
+                    :key="img.url + idx"
+                    :src="img.url"
+                    :preview-src-list="histAppealImagePreviewUrls"
+                    :initial-index="idx"
+                    fit="cover"
+                    class="evidence-image-item"
+                  />
+                </template>
+                <span v-else class="evidence-empty">暂无图片</span>
+              </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉视频：">
+              <div class="evidence">
+                <template v-if="histAppealVideoList.length">
+                  <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
+                    <div class="size">{{ v.sizeText }}</div>
+                    <div class="icon">视频</div>
+                    <div class="ops">
+                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                    </div>
+                  </div>
+                </template>
+                <span v-else class="evidence-empty">暂无视频</span>
+              </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
        
+            <el-form-item label="申诉驳回原因：">
+              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+    <div >
+        <FormHeader title="历史申诉材料" />
+        <el-table :data="formData.historyAppealList || []" border>
+          <el-table-column type="index" min-width="55" label="序号" align="center" />
+          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+          <el-table-column label="操作" align="center">
+            <template #default="scope">
+              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    <div class="section-title">平台处理结果:</div>
+    <el-row :gutter="20" class="detail-form">
+        <el-col :span="24">
+            <el-form-item label="信用等级：">
+              <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+             <el-col :span="24">
+            <el-form-item label="扣分：">
+              <el-input v-model="formData.sore" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+             <el-col :span="24">
+            <el-form-item label="评分：">
+              <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+          
+    </el-row>
+
+ 
+
+       
+
+   
+    <div class="form-actions">
       <el-button @click="emitCancel">返回</el-button>
     </div>
   </div>
@@ -149,6 +239,7 @@ import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { getreportdetail, reportback, reportappeal } from '@/api/rightsPlatform/customerreport';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -166,6 +257,9 @@ const casetableData = ref([]); //案件类型list
 const hnReportHistoryList = ref([]); //案件类型list
 const withdrawCause= ref(""); //原因
 const count = ref(0);
+const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
+const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
+
 // 使用字典数据
 const { report_status, report_type_id,case_type } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type'));
 /* 申述理由 */
@@ -188,7 +282,17 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
-  status: '' //订单状态
+  status: '' ,//订单状态
+  appealTime:'',//申诉时间
+  enterpriseType:'',//0供应商 1企业
+  appealReason:"",//申诉描述
+  NewAppealFile:"",//申诉材料
+  backAppealReason:"",//申诉驳回原因
+  historyAppealList: [],//历史申诉材料
+  caseScore: undefined,//扣分
+  sore: undefined,//信用分
+  creditLevel: '',//信用等级
+
 });
 const reuploadIndex = ref(-1); // 记录当前重新上传的索引
 /* 主图图片 */
@@ -205,6 +309,87 @@ const attachmentList = ref<
     uid?: string;
   }>
 >([]);
+// 工具方法：字节大小转可读文本
+const formatByteSize = (bytes?: number) => {
+  const n = Number(bytes);
+  if (!isFinite(n) || n <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0,
+    v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  const fixed = v < 10 && i > 0 ? 1 : 0;
+  return `${v.toFixed(fixed)}${units[i]}`;
+};
+// 工具方法：拆分图片/视频并格式化
+const splitFiles = (files: any[]) => {
+  const images: FileViewItem[] = [];
+  const videos: FileViewItem[] = [];
+  safeArray(files).forEach((item: any) => {
+    const info = item?.ossInfo ?? {};
+    const base = {
+      url: info?.url,
+      ossId: info?.ossId,
+      originalName: info?.originalName,
+      name: info?.originalName
+    } as FileViewItem;
+    if (!base.url) return;
+    if (String(item?.fileType) === '1') {
+      const size = Number(info?.fileSize);
+      videos.push({ ...base, sizeText: formatByteSize(size) });
+    } else {
+      images.push(base);
+    }
+  });
+  return {
+    images: uniqueByUrl(images),
+    videos: uniqueByUrl(videos)
+  };
+};
+/**
+ * 附件下载
+ * @param fileName 保存文件名
+ * @param url 对象存储直链
+ */
+const downloadAttachment = async (fileName: string, url?: string) => {
+  try {
+    if (!url) {
+      console.warn('下载地址为空');
+      return;
+    }
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`下载失败: ${response.status}`);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('下载失败', error);
+  }
+};
+// 工具方法：按 url 去重
+const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const it of list) {
+    const u = it?.url;
+    if (!u || seen.has(u)) continue;
+    seen.add(u);
+    out.push(it);
+  }
+  return out;
+};
+const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
+const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
+// const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
+const histAppealVideoList = ref<FileViewItem[]>([]); // 历史申诉视频列表
+
 const reuploadInputRef = ref<HTMLInputElement>(); // 重新上传的input引用
 const currentReuploadIndex = ref<number>(-1); // 当前重新上传的附件索引
 const acceptTypes = '.png,.jpg,.mp4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
@@ -244,6 +429,18 @@ const fetchContentDetail = async () => {
         ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
+       const files =
+      safeArray(data.appealFiles) ||
+      safeArray(data?.newAppealFile?.appealFiles) ||
+      safeArray(data.files) ||
+      safeArray(data?.appealFiles) ||
+      safeArray(data?.files);
+      
+      const s = splitFiles(files);
+    histAppealImageList.value = s.images;
+    histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
+    histAppealVideoList.value = s.videos;
+
 
       // 将接口返回的数据赋值给表单
       formData.value = {
@@ -253,10 +450,19 @@ const fetchContentDetail = async () => {
         createTime: data.createTime || '',
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
-        status: data.status || ''
+        status: data.status || '',
+         appealTime:data.appealTime || '',
+        enterpriseType:data.enterpriseType || '',//0供应商 1企业
+        appealReason:data.appealReason || '',//申诉描述
+        NewAppealFile:data.NewAppealFile || '',//申诉材料
+        backAppealReason:data.backAppealReason || '',//申诉驳回原因
+        historyAppealList: data.historyAppealList || [],//历史申诉材料
+        caseScore: data.caseScore || undefined,//扣分
+        sore: data.sore || undefined,//信用分
+        creditLevel: data.creditLevel || '',//信用等级
       };
       withdrawCause.value = data.withdrawCause;
-      hnReportHistoryList.value = data.hnReportHistoryList || [];
+      hnReportHistoryList.value = data.statusAndDate || [];
       casetableData.value = data.reportCaseFiling || [];
       // 加载附件数据
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
@@ -631,7 +837,29 @@ onMounted(() => {
     min-width: 100px;
   }
 }
-
+  .evidence {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  width: 100%;
+}
+  .evidence-image-item {
+  flex: 0 0 calc((100% - 80px) / 6);
+  aspect-ratio: 4 / 3;
+  border: 2px solid #d7d7d7;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f6f6f6;
+}
+.evidence-empty {
+  color: #909399;
+  font-size: 13px;
+}
+.detail-form-title{
+  font-size: 17px;
+  font-weight: 600;
+  padding-bottom: 10px;
+}
 // 附件上传区域
 .attachment-section {
   margin: 32px 0;
@@ -660,6 +888,7 @@ onMounted(() => {
       border-radius: 2px;
     }
   }
+ 
 
   .upload-tip {
     font-size: 12px;

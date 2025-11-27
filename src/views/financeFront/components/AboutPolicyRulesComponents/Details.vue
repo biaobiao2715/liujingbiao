@@ -67,7 +67,7 @@ const getArticleDetail = async () => {
   margin-bottom: 16px;
   border-radius: 8px 8px 8px 8px;
   /* 背景优化：保留白色底色 + 分离尺寸，稍作内边距偏移避免紧贴边缘 */
-  background: #ffffff url('@/assets/images/finance/切图 56.png') no-repeat right 40px top 0px;
+  background: #ffffff url('@/assets/images/finance/loan-book-decoration.png') no-repeat right 40px top 0px;
   background-size: 180px auto;
   /* 视网膜屏细节提升（可选） */
   image-rendering: -webkit-optimize-contrast;

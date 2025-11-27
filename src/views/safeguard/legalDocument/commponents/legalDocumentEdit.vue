@@ -12,7 +12,7 @@
     :title="isViewMode ? '查看法律文书详情' : '编辑法律文书模版'"
     align-center
     :close-on-click-modal="false"
-    :show-close="false"
+    :show-close="true"
     @close="handleClose"
     class="legal-edit-dialog"
   >
@@ -49,7 +49,7 @@
             <el-icon class="el-icon--left"><UploadFilled /></el-icon>
             上传文件
           </el-button>
-          <span class="upload-placeholder">请上传文件</span>
+          <span v-if="!formData.legalFiles || formData.legalFiles.length === 0" class="upload-placeholder">请上传文件</span>
         </el-upload>
       </el-form-item>
 

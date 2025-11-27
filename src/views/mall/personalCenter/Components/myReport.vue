@@ -19,7 +19,7 @@
           </el-form-item>
           <el-form-item label="举报类型：">
             <el-select v-model="queryParams.reportTypeId" placeholder="请选择">
-              <el-option v-for="type in reportTypeOptions" :key="type.value" :label="type.label" :value="type.label" />
+              <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="案件编号：">
@@ -65,7 +65,7 @@
       </el-table-column>
       <el-table-column prop="reportTypeId" label="举报类别" min-width="120">
         <template #default="scope">
-          {{ getReportTypeText(scope.row.reportTypeId) }}
+          <dict-tag :options="report_type_id" :value="scope.row.reportTypeId" />
         </template>
       </el-table-column>
       <el-table-column prop="reportGoodsName" label="举报商品" min-width="120" />
@@ -77,13 +77,9 @@
       </el-table-column>
       <el-table-column prop="operation" label="操作" min-width="150" fixed="right">
         <template #default="scope">
-          <el-button v-if="['0', '1'].includes(scope.row.status)" type="text" style="color: #409eff" @click="handleWithdraw(scope.row)">
-            撤回
-          </el-button>
-          <el-button v-else-if="['2', '4'].includes(scope.row.status)" type="text" style="color: #409eff" @click="handleReSubmit(scope.row)">
-            重新提交
-          </el-button>
-          <el-button type="text" style="color: #409eff" @click="handleView(scope.row)"> 查看 </el-button>
+          <el-button v-if="['0', '1'].includes(scope.row.status)" link type="primary" @click="handleWithdraw(scope.row)">撤回</el-button>
+          <el-button v-else-if="['2', '4'].includes(scope.row.status)" link type="primary" @click="handleReSubmit(scope.row)">重新提交</el-button>
+          <el-button link type="primary" @click="handleView(scope.row)"> 查看 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -133,6 +129,8 @@ import ReportEdit from './myReportChildren/reportEdit.vue';
 import ReportView from './myReportChildren/reportView.vue';
 
 // Vue 上下文
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { report_type_id } = toRefs<any>(proxy?.useDict('report_type_id'));
 
 // 状态选项数组
 const statusOptions = [

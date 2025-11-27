@@ -24,7 +24,7 @@
         </el-select>
       </el-form-item>
       <!-- 审核通过时间 -->
-      <el-form-item label="审核时间">
+      <!-- <el-form-item label="审核时间">
         <el-date-picker
           v-model="queryParams.reviewTime"
           type="daterange"
@@ -33,7 +33,7 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
         />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
@@ -53,7 +53,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级" width="100">
+      <el-table-column prop="creditLevel" label="信用等级">
         <template v-slot="scope">
           <div class="flex-center">
             <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
@@ -69,7 +69,7 @@
       </el-table-column>
       <el-table-column prop="createTime" label="申请时间" width="180"> </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
-      <el-table-column prop="auditPerson" label="审核人" width="100"></el-table-column>
+      <el-table-column prop="auditPerson" label="审核人" width="140"></el-table-column>
       <el-table-column label="操作" width="180">
         <template #default="scope">
           <div class="flex-center operation-btns">

@@ -25,18 +25,18 @@
     <!-- 表格 -->
     <el-table :data="tableData" border style="width: 100%" v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column prop="name" label="客户名称" width="120" align="center" />
-      <el-table-column prop="categoryName" label="采购类型" width="180" align="center" />
-      <el-table-column prop="quantity" label="采购数量" width="100" align="center">
+      <el-table-column prop="name" label="客户名称" align="center" :show-overflow-tooltip="true" />
+      <el-table-column prop="categoryName" label="采购类型" align="center" :show-overflow-tooltip="true" />
+      <el-table-column prop="quantity" label="采购数量" align="center">
         <template #default="{ row }"> {{ row.quantity }} {{ row.unit || '' }} </template>
       </el-table-column>
-      <el-table-column prop="deliveryDay" label="交付时间/天" width="100" align="center" />
-      <el-table-column prop="purchaseRegion" label="采购区域" width="180" align="center">
+      <el-table-column prop="deliveryDay" label="交付时间/天" align="center" />
+      <el-table-column prop="purchaseRegion" label="采购区域" align="center" :show-overflow-tooltip="true">
         <template #default="{ row }">
           {{ [row.deliveryProvince, row.deliveryCity, row.deliveryDistrict].filter(Boolean).join(' - ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="demandDescription" label="采购说明" min-width="180" align="center" />
+      <el-table-column prop="demandDescription" label="采购说明" align="center" :show-overflow-tooltip="true" />
       <el-table-column prop="publishTime" label="发布时间" width="160" align="center">
         <template #default="{ row }">
           {{ proxy.parseTime(row.publishTime) }}

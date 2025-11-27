@@ -8,7 +8,7 @@
 <template>
   <div class="legal-document-container">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="100">
       <!-- 法律文书模版 -->
       <el-form-item label="法律文书模版" prop="legalDocumentName">
         <el-select v-model="queryParams.legalDocumentName" placeholder="请选择" filterable clearable>
@@ -61,7 +61,7 @@
       </el-table-column>
 
       <!-- 模版编号 -->
-      <el-table-column label="模版编号" align="center" prop="legalDocumentCode" min-width="180">
+      <el-table-column label="模版编号" align="center" prop="legalDocumentCode" min-width="150">
         <template #default="scope">
           <span>{{ scope.row.legalDocumentCode || '-' }}</span>
         </template>
@@ -96,7 +96,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="280">
+      <el-table-column label="操作" align="center" fixed="right" width="310">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
@@ -711,9 +711,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 :deep(.legal-confirm-dialog) {
-  border-top: 4px solid #f7d352;
-  padding-top: 16px;
-
   .el-message-box__header {
     padding-bottom: 0;
   }
@@ -742,8 +739,6 @@ onMounted(() => {
 }
 
 :deep(.legal-update-dialog) {
-  border-top: 4px solid #f7d352;
-
   .el-dialog__body {
     padding: 12px 32px 0 32px;
   }
@@ -752,7 +747,7 @@ onMounted(() => {
     padding: 16px 32px 10px;
     .el-dialog__title {
       font-size: 18px;
-      font-weight: 600;
+      // font-weight: 600;
     }
   }
 }

@@ -111,50 +111,12 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="法人证件正面" class="uploadcss" prop="idCardPhotoFront2">
-                <el-upload
-                  :file-list="uploaderLegalFront.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderLegalFront.beforeUpload"
-                  :http-request="uploaderLegalFront.uploadRequest"
-                  :on-remove="uploaderLegalFront.handleRemove"
-                  :on-exceed="uploaderLegalFront.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderLegalFront.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传正面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
+                <SingleImageUpload :uploader="uploaderLegalFront" :placeholder-src="idCardFrontPlaceholder" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="法人证件反面" class="uploadcss" prop="idCardPhotoBack2">
-                <el-upload
-                  :file-list="uploaderLegalBack.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderLegalBack.beforeUpload"
-                  :http-request="uploaderLegalBack.uploadRequest"
-                  :on-remove="uploaderLegalBack.handleRemove"
-                  :on-exceed="uploaderLegalBack.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderLegalBack.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传反面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
+                <SingleImageUpload :uploader="uploaderLegalBack" :placeholder-src="idCardBackPlaceholder" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -177,59 +139,15 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <el-upload
-                  :file-list="uploaderIdFront.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  DetailsStatus
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderIdFront.beforeUpload"
-                  :http-request="uploaderIdFront.uploadRequest"
-                  :on-remove="uploaderIdFront.handleRemove"
-                  :on-exceed="uploaderIdFront.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderIdFront.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传正面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
+                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholder" />
               </el-form-item>
             </el-col>
-            <el-col :span="12">
-              <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <el-upload
-                  :file-list="uploaderIdBack.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderIdBack.beforeUpload"
-                  :http-request="uploaderIdBack.uploadRequest"
-                  :on-remove="uploaderIdBack.handleRemove"
-                  :on-exceed="uploaderIdBack.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderIdBack.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传反面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
-              </el-form-item>
-            </el-col>
+
             <el-col :span="12">
               <el-form-item label="授权文件" prop="authorizationFile" class="uploadcss">
                 <el-upload
                   :file-list="uploaderAuthorization.files.value"
                   :limit="1"
-                  list-type="picture-card"
                   action="#"
                   accept=".pdf"
                   :before-upload="uploaderAuthorization.beforeUpload"
@@ -238,13 +156,18 @@
                   :on-exceed="uploaderAuthorization.handleExceed"
                 >
                   <template #default>
-                    <div v-if="uploaderAuthorization.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传PDF</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已上传</div>
+                    <el-button type="primary" plain>
+                      <img class="avatar-uploader-icon" src="@/assets/images/finance/upload-icon.png" alt="" />
+                      select file</el-button
+                    >
                   </template>
                 </el-upload>
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+              <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
+                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholder" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -294,50 +217,12 @@
             <el-col :span="12"></el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <el-upload
-                  :file-list="uploaderIdFront.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderIdFront.beforeUpload"
-                  :http-request="uploaderIdFront.uploadRequest"
-                  :on-remove="uploaderIdFront.handleRemove"
-                  :on-exceed="uploaderIdFront.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderIdFront.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传正面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
+                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholder" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <el-upload
-                  :file-list="uploaderIdBack.files.value"
-                  :limit="1"
-                  list-type="picture-card"
-                  action="#"
-                  accept="image/*"
-                  :on-preview="handlePictureCardPreview"
-                  :before-upload="uploaderIdBack.beforeUpload"
-                  :http-request="uploaderIdBack.uploadRequest"
-                  :on-remove="uploaderIdBack.handleRemove"
-                  :on-exceed="uploaderIdBack.handleExceed"
-                >
-                  <template #default>
-                    <div v-if="uploaderIdBack.files.value.length < 1" class="avatar-uploader">
-                      <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                      <div class="avatar-uploader-text">上传反面</div>
-                    </div>
-                    <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                  </template>
-                </el-upload>
+                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholder" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -387,50 +272,12 @@
           <el-col :span="12"></el-col>
           <el-col :span="12">
             <el-form-item label="银行卡正面" class="uploadcss" prop="bankCardPhotoFront">
-              <el-upload
-                :file-list="uploaderBankFront.files.value"
-                :limit="1"
-                list-type="picture-card"
-                action="#"
-                accept="image/*"
-                :on-preview="handlePictureCardPreview"
-                :before-upload="uploaderBankFront.beforeUpload"
-                :http-request="uploaderBankFront.uploadRequest"
-                :on-remove="uploaderBankFront.handleRemove"
-                :on-exceed="uploaderBankFront.handleExceed"
-              >
-                <template #default>
-                  <div v-if="uploaderBankFront.files.value.length < 1" class="avatar-uploader">
-                    <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                    <div class="avatar-uploader-text">上传正面</div>
-                  </div>
-                  <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                </template>
-              </el-upload>
+              <SingleImageUpload :uploader="uploaderBankFront" :placeholder-src="bankCardFrontPlaceholder" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="银行卡反面" class="uploadcss" prop="bankCardPhotoBack">
-              <el-upload
-                :file-list="uploaderBankBack.files.value"
-                :limit="1"
-                list-type="picture-card"
-                action="#"
-                accept="image/*"
-                :on-preview="handlePictureCardPreview"
-                :before-upload="uploaderBankBack.beforeUpload"
-                :http-request="uploaderBankBack.uploadRequest"
-                :on-remove="uploaderBankBack.handleRemove"
-                :on-exceed="uploaderBankBack.handleExceed"
-              >
-                <template #default>
-                  <div v-if="uploaderBankBack.files.value.length < 1" class="avatar-uploader">
-                    <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-                    <div class="avatar-uploader-text">上传反面</div>
-                  </div>
-                  <div v-else style="color: #999; font-size: 12px; width: 64px; text-align: center">已完成</div>
-                </template>
-              </el-upload>
+              <SingleImageUpload :uploader="uploaderBankBack" :placeholder-src="bankCardBackPlaceholder" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -454,7 +301,8 @@
 
 <script setup lang="ts">
 // ======================== 引入与初始化 ========================
-import { ref, getCurrentInstance, toRefs, onMounted, computed, watch, type ComponentInternalInstance } from 'vue';
+import { ref, getCurrentInstance, toRefs, onMounted, computed, watch, defineComponent, h, type ComponentInternalInstance } from 'vue';
+import { ElUpload } from 'element-plus';
 import { ElMessage, type UploadFile, type UploadRawFile, type UploadRequestOptions, type FormInstance, type FormRules } from 'element-plus';
 import {
   getBaseEnterpriseInfo,
@@ -469,6 +317,10 @@ import {
 } from '@/api/financeFront/LoanProducts/index';
 import { useUserStore } from '@/store/modules/user';
 import { eventBus } from '@/utils/eventBus';
+import idCardFrontPlaceholder from '@/assets/images/finance/id-card-front-placeholder.png';
+import idCardBackPlaceholder from '@/assets/images/finance/id-card-back-placeholder.png';
+import bankCardFrontPlaceholder from '@/assets/images/finance/bank-card-front-placeholder.png';
+import bankCardBackPlaceholder from '@/assets/images/finance/bank-card-back-placeholder.png';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 统一加载需要的字典（审核状态/资质等级/信用等级/证件类型/贷款周期/还款方式/银行代码）
@@ -539,10 +391,6 @@ const formData = ref<any>({
   bankCardPhotoFront: '',
   bankCardPhotoBack: ''
 });
-
-// 预览对话框（多上传区域共用）
-const dialogImageUrl = ref('');
-const dialogVisible = ref(false);
 
 // 出生年月不可选择未来时间
 const disableFutureDate = (time: Date) => {
@@ -620,7 +468,7 @@ const rules: FormRules = {
         }
         const num = Number(str);
         if (num <= amountData.value.minAmount) {
-          return callback(new Error('贷款金额必须大于0'));
+          return callback(new Error(`贷款金额必须大于${amountData.value.minAmount}`));
         }
         const maxRaw = amountData.value?.maxAmount;
         const max = maxRaw !== undefined && maxRaw !== null && maxRaw !== '' ? Number(maxRaw) : undefined;
@@ -889,13 +737,37 @@ const uploaderAuthorization = createPdfUploader('authorizationFile', '授权文�
 // 银行卡
 const uploaderBankFront = createSingleUploader('bankCardPhotoFront', '银行卡正面已上传');
 const uploaderBankBack = createSingleUploader('bankCardPhotoBack', '银行卡反面已上传');
-
-// 统一预览方法
-const handlePictureCardPreview = (file: UploadFile) => {
-  // 统一图片预览弹窗控制
-  dialogImageUrl.value = file.url || '';
-  dialogVisible.value = true;
-};
+// 通用单图上传子组件（减少模板重复）
+const SingleImageUpload = defineComponent({
+  name: 'SingleImageUpload',
+  props: {
+    uploader: { type: Object, required: true },
+    placeholderSrc: { type: String, required: true }
+  },
+  setup(props: any) {
+    return () =>
+      h(
+        ElUpload,
+        {
+          fileList: props.uploader.files.value,
+          listType: 'picture-card',
+          action: '#',
+          accept: 'image/*',
+          showFileList: false,
+          beforeUpload: props.uploader.beforeUpload,
+          httpRequest: props.uploader.uploadRequest,
+          onExceed: props.uploader.handleExceed
+        },
+        {
+          default: () => [
+            props.uploader.files.value.length < 1
+              ? h('img', { src: props.placeholderSrc, class: 'avatar' })
+              : h('img', { src: props.uploader.files.value[0].url, alt: '', class: 'avatar' })
+          ]
+        }
+      );
+  }
+});
 
 // ========== 上传区域与表单字段联动，便于触发布局校验 ==========
 // 不再需要旧的数组联动逻辑；保留校验可选：根据 ossId 字段触发
@@ -1112,18 +984,24 @@ onMounted(async () => {
     margin-top: 5px;
   }
 }
-::v-deep .el-upload-list--picture-card .el-upload-list__item {
-  width: 101px;
-  height: 64px;
-  margin-right: 10px;
-}
+// ::v-deep .el-upload-list--picture-card .el-upload-list__item {
+//   width: 180px;
+//   height: 108px;
+//   border-width: 0px;
+//   margin-right: 10px;
+// }
 ::v-deep .el-upload--picture-card {
-  width: 64px;
-  height: 64px;
-  line-height: 64px;
-  margin-right: 10px;
-  float: left;
+  width: 180px;
+  height: 108px;
+  border-width: 0px;
+  .avatar {
+    width: 180px;
+    height: 108px;
+    object-fit: cover;
+    display: block;
+  }
 }
+
 /* 详情模式下隐藏上传的占位卡片 */
 .supplier-edit-details.details-mode ::v-deep .el-upload--picture-card {
   display: none;

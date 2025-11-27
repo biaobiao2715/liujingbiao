@@ -90,7 +90,7 @@
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" align="center" prop="productName" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品简介" align="center" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="适用对象" align="center" prop="applicableObject" width="150">
+      <el-table-column label="适用对象" align="center" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
         </template>

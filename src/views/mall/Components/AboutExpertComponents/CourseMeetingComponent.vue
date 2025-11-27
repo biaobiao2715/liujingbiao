@@ -88,7 +88,8 @@ const fetchCourseList = async () => {
 const fetchMeetingList = async () => {
   const response = await meetingCultivateList({
     pageNum: pageNum.value,
-    pageSize: 10
+    pageSize: 10,
+    meetingStatus: '1'
   });
 
   meetingList.value = response.rows || [];
