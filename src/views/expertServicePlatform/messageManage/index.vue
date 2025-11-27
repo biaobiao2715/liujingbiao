@@ -7,51 +7,61 @@
 <template>
   <div class="message-management">
     <div class="main-content-box">
-      <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="100">
-        <el-form-item label="留言时间">
-          <el-date-picker
-            v-model="messageDateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-          />
-        </el-form-item>
-        
-        <el-form-item label="留言内容" prop="messageContent">
-          <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        
-        <el-form-item label="回复时间">
-          <el-date-picker
-            v-model="replyDateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-          />
-        </el-form-item>
-        
-        <el-form-item label="回复状态" prop="questionStatus">
-          <el-select v-model="queryParams.questionStatus" placeholder="请选择状态" filterable clearable>
-            <el-option 
-              v-for="item in reply_status" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item>
-          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-          <el-button v-throttle @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <!-- 查询区域 -->
+      <div class="mb-[10px]">
+        <el-card shadow="hover">
+          <el-form
+            v-show="showSearch"
+            ref="queryFormRef"
+            :model="queryParams"
+            inline
+            :label-width="80"
+          >
+            <el-form-item label="留言时间">
+              <el-date-picker
+                v-model="messageDateRange"
+                type="datetimerange"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                range-separator=" - "
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+              />
+            </el-form-item>
+            
+            <el-form-item label="留言内容" prop="messageContent">
+              <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
+            </el-form-item>
+            
+            <el-form-item label="回复时间">
+              <el-date-picker
+                v-model="replyDateRange"
+                type="datetimerange"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                range-separator=" - "
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+              />
+            </el-form-item>
+            
+            <el-form-item label="回复状态" prop="questionStatus">
+              <el-select v-model="queryParams.questionStatus" placeholder="全部" filterable clearable>
+                <el-option 
+                  v-for="item in reply_status" 
+                  :key="item.value" 
+                  :label="item.label" 
+                  :value="item.value" 
+                />
+              </el-select>
+            </el-form-item>
+            
+            <el-form-item>
+              <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
+              <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
+            </el-form-item>
+          </el-form>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+          <!-- 表格 -->
+          <el-table :data="tableData" border v-loading="loading" :header-cell-style="{ fontWeight: 500 }" :style="{ width: '100%' }">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
@@ -111,16 +121,8 @@
             </div>
           </template>
         </el-table-column>
-      </el-table>
-
-      <div class="flex-center pagination">
-        <Pagination 
-          v-show="total > 0" 
-          :page="queryParams.pageNum" 
-          :limit="queryParams.pageSize" 
-          :total="total" 
-          @pagination="getList" 
-        />
+          </el-table>
+        </el-card>
       </div>
     </div>
 
@@ -437,49 +439,6 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 24px;
   margin-bottom: 24px;
-  
-  .el-form {
-    margin-bottom: 20px;
-    
-    .el-form-item {
-      margin-bottom: 16px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-  
-  .mb8 {
-    margin-bottom: 16px;
-  }
-  
-  .el-table {
-    margin-bottom: 20px;
-    
-    :deep(.el-table__header) {
-      background-color: #fafafa;
-      
-      th {
-        background-color: #fafafa !important;
-        color: #606266;
-        font-weight: 600;
-      }
-    }
-    
-    :deep(.el-table__body) {
-      tr {
-        &:hover {
-          background-color: #f5f7fa;
-        }
-      }
-    }
-  }
-  
-  .pagination {
-    margin-top: 20px;
-    justify-content: end;
-  }
 }
 
 .link-type {
