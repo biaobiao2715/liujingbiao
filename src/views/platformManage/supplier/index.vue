@@ -24,7 +24,7 @@
         </el-select>
       </el-form-item>
       <!-- 审核通过时间 -->
-      <el-form-item label="审核时间">
+      <!-- <el-form-item label="审核时间">
         <el-date-picker
           v-model="queryParams.reviewTime"
           type="daterange"
@@ -33,7 +33,7 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
         />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>

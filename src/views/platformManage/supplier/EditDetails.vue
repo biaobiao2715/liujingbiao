@@ -66,8 +66,8 @@
           <!-- 营业执照 -->
           <el-col :span="12">
             <el-form-item label="营业执照">
-              <!-- <img :src="formData.licenseImage" width="48" /> -->
               <el-image
+                v-if="formData.licenseImage"
                 style="width: 100px; height: 100px"
                 :src="formData.licenseImage"
                 :preview-src-list="[formData.licenseImage]"
@@ -398,7 +398,7 @@ const getSupplierDetails = async () => {
       contactZ.value = [];
       if (response.data?.contacts?.length > 0) {
         response.data.contacts.forEach((element) => {
-          if (element.contactUserType == 1) {
+          if (element.contactUserType === '1') {
             contactF.value = element;
           } else {
             contactZ.value.push(element);

@@ -19,7 +19,7 @@
               <span>{{ article.viewCount }}</span>
             </div>
             <div class="collection flex-center gap-2">
-              <el-icon size="20" v-if="!article.isCollected"><Star /></el-icon>
+              <el-icon size="20" v-if="!article.isFavorite"><Star /></el-icon>
               <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
               <span>{{ article.favoriteCount }}</span>
             </div>

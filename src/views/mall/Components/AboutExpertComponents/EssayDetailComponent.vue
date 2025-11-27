@@ -29,7 +29,7 @@
       </div>
     </div>
     <!-- 编辑器内容 -->
-    <ContentWithToc :content="detail?.cultivateContent" ref="contentWithTocRef" />
+    <ContentWithToc :content="detail?.articleContent" ref="contentWithTocRef" />
     <!-- 附件部分 -->
     <el-table :data="fileList" class="mt-24">
       <el-table-column prop="fileSuffix" label="附件类型" width="180" />
