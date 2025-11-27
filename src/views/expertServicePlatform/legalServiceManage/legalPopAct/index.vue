@@ -89,9 +89,7 @@
         
         <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
-            <router-link :to="'/expertServicePlatform/legalServiceManage/activityDetail?id=' + scope.row.id + '&type=view'" class="link-type">
-              <span>{{ scope.row.activityTitle }}</span>
-            </router-link>
+            <span class="link-type" @click="handleView(scope.row)">{{ scope.row.activityTitle }}</span>
           </template>
         </el-table-column>
         

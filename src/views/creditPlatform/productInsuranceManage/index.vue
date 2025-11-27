@@ -73,7 +73,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          v-hasPermi="['system:insuranceProductsVersion:add', 'system:creditProductsVersion:add']"
+          v-hasPermi="['system:insuranceProductsVersion:add']"
           type="primary"
           icon="Plus"
           @click="handleAdd"
@@ -120,34 +120,34 @@
         <template #default="scope">
           <el-button
             v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:query', 'system:creditProductsVersion:query']"
+            v-hasPermi="['system:insuranceProductsVersion:query']"
             type="primary"
             @click="handleView(scope.row)"
           >详情</el-button>
           <el-button
             v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit', 'system:creditProductsVersion:edit']"
+            v-hasPermi="['system:insuranceProductsVersion:edit']"
             v-if="canEdit(scope.row)"
             type="primary"
             @click="handleEdit(scope.row)"
           >编辑</el-button>
           <el-button
             v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit', 'system:creditProductsVersion:edit']"
+            v-hasPermi="['system:insuranceProductsVersion:edit']"
             v-if="canPublish(scope.row)"
             type="primary"
             @click="handlePublish(scope.row)"
           >上架</el-button>
           <el-button
             v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit', 'system:creditProductsVersion:edit']"
+            v-hasPermi="['system:insuranceProductsVersion:edit']"
             v-if="canOffline(scope.row)"
             type="primary"
             @click="handleOffline(scope.row)"
           >下架</el-button>
           <el-button
             v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:remove', 'system:creditProductsVersion:remove']"
+            v-hasPermi="['system:insuranceProductsVersion:remove']"
             v-if="canDelete(scope.row)"
             type="primary"
             @click="handleDelete(scope.row)"
