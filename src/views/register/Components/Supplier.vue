@@ -27,7 +27,7 @@
                     <div v-if="diplomaUrl.url == null" class="upload-placeholder">
                       <img src="@/assets/images/register3.svg" class="step-icon" />
                       <div class="upload-text">点击或将文件拖拽到这里上传</div>
-                      <div class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.gif.png.pdf</div>
+                      <div class="upload-tip">单个文件最大10M 支持扩展名：jpg、jpeg、png</div>
                     </div>
                     <img v-else :src="diplomaUrl.url" :alt="diplomaUrl.name" class="upload-image" />
                   </div>
@@ -51,7 +51,7 @@
 
           <el-col :span="12">
             <el-form-item label="统一社会信用代码" prop="licenseNumber">
-              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别" />
+              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别，可修改" />
             </el-form-item>
           </el-col>
 
@@ -93,7 +93,7 @@
 
           <el-col :span="12">
             <el-form-item label="办公地址" prop="officeAddress">
-              <el-input v-model="form.officeAddress" placeholder="请输入详细地址" />
+              <el-input v-model="form.officeAddress" placeholder="请输入办公地址" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -191,7 +191,7 @@
         <el-upload
           action="#"
           :auto-upload="false"
-          accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+          accept=".jpg,.jpeg,.png"
           :show-file-list="false"
           :on-change="handleChange"
           :before-upload="beforeUpload"
@@ -210,7 +210,7 @@
           <el-table-column prop="name" label="附件名" align="center" />
           <el-table-column prop="remark" label="备注" align="center">
             <template #default="scope">
-              <el-input v-model="scope.row.remark" placeholder="请输入"></el-input>
+              <el-input v-model="scope.row.remark" :maxlength="150" show-word-limit placeholder="请输入"></el-input>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="250" align="center">
@@ -287,7 +287,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch, computed } from 'vue';
 import { ElMessage, FormRules } from 'element-plus';
 import { FormData, Contact } from '@/api/register/supplier/types'; //ts类型
 import { uploadImage, ocrUploadImage } from '@/api/register'; //图片上传接口
@@ -316,6 +316,7 @@ enum idTypeEnum {
   expert = 'jszjId',
   legal = 'fwzjId'
 }
+const licenseIssueDate = ref(null); // 营业执照签发日期（OCR可能返回，用于注册日期校验）
 const initFormData: FormData = {
   companyName: '',
   signUpCapital: '',
@@ -349,9 +350,9 @@ const FormRulesarr: FormRules = {
           return;
         }
 
-        // 验证长度（100字节）
-        if (new Blob([value]).size > 100) {
-          callback(new Error('输入字符超过限制，最多可输入100字节'));
+        // 最大长度：50个字
+        if (value.length > 50) {
+          callback(new Error('输入字符超过限制'));
           return;
         }
 
@@ -360,7 +361,7 @@ const FormRulesarr: FormRules = {
         if (specialChars.test(value)) {
           callback(
             new Error(
-              props.selectedIdentity == 'supplier' ? '供应商名称只能包含汉字、字母、数字和常规符号' : '企业名称只能包含汉字、字母、数字和常规符号'
+              props.selectedIdentity == 'supplier' ? '供应商名称只能包含汉字、字母、数字和常规符号。' : '企业名称只能包含汉字、字母、数字和常规符号。'
             )
           );
           return;
@@ -426,9 +427,9 @@ const FormRulesarr: FormRules = {
           return;
         }
 
-        // 验证长度（200字节）
-        if (new Blob([value]).size > 200) {
-          callback(new Error('详情地址最长不超过200字节'));
+        // 验证长度（200个字）
+        if (value.length > 200) {
+          callback(new Error('注册地址最长不超过200个字。'));
           return;
         }
 
@@ -450,16 +451,26 @@ const FormRulesarr: FormRules = {
         // 验证格式
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(value)) {
-          callback(new Error('请输入有效的日期，格式为YYYY-MM-DD'));
+          callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能早于营业执照签发日期。'));
           return;
         }
 
-        // 验证日期范围（这里假设营业执照签发日期为当前日期，实际应用中需要获取真实签发日期）
-        const currentDate = new Date();
-        const inputDate = new Date(value);
-        if (inputDate > currentDate) {
-          callback(new Error('注册日期不能晚于当前日期'));
-          return;
+        // 如果有签发日期，校验不可早于签发日期（严格防御空值/非法值）
+        const issueStr = licenseIssueDate.value as string | null;
+        if (issueStr && typeof issueStr === 'string') {
+          const issue = new Date(issueStr);
+          const inputDate = new Date(value);
+          if (!isNaN(issue.getTime()) && !isNaN(inputDate.getTime()) && inputDate < issue) {
+            callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能早于营业执照签发日期。'));
+            return;
+          }
+        } else {
+          const issue = new Date();
+          const inputDate = new Date(value);
+          if (!isNaN(issue.getTime()) && !isNaN(inputDate.getTime()) && inputDate > issue) {
+            callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能晚于当前日期。'));
+            return;
+          }
         }
 
         callback();
@@ -476,9 +487,9 @@ const FormRulesarr: FormRules = {
           return;
         }
 
-        // 验证长度（500字节）
-        if (new Blob([value]).size > 500) {
-          callback(new Error('经营范围最长不超过500字节'));
+        // 验证长度（200字）
+        if (value.length > 200) {
+          callback(new Error('经营范围最长不超过200个字。'));
           return;
         }
 
@@ -496,16 +507,16 @@ const FormRulesarr: FormRules = {
           return;
         }
 
-        // 验证长度（50字节）
-        if (new Blob([value]).size > 50) {
-          callback(new Error('法定代表人姓名最长不超过50字节'));
+        // 验证长度（50个字）
+        if (value.length > 50) {
+          callback(new Error('法定代表人姓名只能包含汉字或字母，最长不超过50个字。'));
           return;
         }
 
         // 验证格式（只能包含汉字和字母）
         const nameRegex = /^[\u4e00-\u9fa5a-zA-Z]+$/;
         if (!nameRegex.test(value)) {
-          callback(new Error('法定代表人姓名只能包含汉字或字母'));
+          callback(new Error('法定代表人姓名只能包含汉字或字母，最长不超过50个字。'));
           return;
         }
 
@@ -523,9 +534,9 @@ const FormRulesarr: FormRules = {
           return;
         }
 
-        // 验证长度（200字节）
-        if (new Blob([value]).size > 200) {
-          callback(new Error('办公地址最长不超过200字节'));
+        // 验证长度（200个字）
+        if (value.length > 200) {
+          callback(new Error('办公地址最长不超过200个字。'));
           return;
         }
 
@@ -545,11 +556,11 @@ const FormRulesarr: FormRules = {
             if (res.code === 200) {
               callback();
             } else {
-              callback(new Error('手机号已被注册'));
+              callback(new Error('该手机号已被注册，请更换手机号。'));
             }
           })
           .catch(() => {
-            callback(new Error('手机号码已存在'));
+            callback(new Error('该手机号已被注册，请更换手机号。'));
           });
       },
       trigger: 'blur'
@@ -558,11 +569,17 @@ const FormRulesarr: FormRules = {
   smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    { min: 8, max: 16, message: '密码长度为8-16位', trigger: 'blur' },
     {
       validator: (rule, value) => {
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
-          return new Error('密码需包含:大写字母、小写字母、数字、符号,且长度不少于8位');
+        const v = String(value || '');
+        if (v.length < 8 || v.length > 16) return new Error('密码长度为8-16位');
+        let cnt = 0;
+        if (/[A-Z]/.test(v)) cnt++;
+        if (/[a-z]/.test(v)) cnt++;
+        if (/\d/.test(v)) cnt++;
+        if (cnt < 2) {
+          return new Error('密码需为8-16位，且至少包含大小写字母、数字中的2种');
         }
         return true;
       },
@@ -610,6 +627,40 @@ const tableList = ref<Contact[]>([
     contactPhone: ''
   }
 ]);
+
+// 姓名联动：legalPerson、loginUserName 与 第一个联系人姓名保持一致
+const setUnifiedName = (name: string) => {
+  const newName = name ?? '';
+  // 更新表单中的两个字段
+  if (form.value.legalPerson !== newName) form.value.legalPerson = newName;
+  if (form.value.loginUserName !== newName) form.value.loginUserName = newName;
+  // 更新联系人首行
+  if (tableList.value.length > 0 && tableList.value[0].contactUserName !== newName) {
+    tableList.value[0].contactUserName = newName;
+  }
+};
+
+// 监听任意一个字段的变化，统一到同一个值，避免循环：使用比对后再写入
+watch(
+  () => form.value.legalPerson,
+  (val) => {
+    if (val !== undefined) setUnifiedName(val as string);
+  }
+);
+
+watch(
+  () => form.value.loginUserName,
+  (val) => {
+    if (val !== undefined) setUnifiedName(val as string);
+  }
+);
+
+watch(
+  () => (tableList.value.length > 0 ? tableList.value[0].contactUserName : ''),
+  (val) => {
+    if (val !== undefined) setUnifiedName(val as string);
+  }
+);
 
 // 文件列表
 const fileListtable = ref<any[]>([]);
@@ -696,15 +747,15 @@ const validateContact = (contact: Contact) => {
   if (!contact.contactUserName || contact.contactUserName.trim() === '') {
     errorsValue.contactUserName = '请输入姓名';
   } else {
-    // 验证长度（50字节）
-    if (new Blob([contact.contactUserName]).size > 50) {
-      errorsValue.contactUserName = '姓名最长不超过50字节';
+    // 验证长度（50个字）
+    if (contact.contactUserName.length > 50) {
+      errorsValue.contactUserName = '姓名最多可输入50个字';
     }
 
     // 验证格式（只能包含汉字、字母和部分符号）
     const nameRegex = /^[\u4e00-\u9fa5a-zA-Z\-\'\s]+$/;
     if (!nameRegex.test(contact.contactUserName)) {
-      errorsValue.contactUserName = '姓名只能包含汉字、字母，且最长不超过50字节';
+      errorsValue.contactUserName = '姓名只能包含汉字、字母，且最长不超过50个字。';
     }
   }
 
@@ -712,7 +763,7 @@ const validateContact = (contact: Contact) => {
   if (contact.contactIdCard && contact.contactIdCard.trim() !== '') {
     const idCardPattern = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
     if (!idCardPattern.test(contact.contactIdCard)) {
-      errorsValue.contactIdCard = '身份证号码格式不正确';
+      errorsValue.contactIdCard = '身份证号码格式不正确，请重新检查';
     }
   }
 
@@ -756,9 +807,7 @@ const validateAndSubmit = () => {
   if (isValid) {
     return true;
   } else {
-    proxy?.$modal.msgError(
-      props.selectedIdentity == 'supplier' ? '供应商联系人信息不完整，请补充必填项后重新提交' : '企业联系人信息不完整，请补充必填项后重新提交'
-    );
+    proxy?.$modal.msgError(props.selectedIdentity == 'supplier' ? '请填写供应商联系人信息' : '请填写企业联系人信息');
 
     return false;
   }
@@ -853,8 +902,12 @@ const handleDiplomaChange = (file: UploadFile) => {
             form.value.officeAddress = brr.address; // 办公地址
             form.value.businessScope = brr.businessScope; // 经营范围
             form.value.legalPerson = brr.legalRepresentative; // 法人
+            // 可能的签发日期字段（若OCR返回）
+            licenseIssueDate.value = brr.issueDate || brr.approvalDate || null;
 
-            tableList.value[0].contactUserName = brr.legalRepresentative;
+            // tableList.value[0].contactUserName = brr.legalRepresentative;
+            // OCR 回填后保持三个字段联动一致
+            setUnifiedName(brr.legalRepresentative || '');
           })
           .catch((error) => {
             // OCR 失败回滚
@@ -916,23 +969,15 @@ const handleChange = (file: any) => {
 
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  const maxSize = 10 * 1024 * 1024; // 10MB
   if (file.size > maxSize) {
-    ElMessage.error('文件大小不能超过5MB');
+    ElMessage.error('文件大小不能超过10MB');
     return false;
   }
 
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
+  const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png'];
   if (!allowedTypes.includes(file.type)) {
-    ElMessage.error('不支持的文件类型');
+    ElMessage.error('仅支持JPG/JPEG/PNG格式');
     return false;
   }
 
@@ -980,6 +1025,10 @@ onMounted(async () => {
       signUpTime: proxy.parseTime(arr.data.signUpTime, '{y}-{m}-{d}')
     };
     tableList.value = arr.data.contacts;
+
+    // // 如果已有数据，按优先级联动一次：优先使用法定代表人，否则使用登录姓名，否则使用首个联系人姓名
+    // const initName = arr.data.legalPerson || arr.data.loginUserName || (arr.data.contacts && arr.data.contacts[0]?.contactUserName) || '';
+    // setUnifiedName(initName);
 
     if (arr.data && arr.data.folders && arr.data.folders.length > 0) {
       arr.data.folders.forEach((element: any) => {

@@ -42,7 +42,7 @@
               :body-style="{ padding: '12px' }"
             >
               <div class="article">
-                <img class="li-img" :src="getArticleCover(item)" alt="商品图片" />
+                <img class="li-img" :src="getArticleCover(item)" alt="商品图片" loading="lazy" decoding="async" fetchpriority="low" />
                 <div class="article_name">{{ getTitle(item) }}</div>
                 <dict-text
                   class="article_type"
@@ -236,8 +236,8 @@ function getTime(item: any) {
 /* 沉浸式卡片悬停动画 */
 .article-item {
   transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s;
+    transform 240ms cubic-bezier(0.2, 0.6, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.2, 0.6, 0.3, 1);
   position: relative;
   overflow: visible;
 }
@@ -307,16 +307,16 @@ function getTime(item: any) {
   color: #ef4d0b;
 
   display: none;
-  transition: opacity 0.3s;
+  transition: opacity 200ms ease-out;
 }
 
 .article-item:hover .article-btn.cancel-btn-immersive {
   display: inline-flex;
-  transition: opacity 0.3s;
+  transition: opacity 200ms ease-out;
 }
 
 .article-item:hover .li-img {
   height: 140px;
-  transition: opacity 0.3s;
+  transition: opacity 200ms ease-out;
 }
 </style>
