@@ -17,7 +17,11 @@
       <el-table-column prop="salesDate" label="销售日期" align="center" width="180" />
       <el-table-column prop="variety" label="品种" align="center" width="180" />
       <el-table-column prop="origin" label="所在产地" align="center" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column prop="price" label="价格" align="center" width="180" />
+      <el-table-column prop="price" label="价格" align="center" width="180">
+        <template #default="{ row }">
+          <span class="price-text">{{ row.price }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="changePercent" label="升降(%)" align="center" width="180">
         <template #default="{ row }">
           <span v-if="row.changePercent === '-'" class="text-gray">{{ row.changePercent }}</span>
@@ -240,21 +244,25 @@ defineExpose({
 }
 
 :deep(.el-table) {
-  .el-table__header {
-    th {
-      background-color: #fafafa;
-      color: #606266;
-      font-weight: 600;
-    }
-  }
-
-  .el-table__body {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
+    .el-table__header {
+      th {
+        background-color: #108c58 !important;
+        color: #fff;
+        font-weight: 600;
+        border-color: #108c58 !important;
       }
     }
-  }
+
+    .el-table__body {
+      tr {
+        &:hover {
+          background-color: #f5f7fa;
+        }
+        td {
+          border-color: #ffffff   !important;
+        }
+      }
+    }
 }
 
 .trend-icon {
@@ -279,6 +287,11 @@ defineExpose({
 
 .text-gray {
   color: #909399;
+}
+
+.price-text {
+  color: #108c58;
+  font-weight: 600;
 }
 
 .pagination {

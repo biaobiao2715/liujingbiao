@@ -7,52 +7,37 @@
       <el-breadcrumb-item class="active">{{ currentTabLabel }}</el-breadcrumb-item>
     </el-breadcrumb> -->
 
-    <el-tabs v-model="activeName" type="card" class="market-tabs" @tab-click="handleClick">
-      <el-tab-pane label="今日行情" name="first">
-        <TodayTrendComponent ref="todayTrendRef" />
-      </el-tab-pane>
-      <el-tab-pane label="价格走势" name="second">
-        <PriceTrendComponent ref="priceTrendRef" />
-      </el-tab-pane>
-      <el-tab-pane label="价格预测与分析" name="third">
-        <PricePredictionComponent ref="pricePredictionRef" />
-      </el-tab-pane>
-    </el-tabs>
+    <div class="market-tabs">
+      <button class="tab-item" :class="{ active: activeName === 'first' }" @click="switchTab('first')">今日行情</button>
+      <button class="tab-item" :class="{ active: activeName === 'second' }" @click="switchTab('second')">价格走势</button>
+      <button class="tab-item" :class="{ active: activeName === 'third' }" @click="switchTab('third')">价格预测与分析</button>
+    </div>
+
+    <div class="tab-content">
+      <TodayTrendComponent v-show="activeName === 'first'" ref="todayTrendRef" />
+      <PriceTrendComponent v-show="activeName === 'second'" ref="priceTrendRef" />
+      <PricePredictionComponent v-show="activeName === 'third'" ref="pricePredictionRef" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
-import type { TabsPaneContext } from 'element-plus'
-import { ArrowRight } from '@element-plus/icons-vue'
-import TodayTrendComponent from './AboutMarketComponents/TodayTrendComponent.vue'
-import PriceTrendComponent from './AboutMarketComponents/PiceTrendCompontent.vue'
-import PricePredictionComponent from './AboutMarketComponents/PricePredictionComponent.vue'
-import { eventBus } from '@/utils/eventBus'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import TodayTrendComponent from './AboutMarketComponents/TodayTrendComponent.vue';
+import PriceTrendComponent from './AboutMarketComponents/PiceTrendCompontent.vue';
+import PricePredictionComponent from './AboutMarketComponents/PricePredictionComponent.vue';
+import { eventBus } from '@/utils/eventBus';
 
-const activeName = ref('first')
-const todayTrendRef = ref<InstanceType<typeof TodayTrendComponent> | null>(null)
-const priceTrendRef = ref<InstanceType<typeof PriceTrendComponent> | null>(null)
-const pricePredictionRef = ref<InstanceType<typeof PricePredictionComponent> | null>(null)
+const activeName = ref('first');
+const todayTrendRef = ref<InstanceType<typeof TodayTrendComponent> | null>(null);
+const priceTrendRef = ref<InstanceType<typeof PriceTrendComponent> | null>(null);
+const pricePredictionRef = ref<InstanceType<typeof PricePredictionComponent> | null>(null);
 
-// 标签页名称映射
-const tabLabelMap = {
-  first: '今日行情',
-  second: '价格走势',
-  third: '价格预测与分析'
-}
-
-// 当前标签页名称（用于面包屑）
-const currentTabLabel = computed(() => {
-  return tabLabelMap[activeName.value as keyof typeof tabLabelMap] || '今日行情'
-})
-
-// 标签页切换
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event)
-  // 切换标签页时刷新对应组件的数据
-  refreshCurrentTabData()
-}
+const switchTab = (name: string) => {
+  if (name === activeName.value) return;
+  activeName.value = name;
+  refreshCurrentTabData();
+};
 
 // 刷新当前标签页的数据
 const refreshCurrentTabData = () => {
@@ -62,49 +47,48 @@ const refreshCurrentTabData = () => {
       case 'first':
         // 今日行情
         if (todayTrendRef.value && typeof todayTrendRef.value.getList === 'function') {
-          todayTrendRef.value.getList()
+          todayTrendRef.value.getList();
         }
-        break
+        break;
       case 'second':
         // 价格走势
         if (priceTrendRef.value && typeof priceTrendRef.value.refreshData === 'function') {
-          priceTrendRef.value.refreshData()
+          priceTrendRef.value.refreshData();
         }
-        break
+        break;
       case 'third':
         // 价格预测与分析
         if (pricePredictionRef.value && typeof pricePredictionRef.value.fetchPricePrediction === 'function') {
-          pricePredictionRef.value.fetchPricePrediction()
+          pricePredictionRef.value.fetchPricePrediction();
         }
-        break
+        break;
     }
-  })
-}
+  });
+};
 
 // 监听标签页切换（只在真正切换时刷新，避免初始化时重复调用）
 watch(activeName, (newVal, oldVal) => {
   if (oldVal && newVal !== oldVal) {
-    refreshCurrentTabData()
+    refreshCurrentTabData();
   }
-})
+});
 
 const handleExternalSwitch = (tabName: string) => {
-  if (!tabName) return
-  activeName.value = tabName
-  // 外部切换标签页时也会触发 watch，所以这里不需要再次刷新
-}
+  if (!tabName) return;
+  switchTab(tabName);
+};
 
 onMounted(() => {
-  eventBus.on('market:switchTab', handleExternalSwitch)
-})
+  eventBus.on('market:switchTab', handleExternalSwitch);
+});
 
 onBeforeUnmount(() => {
   try {
-    eventBus.off?.('market:switchTab', handleExternalSwitch)
+    eventBus.off?.('market:switchTab', handleExternalSwitch);
   } catch (error) {
     // ignore
   }
-})
+});
 </script>
 
 <style scoped lang="scss">
@@ -127,21 +111,50 @@ onBeforeUnmount(() => {
         font-weight: normal;
       }
     }
-
-
   }
 }
 
 .market-tabs {
-  :deep(.el-tabs__header) {
-    margin-bottom: 16px;
+  width: 100%;
+
+  background: #ffffff;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 8px 8px 8px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  margin-bottom: 16px;
+
+  .tab-item {
+    border: none;
+    background: transparent;
+    padding: 0 20px;
+    height: 34px;
+    line-height: 34px;
+    border-radius: 999px;
+    font-size: 14px;
+    color: #606266;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
-  :deep(.el-tabs__item) {
-    padding: 0 20px;
-    height: 40px;
-    line-height: 40px;
+  .tab-item:hover {
+    color: #108c58;
+  }
+
+  .tab-item.active {
+    background: rgba(16, 140, 88, 0.1);
+    color: #108c58;
+    font-weight: 600;
+    box-shadow: none;
   }
 }
 
+.tab-content {
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 8px 8px 8px 8px;
+}
 </style>
