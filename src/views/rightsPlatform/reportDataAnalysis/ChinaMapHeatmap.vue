@@ -201,7 +201,7 @@ const updateChart = () => {
         name: '举报数据',
         type: 'map',
         map: 'china',
-        roam: true,
+        roam: false,
         zoom: 1.2,
         label: {
           show: true,

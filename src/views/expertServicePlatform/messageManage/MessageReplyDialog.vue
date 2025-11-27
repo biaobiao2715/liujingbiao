@@ -313,20 +313,18 @@ const handleSubmit = async () => {
     
     if (response && response.code === 200) {
       ElMessage.success('回复成功');
-      // 触发父组件刷新列表
       emit('success');
-      // 触发批量下一条
       if (props.batchIds && props.batchIds.length) {
         emit('batch-next');
       } else {
-        // 非批量操作，关闭弹窗返回列表
         emit('cancel');
       }
     } else {
-      ElMessage.error(response?.msg || '回复失败');
+      throw response;
     }
   } catch (error) {
-    ElMessage.error('回复失败，请稍后重试');
+    // 后端和全局拦截器已统一提示，这里不再重复
+    console.warn('[MessageReplyDialog] reply failed', error);
   } finally {
     saving.value = false;
   }

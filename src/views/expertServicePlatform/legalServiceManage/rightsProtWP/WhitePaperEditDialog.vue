@@ -13,8 +13,9 @@
           placeholder="请输入标题内容" 
           maxlength="30"
           clearable
+          @blur="titleTouched = true"
         />
-        <div v-if="!formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
+        <div v-if="titleTouched && !formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
       <el-form-item label="上传附件" prop="attachment" required :show-message="false">
@@ -34,7 +35,7 @@
             </el-button>
             <template #tip>
               <div
-                v-if="attachmentList.length === 0"
+                v-if="attachmentTouched && attachmentList.length === 0"
                 class="upload-tip warning"
                 style="color: #f56c6c; font-weight: 500;"
               >
@@ -187,6 +188,8 @@ const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 const formRef = ref();
 const saving = ref(false);
 const loading = ref(false);
+const titleTouched = ref(false);
+const attachmentTouched = ref(false);
 
 const formData = ref({
   id: undefined as number | string | undefined,
@@ -883,6 +886,8 @@ const fetchWhitePaperDetail = async () => {
     } else {
       ElMessage.error(response?.msg || '获取白皮书详情失败');
     }
+    titleTouched.value = false;
+    attachmentTouched.value = false;
   } catch (error) {
     ElMessage.error('获取白皮书详情失败，请稍后重试');
   } finally {
@@ -892,6 +897,9 @@ const fetchWhitePaperDetail = async () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
+  
+  titleTouched.value = true;
+  attachmentTouched.value = true;
   
   try {
     const valid = await formRef.value.validate();
@@ -1046,6 +1054,8 @@ watch(
       attachmentList.value = [];
       uploadedVersions.value = [];
       formRef.value?.resetFields?.();
+      titleTouched.value = false;
+      attachmentTouched.value = false;
     }
   },
   { immediate: true }
