@@ -44,65 +44,65 @@
         <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="danger" @click="handleDeleteBatch">删除</el-button>
+        <el-button v-throttle type="primary" @click="handleDeleteBatch">删除</el-button>
       </el-col>
     </el-row>
 
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" :selectable="checkSelectable" />
-      <el-table-column type="index" width="80" label="序号" align="center" />
+      <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
       <!-- 模版名称 -->
-      <el-table-column label="模版名称" align="center" prop="legalDocumentName" min-width="150">
+      <el-table-column label="模版名称" align="center" prop="legalDocumentName" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.legalDocumentName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 模版编号 -->
-      <el-table-column label="模版编号" align="center" prop="legalDocumentCode" min-width="150">
+      <el-table-column label="模版编号" align="center" prop="legalDocumentCode" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.legalDocumentCode || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 创建人 -->
-      <el-table-column label="创建人" align="center" prop="createByName" width="120">
+      <el-table-column label="创建人" align="center" prop="createByName" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createByName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 创建时间 -->
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 更新时间 -->
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.updateTime || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 最新版本号 -->
-      <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120">
+      <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.currentVersion || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="310">
+      <el-table-column label="操作" align="center" fixed="right" width="310" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
             <el-button v-throttle type="warning" size="small" @click="handleUpdateVersion(scope.row)">更新版本</el-button>
-            <el-button v-throttle type="danger" size="small" @click="handleDeleteSingle(scope.row)">删除</el-button>
+            <el-button v-throttle link class="danger-text-button" size="small" @click="handleDeleteSingle(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -853,5 +853,22 @@ onMounted(() => {
   font-size: 12px;
   color: #888;
   margin-top: 6px;
+}
+
+.danger-text-button {
+  color: #f23255 !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 8px !important;
+
+  &:hover,
+  &:focus {
+    color: #f23255 !important;
+    background-color: transparent !important;
+  }
+
+  &.is-disabled {
+    color: #f6b7c0 !important;
+  }
 }
 </style>
