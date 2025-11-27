@@ -8,10 +8,7 @@
       <el-form-item label="产地:" prop="origin">
         <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleQuery">查询</el-button>
-        <el-button @click="resetQuery">重置</el-button>
-      </el-form-item>
+     
     </el-form>
 
     <!-- 时间范围选择 -->
@@ -289,9 +286,7 @@ const applyExternalFilters = async (payload: any) => {
   // 设置默认时间范围为7天，对应 priceActionDays = 1
   activeTimeRange.value = 7;
 
-  fetchPriceData();
-  fetchPriceExplanation();
-  fetchHotRecommendation();
+  refreshAllData();
 };
 
 // 获取价格走势数据
@@ -381,6 +376,12 @@ const updateAxisRange = (prices: number[]) => {
   yAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
+const refreshAllData = () => {
+  fetchPriceData();
+  fetchPriceExplanation();
+  fetchHotRecommendation();
+};
+
 // 切换时间范围
 const changeTimeRange = (days: number) => {
   activeTimeRange.value = days;
@@ -391,6 +392,7 @@ const changeTimeRange = (days: number) => {
 const handleCategoryChange = (value: string[]) => {
   queryParams.variety = value;
   console.log('选择的品种分类:', value);
+  refreshAllData();
 };
 
 // 产地变化处理
@@ -407,6 +409,7 @@ const handleRegionChange = (value: any) => {
     regionCodes.regionCode = '';
   }
   console.log('选择的产地:', value);
+  refreshAllData();
 };
 
 // 获取昨天的日期（YYYY-MM-DD格式）
