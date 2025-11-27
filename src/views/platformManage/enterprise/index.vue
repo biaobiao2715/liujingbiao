@@ -45,7 +45,7 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="企业名称" align="center" prop="companyName" min-width="100" :show-overflow-tooltip="true" />
+      <el-table-column label="企业名称" align="center" prop="companyName" min-width="160" :show-overflow-tooltip="true" />
       <el-table-column label="企业编码" align="center" prop="enterpriseNumber" width="210" style="color: #0000ff">
         <template #default="scope">
           <!-- 跳转改为弹窗查看 -->
@@ -56,35 +56,35 @@
       </el-table-column>
       <el-table-column label="统一社会信用代码" align="center" prop="licenseNumber" width="210" :show-overflow-tooltip="true"> </el-table-column>
 
-      <el-table-column label="资质等级" align="center" prop="credentialLevel">
+      <el-table-column label="资质等级" align="center" prop="credentialLevel" width="100">
         <template v-slot="scope">
           <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
         </template>
       </el-table-column>
-      <el-table-column label="信用等级" align="center" prop="creditLevel">
+      <el-table-column label="信用等级" align="center" prop="creditLevel" width="100">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
         </template>
       </el-table-column>
-      <el-table-column label="审核状态" align="center" prop="reviewStatus">
+      <el-table-column label="审核状态" align="center" prop="reviewStatus" width="100">
         <template v-slot="scope">
           <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="申请时间" align="center" prop="createTime" min-width="160">
+      <el-table-column label="申请时间" align="center" prop="createTime" min-width="180">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="160">
+      <el-table-column label="审核时间" align="center" prop="reviewTime" min-width="180">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.reviewTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="审核人" align="center" prop="auditPerson"> </el-table-column>
+      <el-table-column label="审核人" align="center" prop="auditPerson" width="140" :show-overflow-tooltip="true"> </el-table-column>
 
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button
             v-throttle

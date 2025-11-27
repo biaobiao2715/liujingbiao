@@ -747,7 +747,7 @@ onMounted(() => {
     padding: 16px 32px 10px;
     .el-dialog__title {
       font-size: 18px;
-      font-weight: 600;
+      // font-weight: 600;
     }
   }
 }
