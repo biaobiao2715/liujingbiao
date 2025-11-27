@@ -106,12 +106,12 @@
             <dict-tag :options="static_expert_type" :value="scope.row.expertType" />
           </template>
         </el-table-column>
-        <el-table-column label="专家姓名" min-width="140" align="center" prop="expertName">
+        <el-table-column label="专家姓名" min-width="140" align="center" prop="expertName" show-overflow-tooltip>
           <template #default="scope">
             <span>{{ scope.row.expertName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="expertNumber" label="专家编码" min-width="130" align="center">
+        <el-table-column prop="expertNumber" label="专家编码" min-width="130" align="center" show-overflow-tooltip>
           <template #default="scope">
             <span>{{ scope.row.expertNumber || '-' }}</span>
           </template>

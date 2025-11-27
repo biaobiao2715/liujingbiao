@@ -112,7 +112,7 @@
           <dict-tag :options="order_status" :value="scope.row.orderStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
             <el-link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-link>
