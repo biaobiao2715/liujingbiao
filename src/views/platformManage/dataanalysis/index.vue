@@ -53,10 +53,10 @@
             </el-select>
           </el-form-item>
           <el-form-item label="专家姓名" prop="expertName">
-            <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
+            <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="专家编号" prop="expertNumber">
-            <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
+            <el-input v-model.trim="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <!-- <el-form-item label="入驻时间">
             <el-date-picker v-model="registrationTime" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
