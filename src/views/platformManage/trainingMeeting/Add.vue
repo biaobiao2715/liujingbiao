@@ -8,15 +8,15 @@ div<!--
 修改内容：新增,编辑，详情会议
  -->
 <template>
-  <el-dialog v-model="visible" width="80%" :close-on-click-modal="false" :show-close="false" class="add-meeting-dialog">
-    <!-- 顶部标题栏 -->
-    <div class="dialog-header">
-      <span class="dialog-title">
-        {{ modeTitleMap[mode] }}
-      </span>
-      <el-button type="text" class="close-btn" @click="handleClose">×</el-button>
-    </div>
-
+  <el-dialog
+    v-model="visible"
+    width="80%"
+    :title="modeTitleMap[mode]"
+    :close-on-click-modal="false"
+    show-close
+    @close="handleClose"
+    class="add-meeting-dialog"
+  >
     <!-- 内容区 -->
     <div class="dialog-body">
       <el-form ref="formRef" :model="form" label-width="120px" style="margin-top: 20px" :rules="rules">
@@ -119,7 +119,7 @@ div<!--
         </el-table-column>
       </el-table>
       <!-- 已选专家分页 -->
-      <div class="flex-center pagination" v-if="form.experts && form.experts.length > 0">
+      <div class="flex-center justify-end pagination" v-if="form.experts && form.experts.length > 0">
         <pagination
           v-show="selectedTotal > 0"
           :page="selectedQueryParams.pageNum"
@@ -147,7 +147,7 @@ div<!--
           </template>
         </el-table-column>
       </el-table>
-      <div v-if="isView" class="flex-center pagination">
+      <div v-if="isView" class="flex-center justify-end pagination">
         <pagination
           v-show="registrationTotal > 0"
           v-model:page="registrationParams.pageNum"
@@ -234,7 +234,7 @@ div<!--
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, getCurrentInstance, onMounted } from 'vue';
+import { ref, watch, computed, getCurrentInstance, nextTick, onMounted } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus';
 import {
@@ -314,7 +314,12 @@ const modeTitleMap: Record<string, string> = {
 const dateRange = ref<string[]>([]); // 会议日期范围
 watch(
   () => props.modelValue,
-  (val) => (visible.value = val)
+  (val) => {
+    visible.value = val;
+    setTimeout(() => {
+      formRef.value.clearValidate();
+    });
+  }
 );
 
 watch(
@@ -450,13 +455,37 @@ const rules = {
   meetingStartTime: [
     {
       validator: (rule: any, value: any, callback: any) => {
-        if (!form.value.meetingStartTime || !form.value.meetingEndTime) {
-          callback(new Error('请选择会议时间'));
-        } else {
-          callback();
+        const start = form.value.meetingStartTime;
+        const end = form.value.meetingEndTime;
+        if (!start || !end) {
+          return callback(new Error('请选择会议时间'));
         }
+        const parseTs = (s: string) => {
+          // 把 "YYYY-MM-DD HH:mm[:ss]" 转为可被 Date 解析的 ISO 字符串
+          try {
+            return new Date(s.replace(' ', 'T')).getTime();
+          } catch {
+            return NaN;
+          }
+        };
+        const now = Date.now();
+        const startTs = parseTs(start);
+        const endTs = parseTs(end);
+        if (isNaN(startTs) || isNaN(endTs)) {
+          return callback(new Error('会议时间格式错误'));
+        }
+        if (startTs < now) {
+          return callback(new Error('会议开始时间不得小于当前时间'));
+        }
+        if (endTs < now) {
+          return callback(new Error('会议结束时间不得小于当前时间'));
+        }
+        if (endTs < startTs) {
+          return callback(new Error('会议结束时间不得早于开始时间'));
+        }
+        callback();
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   meetingContact: [
@@ -696,25 +725,9 @@ const handleSave = async () => {
   padding: 0;
 }
 
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 60px;
-  padding: 0 20px;
-  border-bottom: 2px solid #ddd;
-  background: #f8f8f8;
-}
-
 .pagination {
   margin-top: 15px;
   margin-bottom: 15px;
-}
-
-.dialog-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #666;
 }
 
 .close-btn {
