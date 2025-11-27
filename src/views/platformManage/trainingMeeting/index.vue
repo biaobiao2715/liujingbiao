@@ -52,6 +52,7 @@
         v-throttle
         type="danger"
         v-hasPermi="['skill:HnMeetingCultivate:remove']"
+        color="#f23255"
         :disabled="selectedRows.length == 0"
         @click="handleBatchDelete(selectedRows)"
         >删除</el-button
@@ -124,7 +125,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="200">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
             <!-- 待开始 -->
@@ -151,6 +152,7 @@
                 v-if="['3', '99'].includes(scope.row.meetingStatus)"
                 v-hasPermi="['skill:HnMeetingCultivate:remove']"
                 type="danger"
+                style="color: #f23255"
                 @click="handleDelete(scope.row)"
                 >删除</el-link
               >
@@ -172,11 +174,11 @@
   </div>
   <AddMeeting v-model="visible" :mode="dialogMode" :data="meetingData" @save="handleSave" />
   <!-- 取消会议 -->
-  <el-dialog title="取消会议" v-model="dialogVisible" width="30%">
+  <el-dialog title="取消会议" v-model="dialogVisible" width="30%" @close="handleMettingClose">
     <el-input type="textarea" :rows="2" placeholder="请输入取消原因" v-model.trim="cancellation" max="200"></el-input>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button @click="handleMettingClose">取 消</el-button>
         <el-button type="primary" :loading="cancelloading" @click="Confirmcancel">确 定</el-button>
       </span>
     </template>
@@ -426,11 +428,19 @@ const handleCancelMeeting = (row: any) => {
   dialogVisible.value = true;
   cancelobj.value = row;
 };
+// 取消会议弹窗关闭
+const handleMettingClose = () => {
+  // 关闭弹窗
+  dialogVisible.value = false;
+  // 关闭loading
+  cancelloading.value = false;
+};
 /* 确认取消 */
 const Confirmcancel = async () => {
   cancelloading.value = true;
   console.log(cancelobj.value);
   if (!cancellation.value) {
+    cancelloading.value = false;
     return ElMessage.warning('请输入取消原因');
   }
   try {
