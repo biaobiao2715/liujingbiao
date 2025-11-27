@@ -10,7 +10,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-width="auto">
       <el-form-item label="销售订单号">
         <el-input v-model.trim="queryParams.orderSn" placeholder="请输入销售订单号" clearable />
       </el-form-item>

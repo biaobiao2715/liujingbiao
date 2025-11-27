@@ -10,7 +10,7 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-width="auto">
       <!-- 所属类别搜索框 -->
       <el-form-item label="直播名称" prop="title">
         <el-input v-model.trim="queryParams.title" placeholder="请输入直播名称" clearable @keyup.enter="handleQuery" />

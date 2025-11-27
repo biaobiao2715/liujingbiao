@@ -10,7 +10,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-width="auto">
       <el-form-item label="会议标题">
         <el-input v-model.trim="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
