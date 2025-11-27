@@ -36,7 +36,7 @@
         </el-table-column>
         <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160"></el-table-column>
         <el-table-column label="产品简介" align="center" prop="articleSummary" min-width="160" :show-overflow-tooltip="true"></el-table-column>
-        <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+        <el-table-column label="操作" fixed="right" align="center" width="160" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button v-throttle type="primary" @click="handleEdit(scope.row, 'view')">详情</el-button>
           </template>

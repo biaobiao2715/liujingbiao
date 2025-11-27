@@ -222,7 +222,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作" align="center">
+            <el-table-column fixed="right" label="操作" align="center">
               <template #default="scope">
                 <el-button v-if="hnGoodsSpecificationDataList.length > 1" v-throttle link @click="removeTableCell(scope.$index)" type="primary">
                   删除行

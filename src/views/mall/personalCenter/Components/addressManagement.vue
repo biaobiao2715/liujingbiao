@@ -76,7 +76,7 @@
             <el-switch v-model="row.isDefault" active-value="1" inactive-value="0" @change="() => onSetDefault(row)" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="160" align="center">
+        <el-table-column label="操作" fixed="right" min-width="160" align="center">
           <template #default="{ row }">
             <div class="ops">
               <el-button v-hasPermi="['grain:userAddress:edit']" @click="onEdit(row)" v-throttle text style="color: #ff7b00">修改</el-button>
