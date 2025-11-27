@@ -12,7 +12,7 @@
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" :disabled="props.type === 'view'">
       <!-- 直播标题 -->
       <el-form-item label="直播标题" prop="title">
-        <el-input v-model="formData.title" placeholder="请输入直播标题" maxlength="30" show-word-limit clearable />
+        <el-input v-model.trim="formData.title" placeholder="请输入直播标题" maxlength="30" show-word-limit clearable />
       </el-form-item>
 
       <!-- 内容简介 -->
@@ -30,7 +30,7 @@
 
       <!-- 链接地址 -->
       <el-form-item label="链接地址" prop="videoUrl">
-        <el-input v-model="formData.videoUrl" placeholder="请输入视频链接地址" clearable> </el-input>
+        <el-input v-model.trim="formData.videoUrl" placeholder="请输入视频链接地址" clearable> </el-input>
       </el-form-item>
       <el-form-item label="主图" prop="coverImageId" :required="true">
         <el-upload

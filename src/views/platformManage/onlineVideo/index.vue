@@ -13,7 +13,7 @@
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
       <!-- 所属类别搜索框 -->
       <el-form-item label="直播名称" prop="title">
-        <el-input v-model="queryParams.title" placeholder="请输入直播名称" clearable @keyup.enter="handleQuery" />
+        <el-input v-model.trim="queryParams.title" placeholder="请输入直播名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
 
       <!-- 发布时间选择器 -->
@@ -22,7 +22,7 @@
       </el-form-item>
       <!-- 发布人 -->
       <el-form-item label="发布人" prop="publishUse">
-        <el-input v-model="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+        <el-input v-model.trim="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="videoStatus">
@@ -104,7 +104,14 @@
             <el-button v-if="scope.row.videoStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
-            <el-button v-throttle v-show="scope.row.videoStatus === '2'" type="danger" size="small" v-hasPermi="['skill:onlineVideo:remove']" @click="handleDeleteSingle(scope.row)">
+            <el-button
+              v-throttle
+              v-show="scope.row.videoStatus === '2'"
+              type="danger"
+              size="small"
+              v-hasPermi="['skill:onlineVideo:remove']"
+              @click="handleDeleteSingle(scope.row)"
+            >
               删除
             </el-button>
           </div>
