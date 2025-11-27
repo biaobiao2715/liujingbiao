@@ -14,7 +14,7 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="课程标题" prop="cultivateName" required>
-            <el-input v-model="formData.cultivateName" placeholder="请输入课程标题内容" maxlength="30" show-word-limit clearable />
+            <el-input v-model.trim="formData.cultivateName" placeholder="请输入课程标题内容" maxlength="30" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -163,7 +163,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, watch } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type {UploadRawFile} from 'element-plus'
+import type { UploadRawFile } from 'element-plus';
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
 import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate } from '@/api/system/courseCultivate';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
@@ -453,10 +453,10 @@ const valiImgFile = (file: File): boolean => {
 };
 /** 处理文件上传 */
 const uploadRef = ref(null);
-const onBeforeUpload = (rawFile: UploadRawFile)=>{
-  return validateFile(rawFile)
-}
-const handleFileChange = async ({file}: any) => {
+const onBeforeUpload = (rawFile: UploadRawFile) => {
+  return validateFile(rawFile);
+};
+const handleFileChange = async ({ file }: any) => {
   console.log('正常上传的文件', file);
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
@@ -467,8 +467,8 @@ const handleFileChange = async ({file}: any) => {
       const res = await uploadByChunks(file, (p) => {
         console.log(`上传进度: ${p}%`);
       });
-      console.log(res,file,'切片成功了');
-      
+      console.log(res, file, '切片成功了');
+
       attachmentList.value.push({
         ossId: res.ossId,
         fileName: res.fileName,
@@ -479,9 +479,9 @@ const handleFileChange = async ({file}: any) => {
         uid: file.uid
       });
       console.log(attachmentList.value, '切片后push的');
-      
+
       ElMessage.success('附件上传成功');
-    }else{
+    } else {
       let rawFile = file;
       console.log('最终上传的参数', rawFile);
       const response = await ossUploadImage({ file: rawFile });
