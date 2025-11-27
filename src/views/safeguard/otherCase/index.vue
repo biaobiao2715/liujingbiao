@@ -19,8 +19,18 @@
             </el-form-item>
             <br />
             <el-form-item>
-              <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
-              <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:otherCase:remove']">
+              <el-button class="no-hover-effect" type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']"
+                >新增</el-button
+              >
+              <el-button
+                class="no-hover-effect"
+                type="danger"
+                plain
+                icon="Delete"
+                :disabled="multiple"
+                @click="handleDelete()"
+                v-hasPermi="['safeguard:otherCase:remove']"
+              >
                 删除
               </el-button>
             </el-form-item>
@@ -226,3 +236,29 @@ onMounted(() => {
   getList();
 });
 </script>
+
+<style scoped lang="scss">
+// 禁用新增和删除按钮的hover变色效果
+.no-hover-effect {
+  &:hover {
+    // 保持正常状态的颜色，不变成绿色或其他颜色
+    background-color: inherit !important;
+    border-color: inherit !important;
+    color: inherit !important;
+  }
+
+  // plain primary按钮：hover时保持原色（不变成绿色）
+  &.is-plain.el-button--primary:hover {
+    background-color: var(--el-color-primary-light-9) !important;
+    border-color: var(--el-color-primary-light-5) !important;
+    color: var(--el-color-primary) !important;
+  }
+
+  // plain danger按钮：hover时保持原色（不变成绿色）
+  &.is-plain.el-button--danger:hover {
+    background-color: var(--el-color-danger-light-9) !important;
+    border-color: var(--el-color-danger-light-5) !important;
+    color: var(--el-color-danger) !important;
+  }
+}
+</style>

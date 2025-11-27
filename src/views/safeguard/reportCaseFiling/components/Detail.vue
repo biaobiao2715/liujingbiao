@@ -161,7 +161,7 @@
                 maxlength="200"
                 show-word-limit
               />
-              <div v-if="!processFeedback.rejectReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回原因</div>
+              <!-- <div v-if="!processFeedback.rejectReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回原因</div> -->
             </el-form-item>
           </el-col>
 
