@@ -293,7 +293,7 @@ const onSetDefault = async (row: Address) => {
   border-radius: 6px;
 }
 .address-form :deep(.el-form-item) {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 /* 将该表单中的“设为默认地址”复选框外观由方形改为圆形 */
