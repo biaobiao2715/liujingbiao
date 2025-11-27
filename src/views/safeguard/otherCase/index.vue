@@ -42,18 +42,18 @@
     <el-card shadow="never" style="background: none; border: none; margin-top: -40px">
       <el-table v-loading="loading" border :data="otherCaseList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="其他渠道案件名称" align="center" prop="caseName" />
-        <el-table-column label="链接地址" align="center" prop="linkAddress" />
-        <el-table-column label="创建时间" align="center" prop="createTime" />
-        <el-table-column label="创建人" align="center" prop="createByName" />
-        <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width">
+        <el-table-column type="index" label="序号" width="55" align="center" :show-overflow-tooltip="true" />
+        <el-table-column label="其他渠道案件名称" align="center" prop="caseName" :show-overflow-tooltip="true" />
+        <el-table-column label="链接地址" align="center" prop="linkAddress" :show-overflow-tooltip="true" />
+        <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true" />
+        <el-table-column label="创建人" align="center" prop="createByName" :show-overflow-tooltip="true" />
+        <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" :show-overflow-tooltip="true">
           <template #default="scope">
             <el-tooltip content="编辑" placement="top">
               <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']">编辑</el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button link type="danger" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">删除</el-button>
+              <el-button link class="danger-text-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">删除</el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -259,6 +259,23 @@ onMounted(() => {
     background-color: var(--el-color-danger-light-9) !important;
     border-color: var(--el-color-danger-light-5) !important;
     color: var(--el-color-danger) !important;
+  }
+}
+
+.danger-text-button {
+  color: #f23255 !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 8px !important;
+
+  &:hover,
+  &:focus {
+    color: #f23255 !important;
+    background-color: transparent !important;
+  }
+
+  &.is-disabled {
+    color: #f6b7c0 !important;
   }
 }
 </style>

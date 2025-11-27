@@ -51,52 +51,52 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading">
       <!-- 序号 -->
-      <el-table-column type="index" width="80" label="序号" align="center" />
+      <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
       <!-- 举报编号 -->
-      <el-table-column label="举报编号" align="center" prop="reportCode" min-width="150">
+      <el-table-column label="举报编号" align="center" prop="reportCode" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.reportCode || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 案件编号 -->
-      <el-table-column label="案件编号" align="center" prop="caseCode" min-width="150">
+      <el-table-column label="案件编号" align="center" prop="caseCode" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.caseCode || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 举报类型 -->
-      <el-table-column label="举报类型" align="center" prop="reportTypeId" min-width="120">
+      <el-table-column label="举报类型" align="center" prop="reportTypeId" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-text :options="report_type_id" :value="scope.row.reportTypeId || ''" />
         </template>
       </el-table-column>
 
       <!-- 举报人 -->
-      <el-table-column label="举报人" align="center" prop="createByName" min-width="120">
+      <el-table-column label="举报人" align="center" prop="createByName" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createByName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 被举报人 -->
-      <el-table-column label="被举报人" align="center" prop="reporterName" min-width="150">
+      <el-table-column label="被举报人" align="center" prop="reporterName" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.reporterName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 创建时间 -->
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 所属状态 -->
-      <el-table-column label="所属状态" align="center" prop="status" width="120">
+      <el-table-column label="所属状态" align="center" prop="status" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="status-cell-wrapper">
             <el-tag :type="getStatusTagType(scope.row.status)">
@@ -110,7 +110,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="200">
+      <el-table-column label="操作" align="center" fixed="right" width="240" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="operation-buttons-wrapper">
             <!-- 文档图标 - 处理中状态且appeal_time有值时显示在右上角 -->
