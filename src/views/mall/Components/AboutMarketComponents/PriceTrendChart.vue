@@ -28,7 +28,6 @@ const props = withDefaults(defineProps<Props>(), {
   unit: '单位: 元/kg',
   showHeader: true,
   yAxisMin: 0,
-  yAxisMax: 80,
   yAxisInterval: 15
 });
 

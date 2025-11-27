@@ -30,9 +30,9 @@
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
-          :y-axis-min="0"
-          :y-axis-max="80"
-          :y-axis-interval="15"
+          :y-axis-min="yAxisMin"
+          :y-axis-max="yAxisMax"
+          :y-axis-interval="yAxisInterval"
           v-loading="loading"
         />
       </div>
@@ -69,20 +69,20 @@
     <!-- 热门推荐表格 -->
     <div class="recommendations-section">
       <h3 class="section-title">热门推荐</h3>
-      <el-table :data="recommendationTableData" border v-loading="recommendationLoading" style="width: 100%">
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="time" label="时间" align="center" width="120" />
-        <el-table-column prop="variety" label="品种" align="center" width="120" />
-        <el-table-column prop="origin" label="产地" align="center" min-width="180" :show-overflow-tooltip="true" />
-        <el-table-column prop="price" label="价格" align="center" width="120" />
-        <el-table-column label="升降" align="center" width="100">
+      <el-table :data="recommendationTableData" border v-loading="recommendationLoading">
+        <el-table-column type="index" label="序号" width="80" align="center" />
+        <el-table-column prop="time" label="时间" align="center" width="200" />
+        <el-table-column prop="variety" label="品种" align="center" width="200" />
+        <el-table-column prop="origin" label="产地" align="center" min-width="200" :show-overflow-tooltip="true" />
+        <el-table-column prop="price" label="价格" align="center" width="200" />
+        <el-table-column label="升降" align="center" width="200">
           <template #default="{ row }">
             <span v-if="row.change === '-'" class="text-gray">{{ row.change }}</span>
             <span v-else-if="row.change > 0" class="text-red">{{ row.change }}%</span>
             <span v-else class="text-green">{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
-        <el-table-column label="走势图" align="center" width="100">
+        <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
             <el-icon v-if="row.change === '-'" class="trend-icon" style="color: #409eff">
               <i-ep-arrow-right />
@@ -111,7 +111,7 @@
           <span class="info-item">产地: {{ reportInfo.origin }}</span>
         </div>
       </div>
-      <el-table :data="reportTableData" border v-loading="reportLoading" style="width: 100%; margin-top: 16px">
+      <el-table :data="reportTableData" border v-loading="reportLoading">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="goodsName" label="商品名称" align="center" min-width="200" :show-overflow-tooltip="true" />
         <el-table-column label="商品图片" align="center" width="120">
@@ -183,6 +183,9 @@ const currentChartData = ref({
   dates: [] as string[],
   prices: [] as number[]
 });
+const yAxisMin = ref<number | undefined>(undefined);
+const yAxisMax = ref<number | undefined>(undefined);
+const yAxisInterval = ref<number | undefined>(undefined);
 
 // 价格统计数据
 const priceStats = ref({
@@ -262,7 +265,7 @@ const findCategoryPath = (categoryId: string, categories: any[]): string[] => {
 const applyExternalFilters = async (payload: any) => {
   if (!payload) return;
   const goodsCategoryId = payload.goodsCategoryId || '';
-  
+
   // 如果有分类ID，尝试查找完整路径
   if (goodsCategoryId && categoryList.value.length > 0) {
     const categoryPath = findCategoryPath(goodsCategoryId, categoryList.value);
@@ -340,24 +343,48 @@ const fetchPriceData = async () => {
         dates: dates.length > 0 ? dates : [],
         prices: prices.length > 0 ? prices : []
       };
+      updateAxisRange(currentChartData.value.prices);
     } else {
       ElMessage.error(response?.msg || '获取价格走势数据失败');
       currentChartData.value = { dates: [], prices: [] };
+      updateAxisRange([]);
     }
   } catch (error) {
     console.error('获取价格走势数据失败:', error);
     ElMessage.error('获取价格走势数据失败，请稍后重试');
     currentChartData.value = { dates: [], prices: [] };
+    updateAxisRange([]);
   } finally {
     loading.value = false;
   }
+};
+
+const updateAxisRange = (prices: number[]) => {
+  const values = prices.filter((price) => typeof price === 'number' && !Number.isNaN(price));
+  if (!values.length) {
+    yAxisMin.value = undefined;
+    yAxisMax.value = undefined;
+    yAxisInterval.value = undefined;
+    return;
+  }
+
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const padding = Math.max(1, (maxVal - minVal) * 0.1);
+  const rawMin = Math.max(0, minVal - padding);
+  const rawMax = maxVal + padding;
+
+  yAxisMin.value = Number(rawMin.toFixed(2));
+  yAxisMax.value = Number(rawMax.toFixed(2));
+
+  const range = yAxisMax.value - yAxisMin.value;
+  yAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
 // 切换时间范围
 const changeTimeRange = (days: number) => {
   activeTimeRange.value = days;
   fetchPriceData();
-  // 注意：不调用 fetchPriceExplanation，保持右侧显示近7日数据
 };
 
 // 品种分类变化处理
@@ -887,7 +914,6 @@ onBeforeUnmount(() => {
 
   .trend-icon {
     font-size: 18px;
-    cursor: pointer;
   }
 }
 

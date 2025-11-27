@@ -12,13 +12,13 @@
     </el-form>
 
     <!-- 数据表格 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column prop="salesDate" label="销售日期" align="center" width="120" />
-      <el-table-column prop="variety" label="品种" align="center" width="120" />
+    <el-table :data="tableData" border v-loading="loading">
+      <el-table-column type="index" label="序号" width="80" align="center" />
+      <el-table-column prop="salesDate" label="销售日期" align="center" width="180" />
+      <el-table-column prop="variety" label="品种" align="center" width="180" />
       <el-table-column prop="origin" label="所在产地" align="center" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column prop="price" label="价格" align="center" width="120" />
-      <el-table-column prop="changePercent" label="升降(%)" align="center" width="120">
+      <el-table-column prop="price" label="价格" align="center" width="180" />
+      <el-table-column prop="changePercent" label="升降(%)" align="center" width="180">
         <template #default="{ row }">
           <span v-if="row.changePercent === '-'" class="text-gray">{{ row.changePercent }}</span>
           <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="text-gray">0%</span>
@@ -26,7 +26,7 @@
           <span v-else class="text-red">{{ Math.abs(row.changePercent) }}%</span>
         </template>
       </el-table-column>
-      <el-table-column label="走势图" align="center" width="100">
+      <el-table-column label="走势图" align="center" width="180">
         <template #default="{ row }">
           <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
             <i-ep-arrow-right />
