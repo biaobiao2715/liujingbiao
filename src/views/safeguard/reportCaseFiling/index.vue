@@ -336,7 +336,6 @@ const handleUrge = async (row: any) => {
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('催促失败了:', error);
-      ElMessage.error(error?.msg || error?.message || '催促失败了');
     }
   }
 };
