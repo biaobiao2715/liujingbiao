@@ -12,7 +12,7 @@
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
       <el-form-item label="销售订单号">
-        <el-input v-model="queryParams.orderSn" placeholder="请输入销售订单号" clearable />
+        <el-input v-model.trim="queryParams.orderSn" placeholder="请输入销售订单号" clearable />
       </el-form-item>
       <el-form-item label="订单状态">
         <el-select v-model="queryParams.orderStatus" filterable clearable placeholder="请选择订单状态">
@@ -21,13 +21,13 @@
         </el-select>
       </el-form-item>
       <el-form-item label="商品名称">
-        <el-input v-model="queryParams.goodsName" placeholder="请输入商品名称" clearable />
+        <el-input v-model.trim="queryParams.goodsName" placeholder="请输入商品名称" clearable />
       </el-form-item>
       <el-form-item label="收货人名字">
-        <el-input v-model="queryParams.receiverName" placeholder="请输入收货人名字" clearable />
+        <el-input v-model.trim="queryParams.receiverName" placeholder="请输入收货人名字" clearable />
       </el-form-item>
       <el-form-item label="收货人电话">
-        <el-input v-model="queryParams.receiverPhone" placeholder="请输入收货人电话" clearable />
+        <el-input v-model.trim="queryParams.receiverPhone" placeholder="请输入收货人电话" clearable />
       </el-form-item>
       <!-- 价格调整日期 -->
       <el-form-item label="下单时间">
@@ -179,11 +179,11 @@
         </el-form-item>
 
         <el-form-item label="收货人姓名：" prop="receiverName">
-          <el-input v-model="rowdata.receiverName" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="rowdata.receiverName" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货人电话：" prop="receiverPhone">
-          <el-input v-model="rowdata.receiverPhone" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="rowdata.receiverPhone" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes">
@@ -194,11 +194,11 @@
         <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
         <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
           <el-form-item label="快递公司：" prop="deliveryCompany">
-            <el-input v-model="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
           </el-form-item>
 
           <el-form-item label="物流单号：" prop="deliverySn">
-            <el-input v-model="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
           </el-form-item>
         </el-form>
       </template>

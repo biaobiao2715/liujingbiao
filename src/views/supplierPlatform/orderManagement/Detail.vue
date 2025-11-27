@@ -47,12 +47,12 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="8">
             <el-form-item label="销售订单号">
-              <el-input v-model="formData.orderSn" disabled></el-input>
+              <el-input v-model.trim="formData.orderSn" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="下单时间">
-              <el-input v-model="formData.createTime" disabled></el-input>
+              <el-input v-model.trim="formData.createTime" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -78,17 +78,17 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="发货人电话">
-                <el-input v-model="formData.enterprisePhone" disabled></el-input>
+                <el-input v-model.trim="formData.enterprisePhone" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="6">
               <el-form-item label="发货时间">
-                <el-input v-model="formData.deliveryTime" disabled></el-input>
+                <el-input v-model.trim="formData.deliveryTime" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="6">
               <el-form-item label="物流单号">
-                <el-input v-model="formData.deliverySn" disabled></el-input>
+                <el-input v-model.trim="formData.deliverySn" disabled></el-input>
               </el-form-item>
             </el-col>
           </el-row>
@@ -100,12 +100,12 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="8">
             <el-form-item label="收货人姓名">
-              <el-input v-model="formData.receiverName" disabled></el-input>
+              <el-input v-model.trim="formData.receiverName" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="收货人电话">
-              <el-input v-model="formData.receiverPhone" disabled></el-input>
+              <el-input v-model.trim="formData.receiverPhone" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -145,18 +145,18 @@
     <el-dialog v-model="editVisible" title="修改收货人信息" width="600px">
       <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="150px">
         <el-form-item label="收货人姓名：" prop="receiverName" :required="true">
-          <el-input v-model="editForm.receiverName" maxlength="20" show-word-limit></el-input>
+          <el-input v-model.trim="editForm.receiverName" maxlength="20" show-word-limit></el-input>
         </el-form-item>
 
         <el-form-item label="收货人电话：" prop="receiverPhone" :required="true">
-          <el-input v-model="editForm.receiverPhone" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="editForm.receiverPhone" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes" :required="true">
           <RegionSelect v-model="editForm.areaCodes" @regionChange="handleAreaChange" />
         </el-form-item>
         <el-form-item label="详细地址：" prop="receiverDetailAddress" :required="true">
-          <el-input v-model="editForm.receiverDetailAddress"></el-input>
+          <el-input v-model.trim="editForm.receiverDetailAddress"></el-input>
         </el-form-item>
       </el-form>
 
@@ -203,11 +203,11 @@
         </el-form-item>
 
         <el-form-item label="收货人姓名：" prop="receiverName">
-          <el-input v-model="formData.receiverName" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="formData.receiverName" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货人电话：" prop="receiverPhone">
-          <el-input v-model="formData.receiverPhone" maxlength="11" disabled></el-input>
+          <el-input v-model.trim="formData.receiverPhone" maxlength="11" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="收货地址：" prop="areaCodes">
@@ -218,11 +218,11 @@
         <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
         <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
           <el-form-item label="快递公司：" prop="deliveryCompany">
-            <el-input v-model="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
           </el-form-item>
 
           <el-form-item label="物流单号：" prop="deliverySn">
-            <el-input v-model="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
+            <el-input v-model.trim="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
           </el-form-item>
         </el-form>
       </template>
