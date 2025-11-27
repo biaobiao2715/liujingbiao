@@ -1,6 +1,6 @@
 <template>
   <div class="expert-container">
-    <div class="show-area" v-show="showArea === 'area'">
+    <div class="show-area" v-if="showArea === 'area'">
       <!-- 专家咨询 -->
       <ConsultationComponent @detailChange="showDetail" />
       <!-- 专家问答 -->

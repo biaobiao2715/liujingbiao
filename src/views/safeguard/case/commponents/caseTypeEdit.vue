@@ -12,7 +12,7 @@
     :title="isViewMode ? '查看案件类型' : isAddMode ? '新增案件类型' : '编辑案件类型'"
     align-center
     :close-on-click-modal="false"
-    :show-close="false"
+    :show-close="true"
     @close="handleClose"
     class="case-type-edit-dialog"
   >
@@ -95,7 +95,7 @@
               <el-icon class="el-icon--left"><UploadFilled /></el-icon>
               上传文件
             </el-button>
-            <span v-if="formData.legalBasisFiles.length === 0" class="upload-placeholder">请上传文件</span>
+            <!-- <span v-if="formData.legalBasisFiles.length === 0" class="upload-placeholder">请上传文件</span> -->
           </el-upload>
         </div>
       </el-form-item>
@@ -145,7 +145,7 @@
         <div class="history-pagination" v-if="legalBasisHistoryList.length">
           <el-pagination
             background
-            layout="sizes, prev, pager, next"
+            layout="total, sizes, prev, pager, next"
             :page-sizes="[10, 20, 30, 50]"
             :page-size="legalBasisHistoryPagination.pageSize"
             :current-page="legalBasisHistoryPagination.page"
@@ -211,7 +211,7 @@
         <div class="history-pagination" v-if="legalDocumentHistoryList.length">
           <el-pagination
             background
-            layout="sizes, prev, pager, next"
+            layout="total, sizes, prev, pager, next"
             :page-sizes="[10, 20, 30, 50]"
             :page-size="legalDocumentHistoryPagination.pageSize"
             :current-page="legalDocumentHistoryPagination.page"
@@ -925,14 +925,14 @@ const handleClose = () => {
   }
 
   :global(.fileTable) {
-    margin-top: -8px;
+    margin-top: 20px;
     margin-bottom: 20px !important;
   }
 
   .legal-basis-section,
   .legal-document-section {
     .upload-wrapper {
-      margin-bottom: 12px;
+      // margin-bottom: 12px;
 
       .upload-placeholder {
         margin-left: 12px;
