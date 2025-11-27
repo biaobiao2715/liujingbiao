@@ -10,7 +10,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-width="auto">
       <el-form-item label="销售订单号">
         <el-input v-model.trim="queryParams.orderSn" placeholder="请输入销售订单号" clearable />
       </el-form-item>
@@ -112,7 +112,7 @@
           <dict-tag :options="order_status" :value="scope.row.orderStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
           <div style="display: flex; justify-content: space-evenly; align-items: center">
             <el-link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-link>

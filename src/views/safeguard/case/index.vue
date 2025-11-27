@@ -61,59 +61,59 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" width="80" label="序号" align="center" />
+      <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
       <!-- 案件类型编号 -->
-      <el-table-column label="案件类型编号" align="center" prop="caseTypeCode" min-width="200">
+      <el-table-column label="案件类型编号" align="center" prop="caseTypeCode" min-width="200" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.caseTypeCode || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 案件类型名称 -->
-      <el-table-column label="案件类型名称" align="center" prop="caseTypeId" min-width="150">
+      <el-table-column label="案件类型名称" align="center" prop="caseTypeId" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
 
       <!-- 执法依据 -->
-      <el-table-column label="执法依据" align="center" prop="basisName" min-width="150">
+      <el-table-column label="执法依据" align="center" prop="basisName" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.basisName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 文书模版 -->
-      <el-table-column label="文书模版" align="center" prop="documentName" min-width="150">
+      <el-table-column label="文书模版" align="center" prop="documentName" min-width="150" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.documentName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 案件类型扣分 -->
-      <el-table-column label="案件类型扣分" align="center" prop="caseScore" width="120">
+      <el-table-column label="案件类型扣分" align="center" prop="caseScore" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.caseScore !== undefined && scope.row.caseScore !== null ? scope.row.caseScore : '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 创建人 -->
-      <el-table-column label="创建人" align="center" prop="createByName" width="120">
+      <el-table-column label="创建人" align="center" prop="createByName" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createByName || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 创建时间 -->
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 所属状态 -->
-      <el-table-column label="所属状态" align="center" prop="status" width="100">
+      <el-table-column label="所属状态" align="center" prop="status" width="100" :show-overflow-tooltip="true">
         <template #default="scope">
           <el-tag :type="scope.row.status === '0' ? 'success' : 'danger'">
             {{ scope.row.status === '0' ? '启用' : '禁用' }}
@@ -122,7 +122,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="280">
+      <el-table-column label="操作" align="center" fixed="right" width="280" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>

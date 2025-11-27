@@ -10,7 +10,7 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-width="auto">
       <!-- 所属类别搜索框 -->
       <el-form-item label="所属类别" prop="cultivateType">
         <el-select v-model="queryParams.cultivateType" placeholder="请选择所属类别" filterable clearable>
