@@ -12,7 +12,7 @@
     :title="isViewMode ? '查看法律文书详情' : '编辑法律文书模版'"
     align-center
     :close-on-click-modal="false"
-    :show-close="false"
+    :show-close="true"
     @close="handleClose"
     class="legal-edit-dialog"
   >

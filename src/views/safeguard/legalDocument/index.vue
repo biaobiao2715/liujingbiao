@@ -711,9 +711,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 :deep(.legal-confirm-dialog) {
-  border-top: 4px solid #f7d352;
-  padding-top: 16px;
-
   .el-message-box__header {
     padding-bottom: 0;
   }
@@ -742,8 +739,6 @@ onMounted(() => {
 }
 
 :deep(.legal-update-dialog) {
-  border-top: 4px solid #f7d352;
-
   .el-dialog__body {
     padding: 12px 32px 0 32px;
   }

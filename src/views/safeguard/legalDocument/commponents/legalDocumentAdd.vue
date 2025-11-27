@@ -10,7 +10,6 @@
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="200px" class="legal-edit-form">
       <el-form-item label="法律文书名称模版" prop="legalDocumentName">
         <el-input v-model="formData.legalDocumentName" placeholder="请输入法律文书模版名称" maxlength="30" show-word-limit />
-        <p v-if="!formData.legalDocumentName" class="tip-text">请输入法律文书模版名称，最多支持30个汉字</p>
       </el-form-item>
 
       <el-form-item label="法律文书模版文件" prop="attachments">
@@ -27,7 +26,6 @@
             <el-icon class="el-icon--left"><UploadFilled /></el-icon>
             上传文件
           </el-button>
-          <span class="upload-placeholder">请上传文件</span>
         </el-upload>
       </el-form-item>
 
