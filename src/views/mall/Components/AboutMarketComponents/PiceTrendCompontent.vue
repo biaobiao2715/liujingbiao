@@ -1,27 +1,27 @@
 <template>
   <div class="price-trend-component">
-    <!-- 查询表单 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
-      <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
-      </el-form-item>
-      <el-form-item label="产地:" prop="origin">
-        <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
-      </el-form-item>
-     
-    </el-form>
-
-    <!-- 时间范围选择 -->
-    <div class="time-range-selector">
-      <el-button :type="activeTimeRange === 7 ? 'primary' : 'default'" @click="changeTimeRange(7)"> 近7天 </el-button>
-      <el-button :type="activeTimeRange === 30 ? 'primary' : 'default'" @click="changeTimeRange(30)"> 近30天 </el-button>
-      <el-button :type="activeTimeRange === 60 ? 'primary' : 'default'" @click="changeTimeRange(60)"> 近60天 </el-button>
-    </div>
-
     <!-- 主要内容区域 -->
     <div class="content-wrapper">
       <!-- 左侧：图表区域 -->
       <div class="chart-section">
+          <div class="filter-row">
+            <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
+            <el-form-item label="品种:" prop="variety">
+              <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
+            </el-form-item>
+            <el-form-item label="产地:" prop="origin">
+              <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
+            </el-form-item>
+            </el-form>
+            <!-- 时间范围选择 -->
+            <div class="time-range-selector">
+              <div class="range-pill" :class="{ active: activeTimeRange === 7 }" @click="changeTimeRange(7)">近7天</div>
+              <div class="range-pill" :class="{ active: activeTimeRange === 30 }" @click="changeTimeRange(30)">近30天</div>
+              <div class="range-pill" :class="{ active: activeTimeRange === 60 }" @click="changeTimeRange(60)">近60天</div>
+            </div>
+        </div>
+        <!-- 查询表单 -->
+
         <PriceTrendChart
           :title="`过去${activeTimeRange}天小麦种子价格`"
           unit="单位: 元/kg"
@@ -776,33 +776,60 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .price-trend-component {
-  padding: 12px;
   background-color: #fff;
 
   .query-form {
-    margin-bottom: 16px;
 
     .el-form-item {
       margin-bottom: 0;
     }
-
-    :deep(.goods-category) {
-      width: 250px;
-    }
   }
 
-  .time-range-selector {
-    margin-bottom: 16px;
+  .filter-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
 
-    .el-button {
-      margin-right: 10px;
-    }
+  .filter-row .query-form {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  .filter-row .time-range-selector {
+    padding: 4px;
+    background-color: #f5f5f5;
+    margin-left: auto;
+    display: inline-flex;
+    gap: 10px;
+  }
+
+  .filter-row .time-range-selector .range-pill {
+    border-radius: 4px;
+    padding: 0 18px;
+    height: 32px;
+    line-height: 32px;
+    background: transparent;
+    color: #5c6773;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filter-row .time-range-selector .range-pill.active {
+    background: #ffffff;
+    color: #108c58;
+    font-weight: 600;
   }
 
   .content-wrapper {
     display: flex;
     gap: 20px;
-    margin-bottom: 20px;
 
     .chart-section {
       flex: 2;
