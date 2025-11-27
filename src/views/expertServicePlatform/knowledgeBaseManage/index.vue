@@ -35,7 +35,8 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      <el-form-item>
+      <div style="width: 100%"></div>
+      <el-form-item label-width="0">
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>

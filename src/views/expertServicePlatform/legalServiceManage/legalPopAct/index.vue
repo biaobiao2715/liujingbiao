@@ -7,54 +7,62 @@
 -->
 <template>
   <div class="activity-management">
-    <div class="main-content-box">
-      <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="130">
-        <el-form-item label="普法活动标题" prop="activityTitle">
-          <el-input v-model="queryParams.activityTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        
-        <el-form-item label="所属状态" prop="activityStatus">
-          <el-select v-model="queryParams.activityStatus" placeholder="请选择状态" filterable clearable>
-            <el-option 
-              v-for="item in legal_popularize_activity_status" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="所属类型" prop="activityType">
-          <el-select v-model="queryParams.activityType" placeholder="请选择类型" filterable clearable>
-            <el-option 
-              v-for="item in legal_popularize_activity_type" 
-              :key="item.value" 
-              :label="item.label" 
-              :value="item.value" 
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="发布时间">
-          <el-date-picker
-            v-model="dateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
+    <!-- 搜索条件 -->
+    <el-form
+      v-show="showSearch"
+      ref="queryFormRef"
+      :model="queryParams"
+      inline
+      :label-width="100"
+      class="search-form"
+    >
+      <el-form-item label="普法活动标题" prop="activityTitle">
+        <el-input v-model="queryParams.activityTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      
+      <el-form-item label="所属状态" prop="activityStatus">
+        <el-select v-model="queryParams.activityStatus" placeholder="请选择状态" filterable clearable>
+          <el-option 
+            v-for="item in legal_popularize_activity_status" 
+            :key="item.value" 
+            :label="item.label" 
+            :value="item.value" 
           />
-        </el-form-item>
-        
-        <el-form-item>
-          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-          <el-button v-throttle @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="所属类型" prop="activityType">
+        <el-select v-model="queryParams.activityType" placeholder="请选择类型" filterable clearable>
+          <el-option 
+            v-for="item in legal_popularize_activity_type" 
+            :key="item.value" 
+            :label="item.label" 
+            :value="item.value" 
+          />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="发布时间">
+        <el-date-picker
+          v-model="dateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
+      
+      <el-form-item label-width="0">
+        <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
 
-      <el-row :gutter="10" class="mb8">
+    <!-- 操作栏 -->
+    <el-row :gutter="12" class="operation-bar">
         <el-col :span="1.5">
           <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
         </el-col>
@@ -63,7 +71,7 @@
         </el-col>
       </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" border v-loading="loading" :style="{ width: '100%' }" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
@@ -177,15 +185,18 @@
         </el-table-column>
       </el-table>
 
-      <div class="flex-center pagination">
-        <Pagination 
-          v-if="total > 0" 
-          v-model:total="total"
-          v-model:page="queryParams.pageNum" 
-          v-model:limit="queryParams.pageSize" 
-          @pagination="getList" 
-        />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination">
+      <pagination
+        v-show="total > 0"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
+        @pagination="getList"
+      />
     </div>
 
     <el-dialog
@@ -373,6 +384,17 @@ const handleSearch = () => {
 };
 
 const handleQuery = () => {
+  queryParams.value.pageNum = 1;
+  getList();
+};
+
+const handlePageChange = (page: number) => {
+  queryParams.value.pageNum = page;
+  getList();
+};
+
+const handlePageSizeChange = (size: number) => {
+  queryParams.value.pageSize = size;
   queryParams.value.pageNum = 1;
   getList();
 };
@@ -592,59 +614,85 @@ onMounted(() => {
 <style scoped lang="scss">
 .activity-management {
   padding: 24px;
-  background-color: #f5f5f5;
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #f7f8fa;
+  min-height: calc(100vh - 120px);
 }
 
-.main-content-box {
-  background-color: #fff;
+.search-form {
+  background: #fff;
+  padding: 20px 24px 10px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  :deep(.el-form-item) {
+    min-width: 260px;
+    margin-bottom: 12px;
+    margin-right: 10px;
+  }
+
+  :deep(.el-form-item:last-child) {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: auto;
+    flex-shrink: 0;
+  }
+}
+
+.operation-bar {
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+
+  .el-col {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .el-button {
+    width: auto;
+    min-width: 80px;
+  }
+}
+
+.el-table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
   
-  .el-form {
-    margin-bottom: 20px;
+  :deep(.el-table__header) {
+    background-color: #fafafa;
     
-    .el-form-item {
-      margin-bottom: 16px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
     }
   }
   
-  .mb8 {
-    margin-bottom: 16px;
-  }
-  
-  .el-table {
-    margin-bottom: 20px;
-    
-    :deep(.el-table__header) {
-      background-color: #fafafa;
-      
-      th {
-        background-color: #fafafa !important;
-        color: #606266;
-        font-weight: 600;
-      }
-    }
-    
-    :deep(.el-table__body) {
-      tr {
-        &:hover {
-          background-color: #f5f7fa;
-        }
+  :deep(.el-table__body) {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
       }
     }
   }
-  
-  .pagination {
-    margin-top: 20px;
-    justify-content: end;
-  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .link-type {
