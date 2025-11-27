@@ -12,7 +12,7 @@
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
       <el-form-item label="会议标题">
-        <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
+        <el-input v-model.trim="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
       <el-form-item label="发布时间">
         <el-date-picker
@@ -28,7 +28,7 @@
         />
       </el-form-item>
       <el-form-item label="发布人">
-        <el-input v-model="queryParams.publishUser" placeholder="请输入发布人" clearable />
+        <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable />
       </el-form-item>
       <el-form-item label="所属类型">
         <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类别">
@@ -147,7 +147,13 @@
                 <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
                 <span v-else>查看</span>
               </el-link>
-              <el-link v-if="['3', '99'].includes(scope.row.meetingStatus)" v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link>
+              <el-link
+                v-if="['3', '99'].includes(scope.row.meetingStatus)"
+                v-hasPermi="['skill:HnMeetingCultivate:remove']"
+                type="danger"
+                @click="handleDelete(scope.row)"
+                >删除</el-link
+              >
             </template>
           </div>
         </template>
@@ -167,7 +173,7 @@
   <AddMeeting v-model="visible" :mode="dialogMode" :data="meetingData" @save="handleSave" />
   <!-- 取消会议 -->
   <el-dialog title="取消会议" v-model="dialogVisible" width="30%">
-    <el-input type="textarea" :rows="2" placeholder="请输入取消原因" v-model="cancellation" max="200"></el-input>
+    <el-input type="textarea" :rows="2" placeholder="请输入取消原因" v-model.trim="cancellation" max="200"></el-input>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -256,8 +262,8 @@ const queryParams = ref({
   meetingName: '', // 会议标题
   meetingEndTime: '', // 会议结束时间
   meetingStartTime: '', // 会议开始时间
-  orderByColumn:'publishTime', // 需要排序的列名
-  isAsc:'desc' // 排序方式
+  orderByColumn: 'publishTime', // 需要排序的列名
+  isAsc: 'desc' // 排序方式
 });
 /* 发货配送信息 */
 const shipmentForm = ref({
@@ -305,8 +311,8 @@ const handleReset = () => {
     meetingName: '', // 会议标题
     meetingEndTime: '', // 会议结束时间
     meetingStartTime: '', // 会议开始时间
-    orderByColumn:'publishTime', // 需要排序的列名
-    isAsc:'desc' // 排序方式
+    orderByColumn: 'publishTime', // 需要排序的列名
+    isAsc: 'desc' // 排序方式
   };
   dateRange.value = [];
   getTableData();

@@ -30,7 +30,7 @@ div<!--
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议标题" prop="meetingName">
-              <el-input v-model="form.meetingName" placeholder="请输入培训会议标题" :disabled="isView" />
+              <el-input v-model.trim="form.meetingName" placeholder="请输入培训会议标题" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -42,7 +42,7 @@ div<!--
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议地址" prop="meetingAddress">
-              <el-input v-model="form.meetingAddress" placeholder="请输入培训会议地址" :disabled="isView" />
+              <el-input v-model.trim="form.meetingAddress" placeholder="请输入培训会议地址" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -63,17 +63,17 @@ div<!--
           </el-col>
           <el-col :span="12">
             <el-form-item label="会议联系人" prop="meetingContact">
-              <el-input v-model="form.meetingContact" placeholder="请输入会议联系人" :disabled="isView" />
+              <el-input v-model.trim="form.meetingContact" placeholder="请输入会议联系人" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="联系人电话" prop="meetingPhone">
-              <el-input v-model="form.meetingPhone" placeholder="请输入联系人电话" :disabled="isView" />
+              <el-input v-model.trim="form.meetingPhone" placeholder="请输入联系人电话" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12" v-if="props.data.data && props.data.data.meetingStatus == '99'">
             <el-form-item label="取消原因" prop="cancelReason">
-              <el-input v-model="form.cancelReason" placeholder="请输入取消原因" :disabled="isView" />
+              <el-input v-model.trim="form.cancelReason" placeholder="请输入取消原因" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -175,7 +175,7 @@ div<!--
     <!-- 查询 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
       <el-form-item label="专家姓名">
-        <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable />
+        <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
