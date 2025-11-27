@@ -436,7 +436,7 @@ const fetchPriceExplanation = async () => {
 
       // 处理价格走势：将数字转换为文字描述
       // 1:趋于平稳、2:略有上升、3:大幅上升、4:略有下降、5:大幅下降
-      let trendText = '趋于平稳';
+      let trendText = '';
       if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
         const trendValue = String(data.sevenDaysPriceTrend);
         switch (trendValue) {
