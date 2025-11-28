@@ -239,7 +239,14 @@
 import { ref, onMounted } from 'vue';
 import FormHeader from '@/components/FormHeader/index.vue';
 import { useRoute } from 'vue-router';
-import { enterpriseEdit, enterpriseReview, baseEnterpriseInfoId, getTransactionInfo, getViolationInfo } from '@/api/platform/enterprise';
+import {
+  enterpriseEdit,
+  enterpriseReview,
+  baseEnterpriseInfoId,
+  getTransactionInfo,
+  getViolationInfo,
+  updateCreditLevel
+} from '@/api/platform/enterprise';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
   proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
@@ -455,23 +462,18 @@ const getViolationInfoDetail = async () => {
 const handleSave = async () => {
   try {
     loading.value = true;
-    const response = await enterpriseEdit({
-      enterpriseInfo: {
-        ...formData.value,
-        contacts: undefined,
-        folders: undefined,
-        legalPerson: formData.value.legalPerson?.contactUserName || ''
-      },
-      contacts: formData.value.contacts,
-      folder: formData.value.folders
+    const response = await updateCreditLevel({
+      id: formData.value.id,
+      creditLevel: formData.value.creditLevel,
+      credentialLevel: formData.value.credentialLevel
     });
     if (response.code === 200) {
-      ElMessage.success('保存成功');
+      ElMessage.success('修改信用等级成功');
       emit('saveSuccess');
       dialogVisible.value = false;
     }
   } catch (error) {
-    console.error('保存失败', error);
+    ElMessage.error('修改信用等级失败');
   } finally {
     loading.value = false;
   }

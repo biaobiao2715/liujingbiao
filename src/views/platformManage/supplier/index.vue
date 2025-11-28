@@ -8,7 +8,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form :model="queryParams" inline :label-width="130">
+    <el-form :model="queryParams" inline :label-width="130" label-position="left">
       <el-form-item label="供应商编号">
         <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入供应商编号" clearable />
       </el-form-item>
@@ -35,8 +35,8 @@
         />
       </el-form-item> -->
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -70,27 +70,30 @@
       <el-table-column prop="createTime" label="申请时间" width="180"> </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
       <el-table-column prop="auditPerson" label="审核人" width="140"></el-table-column>
-      <el-table-column label="操作" width="180">
+      <el-table-column label="操作" fixed="right" width="180" >
         <template #default="scope">
           <div class="flex-center operation-btns">
             <el-button
               v-throttle
               type="primary"
+              link
               v-if="scope.row.reviewStatus !== '0'"
               @click="handleEdit(scope.row, 'view')"
               v-hasPermi="['system:baseEnterpriseInfo:query']"
               >查看</el-button
             >
-            <!-- <el-button
+            <el-button
               v-if="scope.row.reviewStatus === '1'"
               v-throttle
+              link
               type="primary"
               @click="handleEdit(scope.row, 'edit')"
               v-hasPermi="['system:baseEnterpriseInfo:edit']"
-              >编辑</el-button
-            > -->
+              >修改信用等级</el-button
+            >
             <el-button
               v-throttle
+              link
               v-if="scope.row.reviewStatus === '0'"
               type="primary"
               @click="handleEdit(scope.row, 'audit')"

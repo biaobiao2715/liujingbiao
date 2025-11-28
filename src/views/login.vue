@@ -164,25 +164,19 @@ const handleLogin = async () => {
           // 未选择记住密码时清除本地存储
           localStorage.removeItem('rememberedAccount');
         }
-        // 判断当前用户类型
-        const { data }: any = await getInfo();
+        loading.value = false;
         router.push('/home'); // 所有用户统一跳转门户
-
-        // if (data.tenantType === '1' || data.tenantType === '2' || data.tenantType === '3') {
-        //   router.push('/home'); // 采购商、供应商、企业
-        // } else if (data.tenantType === '99') {
-        //   ElMessage.error('未知身份，请联系管理员');
-        // } else {
-        //   router.push('/index'); // 其他用户
-        // }
       })
       .catch((err) => {
         console.error('登录失败', err);
       });
   } catch (err) {
     console.error('登录失败', err);
-  } finally {
     loading.value = false;
+  } finally {
+    setTimeout(() => {
+      loading.value = false;
+    }, 5000);
   }
 };
 
