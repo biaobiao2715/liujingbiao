@@ -73,12 +73,12 @@
             <span v-else>入库失败</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="200">
+        <el-table-column label="操作" fixed="right" align="center" width="200">
           <template #default="scope">
             <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-link type="primary" @click="openToggleDialog(scope.row)">
+              <el-button v-throttle type="primary" @click="openToggleDialog(scope.row)">
                 {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
-              </el-link>
+              </el-button>
               <el-button
                 v-throttle
                 type="primary"
