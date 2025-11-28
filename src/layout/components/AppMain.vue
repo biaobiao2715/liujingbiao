@@ -2,7 +2,7 @@
   <section class="app-main">
     <router-view v-slot="{ Component, route }">
       <transition :enter-active-class="animate" mode="out-in">
-        <div>
+        <div style="background-color: #ffffff">
           <keep-alive :include="tagsViewStore.cachedViews">
             <component :is="Component" v-if="!route.meta.link" :key="route.path" />
           </keep-alive>
@@ -54,12 +54,18 @@ function addIframe() {
 </script>
 
 <style lang="scss" scoped>
+section {
+  /* background: #f7f8fa; */
+}
 .app-main {
   /* 50= navbar  50  */
-  min-height: calc(100vh - 50px);
+  min-height: calc(100vh - 100px);
   width: 100%;
   position: relative;
   overflow: hidden;
+  /* background: #f7f8fa; */
+  padding: 15px;
+  padding-top: 0;
 }
 
 .fixed-header + .app-main {
@@ -68,8 +74,8 @@ function addIframe() {
 
 .hasTagsView {
   .app-main {
-    /* 84 = navbar + tags-view = 50 + 34 */
-    min-height: calc(100vh - 84px);
+    /* 84 = navbar + tags-view = 50 + 34+ 30padding */
+    min-height: calc(100vh - 114px);
   }
 
   .fixed-header + .app-main {

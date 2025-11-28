@@ -12,8 +12,11 @@
         <settings ref="settingRef" />
       </el-scrollbar> -->
       <div :class="{ 'fixed-header': fixedHeader }">
-        <navbar ref="navbarRef" @set-layout="setLayout" />
-        <tags-view v-if="needTagsView" />
+        <navbar ref="navbarRef" @set-layout="setLayout" style="background: #ffffff" />
+        <!-- <tags-view v-if="needTagsView" /> -->
+        <div class="breadcrumbList">
+          <breadcrumb v-if="!settingsStore.topNav" id="breadcrumb-container" class="breadcrumb-container" />
+        </div>
       </div>
       <app-main />
       <settings ref="settingRef" />
@@ -131,5 +134,8 @@ const setLayout = () => {
 
 .mobile .fixed-header {
   width: 100%;
+}
+.breadcrumbList {
+  background: #f7f8fa;
 }
 </style>

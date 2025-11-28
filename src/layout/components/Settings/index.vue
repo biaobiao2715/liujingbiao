@@ -89,8 +89,8 @@
 
     <el-divider />
 
-    <el-button v-throttle  type="primary" plain icon="DocumentAdd" @click="saveSetting">保存配置</el-button>
-    <el-button v-throttle  plain icon="Refresh" @click="resetSetting">重置配置</el-button>
+    <el-button v-throttle type="primary" plain icon="DocumentAdd" @click="saveSetting">保存配置</el-button>
+    <el-button v-throttle plain icon="Refresh" @click="resetSetting">重置配置</el-button>
   </el-drawer>
 </template>
 
@@ -112,7 +112,7 @@ const showSettings = ref(false);
 const theme = ref(settingsStore.theme);
 const sideTheme = ref(settingsStore.sideTheme);
 const storeSettings = computed(() => settingsStore);
-const predefineColors = ref(['#409EFF', '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585']);
+const predefineColors = ref(['#0f8c59', '#409EFF', '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585']);
 
 // 是否暗黑模式
 const isDark = useDark({
