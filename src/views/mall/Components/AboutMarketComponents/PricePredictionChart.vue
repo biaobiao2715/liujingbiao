@@ -30,10 +30,32 @@ const props = withDefaults(defineProps<Props>(), {
 const chartContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 
-const buildAxis = () => {
-  const history = props.historicalMonths || [];
-  const predicted = props.predictedMonths || [];
-  return [...history, ...predicted.filter((m) => !history.includes(m))];
+const normalizeMonthLabel = (value: any) => {
+  if (value === undefined || value === null) return '';
+  const str = String(value).trim();
+  if (!str) return '';
+  if (str.includes('-')) {
+    const [year, month] = str.split('-');
+    const safeMonth = (month || '').padStart(2, '0');
+    return `${year}-${safeMonth}`;
+  }
+  if (str.includes('/')) {
+    const [year, month] = str.split('/');
+    const safeMonth = (month || '').padStart(2, '0');
+    return `${year}-${safeMonth}`;
+  }
+  return str;
+};
+
+const normalizeMonths = (months?: string[]) =>
+  (months || [])
+    .map((m) => normalizeMonthLabel(m))
+    .filter((label) => !!label);
+
+const buildAxis = (history: string[], predicted: string[]) => {
+  const uniqueHistory = history || [];
+  const uniquePredicted = predicted || [];
+  return [...uniqueHistory, ...uniquePredicted.filter((m) => !uniqueHistory.includes(m))];
 };
 
 const buildSeriesData = (axis: string[], months: string[], values: number[]) => {
@@ -84,28 +106,31 @@ const hasValidData = (values: number[]) => {
 
 const updateChart = () => {
   if (!chartInstance) return;
-  const allAxis = buildAxis();
+  const historicalMonths = normalizeMonths(props.historicalMonths);
+  const predictedMonths = normalizeMonths(props.predictedMonths);
+
+  const allAxis = buildAxis(historicalMonths, predictedMonths);
   if (!allAxis.length) return;
 
-  const historicalData = buildSeriesData(allAxis, props.historicalMonths, props.historicalPrices);
-  const predictedData = buildSeriesData(allAxis, props.predictedMonths, props.predictedPrices);
+  const historicalData = buildSeriesData(allAxis, historicalMonths, props.historicalPrices);
+  const predictedData = buildSeriesData(allAxis, predictedMonths, props.predictedPrices);
 
   // 检查是否有有效数据 - 检查构建后的数据中是否有非null值
   const hasValidHistorical = hasValidData(props.historicalPrices) && historicalData.some((v) => v !== null && v !== undefined);
   // 预测数据：只要数组存在且有长度，且构建后的数据中有非null值就显示
   const hasValidPredicted = 
-    props.predictedPrices?.length > 0 && 
-    props.predictedMonths?.length > 0 && 
+    props.predictedPrices?.length > 0 &&
+    predictedMonths.length > 0 &&
     predictedData.some((v) => v !== null && v !== undefined && typeof v === 'number' && !Number.isNaN(v));
   
   console.log('[PricePredictionChart] 历史数据：', {
     axis: allAxis,
-    historicalMonths: props.historicalMonths,
+    historicalMonths,
     historicalPrices: props.historicalPrices,
     historicalData
   });
   console.log('[PricePredictionChart] 预测数据：', {
-    predictedMonths: props.predictedMonths,
+    predictedMonths,
     predictedPrices: props.predictedPrices,
     predictedData
   });
@@ -113,16 +138,16 @@ const updateChart = () => {
 
   // 只有在有有效数据时才显示最高最低点
   const historicalMaxData = hasValidHistorical
-    ? buildScatterData(allAxis, props.historicalMonths, props.historicalPrices, 'max')
+    ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'max')
     : allAxis.map(() => null);
   const historicalMinData = hasValidHistorical
-    ? buildScatterData(allAxis, props.historicalMonths, props.historicalPrices, 'min')
+    ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'min')
     : allAxis.map(() => null);
   const predictedMaxData = hasValidPredicted
-    ? buildScatterData(allAxis, props.predictedMonths, props.predictedPrices, 'max')
+    ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'max')
     : allAxis.map(() => null);
   const predictedMinData = hasValidPredicted
-    ? buildScatterData(allAxis, props.predictedMonths, props.predictedPrices, 'min')
+    ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'min')
     : allAxis.map(() => null);
 
   const valueList = [...historicalData, ...predictedData].filter((v) => typeof v === 'number' && v > 0) as number[];
@@ -258,12 +283,12 @@ const updateChart = () => {
               },
               z: 2
             },
-            // 历史最高点（青绿色圆圈）
+            // 历史最高点（青绿色三角形向上）
             {
               name: '过往最高点',
               type: 'scatter',
               data: historicalMaxData,
-              symbol: 'circle',
+              symbol: 'triangle',
               symbolSize: 14,
               itemStyle: {
                 color: '#fff',
@@ -275,12 +300,13 @@ const updateChart = () => {
               },
               z: 10
             },
-            // 历史最低点（青绿色圆圈）
+            // 历史最低点（青绿色三角形向下）
             {
               name: '过往最低点',
               type: 'scatter',
               data: historicalMinData,
-              symbol: 'circle',
+              symbol: 'triangle',
+              symbolRotate: 180,
               symbolSize: 14,
               itemStyle: {
                 color: '#fff',
