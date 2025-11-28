@@ -476,15 +476,15 @@ const handleFileChange = async ({ file }: any) => {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_SIZE) {
       // 使用分片上传
-      const res = await uploadByChunks(file, (p) => {
+      const res: any = await uploadByChunks(file, (p) => {
         console.log(`上传进度: ${p}%`);
       });
       console.log(res, file, '切片成功了');
 
       attachmentList.value.push({
         ossId: res.ossId,
-        fileName: res.fileName,
-        originalName: file.name,
+        fileName: res.fileName || file.name,
+        originalName: res.fileName || file.name,
         fileSuffix: file.type,
         url: res.url,
         fileSize: formatFileSize(file.size),
