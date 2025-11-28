@@ -7,8 +7,14 @@
         <!-- 筛选/排序区域 -->
         <div class="filter-section">
           <div class="region-filter-wrapper">
-            <RegionSelect v-model="regionValue" @regionChange="handleAreaChange" placeholder="全国" class="region-select"
-              :show-all-levels="false" clearable />
+            <RegionSelect
+              v-model="regionValue"
+              @regionChange="handleAreaChange"
+              placeholder="全国"
+              class="region-select"
+              :show-all-levels="false"
+              clearable
+            />
           </div>
           <div class="filter-checkbox" :class="{ 'is-checked': filterState.sortType === '最新' }" @click="toggleSortType">
             <span>最新</span>
@@ -16,41 +22,44 @@
           <div class="price-filter-group">
             <span class="price-label">价格</span>
             <div class="price-input-group">
-              <el-input-number 
-                v-model="queryParams.minPrice" 
-                :min="0" 
-                :precision="2" 
-                :controls="false" 
-                placeholder="最低价格" 
+              <el-input-number
+                v-model="queryParams.minPrice"
+                :min="0"
+                :precision="2"
+                :controls="false"
+                placeholder="最低价格"
                 class="price-input"
                 @keyup.enter="handleSearch"
                 @change="handleMinPriceChange"
               />
               <span class="price-separator">-</span>
-              <el-input-number 
-                v-model="queryParams.maxPrice" 
-                :min="0" 
-                :precision="2" 
-                :controls="false" 
-                placeholder="最高价格" 
+              <el-input-number
+                v-model="queryParams.maxPrice"
+                :min="0"
+                :precision="2"
+                :controls="false"
+                placeholder="最高价格"
                 class="price-input"
                 @keyup.enter="handleSearch"
                 @change="handleMaxPriceChange"
               />
             </div>
             <button class="search-btn" @click="handleSearch">搜索</button>
-            </div>
+          </div>
         </div>
 
         <div v-loading="loading" class="goods-content-wrapper">
           <div v-if="goodsData.length > 0" class="goods-grid">
-            <div v-for="item in goodsData" :key="item.id" class="goods-card"
-              :class="{ 'in-compare': isInCompare(item.id) }" @click="toggleCompare(item)">
-
+            <div
+              v-for="item in goodsData"
+              :key="item.id"
+              class="goods-card"
+              :class="{ 'in-compare': isInCompare(item.id) }"
+              @click="toggleCompare(item)"
+            >
               <!-- 鼠标悬停遮罩层 -->
               <div class="hover-overlay">
-                <el-checkbox :model-value="isInCompare(item.id)" @change="() => toggleCompare(item)" @click.stop>
-                </el-checkbox>
+                <el-checkbox :model-value="isInCompare(item.id)" @change="() => toggleCompare(item)" @click.stop> </el-checkbox>
                 <span class="overlay-text">加入对比</span>
               </div>
 
@@ -68,7 +77,6 @@
                   <span class="location">{{ item.hnBaseEnterpriseInfo?.province }}</span>
                 </div>
               </div>
-
             </div>
           </div>
           <div v-else class="empty-state-wrapper">
@@ -77,8 +85,13 @@
         </div>
 
         <!-- 分页 -->
-        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-          :total="total" @pagination="fetchGoodsList" />
+        <pagination
+          v-show="total > 0"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          :total="total"
+          @pagination="fetchGoodsList"
+        />
       </div>
 
       <!-- 右侧：对比框 -->
@@ -105,13 +118,8 @@
         </div>
 
         <div class="box-actions">
-          <el-button type="success" class="start-compare-btn" :disabled="compareGoodsList.length < 2"
-            @click="startCompare">
-            开始对比
-          </el-button>
-          <el-link type="primary" class="clear-link" :disabled="compareGoodsList.length === 0" @click="clearCompare">
-            清空对比栏
-          </el-link>
+          <el-button type="success" class="start-compare-btn" :disabled="compareGoodsList.length < 2" @click="startCompare"> 开始对比 </el-button>
+          <el-link type="primary" class="clear-link" :disabled="compareGoodsList.length === 0" @click="clearCompare"> 清空对比栏 </el-link>
         </div>
       </div>
     </div>
@@ -270,11 +278,11 @@ const getPrice = (goods: Goods) => {
 
 const isInCompare = (goodsId?: number) => {
   if (!goodsId) return false;
-  return compareGoodsList.value.some(item => item.id === goodsId);
+  return compareGoodsList.value.some((item) => item.id === goodsId);
 };
 
 const toggleCompare = (goods: Goods) => {
-  const index = compareGoodsList.value.findIndex(item => item.id === goods.id);
+  const index = compareGoodsList.value.findIndex((item) => item.id === goods.id);
 
   if (index > -1) {
     // 如果是对比框中的唯一商品，不允许移除
@@ -313,11 +321,13 @@ const clearCompare = () => {
   // 如果是从商品详情页跳转过来的，保留当前商品
   if (currentGoods.value && currentGoods.value.id) {
     const price = getPrice(currentGoods.value);
-    compareGoodsList.value = [{
-      ...currentGoods.value,
-      price: price.toString(),
-      location: currentGoods.value.hnBaseEnterpriseInfo?.province
-    }];
+    compareGoodsList.value = [
+      {
+        ...currentGoods.value,
+        price: price.toString(),
+        location: currentGoods.value.hnBaseEnterpriseInfo?.province
+      }
+    ];
   } else {
     compareGoodsList.value = [];
   }
@@ -346,9 +356,9 @@ const startCompare = async () => {
     // 其他商品作为对比商品（排除第一个）
     const compareIds = compareGoodsList.value
       .slice(1) // 跳过第一个商品（主商品）
-      .map(item => item.id)
+      .map((item) => item.id)
       .filter((id) => id !== undefined && id !== null)
-      .map(id => String(id));
+      .map((id) => String(id));
 
     if (compareIds.length === 0) {
       ElMessage.warning('请至少选择2个商品进行对比');
@@ -393,9 +403,9 @@ const fetchCurrentGoods = async () => {
     const res = await goodsDetail(goodsIdFromRoute.value);
     if (res && res.code === 200 && res.data) {
       currentGoods.value = res.data;
-      
+
       // 自动将当前商品添加到对比框（如果还没有添加）
-      const exists = compareGoodsList.value.some(item => item.id === res.data.id);
+      const exists = compareGoodsList.value.some((item) => item.id === res.data.id);
       if (!exists) {
         const price = getPrice(res.data);
         compareGoodsList.value.unshift({
@@ -457,7 +467,6 @@ const fetchGoodsList = async () => {
   }
 };
 
-
 onMounted(async () => {
   // 如果从商品详情页跳转过来，先清空对比框，然后加载当前商品（会自动添加）
   // 如果不是从商品详情页跳转，尝试从本地存储恢复
@@ -476,7 +485,7 @@ onMounted(async () => {
       // 忽略解析错误
     }
   }
-  
+
   fetchGoodsList();
 });
 </script>
@@ -504,8 +513,7 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 20px;
-      padding: 16px;
+      padding: 16px 0;
       background: #f8f8f8;
       border-radius: 4px;
       flex-wrap: wrap;
@@ -515,19 +523,19 @@ onMounted(async () => {
           width: 200px;
 
           :deep(.el-input__wrapper) {
-            background: #FFFFFF;
+            background: #ffffff;
             border-radius: 8px;
-            border: 1px solid #EBEBEB;
+            border: 1px solid #ebebeb;
             box-shadow: none;
             height: 36px;
             padding: 0 12px;
 
             &:hover {
-              border-color: #108C58;
+              border-color: #108c58;
             }
 
             &.is-focus {
-              border-color: #108C58;
+              border-color: #108c58;
             }
           }
 
@@ -544,9 +552,9 @@ onMounted(async () => {
         justify-content: center;
         width: 62px;
         height: 36px;
-        background: #FFFFFF;
+        background: #ffffff;
         border-radius: 8px;
-        border: 1px solid #EBEBEB;
+        border: 1px solid #ebebeb;
         font-size: 14px;
         color: #303133;
         cursor: pointer;
@@ -554,7 +562,7 @@ onMounted(async () => {
         user-select: none;
 
         &.is-checked {
-          border: 1px solid #108C58;
+          border: 1px solid #108c58;
         }
 
         &:hover {
@@ -612,24 +620,24 @@ onMounted(async () => {
             flex-shrink: 0;
           }
         }
-        
+
         .search-btn {
           height: 32px;
           padding: 0 16px;
           margin-left: 8px;
-          background: #108C58;
+          background: #108c58;
           color: #fff;
-          border: 1px solid #108C58;
+          border: 1px solid #108c58;
           border-radius: 4px;
           font-size: 14px;
           cursor: pointer;
           transition: all 0.2s ease;
-          
+
           &:hover {
             background: #0e7a4a;
             border-color: #0e7a4a;
           }
-          
+
           &:active {
             transform: translateY(1px);
           }
@@ -708,10 +716,10 @@ onMounted(async () => {
               .el-checkbox__inner {
                 width: 18px;
                 height: 18px;
-                background: #108C58;
+                background: #108c58;
                 border-radius: 4px;
-                border: 4px solid #108C58;
-                border-color: #108C58;
+                border: 4px solid #108c58;
+                border-color: #108c58;
                 position: relative;
                 display: none;
 
@@ -731,7 +739,7 @@ onMounted(async () => {
               }
 
               &.is-checked .el-checkbox__inner {
-                background-color: #108C58;
+                background-color: #108c58;
                 border: none;
                 display: block;
 
@@ -824,12 +832,11 @@ onMounted(async () => {
     }
   }
 
-
   // 右侧对比框
   .compare-box {
     position: absolute;
     right: 0;
-    top: 0;
+    top: 68px;
     width: 300px;
     background: #fff;
     border-radius: 4px;

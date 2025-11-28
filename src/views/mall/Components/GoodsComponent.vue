@@ -119,6 +119,10 @@ const handleClick = (id: string) => {
 </script>
 
 <style scoped lang="scss">
+.goods-container {
+  width: 1500px;
+  margin: 0 auto;
+}
 .goods-list {
   display: flex;
   flex-wrap: wrap;

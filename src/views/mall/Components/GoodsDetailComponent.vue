@@ -78,9 +78,15 @@
                 </el-tag>
               </div>
             </div>
-            <div class="title-actions">
-              <span class="action-link phone-link" @click="operateOrder(4)">电话沟通</span>
-              <span class="action-link report-link" @click="operateOrder(5)">我要举报</span>
+            <div class="title-actions gap-24">
+              <div class="flex-center gap-12">
+                <img src="@/assets/mall/phone-icon.png" width="24" />
+                <span class="action-link phone-link" @click="operateOrder(4)">电话沟通</span>
+              </div>
+              <div class="flex-center gap-12">
+                <img src="@/assets/mall/report-icon.png" width="24" />
+                <span class="action-link report-link" @click="operateOrder(5)">我要举报</span>
+              </div>
             </div>
           </div>
 
@@ -130,9 +136,13 @@
 
           <!-- 操作按钮 -->
           <div class="action-buttons">
-            <button class="btn btn-compare" @click="operateOrder(1)">加入比价</button>
-            <button class="btn btn-favorite" :class="{ 'btn-favorite-active': isFavorite }" @click="operateOrder(2)">
-              {{ isFavorite ? '取消收藏' : '加入收藏夹' }}
+            <button class="btn btn-compare flex-center-center gap-4" @click="operateOrder(1)">
+              <img src="@/assets/mall/compare-icon.png" width="20" />
+              <div>加入比价</div>
+            </button>
+            <button class="btn btn-favorite flex-center-center gap-4" :class="{ 'btn-favorite-active': isFavorite }" @click="operateOrder(2)">
+              <img src="@/assets/mall/cart-icon.png" width="20" />
+              <div>{{ isFavorite ? '取消收藏' : '加入收藏夹' }}</div>
             </button>
             <button class="btn btn-buy" @click="operateOrder(3)">立即下单</button>
           </div>
@@ -155,7 +165,7 @@
 
       <!-- 详情部分 -->
       <div class="detail-section">
-        <div class="info-recommend-wrapper">
+        <div class="info-recommend-wrapper flex gap-12">
           <!-- 商品详情 -->
           <div class="product-info">
             <h2 class="section-title">商品详情</h2>
@@ -662,7 +672,7 @@ defineExpose({
 }
 
 .goods-detail {
-  max-width: 1200px;
+  width: 1500px;
   margin: 0 auto;
   padding: 20px;
   display: flex;
@@ -840,9 +850,9 @@ defineExpose({
         flex: 1;
 
         .goods-title {
-          font-size: 24px;
+          font-size: 26px;
           font-weight: bold;
-          color: #000;
+          color: #3d3d3d;
           margin: 0 0 15px 0;
           line-height: 1.4;
         }
@@ -906,12 +916,12 @@ defineExpose({
 
           &.phone-link {
             color: #ffa113;
-            font-size: 14px;
+            font-size: 20px;
           }
 
           &.report-link {
             color: #ef4d0b;
-            font-size: 14px;
+            font-size: 20px;
           }
 
           &:hover {
@@ -922,6 +932,9 @@ defineExpose({
     }
 
     .price-section {
+      background: url('@/assets/mall/price-bg.png') no-repeat;
+      background-size: cover;
+      padding: 12px 20px;
       .price {
         font-size: 30px;
         font-weight: bold;
@@ -930,16 +943,15 @@ defineExpose({
     }
 
     .shipping-address {
-      font-size: 14px;
+      font-size: 20px;
       color: #333;
       display: flex;
       align-items: center;
       margin-bottom: 20px;
 
       .label {
-        color: #333;
-        flex-shrink: 0;
-        width: 80px;
+        color: #3d3d3d;
+        width: 100px;
       }
 
       .address-select {
@@ -966,10 +978,9 @@ defineExpose({
       margin-bottom: 20px;
 
       .spec-title {
-        font-size: 14px;
-        color: #666;
-        flex-shrink: 0;
-        width: 80px;
+        font-size: 20px;
+        color: #3d3d3d;
+        width: 100px;
         margin-bottom: 0;
         line-height: 40px;
       }
@@ -1049,10 +1060,10 @@ defineExpose({
       margin-bottom: 20px;
 
       .quantity-title {
-        font-size: 14px;
-        color: #666;
+        font-size: 20px;
+        color: #3d3d3d;
         flex-shrink: 0;
-        width: 80px;
+        width: 100px;
         margin-bottom: 0;
       }
 
@@ -1085,13 +1096,15 @@ defineExpose({
       }
 
       .btn-compare {
-        background: white;
-        border: 1px solid #ddd;
-        color: #666;
+        color: #ffa113;
+        font-size: 20px;
+        background: rgba(255, 161, 19, 0.1);
+        border: 1px solid #ffa113;
+        border-radius: 4px;
+        font-weight: 500;
 
         &:hover {
-          border-color: #4caf50;
-          color: #4caf50;
+          opacity: 0.8;
         }
       }
 
@@ -1099,10 +1112,12 @@ defineExpose({
         background: rgba(16, 140, 88, 0.1);
         border: 1px solid #108c58;
         color: #108c58;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 20px;
 
         &:hover {
-          background: rgba(16, 140, 88, 0.15);
-          border-color: #108c58;
+          opacity: 0.8;
         }
 
         &.btn-favorite-active {
@@ -1118,13 +1133,14 @@ defineExpose({
       }
 
       .btn-buy {
-        background: #108c58;
         color: white;
+        border-radius: 4px;
+        background: #108c58;
         border: 1px solid #108c58;
-
+        font-weight: 500;
+        font-size: 20px;
         &:hover {
-          background: #0e7a4a;
-          border-color: #0e7a4a;
+          opacity: 0.8;
         }
       }
     }
@@ -1201,10 +1217,13 @@ defineExpose({
     margin-bottom: 20px;
 
     .section-title {
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 20px;
+      font-weight: 500;
       margin-bottom: 20px;
       color: #000;
+      border-left: 4px solid #108c58;
+      padding-left: 10px;
+      line-height: 20px;
     }
 
     .similar-goods-list {
@@ -1240,23 +1259,20 @@ defineExpose({
     margin-top: 20px;
 
     .info-recommend-wrapper {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: flex;
-      gap: 20px;
     }
 
     .product-info {
-      flex: 0 0 70%;
-      padding: 0;
-      margin-bottom: 0;
-
+      width: calc(100% - 310px);
+      padding: 20px;
+      background-color: #fff;
       .section-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
+        font-size: 20px;
+        font-weight: 500;
+        color: #000;
         margin-bottom: 15px;
+        border-left: 4px solid #108c58;
+        padding-left: 10px;
+        line-height: 20px;
       }
 
       .goods-detail-content {
@@ -1329,25 +1345,32 @@ defineExpose({
     }
 
     .hot-recommendations {
-      flex: 0 0 30%;
-      padding: 0;
+      width: 298px;
+      padding: 20px;
+      background-color: #fff;
 
       .section-title {
         font-size: 20px;
-        font-weight: bold;
-        color: #333;
+        font-weight: 500;
+        color: #000;
         margin-bottom: 15px;
+        border-left: 4px solid #108c58;
+        padding-left: 10px;
+        line-height: 20px;
       }
 
       .recommendation-list {
         display: flex;
         flex-direction: column;
         gap: 15px;
-      }
 
-      .hot-goods-item {
-        width: 100%;
-        min-width: auto;
+        .hot-goods-item {
+          padding: 0 !important;
+          ::v-deep .goods-image {
+            width: 100% !important;
+            height: 258px !important;
+          }
+        }
       }
     }
   }
