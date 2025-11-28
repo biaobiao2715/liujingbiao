@@ -155,24 +155,23 @@ const updateChart = () => {
         symbol: (_value: any, params: any) => (labelIndices.has(params.dataIndex) ? 'circle' : 'none'),
         symbolSize: 6,
         lineStyle: {
-          width: 2,
-          color: '#409eff'
+          width: 3,
+          color: '#108C58' // 折线颜色使用渐变起始色
         },
         itemStyle: {
-          color: '#409eff',
+          color: '#108C58', // 数据点颜色
           borderWidth: 2,
           borderColor: '#fff'
         },
         areaStyle: {
-          opacity: 0.3,
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             {
               offset: 0,
-              color: 'rgba(64, 158, 255, 0.9)'
+              color: 'rgba(16,140,88,0.22)' // 渐变起始色
             },
             {
               offset: 1,
-              color: 'rgba(64, 158, 255, 0)'
+              color: 'rgba(16,140,88,0)' // 渐变结束色（透明）
             }
           ])
         },
