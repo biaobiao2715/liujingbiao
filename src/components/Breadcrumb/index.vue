@@ -2,7 +2,8 @@
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
       <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
-        <svg-icon v-if="index == 0" :icon-class="item.meta.icon" style="margin-right: 4px" />
+        <svg-icon v-if="index == 0" :icon-class="item.meta.icon" style="margin-right: 4px; font-size: 16px" />
+        <span v-if="index == 0" style="margin-right: 4px; color: #a8abb2; font-weight: bold"> / </span>
         <span
           v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
           class="no-redirect"
