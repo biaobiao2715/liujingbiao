@@ -51,7 +51,7 @@
           <span>{{ scope.row.caseScore }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button
             v-throttle

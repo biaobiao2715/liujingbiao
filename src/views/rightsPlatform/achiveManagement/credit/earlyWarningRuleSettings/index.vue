@@ -79,7 +79,7 @@
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="300">
+      <el-table-column fixed="right" label="操作" align="center" width="300">
         <template #default="scope">
           <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['safeguard:warnRule:edit']">修改</el-button>
           <el-button v-throttle link type="info" @click="handleView(scope.row)" v-hasPermi="['safeguard:warnRule:query']">查看</el-button>

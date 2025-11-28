@@ -29,7 +29,7 @@
       <el-table-column label="信用积分" align="center" prop="creditMinPoints">
         <template #default="{ row }"> {{ row.creditMinPoints }} - {{ row.creditMaxPoints }} </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="160" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" type="primary" @click="openSetDialog(scope.row)">设置</el-button>
         </template>

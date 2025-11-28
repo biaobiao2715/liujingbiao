@@ -42,7 +42,7 @@
           {{ proxy.parseTime(row.publishTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="120" align="center">
+      <el-table-column fixed="right" label="操作" width="120" align="center">
         <template #default="scope">
           <el-button
             v-if="scope.row.hasQuote == '0'"

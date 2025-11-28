@@ -84,7 +84,7 @@
       </el-table-column>
       <el-table-column label="审核人" align="center" prop="auditPerson" width="140" :show-overflow-tooltip="true"> </el-table-column>
 
-      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button
             v-throttle

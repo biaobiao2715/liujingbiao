@@ -48,7 +48,7 @@
         <!-- 销售订单号 -->
         <el-table-column prop="orderSn" label="销售订单号" min-width="150" :show-overflow-tooltip="true" align="center"></el-table-column>
         <!-- 操作列 -->
-        <el-table-column label="操作" min-width="150" align="center">
+        <el-table-column label="操作" fixed="right" min-width="150" align="center">
           <template #default="{ row }">
             <!-- 取消订单按钮 -->
             <el-button
