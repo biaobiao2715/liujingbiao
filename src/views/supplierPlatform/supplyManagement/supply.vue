@@ -8,14 +8,14 @@
 <template>
   <div class="procurement-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline class="search-bar">
-      <el-form-item label="发布类型">
+    <el-form :model="queryParams" inline label-position="left">
+      <el-form-item label="发布类型" label-width="auto">
         <GoodsCategorySelect v-model="queryParams.supplyCategoryId" :emitPath="false" @categoryChange="handleCategoryChange" />
       </el-form-item>
-      <el-form-item label="发布区域">
+      <el-form-item label="发布区域" label-width="auto">
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
-      <el-form-item class="search-bar-btns">
+      <el-form-item>
         <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:list']" type="primary" @click="getTableData">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
@@ -28,7 +28,7 @@
       </el-col>
     </el-row>
     <!-- 表格 -->
-    <el-table :data="tableData" border style="width: 100%" v-loading="loading">
+    <el-table :data="tableData" border style="width: '100%'" v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column prop="categoryName" label="发布类型" align="center" :show-overflow-tooltip="true" />
       <el-table-column prop="purchaseRegion" label="发布区域" align="center" :show-overflow-tooltip="true">
@@ -119,18 +119,18 @@
         </el-row>
 
         <!-- 操作按钮 -->
-        <el-row type="flex" justify="center" :gutter="5" v-if="dialogMode !== 'detail'">
+        <div class="flex-center-end" v-if="dialogMode !== 'detail'">
           <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
           <el-col :span="3"><el-button type="primary" @click="submitQuote">提交发布</el-button></el-col>
-        </el-row>
+        </div>
       </el-form>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, onMounted, getCurrentInstance, nextTick } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 // 采购需求相关接口
 import {
   hnSupplierSupplyList,
@@ -288,7 +288,9 @@ const handleAdd = () => {
     stock: '',
     supplierSupplyDeliveryBos: []
   };
+  // 先显示弹窗，待表单渲染后再清除校验
   quoteDialogVisible.value = true;
+  quoteFormRef.value?.clearValidate?.();
 };
 
 /**
@@ -299,7 +301,7 @@ const handleEdit = async (row: any) => {
   // 获取详情数据
   const res = await hnSupplierSupplyId(row.id);
   if (res.code === 200) {
-    console.log('编辑数据:', res.data.supplierSupplyDeliveryVos);
+    // console.log('编辑数据:', res.data.supplierSupplyDeliveryVos);
     const arr = Array.isArray(res.data.supplierSupplyDeliveryVos)
       ? res.data.supplierSupplyDeliveryVos.map((item: any) => [
           item?.deliveryProvinceCode ?? '',
@@ -311,8 +313,8 @@ const handleEdit = async (row: any) => {
       ...res.data,
       supplierSupplyDeliveryBos: JSON.parse(JSON.stringify(arr))
     };
-    console.log('编辑数据:', arr);
     quoteDialogVisible.value = true;
+    quoteFormRef.value?.clearValidate?.(); // 清除校验状态（等待渲染）
   }
 };
 
@@ -330,6 +332,7 @@ const handleDetail = async (row: any) => {
         : []
     };
     quoteDialogVisible.value = true;
+    quoteFormRef.value?.clearValidate?.(); // 清除校验状态（等待渲染）
   }
 };
 
@@ -422,19 +425,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .procurement-management {
   padding: 24px;
-
-  .search-bar {
-    margin-bottom: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    .search-bar-btns {
-      margin-left: auto;
-      display: flex;
-      gap: 8px;
-    }
-  }
 
   .pagination-wrapper {
     display: flex;

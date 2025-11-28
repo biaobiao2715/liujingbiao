@@ -8,17 +8,17 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline class="query-form">
-      <el-form-item label="企业编码" prop="enterpriseNumber">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="企业编码" prop="enterpriseNumber" label-width="auto">
         <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="企业名称" prop="companyName">
+      <el-form-item label="企业名称" prop="companyName" label-width="auto">
         <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="统一社会信用代码" prop="licenseNumber">
+      <el-form-item label="统一社会信用代码" prop="licenseNumber" label-width="auto">
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="审核状态" prop="reviewStatus">
+      <el-form-item label="审核状态" prop="reviewStatus" label-width="auto">
         <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
           <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -84,10 +84,11 @@
       </el-table-column>
       <el-table-column label="审核人" align="center" prop="auditPerson" width="140" :show-overflow-tooltip="true"> </el-table-column>
 
-      <el-table-column fixed="right" label="操作" align="center" width="180" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="180">
         <template #default="scope">
           <el-button
             v-throttle
+            link
             v-hasPermi="['system:baseEnterpriseInfo:query']"
             v-if="scope.row.reviewStatus !== '0'"
             type="primary"
@@ -95,21 +96,23 @@
             >查看</el-button
           >
           <el-button
+            v-if="scope.row.reviewStatus === '1'"
             v-throttle
+            link
+            type="primary"
+            @click="handleEdit(scope.row, 'edit')"
+            v-hasPermi="['system:baseEnterpriseInfo:edit']"
+            >修改信用等级</el-button
+          >
+          <el-button
+            v-throttle
+            link
             v-hasPermi="['system:baseEnterpriseInfo:audit']"
             v-if="scope.row.reviewStatus === '0'"
             type="primary"
             @click="handleEdit(scope.row, 'audit')"
             >审核</el-button
           >
-          <!-- <el-button
-            v-throttle
-            v-hasPermi="['system:baseEnterpriseInfo:edit']"
-            v-if="scope.row.reviewStatus === '1'"
-            type="primary"
-            @click="handleEdit(scope.row, 'edit')"
-            >编辑</el-button
-          > -->
         </template>
       </el-table-column>
     </el-table>
@@ -231,17 +234,5 @@ onMounted(() => {
 .pagination {
   margin-top: 24px;
   justify-content: end;
-}
-
-/* 查询表单：让标签宽度自适应且内容无多余左侧间距 */
-.query-form :deep(.el-form-item__label) {
-  width: auto;
-  white-space: nowrap;
-}
-.query-form :deep(.el-form-item__content) {
-  margin-left: 0 !important;
-}
-.query-form :deep(.el-form-item) {
-  gap: 8px; /* 标签与内容的自然间距 */
 }
 </style>

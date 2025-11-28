@@ -81,10 +81,10 @@
           {{ form.varietyType }}
         </el-form-item>
 
-        <el-form-item>
+        <div class="flex-center-end">
           <el-button v-throttle type="primary" @click="handleSubmit">确定</el-button>
           <el-button v-throttle @click="handcancel">取消</el-button>
-        </el-form-item>
+        </div>
       </el-form>
     </div>
   </div>
