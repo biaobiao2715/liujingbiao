@@ -25,7 +25,7 @@
           <search-menu ref="searchMenuRef" />
           <el-tooltip content="搜索" effect="dark" placement="bottom">
             <div class="right-menu-item hover-effect" @click="openSearchMenu">
-              <svg-icon class-name="search-icon" icon-class="search" style="color: #108c58" />
+              <svg-icon class-name="search-icon" icon-class="searchNew" style="color: #108c58" />
             </div>
           </el-tooltip>
           <!-- 消息 -->
@@ -34,7 +34,7 @@
               <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
                 <template #reference>
                   <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
-                    <div class="right-menu-item hover-effect" style="display: block"><svg-icon icon-class="message" style="color: #108c58" /></div>
+                    <div class="right-menu-item hover-effect" style="display: block"><svg-icon icon-class="messageNew" style="color: #108c58" /></div>
                   </el-badge>
                 </template>
                 <template #default>

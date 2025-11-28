@@ -70,7 +70,7 @@
       <el-table-column prop="createTime" label="申请时间" width="180"> </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
       <el-table-column prop="auditPerson" label="审核人" width="140"></el-table-column>
-      <el-table-column label="操作" fixed="right" width="180" >
+      <el-table-column label="操作" fixed="right" width="180">
         <template #default="scope">
           <div class="flex-center operation-btns">
             <el-button
