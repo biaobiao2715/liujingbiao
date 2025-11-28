@@ -29,29 +29,14 @@
       </el-table-column>
       <el-table-column prop="changePercent" label="升降(%)" align="center" width="180">
         <template #default="{ row }">
-          <span v-if="row.changePercent === '-'" class="text-gray">{{ row.changePercent }}</span>
-          <span v-else-if="row.changePercent === 0 || row.changePercent === '0'" class="text-gray">0%</span>
-          <span v-else-if="row.changePercent > 0" class="text-green">{{ row.changePercent }}%</span>
-          <span v-else class="text-red">{{ Math.abs(row.changePercent) }}%</span>
+          <span v-if="row.changePercent === '-' || row.changePercent === 0 || row.changePercent === '0'" class="text-gray">-</span>
+          <span v-else-if="row.changePercent > 0" class="change-tag change-up">+{{ row.changePercent }}%</span>
+          <span v-else class="change-tag change-down">{{ Math.abs(row.changePercent) }}%</span>
         </template>
       </el-table-column>
       <el-table-column label="走势图" align="center" width="180">
         <template #default="{ row }">
-          <el-icon v-if="row.changePercent === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
-            <i-ep-arrow-right />
-          </el-icon>
-          <span
-            v-else-if="row.changePercent === 0 || row.changePercent === '0'"
-            class="trend-icon text-gray horizontal-line"
-            @click="handleTrendClick(row)"
-            >─</span
-          >
-          <el-icon v-else-if="row.changePercent > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
-            <i-ep-arrow-up />
-          </el-icon>
-          <el-icon v-else class="trend-icon text-red" @click="handleTrendClick(row)">
-            <i-ep-arrow-down />
-          </el-icon>
+          <img class="trend-img" :src="getTrendIcon(row.changePercent)" alt="走势图" @click="handleTrendClick(row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -69,6 +54,9 @@ import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import { todayTrendList } from '@/api/mall/marketComponent';
 import { eventBus } from '@/utils/eventBus';
+import trendDownIcon from '@/assets/images/marketConditions/down.png';
+import trendUpIcon from '@/assets/images/marketConditions/up.png';
+import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
 
 const loading = ref(false);
 const queryFormRef = ref();
@@ -197,6 +185,17 @@ const getList = async () => {
   }
 };
 
+const getTrendIcon = (change: number | string) => {
+  if (change === '-' || change === null || change === undefined || change === '' || Number(change) === 0) {
+    return trendFlatIcon;
+  }
+  const num = Number(change);
+  if (!Number.isNaN(num)) {
+    return num > 0 ? trendUpIcon : trendDownIcon;
+  }
+  return trendFlatIcon;
+};
+
 // 点击走势图图标，切换到价格走势页面
 const handleTrendClick = (row: any) => {
   if (!row || !row.goodsCategoryId) {
@@ -297,6 +296,33 @@ defineExpose({
 .price-text {
   color: #108c58;
   font-weight: 600;
+}
+
+.trend-img {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.change-tag {
+  display: inline-flex;
+  width: 62px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.change-up {
+  color: #ef4d0b;
+  background: rgba(239, 77, 11, 0.1);
+}
+
+.change-down {
+  color: #009022;
+  background: rgba(0, 144, 34, 0.1);
 }
 
 .pagination {

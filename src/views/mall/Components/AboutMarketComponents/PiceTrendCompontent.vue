@@ -113,21 +113,12 @@
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
-            <el-icon v-if="row.change === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
-              <i-ep-arrow-right />
-            </el-icon>
-            <span
-              v-else-if="row.change === 0 || row.change === '0'"
-              class="trend-icon text-gray horizontal-line"
+            <img
+              class="trend-img"
+              :src="getTrendIcon(row.change)"
+              alt="走势图"
               @click="handleTrendClick(row)"
-              >─</span
-            >
-            <el-icon v-else-if="row.change > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
-              <i-ep-arrow-up />
-            </el-icon>
-            <el-icon v-else class="trend-icon text-red" @click="handleTrendClick(row)">
-              <i-ep-arrow-down />
-            </el-icon>
+            />
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
@@ -161,6 +152,9 @@ import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import type { ComponentInternalInstance } from 'vue';
+import trendDownIcon from '@/assets/images/marketConditions/down.png';
+import trendUpIcon from '@/assets/images/marketConditions/up.png';
+import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -702,6 +696,17 @@ const refreshData = () => {
   fetchHotRecommendation();
 };
 
+const getTrendIcon = (change: number | string) => {
+  if (change === '-' || change === null || change === undefined || change === '' || Number(change) === 0) {
+    return trendFlatIcon;
+  }
+  const num = Number(change);
+  if (!Number.isNaN(num)) {
+    return num > 0 ? trendUpIcon : trendDownIcon;
+  }
+  return trendFlatIcon;
+};
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchCategoryList();
@@ -1035,6 +1040,12 @@ onBeforeUnmount(() => {
 
     :deep(.el-empty) {
       padding: 40px 0;
+    }
+
+    .trend-img {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
     }
 
     :deep(.change-tag) {
