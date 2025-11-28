@@ -32,8 +32,8 @@
       </el-form-item>
       <!-- 查询和重置按钮 -->
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
