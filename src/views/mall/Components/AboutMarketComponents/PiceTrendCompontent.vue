@@ -23,7 +23,7 @@
         <!-- 查询表单 -->
 
         <PriceTrendChart
-          :title="`小麦种子价格近（${activeTimeRange}日）`"
+          :title="`小麦种子价格（近${activeTimeRange}日）`"
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
@@ -81,34 +81,51 @@
             </p>
           </div>
         </div>
+        <el-button type="primary" class="heatmap-button" @click="viewHeatmap">查看区域价格差异热力图</el-button>
       </div>
     </div>
 
     <!-- 热门推荐表格 -->
     <div class="recommendations-section">
-      <h3 class="section-title">热门推荐</h3>
+      <div class="recommendation-title">
+        <span class="title-marker"></span>
+        <h3 class="section-title">热门推荐</h3>
+      </div>
       <el-table :data="recommendationTableData" border v-loading="recommendationLoading">
+        <template #empty>
+          <el-empty description="暂无数据" />
+        </template>
         <el-table-column type="index" label="序号" width="80" align="center" />
-        <el-table-column prop="time" label="时间" align="center" width="200" />
+        <el-table-column prop="time" label="销售日期" align="center" width="200" />
         <el-table-column prop="variety" label="品种" align="center" width="200" />
-        <el-table-column prop="origin" label="产地" align="center" min-width="200" :show-overflow-tooltip="true" />
-        <el-table-column prop="price" label="价格" align="center" width="200" />
-        <el-table-column label="升降" align="center" width="200">
+        <el-table-column prop="origin" label="所在产地" align="center" min-width="200" :show-overflow-tooltip="true" />
+        <el-table-column prop="price" label="价格" align="center" width="200">
           <template #default="{ row }">
-            <span v-if="row.change === '-'" class="text-gray">{{ row.change }}</span>
-            <span v-else-if="row.change > 0" class="text-red">{{ row.change }}%</span>
-            <span v-else class="text-green">{{ Math.abs(row.change) }}%</span>
+            <span class="price-text">{{ row.price }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="升降(%)" align="center" width="200">
+          <template #default="{ row }">
+            <span v-if="row.change === '-' || row.change === 0 || row.change === '0'" class="text-gray">-</span>
+            <span v-else-if="row.change > 0" class="change-tag change-up">+{{ row.change }}%</span>
+            <span v-else class="change-tag change-down">{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
-            <el-icon v-if="row.change === '-'" class="trend-icon" style="color: #409eff">
+            <el-icon v-if="row.change === '-'" class="trend-icon" style="color: #409eff" @click="handleTrendClick(row)">
               <i-ep-arrow-right />
             </el-icon>
-            <el-icon v-else-if="row.change > 0" class="trend-icon text-red">
+            <span
+              v-else-if="row.change === 0 || row.change === '0'"
+              class="trend-icon text-gray horizontal-line"
+              @click="handleTrendClick(row)"
+              >─</span
+            >
+            <el-icon v-else-if="row.change > 0" class="trend-icon text-green" @click="handleTrendClick(row)">
               <i-ep-arrow-up />
             </el-icon>
-            <el-icon v-else class="trend-icon text-green">
+            <el-icon v-else class="trend-icon text-red" @click="handleTrendClick(row)">
               <i-ep-arrow-down />
             </el-icon>
           </template>
@@ -122,44 +139,12 @@
     </div>
 
     <!-- 价格专项报告弹窗 -->
-    <el-dialog v-model="reportDialogVisible" title="专项价格分析报告" width="90%" destroy-on-close :close-on-click-modal="false">
-      <div class="report-header">
-        <div class="report-info">
-          <span class="info-item">品种: {{ reportInfo.variety }}</span>
-          <span class="info-item">产地: {{ reportInfo.origin }}</span>
-        </div>
-      </div>
-      <el-table :data="reportTableData" border v-loading="reportLoading">
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="goodsName" label="商品名称" align="center" min-width="200" :show-overflow-tooltip="true" />
-        <el-table-column label="商品图片" align="center" width="120">
-          <template #default="{ row }">
-            <el-image
-              v-if="row.goodsImage"
-              :src="row.goodsImage"
-              :preview-src-list="[row.goodsImage]"
-              style="width: 60px; height: 60px"
-              fit="cover"
-            />
-            <span v-else class="text-gray">暂无图片</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="goodsPrice" label="商品价格" align="center" width="120" />
-        <el-table-column prop="supplierName" label="供应商名称" align="center" min-width="180" :show-overflow-tooltip="true" />
-        <el-table-column prop="credentialLevelText" label="供应商资质等级" align="center" width="150" />
-        <el-table-column prop="creditLevelText" label="供应商信用等级" align="center" width="150" />
-      </el-table>
-      <!-- 分页 -->
-      <div class="flex-center pagination">
-        <pagination
-          v-show="reportTotal > 0"
-          v-model:page="reportQueryParams.pageNum"
-          v-model:limit="reportQueryParams.pageSize"
-          :total="reportTotal"
-          @pagination="handleReportPagination"
-        />
-      </div>
-    </el-dialog>
+    <PriceSpecialReportDialog
+      v-model:visible="reportDialogVisible"
+      :report-info="reportInfo"
+      :goods-category-id="reportQueryParams.goodsCategoryId"
+      :region-code="reportQueryParams.regionCode"
+    />
   </div>
 </template>
 
@@ -170,7 +155,8 @@ import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PriceTrendChart from './PriceTrendChart.vue';
-import { priceActionList, hotRecommendationList, priceExplanationList, priceSpecialReportList, heatmapList } from '@/api/mall/marketComponent';
+import PriceSpecialReportDialog from './PriceSpecialReportDialog.vue';
+import { priceActionList, hotRecommendationList, priceExplanationList, heatmapList } from '@/api/mall/marketComponent';
 import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
@@ -222,9 +208,6 @@ const recommendationLoading = ref(false);
 
 // 价格专项报告弹窗相关
 const reportDialogVisible = ref(false);
-const reportTableData = ref<any[]>([]);
-const reportLoading = ref(false);
-const reportTotal = ref(0);
 const reportInfo = ref({
   variety: '--',
   origin: '--'
@@ -235,30 +218,6 @@ const reportQueryParams = reactive({
   pageNum: 1,
   pageSize: 10
 });
-
-const credentialLevelMap: Record<string, string> = {
-  '0': '一级认证',
-  '1': '二级认证',
-  '2': '三级认证'
-};
-
-const creditLevelMap: Record<string, string> = {
-  '0': '优秀',
-  '1': '良好',
-  '2': '一般',
-  '3': '一般以下',
-  '99': '较差'
-};
-
-const getCredentialLevelText = (level: any) => {
-  if (level === undefined || level === null || level === '') return '--';
-  return credentialLevelMap[String(level)] || '--';
-};
-
-const getCreditLevelText = (level: any) => {
-  if (level === undefined || level === null || level === '') return '--';
-  return creditLevelMap[String(level)] || '--';
-};
 
 // 根据三级ID查找完整路径
 const findCategoryPath = (categoryId: string, categories: any[]): string[] => {
@@ -676,6 +635,33 @@ const viewHeatmap = async () => {
   }
 };
 
+// 点击走势图图标，切换到价格走势页面
+const handleTrendClick = (row: any) => {
+  if (!row || !row.goodsCategoryId) {
+    ElMessage.warning('数据异常，无法查看价格走势');
+    return;
+  }
+
+  // 切换到价格走势标签页
+  eventBus.emit('market:switchTab', 'second');
+
+  // 传递筛选条件给价格走势组件
+  const filterPayload = {
+    goodsCategoryId: row.goodsCategoryId,
+    provinceCode: row.provinceCode || '',
+    cityCode: row.cityCode || '',
+    regionCode: row.regionCode || '',
+    provinceName: row.provinceName || '',
+    cityName: row.cityName || '',
+    regionName: row.regionName || ''
+  };
+
+  // 延迟一下确保组件已切换完成
+  setTimeout(() => {
+    eventBus.emit('priceTrend:applyFilters', filterPayload);
+  }, 100);
+};
+
 // 查看报告
 const viewReport = (row: any) => {
   if (!row) {
@@ -692,65 +678,9 @@ const viewReport = (row: any) => {
   // 设置查询参数
   reportQueryParams.goodsCategoryId = row.goodsCategoryId || '';
   reportQueryParams.regionCode = row.regionCode || '';
-  reportQueryParams.pageNum = 1;
-  reportQueryParams.pageSize = 10;
 
-  // 打开弹窗并加载数据
+  // 打开弹窗
   reportDialogVisible.value = true;
-  fetchReportList();
-};
-
-// 获取价格专项报告列表
-const fetchReportList = async () => {
-  reportLoading.value = true;
-  try {
-    const params: any = {
-      goodsCategoryId: reportQueryParams.goodsCategoryId,
-      regionCode: reportQueryParams.regionCode,
-      pageNum: reportQueryParams.pageNum,
-      pageSize: reportQueryParams.pageSize
-    };
-
-    const response = await priceSpecialReportList(params);
-    if (response && response.code === 200) {
-      const data = response.rows || response.data || [];
-      // 映射接口返回的数据到表格需要的格式
-      reportTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
-        const credentialLevelValue = item.credentialLevel !== undefined && item.credentialLevel !== null ? String(item.credentialLevel) : '';
-        const creditLevelValue = item.creditLevel !== undefined && item.creditLevel !== null ? String(item.creditLevel) : '';
-        return {
-          id: item.id,
-          goodsName: item.goodsName || '--',
-          goodsImage: item.goodsImageUrl || '',
-          goodsPrice: item.goodsPrice ? `${item.goodsPrice}元/kg` : '--',
-          supplierName: item.enterpriseName || '--',
-          credentialLevel: credentialLevelValue,
-          credentialLevelText: getCredentialLevelText(credentialLevelValue),
-          creditLevel: creditLevelValue,
-          creditLevelText: getCreditLevelText(creditLevelValue)
-        };
-      });
-      reportTotal.value = response.total || 0;
-    } else {
-      ElMessage.error(response?.msg || '获取价格专项报告数据失败');
-      reportTableData.value = [];
-      reportTotal.value = 0;
-    }
-  } catch (error) {
-    console.error('获取价格专项报告数据失败:', error);
-    ElMessage.error('获取价格专项报告数据失败，请稍后重试');
-    reportTableData.value = [];
-    reportTotal.value = 0;
-  } finally {
-    reportLoading.value = false;
-  }
-};
-
-// 报告分页处理
-const handleReportPagination = (pagination: { page: number; limit: number }) => {
-  reportQueryParams.pageNum = pagination.page;
-  reportQueryParams.pageSize = pagination.limit;
-  fetchReportList();
 };
 
 // 获取分类列表
@@ -882,6 +812,8 @@ onBeforeUnmount(() => {
         border-radius: 4px;
         padding: 16px;
         background: #fff;
+        display: flex;
+        flex-direction: column;
 
         .card-header {
           display: flex;
@@ -966,13 +898,19 @@ onBeforeUnmount(() => {
           }
         }
 
-        .heatmap-button {
-          margin-top: 12px;
-          width: 100%;
+        // 当日价格卡片特定样式
+        &.today-card {
+          flex: 0 0 auto;
+          min-height: auto;
+          
+          .today-body {
+            margin-top: 8px;
+          }
         }
 
         // 近7日价格卡片特定样式
         &.seven-days-card {
+          flex: 1;
           border: 1px dashed rgba(133, 133, 255, 0.6);
           .card-content {
             margin-top: 12px;
@@ -1012,6 +950,18 @@ onBeforeUnmount(() => {
           }
         }
       }
+
+      .heatmap-button {
+        width: 100%;
+        margin-top: 0;
+        background-color: #108C58;
+        border-color: #108C58;
+        
+        &:hover {
+          background-color: #0d7a4a;
+          border-color: #0d7a4a;
+        }
+      }
     }
   }
 
@@ -1022,19 +972,34 @@ onBeforeUnmount(() => {
     padding: 16px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 
-    .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      color: #303133;
+    .recommendation-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+
+      .title-marker {
+        width: 3px;
+        height: 16px;
+        background: #108c58;
+        border-radius: 2px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333333;
+        margin: 0;
+      }
     }
 
     :deep(.el-table) {
       .el-table__header {
         th {
-          background-color: #fafafa;
-          color: #606266;
+          background-color: #108c58 !important;
+          color: #fff;
           font-weight: 600;
+          border-color: #108c58 !important;
         }
       }
 
@@ -1043,8 +1008,54 @@ onBeforeUnmount(() => {
           &:hover {
             background-color: #f5f7fa;
           }
+          td {
+            border-color: #ffffff !important;
+          }
         }
       }
+    }
+
+    .trend-icon {
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .horizontal-line {
+      display: inline-block;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .price-text {
+      color: #108c58;
+      font-weight: 600;
+    }
+
+    :deep(.el-empty) {
+      padding: 40px 0;
+    }
+
+    :deep(.change-tag) {
+      display: inline-flex;
+      width: 62px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    :deep(.change-up) {
+      color: #ef4d0b;
+      background: rgba(239, 77, 11, 0.1);
+    }
+
+    :deep(.change-down) {
+      color: #009022;
+      background: rgba(0, 144, 34, 0.1);
     }
   }
 
@@ -1065,37 +1076,4 @@ onBeforeUnmount(() => {
   }
 }
 
-.report-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
-
-  .report-info {
-    display: flex;
-    gap: 24px;
-    font-size: 14px;
-    color: #606266;
-
-    .info-item {
-      font-weight: 500;
-    }
-  }
-}
-
-:deep(.el-dialog__header) {
-  text-align: center;
-  padding: 20px 20px 10px;
-  border-bottom: 1px solid #ebeef5;
-
-  .el-dialog__title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #303133;
-  }
-}
-
-.pagination {
-  margin-top: 20px;
-  justify-content: flex-end;
-}
 </style>

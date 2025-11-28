@@ -25,11 +25,11 @@
           <el-form-item label="案件编号：">
             <el-input v-model="queryParams.caseCode" placeholder="" />
           </el-form-item>
-        </div>
-        <div v-show="isExpanded" class="form-row">
           <el-form-item label="举报商品：">
             <el-input v-model="queryParams.reportGoodsName" placeholder="请输入举报商品" />
           </el-form-item>
+        </div>
+        <div v-show="isExpanded" class="form-row">
           <el-form-item label="创建时间：">
             <el-date-picker
               v-model="queryParams.createTime"
@@ -37,7 +37,7 @@
               value-format="YYYY-MM-DD HH:mm:ss"
               format="YYYY-MM-DD HH:mm:ss"
               placeholder="请选择创建时间"
-              style="width: 240px"
+              style="width: 180px"
             />
           </el-form-item>
           <el-form-item label="所属状态：">
@@ -46,10 +46,12 @@
             </el-select>
           </el-form-item>
         </div>
+        <div class="toggle-expand-text" :class="isExpanded ? 'toggle-top' : 'toggle-bottom'" @click="toggleExpand">
+          {{ isExpanded ? '收起' : '展开' }}
+        </div>
         <div class="button-group">
-          <el-button type="primary" @click="handleQuery">查询</el-button>
-          <el-button type="primary" @click="resetQuery">重置</el-button>
-          <el-button type="primary" @click="toggleExpand">{{ isExpanded ? '收起' : '展开' }}</el-button>
+          <el-button type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+          <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
         </div>
       </el-form>
     </div>
@@ -57,29 +59,27 @@
     <!-- 列表展示区域 -->
     <el-table v-loading="loading" :data="reportListArr" style="width: 100%" border>
       <el-table-column prop="index" label="序号" width="80" type="index" />
-      <el-table-column prop="reportCode" label="举报编号" min-width="180" />
-      <el-table-column prop="caseCode" label="案件编号" min-width="150">
+      <el-table-column prop="reportCode" label="举报编号" min-width="180" :show-overflow-tooltip="true" />
+      <el-table-column prop="caseCode" label="案件编号" min-width="150" :show-overflow-tooltip="true" />
+      <el-table-column prop="reportTypeId" label="举报类别" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column prop="reportGoodsName" label="举报商品" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column prop="createTime" label="创建时间" min-width="180" :show-overflow-tooltip="true" />
+      <el-table-column prop="status" label="所属状态" min-width="100" :show-overflow-tooltip="true">
         <template #default="scope">
-          {{ scope.row.caseCode || '----' }}
+          <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusText(scope.row.status) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="reportTypeId" label="举报类别" min-width="120">
+      <el-table-column prop="operation" label="操作" min-width="150" fixed="right" align="left">
         <template #default="scope">
-          <dict-tag :options="report_type_id" :value="scope.row.reportTypeId" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="reportGoodsName" label="举报商品" min-width="120" />
-      <el-table-column prop="createTime" label="创建时间" min-width="180" />
-      <el-table-column prop="status" label="所属状态" min-width="100">
-        <template #default="scope">
-          {{ getStatusText(scope.row.status) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="operation" label="操作" min-width="150" fixed="right">
-        <template #default="scope">
-          <el-button v-if="['0', '1'].includes(scope.row.status)" link type="primary" @click="handleWithdraw(scope.row)">撤回</el-button>
-          <el-button v-else-if="['2', '4'].includes(scope.row.status)" link type="primary" @click="handleReSubmit(scope.row)">重新提交</el-button>
-          <el-button link type="primary" @click="handleView(scope.row)"> 查看 </el-button>
+          <div class="operation-buttons">
+            <el-button link class="operation-view-btn" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-if="['0', '1'].includes(scope.row.status)" link class="operation-withdraw-btn" @click="handleWithdraw(scope.row)"
+              >撤回</el-button
+            >
+            <el-button v-else-if="['2', '4'].includes(scope.row.status)" link class="operation-resubmit-btn" @click="handleReSubmit(scope.row)"
+              >重新提交</el-button
+            >
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -124,6 +124,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { reportList, reportBack, resubmitReportList, type Report, type ReportQueryParams } from '@/api/mall/personalCenter/myReport';
 import Pagination from '@/components/Pagination/index.vue';
 import { ElMessage } from 'element-plus';
+import { Search, RefreshLeft } from '@element-plus/icons-vue';
 // 引入编辑举报弹窗组件
 import ReportEdit from './myReportChildren/reportEdit.vue';
 import ReportView from './myReportChildren/reportView.vue';
@@ -350,6 +351,25 @@ const getStatusText = (status: string): string => {
   return option ? option.label : status;
 };
 
+// 根据状态值获取状态样式类
+const getStatusClass = (status: string): string => {
+  const statusClassMap: Record<string, string> = {
+    '0': 'status-pending', // 待处理
+    '1': 'status-processing', // 处理中
+    '2': 'status-rejected', // 已驳回
+    '3': 'status-closed', // 已结案
+    '4': 'status-withdrawn' // 已撤回
+  };
+  return statusClassMap[status] || '';
+};
+
+// 根据举报类型ID获取举报类型标签
+const getReportTypeLabel = (reportTypeId: string | number | null | undefined): string => {
+  if (reportTypeId === null || reportTypeId === undefined || reportTypeId === '') return '-';
+  const option = report_type_id.value?.find((item: any) => String(item.value) === String(reportTypeId));
+  return option?.label || String(reportTypeId);
+};
+
 // 根据举报类型获取举报类型文本
 const getReportTypeText = (reportTypeId: string): string => {
   const option = reportTypeOptions.find((item) => item.value === reportTypeId);
@@ -402,6 +422,34 @@ const getReportTypeText = (reportTypeId: string): string => {
   bottom: 20px;
 }
 
+.reset-btn {
+  background-color: #fafafa !important;
+  border-color: #d9d9d9 !important;
+  color: #595959 !important;
+
+  &:hover {
+    background-color: #f0f0f0 !important;
+    border-color: #d9d9d9 !important;
+    color: #595959 !important;
+  }
+}
+
+.toggle-expand-text {
+  color: #108c58;
+  font-size: 14px;
+  position: absolute;
+  left: 45%;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggle-expand-text.toggle-top {
+  top: 60px;
+}
+
+.toggle-expand-text.toggle-bottom {
+  bottom: 0;
+}
 .pagination {
   margin-top: 24px;
   justify-content: end;
@@ -421,5 +469,143 @@ const getReportTypeText = (reportTypeId: string): string => {
   height: 106px;
   line-height: 106px;
   float: left;
+}
+
+/* 举报类别样式 */
+.report-type-text {
+  font-size: 14px;
+  color: #333333;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* 所属状态样式 */
+.status-text {
+  position: relative;
+  padding-left: 16px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+}
+
+.status-pending {
+  color: #ffa113;
+
+  &::before {
+    background-color: #ffa113;
+  }
+}
+
+.status-processing {
+  color: #008cff;
+
+  &::before {
+    background-color: #008cff;
+  }
+}
+
+.status-rejected {
+  color: #ef4d0b;
+
+  &::before {
+    background-color: #ef4d0b;
+  }
+}
+
+.status-closed {
+  color: #bbbdbf;
+
+  &::before {
+    background-color: #bbbdbf;
+  }
+}
+
+.status-withdrawn {
+  color: #333333;
+
+  &::before {
+    background-color: #333333;
+  }
+}
+
+/* 表格表头样式 */
+:deep(.el-table__header) {
+  th {
+    font-weight: normal !important;
+    color: #3d3d3d !important;
+  }
+}
+
+:deep(.el-table th) {
+  font-weight: normal !important;
+  color: #3d3d3d !important;
+}
+
+/* 操作列样式 */
+.operation-buttons {
+  text-align: left;
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-left: 20px;
+}
+
+.operation-view-btn,
+.operation-withdraw-btn,
+.operation-resubmit-btn {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 8px !important;
+  position: relative;
+
+  &:not(:last-child)::after {
+    content: '|';
+    position: absolute;
+    right: -8px;
+    color: #d9d9d9;
+    font-weight: normal;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: transparent !important;
+  }
+}
+
+.operation-view-btn {
+  color: #108c58 !important;
+
+  &:hover,
+  &:focus {
+    color: #108c58 !important;
+  }
+}
+
+.operation-withdraw-btn {
+  color: #ef4d0b !important;
+
+  &:hover,
+  &:focus {
+    color: #ef4d0b !important;
+  }
+}
+
+.operation-resubmit-btn {
+  color: #008cff !important;
+
+  &:hover,
+  &:focus {
+    color: #008cff !important;
+  }
 }
 </style>

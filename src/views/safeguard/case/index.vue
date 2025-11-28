@@ -40,8 +40,8 @@
 
       <!-- 查询和重置按钮 -->
       <el-form-item class="search-actions">
-        <el-button class="search-btn" v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button class="reset-btn" v-throttle type="primary" @click="handleReset">重置</el-button>
+        <el-button class="search-btn" v-throttle type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" v-throttle plain :icon="RefreshLeft" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -125,9 +125,9 @@
       <el-table-column label="操作" align="center" fixed="right" width="280" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
-            <el-button v-throttle :type="scope.row.status === '0' ? 'warning' : 'success'" size="small" @click="handleToggleStatus(scope.row)">
+            <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-throttle link class="operation-link-button" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-throttle link class="operation-link-button" @click="handleToggleStatus(scope.row)">
               {{ scope.row.status === '0' ? '禁用' : '启用' }}
             </el-button>
           </div>
@@ -154,6 +154,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search, RefreshLeft } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination/index.vue';
 import {
   fetchCaseTypeList,
@@ -548,6 +549,20 @@ onMounted(() => {
   .search-btn,
   .reset-btn {
     margin-left: 10px;
+    width: 88px;
+    border-radius: 0;
+  }
+
+  .reset-btn {
+    background-color: #fafafa;
+    border-color: #d9d9d9;
+    color: #595959;
+
+    &:hover {
+      background-color: #f0f0f0;
+      border-color: #d9d9d9;
+      color: #595959;
+    }
   }
 
   .mb8 {
@@ -558,6 +573,23 @@ onMounted(() => {
     display: flex;
     gap: 8px;
     justify-content: center;
+  }
+
+  .operation-link-button {
+    color: #108c58 !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 8px !important;
+
+    &:hover,
+    &:focus {
+      color: #108c58 !important;
+      background-color: transparent !important;
+    }
+
+    &.is-disabled {
+      color: #a0c896 !important;
+    }
   }
 
   .pagination {

@@ -54,23 +54,43 @@
       <el-table-column label="操作" align="center" width="340" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <!-- 根据还款状态显示不同的提示按钮 -->
-            <el-button v-if="scope.row.planStatus === '0'" size="small" type="info" plain @click="handleNotification(scope.row, 'pending')">
-              待还款提示
+            <!-- 根据当前期次状态显示不同的提示按钮 -->
+            <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" text @click="handleNotification(scope.row, 'pending')">
+              还款提醒
             </el-button>
-            <el-button v-else-if="scope.row.planStatus === '1'" size="small" type="warning" plain @click="handleNotification(scope.row, 'repaying')">
-              还款提示
-            </el-button>
-            <el-button v-else-if="scope.row.planStatus === '2'" size="small" type="success" plain @click="handleNotification(scope.row, 'completed')">
+            <el-button
+              v-else-if="scope.row.currentPeriodStatus === '1'"
+              size="small"
+              type="success"
+              text
+              @click="handleNotification(scope.row, 'completed')"
+            >
               完结通知
             </el-button>
-            <el-button v-else-if="scope.row.planStatus === '3'" size="small" type="danger" plain @click="handleNotification(scope.row, 'overdue')">
+            <el-button
+              v-else-if="scope.row.currentPeriodStatus === '2'"
+              size="small"
+              type="danger"
+              text
+              @click="handleNotification(scope.row, 'overdue')"
+            >
               逾期提示
             </el-button>
-            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
-            <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
-            <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="success" text @click="handleRepayment(scope.row)">还款情况</el-button>
+            <el-button size="small" type="primary" text @click="handleDetail(scope.row)">详情</el-button>
+            
+            <!-- 更多操作下拉菜单 -->
+            <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
+              <el-button size="small" type="info" text>
+                更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="tracking">追踪</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </template>
       </el-table-column>
@@ -100,7 +120,8 @@
 import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getloanApplicationsList, deleteRepaymentRecord,messageRecord,getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
+import { ArrowDown } from '@element-plus/icons-vue';
+import { getloanApplicationsList, deleteRepaymentRecord, messageRecord, getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -121,6 +142,7 @@ interface RepaymentPlan {
   loanTerm?: string | number; // 贷款期限
   reviewedAt?: string; // 贷款审批通过时间
   planStatus?: string; // 还款状态: 0=待还款, 1=还款中, 2=已还清, 3=已逾期
+  currentPeriodStatus?: string; // 当前期次状态: 0=待还款, 1=已还款, 2=已逾期
 }
 
 // 获取字典数据
@@ -257,17 +279,25 @@ const handleTracking = (row: RepaymentPlan) => {
 };
 
 /**
- * 通知按钮 - 根据还款状态发送不同的通知
+ * 通知按钮 - 根据当前期次状态发送不同的通知
  * @param row - 当前行数据
- * @param type - 通知类型: pending=待还款, repaying=还款中, completed=已还清, overdue=已逾期
+ * @param type - 通知类型: pending=还款提醒, completed=完结通知, overdue=逾期提示
  */
-const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'repaying' | 'completed' | 'overdue') => {
+const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'completed' | 'overdue') => {
   const messages = {
-    pending: '待还款提示',
-    repaying: '还款提示',
+    pending: '还款提醒',
     completed: '完结通知',
     overdue: '逾期提示'
   };
+
+  // 根据通知类型确定 messageType
+  // 还款提醒 → "0", 完结通知 → "3", 逾期提示 → "2"
+  const messageTypeMap: Record<string, string> = {
+    pending: '0',
+    completed: '3',
+    overdue: '2'
+  };
+  const messageType = messageTypeMap[type] || '0';
 
   ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[type]}吗？`, '提示', {
     confirmButtonText: '确定',
@@ -276,18 +306,20 @@ const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'repayin
   })
     .then(async () => {
       try {
-        // 1. 先调用 getRemainingDetail 获取数组数据
+        // 1. 先调用 getRemainingDetail 获取对象数据
         const detailResponse = await getRemainingDetail(row.id);
         if (detailResponse && detailResponse.code === 200) {
-          const detailArray = detailResponse.data || [];
-          
-          // 2. 为数组中的每个元素添加 messageType 字段（使用列表中的 messageType 或传入的 type）
-          const messageType = (row as any).messageType || type;
-          const dataWithMessageType = detailArray.map((item: any) => ({
-            ...item,
+          const detailData = detailResponse.data || {};
+          console.log(detailData);
+          console.log(messageType);
+
+          // 2. 直接将 messageType 添加到对象中
+          const dataWithMessageType = {
+            ...detailData,
             messageType: messageType
-          }));
-          
+          };
+          console.log(dataWithMessageType);
+
           // 3. 调用 messageRecord 接口
           const messageResponse = await messageRecord(dataWithMessageType);
           console.log(messageResponse);
@@ -309,8 +341,18 @@ const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'repayin
     });
 };
 
+/**
+ * 更多操作 - 处理下拉菜单的命令
+ */
+const handleMoreAction = (row: RepaymentPlan, command: string) => {
+  if (command === 'tracking') {
+    handleTracking(row);
+  } else if (command === 'delete') {
+    handleDelete(row);
+  }
+};
 
- /** 
+/**
  * 删除按钮 - 删除还款记录
  */
 const handleDelete = (row: RepaymentPlan) => {

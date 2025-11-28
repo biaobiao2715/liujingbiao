@@ -1,3 +1,5 @@
+<!-- 价格预测与分析 -->
+
 <template>
   <div class="price-prediction-component">
     <!-- 查询表单 -->
@@ -142,6 +144,43 @@ const normalizeMonthLabel = (value: any) => {
   return str;
 };
 
+const formatMonth = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+const generateSequentialMonths = (startMonth: string, count: number) => {
+  const normalized = normalizeMonthLabel(startMonth);
+  let baseDate: Date;
+  if (normalized) {
+    const [yearStr, monthStr] = normalized.split('-');
+    const year = Number(yearStr) || new Date().getFullYear();
+    const month = (Number(monthStr) || 1) - 1;
+    baseDate = new Date(year, month, 1);
+  } else {
+    baseDate = new Date();
+    baseDate.setDate(1);
+  }
+
+  const months: string[] = [];
+  for (let i = 1; i <= count; i++) {
+    const date = new Date(baseDate);
+    date.setMonth(baseDate.getMonth() + i);
+    months.push(formatMonth(date));
+  }
+  return months;
+};
+
+const getPreviousMonth = (month: string) => {
+  const normalized = normalizeMonthLabel(month);
+  if (!normalized) return normalized;
+  const [yearStr, monthStr] = normalized.split('-');
+  const date = new Date(Number(yearStr) || 1970, (Number(monthStr) || 1) - 1, 1);
+  date.setMonth(date.getMonth() - 1);
+  return formatMonth(date);
+};
+
 const parsePriceValue = (val: any) => {
   if (val === undefined || val === null || val === '' || val === '-') return null;
   const num = Number(val);
@@ -187,6 +226,20 @@ const deriveExtreme = (
       : (prev: any, curr: any) => (curr.price < prev.price ? curr : prev);
   const result = entries.reduce(comparator);
   return { month: result.month, price: Number(result.price.toFixed(2)) };
+};
+
+const formatPriceValue = (price?: number | null) => {
+  if (price === undefined || price === null || Number.isNaN(price)) return '';
+  const fixed = Number(price).toFixed(2);
+  return fixed.endsWith('.00') ? fixed.slice(0, -3) : fixed;
+};
+
+const formatMonthDisplay = (month: string) => {
+  const normalized = normalizeMonthLabel(month);
+  if (!normalized) return '';
+  const [, monthStr] = normalized.split('-');
+  if (!monthStr) return '';
+  return `${Number(monthStr)}月`;
 };
 
 // 市场分析数据
@@ -255,7 +308,7 @@ const fetchPricePrediction = async () => {
     if (response && response.code === 200) {
       const data = response.data || {};
       const historicalData = data.historicalData || {};
-      const predictedData = data.predictedData || {};
+      const predictedData = data.predictedData || data.predictionData || {};
 
       // 处理历史数据（historicalData）
       if (historicalData.xAxis && Array.isArray(historicalData.xAxis)) {
@@ -274,15 +327,44 @@ const fetchPricePrediction = async () => {
       let predictionEntries: Array<[string, any]> = [];
       if (predictedData && Array.isArray(predictedData.xAxis) && Array.isArray(predictedData.yAxis)) {
         predictionEntries = predictedData.xAxis.map((label: string, idx: number) => [label, predictedData.yAxis[idx]]);
-      } else if (predictedData && typeof predictedData === 'object') {
-        predictionEntries = Object.entries(predictedData);
+      } else if (predictedData && typeof predictedData === 'object' && !Array.isArray(predictedData)) {
+        predictionEntries = Object.entries(predictedData).filter(([, value]) => parsePriceValue(value) !== null);
       }
-      predictedLineMonths.value = predictionEntries.map(([key]) => normalizeMonthLabel(key));
-      predictedLinePrices.value = predictionEntries.map(([, value]) => Number(value ?? 0));
+      const predictedValues = predictionEntries.map(([, value]) => {
+        const numValue = parsePriceValue(value);
+        return numValue !== null ? numValue : 0;
+      });
 
-      if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
-        const predictedMonths = predictedData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
-        allMonths.value = [...new Set([...allMonths.value, ...predictedMonths])];
+      let baseMonth =
+        historicalLineMonths.value[historicalLineMonths.value.length - 1] ||
+        (historicalData.xAxis && historicalData.xAxis.length ? normalizeMonthLabel(historicalData.xAxis[historicalData.xAxis.length - 1]) : '');
+
+      if (!baseMonth && predictionEntries.length) {
+        const firstPredMonth = normalizeMonthLabel(predictionEntries[0][0]);
+        baseMonth = getPreviousMonth(firstPredMonth) || firstPredMonth;
+      }
+
+      // 预测数据与历史数据共用同一个 X 轴（历史月份）
+      const historicalCount = historicalLineMonths.value.length;
+      predictedLineMonths.value = historicalLineMonths.value.slice();
+      if (historicalCount > 0) {
+        const trimmedValues = predictedValues.slice(0, historicalCount);
+        if (trimmedValues.length < historicalCount) {
+          predictedLinePrices.value = [
+            ...trimmedValues,
+            ...Array(historicalCount - trimmedValues.length).fill(null)
+          ];
+        } else {
+          predictedLinePrices.value = trimmedValues;
+        }
+      } else {
+        predictedLineMonths.value = generateSequentialMonths(baseMonth, predictedValues.length);
+        predictedLinePrices.value = predictedValues;
+      }
+
+      // 将预测数据的月份添加到 allMonths 中
+      if (predictedLineMonths.value.length > 0) {
+        allMonths.value = [...new Set([...allMonths.value, ...predictedLineMonths.value])];
       }
 
       if (!allMonths.value.length && Array.isArray(data.months)) {
@@ -356,10 +438,26 @@ const fetchPricePrediction = async () => {
       if (data.overallTrend) {
         marketAnalysis.value.overallTrend = data.overallTrend;
       }
-      if (data.priceRange) {
+
+      const hasPredictedRange =
+        predictedHighest.value.price > 0 &&
+        predictedLowest.value.price > 0 &&
+        predictedHighest.value.price !== predictedLowest.value.price;
+
+      if (hasPredictedRange) {
+        const minText = formatPriceValue(Math.min(predictedLowest.value.price, predictedHighest.value.price));
+        const maxText = formatPriceValue(Math.max(predictedLowest.value.price, predictedHighest.value.price));
+        if (minText && maxText) {
+          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元`;
+        }
+      } else if (data.priceRange) {
         marketAnalysis.value.priceRange = data.priceRange;
       }
-      if (data.suggestion || data.predictionSuggestion) {
+
+      const suggestionMonth = predictedLowest.value.month ? formatMonthDisplay(predictedLowest.value.month) : '';
+      if (suggestionMonth) {
+        marketAnalysis.value.suggestion = `建议采购窗口为${suggestionMonth}`;
+      } else if (data.suggestion || data.predictionSuggestion) {
         marketAnalysis.value.suggestion = data.suggestion || data.predictionSuggestion;
       }
     } else {

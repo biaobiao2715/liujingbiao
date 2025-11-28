@@ -630,10 +630,9 @@ watch(
 
 .footer-buttons {
   display: flex;
-  justify-content: center;
+  justify-self: flex-end;
   gap: 12px;
   padding-top: 20px;
-  border-top: 1px solid #e4e7ed;
   
   .el-button {
     min-width: 100px;

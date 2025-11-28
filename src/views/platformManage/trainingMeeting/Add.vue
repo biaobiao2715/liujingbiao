@@ -156,12 +156,14 @@ div<!--
           @pagination="() => getRegistrationInfo(props?.data?.data?.id)"
         />
       </div>
+    </div>
+    <template #footer>
       <!-- 底部按钮 -->
       <div style="text-align: right; margin-top: 20px">
         <el-button @click="handleClose">关闭</el-button>
         <el-button v-if="!isView" type="primary" :loading="saveloading" @click="handleSave"> 发布 </el-button>
       </div>
-    </div>
+    </template>
   </el-dialog>
   <el-dialog v-model="dialogVisible" width="70%">
     <!-- 自定义头部区域 -->
@@ -743,7 +745,7 @@ const handleSave = async () => {
 
 .dialog-body {
   padding: 20px;
-  height: calc(100vh - 60px);
+  /* height: calc(100vh - 60px); */
   /* overflow-y: auto; */
 }
 

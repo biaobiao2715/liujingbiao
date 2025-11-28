@@ -1,6 +1,8 @@
+<!-- 价格走势 -->
 <template>
   <div class="price-trend-chart">
     <div class="chart-header" v-if="showHeader">
+      <div class="title-marker"></div>
       <h3 class="chart-title">{{ title }}</h3>
     </div>
     <div ref="chartContainer" class="chart-container"></div>
@@ -150,27 +152,34 @@ const updateChart = () => {
         name: '价格',
         type: 'line',
         smooth: true,
-        symbol: (_value: any, params: any) => (labelIndices.has(params.dataIndex) ? 'circle' : 'none'),
-        symbolSize: 6,
+        symbol: (_value: any, params: any) => {
+          const index = params.dataIndex;
+          // 只在显示标签的位置显示数据点
+          return labelIndices.has(index) ? 'circle' : 'none';
+        },
+        symbolSize: (value: any, params: any) => {
+          const index = params.dataIndex;
+          // 只在显示标签的位置显示数据点
+          return labelIndices.has(index) ? 6 : 0;
+        },
         lineStyle: {
-          width: 2,
-          color: '#409eff'
+          width: 3,
+          color: '#108C58' // 折线颜色使用渐变起始色
         },
         itemStyle: {
-          color: '#409eff',
+          color: '#108C58', // 数据点颜色
           borderWidth: 2,
           borderColor: '#fff'
         },
         areaStyle: {
-          opacity: 0.3,
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             {
               offset: 0,
-              color: 'rgba(64, 158, 255, 0.3)'
+              color: 'rgba(16,140,88,0.22)' // 渐变起始色
             },
             {
               offset: 1,
-              color: 'rgba(64, 158, 255, 0)'
+              color: 'rgba(16,140,88,0)' // 渐变结束色（透明）
             }
           ])
         },
@@ -250,8 +259,19 @@ onUnmounted(() => {
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    gap: 8px;
     margin-bottom: 16px;
+    margin-top: 10px;
+    margin-left: 15px;
     flex-shrink: 0;
+
+    .title-marker {
+      width: 3px;
+      height: 13px;
+      background: #000000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
     .chart-title {
       font-size: 16px;

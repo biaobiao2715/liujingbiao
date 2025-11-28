@@ -55,17 +55,17 @@
           <dict-tag :options="application_status" :value="scope.row.applyStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="260">
+      <el-table-column label="操作" align="center" width="260" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" plain :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
+            <el-button size="small" type="primary" text :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
               审批
             </el-button>
-            <el-button size="small" type="primary" plain @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" plain :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
+            <el-button size="small" type="primary" text @click="handleDetail(scope.row, 'detail')">详情</el-button>
+            <el-button size="small" type="success" text :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
               >还款计划</el-button
             >
-            <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="danger" text @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -314,12 +314,16 @@ onMounted(() => {
 .operation-buttons {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   .el-button {
     margin: 0;
-    padding: 4px 8px;
+    flex-shrink: 0;
+    padding: 5px 10px;
+    font-size: 12px;
   }
 }
 

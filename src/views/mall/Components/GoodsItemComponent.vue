@@ -8,16 +8,20 @@
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods?.sysOssLists?.[0]?.url" width="100" class="goods-image" />
+    <img :src="goods?.sysOssLists?.[0]?.url" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
-        <div class="goods-price">{{ goods?.hnGoodsSpecificationDataList?.[0].goodsPrice }}元起</div>
+        <div class="goods-price flex-center">
+          <div class="unit">¥</div>
+          <div>{{ +goods?.hnGoodsSpecificationDataList?.[0]?.goodsPrice }}元起</div>
+        </div>
         <div class="goods-volume">{{ goods?.goodsSales }}件已售</div>
       </div>
       <div class="goods-title">{{ goods?.goodsName }}</div>
       <div class="flex-between mt-12">
         <div class="goods-tags">
-          <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
+          <!-- 最多三个标签 -->
+          <el-tag v-for="tag in goods?.goodssEnsureName.slice(0, 3)" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
         </div>
         <div class="goods-location">{{ goods?.hnBaseEnterpriseInfo?.province }}</div>
       </div>
@@ -58,18 +62,13 @@ const handleClick = (item) => {
 .goods-item {
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  // padding: 10px;
   cursor: pointer;
-  transition: box-shadow 0.3s;
-}
-
-.goods-item:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .goods-image {
-  width: 100%;
-  height: 120px;
+  width: 284px;
+  height: 284px;
   margin-bottom: 10px;
 }
 
@@ -79,13 +78,25 @@ const handleClick = (item) => {
 }
 
 .goods-price {
-  color: red;
-  font-weight: bold;
+  color: #ef4d0b;
+  gap: 2px;
+  .unit {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  div:last-child {
+    font-size: 18px;
+    font-weight: bold;
+  }
 }
-
+.goods-volume {
+  font-size: 18px;
+  color: #7a7a7a;
+}
 .goods-title {
-  font-size: 16px;
-  margin: 5px 0;
+  font-size: 18px;
+  margin-top: 12px;
+  color: #333;
 }
 
 .goods-tags {
@@ -104,8 +115,7 @@ const handleClick = (item) => {
 }
 
 .goods-location {
-  color: #888;
-  font-size: 14px;
-  width: 50px;
+  color: #7a7a7a;
+  font-size: 18px;
 }
 </style>

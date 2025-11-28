@@ -149,12 +149,12 @@
         </el-dialog>
       </div>
       <!-- 表单操作按钮 -->
-      <div class="form-actions">
+      <!-- <div class="form-actions">
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '发布' : '保存' }}
         </el-button>
         <el-button @click="emitCancel">取消</el-button>
-      </div>
+      </div> -->
     </el-form>
   </div>
 </template>
@@ -188,7 +188,7 @@ const { cultivate_type, cultivate_status } = toRefs<any>((proxy as any)?.useDict
 // 表单引用
 const formRef = ref();
 // 保存状态
-const saving = ref(false);
+// const saving = ref(false);
 // 加载状态
 const loading = ref(false);
 /* 缩略图弹窗 */
@@ -323,48 +323,60 @@ const fetchContentDetail = async () => {
 };
 
 /** 提交表单 */
-const handleSubmit = async () => {
-  if (!formRef.value) return;
-
-  try {
-    const valid = await formRef.value.validate();
-    if (!valid) return;
-    console.log('fileList.value', fileList.value);
-
-    if (fileList.value.length == 0) {
-      return ElMessage.warning('请上传主图');
+const handleSubmit = (): Promise<boolean> => {
+  return new Promise(async (resolve, reject) => {
+    if (!formRef.value) {
+      reject(false);
+      return;
     }
-    saving.value = true;
 
-    // 构建提交数据
-    const submitData = {
-      ...(props.type === 'edit' ? { id: formData.value.id } : {}),
-      cultivateName: formData.value.cultivateName,
-      cultivateType: formData.value.cultivateType,
-      cultivateStatus: formData.value.cultivateStatus,
-      cultivateContent: formData.value.cultivateContent,
-      ossVoList: attachmentList.value,
-      ossId: fileList.value[0].ossId
-    };
-    console.log('submitData提交的数据', submitData);
-    // 调用对应的接口
-    const api = props.type === 'add' ? courseCultivateadd : courseCultivateupdate;
-    const response: any = await api(submitData);
+    try {
+      const valid = await formRef.value.validate();
+      if (!valid) {
+        reject(false);
+        return;
+      }
+      console.log('fileList.value', fileList.value);
 
-    if (response && response.code === 200) {
-      ElMessage.success(props.type === 'add' ? '培训课程发布成功' : '培训课程修改成功');
-      emit('success');
-    } else {
-      ElMessage.error(response?.msg || '操作失败，请稍后重试');
+      if (fileList.value.length == 0) {
+        reject(false);
+        return ElMessage.warning('请上传主图');
+      }
+      // saving.value = true;
+
+      // 构建提交数据
+      const submitData = {
+        ...(props.type === 'edit' ? { id: formData.value.id } : {}),
+        cultivateName: formData.value.cultivateName,
+        cultivateType: formData.value.cultivateType,
+        cultivateStatus: formData.value.cultivateStatus,
+        cultivateContent: formData.value.cultivateContent,
+        ossVoList: attachmentList.value,
+        ossId: fileList.value[0].ossId
+      };
+      console.log('submitData提交的数据', submitData);
+      // 调用对应的接口
+      const api = props.type === 'add' ? courseCultivateadd : courseCultivateupdate;
+      const response: any = await api(submitData);
+
+      if (response && response.code === 200) {
+        ElMessage.success(props.type === 'add' ? '培训课程发布成功' : '培训课程修改成功');
+        emit('success');
+        resolve(true);
+      } else {
+        ElMessage.error(response?.msg || '操作失败，请稍后重试');
+        reject(false);
+      }
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('操作失败:', error);
+        ElMessage.error('操作失败，请稍后重试');
+        reject(false);
+      }
+    } finally {
+      // saving.value = false;
     }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('操作失败:', error);
-      ElMessage.error('操作失败，请稍后重试');
-    }
-  } finally {
-    saving.value = false;
-  }
+  });
 };
 /** 处理目录点击事件 */
 const handleTocClick = (item: any) => {
@@ -658,6 +670,10 @@ onMounted(() => {
     fetchContentDetail();
   }
 });
+
+defineExpose({
+  handleSubmit
+});
 </script>
 
 <style scoped lang="scss">
@@ -831,7 +847,7 @@ onMounted(() => {
 // 表单操作按钮
 .form-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;

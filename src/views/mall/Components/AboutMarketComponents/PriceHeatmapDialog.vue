@@ -1,3 +1,5 @@
+<!-- 热力图 -->
+
 <template>
   <el-dialog
     v-model="visible"
