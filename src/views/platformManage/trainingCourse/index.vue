@@ -176,6 +176,7 @@
       <Suspense>
         <template #default>
           <component
+            ref="dialogRef"
             :is="dialog.type === 'view' ? Detail : Edit"
             :id="dialog.id"
             :type="dialog.type"
@@ -187,6 +188,12 @@
           <el-skeleton :rows="6" animated />
         </template>
       </Suspense>
+      <template #footer>
+        <el-button type="primary" v-if="dialog.type !== 'view'" @click="handleSubmit" :loading="saving">
+          {{ dialog.type === 'add' ? '发布' : '保存' }}
+        </el-button>
+        <el-button @click="dialog.visible = false">{{ dialog.type === 'view' ? '关闭' : '取消' }}</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -541,6 +548,21 @@ const handleDeleteSingle = async (row: any) => {
       ElMessage.error('删除失败，请稍后重试');
     }
   }
+};
+
+const dialogRef = ref(null);
+const saving = ref<boolean>(false);
+const handleSubmit = () => {
+  nextTick(async () => {
+    if (dialogRef.value && typeof dialogRef.value.handleSubmit === 'function') {
+      try {
+        saving.value = true;
+        await dialogRef.value.handleSubmit();
+      } finally {
+        saving.value = false;
+      }
+    }
+  });
 };
 
 // 字典渲染已使用 <dict-tag>，无需本地映射函数
