@@ -8,7 +8,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline class="query-form">
       <el-form-item label="企业编码" prop="enterpriseNumber">
         <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -231,5 +231,17 @@ onMounted(() => {
 .pagination {
   margin-top: 24px;
   justify-content: end;
+}
+
+/* 查询表单：让标签宽度自适应且内容无多余左侧间距 */
+.query-form :deep(.el-form-item__label) {
+  width: auto;
+  white-space: nowrap;
+}
+.query-form :deep(.el-form-item__content) {
+  margin-left: 0 !important;
+}
+.query-form :deep(.el-form-item) {
+  gap: 8px; /* 标签与内容的自然间距 */
 }
 </style>

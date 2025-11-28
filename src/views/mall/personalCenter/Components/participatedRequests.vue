@@ -209,11 +209,11 @@ function getTime(item: any) {
 .menu-title::before {
   content: '';
   display: inline-block;
-  width: 26px;
-  height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  width: 28px;
+  height: 28px;
+
+  margin-right: 6px;
+  background-image: url('@/assets/images/mall/my-participated-icon.png');
 }
 
 .pading20 {
@@ -262,15 +262,17 @@ function getTime(item: any) {
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-size: 14px;
   color: #333333;
+  display: flex;
+  align-items: center;
 }
 .article_name::before {
   content: '';
   display: inline-block;
   width: 16px;
   height: 16px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
+
   margin-right: 6px;
+  background-image: url('@/assets/images/mall/training-meeting-icon.png');
 }
 
 .article_type {

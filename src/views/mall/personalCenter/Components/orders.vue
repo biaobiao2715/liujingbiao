@@ -458,10 +458,10 @@ onMounted(() => {
   display: inline-block;
   width: 26px;
   height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  margin-right: 2px;
+  background-image: url('@/assets/images/mall/my-orders-icon.png');
 }
+
 .pading20 {
   padding: 20px;
   background: #ffffff;

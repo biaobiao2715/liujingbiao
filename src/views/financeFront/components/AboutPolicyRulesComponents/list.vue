@@ -181,12 +181,10 @@ onMounted(() => {
   display: inline-block;
   width: 24px;
   height: 24px;
-  border-radius: 4px 4px 4px 4px;
   margin-right: 8px;
-}
-.menu-title::before {
   background-image: url('@/assets/images/finance/policy-risk-header-icon.png');
 }
+
 .pagination {
   margin-top: 24px;
   justify-content: end;

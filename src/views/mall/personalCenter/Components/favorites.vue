@@ -48,16 +48,7 @@
                 </div>
                 <div class="flex-center-between">
                   <div class="name-ellipsis">{{ item.googsName }}</div>
-                  <el-button
-                    v-hasPermi="['system:common:favorite']"
-                    @click.stop="onUnfav(item)"
-                    class="fav-heart"
-                    text
-                    v-throttle
-                    :loading="state.opLoadingId === item.id"
-                  >
-                    <el-icon><StarFilled /></el-icon>
-                  </el-button>
+                  <img src="@/assets/images/mall/favorite-icon.png" alt="取消收藏" class="favorites-icon" @click.stop="onUnfav(item)" />
                 </div>
                 <div class="flex-center-between">
                   <div>
@@ -88,16 +79,7 @@
                 </div>
                 <div class="flex-center-between">
                   <div class="article-author">{{ getArticleAuthor(item) }}</div>
-                  <el-button
-                    v-hasPermi="['system:common:favorite']"
-                    @click.stop="onUnfav(item)"
-                    class="fav-heart"
-                    text
-                    v-throttle
-                    :loading="state.opLoadingId === item.id"
-                  >
-                    <el-icon><StarFilled /></el-icon>
-                  </el-button>
+                  <img src="@/assets/images/mall/favorite-icon.png" alt="取消收藏" class="favorites-icon" @click.stop="onUnfav(item)" />
                 </div>
               </div>
             </el-card>
@@ -326,11 +308,10 @@ onBeforeUnmount(() => {
 .menu-title::before {
   content: '';
   display: inline-block;
-  width: 26px;
-  height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  background-image: url('@/assets/images/mall/my-favorites-icon.png');
 }
 
 .pading20 {
@@ -414,17 +395,9 @@ onBeforeUnmount(() => {
 }
 
 /* 收藏心形按钮：图标化、悬停放大 */
-.fav-heart {
-  color: #ff6a00;
-  font-size: 18px;
-  padding: 0;
-}
-.fav-heart .el-icon {
-  vertical-align: middle;
-  transition: transform 0.2s ease;
-}
-.fav-heart:hover .el-icon {
-  transform: scale(1.1);
+.favorites-icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* ========== 文章卡片样式优化 ========== */

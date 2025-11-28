@@ -12,17 +12,10 @@
       <!-- 问题统计与红色回复数 -->
       <div class="summary-alert">已提问{{ total }}条</div>
       <!-- 表格 -->
-      <el-table
-        :data="tableData"
-        v-loading="loading"
-        style="table-layout: fixed; width: 100%"
-        border
-        size="small"
-        header-cell-class-name="table-header"
-      >
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="questionContent" label="我的提问" align="center" />
-        <el-table-column prop="publishTime" label="发布时间" align="center">
+      <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" size="small" header-cell-class-name="table-header">
+        <!-- <el-table-column type="index" label="序号" width="55" align="center" /> -->
+        <el-table-column prop="questionContent" label="我的提问" />
+        <el-table-column prop="publishTime" label="发布时间">
           <template #default="scope">
             <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
           </template>
@@ -180,11 +173,10 @@ const onDelete = async (row: listStyle) => {
 .menu-title::before {
   content: '';
   display: inline-block;
-  width: 26px;
-  height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  background-image: url('@/assets/images/mall/my-questions-icon.png');
 }
 
 .pading20 {
@@ -253,7 +245,6 @@ const onDelete = async (row: listStyle) => {
 
 /* 新增：详情弹窗样式 */
 .question-detail-dialog .detail-body {
-  width: 560px;
   padding: 20px;
   background: linear-gradient(180deg, rgba(16, 140, 88, 0.12) 0%, rgba(16, 140, 88, 0) 100%);
   border-radius: 8px 8px 8px 8px;
