@@ -60,10 +60,12 @@ section {
 .app-main {
   /* 50= navbar  50  */
   min-height: calc(100vh - 100px);
+  /* height: 100%; */
   width: 100%;
   position: relative;
-  overflow: hidden;
-  /* background: #f7f8fa; */
+  /* overflow: hidden; */
+  overflow: auto;
+  background: #f7f8fa;
   padding: 15px;
   padding-top: 0;
 }
@@ -74,8 +76,11 @@ section {
 
 .hasTagsView {
   .app-main {
-    /* 84 = navbar + tags-view = 50 + 34+ 30padding */
-    min-height: calc(100vh - 114px);
+    /* height: 100%; */
+    /* 84 = navbar + tags-view = 50 + 34+ 30padding-50 */
+    min-height: calc(100vh - 104px);
+    /* overflow: hidden; */
+    overflow: auto;
   }
 
   .fixed-header + .app-main {

@@ -1,24 +1,23 @@
 <template>
   <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme }">
     <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
+
+    <navbar ref="navbarRef" @set-layout="setLayout" style="background: #ffffff" />
+
     <side-bar v-if="!sidebar.hide" class="sidebar-container" />
+
     <div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
-      <!-- <el-scrollbar>
-        <div :class="{ 'fixed-header': fixedHeader }">
-          <navbar ref="navbarRef" @setLayout="setLayout" />
-          <tags-view v-if="needTagsView" />
-        </div>
-        <app-main />
-        <settings ref="settingRef" />
-      </el-scrollbar> -->
       <div :class="{ 'fixed-header': fixedHeader }">
-        <navbar ref="navbarRef" @set-layout="setLayout" style="background: #ffffff" />
-        <!-- <tags-view v-if="needTagsView" /> -->
         <div class="breadcrumbList">
           <breadcrumb v-if="!settingsStore.topNav" id="breadcrumb-container" class="breadcrumb-container" />
         </div>
       </div>
-      <app-main />
+
+      <!-- 修改这里：为 AppMain 添加单独的滚动容器 -->
+      <div class="app-main-wrapper">
+        <app-main />
+      </div>
+
       <settings ref="settingRef" />
     </div>
   </div>
@@ -37,7 +36,10 @@ const theme = computed(() => settingsStore.theme);
 const sidebar = computed(() => useAppStore().sidebar);
 const device = computed(() => useAppStore().device);
 const needTagsView = computed(() => settingsStore.tagsView);
-const fixedHeader = computed(() => settingsStore.fixedHeader);
+const fixedHeader = computed(() => {
+  console.log('🚀 ~ fixedHeader:', fixedHeader);
+  return settingsStore.fixedHeader;
+});
 
 const classObj = computed(() => ({
   hideSidebar: !sidebar.value.opened,
@@ -87,7 +89,6 @@ const setLayout = () => {
   settingRef.value?.openSetting();
 };
 </script>
-
 <style lang="scss" scoped>
 @use '@/assets/styles/mixin.scss';
 @use '@/assets/styles/variables.module.scss' as *;
@@ -95,8 +96,10 @@ const setLayout = () => {
 .app-wrapper {
   @include mixin.clearfix;
   position: relative;
-  height: 100%;
+  height: 100vh; // 使用视口高度
   width: 100%;
+  display: flex;
+  flex-direction: column;
 
   &.mobile.openSidebar {
     position: fixed;
@@ -114,28 +117,66 @@ const setLayout = () => {
   z-index: 999;
 }
 
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // 防止外部容器滚动
+}
+
 .fixed-header {
-  position: fixed;
+  position: sticky; // 改为 sticky 定位
   top: 0;
-  right: 0;
   z-index: 9;
-  width: calc(100% - #{$base-sidebar-width});
-  transition: width 0.28s;
+  width: 100%;
   background: $fixed-header-bg;
+  flex-shrink: 0; // 防止被压缩
 }
 
-.hideSidebar .fixed-header {
-  width: calc(100% - 54px);
+// AppMain 滚动容器
+.app-main-wrapper {
+  flex: 1;
+  box-sizing: border-box;
+  overflow: auto; // 只有这个区域会滚动
+  position: relative;
 }
 
-.sidebarHide .fixed-header {
-  width: 100%;
-}
-
-.mobile .fixed-header {
-  width: 100%;
-}
 .breadcrumbList {
   background: #f7f8fa;
+  margin-left: 10px;
+  /* padding: 8px 16px; // 添加一些内边距 */
+}
+
+// 响应式调整
+.hideSidebar .main-container {
+  margin-left: 54px;
+}
+
+.sidebarHide .main-container {
+  margin-left: 0;
+}
+
+.mobile .main-container {
+  margin-left: 0;
+}
+/* 隐藏所有元素的默认滚动条 */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* 只在需要的地方显示滚动条 */
+.scroll-container {
+  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: block;
+  width: 6px;
 }
 </style>

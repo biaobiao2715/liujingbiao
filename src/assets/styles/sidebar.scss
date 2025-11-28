@@ -2,10 +2,11 @@
 
 #app {
   .main-container {
-    height: 100%;
+    height: calc(100vh - 50px); // 根据导航栏高度调整
     transition: margin-left 0.28s;
     margin-left: $base-sidebar-width;
     position: relative;
+    overflow: hidden;
   }
 
   .sidebarHide {
@@ -20,7 +21,8 @@
     height: 100%;
     position: fixed;
     font-size: 0;
-    top: 0;
+    top: 62px;
+    // top: 0;
     bottom: 0;
     left: 0;
     z-index: 1001;
@@ -165,13 +167,20 @@
         // color: #fff;
         background-color: rgba(16, 140, 88, 0.1) !important;
         color: #108c58;
+        // margin-left: -1px;
+        box-sizing: border-box;
         font-family:
           PingFang SC,
           PingFang SC;
         font-weight: 500;
         border-left: 4px solid #108c58;
         border-radius: 2px;
+        .menu-title {
+          display: inline-block;
+          margin-left: -5px;
+        }
       }
+
       &:not(.is-active):hover {
         // you can use $sub-menuHover
         // background-color: rgba(0, 0, 0, 0.04) !important;
@@ -196,7 +205,8 @@
       height: 45px;
       // 选中状态的菜单
       &.is-active {
-        background-color: var(--el-menu-active-color) !important;
+        // background-color: var(--el-menu-active-color) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
         color: #fff !important;
       }
 
