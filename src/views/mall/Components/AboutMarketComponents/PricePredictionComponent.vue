@@ -28,17 +28,10 @@
       <div class="chart-section">
         <h3 class="chart-title">{{ chartTitle }}</h3>
         <PricePredictionChart
-          :months="allMonths"
-          :past-prices="pastPrices"
-          :past-price-upper="pastPriceUpper"
-          :past-price-lower="pastPriceLower"
-          :predicted-prices="predictedPrices"
-          :predicted-price-upper="predictedPriceUpper"
-          :predicted-price-lower="predictedPriceLower"
-          :past-highest="pastHighest"
-          :past-lowest="pastLowest"
-          :predicted-highest="predictedHighest"
-          :predicted-lowest="predictedLowest"
+          :historical-months="historicalLineMonths"
+          :historical-prices="historicalLinePrices"
+          :predicted-months="predictedLineMonths"
+          :predicted-prices="predictedLinePrices"
           :y-axis-min="chartYAxisMin"
           :y-axis-max="chartYAxisMax"
           :y-axis-interval="chartYAxisInterval"
@@ -46,14 +39,45 @@
         />
       </div>
 
-      <!-- 右侧：市场分析解读 -->
+      <!-- 右侧：市场分析解读 + 图例 -->
       <div class="analysis-section">
         <div class="analysis-card">
-          <h4 class="analysis-title">市场分析解读:</h4>
+          <h4 class="analysis-title">市场分析解读</h4>
           <div class="analysis-content">
-            <p><strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
-            <p><strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
-            <p><strong>预测建议:</strong> {{ marketAnalysis.suggestion }}</p>
+            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
+            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
+            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion }}</p>
+          </div>
+        </div>
+
+        <!-- 图例卡片 -->
+        <div class="legend-card">
+          <h4 class="legend-title"><span class="title-marker"></span>图例</h4>
+          <div class="legend-list">
+            <div class="legend-item">
+              <span class="legend-line historical-line"></span>
+              <span class="legend-text">过往月份价格</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-line predicted-line"></span>
+              <span class="legend-text">预测月份价格</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon historical-low"></span>
+              <span class="legend-text">过往月份价格最低点</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon historical-high"></span>
+              <span class="legend-text">过往月份价格最高点</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon predicted-low"></span>
+              <span class="legend-text">预测月份价格最低点</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon predicted-high"></span>
+              <span class="legend-text">预测月份价格最高点</span>
+            </div>
           </div>
         </div>
       </div>
@@ -94,6 +118,10 @@ const pastPriceLower = ref<(number | null)[]>([]);
 const predictedPrices = ref<(number | null)[]>([]);
 const predictedPriceUpper = ref<(number | null)[]>([]);
 const predictedPriceLower = ref<(number | null)[]>([]);
+const historicalLineMonths = ref<string[]>([]);
+const historicalLinePrices = ref<number[]>([]);
+const predictedLineMonths = ref<string[]>([]);
+const predictedLinePrices = ref<number[]>([]);
 const pastHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const pastLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
@@ -235,6 +263,22 @@ const fetchPricePrediction = async () => {
       } else if (data.months && Array.isArray(data.months)) {
         allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
       }
+
+      historicalLineMonths.value = (historicalData.xAxis && Array.isArray(historicalData.xAxis))
+        ? historicalData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr))
+        : [];
+      historicalLinePrices.value = (historicalData.yAxis && Array.isArray(historicalData.yAxis))
+        ? historicalData.yAxis.map((val: any) => Number(val ?? 0))
+        : [];
+
+      let predictionEntries: Array<[string, any]> = [];
+      if (predictedData && Array.isArray(predictedData.xAxis) && Array.isArray(predictedData.yAxis)) {
+        predictionEntries = predictedData.xAxis.map((label: string, idx: number) => [label, predictedData.yAxis[idx]]);
+      } else if (predictedData && typeof predictedData === 'object') {
+        predictionEntries = Object.entries(predictedData);
+      }
+      predictedLineMonths.value = predictionEntries.map(([key]) => normalizeMonthLabel(key));
+      predictedLinePrices.value = predictionEntries.map(([, value]) => Number(value ?? 0));
 
       if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
         const predictedMonths = predictedData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
@@ -493,31 +537,43 @@ defineExpose({
     }
 
     .analysis-section {
-      flex: 0 0 260px;
+      flex: 0 0 280px;
       display: flex;
       flex-direction: column;
-      min-width: 220px;
+      gap: 16px;
+      min-width: 240px;
 
       .analysis-card {
-        background-color: #fffbe6; // 浅黄色背景
+        background-color: #f6ffed;
         border-radius: 4px;
-        padding: 24px;
-        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
-        border: 1px solid #ffe58f;
+        padding: 20px;
+        border: 1px solid #b7eb8f;
 
         .analysis-title {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: bold;
-          margin-bottom: 20px;
-          color: #303133;
+          margin-bottom: 16px;
+          color: #108c58;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          &::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 16px;
+            background: #108c58;
+            border-radius: 2px;
+          }
         }
 
         .analysis-content {
           p {
-            margin-bottom: 18px;
-            font-size: 14px;
-            color: #606266;
-            line-height: 1.8;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #4a4a4a;
+            line-height: 1.7;
 
             &:last-child {
               margin-bottom: 0;
@@ -525,6 +581,107 @@ defineExpose({
 
             strong {
               color: #303133;
+            }
+          }
+        }
+      }
+
+      .legend-card {
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 20px;
+        border: 1px solid #e4e7ed;
+
+        .legend-title {
+          font-size: 15px;
+          font-weight: bold;
+          margin-bottom: 16px;
+          color: #303133;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .title-marker {
+            display: inline-block;
+            width: 3px;
+            height: 16px;
+            background: #108c58;
+            border-radius: 2px;
+          }
+        }
+
+        .legend-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .legend-line {
+              width: 24px;
+              height: 3px;
+              border-radius: 2px;
+
+              &.historical-line {
+                background: #f5a623;
+              }
+
+              &.predicted-line {
+                background: #1abc9c;
+              }
+            }
+
+            .legend-icon {
+              width: 16px;
+              height: 16px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+
+              // 过往最低点 - 青绿色向下三角
+              &.historical-low {
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-top: 12px solid #1abc9c;
+              }
+
+              // 过往最高点 - 青绿色向上三角
+              &.historical-high {
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-bottom: 12px solid #1abc9c;
+              }
+
+              // 预测最低点 - 橙色向下三角
+              &.predicted-low {
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-top: 12px solid #f5a623;
+              }
+
+              // 预测最高点 - 橙色向上三角
+              &.predicted-high {
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-bottom: 12px solid #f5a623;
+              }
+            }
+
+            .legend-text {
+              font-size: 13px;
+              color: #606266;
             }
           }
         }

@@ -10,17 +10,10 @@ import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 
 interface Props {
-  months: string[]
-  pastPrices: number[]
-  pastPriceUpper: number[]
-  pastPriceLower: number[]
+  historicalMonths: string[]
+  historicalPrices: number[]
+  predictedMonths: string[]
   predictedPrices: number[]
-  predictedPriceUpper: number[]
-  predictedPriceLower: number[]
-  pastHighest: { month: string; price: number }
-  pastLowest: { month: string; price: number }
-  predictedHighest: { month: string; price: number }
-  predictedLowest: { month: string; price: number }
   yAxisMin?: number
   yAxisMax?: number
   yAxisInterval?: number
@@ -35,340 +28,332 @@ const props = withDefaults(defineProps<Props>(), {
 const chartContainer = ref<HTMLElement | null>(null)
 let chartInstance: ECharts | null = null
 
-// 初始化图表
-const initChart = () => {
-  if (!chartContainer.value) return
+const buildAxis = () => {
+  const history = props.historicalMonths || []
+  const predicted = props.predictedMonths || []
+  return [...history, ...predicted.filter((m) => !history.includes(m))]
+}
 
-  chartInstance = echarts.init(chartContainer.value)
-  updateChart()
-  // 初始化后立即调整大小，确保图表正确显示
-  nextTick(() => {
-    chartInstance?.resize()
+const buildSeriesData = (axis: string[], months: string[], values: number[]) => {
+  const map = new Map<string, number>()
+  months.forEach((m, idx) => map.set(m, Number(values[idx])))
+  return axis.map((m) => map.get(m) ?? null)
+}
+
+const buildScatterData = (
+  axis: string[],
+  months: string[],
+  values: number[],
+  type: 'max' | 'min'
+) => {
+  if (!months?.length || !values?.length) return axis.map(() => null)
+  const map = new Map<string, number>()
+  months.forEach((m, idx) => {
+    const val = Number(values[idx])
+    if (!Number.isNaN(val)) map.set(m, val)
+  })
+  if (!map.size) return axis.map(() => null)
+  const comparator = type === 'max' ? Math.max : Math.min
+  const extreme = comparator(...Array.from(map.values()))
+  return axis.map((label) => {
+    const val = map.get(label)
+    if (val === undefined) return null
+    return val === extreme ? val : null
   })
 }
 
-// 更新图表
+const initChart = () => {
+  if (!chartContainer.value) return
+  chartInstance = echarts.init(chartContainer.value)
+  updateChart()
+  nextTick(() => chartInstance?.resize())
+}
+
+// 检查数据是否有效（非全0且有实际数据）
+const hasValidData = (values: number[]) => {
+  if (!values?.length) return false
+  return values.some((v) => typeof v === 'number' && v > 0)
+}
+
 const updateChart = () => {
-  if (!chartInstance || !props.months.length) return
+  if (!chartInstance) return
+  const allAxis = buildAxis()
+  if (!allAxis.length) return
 
-  // 构建最高点和最低点数据
-  const pastHighestData = props.months.map((m) => (m === props.pastHighest.month ? props.pastHighest.price : null))
-  const pastLowestData = props.months.map((m) => (m === props.pastLowest.month ? props.pastLowest.price : null))
-  const predictedHighestData = props.months.map((m) =>
-    m === props.predictedHighest.month ? props.predictedHighest.price : null
-  )
-  const predictedLowestData = props.months.map((m) =>
-    m === props.predictedLowest.month ? props.predictedLowest.price : null
-  )
+  const historicalData = buildSeriesData(allAxis, props.historicalMonths, props.historicalPrices)
+  const predictedData = buildSeriesData(allAxis, props.predictedMonths, props.predictedPrices)
+  
+  // 检查是否有有效数据
+  const hasValidHistorical = hasValidData(props.historicalPrices)
+  const hasValidPredicted = hasValidData(props.predictedPrices)
+  
+  // 只有在有有效数据时才显示最高最低点
+  const historicalMaxData = hasValidHistorical 
+    ? buildScatterData(allAxis, props.historicalMonths, props.historicalPrices, 'max')
+    : allAxis.map(() => null)
+  const historicalMinData = hasValidHistorical 
+    ? buildScatterData(allAxis, props.historicalMonths, props.historicalPrices, 'min')
+    : allAxis.map(() => null)
+  const predictedMaxData = hasValidPredicted 
+    ? buildScatterData(allAxis, props.predictedMonths, props.predictedPrices, 'max')
+    : allAxis.map(() => null)
+  const predictedMinData = hasValidPredicted 
+    ? buildScatterData(allAxis, props.predictedMonths, props.predictedPrices, 'min')
+    : allAxis.map(() => null)
 
-  const markerLabel = {
-    show: true,
-    position: 'top',
-    fontSize: 12,
-    color: '#303133',
-    backgroundColor: '#fff',
-    borderColor: '#dcdfe6',
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: [2, 6],
-    formatter: (params: any) => {
-      if (params.value === null || params.value === undefined || params.value === '') return ''
-      return Number(params.value).toFixed(2)
-    }
+  const valueList = [...historicalData, ...predictedData].filter((v) => typeof v === 'number' && v > 0) as number[]
+  const rawMax = valueList.length ? Math.max(...valueList) : 0
+  const axisMin = 0
+  const axisMaxBase = Math.max(50, Math.ceil(rawMax / 50) * 50)
+  const axisMax = axisMaxBase === 0 ? 50 : axisMaxBase
+  
+  // 是否有任何有效数据
+  const hasAnyValidData = hasValidHistorical || hasValidPredicted
+
+  // 找到历史数据和预测数据的分界点索引
+  const lastHistoricalMonth = props.historicalMonths?.[props.historicalMonths.length - 1]
+  const splitIndex = lastHistoricalMonth ? allAxis.indexOf(lastHistoricalMonth) : -1
+
+  // 构建预测区域高亮的 markArea 数据
+  const markAreaData: any[] = []
+  if (splitIndex >= 0 && splitIndex < allAxis.length - 1) {
+    markAreaData.push([
+      {
+        xAxis: allAxis[splitIndex],
+        itemStyle: {
+          color: 'rgba(16, 140, 88, 0.08)'
+        }
+      },
+      {
+        xAxis: allAxis[allAxis.length - 1]
+      }
+    ])
   }
 
   const option = {
-    backgroundColor: '#fff', // 图表背景颜色为白色
+    backgroundColor: '#fff',
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'cross'
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e4e7ed',
+      borderWidth: 1,
+      textStyle: {
+        color: '#303133'
       }
     },
     legend: {
-      data: [
-        '过往月份价格',
-        '过往月份价格区域',
-        '预测月份价格',
-        '预测月份价格区域',
-        '过往月份价格最低点',
-        '过往月份价格最高点',
-        '预测月份价格最低点',
-        '预测月份价格最高点'
-      ],
-      top: 10,
-      textStyle: {
-        fontSize: 13,
-        color: '#303133',
-        fontWeight: 'normal'
-      }
+      show: false
     },
     grid: {
       left: '3%',
       right: '4%',
       bottom: '8%',
-      top: '15%',
+      top: '10%',
       containLabel: true
     },
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: props.months,
-      name: '时间 (月份)',
-      nameLocation: 'middle',
-      nameGap: 40,
-      nameTextStyle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#303133'
-      },
-      axisLabel: {
-        fontSize: 13,
-        color: '#303133',
-        fontWeight: 'normal',
-        rotate: 0,
-        margin: 12
-      },
+      data: allAxis,
       axisLine: {
         lineStyle: {
           color: '#e4e7ed'
         }
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        fontSize: 12,
+        color: '#86909c'
       }
     },
     yAxis: {
       type: 'value',
-      name: '价格 (元/斤)',
-      nameLocation: 'end',
+      name: '元/斤',
       nameTextStyle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#303133',
-        padding: [0, 0, 0, 10]
+        color: '#86909c',
+        fontSize: 12,
+        padding: [0, 40, 0, 0]
       },
-      min: props.yAxisMin,
-      max: props.yAxisMax,
-      interval: props.yAxisInterval,
-      axisLabel: {
-        fontSize: 13,
-        color: '#303133',
-        fontWeight: 'normal'
-      },
+      min: axisMin,
+      max: axisMax,
+      interval: (axisMax - axisMin) / 5 || 10,
       axisLine: {
-        lineStyle: {
-          color: '#e4e7ed'
-        }
+        show: false
+      },
+      axisTick: {
+        show: false
       },
       splitLine: {
         lineStyle: {
           color: '#f0f0f0',
           type: 'dashed'
         }
+      },
+      axisLabel: {
+        fontSize: 12,
+        color: '#86909c'
       }
     },
     series: [
-      // 过往月份价格线（蓝色）
-      {
+      // 历史价格线（青绿色）+ 渐变填充 - 只有有效数据时才显示
+      ...(hasValidHistorical ? [{
         name: '过往月份价格',
         type: 'line',
-        data: props.pastPrices,
-        lineStyle: {
-          width: 2,
-          color: '#409eff' // 蓝色
-        },
+        data: historicalData,
+        smooth: 0.4,
         symbol: 'none',
-        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: '#1abc9c'
+        },
         areaStyle: {
-          opacity: 0.3,
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgba(64, 158, 255, 0.3)' // 浅蓝色渐变起始
-            },
-            {
-              offset: 1,
-              color: 'rgba(64, 158, 255, 0)' // 透明渐变结束
-            }
+            { offset: 0, color: 'rgba(26, 188, 156, 0.35)' },
+            { offset: 1, color: 'rgba(26, 188, 156, 0.02)' }
           ])
-        }
+        },
+        markArea: {
+          silent: true,
+          data: markAreaData
+        },
+        z: 2
       },
-      // 过往月份价格区域（上限）
+      // 历史最高点（青绿色圆圈）
       {
-        name: '过往月份价格区域',
-        type: 'line',
-        data: props.pastPriceUpper,
-        lineStyle: {
-          opacity: 0
-        },
-        stack: 'past',
-        areaStyle: {
-          color: 'rgba(64, 158, 255, 0.2)' // 浅蓝色区域
-        },
-        symbol: 'none'
-      },
-      // 过往月份价格区域（下限）
-      {
-        name: '过往月份价格区域',
-        type: 'line',
-        data: props.pastPriceLower,
-        lineStyle: {
-          opacity: 0
-        },
-        stack: 'past',
-        areaStyle: {
-          color: 'rgba(64, 158, 255, 0.2)'
-        },
-        symbol: 'none'
-      },
-      // 预测月份价格线（橙色）
-      {
-        name: '预测月份价格',
-        type: 'line',
-        data: props.predictedPrices,
-        lineStyle: {
-          width: 2,
-          color: '#FF8C00' // 橙色
-        },
-        symbol: 'none',
-        smooth: true,
-        areaStyle: {
-          opacity: 0.3,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgba(255, 140, 0, 0.3)' // 橙色渐变起始
-            },
-            {
-              offset: 1,
-              color: 'rgba(255, 140, 0, 0)' // 透明渐变结束
-            }
-          ])
-        }
-      },
-      // 预测月份价格区域（上限）
-      {
-        name: '预测月份价格区域',
-        type: 'line',
-        data: props.predictedPriceUpper,
-        lineStyle: {
-          opacity: 0
-        },
-        stack: 'predicted',
-        areaStyle: {
-          color: 'rgba(255, 140, 0, 0.2)' // 橙色区域
-        },
-        symbol: 'none'
-      },
-      // 预测月份价格区域（下限）
-      {
-        name: '预测月份价格区域',
-        type: 'line',
-        data: props.predictedPriceLower,
-        lineStyle: {
-          opacity: 0
-        },
-        stack: 'predicted',
-        areaStyle: {
-          color: 'rgba(255, 140, 0, 0.2)'
-        },
-        symbol: 'none'
-      },
-      // 过往月份价格最低点（红色）
-      {
-        name: '过往月份价格最低点',
+        name: '过往最高点',
         type: 'scatter',
-        data: pastLowestData,
+        data: historicalMaxData,
         symbol: 'circle',
         symbolSize: 14,
         itemStyle: {
-          color: '#FF0000',
-          borderColor: '#fff',
-          borderWidth: 2
+          color: '#fff',
+          borderColor: '#1abc9c',
+          borderWidth: 3
         },
-        label: markerLabel,
-        z: 10 // 确保在最上层
-      },
-      // 过往月份价格最高点（绿色）
-      {
-        name: '过往月份价格最高点',
-        type: 'scatter',
-        data: pastHighestData,
-        symbol: 'circle',
-        symbolSize: 18,
-        itemStyle: {
-          color: '#00BB00',
-          borderColor: '#fff',
-          borderWidth: 3,
-          shadowBlur: 10,
-          shadowColor: 'rgba(0, 187, 0, 0.35)'
+        label: {
+          show: false
         },
-        label: markerLabel,
-        z: 20
-      },
-      // 预测月份价格最低点（黄色）
-      {
-        name: '预测月份价格最低点',
-        type: 'scatter',
-        data: predictedLowestData,
-        symbol: 'circle',
-        symbolSize: 14,
-        itemStyle: {
-          color: '#FFD700',
-          borderColor: '#fff',
-          borderWidth: 2
-        },
-        label: markerLabel,
         z: 10
       },
-      // 预测月份价格最高点（紫色）
+      // 历史最低点（青绿色圆圈）
       {
-        name: '预测月份价格最高点',
+        name: '过往最低点',
         type: 'scatter',
-        data: predictedHighestData,
+        data: historicalMinData,
         symbol: 'circle',
-        symbolSize: 18,
+        symbolSize: 14,
         itemStyle: {
-          color: '#800080',
-          borderColor: '#fff',
-          borderWidth: 3,
-          shadowBlur: 10,
-          shadowColor: 'rgba(128, 0, 128, 0.35)'
+          color: '#fff',
+          borderColor: '#1abc9c',
+          borderWidth: 3
         },
-        label: markerLabel,
-        z: 20
-      }
+        label: {
+          show: false
+        },
+        z: 10
+      }] : []),
+      // 预测价格线（橙色）- 只有有效数据时才显示
+      ...(hasValidPredicted ? [{
+        name: '预测月份价格',
+        type: 'line',
+        data: predictedData,
+        smooth: 0.4,
+        symbol: 'none',
+        lineStyle: {
+          width: 3,
+          color: '#f5a623'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(245, 166, 35, 0.25)' },
+            { offset: 1, color: 'rgba(245, 166, 35, 0.02)' }
+          ])
+        },
+        z: 2
+      },
+      // 预测最高点（橙色三角形向上）
+      {
+        name: '预测最高点',
+        type: 'scatter',
+        data: predictedMaxData,
+        symbol: 'triangle',
+        symbolSize: 14,
+        itemStyle: {
+          color: '#fff',
+          borderColor: '#f5a623',
+          borderWidth: 3
+        },
+        label: {
+          show: false
+        },
+        z: 10
+      },
+      // 预测最低点（橙色三角形向下）
+      {
+        name: '预测最低点',
+        type: 'scatter',
+        data: predictedMinData,
+        symbol: 'triangle',
+        symbolRotate: 180,
+        symbolSize: 14,
+        itemStyle: {
+          color: '#fff',
+          borderColor: '#f5a623',
+          borderWidth: 3
+        },
+        label: {
+          show: false
+        },
+        z: 10
+      }] : []),
+      // 分隔虚线（当前月份）- 只有有任何有效数据时才显示
+      ...(splitIndex >= 0 && hasAnyValidData ? [{
+        name: '分隔线',
+        type: 'line',
+        markLine: {
+          silent: true,
+          symbol: 'none',
+          lineStyle: {
+            color: '#1abc9c',
+            type: 'dashed',
+            width: 1
+          },
+          label: {
+            show: false
+          },
+          data: [
+            { xAxis: allAxis[splitIndex] }
+          ]
+        }
+      }] : [])
     ]
   }
 
   chartInstance.setOption(option, true)
 }
 
-// 窗口大小变化时调整图表
 const resizeChart = () => {
   chartInstance?.resize()
 }
 
-// 监听数据变化
 watch(
   () => [
-    props.months,
-    props.pastPrices,
-    props.predictedPrices,
-    props.pastHighest,
-    props.pastLowest,
-    props.predictedHighest,
-    props.predictedLowest
+    props.historicalMonths,
+    props.historicalPrices,
+    props.predictedMonths,
+    props.predictedPrices
   ],
   () => {
     nextTick(() => {
       updateChart()
-      // 数据更新后调整大小
       chartInstance?.resize()
     })
   },
   { deep: true }
 )
 
-// 使用 ResizeObserver 监听容器大小变化
 let resizeObserver: ResizeObserver | null = null
 
 onMounted(() => {
