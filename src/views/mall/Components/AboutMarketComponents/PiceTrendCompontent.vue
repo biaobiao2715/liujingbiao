@@ -87,7 +87,10 @@
 
     <!-- 热门推荐表格 -->
     <div class="recommendations-section">
-      <h3 class="section-title">热门推荐</h3>
+      <div class="recommendation-title">
+        <span class="title-marker"></span>
+        <h3 class="section-title">热门推荐</h3>
+      </div>
       <el-table :data="recommendationTableData" border v-loading="recommendationLoading">
         <template #empty>
           <el-empty description="暂无数据" />
@@ -103,10 +106,9 @@
         </el-table-column>
         <el-table-column label="升降(%)" align="center" width="200">
           <template #default="{ row }">
-            <span v-if="row.change === '-'" class="text-gray">{{ row.change }}</span>
-            <span v-else-if="row.change === 0 || row.change === '0'" class="text-gray">0%</span>
-            <span v-else-if="row.change > 0" class="text-green">{{ row.change }}%</span>
-            <span v-else class="text-red">{{ Math.abs(row.change) }}%</span>
+            <span v-if="row.change === '-' || row.change === 0 || row.change === '0'" class="text-gray">-</span>
+            <span v-else-if="row.change > 0" class="change-tag change-up">+{{ row.change }}%</span>
+            <span v-else class="change-tag change-down">{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
@@ -970,11 +972,25 @@ onBeforeUnmount(() => {
     padding: 16px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 
-    .section-title {
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      color: #333333;
+    .recommendation-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+
+      .title-marker {
+        width: 3px;
+        height: 16px;
+        background: #108c58;
+        border-radius: 2px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333333;
+        margin: 0;
+      }
     }
 
     :deep(.el-table) {
@@ -1019,6 +1035,27 @@ onBeforeUnmount(() => {
 
     :deep(.el-empty) {
       padding: 40px 0;
+    }
+
+    :deep(.change-tag) {
+      display: inline-flex;
+      width: 62px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    :deep(.change-up) {
+      color: #ef4d0b;
+      background: rgba(239, 77, 11, 0.1);
+    }
+
+    :deep(.change-down) {
+      color: #009022;
+      background: rgba(0, 144, 34, 0.1);
     }
   }
 

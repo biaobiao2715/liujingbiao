@@ -228,6 +228,20 @@ const deriveExtreme = (
   return { month: result.month, price: Number(result.price.toFixed(2)) };
 };
 
+const formatPriceValue = (price?: number | null) => {
+  if (price === undefined || price === null || Number.isNaN(price)) return '';
+  const fixed = Number(price).toFixed(2);
+  return fixed.endsWith('.00') ? fixed.slice(0, -3) : fixed;
+};
+
+const formatMonthDisplay = (month: string) => {
+  const normalized = normalizeMonthLabel(month);
+  if (!normalized) return '';
+  const [, monthStr] = normalized.split('-');
+  if (!monthStr) return '';
+  return `${Number(monthStr)}月`;
+};
+
 // 市场分析数据
 const marketAnalysis = ref({
   overallTrend: '暂无数据',
@@ -424,10 +438,26 @@ const fetchPricePrediction = async () => {
       if (data.overallTrend) {
         marketAnalysis.value.overallTrend = data.overallTrend;
       }
-      if (data.priceRange) {
+
+      const hasPredictedRange =
+        predictedHighest.value.price > 0 &&
+        predictedLowest.value.price > 0 &&
+        predictedHighest.value.price !== predictedLowest.value.price;
+
+      if (hasPredictedRange) {
+        const minText = formatPriceValue(Math.min(predictedLowest.value.price, predictedHighest.value.price));
+        const maxText = formatPriceValue(Math.max(predictedLowest.value.price, predictedHighest.value.price));
+        if (minText && maxText) {
+          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元`;
+        }
+      } else if (data.priceRange) {
         marketAnalysis.value.priceRange = data.priceRange;
       }
-      if (data.suggestion || data.predictionSuggestion) {
+
+      const suggestionMonth = predictedLowest.value.month ? formatMonthDisplay(predictedLowest.value.month) : '';
+      if (suggestionMonth) {
+        marketAnalysis.value.suggestion = `建议采购窗口为${suggestionMonth}`;
+      } else if (data.suggestion || data.predictionSuggestion) {
         marketAnalysis.value.suggestion = data.suggestion || data.predictionSuggestion;
       }
     } else {
