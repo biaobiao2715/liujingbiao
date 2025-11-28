@@ -2,6 +2,7 @@
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
       <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
+        <svg-icon v-if="index == 0" :icon-class="item.meta.icon" style="margin-right: 4px" />
         <span v-if="item.redirect === 'noRedirect' || index == levelList.length - 1" class="no-redirect">{{ item.meta?.title }}</span>
         <a v-else @click.prevent="handleLink(item)">{{ item.meta?.title }}</a>
       </el-breadcrumb-item>
