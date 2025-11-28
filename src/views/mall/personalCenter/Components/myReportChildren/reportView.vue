@@ -16,43 +16,31 @@
           <el-row>
             <el-col :span="12">
               <el-form-item label="举报编号" required>
-                <el-input :value="reportData?.reportCode || ''" disabled readonly style="background-color: #f5f7fa; color: #909399" />
+                <span class="form-value">{{ reportData?.reportCode || '--' }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="举报类别" required>
-                <el-input
-                  :value="getReportTypeText(reportData?.reportTypeId) || ''"
-                  disabled
-                  readonly
-                  style="background-color: #f5f7fa; color: #909399"
-                />
+                <span class="form-value">{{ getReportTypeText(reportData?.reportTypeId) || '--' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row>
             <el-col :span="12">
               <el-form-item label="被举报方" required>
-                <el-input :value="reportData?.reportPersonName || ''" disabled readonly style="background-color: #f5f7fa; color: #909399" />
+                <span class="form-value">{{ reportData?.reportPersonName || '--' }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="举报商品" required>
-                <el-input :value="reportData?.reportGoodsName || ''" disabled readonly style="background-color: #f5f7fa; color: #909399" />
+                <span class="form-value">{{ reportData?.reportGoodsName || '--' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row>
             <el-col :span="24">
               <el-form-item label="举报描述" required>
-                <el-input
-                  :value="reportData?.reportDescription || ''"
-                  type="textarea"
-                  :rows="4"
-                  disabled
-                  readonly
-                  style="background-color: #f5f7fa; color: #909399"
-                />
+                <span class="form-value form-description">{{ reportData?.reportDescription || '--' }}</span>
               </el-form-item>
             </el-col>
           </el-row>
@@ -849,5 +837,22 @@ defineExpose({
 .download-btn {
   padding: 4px 12px;
   font-size: 12px;
+}
+
+/* 表单值显示样式 */
+.form-value {
+  display: inline-block;
+  color: #303133;
+  font-size: 14px;
+  line-height: 32px;
+  min-height: 32px;
+}
+
+.form-description {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  display: block;
+  min-height: auto;
 }
 </style>

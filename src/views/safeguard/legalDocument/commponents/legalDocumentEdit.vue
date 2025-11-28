@@ -21,7 +21,7 @@
       :model="formData"
       :rules="formRules"
       label-width="170px"
-      class="legal-edit-form"
+      :class="['legal-edit-form', { 'is-view-mode': isViewMode }]"
       v-loading="loading"
       element-loading-text="加载中..."
     >
@@ -489,6 +489,27 @@ const handleClose = () => {
       justify-content: flex-end;
       padding: 12px 0 0;
     }
+  }
+}
+
+.legal-edit-form.is-view-mode {
+  :deep(.el-input__wrapper),
+  :deep(.el-textarea__inner),
+  :deep(.el-select .el-input__wrapper) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 0 !important;
+    cursor: default !important;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-textarea__inner) {
+    color: #303133 !important;
+  }
+
+  :deep(.el-input__suffix) {
+    display: none;
   }
 }
 

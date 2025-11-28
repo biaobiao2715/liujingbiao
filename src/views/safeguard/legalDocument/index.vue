@@ -33,8 +33,8 @@
 
       <!-- 查询和重置按钮 -->
       <el-form-item class="search-actions">
-        <el-button class="search-btn" v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button class="reset-btn" v-throttle type="primary" @click="handleReset">重置</el-button>
+        <el-button class="search-btn" v-throttle type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" v-throttle plain :icon="RefreshLeft" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -96,13 +96,25 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="310" :show-overflow-tooltip="true">
+      <el-table-column label="操作" align="center" fixed="right" width="310">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
-            <el-button v-throttle type="warning" size="small" @click="handleUpdateVersion(scope.row)">更新版本</el-button>
-            <el-button v-throttle link class="danger-text-button" size="small" @click="handleDeleteSingle(scope.row)">删除</el-button>
+            <!-- 前3个操作按钮 -->
+            <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-throttle link class="operation-link-button" @click="handleView(scope.row)">查看</el-button>
+            <el-button v-throttle link class="operation-link-button" @click="handleUpdateVersion(scope.row)">更新版本</el-button>
+            <!-- 更多操作下拉菜单 -->
+            <el-dropdown trigger="click" @command="(command) => handleMoreCommand(command, scope.row)">
+              <el-button v-throttle link class="operation-link-button">
+                更多
+                <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="delete">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </template>
       </el-table-column>
@@ -203,7 +215,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import Pagination from '@/components/Pagination/index.vue';
-import { UploadFilled } from '@element-plus/icons-vue';
+import { UploadFilled, Search, RefreshLeft, ArrowDown } from '@element-plus/icons-vue';
 import {
   fetchLegalDocumentList,
   fetchCreateLegalDocumentList,
@@ -515,6 +527,13 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
+/** 处理更多菜单命令 */
+const handleMoreCommand = (command: string, row: any) => {
+  if (command === 'delete') {
+    handleDeleteSingle(row);
+  }
+};
+
 const checkSelectable = (row: any) => {
   return !row.isUsing;
 };
@@ -785,6 +804,18 @@ onMounted(() => {
       width: 88px;
       border-radius: 0;
     }
+
+    .reset-btn {
+      background-color: #fafafa;
+      border-color: #d9d9d9;
+      color: #595959;
+
+      &:hover {
+        background-color: #f0f0f0;
+        border-color: #d9d9d9;
+        color: #595959;
+      }
+    }
   }
 
   .operation-buttons {
@@ -792,6 +823,23 @@ onMounted(() => {
     gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .operation-link-button {
+    color: #108c58 !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 8px !important;
+
+    &:hover,
+    &:focus {
+      color: #108c58 !important;
+      background-color: transparent !important;
+    }
+
+    &.is-disabled {
+      color: #a0c896 !important;
+    }
   }
 
   .pagination {
