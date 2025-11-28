@@ -415,11 +415,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
 }
 
 .search-form {

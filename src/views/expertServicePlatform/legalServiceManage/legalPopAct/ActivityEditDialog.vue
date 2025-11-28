@@ -511,7 +511,7 @@ onMounted(async () => {
 
 .form-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;

@@ -51,21 +51,27 @@
 
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:whitePaper:add']" type="primary" @click="handleAdd">新增</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="success" @click="handleEnable">启用</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="warning" @click="handleDisable">禁用</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:whitePaper:remove']" type="danger" @click="handleDelete">删除</el-button>
-        </el-col>
-      </el-row>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:whitePaper:add']" type="primary" @click="handleAdd">新增</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="success" @click="handleEnable">启用</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="warning" @click="handleDisable">禁用</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:whitePaper:remove']" type="danger" @click="handleDelete">删除</el-button>
+      </el-col>
+    </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" :style="{width: '100%'}" @selection-change="handleSelectionChange">
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        border
+        v-loading="loading"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
@@ -180,6 +186,7 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -232,6 +239,7 @@
         :model="versionFormData"
         :rules="versionFormRules"
         label-width="140px"
+        class="version-form"
       >
         <el-form-item label="白皮书标题:">
           <span>{{ versionDialog.paperTitle || '--' }}</span>
@@ -981,11 +989,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .white-paper-management {
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
 }
 
 .search-form {
@@ -994,36 +997,14 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
   display: flex;
-  flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: flex-start;
+  flex-wrap: wrap;
 
   :deep(.el-form-item) {
+    min-width: 260px;
     margin-bottom: 12px;
     margin-right: 10px;
-    flex-shrink: 0;
-    
-    :deep(.el-form-item__label) {
-      white-space: nowrap;
-    }
-    
-    &:first-child {
-      .el-input {
-        width: 220px;
-      }
-    }
-    
-    &:nth-child(2) {
-      .el-select {
-        width: 180px;
-      }
-    }
-    
-    &:nth-child(3) {
-      .el-date-editor {
-        width: 380px;
-      }
-    }
   }
 
   :deep(.el-form-item:last-child) {
@@ -1051,27 +1032,30 @@ onMounted(() => {
   }
 }
 
-.el-table {
+.table-wrapper {
+  padding: 20px 24px 10px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  overflow: visible;
+}
+
+:deep(.table-wrapper .el-table) {
+  background: transparent;
+  box-shadow: none;
   
-  :deep(.el-table__header) {
+  .el-table__header {
     background-color: #fafafa;
-    
-    th {
-      background-color: #fafafa !important;
-      color: #606266;
-      font-weight: 600;
-    }
   }
-  
-  :deep(.el-table__body) {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
-    }
+
+  .el-table__body tr:hover {
+    background-color: #f5f7fa;
+  }
+
+  th {
+    background-color: #fafafa !important;
+    color: #606266;
+    font-weight: 600;
   }
 }
 
@@ -1152,5 +1136,11 @@ onMounted(() => {
   margin-top: 8px;
   color: #909399;
   font-size: 12px;
+}
+
+.version-form {
+  :deep(.el-form-item__label) {
+    white-space: nowrap;
+  }
 }
 </style>
