@@ -2,33 +2,35 @@
 
 <template>
   <div class="price-prediction-component">
-    <!-- 查询表单 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="110" class="query-form">
+  
+
+    <!-- 图表和分析区域 -->
+    <div class="chart-analysis-wrapper">
+      <!-- 左侧：图表 -->
+      <div class="chart-section">
+  <!-- 查询表单 -->
+    <el-form ref="queryFormRef" :model="queryParams"  class="query-form">
       <el-form-item label="产地:" prop="origin">
-        <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 200px" />
+        <RegionSelect class="full-width-select" v-model="queryParams.origin" @regionChange="handleRegionChange" />
       </el-form-item>
       <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 200px" />
+        <GoodsCategorySelect class="full-width-select" v-model="queryParams.variety" @categoryChange="handleCategoryChange" />
       </el-form-item>
       <el-form-item label="时间范围:" prop="timeRange">
-        <el-select v-model="queryParams.timeRange" placeholder="请选择时间范围" style="width: 200px">
+        <el-select class="full-width-select" v-model="queryParams.timeRange" placeholder="请选择时间范围" @change="handleTimeRangeChange">
           <el-option label="未来1个月" value="1" />
           <el-option label="未来3个月" value="3" />
           <el-option label="未来6个月" value="6" />
           <el-option label="未来12个月" value="12" />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleQuery" style="margin-right: 12px">查询</el-button>
-        <el-button @click="resetQuery">重置</el-button>
-      </el-form-item>
     </el-form>
 
-    <!-- 图表和分析区域 -->
-    <div class="chart-analysis-wrapper">
-      <!-- 左侧：图表 -->
-      <div class="chart-section">
-        <h3 class="chart-title">{{ chartTitle }}</h3>
+
+        <div class="chart-title">
+          <span class="title-marker"></span>
+          <h3>{{ chartTitle }}</h3>
+        </div>
         <PricePredictionChart
           :historical-months="historicalLineMonths"
           :historical-prices="historicalLinePrices"
@@ -124,6 +126,8 @@ const historicalLineMonths = ref<string[]>([]);
 const historicalLinePrices = ref<number[]>([]);
 const predictedLineMonths = ref<string[]>([]);
 const predictedLinePrices = ref<number[]>([]);
+const predictedLineMin = ref<{ month: string; price: number } | null>(null);
+const predictedLineMax = ref<{ month: string; price: number } | null>(null);
 const pastHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const pastLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
@@ -264,6 +268,7 @@ const chartTitle = computed(() => {
 const handleCategoryChange = (value: string[]) => {
   queryParams.variety = value;
   console.log('选择的品种分类:', value);
+  fetchPricePrediction();
 };
 
 // 产地变化处理
@@ -280,6 +285,11 @@ const handleRegionChange = (value: any) => {
     regionCodes.regionCode = '';
   }
   console.log('选择的产地:', value);
+  fetchPricePrediction();
+};
+
+const handleTimeRangeChange = () => {
+  fetchPricePrediction();
 };
 
 // 获取价格预测数据
@@ -367,6 +377,24 @@ const fetchPricePrediction = async () => {
         allMonths.value = [...new Set([...allMonths.value, ...predictedLineMonths.value])];
       }
 
+      const filteredPredictedLine = predictedLineMonths.value
+        .map((month, idx) => ({
+          month,
+          price: predictedLinePrices.value[idx]
+        }))
+        .filter((item) => typeof item.price === 'number' && item.price !== null && !Number.isNaN(item.price)) as {
+        month: string;
+        price: number;
+      }[];
+
+      if (filteredPredictedLine.length) {
+        predictedLineMin.value = filteredPredictedLine.reduce((prev, curr) => (curr.price < prev.price ? curr : prev));
+        predictedLineMax.value = filteredPredictedLine.reduce((prev, curr) => (curr.price > prev.price ? curr : prev));
+      } else {
+        predictedLineMin.value = null;
+        predictedLineMax.value = null;
+      }
+
       if (!allMonths.value.length && Array.isArray(data.months)) {
         allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
       }
@@ -439,22 +467,20 @@ const fetchPricePrediction = async () => {
         marketAnalysis.value.overallTrend = data.overallTrend;
       }
 
-      const hasPredictedRange =
-        predictedHighest.value.price > 0 &&
-        predictedLowest.value.price > 0 &&
-        predictedHighest.value.price !== predictedLowest.value.price;
+      const minPredictEntry = predictedLineMin.value;
+      const maxPredictEntry = predictedLineMax.value;
 
-      if (hasPredictedRange) {
-        const minText = formatPriceValue(Math.min(predictedLowest.value.price, predictedHighest.value.price));
-        const maxText = formatPriceValue(Math.max(predictedLowest.value.price, predictedHighest.value.price));
+      if (minPredictEntry && maxPredictEntry && minPredictEntry.price !== maxPredictEntry.price) {
+        const minText = formatPriceValue(minPredictEntry.price);
+        const maxText = formatPriceValue(maxPredictEntry.price);
         if (minText && maxText) {
-          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元`;
+          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元/斤`;
         }
       } else if (data.priceRange) {
         marketAnalysis.value.priceRange = data.priceRange;
       }
 
-      const suggestionMonth = predictedLowest.value.month ? formatMonthDisplay(predictedLowest.value.month) : '';
+      const suggestionMonth = minPredictEntry?.month ? formatMonthDisplay(minPredictEntry.month) : '';
       if (suggestionMonth) {
         marketAnalysis.value.suggestion = `建议采购窗口为${suggestionMonth}`;
       } else if (data.suggestion || data.predictionSuggestion) {
@@ -531,9 +557,7 @@ const updateYAxisRange = () => {
   chartYAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
-// 查询
 const handleQuery = () => {
-  console.log('查询参数:', queryParams);
   fetchPricePrediction();
 };
 
@@ -562,22 +586,20 @@ defineExpose({
 
 <style scoped lang="scss">
 .price-prediction-component {
-  padding: 24px;
   background-color: #fff;
 
   .query-form {
-    margin-bottom: 32px;
+    width: 100%;
+    margin-bottom: 20px;
     position: relative;
     z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+    gap: 12px 150px;
 
     :deep(.el-form-item) {
-      margin-right: 24px !important;
-      margin-bottom: 0 !important;
-    }
-
-    // 最后一个表单项不需要右边距
-    :deep(.el-form-item:last-child) {
-      margin-right: 0 !important;
+      margin: 0 !important;
+      width: 100%;
     }
 
     :deep(.el-form-item__label) {
@@ -586,10 +608,15 @@ defineExpose({
 
     :deep(.el-form-item__content) {
       margin-left: 0 !important;
+      width: 100%;
     }
 
-    :deep(.goods-category) {
-      width: 200px;
+    // 让下拉框等控件撑满
+    :deep(.full-width-select),
+    :deep(.el-select),
+    :deep(.el-input),
+    :deep(.region-select) {
+      width: 100%;
     }
 
     // 确保下拉菜单不被遮挡
@@ -610,19 +637,32 @@ defineExpose({
       flex: 2;
       background-color: #fff;
       border-radius: 4px;
-      padding: 24px;
+      padding:0  24px;
       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       min-height: 500px;
 
       .chart-title {
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         margin-bottom: 24px;
         color: #303133;
         flex-shrink: 0;
+
+        .title-marker {
+          width: 3px;
+          height: 14px;
+          background: #000000;
+          border-radius: 2px;
+        }
+
+        h3 {
+          font-size: 16px;
+          font-weight: bold;
+          margin: 0;
+        }
       }
 
       // 图表区域占满容器

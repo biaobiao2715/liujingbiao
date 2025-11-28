@@ -159,7 +159,7 @@ const updateChart = () => {
             return tooltipContent;
           }
           // 兼容原有格式（价格数据）
-          let tooltipContent = `${params.name}<br/>价格: ${params.data.value} 元/kg`;
+          let tooltipContent = `${params.name}<br/>价格: ${params.data.value} 元/斤`;
           if (params.data.yesterdaySales !== undefined && params.data.yesterdaySales !== null) {
             tooltipContent += `<br/>销量: ${params.data.yesterdaySales}`;
           }

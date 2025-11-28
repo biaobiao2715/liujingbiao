@@ -157,7 +157,7 @@ const getList = async () => {
           salesDate,
           variety: item.goodsCategoryName || '--',
           origin,
-          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
+          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/斤` : '--',
           changePercent,
           // 保留原始字段用于切换到价格走势
           goodsCategoryId: item.goodsCategoryId || '',

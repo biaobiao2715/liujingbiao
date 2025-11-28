@@ -24,7 +24,7 @@
 
         <PriceTrendChart
           :title="`小麦种子价格（近${activeTimeRange}日）`"
-          unit="单位: 元/kg"
+          unit="单位: 元/斤"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
           :y-axis-min="yAxisMin"
@@ -529,7 +529,7 @@ const fetchHotRecommendation = async () => {
           time,
           variety: item.goodsCategoryName || '--',
           origin,
-          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
+          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/斤` : '--',
           change,
           // 保留原始字段用于弹窗
           goodsCategoryId: item.goodsCategoryId || '',

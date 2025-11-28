@@ -179,7 +179,7 @@ const fetchReportList = async () => {
           id: item.id,
           goodsName: item.goodsName || '--',
           goodsImage: item.goodsImageUrl || '',
-          goodsPrice: item.goodsPrice ? `${item.goodsPrice}元/kg` : '--',
+          goodsPrice: item.goodsPrice ? `${item.goodsPrice}元/斤` : '--',
           supplierName: item.enterpriseName || '--',
           credentialLevel: credentialLevelValue,
           credentialLevelText: getCredentialLevelText(credentialLevelValue),
