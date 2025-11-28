@@ -38,8 +38,18 @@ const buildAxis = () => {
 
 const buildSeriesData = (axis: string[], months: string[], values: number[]) => {
   const map = new Map<string, number>();
-  months.forEach((m, idx) => map.set(m, Number(values[idx])));
-  return axis.map((m) => map.get(m) ?? null);
+  months.forEach((m, idx) => {
+    if (values[idx] !== undefined && values[idx] !== null) {
+      const val = Number(values[idx]);
+      if (!Number.isNaN(val)) {
+        map.set(m, val);
+      }
+    }
+  });
+  return axis.map((m) => {
+    const val = map.get(m);
+    return val !== undefined ? val : null;
+  });
 };
 
 const buildScatterData = (axis: string[], months: string[], values: number[], type: 'max' | 'min') => {
@@ -80,9 +90,26 @@ const updateChart = () => {
   const historicalData = buildSeriesData(allAxis, props.historicalMonths, props.historicalPrices);
   const predictedData = buildSeriesData(allAxis, props.predictedMonths, props.predictedPrices);
 
-  // 检查是否有有效数据
-  const hasValidHistorical = hasValidData(props.historicalPrices);
-  const hasValidPredicted = hasValidData(props.predictedPrices);
+  // 检查是否有有效数据 - 检查构建后的数据中是否有非null值
+  const hasValidHistorical = hasValidData(props.historicalPrices) && historicalData.some((v) => v !== null && v !== undefined);
+  // 预测数据：只要数组存在且有长度，且构建后的数据中有非null值就显示
+  const hasValidPredicted = 
+    props.predictedPrices?.length > 0 && 
+    props.predictedMonths?.length > 0 && 
+    predictedData.some((v) => v !== null && v !== undefined && typeof v === 'number' && !Number.isNaN(v));
+  
+  console.log('[PricePredictionChart] 历史数据：', {
+    axis: allAxis,
+    historicalMonths: props.historicalMonths,
+    historicalPrices: props.historicalPrices,
+    historicalData
+  });
+  console.log('[PricePredictionChart] 预测数据：', {
+    predictedMonths: props.predictedMonths,
+    predictedPrices: props.predictedPrices,
+    predictedData
+  });
+
 
   // 只有在有有效数据时才显示最高最低点
   const historicalMaxData = hasValidHistorical
@@ -202,8 +229,14 @@ const updateChart = () => {
               type: 'line',
               data: historicalData,
               smooth: 0.4,
-              symbol: 'circle',
-              symbolSize: 6,
+              symbol: (value: any, params: any) => {
+                // 只在有数据的位置显示数据点
+                return value !== null && value !== undefined ? 'circle' : 'none';
+              },
+              symbolSize: (value: any) => {
+                // 只在有数据的位置显示数据点
+                return value !== null && value !== undefined ? 6 : 0;
+              },
               itemStyle: {
                 color: '#1abc9c',
                 borderWidth: 2,
@@ -269,8 +302,14 @@ const updateChart = () => {
               type: 'line',
               data: predictedData,
               smooth: 0.4,
-              symbol: 'circle',
-              symbolSize: 6,
+              symbol: (value: any, params: any) => {
+                // 只在有数据的位置显示数据点
+                return value !== null && value !== undefined ? 'circle' : 'none';
+              },
+              symbolSize: (value: any) => {
+                // 只在有数据的位置显示数据点
+                return value !== null && value !== undefined ? 6 : 0;
+              },
               itemStyle: {
                 color: '#f5a623',
                 borderWidth: 2,

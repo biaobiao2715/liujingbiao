@@ -257,7 +257,7 @@ const fetchPricePrediction = async () => {
     if (response && response.code === 200) {
       const data = response.data || {};
       const historicalData = data.historicalData || {};
-      const predictedData = data.predictedData || {};
+      const predictedData = data.predictedData || data.predictionData || {};
 
       // 处理历史数据（historicalData）
       if (historicalData.xAxis && Array.isArray(historicalData.xAxis)) {
@@ -275,16 +275,36 @@ const fetchPricePrediction = async () => {
 
       let predictionEntries: Array<[string, any]> = [];
       if (predictedData && Array.isArray(predictedData.xAxis) && Array.isArray(predictedData.yAxis)) {
+        // 如果 predictedData 有 xAxis 和 yAxis 数组
         predictionEntries = predictedData.xAxis.map((label: string, idx: number) => [label, predictedData.yAxis[idx]]);
-      } else if (predictedData && typeof predictedData === 'object') {
-        predictionEntries = Object.entries(predictedData);
+      } else if (predictedData && typeof predictedData === 'object' && !Array.isArray(predictedData)) {
+        // 如果 predictedData 是对象格式（键值对）
+        predictionEntries = Object.entries(predictedData)
+          .filter(([key, value]) => {
+            // 过滤掉无效的键值对
+            const normalizedKey = normalizeMonthLabel(key);
+            const numValue = parsePriceValue(value);
+            return normalizedKey && numValue !== null;
+          })
+          .sort(([keyA], [keyB]) => {
+            // 按月份排序
+            const normalizedA = normalizeMonthLabel(keyA);
+            const normalizedB = normalizeMonthLabel(keyB);
+            return normalizedA.localeCompare(normalizedB);
+          });
       }
       predictedLineMonths.value = predictionEntries.map(([key]) => normalizeMonthLabel(key));
-      predictedLinePrices.value = predictionEntries.map(([, value]) => Number(value ?? 0));
+      predictedLinePrices.value = predictionEntries.map(([, value]) => {
+        const numValue = parsePriceValue(value);
+        return numValue !== null ? numValue : 0;
+      });
 
-      if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
+      // 将预测数据的月份添加到 allMonths 中
+      if (predictedLineMonths.value.length > 0) {
+        allMonths.value = [...new Set([...allMonths.value, ...predictedLineMonths.value])].sort();
+      } else if (predictedData.xAxis && Array.isArray(predictedData.xAxis)) {
         const predictedMonths = predictedData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
-        allMonths.value = [...new Set([...allMonths.value, ...predictedMonths])];
+        allMonths.value = [...new Set([...allMonths.value, ...predictedMonths])].sort();
       }
 
       if (!allMonths.value.length && Array.isArray(data.months)) {
