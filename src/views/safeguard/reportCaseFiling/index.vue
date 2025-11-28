@@ -43,8 +43,8 @@
 
       <!-- 查询和重置按钮 -->
       <el-form-item class="search-actions">
-        <el-button class="search-btn" v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button class="reset-btn" v-throttle type="primary" @click="handleReset">重置</el-button>
+        <el-button class="search-btn" v-throttle type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" v-throttle plain :icon="RefreshLeft" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -120,7 +120,7 @@
             <div class="operation-buttons">
               <!-- 待处理状态：只显示处理按钮 -->
               <template v-if="scope.row.status === '0'">
-                <el-button v-throttle type="primary" size="small" @click="handleProcess(scope.row)">处理</el-button>
+                <el-button v-throttle link class="operation-link-button" @click="handleProcess(scope.row)">处理</el-button>
               </template>
               <!-- 处理中状态 -->
               <template v-else-if="scope.row.status === '1'">
@@ -128,21 +128,25 @@
                 <el-button
                   v-if="scope.row.noUrge === '0' || scope.row.noUrge === '2'"
                   v-throttle
-                  type="primary"
-                  size="small"
+                  link
+                  class="operation-link-button"
                   @click="handleProcess(scope.row)"
                   >处理</el-button
                 >
                 <!-- 处理按钮 - 处理中状态且noUrge为1时显示（置灰、不可点击） -->
-                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="primary" size="small" disabled>处理</el-button>
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" disabled>处理</el-button>
                 <!-- 查看按钮 - 处理中状态且noUrge为1时显示 -->
-                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" @click="handleView(scope.row)"
+                  >查看</el-button
+                >
                 <!-- 催促按钮 - 处理中状态且且noUrge为1时显示 -->
-                <el-button v-if="scope.row.noUrge === '1'" v-throttle type="warning" size="small" @click="handleUrge(scope.row)">催促</el-button>
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" @click="handleUrge(scope.row)"
+                  >催促</el-button
+                >
               </template>
               <!-- 其他状态：只显示查看按钮 -->
               <template v-else>
-                <el-button v-throttle type="info" size="small" @click="handleView(scope.row)">查看</el-button>
+                <el-button v-throttle link class="operation-link-button" @click="handleView(scope.row)">查看</el-button>
               </template>
             </div>
           </div>
@@ -179,7 +183,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Document } from '@element-plus/icons-vue';
+import { Document, Search, RefreshLeft } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination/index.vue';
 // import { reportList } from '@/api/mall/personalCenter/myReport';
 
@@ -357,6 +361,20 @@ onMounted(() => {
   .search-btn,
   .reset-btn {
     margin-left: 10px;
+    width: 88px;
+    border-radius: 0;
+  }
+
+  .reset-btn {
+    background-color: #fafafa;
+    border-color: #d9d9d9;
+    color: #595959;
+
+    &:hover {
+      background-color: #f0f0f0;
+      border-color: #d9d9d9;
+      color: #595959;
+    }
   }
 
   .operation-buttons-wrapper {
@@ -400,6 +418,23 @@ onMounted(() => {
     gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .operation-link-button {
+    color: #108c58 !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 8px !important;
+
+    &:hover,
+    &:focus {
+      color: #108c58 !important;
+      background-color: transparent !important;
+    }
+
+    &.is-disabled {
+      color: #a0c896 !important;
+    }
   }
 
   .pagination {

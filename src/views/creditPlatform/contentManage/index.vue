@@ -7,14 +7,7 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form
-      v-show="showSearch"
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      :label-width="100"
-      class="search-form"
-    >
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="100" class="search-form">
       <el-form-item label="文章名称" prop="articleTitle">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入文章名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -49,20 +42,12 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['credit:creditArticle:add']" type="primary" icon="Plus" @click="handleAdd">
-          新增
-        </el-button>
+        <el-button v-throttle v-hasPermi="['credit:creditArticle:add']" type="primary" icon="Plus" @click="handleAdd"> 新增 </el-button>
       </el-col>
     </el-row>
 
     <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      border
-      v-loading="loading"
-      style="width: 100%"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" align="center" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
@@ -315,9 +300,6 @@ const buildFullArticleFields = async (row: any) => {
   return { ...row };
 };
 
-
-
-
 const confirmStatusChange = async (row: any, status: string | number) => {
   const targetStatus = normalizeStatus(status);
   const statusText = targetStatus === '2' ? '上架' : '下架';
@@ -325,7 +307,7 @@ const confirmStatusChange = async (row: any, status: string | number) => {
     id: row.id,
     articleStatus: targetStatus
   };
-  if ( targetStatus === '3') {
+  if (targetStatus === '3') {
     const fullData = await buildFullArticleFields(row);
     Object.assign(updateData, {
       articleSummary: fullData.articleSummary ?? '',
@@ -334,11 +316,9 @@ const confirmStatusChange = async (row: any, status: string | number) => {
       articleTitle: fullData.articleTitle ?? '',
       articleType: fullData.articleType ?? '',
       articleContent: fullData.articleContent ?? ''
-  
-
     });
   }
-  if (targetStatus === '2' ) {
+  if (targetStatus === '2') {
     const fullData = await buildFullArticleFields(row);
     Object.assign(updateData, {
       articleSummary: fullData.articleSummary ?? '',
@@ -348,7 +328,6 @@ const confirmStatusChange = async (row: any, status: string | number) => {
       articleType: fullData.articleType ?? '',
       articleContent: fullData.articleContent ?? '',
       publishTime: new Date().toISOString()
-
     });
   }
   const response = await updateCreditArticle(updateData);
@@ -366,12 +345,15 @@ const handleStatusChange = async (row: any, status: string) => {
   const statusText = status === '2' ? '上架' : '下架';
   try {
     const message = `确定要${statusText}文章「${row.articleTitle || ''}」吗？`;
-    await proxy?.$modal.confirm(message).then(async () => {
-      const success = await confirmStatusChange(row, status);
-      if (success) {
-        getList();
-      }
-    }).catch(() => {});
+    await proxy?.$modal
+      .confirm(message)
+      .then(async () => {
+        const success = await confirmStatusChange(row, status);
+        if (success) {
+          getList();
+        }
+      })
+      .catch(() => {});
   } catch (error) {
     console.error(`${statusText}失败:`, error);
   }
@@ -462,6 +444,4 @@ onMounted(() => {
   padding: 12px 16px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
-
-
 </style>

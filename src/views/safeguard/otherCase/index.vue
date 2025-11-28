@@ -14,8 +14,8 @@
               <el-input v-model="queryParams.createByName" placeholder="请输入创建人" clearable @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button type="primary" icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button class="search-btn" type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+              <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
             </el-form-item>
             <br />
             <el-form-item>
@@ -50,10 +50,14 @@
         <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" :show-overflow-tooltip="true">
           <template #default="scope">
             <el-tooltip content="编辑" placement="top">
-              <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']">编辑</el-button>
+              <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']"
+                >编辑</el-button
+              >
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button link class="danger-text-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">删除</el-button>
+              <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']"
+                >删除</el-button
+              >
             </el-tooltip>
           </template>
         </el-table-column>
@@ -83,6 +87,7 @@
 
 <script setup name="OtherCase" lang="ts">
 import { ElMessageBox } from 'element-plus';
+import { Search, RefreshLeft } from '@element-plus/icons-vue';
 import { listOtherCase, getOtherCase, delOtherCase, addOtherCase, updateOtherCase } from '@/api/safeguard/otherCase';
 import { OtherCaseVO, OtherCaseQuery, OtherCaseForm } from '@/api/safeguard/otherCase/types';
 
@@ -262,20 +267,38 @@ onMounted(() => {
   }
 }
 
-.danger-text-button {
-  color: #f23255 !important;
+.operation-link-button {
+  color: #108c58 !important;
   background-color: transparent !important;
   border: none !important;
   padding: 0 8px !important;
 
   &:hover,
   &:focus {
-    color: #f23255 !important;
+    color: #108c58 !important;
     background-color: transparent !important;
   }
 
   &.is-disabled {
-    color: #f6b7c0 !important;
+    color: #a0c896 !important;
+  }
+}
+
+.search-btn,
+.reset-btn {
+  width: 88px;
+  border-radius: 0;
+}
+
+.reset-btn {
+  background-color: #fafafa;
+  border-color: #d9d9d9;
+  color: #595959;
+
+  &:hover {
+    background-color: #f0f0f0;
+    border-color: #d9d9d9;
+    color: #595959;
   }
 }
 </style>

@@ -1,93 +1,96 @@
 <template>
-  <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggle-click="toggleSideBar" />
-    <!-- <breadcrumb v-if="!settingsStore.topNav" id="breadcrumb-container" class="breadcrumb-container" /> -->
-    <top-nav v-if="settingsStore.topNav" id="topmenu-container" class="topmenu-container" />
+  <div class="headerBox">
+    <div class="navbar">
+      <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggle-click="toggleSideBar" />
+      <!-- <breadcrumb v-if="!settingsStore.topNav" id="breadcrumb-container" class="breadcrumb-container" /> -->
+      <top-nav v-if="settingsStore.topNav" id="topmenu-container" class="topmenu-container" />
 
-    <div class="right-menu flex align-center">
-      <template v-if="appStore.device !== 'mobile'">
-        <el-select
-          v-if="userId === 1 && tenantEnabled"
-          v-model="companyName"
-          class="min-w-244px"
-          clearable
-          filterable
-          reserve-keyword
-          :placeholder="proxy.$t('navbar.selectTenant')"
-          @change="dynamicTenantEvent"
-          @clear="dynamicClearEvent"
-        >
-          <el-option v-for="item in tenantList" :key="item.tenantId" :label="item.companyName" :value="item.tenantId"> </el-option>
-          <template #prefix><svg-icon icon-class="company" class="el-input__icon input-icon" /></template>
-        </el-select>
+      <div class="right-menu flex align-center">
+        <template v-if="appStore.device !== 'mobile'">
+          <el-select
+            v-if="userId === 1 && tenantEnabled"
+            v-model="companyName"
+            class="min-w-244px"
+            clearable
+            filterable
+            reserve-keyword
+            :placeholder="proxy.$t('navbar.selectTenant')"
+            @change="dynamicTenantEvent"
+            @clear="dynamicClearEvent"
+          >
+            <el-option v-for="item in tenantList" :key="item.tenantId" :label="item.companyName" :value="item.tenantId"> </el-option>
+            <template #prefix><svg-icon icon-class="company" class="el-input__icon input-icon" /></template>
+          </el-select>
 
-        <search-menu ref="searchMenuRef" />
-        <el-tooltip content="搜索" effect="dark" placement="bottom">
-          <div class="right-menu-item hover-effect" @click="openSearchMenu">
-            <svg-icon class-name="search-icon" icon-class="search" />
-          </div>
-        </el-tooltip>
-        <!-- 消息 -->
-        <el-tooltip :content="proxy.$t('navbar.message')" effect="dark" placement="bottom">
-          <div>
-            <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
-              <template #reference>
-                <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
-                  <div class="right-menu-item hover-effect" style="display: block"><svg-icon icon-class="message" /></div>
-                </el-badge>
-              </template>
-              <template #default>
-                <notice></notice>
-              </template>
-            </el-popover>
-          </div>
-        </el-tooltip>
-        <!-- <el-tooltip content="Github" effect="dark" placement="bottom">
+          <search-menu ref="searchMenuRef" />
+          <el-tooltip content="搜索" effect="dark" placement="bottom">
+            <div class="right-menu-item hover-effect" @click="openSearchMenu">
+              <svg-icon class-name="search-icon" icon-class="search" style="color: #108c58" />
+            </div>
+          </el-tooltip>
+          <!-- 消息 -->
+          <el-tooltip :content="proxy.$t('navbar.message')" effect="dark" placement="bottom">
+            <div>
+              <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
+                <template #reference>
+                  <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
+                    <div class="right-menu-item hover-effect" style="display: block"><svg-icon icon-class="message" style="color: #108c58" /></div>
+                  </el-badge>
+                </template>
+                <template #default>
+                  <notice></notice>
+                </template>
+              </el-popover>
+            </div>
+          </el-tooltip>
+          <!-- <el-tooltip content="Github" effect="dark" placement="bottom">
           <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
         </el-tooltip> -->
 
-        <!-- <el-tooltip :content="proxy.$t('navbar.document')" effect="dark" placement="bottom">
+          <!-- <el-tooltip :content="proxy.$t('navbar.document')" effect="dark" placement="bottom">
           <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
         </el-tooltip> -->
 
-        <!-- <el-tooltip :content="proxy.$t('navbar.full')" effect="dark" placement="bottom">
+          <!-- <el-tooltip :content="proxy.$t('navbar.full')" effect="dark" placement="bottom">
           <screenfull id="screenfull" class="right-menu-item hover-effect" />
         </el-tooltip> -->
 
-        <!-- <el-tooltip :content="proxy.$t('navbar.language')" effect="dark" placement="bottom">
+          <!-- <el-tooltip :content="proxy.$t('navbar.language')" effect="dark" placement="bottom">
           <lang-select id="lang-select" class="right-menu-item hover-effect" />
         </el-tooltip> -->
 
-        <!-- <el-tooltip :content="proxy.$t('navbar.layoutSize')" effect="dark" placement="bottom">
+          <!-- <el-tooltip :content="proxy.$t('navbar.layoutSize')" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
         </el-tooltip> -->
-      </template>
-      <div class="avatar-container">
-        <el-dropdown class="right-menu-item hover-effect" trigger="click" @command="handleCommand">
-          <div class="avatar-wrapper">
-            <img :src="userStore.avatar" class="user-avatar" />
-            <el-icon><caret-bottom /></el-icon>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <router-link v-if="!dynamic" to="/user/profile">
-                <el-dropdown-item>{{ proxy.$t('navbar.personalCenter') }}</el-dropdown-item>
-              </router-link>
-              <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
+        </template>
+        <div class="avatar-container">
+          <el-dropdown class="right-menu-item hover-effect" trigger="click" @command="handleCommand">
+            <div class="avatar-wrapper">
+              <img :src="userStore.avatar" class="user-avatar" />
+              <el-icon><caret-bottom /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <router-link v-if="!dynamic" to="/user/profile">
+                  <el-dropdown-item>{{ proxy.$t('navbar.personalCenter') }}</el-dropdown-item>
+                </router-link>
+                <!-- <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
                 <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <span>{{ proxy.$t('navbar.logout') }}</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+              </el-dropdown-item> -->
+                <el-dropdown-item divided command="logout">
+                  <span>{{ proxy.$t('navbar.logout') }}</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Logo from './Sidebar/Logo.vue';
 import SearchMenu from './TopBar/search.vue';
 import { useAppStore } from '@/store/modules/app';
 import { useUserStore } from '@/store/modules/user';
@@ -99,7 +102,8 @@ import { TenantVO } from '@/api/types';
 import notice from './notice/index.vue';
 import router from '@/router';
 import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/message-box.type';
-
+const title = ref('全国种子销售服务平台');
+import logo from '@/assets/images/logo.svg';
 const appStore = useAppStore();
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
@@ -216,14 +220,16 @@ watch(
 .align-center {
   align-items: center;
 }
-
+.headerBox {
+  /* position: fixed; */
+}
 .navbar {
   height: 50px;
-  overflow: hidden;
+  /* overflow: hidden; */
   position: relative;
   //background: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-
+  width: 100%;
   .hamburger-container {
     line-height: 46px;
     height: 100%;
@@ -231,10 +237,6 @@ watch(
     cursor: pointer;
     transition: background 0.3s;
     -webkit-tap-highlight-color: transparent;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.025);
-    }
   }
 
   .breadcrumb-container {
@@ -305,4 +307,31 @@ watch(
     }
   }
 }
+/* .sidebar-logo-link {
+  height: 100%;
+  width: 100%; */
+
+.sidebar-logo {
+  width: 32px;
+  height: 32px;
+  vertical-align: middle;
+  margin-right: 12px;
+}
+
+.sidebar-title {
+  display: inline-block;
+  margin: 0;
+  color: #fff;
+  font-weight: 600;
+  line-height: 50px;
+  font-size: 14px;
+  font-family:
+    Avenir,
+    Helvetica Neue,
+    Arial,
+    Helvetica,
+    sans-serif;
+  vertical-align: middle;
+}
+/* } */
 </style>
