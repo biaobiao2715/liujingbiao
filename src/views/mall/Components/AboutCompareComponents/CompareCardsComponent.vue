@@ -1,23 +1,13 @@
 <template>
   <div class="compare-cards-section">
     <div class="section-header">
-      <div class="section-title-vertical">对比商品</div>
+      <div class="section-title-vertical flex-center-center">对比商品</div>
       <div class="compare-cards-wrapper">
         <div class="compare-cards">
-          <div
-            v-for="(item, index) in goodsList"
-            :key="item.id || index"
-            class="compare-card"
-          >
-            <el-image
-              :src="item.image || item.sysOssLists?.[0]?.url"
-              fit="cover"
-              class="card-image"
-            />
+          <div v-for="(item, index) in goodsList" :key="item.id || index" class="compare-card">
+            <el-image :src="item.image || item.sysOssLists?.[0]?.url" fit="cover" class="card-image" />
             <div class="card-price-row">
-              <div class="card-price">
-                ¥{{ item.price }}元/<span class="price-unit">袋</span>
-              </div>
+              <div class="card-price">¥{{ item.price }}元/<span class="price-unit">袋</span></div>
               <div class="card-sales">销量{{ formatSales(item.goodsSales) }}</div>
             </div>
             <div class="card-name-row">
@@ -81,21 +71,17 @@ const handleRemove = (index: number) => {
     height: 379px;
     margin-right: 10px;
     background: rgba(16, 140, 88, 0.1);
-    color: #108C58;
+    color: #108c58;
     padding: 20px 8px;
-    font-size: 16px;
     font-weight: 500;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
+    font-size: 14px;
   }
 
   .compare-cards-wrapper {
     flex: 1;
-    padding: 0  0px  20px 0px;
-    background: #F6F7FB;
+    padding: 0 0px 20px 0px;
+    background: #f6f7fb;
     height: 379px;
     display: flex;
     align-items: stretch;
@@ -112,7 +98,7 @@ const handleRemove = (index: number) => {
     align-items: stretch;
     box-sizing: border-box;
 
-      .compare-card {
+    .compare-card {
       width: 100%;
       height: 100%;
       max-height: 100%;
@@ -134,7 +120,7 @@ const handleRemove = (index: number) => {
 
       .card-image {
         width: 100%;
-        height: 80%;
+        height: 258px;
         min-height: 0;
         margin-bottom: 12px;
         border-radius: 4px;
@@ -156,7 +142,7 @@ const handleRemove = (index: number) => {
       .card-price {
         font-size: 20px;
         font-weight: bold;
-        color: #EF4D0B;
+        color: #ef4d0b;
         flex: 1;
         line-height: 1.2;
 
@@ -201,4 +187,3 @@ const handleRemove = (index: number) => {
   }
 }
 </style>
-

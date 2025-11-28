@@ -26,9 +26,9 @@
           </div>
           <!-- 三级分类 -->
           <div class="flex-center gap-12 third-container">
-            <div v-for="grandchild in child.children" :key="grandchild.id">
+            <div v-for="(grandchild, index) in child.children" :key="grandchild.id">
               <div class="third-category">
-                {{ grandchild.categoryName }}
+                {{ grandchild.categoryName + (index === child.children.length - 1 ? '' : ' /') }}
               </div>
             </div>
           </div>
@@ -74,11 +74,18 @@ const fetchCategories = async () => {
 </script>
 
 <style scoped lang="scss">
+.banner-container {
+  gap: 10px;
+}
 .banner-img {
-  width: calc(100% - 324px);
+  width: calc(100% - 320px);
 }
 
 .category {
+  width: 310px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
   .title {
     gap: 8px;
     font-weight: 500;
@@ -87,8 +94,7 @@ const fetchCategories = async () => {
   }
 }
 .category-item {
-  margin-bottom: 12px;
-  border-bottom: 1px dashed #d8d8d8;
+  margin-bottom: 24px;
 }
 
 .first-category {
@@ -96,23 +102,29 @@ const fetchCategories = async () => {
   color: #333333;
   font-size: 14px;
   cursor: pointer;
+  padding-left: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .second-category {
-  color: #333333;
+  font-weight: bold;
+  color: #3d3d3d;
   font-size: 14px;
   cursor: pointer;
-  margin: 12px 0 12px 12px;
+  margin: 12px 0;
+  padding-left: 24px;
 }
 
 .third-container {
   flex-wrap: wrap;
+  margin-left: 24px;
+  gap: 6px;
 }
 
 .third-category {
-  margin-left: 24px;
-  color: #7a7373;
-  font-size: 14px;
+  color: #3d3d3d;
+  font-size: 12px;
   cursor: pointer;
 }
 </style>
