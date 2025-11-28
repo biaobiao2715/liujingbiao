@@ -8,123 +8,115 @@
 
 <template>
   <div class="p-2 legal-expert-page">
-    <el-card shadow="hover">
-      <!-- 查询区域 -->
-      <div class="mb-[10px]">
-        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
-          <el-form-item label="专家姓名" prop="expertName">
-            <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="专家编号" prop="expertNumber">
-            <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="入驻时间">
-            <el-date-picker
-              v-model="registrationTime"
-              type="daterange"
-              value-format="YYYY-MM-DD"
-              range-separator=" - "
-              start-placeholder="开始时间"
-              end-placeholder="结束时间"
-              @change="handleSelectDate"
-            />
-          </el-form-item>
-          <el-form-item label="审核状态" prop="reviewStatus">
-            <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
-              <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-      <!-- 列表区域 -->
-      <el-table
-        ref="tableRef"
-        v-loading="loading"
-        border
-        :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
-      >
-        <!-- <el-table-column type="selection" width="45" align="center" /> -->
-        <el-table-column label="序号" width="60" align="center">
-          <template #default="scope">
-            <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
-        <el-table-column label="专家编号" min-width="140" align="center">
-          <template #default="scope">
-            <el-link type="primary" @click="handleEdit(scope.row, 'view')">{{ scope.row.expertNumber || '--' }}</el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
-        <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
-        <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
-          <template #default="scope">
-            <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
-          <template #default="scope">
-            <span v-if="scope.row.storageStatus === '0'">待入库</span>
-            <span v-else-if="scope.row.storageStatus === '1'">已入库</span>
-            <span v-else>入库失败</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" align="center" width="200">
-          <template #default="scope">
-            <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-link type="primary" @click="openToggleDialog(scope.row)">
-                {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
-              </el-link>
-              <el-button
-                v-throttle
-                type="primary"
-                v-if="scope.row.reviewStatus !== '0'"
-                v-hasPermi="['system:baseLegalExpertInfo:query']"
-                @click="handleEdit(scope.row, 'view')"
-                >查看</el-button
-              >
-              <el-button
-                v-throttle
-                v-if="scope.row.reviewStatus === '0'"
-                type="primary"
-                v-hasPermi="['system:baseLegalExpertInfo:process']"
-                @click="handleEdit(scope.row, 'audit')"
-                >审核</el-button
-              >
-              <!-- <el-link
+    <!-- 查询区域 -->
+    <div class="mb-[10px]">
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
+        <el-form-item label="专家姓名" prop="expertName">
+          <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="专家编号" prop="expertNumber">
+          <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="入驻时间">
+          <el-date-picker
+            v-model="registrationTime"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            range-separator=" - "
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            @change="handleSelectDate"
+          />
+        </el-form-item>
+        <el-form-item label="审核状态" prop="reviewStatus">
+          <el-select v-model="queryParams.reviewStatus" placeholder="审核状态" filterable clearable>
+            <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+          <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <!-- 列表区域 -->
+    <el-table
+      ref="tableRef"
+      v-loading="loading"
+      border
+      :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
+    >
+      <!-- <el-table-column type="selection" width="45" align="center" /> -->
+      <el-table-column label="序号" width="60" align="center">
+        <template #default="scope">
+          <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
+      <el-table-column label="专家编号" min-width="140" align="center">
+        <template #default="scope">
+          <el-link type="primary" @click="handleEdit(scope.row, 'view')">{{ scope.row.expertNumber || '--' }}</el-link>
+        </template>
+      </el-table-column>
+      <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
+      <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
+      <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
+        <template #default="scope">
+          <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
+        <template #default="scope">
+          <span v-if="scope.row.storageStatus === '0'">待入库</span>
+          <span v-else-if="scope.row.storageStatus === '1'">已入库</span>
+          <span v-else>入库失败</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="200">
+        <template #default="scope">
+          <div style="display: flex; justify-content: space-evenly; align-items: center">
+            <el-link type="primary" @click="openToggleDialog(scope.row)">
+              {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
+            </el-link>
+            <el-button
+              v-throttle
+              type="primary"
+              v-if="scope.row.reviewStatus !== '0'"
+              v-hasPermi="['system:baseLegalExpertInfo:query']"
+              @click="handleEdit(scope.row, 'view')"
+              >查看</el-button
+            >
+            <el-button
+              v-throttle
+              v-if="scope.row.reviewStatus === '0'"
+              type="primary"
+              v-hasPermi="['system:baseLegalExpertInfo:process']"
+              @click="handleEdit(scope.row, 'audit')"
+              >审核</el-button
+            >
+            <!-- <el-link
                 type="primary"
                 v-if="scope.row.reviewStatus === '0'"
                 v-hasPermi="['system:baseTechExpertInfo:process']"
                 @click="handleEdit(scope.row, 'edit')"
                 >编辑</el-link
               > -->
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :total="total"
-        @pagination="handleQuery"
-      />
-      <el-dialog v-model="toggleDialogVisible" width="30%">
-        <template #header>
-          <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
-        </template>
-        <div>{{ toggleDialogData.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
-        <template #footer>
-          <el-button @click="closeToggleDialog">取消</el-button>
-          <el-button type="primary" @click="confirmToggle" :loading="loadingStatus">确定</el-button>
-        </template>
-      </el-dialog>
-    </el-card>
+    <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="handleQuery" />
+    <el-dialog v-model="toggleDialogVisible" width="30%">
+      <template #header>
+        <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
+      </template>
+      <div>{{ toggleDialogData.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
+      <template #footer>
+        <el-button @click="closeToggleDialog">取消</el-button>
+        <el-button type="primary" @click="confirmToggle" :loading="loadingStatus">确定</el-button>
+      </template>
+    </el-dialog>
     <EditDetails ref="editDetailsRef" @refresh="refreshData" />
   </div>
 </template>
