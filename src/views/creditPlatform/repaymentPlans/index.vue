@@ -55,14 +55,14 @@
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
-            <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" plain @click="handleNotification(scope.row, 'pending')">
+            <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" text @click="handleNotification(scope.row, 'pending')">
               还款提醒
             </el-button>
             <el-button
               v-else-if="scope.row.currentPeriodStatus === '1'"
               size="small"
               type="success"
-              plain
+              text
               @click="handleNotification(scope.row, 'completed')"
             >
               完结通知
@@ -71,15 +71,26 @@
               v-else-if="scope.row.currentPeriodStatus === '2'"
               size="small"
               type="danger"
-              plain
+              text
               @click="handleNotification(scope.row, 'overdue')"
             >
               逾期提示
             </el-button>
-            <el-button size="small" type="success" plain @click="handleRepayment(scope.row)">还款情况</el-button>
-            <el-button size="small" type="primary" plain @click="handleDetail(scope.row)">详情</el-button>
-            <el-button size="small" type="warning" plain @click="handleTracking(scope.row)">追踪</el-button>
-            <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="success" text @click="handleRepayment(scope.row)">还款情况</el-button>
+            <el-button size="small" type="primary" text @click="handleDetail(scope.row)">详情</el-button>
+            
+            <!-- 更多操作下拉菜单 -->
+            <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
+              <el-button size="small" type="info" text>
+                更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="tracking">追踪</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </template>
       </el-table-column>
@@ -109,6 +120,7 @@
 import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { ArrowDown } from '@element-plus/icons-vue';
 import { getloanApplicationsList, deleteRepaymentRecord, messageRecord, getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
@@ -327,6 +339,17 @@ const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'complet
     .catch(() => {
       ElMessage.info('已取消发送');
     });
+};
+
+/**
+ * 更多操作 - 处理下拉菜单的命令
+ */
+const handleMoreAction = (row: RepaymentPlan, command: string) => {
+  if (command === 'tracking') {
+    handleTracking(row);
+  } else if (command === 'delete') {
+    handleDelete(row);
+  }
 };
 
 /**

@@ -1,3 +1,5 @@
+<!-- 价格预测与分析 -->
+
 <template>
   <div class="price-prediction-component">
     <!-- 查询表单 -->

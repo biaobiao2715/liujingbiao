@@ -1,3 +1,5 @@
+<!-- 价格走势页面 -->
+
 <template>
   <div class="price-heatmap-page">
     <!-- 热力图内容 -->
