@@ -77,7 +77,7 @@ import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
 import { Plus, Delete, ZoomIn, VideoPlay } from '@element-plus/icons-vue';
 import { uploadFile as uploadReportFile, deleteFile as deleteReportFile, report } from '@/api/mall/goods/index';
-import { uploadByChunks } from '@/utils/chunkUpload';
+import { uploadByChunks } from '@/utils/chunkUpload2';
 
 interface ReportMaterial extends UploadUserFile {
   ossId?: string | number;
@@ -231,8 +231,8 @@ const handleUpload = (file: any) =>
     try {
       // 大文件：使用分片上传
       if (rawFile.size > MAX_SIZE) {
-        const res = await uploadByChunks(rawFile, (p) => {
-          console.log(`上传进度: ${p}%`);
+        const res = await uploadByChunks(rawFile, (percent) => {
+          console.log('上传进度:', percent + '%');
         });
         // 后端返回结构兼容你的原始逻辑
         const newFile: ReportMaterial = {

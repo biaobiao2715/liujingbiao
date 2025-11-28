@@ -1,29 +1,29 @@
 <template>
   <div class="price-trend-component">
-    <!-- 查询表单 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
-      <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
-      </el-form-item>
-      <el-form-item label="产地:" prop="origin">
-        <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
-      </el-form-item>
-     
-    </el-form>
-
-    <!-- 时间范围选择 -->
-    <div class="time-range-selector">
-      <el-button :type="activeTimeRange === 7 ? 'primary' : 'default'" @click="changeTimeRange(7)"> 近7天 </el-button>
-      <el-button :type="activeTimeRange === 30 ? 'primary' : 'default'" @click="changeTimeRange(30)"> 近30天 </el-button>
-      <el-button :type="activeTimeRange === 60 ? 'primary' : 'default'" @click="changeTimeRange(60)"> 近60天 </el-button>
-    </div>
-
     <!-- 主要内容区域 -->
     <div class="content-wrapper">
       <!-- 左侧：图表区域 -->
       <div class="chart-section">
+        <div class="filter-row">
+          <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
+            <el-form-item label="品种:" prop="variety">
+              <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
+            </el-form-item>
+            <el-form-item label="产地:" prop="origin">
+              <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
+            </el-form-item>
+          </el-form>
+          <!-- 时间范围选择 -->
+          <div class="time-range-selector">
+            <div class="range-pill" :class="{ active: activeTimeRange === 7 }" @click="changeTimeRange(7)">近7天</div>
+            <div class="range-pill" :class="{ active: activeTimeRange === 30 }" @click="changeTimeRange(30)">近30天</div>
+            <div class="range-pill" :class="{ active: activeTimeRange === 60 }" @click="changeTimeRange(60)">近60天</div>
+          </div>
+        </div>
+        <!-- 查询表单 -->
+
         <PriceTrendChart
-          :title="`过去${activeTimeRange}天小麦种子价格`"
+          :title="`小麦种子价格近（${activeTimeRange}日）`"
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
@@ -37,15 +37,26 @@
       <!-- 右侧：价格说明栏 -->
       <div class="summary-section">
         <!-- 当日价格卡片 -->
-        <div class="price-card">
-          <h4 class="card-title">当日价格</h4>
-          <div class="card-content">
-            <p>当日均价(元/kg): {{ priceStats.todayPrice.toFixed(2) }}</p>
-            <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
-              相较昨日价格: {{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%
-              <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
-              <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
-            </p>
+        <div class="price-card today-card">
+          <div class="card-header">
+            <div class="title-marker"></div>
+            <div class="card-title">当日价格</div>
+          </div>
+          <div class="today-body">
+            <div class="card-info">
+              <p class="card-metric">
+                当日均价(元/斤）：<span>{{ priceStats.todayPrice.toFixed(2) }}</span>
+              </p>
+              <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
+                相较昨日价格：
+                <span>{{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%</span>
+                <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
+                <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
+              </p>
+            </div>
+            <div class="card-chart">
+              <img src="@/assets/images/todayPriceLine.png" alt="当日趋势" />
+            </div>
           </div>
         </div>
 
@@ -776,36 +787,63 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .price-trend-component {
-  padding: 12px;
   background-color: #fff;
 
   .query-form {
-    margin-bottom: 16px;
-
     .el-form-item {
       margin-bottom: 0;
     }
-
-    :deep(.goods-category) {
-      width: 250px;
-    }
   }
 
-  .time-range-selector {
-    margin-bottom: 16px;
+  .filter-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
 
-    .el-button {
-      margin-right: 10px;
-    }
+  .filter-row .query-form {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  .filter-row .time-range-selector {
+    padding: 4px;
+    background-color: #f5f5f5;
+    margin-left: auto;
+    display: inline-flex;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .filter-row .time-range-selector .range-pill {
+    border-radius: 4px;
+    padding: 0 18px;
+    height: 32px;
+    line-height: 32px;
+    background: transparent;
+    color: #5c6773;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filter-row .time-range-selector .range-pill.active {
+    background: #ffffff;
+    color: #108c58;
+    font-weight: 600;
   }
 
   .content-wrapper {
     display: flex;
     gap: 20px;
-    margin-bottom: 20px;
 
     .chart-section {
-      flex: 2;
+      flex: 3;
       background-color: #fff;
       border-radius: 4px;
       padding: 16px;
@@ -830,34 +868,78 @@ onBeforeUnmount(() => {
       gap: 16px;
 
       .price-card {
-        background-color: #f5f7fa;
+        border: 1px dashed #b9c6d3;
         border-radius: 4px;
         padding: 16px;
-        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+        background: #fff;
 
-        .card-title {
-          font-size: 16px;
-          font-weight: bold;
-          margin-bottom: 12px;
-          color: #303133;
+        .card-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .title-marker {
+            width: 3px;
+            height: 18px;
+            background: #2e9be6;
+            border-radius: 2px;
+          }
+
+          .card-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #2e9be6;
+          }
         }
 
-        .card-content {
-          p {
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #606266;
-            line-height: 1.8;
+        .today-body {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
 
-            &.price-change {
-              display: flex;
-              align-items: center;
-              gap: 4px;
+        .card-info {
+          flex: 1;
+          min-width: 0;
+        }
 
-              .el-icon {
-                font-size: 16px;
-              }
-            }
+        .card-metric {
+          font-size: 14px;
+          color: #1d2129;
+          span {
+            font-size: 18px;
+            font-weight: 600;
+            margin-left: 4px;
+          }
+        }
+
+        .price-change {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: #7a7a7a;
+          margin: 0;
+          span {
+            font-weight: 600;
+            color: #ef4d0b;
+          }
+          .el-icon {
+            font-size: 16px;
+          }
+        }
+
+        .card-chart {
+          width: 96px;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          img {
+            width: 80px;
+            height: 50px;
+            object-fit: contain;
           }
         }
 
@@ -880,7 +962,6 @@ onBeforeUnmount(() => {
       font-size: 18px;
       font-weight: bold;
       text-align: center;
-      margin-bottom: 16px;
       color: #303133;
     }
 

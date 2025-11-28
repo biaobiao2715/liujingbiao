@@ -37,7 +37,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="supplyDescription" label="发布说明" align="center" :show-overflow-tooltip="true" />
-      <el-table-column label="操作" width="200" align="center">
+      <el-table-column fixed="right" label="操作" width="200" align="center">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" text size="small" @click="handleDetail(scope.row)"
             >详情</el-button

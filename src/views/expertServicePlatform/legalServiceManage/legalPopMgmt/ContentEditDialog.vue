@@ -153,7 +153,7 @@ import {
   editContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-import { uploadByChunks } from '@/utils/chunkUpload';
+import { uploadByChunks } from '@/utils/chunkUpload0';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 

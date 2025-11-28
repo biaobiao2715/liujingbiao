@@ -117,7 +117,7 @@
               <template #default="{ row }"> {{ row.unitPrice }} 元</template>
             </el-table-column>
             <el-table-column prop="quoteRemarks" label="备注说明" align="center" />
-            <el-table-column label="操作" width="120" align="center">
+            <el-table-column fixed="right" label="操作" width="120" align="center">
               <template #default="{ row }">
                 <el-button v-if="row.contactPhone" link type="primary" @click="onContact(row)">立即联系</el-button>
               </template>

@@ -27,7 +27,7 @@
             <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="160" align="center">
+        <el-table-column fixed="right" label="操作" min-width="160" align="center">
           <template #default="{ row }">
             <el-button
               v-if="row.questionStatus !== '99'"

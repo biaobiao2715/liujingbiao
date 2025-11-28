@@ -39,7 +39,7 @@
           </template>
         </el-table-column>
         <el-table-column label="产品简介" align="center" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+        <el-table-column label="操作" fixed="right" align="center" width="160" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button v-throttle type="primary" @click="handleEdit(scope.row)">详情</el-button>
           </template>

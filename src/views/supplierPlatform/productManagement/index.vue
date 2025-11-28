@@ -112,7 +112,7 @@
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="500">
+      <el-table-column fixed="right" label="操作" align="center" width="500">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['system:goods:query']" type="primary" @click="openDetails(scope.row)">详情</el-button>
           <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetailsEdit(scope.row)">价格设定</el-button>

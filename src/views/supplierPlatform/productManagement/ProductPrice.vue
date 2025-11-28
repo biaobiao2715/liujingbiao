@@ -35,13 +35,7 @@
     <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220" style="color: #0000ff">
-        <template #default="scope">
-          <router-link :to="'/supplierSalesPlatform/productManagement/productDetails/?id=' + scope.row.goodsId + '&type=view'" class="link-type">
-            <span>{{ scope.row.goodsCode }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
+      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>
       <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
       <el-table-column label="商品品牌" align="center" prop="goodsBrandName"> </el-table-column>
       <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="210"> </el-table-column>
@@ -53,7 +47,7 @@
           {{ formatDate(scope.row.changeTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="100" fixed="right">
+      <el-table-column fixed="right" label="操作" align="center" width="100">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
         </template>
