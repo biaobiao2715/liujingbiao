@@ -79,7 +79,7 @@
           <el-button
             v-throttle
             v-hasPermi="['credit:creditArticle:edit']"
-            v-if="scope.row.articleStatus === '2'"
+            v-if="canOffline(scope.row)"
             type="primary"
             @click="handleStatusChange(scope.row, '3')"
           >
@@ -87,8 +87,8 @@
           </el-button>
           <el-button
             v-throttle
-            v-hasPermi="['credit:creditArticle:publish']"
-            v-if="scope.row.articleStatus === '1' || scope.row.articleStatus === '3'"
+            v-hasPermi="['credit:creditArticle:edit']"
+            v-if="canPublish(scope.row)"
             type="primary"
             @click="handleStatusChange(scope.row, '2')"
           >
@@ -97,7 +97,7 @@
           <el-button
             v-throttle
             v-hasPermi="['credit:creditArticle:remove']"
-            v-if="scope.row.articleStatus === '3'"
+            v-if="canDelete(scope.row)"
             type="primary"
             @click="handleDelete(scope.row)"
           >
@@ -248,6 +248,11 @@ const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
 };
+
+const getStatusCode = (row: any) => String(row?.articleStatus ?? '');
+const canPublish = (row: any) => ['1', '3'].includes(getStatusCode(row));
+const canOffline = (row: any) => getStatusCode(row) === '2';
+const canDelete = (row: any) => getStatusCode(row) === '3';
 
 const getDialogTitle = () => {
   const map: Record<string, string> = {
