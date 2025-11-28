@@ -1,4 +1,4 @@
-<!-- 分析图表 -->
+<!-- 价格预测与分析图表 -->
 
 <template>
   <div class="price-prediction-chart">
@@ -202,7 +202,13 @@ const updateChart = () => {
               type: 'line',
               data: historicalData,
               smooth: 0.4,
-              symbol: 'none',
+              symbol: 'circle',
+              symbolSize: 6,
+              itemStyle: {
+                color: '#1abc9c',
+                borderWidth: 2,
+                borderColor: '#fff'
+              },
               lineStyle: {
                 width: 3,
                 color: '#1abc9c'
@@ -263,7 +269,13 @@ const updateChart = () => {
               type: 'line',
               data: predictedData,
               smooth: 0.4,
-              symbol: 'none',
+              symbol: 'circle',
+              symbolSize: 6,
+              itemStyle: {
+                color: '#f5a623',
+                borderWidth: 2,
+                borderColor: '#fff'
+              },
               lineStyle: {
                 width: 3,
                 color: '#f5a623'

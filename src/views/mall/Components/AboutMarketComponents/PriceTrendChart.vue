@@ -152,8 +152,16 @@ const updateChart = () => {
         name: '价格',
         type: 'line',
         smooth: true,
-        symbol: (_value: any, params: any) => (labelIndices.has(params.dataIndex) ? 'circle' : 'none'),
-        symbolSize: 6,
+        symbol: (_value: any, params: any) => {
+          const index = params.dataIndex;
+          // 只在显示标签的位置显示数据点
+          return labelIndices.has(index) ? 'circle' : 'none';
+        },
+        symbolSize: (value: any, params: any) => {
+          const index = params.dataIndex;
+          // 只在显示标签的位置显示数据点
+          return labelIndices.has(index) ? 6 : 0;
+        },
         lineStyle: {
           width: 3,
           color: '#108C58' // 折线颜色使用渐变起始色

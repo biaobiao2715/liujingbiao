@@ -1,3 +1,5 @@
+<!-- 今日行情 -->
+
 <template>
   <div class="today-trend-component">
     <!-- 查询表单 -->
@@ -13,6 +15,9 @@
 
     <!-- 数据表格 -->
     <el-table :data="tableData" border v-loading="loading">
+      <template #empty>
+        <el-empty description="暂无数据" />
+      </template>
       <el-table-column type="index" label="序号" width="80" align="center" />
       <el-table-column prop="salesDate" label="销售日期" align="center" width="180" />
       <el-table-column prop="variety" label="品种" align="center" width="180" />
@@ -297,6 +302,10 @@ defineExpose({
 .pagination {
   margin-top: 24px;
   justify-content: end;
+}
+
+:deep(.el-empty) {
+  padding: 40px 0;
 }
 ::v-deep .el-form-item--default .el-form-item__content {
   margin-right: 30px;
