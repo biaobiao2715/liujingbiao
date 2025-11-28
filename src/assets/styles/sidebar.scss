@@ -88,82 +88,94 @@
     // menu hover
     .theme-dark .sub-menu-title-noDropdown,
     .theme-dark .el-sub-menu__title {
-      border-radius: 8px;
+      border-radius: 2px;
       margin: 1px 5px 1px 5px;
       &:hover {
-        background-color: $base-sub-menu-title-hover !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
     .sub-menu-title-noDropdown,
     .el-sub-menu__title {
-      border-radius: 8px;
+      border-radius: 2px;
       margin: 1px 5px 1px 5px;
       &:hover {
-        background-color: rgba(0, 0, 0, 0.05) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
 
-    & .theme-dark .is-active > .el-sub-menu__title {
-      color: $base-menu-color-active !important;
+    & .theme-light .is-active > .el-sub-menu__title {
+      color: #108c58 !important;
+      font-weight: 500;
     }
 
     & .nest-menu .el-sub-menu > .el-sub-menu__title,
     & .el-sub-menu .el-menu-item {
       min-width: calc($base-sidebar-width - 20px) !important;
-      border-radius: 8px;
+      border-radius: 2px;
       height: 45px;
       margin: 1px 5px 1px 5px;
       &:not(.is-active):hover {
-        background-color: rgba(0, 0, 0, 0.1) !important;
+        // background-color: rgba(0, 0, 0, 0.1) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
 
     & .theme-dark .nest-menu .el-sub-menu > .el-sub-menu__title,
     & .theme-dark .el-sub-menu .el-menu-item {
-      background-color: $base-sub-menu-background !important;
-      border-radius: 8px;
+      background-color: rgba(16, 140, 88, 0.1) !important;
+      border-radius: 2px;
       height: 45px;
       margin: 1px 5px 1px 5px;
 
       &.is-active {
-        background-color: var(--el-menu-active-color) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
         color: #fff;
       }
       &:not(.is-active):hover {
         // you can use $sub-menuHover
-        background-color: $base-sub-menu-hover !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
 
     & .theme-dark .nest-menu .el-sub-menu > .el-sub-menu__title,
     & .theme-dark .el-menu-item {
-      border-radius: 8px;
+      border-radius: 2px;
       height: 45px;
       margin: 1px 5px 1px 5px;
 
       &.is-active {
-        background-color: var(--el-menu-active-color) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
         color: #fff;
       }
       &:not(.is-active):hover {
         // you can use $sub-menuHover
-        background-color: $base-menu-hover !important;
+        // background-color: $base-menu-hover !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
 
     & .nest-menu .el-sub-menu > .el-sub-menu__title,
     & .el-menu-item {
-      border-radius: 8px;
+      border-radius: 2px;
       height: 45px;
       margin: 1px 5px 1px 5px;
 
       &.is-active {
-        background-color: var(--el-menu-active-color) !important;
-        color: #fff;
+        // background-color: var(--el-menu-active-color) !important;
+        // color: #fff;
+        background-color: rgba(16, 140, 88, 0.1) !important;
+        color: #108c58;
+        font-family:
+          PingFang SC,
+          PingFang SC;
+        font-weight: 500;
+        border-left: 4px solid #108c58;
+        border-radius: 2px;
       }
       &:not(.is-active):hover {
         // you can use $sub-menuHover
-        background-color: rgba(0, 0, 0, 0.04) !important;
+        // background-color: rgba(0, 0, 0, 0.04) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
     }
   }
@@ -193,7 +205,6 @@
       }
     }
 
-
     & .el-sub-menu {
       overflow: hidden;
       border-radius: 8px;
@@ -204,9 +215,8 @@
 
       // 选中状态的菜单
       &.is-active .el-sub-menu__title.el-tooltip__trigger {
-        background-color: var(--el-menu-active-color) !important;
+        background-color: rgba(16, 140, 88, 0.1) !important;
       }
-
 
       & > .el-sub-menu__title {
         padding: 0 !important;
@@ -285,12 +295,12 @@
   }
 }
 // 收起菜单后悬浮的菜单样式
-.el-popper.is-pure{
+.el-popper.is-pure {
   border-radius: 8px;
-  .el-menu--popup{
+  .el-menu--popup {
     border-radius: 8px;
   }
-  .el-menu-item{
+  .el-menu-item {
     border-radius: 4px;
   }
 }

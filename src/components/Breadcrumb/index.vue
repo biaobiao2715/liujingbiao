@@ -38,6 +38,7 @@ const getBreadcrumb = () => {
     matched = [{ path: '/index', meta: { title: '首页' } }].concat(matched);
   }
   levelList.value = matched.filter((item) => item.meta && item.meta.title && item.meta.breadcrumb !== false);
+  console.log('🚀 ~ getBreadcrumb ~ levelList.value :', levelList.value);
 };
 const findPathNum = (str, char = '/') => {
   if (typeof str !== 'string' || str.length === 0) return 0;

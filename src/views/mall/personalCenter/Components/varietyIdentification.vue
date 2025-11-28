@@ -246,11 +246,10 @@ onMounted(() => {
 .menu-title::before {
   content: '';
   display: inline-block;
-  width: 26px;
-  height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  width: 29px;
+  height: 29px;
+  margin-right: 3px;
+  background-image: url('@/assets/images/mall/variety-identification-icon.png');
 }
 .pading20 {
   padding: 20px;

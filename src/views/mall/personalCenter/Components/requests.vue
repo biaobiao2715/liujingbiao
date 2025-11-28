@@ -288,11 +288,10 @@ const onComplete = async (row: HnPurchaseDemandVo) => {
 .menu-title::before {
   content: '';
   display: inline-block;
-  width: 26px;
-  height: 26px;
-  background: #108c58;
-  border-radius: 4px 4px 4px 4px;
-  margin-right: 12px;
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  background-image: url('@/assets/images/mall/my-posts-icon.png');
 }
 
 .pading20 {

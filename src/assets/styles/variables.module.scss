@@ -104,7 +104,8 @@ $base-menu-light-background: #ffffff;
 $base-logo-light-title-color: #001529;
 
 $base-sub-menu-background: var(--subMenuBg);
-$base-sub-menu-hover: var(--subMenuHover);
+$base-sub-menu-hover: rgba(16, 140, 88, 0.1);
+// $base-sub-menu-hover: var(--subMenuHover);
 $base-sub-menu-title-hover: var(--subMenuTitleHover);
 // 表单头背景色和标题颜色
 $fixed-header-bg: var(--fixedHeaderBg);

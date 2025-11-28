@@ -343,7 +343,7 @@ watch(
   bottom: 0;
   width: 100%;
   height: 210px;
-  background: url('@/assets/mall/切图 28.webp') no-repeat left bottom/100% 100%;
+  background: url('@/assets/images/mall/left-sidebar-bg.png') no-repeat left bottom/100% 100%;
   pointer-events: none;
   z-index: 1;
 }

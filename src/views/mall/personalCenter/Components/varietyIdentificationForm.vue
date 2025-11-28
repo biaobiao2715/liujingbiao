@@ -27,7 +27,7 @@
             </template>
             <template v-else>
               <div class="upload-placeholder">
-                <img src="@/assets/images/register3.svg" class="step-icon" />
+                <img src="@/assets/images/mall/upload-img.png" class="step-icon" />
                 <div class="upload-text">点击或将附件拖拽到这里上传</div>
                 <div class="upload-tip">最大10M 支持：jpg jpeg png pdf</div>
               </div>
@@ -264,7 +264,7 @@ const closable = () => {
 
     .step-icon {
       width: 57px;
-      height: 50px;
+      height: 52px;
       margin: 100px 0 20px 0;
     }
 

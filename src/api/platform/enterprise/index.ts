@@ -106,7 +106,6 @@ export const baseEnterpriseInfoDelete = (id: any) => {
   });
 };
 
-
 /**
  * 交易活跃度
  * @param data
@@ -119,7 +118,6 @@ export const getTransactionInfo = (data: any) => {
   });
 };
 
-
 /**
  * 违规记录
  * @param data
@@ -129,5 +127,17 @@ export const getViolationInfo = (data: any) => {
     url: '/system/baseEnterpriseInfo/getViolationInfo',
     method: 'get',
     params: data
+  });
+};
+
+/**
+ * 修改信用等级
+ * @param data
+ */
+export const updateCreditLevel = (data: any) => {
+  return request({
+    url: '/system/baseEnterpriseInfo/updateCreditLevel',
+    method: 'put',
+    data: data
   });
 };
