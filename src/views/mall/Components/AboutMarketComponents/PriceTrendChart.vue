@@ -1,6 +1,8 @@
+<!-- 价格走势 -->
 <template>
   <div class="price-trend-chart">
     <div class="chart-header" v-if="showHeader">
+      <div class="title-marker"></div>
       <h3 class="chart-title">{{ title }}</h3>
     </div>
     <div ref="chartContainer" class="chart-container"></div>
@@ -166,7 +168,7 @@ const updateChart = () => {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             {
               offset: 0,
-              color: 'rgba(64, 158, 255, 0.3)'
+              color: 'rgba(64, 158, 255, 0.9)'
             },
             {
               offset: 1,
@@ -250,8 +252,19 @@ onUnmounted(() => {
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    gap: 8px;
     margin-bottom: 16px;
+    margin-top: 10px;
+    margin-left: 15px;
     flex-shrink: 0;
+
+    .title-marker {
+      width: 3px;
+      height: 13px;
+      background: #000000;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
     .chart-title {
       font-size: 16px;

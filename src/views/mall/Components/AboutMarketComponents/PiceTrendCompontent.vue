@@ -23,7 +23,7 @@
         <!-- 查询表单 -->
 
         <PriceTrendChart
-          :title="`小麦种子价格近（${activeTimeRange}日）`"
+          :title="`小麦种子价格（近${activeTimeRange}日）`"
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
@@ -1023,10 +1023,10 @@ onBeforeUnmount(() => {
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 
     .section-title {
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 16px;
+      font-weight: 500;
       text-align: center;
-      color: #303133;
+      color: #333333;
     }
 
     :deep(.el-table) {
