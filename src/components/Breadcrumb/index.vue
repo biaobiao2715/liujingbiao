@@ -17,6 +17,7 @@ const route = useRoute();
 const router = useRouter();
 const permissionStore = usePermissionStore();
 const levelList = ref<RouteLocationMatched[]>([]);
+const levelListNew = ref<RouteLocationMatched[]>([]);
 
 const getBreadcrumb = () => {
   // only show routes with meta.title
@@ -37,7 +38,8 @@ const getBreadcrumb = () => {
   if (!isDashboard(matched[0])) {
     matched = [{ path: '/index', meta: { title: '首页' } }].concat(matched);
   }
-  levelList.value = matched.filter((item) => item.meta && item.meta.title && item.meta.breadcrumb !== false);
+  levelListNew.value = matched.filter((item) => item.meta && item.meta.title && item.meta.breadcrumb !== false);
+  levelList.value = levelListNew.value.slice(1);
   console.log('🚀 ~ getBreadcrumb ~ levelList.value :', levelList.value);
 };
 const findPathNum = (str, char = '/') => {
