@@ -100,7 +100,7 @@
 import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getloanApplicationsList, deleteRepaymentRecord } from '@/api/creditPlatform/repaymentPlans';
+import { getloanApplicationsList, deleteRepaymentRecord,messageRecord,getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
 import LoanTrackingDialog from './LoanTrackingDialog.vue';
@@ -261,7 +261,7 @@ const handleTracking = (row: RepaymentPlan) => {
  * @param row - 当前行数据
  * @param type - 通知类型: pending=待还款, repaying=还款中, completed=已还清, overdue=已逾期
  */
-const handleNotification = (row: RepaymentPlan, type: 'pending' | 'repaying' | 'completed' | 'overdue') => {
+const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'repaying' | 'completed' | 'overdue') => {
   const messages = {
     pending: '待还款提示',
     repaying: '还款提示',
@@ -274,16 +274,43 @@ const handleNotification = (row: RepaymentPlan, type: 'pending' | 'repaying' | '
     cancelButtonText: '取消',
     type: 'warning'
   })
-    .then(() => {
-      // TODO: 调用API发送通知
-      ElMessage.success(`${messages[type]}已发送`);
+    .then(async () => {
+      try {
+        // 1. 先调用 getRemainingDetail 获取数组数据
+        const detailResponse = await getRemainingDetail(row.id);
+        if (detailResponse && detailResponse.code === 200) {
+          const detailArray = detailResponse.data || [];
+          
+          // 2. 为数组中的每个元素添加 messageType 字段（使用列表中的 messageType 或传入的 type）
+          const messageType = (row as any).messageType || type;
+          const dataWithMessageType = detailArray.map((item: any) => ({
+            ...item,
+            messageType: messageType
+          }));
+          
+          // 3. 调用 messageRecord 接口
+          const messageResponse = await messageRecord(dataWithMessageType);
+          console.log(messageResponse);
+          if (messageResponse && messageResponse.code === 200) {
+            ElMessage.success(`${messages[type]}已发送`);
+          } else {
+            ElMessage.error(messageResponse?.msg || '发送失败');
+          }
+        } else {
+          ElMessage.error(detailResponse?.msg || '获取详情失败');
+        }
+      } catch (error) {
+        console.error('发送通知失败:', error);
+        ElMessage.error('发送通知失败，请稍后重试');
+      }
     })
     .catch(() => {
       ElMessage.info('已取消发送');
     });
 };
 
-/**
+
+ /** 
  * 删除按钮 - 删除还款记录
  */
 const handleDelete = (row: RepaymentPlan) => {

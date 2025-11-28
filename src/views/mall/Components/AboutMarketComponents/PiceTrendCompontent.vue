@@ -45,10 +45,10 @@
           <div class="today-body">
             <div class="card-info">
               <p class="card-metric">
-                当日均价(元/斤）：<span>{{ priceStats.todayPrice.toFixed(2) }}</span>
+                当日均价 (元/斤) ：<span>{{ priceStats.todayPrice.toFixed(2) }}</span>
               </p>
               <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
-                相较昨日价格：
+                <span style="font-size: 14px; color: #7a7a7a; font-weight: 400"> 相较昨日价格：</span>
                 <span>{{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%</span>
                 <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
                 <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
@@ -61,15 +61,25 @@
         </div>
 
         <!-- 近7日价格卡片 -->
-        <div class="price-card">
-          <h4 class="card-title">近7日价格</h4>
-          <div class="card-content">
-            <p>近7日最高价(元/kg): {{ priceStats.maxPrice }}</p>
-            <p>近7日最低价(元/kg): {{ priceStats.minPrice }}</p>
-            <p>近7日均价(元/kg): {{ priceStats.avgPrice.toFixed(2) }}</p>
-            <p>近7日价格走势: {{ priceStats.trend }}</p>
+        <div class="price-card seven-days-card">
+          <div class="card-header">
+            <div class="title-marker2"></div>
+            <div class="card-title2">近7日价格</div>
           </div>
-          <el-button type="primary" class="heatmap-button" @click="viewHeatmap"> 查看区域价格差异热力图 </el-button>
+          <div class="card-content">
+            <p class="card-metric">
+              近7日最高价 (元/斤) : <span style="font-size: 18px">{{ priceStats.maxPrice.toFixed(2) }}</span>
+            </p>
+            <p class="card-metric">
+              近7日最低价 (元/斤) : <span style="font-size: 18px">{{ priceStats.minPrice.toFixed(2) }}</span>
+            </p>
+            <p class="card-metric">
+              近7日均价 (元/斤) : <span style="font-size: 18px"> {{ priceStats.avgPrice.toFixed(2) }}</span>
+            </p>
+            <p class="price-trend">
+              近7日价格趋势 : <span class="trend-text">{{ priceStats.trend }}</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -868,7 +878,7 @@ onBeforeUnmount(() => {
       gap: 16px;
 
       .price-card {
-        border: 1px dashed #b9c6d3;
+        border: 1px dashed rgba(91, 188, 255, 0.6);
         border-radius: 4px;
         padding: 16px;
         background: #fff;
@@ -880,19 +890,30 @@ onBeforeUnmount(() => {
 
           .title-marker {
             width: 3px;
-            height: 18px;
+            height: 13px;
             background: #2e9be6;
             border-radius: 2px;
           }
-
+          .title-marker2 {
+            width: 3px;
+            height: 13px;
+            border-radius: 2px;
+            background: #6767ff;
+          }
           .card-title {
             font-size: 15px;
             font-weight: bold;
             color: #2e9be6;
           }
+          .card-title2 {
+            font-size: 15px;
+            font-weight: bold;
+            color: #6767ff;
+          }
         }
 
         .today-body {
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -902,6 +923,7 @@ onBeforeUnmount(() => {
         .card-info {
           flex: 1;
           min-width: 0;
+          margin-left: 15px;
         }
 
         .card-metric {
@@ -930,15 +952,16 @@ onBeforeUnmount(() => {
         }
 
         .card-chart {
-          width: 96px;
+          position: absolute;
+          top: 14px;
+          right: 28px;
+          width: 120px;
           height: 64px;
-          display: flex;
           align-items: center;
           justify-content: center;
           border-radius: 6px;
           img {
-            width: 80px;
-            height: 50px;
+            width: 100%;
             object-fit: contain;
           }
         }
@@ -946,6 +969,47 @@ onBeforeUnmount(() => {
         .heatmap-button {
           margin-top: 12px;
           width: 100%;
+        }
+
+        // 近7日价格卡片特定样式
+        &.seven-days-card {
+          border: 1px dashed rgba(133, 133, 255, 0.6);
+          .card-content {
+            margin-top: 12px;
+            margin-left: 15px;
+
+            .card-metric {
+              margin-bottom: 12px;
+              font-size: 14px;
+              color: #1d2129;
+              line-height: 1.6;
+
+              &:last-of-type {
+                margin-bottom: 12px;
+              }
+
+              span {
+                font-size: 14px;
+                font-weight: bold;
+                color: #1d2129;
+                margin-left: 4px;
+              }
+            }
+
+            .price-trend {
+              margin: 0;
+              font-size: 14px;
+              color: #1d2129;
+              line-height: 1.6;
+
+              .trend-text {
+                font-weight: bold;
+                color: #67c23a;
+                margin-left: 4px;
+                font-size: 18px;
+              }
+            }
+          }
         }
       }
     }

@@ -94,3 +94,11 @@ export function deleteRepaymentRecord(id: string | number) {
     method: 'delete'
   });
 }
+//还款提示
+export function messageRecord(data: any) {
+  return request({
+    url: `/credit-server/credit/messageRecord/sendReminder`,
+    method: 'post',
+    data: data
+  });
+}

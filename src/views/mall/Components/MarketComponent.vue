@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .market-container {
-  padding: 12px;
+  padding: 12px 120px;
   background-color: #fff;
 }
 
