@@ -55,27 +55,23 @@
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
-            <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" text @click="handleNotification(scope.row, 'pending')">
-              还款提醒
-            </el-button>
-            <el-button
-              v-else-if="scope.row.currentPeriodStatus === '1'"
-              size="small"
-              type="success"
-              text
-              @click="handleNotification(scope.row, 'completed')"
-            >
-              完结通知
-            </el-button>
-            <el-button
-              v-else-if="scope.row.currentPeriodStatus === '2'"
-              size="small"
-              type="danger"
-              text
-              @click="handleNotification(scope.row, 'overdue')"
-            >
-              逾期提示
-            </el-button>
+            <template v-if="scope.row.planStatus === '2'">
+              <el-button size="small" type="success" text @click="handleNotification(scope.row, 'completed')">完结通知</el-button>
+            </template>
+            <template v-else>
+              <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" text @click="handleNotification(scope.row, 'pending')">
+                还款提醒
+              </el-button>
+              <el-button
+                v-else-if="scope.row.currentPeriodStatus === '2'"
+                size="small"
+                type="danger"
+                text
+                @click="handleNotification(scope.row, 'overdue')"
+              >
+                逾期提示
+              </el-button>
+            </template>
             <el-button size="small" type="success" text @click="handleRepayment(scope.row)">还款情况</el-button>
             <el-button size="small" type="primary" text @click="handleDetail(scope.row)">详情</el-button>
             
@@ -283,7 +279,21 @@ const handleTracking = (row: RepaymentPlan) => {
  * @param row - 当前行数据
  * @param type - 通知类型: pending=还款提醒, completed=完结通知, overdue=逾期提示
  */
-const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'completed' | 'overdue') => {
+const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'completed' | 'overdue') => {
+  let actualType: 'pending' | 'completed' | 'overdue' = type || 'pending';
+
+  if (!type) {
+    if (row.planStatus === '2') {
+      actualType = 'completed';
+    } else if (row.currentPeriodStatus === '0') {
+      actualType = 'pending';
+    } else if (row.currentPeriodStatus === '2') {
+      actualType = 'overdue';
+    } else {
+      actualType = 'pending';
+    }
+  }
+
   const messages = {
     pending: '还款提醒',
     completed: '完结通知',
@@ -297,9 +307,9 @@ const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'complet
     completed: '3',
     overdue: '2'
   };
-  const messageType = messageTypeMap[type] || '0';
+  const messageType = messageTypeMap[actualType] || '0';
 
-  ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[type]}吗？`, '提示', {
+  ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[actualType]}吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -324,21 +334,16 @@ const handleNotification = async (row: RepaymentPlan, type: 'pending' | 'complet
           const messageResponse = await messageRecord(dataWithMessageType);
           console.log(messageResponse);
           if (messageResponse && messageResponse.code === 200) {
-            ElMessage.success(`${messages[type]}已发送`);
+            ElMessage.success(`${messages[actualType]}已发送`);
           } else {
-            ElMessage.error(messageResponse?.msg || '发送失败');
           }
         } else {
           ElMessage.error(detailResponse?.msg || '获取详情失败');
         }
       } catch (error) {
         console.error('发送通知失败:', error);
-        ElMessage.error('发送通知失败，请稍后重试');
       }
     })
-    .catch(() => {
-      ElMessage.info('已取消发送');
-    });
 };
 
 /**

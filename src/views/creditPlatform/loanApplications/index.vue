@@ -178,7 +178,6 @@ const getList = async () => {
     console.error('获取贷款申请列表失败:', error);
     tableData.value = [];
     total.value = 0;
-    ElMessage.error('获取贷款申请列表失败');
   } finally {
     loading.value = false;
   }
