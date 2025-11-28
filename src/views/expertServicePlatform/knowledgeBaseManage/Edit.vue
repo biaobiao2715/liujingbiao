@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-import { uploadByChunks } from '@/utils/chunkUpload';
+import { uploadByChunks } from '@/utils/chunkUpload0';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['success', 'cancel']);
 

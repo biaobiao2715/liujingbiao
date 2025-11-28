@@ -35,7 +35,7 @@
       <div>活动联系人电话：{{ detail?.activityContactPhone }}</div>
       <div>活动时间：{{ detail?.startTime + ' - ' + detail?.endTime }}</div>
       <div>活动地址：{{ detail?.activityAddress }}</div>
-      <div v-if="detail?.status === '99'">取消原因：{{ detail?.cancelReason }}</div>
+      <div v-if="detail?.activityStatus === '99'">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
 </template>

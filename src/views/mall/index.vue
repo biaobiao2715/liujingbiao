@@ -12,27 +12,31 @@
       <HeaderComponent />
 
       <!-- Tabs 切换 -->
-      <div class="tabs-container">
-        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+      <div class="tabs-container flex-center gap-24">
+        <!-- <el-tabs v-model="activeTab" @tab-click="handleTabClick">
           <el-tab-pane label="首页" name="goods"></el-tab-pane>
           <el-tab-pane label="供需大厅" name="demand"></el-tab-pane>
           <el-tab-pane label="市场行情" name="market"></el-tab-pane>
           <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
-        </el-tabs>
-        <!-- 商品组件 -->
-        <GoodsComponent v-if="activeTab === 'goods'" />
-        <div v-else-if="activeTab === 'demand'">
-          <DemandComponent :id="detailsId" :type="detailsType" />
+        </el-tabs> -->
+        <div v-for="item in tabs" :key="item.name" :class="['tab-item', { 'is-active': activeTab === item.name }]" @click="handleTabClick(item.name)">
+          {{ item.label }}
         </div>
-        <div v-else-if="activeTab === 'market'">
-          <MarketComponent />
-        </div>
-        <div v-else-if="activeTab === 'expert'">
-          <ExpertComponent />
-        </div>
-        <!-- 个人中心 -->
-        <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
       </div>
+
+      <!-- 商品组件 -->
+      <GoodsComponent v-if="activeTab === 'goods'" />
+      <div v-else-if="activeTab === 'demand'">
+        <DemandComponent :id="detailsId" :type="detailsType" />
+      </div>
+      <div v-else-if="activeTab === 'market'">
+        <MarketComponent />
+      </div>
+      <div v-else-if="activeTab === 'expert'">
+        <ExpertComponent />
+      </div>
+      <!-- 个人中心 -->
+      <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
     </div>
   </div>
 </template>
@@ -51,6 +55,24 @@ const activeTab = ref('goods');
 const personalCommand = ref('');
 const detailsId = ref<string | number>('');
 const detailsType = ref('');
+const tabs = [
+  {
+    label: '首页',
+    name: 'goods'
+  },
+  {
+    label: '供需大厅',
+    name: 'demand'
+  },
+  {
+    label: '市场行情',
+    name: 'market'
+  },
+  {
+    label: '专家学堂',
+    name: 'expert'
+  }
+];
 
 onMounted(() => {
   //  监听个人中心导航事件
@@ -71,7 +93,9 @@ onMounted(() => {
 });
 
 function handleTabClick(tab: any) {
-  console.log('切换到:', tab.name);
+  console.log(tab);
+
+  activeTab.value = tab;
 }
 </script>
 
@@ -81,5 +105,35 @@ function handleTabClick(tab: any) {
 
 .tabs-container {
   padding: 12px;
+  background-color: #108c58;
+  // ::v-deep .is-active {
+  //   color: #fff;
+  // }
+  // ::v-deep .el-tabs__nav-wrap:after {
+  //   // display: none !important;
+  //   background-color: #fff;
+  // }
+  .tab-item {
+    cursor: pointer;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  // 写一个类似于tabs的after效果, 当点击tab-item时, 下面的线会从左到右展开
+  .tab-item::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 4px;
+    background-color: #fff;
+    transform: scaleX(0);
+    transition: transform 0.3s ease-in-out;
+  }
+  // .tab-item:hover::after {
+  //   transform: scaleX(1);
+  // }
+  .is-active::after {
+    transform: scaleX(1);
+  }
 }
 </style>

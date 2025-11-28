@@ -199,3 +199,33 @@ export function thirdPartyLogin(data: any) {
     data
   });
 }
+
+// 新分片-初始化上传，对内接口，需后端业务方调用，完善业务参数
+export function initUpload(data: any) {
+  return request({
+    url: '/resource/file/init',
+    method: 'post',
+    data
+  });
+}
+
+// 新分片-结束分片，前端直接调用
+export function completeUpload(data: any) {
+  return request({
+    url: '/resource/file/finish-chunk',
+    method: 'post',
+    data,
+    // headers: {
+    //   ignoreFrequencyLimit: true,
+    //   'Content-Type': 'multipart/form-data'
+    // }
+  });
+}
+
+// 新分片-结束上传，前端直接调用
+export function finishUpload(fileHash: string) {
+  return request({
+    url: `/resource/file/finish-upload/${fileHash}`,
+    method: 'post'
+  });
+}

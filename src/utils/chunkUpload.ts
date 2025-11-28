@@ -1,77 +1,86 @@
-import { initChunkUpload, uploadChunk, mergeChunkUpload } from '@/api/login';
+import { initUpload, completeUpload, finishUpload } from '@/api/login';
+import SparkMD5 from 'spark-md5';
 
-export const uploadByChunks = async (file: File, onProgress: (p: number) => void) => {
-  const chunkSize = 5 * 1024 * 1024; // 5MB
+const UPLOAD_ID = generateUploadId();
+
+function generateUploadId() {
+  return crypto.randomUUID(); // 浏览器原生支持
+}
+
+/** 计算文件 MD5 */
+async function computeHash(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    const spark = new SparkMD5.ArrayBuffer();
+
+    reader.onload = (e: any) => {
+      spark.append(e.target.result);
+      resolve(spark.end());
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/** 将文件切片 */
+function createChunks(file: File, size: number) {
   const chunks: Blob[] = [];
   let cur = 0;
 
-  // 1. 切片
   while (cur < file.size) {
-    chunks.push(file.slice(cur, cur + chunkSize));
-    cur += chunkSize;
+    chunks.push(file.slice(cur, cur + size));
+    cur += size;
   }
 
-  // ---------------------------
-  // 2. 调用初始化接口
-  // ---------------------------
-  const timeoutConfig = { timeout: 0 };
+  return chunks;
+}
 
-  const initRes = await initChunkUpload(
-    {
-      fileName: file.name,
-      contentType: file.type
-    },
-    timeoutConfig
-  );
+/** 主上传流程 */
+export async function uploadByChunks(file: File, onProgress?: (percent: number) => void) {
+  // (1) 计算 MD5
+  const fileHash = await computeHash(file);
 
-  // 后端返回的 uploadId
-  const uploadId = initRes.data.uploadId;
+  // (2) 初始化上传，获得 uploadId
+  const initRes = await initUpload({
+    uploadId: UPLOAD_ID,
+    fileName: file.name,
+    fileSize: file.size,
+    fileHash
+  });
 
-  // ---------------------------
-  // 3. 逐片上传
-  // ---------------------------
-  let uploadedBytes = 0; // 已上传的总字节数
-  const totalBytes = file.size;
+  const chunksInfo = initRes.data.chunksInfo || [];
 
-  const partList: any[] = [];
-  for (let index = 0; index < chunks.length; index++) {
-    const chunk = chunks[index];
+  const chunks = createChunks(file, initRes.data.chunkSize);
 
-    const formData = new FormData();
-    formData.append('file', chunks[index]);
-    const res = await uploadChunk(
-      { uploadId, partNumber: (index + 1).toString() },
-      formData,
-      {
-        timeout: 0,
-        onUploadProgress: (e: ProgressEvent) => {
-          // 当前分片已上传多少字节
-          const currentChunkUploaded = e.loaded;
+  // 调用minio的接口
+  for (let i = 0; i < chunksInfo.length; i++) {
+    const chunkInfo = chunksInfo[i];
+    const chunk = chunks[i];
 
-          // 当前总上传 = 已完成分片的字节 + 当前片上传的字节
-          const totalUploaded = uploadedBytes + currentChunkUploaded;
+    // 第一步：上传该 chunk
+    const uploadResponse = await fetch(chunkInfo.presignUrl, {
+      method: 'PUT',
+      body: chunk
+    });
+    console.log('上传完成:', uploadResponse);
 
-          const percent = Number(((totalUploaded / totalBytes) * 100).toFixed(2));
+    if (uploadResponse.ok) {
+      // 第二步：单片上传成功后立即告诉服务端
+      const res = await completeUpload({
+        uploadId: initRes.data.uploadId,
+        index: i,
+        fileHash,
+        presignUrl: chunkInfo.presignUrl
+      });
 
-          onProgress(percent);
-        }
+      if (res.code === 200) {
+        onProgress?.(Math.round((i / chunksInfo.length) * 100));
       }
-    );
-
-    // 当前分片上传完成，累计字节
-    uploadedBytes += chunk.size;
-    partList.push(res.data);
+    }
   }
-  // ---------------------------
-  // 4. 告诉后端合并分片
-  // ---------------------------
-  const mergeRes = await mergeChunkUpload(
-    {
-      uploadId,
-      parts: partList
-    },
-    timeoutConfig
-  );
 
-  return mergeRes.data;
-};
+  // (4) 所有分片上传完 -> 通知后端合并
+  const mergeRes = await finishUpload(fileHash);
+
+  return mergeRes;
+}
