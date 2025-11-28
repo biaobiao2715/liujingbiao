@@ -31,7 +31,6 @@
       </el-form-item>
       <el-form-item label="普法类型" prop="contentType">
         <el-select v-model="queryParams.contentType" placeholder="全部" filterable clearable>
-          <el-option label="全部" value="" />
           <el-option 
             v-for="dict in legal_popularize_type" 
             :key="dict.value" 
@@ -42,7 +41,6 @@
       </el-form-item>
       <el-form-item label="状态" prop="contentStatus">
         <el-select v-model="queryParams.contentStatus" placeholder="全部" filterable clearable>
-          <el-option label="全部" value="" />
           <el-option 
             v-for="dict in legal_popularize_status" 
             :key="dict.value" 
@@ -67,13 +65,13 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      border
-      v-loading="loading"
-      :style="{ width: '100%' }"
-      @selection-change="handleSelectionChange"
-    >
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        border
+        v-loading="loading"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
 
@@ -150,6 +148,7 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -566,11 +565,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
 }
 
 .search-form {
@@ -581,6 +575,9 @@ onMounted(() => {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 
   :deep(.el-form-item) {
     min-width: 260px;
@@ -613,10 +610,31 @@ onMounted(() => {
   }
 }
 
-.el-table {
+.table-wrapper {
+  padding: 20px 24px 10px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  overflow: visible;
+}
+
+:deep(.table-wrapper .el-table) {
+  background: transparent;
+  box-shadow: none;
+
+  .el-table__header {
+    background-color: #fafafa;
+  }
+
+  th {
+    background-color: #fafafa !important;
+    color: #606266;
+    font-weight: 600;
+  }
+
+  .el-table__body tr:hover {
+    background-color: #f5f7fa;
+  }
 }
 
 .pagination {

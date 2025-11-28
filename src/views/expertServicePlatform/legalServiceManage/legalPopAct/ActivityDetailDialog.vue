@@ -6,6 +6,9 @@
 -->
 <template>
   <div class="activity-detail-dialog" v-loading="loading">
+    <div class="dialog-title">
+      <span>普法活动详情</span>
+    </div>
     <div class="header-section">
       <div class="header-top">
         <h2 class="main-title">{{ activityDetail.activityTitle || '活动标题' }}</h2>
@@ -164,10 +167,11 @@ const paginatedEnrollList = computed(() => {
 
 const getStatusType = (status: string) => {
   const map: Record<string, any> = {
-    '1': 'primary',
-    '2': 'success',
-    '3': 'info',
-    '4': 'warning'
+    '1': 'primary',  // 待开始
+    '2': 'success',  // 进行中
+    '3': 'danger',   // 已结束
+    '4': 'warning',  // 已取消
+    '99': 'danger'   // 已结束（兼容)
   };
   return map[String(status)] || 'info';
 };
@@ -309,6 +313,15 @@ onMounted(() => {
 <style scoped lang="scss">
 .activity-detail-dialog {
   padding: 20px;
+}
+
+.dialog-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e4e7ed;
 }
 
 .header-section {

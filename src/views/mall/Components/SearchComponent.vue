@@ -46,16 +46,16 @@
       </div>
       <div class="search-component flex">
         <div class="search-select">
-          <el-input v-model="searchContent" placeholder="请输入要搜索的内容" size="large" style="width: 380px">
+          <el-input v-model="searchContent" placeholder="请输入要搜索的内容" style="width: 380px">
             <template #prepend>
-              <el-select v-model="searchType" placeholder="商品名称" class="search-type" size="large">
+              <el-select v-model="searchType" placeholder="商品名称" class="search-type">
                 <el-option label="名称" value="goodsName"></el-option>
                 <el-option label="品牌" value="goodsBrandName"></el-option>
                 <el-option label="属性" value="goodsAbilityName"></el-option>
               </el-select>
             </template>
             <template #append>
-              <el-button type="primary" @click="handleSearch" size="large"> 搜索 </el-button>
+              <el-button type="primary" @click="handleSearch"> 搜索 </el-button>
             </template>
           </el-input>
         </div>
@@ -91,10 +91,6 @@ const sortList = ref([
   },
   {
     label: '按价格升序',
-    value: '2'
-  },
-  {
-    label: '按价格倒序',
     value: '3'
   }
 ]);
@@ -115,6 +111,17 @@ onMounted(() => {
   // 标记初始化完成
   isInitialized.value = true;
 });
+
+watch(
+  () => filterState,
+  () => {
+    // 只有在初始化完成后才自动触发搜索
+    if (isInitialized.value) {
+      handleSearch();
+    }
+  },
+  { deep: true }
+);
 
 // 搜索
 const handleSearch = () => {
@@ -226,10 +233,19 @@ const clearPrice = () => {
     display: flex;
     align-items: center;
     margin: 0 auto;
+
+    ::v-deep .el-input-group__prepend {
+      background: transparent !important;
+    }
+
+    ::v-deep .el-input-group__append {
+      background: #108c58 !important;
+      color: #fff !important;
+    }
   }
 
   .search-type {
-    width: 120px;
+    width: 90px;
   }
   .category-selection {
     width: 220px;

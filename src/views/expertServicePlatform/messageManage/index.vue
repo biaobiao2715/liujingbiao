@@ -6,124 +6,145 @@
 -->
 <template>
   <div class="message-management">
-    <div class="main-content-box">
-      <!-- 查询区域 -->
-      <div class="mb-[10px]">
-        <el-card shadow="hover">
-          <el-form
-            v-show="showSearch"
-            ref="queryFormRef"
-            :model="queryParams"
-            inline
-            :label-width="80"
-          >
-            <el-form-item label="留言时间">
-              <el-date-picker
-                v-model="messageDateRange"
-                type="datetimerange"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                range-separator=" - "
-                start-placeholder="开始时间"
-                end-placeholder="结束时间"
-              />
-            </el-form-item>
-            
-            <el-form-item label="留言内容" prop="messageContent">
-              <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
-            </el-form-item>
-            
-            <el-form-item label="回复时间">
-              <el-date-picker
-                v-model="replyDateRange"
-                type="datetimerange"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                range-separator=" - "
-                start-placeholder="开始时间"
-                end-placeholder="结束时间"
-              />
-            </el-form-item>
-            
-            <el-form-item label="回复状态" prop="questionStatus">
-              <el-select v-model="queryParams.questionStatus" placeholder="全部" filterable clearable>
-                <el-option 
-                  v-for="item in reply_status" 
-                  :key="item.value" 
-                  :label="item.label" 
-                  :value="item.value" 
-                />
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item>
-              <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
-              <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
-            </el-form-item>
-          </el-form>
+    <!-- 搜索条件 -->
+    <el-form
+      v-show="showSearch"
+      ref="queryFormRef"
+      :model="queryParams"
+      inline
+      :label-width="80"
+      class="search-form"
+    >
+      <el-form-item label="留言时间">
+        <el-date-picker
+          v-model="messageDateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
+      
+      <el-form-item label="留言内容" prop="messageContent">
+        <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      
+      <el-form-item label="回复时间">
+        <el-date-picker
+          v-model="replyDateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
+      
+      <el-form-item label="回复状态" prop="questionStatus">
+        <el-select v-model="queryParams.questionStatus" placeholder="全部" filterable clearable>
+          <el-option 
+            v-for="item in reply_status" 
+            :key="item.value" 
+            :label="item.label" 
+            :value="item.value" 
+          />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label-width="0">
+        <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
 
-          <!-- 表格 -->
-          <el-table :data="tableData" border v-loading="loading" :header-cell-style="{ fontWeight: 500 }" :style="{ width: '100%' }">
+    <!-- 表格 -->
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        border
+        v-loading="loading"
+        :header-cell-style="{ fontWeight: 500 }"
+      >
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
-        
-        <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
-          <template #default="scope">
-            <span>{{ scope.row.messageTime }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
-          <template #default="scope">
-            <span 
-              :class="isQuestionClosed(scope.row) ? '' : 'link-type'" 
-              :style="isQuestionClosed(scope.row) ? 'cursor: default;' : ''"
-              @click="!isQuestionClosed(scope.row) && handleReply(scope.row)"
+      
+      <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
+        <template #default="scope">
+          <span>{{ scope.row.messageTime }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
+        <template #default="scope">
+          <span 
+            :class="isQuestionClosed(scope.row) ? '' : 'link-type'" 
+            :style="isQuestionClosed(scope.row) ? 'cursor: default;' : ''"
+            @click="!isQuestionClosed(scope.row) && handleReply(scope.row)"
+          >
+            {{ scope.row.messageContent }}
+          </span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="回复时间" align="center" prop="replyTime" min-width="180">
+        <template #default="scope">
+          <span>{{ scope.row.replyTime || '----' }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
+        <template #default="scope">
+          <el-tag
+            :type="getReplyStatusType(scope.row.questionStatus)"
+            disable-transitions
+          >
+            {{ getReplyStatusLabel(scope.row.questionStatus) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="操作" align="center" width="160" fixed="right">
+        <template #default="scope">
+          <div class="operation-buttons">
+            <el-button
+              v-if="!isQuestionClosed(scope.row)"
+              v-throttle
+              v-hasPermi="['system:answer:add']"
+              type="success"
+              size="small"
+              @click="handleReply(scope.row)"
             >
-              {{ scope.row.messageContent }}
-            </span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="回复时间" align="center" prop="replyTime" min-width="180">
-          <template #default="scope">
-            <span>{{ scope.row.replyTime || '----' }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
-          <template #default="scope">
-            <dict-tag :options="reply_status" :value="scope.row.questionStatus" />
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" align="center" width="200">
-          <template #default="scope">
-            <div class="operation-buttons">
-              <el-button
-                v-if="!isQuestionClosed(scope.row)"
-                v-throttle
-                v-hasPermi="['system:answer:add']"
-                type="success"
-                size="small"
-                @click="handleReply(scope.row)"
-              >
-                回复
-              </el-button>
-              <el-button
-                v-if="hasReplied(scope.row)"
-                v-throttle
-                v-hasPermi="['system:question:query']"
-                type="primary"
-                size="small"
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-          </el-table>
-        </el-card>
-      </div>
+              回复
+            </el-button>
+            <el-button
+              v-if="hasReplied(scope.row)"
+              v-throttle
+              v-hasPermi="['system:question:query']"
+              type="primary"
+              size="small"
+              @click="handleView(scope.row)"
+            >
+              查看
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
+      </el-table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      <pagination
+        v-show="total > 0"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
+        @pagination="getList"
+      />
     </div>
 
     <el-dialog
@@ -347,6 +368,17 @@ const handleReset = () => {
   handleQuery();
 };
 
+const handlePageChange = (page: number) => {
+  queryParams.value.pageNum = page;
+  getList();
+};
+
+const handlePageSizeChange = (size: number) => {
+  queryParams.value.pageSize = size;
+  queryParams.value.pageNum = 1;
+  getList();
+};
+
 const handleView = (row: any) => {
   detailDialog.value = {
     visible: true,
@@ -370,6 +402,21 @@ const hasReplied = (row: any): boolean => {
   const status = String(row.questionStatus);
   // 1 或 99 表示已回复
   return status === '1' || status === '99';
+};
+
+const getReplyStatusLabel = (status: any) => {
+  const value = String(status ?? '');
+  const list = reply_status.value || [];
+  const target = list.find((item: any) => String(item.value) === value);
+  return target?.label || '--';
+};
+
+const getReplyStatusType = (status: any) => {
+  const value = String(status ?? '');
+  if (value === '99') return 'danger'; // 已关闭
+  if (value === '1') return 'success'; // 已回复
+  if (value === '0') return 'warning'; // 未回复
+  return 'info';
 };
 
 const getUnrepliedSequence = () => {
@@ -427,18 +474,56 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.message-management {
-  padding: 24px;
-  background-color: #f5f5f5;
-  min-height: 100vh;
+// .message-management {
+//   // padding-left: 24px;
+//   // padding-right: 24px;
+//   // color: rgb(246, 248, 250);
+// }
+
+.search-form {
+  background: #fff;
+  padding: 20px 24px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  :deep(.el-form-item) {
+    min-width: 260px;
+    margin-bottom: 12px;
+    margin-right: 10px;
+  }
+
+  :deep(.el-form-item:last-child) {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: auto;
+    flex-shrink: 0;
+  }
 }
 
-.main-content-box {
-  background-color: #fff;
+.table-wrapper {
+  padding: 20px 24px 10px;
+  background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  overflow: visible;
+}
+
+:deep(.table-wrapper .el-table) {
+  background: transparent;
+  box-shadow: none;
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .link-type {
@@ -452,55 +537,19 @@ onMounted(() => {
   }
 }
 
-.el-button {
-  border-radius: 4px;
-  font-weight: 500;
-  
-  &.el-button--small {
-    padding: 5px 12px;
-    font-size: 12px;
-  }
-}
-
-.el-tag {
-  border-radius: 4px;
-  font-weight: 500;
-  
-  &.el-tag--success {
-    background-color: #f0f9ff;
-    border-color: #67c23a;
-    color: #67c23a;
-  }
-  
-  &.el-tag--danger {
-    background-color: #fef0f0;
-    border-color: #f56c6c;
-    color: #f56c6c;
-  }
-}
-
-@media (max-width: 768px) {
-  .message-management {
-    padding: 16px;
-  }
-  
-  .main-content-box {
-    padding: 16px;
-  }
-}
-
 .operation-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
+  padding: 0 8px;
   
   .el-button {
     margin: 0;
-    padding: 4px 8px;
+    padding: 4px 12px;
     font-size: 12px;
-    min-width: auto;
+    white-space: nowrap;
     flex-shrink: 0;
   }
 }

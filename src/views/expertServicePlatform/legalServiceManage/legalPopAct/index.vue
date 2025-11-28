@@ -63,15 +63,21 @@
 
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle v-hasPermi="['skill:lawActivity:remove']" type="danger" @click="handleDelete">删除</el-button>
-        </el-col>
-      </el-row>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle v-hasPermi="['skill:lawActivity:remove']" type="danger" @click="handleDelete">删除</el-button>
+      </el-col>
+    </el-row>
 
-      <el-table :data="tableData" border v-loading="loading" :style="{ width: '100%' }" @selection-change="handleSelectionChange">
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        border
+        v-loading="loading"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="序号" width="55" align="center" />
         
@@ -182,6 +188,7 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -612,11 +619,6 @@ onMounted(() => {
 <style scoped lang="scss">
 .activity-management {
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
 }
 
 .search-form {
@@ -627,6 +629,8 @@ onMounted(() => {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 
   :deep(.el-form-item) {
     min-width: 260px;
@@ -659,27 +663,30 @@ onMounted(() => {
   }
 }
 
-.el-table {
+.table-wrapper {
+  padding: 20px 24px 10px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
-  
-  :deep(.el-table__header) {
+  overflow: visible;
+}
+
+:deep(.table-wrapper .el-table) {
+  background: transparent;
+  box-shadow: none;
+
+  .el-table__header {
     background-color: #fafafa;
-    
-    th {
-      background-color: #fafafa !important;
-      color: #606266;
-      font-weight: 600;
-    }
   }
-  
-  :deep(.el-table__body) {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
-    }
+
+  th {
+    background-color: #fafafa !important;
+    color: #606266;
+    font-weight: 600;
+  }
+
+  .el-table__body tr:hover {
+    background-color: #f5f7fa;
   }
 }
 
