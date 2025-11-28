@@ -236,6 +236,10 @@ const handleSave = async () => {
 };
 
 const handleAudit = async (status: '99' | '1') => {
+  if (!formData.value.reviewRemark) {
+    ElMessage.error('请输入审核意见');
+    return;
+  }
   try {
     loading.value = true;
     const res = await legalUpdateOrSaveData({

@@ -20,8 +20,8 @@
         会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
       <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button v-if="detail?.meetingStatus === '1'" :type="detail?.enrollStatus === '1' ? 'info' : 'primary'" @click="handleApply">{{
-        detail?.enrollStatus === '1' ? '取消报名' : '立即报名'
+      <el-button v-if="detail?.meetingStatus === '1'" :type="detail?.enrollStatus === '0' ? 'info' : 'primary'" @click="handleApply">{{
+        detail?.enrollStatus === '0' ? '取消报名' : '立即报名'
       }}</el-button>
     </div>
 
@@ -85,7 +85,7 @@ const getMeetingStatus = (status: string) => {
 
 // 报名
 const handleApply = async () => {
-  ElMessageBox.confirm(`确认${detail.value.enrollStatus === '1' ? '取消报名' : '报名'}吗？`, '提示', {
+  ElMessageBox.confirm(`确认${detail.value.enrollStatus === '0' ? '取消报名' : '报名'}吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -95,13 +95,13 @@ const handleApply = async () => {
         id: props.id,
         categoryType: '1',
         activityType: '0',
-        activityEnrollBo: { ...detail.value, enrollStatus: detail.value.enrollStatus === '1' ? '0' : '1' }
+        activityEnrollBo: { ...detail.value, enrollStatus: detail.value.enrollStatus === '0' ? '2' : '0' }
       });
       if (res.code === 200) {
-        ElMessage.success(`${detail.value.enrollStatus === '21' ? '取消报名' : '报名'}成功`);
+        ElMessage.success(`${detail.value.enrollStatus === '0' ? '取消报名' : '报名'}成功`);
         getMeetingDetail();
       } else {
-        ElMessage.error(res.msg || `${detail.value.enrollStatus === '1' ? '取消报名' : '报名'}失败`);
+        ElMessage.error(res.msg || `${detail.value.enrollStatus === '0' ? '取消报名' : '报名'}失败`);
       }
     })
     .catch(() => {});

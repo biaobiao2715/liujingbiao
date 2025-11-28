@@ -1,5 +1,6 @@
 <template>
   <div class="category-container">
+    <div class="title mb-24">商品列表</div>
     <div class="weight-selection flex-center gap-24">
       <div class="category-selection">
         <GoodsCategorySelect v-model="filterState.category" @categoryChange="handleCategoryChange" />
@@ -16,27 +17,27 @@
 
       <div class="price flex-center gap-8">
         <div class="price-label">价格</div>
-        <el-input-number 
-          v-model="filterState.minPrice" 
+        <el-input-number
+          v-model="filterState.minPrice"
           placeholder="最低价"
-          :precision="2" 
-          :controls="false" 
+          :precision="2"
+          :controls="false"
           class="price-input"
           @change="handleMinPriceChange"
         />
         -
-        <el-input-number 
-          v-model="filterState.maxPrice" 
+        <el-input-number
+          v-model="filterState.maxPrice"
           placeholder="最高价"
-          :precision="2" 
-          :controls="false" 
+          :precision="2"
+          :controls="false"
           class="price-input"
           @change="handleMaxPriceChange"
         />
-        <el-button 
-          v-if="filterState.minPrice !== undefined || filterState.maxPrice !== undefined" 
-          link 
-          type="primary" 
+        <el-button
+          v-if="filterState.minPrice !== undefined || filterState.maxPrice !== undefined"
+          link
+          type="primary"
           @click="clearPrice"
           class="clear-price-btn"
         >
@@ -120,19 +121,19 @@ const handleSearch = () => {
   // 验证价格输入：必须同时输入最低价和最高价，或者都不输入
   const hasMinPrice = filterState.minPrice !== undefined && filterState.minPrice !== null;
   const hasMaxPrice = filterState.maxPrice !== undefined && filterState.maxPrice !== null;
-  
+
   // 如果只输入了最低价，提示需要输入最高价
   if (hasMinPrice && !hasMaxPrice) {
     ElMessage.error('请输入最高价');
     return;
   }
-  
+
   // 如果只输入了最高价，提示需要输入最低价
   if (!hasMinPrice && hasMaxPrice) {
     ElMessage.error('请输入最低价');
     return;
   }
-  
+
   // 如果两个价格都输入了，进行进一步验证
   if (hasMinPrice && hasMaxPrice) {
     // 验证价格不能为负数
@@ -150,7 +151,7 @@ const handleSearch = () => {
       return;
     }
   }
-  
+
   // 构建搜索参数，空值转换为 undefined，0 值保持为 0
   const searchParams = {
     ...filterState,
@@ -159,7 +160,7 @@ const handleSearch = () => {
     searchType: searchType.value,
     searchContent: searchContent.value
   };
-  
+
   emit('searchChange', searchParams);
 };
 
@@ -209,13 +210,18 @@ const clearPrice = () => {
   filterState.minPrice = undefined;
   filterState.maxPrice = undefined;
 };
-
 </script>
 
 <style scoped lang="scss">
 .category-container {
   padding: 12px;
-  border: 1px solid #e4e7ed;
+  .title {
+    font-size: 20px;
+    font-weight: bold;
+    border-left: 4px solid #108c58;
+    padding-left: 6px;
+    line-height: 18px;
+  }
   .search-select {
     display: flex;
     align-items: center;

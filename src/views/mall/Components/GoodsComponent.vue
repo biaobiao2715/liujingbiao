@@ -1,5 +1,9 @@
 <template>
   <div class="goods-container">
+    <!-- 商品banner和分类组件 -->
+    <BannerAndCategory />
+    <!-- 热门分类组件 -->
+    <HotCategory />
     <!-- 查询组件 -->
     <SearchComponent @searchChange="getSearchInfo" />
     <!-- 商品组件 -->
@@ -30,6 +34,8 @@
 <script setup lang="ts">
 import SearchComponent from './SearchComponent.vue'; // 分类组件
 import GoodsItemComponent from './GoodsItemComponent.vue';
+import BannerAndCategory from './AboutGoodsComponents/BannerAndCategory.vue'; // 商品banner和分类组件
+import HotCategory from './AboutGoodsComponents/HotCategory.vue'; // 热门分类组件
 import { goodsList } from '@/api/mall/goods/index';
 import { useRouter } from 'vue-router';
 
@@ -118,7 +124,7 @@ const handleClick = (id: string) => {
   flex-wrap: wrap;
   gap: 16px;
   min-height: 300px;
-  
+
   ::v-deep .el-empty {
     width: 100%;
     padding: 60px 0;
