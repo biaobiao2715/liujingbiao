@@ -111,6 +111,7 @@ const permissionStore = usePermissionStore();
 const showSettings = ref(false);
 const theme = ref(settingsStore.theme);
 const sideTheme = ref(settingsStore.sideTheme);
+
 const storeSettings = computed(() => settingsStore);
 const predefineColors = ref(['#0f8c59', '#409EFF', '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585']);
 
@@ -181,6 +182,12 @@ const openSetting = () => {
 
 defineExpose({
   openSetting
+});
+onMounted(() => {
+  if (settingsStore.sideTheme == 'theme-dark') {
+    handleTheme(SideThemeEnum.LIGHT);
+  }
+  console.log(settingsStore.sideTheme, 'settingsStore.sideTheme----------');
 });
 </script>
 
