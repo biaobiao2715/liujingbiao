@@ -11,8 +11,8 @@
     <div class="menu-title">品种识别记录</div>
     <div class="pading20">
       <!-- 搜索条件 -->
-      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-        <el-form-item label="识别时间" prop="identifyTime">
+      <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+        <el-form-item label="识别时间" prop="identifyTime" label-width="auto">
           <el-date-picker
             v-model="queryParams.identifyTime"
             type="datetimerange"
@@ -24,7 +24,7 @@
             end-placeholder="结束时间"
           />
         </el-form-item>
-        <el-form-item label="品种类型" prop="varietyType">
+        <el-form-item label="品种类型" prop="varietyType" label-width="auto">
           <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
             <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
           </el-select>

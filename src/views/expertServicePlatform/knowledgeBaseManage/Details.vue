@@ -52,7 +52,8 @@
         </el-table-column>
       </el-table>
     </div>
-    <div class="btns" style="margin-top: 16px; text-align: center">
+
+    <div class="flex-center-end">
       <el-button v-throttle @click="emitCancel">关闭</el-button>
     </div>
   </div>

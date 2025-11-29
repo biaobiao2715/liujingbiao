@@ -8,7 +8,7 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left" label-width="auto">
       <el-form-item label="商品编码" prop="goodsCode">
         <el-input v-model="queryParams.goodsCode" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>

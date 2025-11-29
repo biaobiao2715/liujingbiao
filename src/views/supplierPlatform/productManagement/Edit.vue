@@ -81,7 +81,6 @@
               action="#"
               :on-preview="handlePictureCardPreview"
               :before-upload="handleBeforeUpload"
-              :http-request="uploadFile"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
             >
@@ -269,11 +268,10 @@
 
       <div class="line" style="margin-top: 18px"></div>
 
-      <!-- 操作按钮 -->
-      <el-row type="flex" justify="center" :gutter="5">
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">提交商品</el-button></el-col>
-        <el-col :span="3"><el-button v-throttle @click="submitClose">返回</el-button></el-col>
-      </el-row>
+      <div class="flex-center-end">
+        <el-button v-throttle @click="submitClose">返回</el-button>
+        <el-button v-throttle type="primary" @click="submitForm">提交商品</el-button>
+      </div>
     </el-form>
 
     <!-- 图片预览 -->
@@ -288,6 +286,10 @@
     >
       <img width="100%" :src="dialogImageUrl" alt="" />
     </el-dialog>
+    <!-- 商品裁剪 -->
+    <el-dialog title="商品裁剪" v-model="cropOpen" width="800px" :close-on-click-modal="false" :close-on-press-escape="false" append-to-body>
+      <goodsImgAvatar ref="cropperRef" :urlData="urlData" @success="onCropSuccess" />
+    </el-dialog>
   </div>
 </template>
 
@@ -301,7 +303,7 @@ import { Category, GoodsAttributesResponse, HnGoodsVo } from '@/api/supplier/pro
 import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel';
-
+import goodsImgAvatar from './goodsImgAvatar.vue';
 // ==========================
 // Props/Emits
 // ==========================
@@ -324,6 +326,7 @@ const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'
 
 const refForm = ref<InstanceType<typeof ElForm> | null>(null);
 const refShop = ref();
+const cropperRef = ref();
 
 const creditList = ref<any[]>([]);
 const brandOptions = ref<any[]>([]);
@@ -338,11 +341,13 @@ const operateMode = ref(props.type);
 const fileSize = ref(5);
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']);
 const hnGoodsFilesList = ref<any[]>([]);
-let timer: NodeJS.Timeout | null = null;
+const timer: NodeJS.Timeout | null = null;
 
 // 图片预览
-const picOpen = ref(false);
+const picOpen = ref(false); // 图片预览弹窗
+const cropOpen = ref(false); // 商品裁剪弹窗
 const dialogImageUrl = ref('');
+const urlData = ref('');
 
 // ==========================
 // 表格数据 & 表单数据
@@ -464,9 +469,6 @@ const submitClose = () => {
     .catch(() => {});
 };
 
-// ==========================
-// 图片预览/上传相关方法（聚合至同一区域）
-// ==========================
 // 预览关闭
 const picPreBeforeClose = () => {
   dialogImageUrl.value = '';
@@ -477,47 +479,7 @@ const handlePictureCardPreview = (file: any) => {
   dialogImageUrl.value = file.url;
   picOpen.value = true;
 };
-// 删除图片
-const handleDelete = (file: any) => {
-  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
-  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
-  // 图片删除后，主动刷新“商品主图”校验（titleFileList）
-  refForm.value?.validateField?.('titleFileList');
-};
-
-// 上传
-const uploadFile = (file: any) =>
-  new Promise((resolve, reject) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => processUpload(file, resolve, reject), 500);
-  });
-
-const processUpload = (file: any, resolve: any, reject: any) => {
-  const fileData = file.file;
-  ossUploadImage({ file: fileData })
-    .then((response) => {
-      const newFile = {
-        name: response.data.fileName || '商品主图',
-        url: response.data.url,
-        fileType: '0',
-        ossId: response.data.ossId
-      };
-      hnGoodsFilesList.value.push(newFile);
-      // 图片上传成功后，主动刷新“商品主图”校验（titleFileList）
-      refForm.value?.validateField?.('titleFileList');
-      proxy?.$modal.closeLoading();
-      resolve(newFile);
-    })
-    .catch((error) => {
-      proxy?.$modal.closeLoading();
-      ElMessage.error(error.msg || '文件上传失败，请重试');
-      refShop.value.handleRemove(file);
-      reject(error);
-    });
-};
-
-const handleExceed = () => ElMessage.error(`上传文件数量不能超过 5 个!`);
-
+// 上传前校验
 const handleBeforeUpload = (file: any) => {
   let isImg = false;
   if (fileType.value.length) {
@@ -538,13 +500,46 @@ const handleBeforeUpload = (file: any) => {
       return false;
     }
   }
-  proxy?.$modal.loading('正在上传图片，请稍候...');
-  return true;
+  // 打开裁剪弹窗，走裁剪->提交->上传流程
+  urlData.value = file;
+  cropOpen.value = true;
+  // 阻止 el-upload 默认上传
+  return false;
+};
+// 超出数量限制
+const handleExceed = () => ElMessage.error(`上传文件数量不能超过 5 个!`);
+
+// 裁剪完成后上传（裁剪组件返回 Blob 与文件名）
+const onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
+  try {
+    const file = new File([payload.blob], payload.fileName || '商品主图.png', { type: 'image/png' });
+    const response = await ossUploadImage({ file });
+    const newFile = {
+      name: response.data.fileName || payload.fileName || '商品主图',
+      url: response.data.url,
+      path: response.data.url,
+      fileType: '0',
+      ossId: response.data.ossId
+    } as any;
+    hnGoodsFilesList.value = [...hnGoodsFilesList.value, newFile];
+    // 刷新“商品主图”校验
+    refForm.value?.validateField?.('titleFileList');
+    ElMessage.success('已添加裁剪后的商品图片');
+  } catch (error: any) {
+    ElMessage.error(error?.msg || '裁剪图片上传失败，请重试');
+  } finally {
+    cropOpen.value = false;
+  }
 };
 
-// ==========================
-// 表格相关（规格/状态）
-// ==========================
+// 删除图片
+const handleDelete = (file: any) => {
+  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
+  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
+  // 图片删除后，主动刷新“商品主图”校验（titleFileList）
+  refForm.value?.validateField?.('titleFileList');
+};
+
 // 新增/删除
 const addTableCell = () => {
   hnGoodsSpecificationDataList.value.push({
@@ -710,7 +705,7 @@ onMounted(async () => {
       hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
         name: file.originalName || '商品主图',
         url: file.url,
-        fileType: '1',
+        fileType: '0',
         ossId: file.ossId,
         path: file.url
       }));

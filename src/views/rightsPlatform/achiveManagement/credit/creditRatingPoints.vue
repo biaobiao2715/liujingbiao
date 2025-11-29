@@ -7,8 +7,8 @@
 -->
 <template>
   <div class="p-2">
-    <el-form ref="queryFormRef" :model="queryParams" label-width="120px" :inline="true">
-      <el-form-item label="信用等级" prop="creditRatingId">
+    <el-form ref="queryFormRef" :model="queryParams" label-position="left" inline>
+      <el-form-item label="信用等级" prop="creditRatingId" label-width="auto">
         <el-select v-model="queryParams.creditRatingId" placeholder="审核状态" filterable clearable>
           <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -29,7 +29,7 @@
       <el-table-column label="信用积分" align="center" prop="creditMinPoints">
         <template #default="{ row }"> {{ row.creditMinPoints }} - {{ row.creditMaxPoints }} </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="160">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" type="primary" @click="openSetDialog(scope.row)">设置</el-button>
         </template>
@@ -56,10 +56,10 @@
         </el-form-item>
       </el-form>
 
-      <template #footer>
+      <div class="flex-center-end">
         <el-button @click="dialog.visible = false">取 消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="dialog.loading">确 认</el-button>
-      </template>
+      </div>
     </el-dialog>
   </div>
 </template>

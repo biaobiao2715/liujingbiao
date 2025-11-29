@@ -8,22 +8,22 @@
 <template>
   <div class="kb-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="文章类别" prop="articleType">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="文章类别" prop="articleType" label-width="auto">
         <el-select v-model="queryParams.articleType" placeholder="请选择" clearable filterable>
           <el-option v-for="dict in article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="文章标题" prop="articleTitle">
+      <el-form-item label="文章标题" prop="articleTitle" label-width="auto">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="启用状态" prop="articleStatus">
+      <el-form-item label="启用状态" prop="articleStatus" label-width="auto">
         <el-select v-model="queryParams.articleStatus" placeholder="请选择" clearable>
           <el-option label="启用" value="2" />
           <el-option label="禁用" value="3" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime">
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="queryParams.publishTime"
           type="datetimerange"
@@ -35,8 +35,7 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      <div style="width: 100%"></div>
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>

@@ -32,7 +32,7 @@
     <div class="detail-content">
       <div class="detail-content_title">网点清单</div>
       <div v-if="firstAttachment" class="attachment-item" @click="downloadAttachmentByObj(firstAttachment)">
-        <span>{{ firstAttachment.originalName }}</span>
+        <span class="attachment-name">{{ firstAttachment.originalName }}</span>
         <span class="attachment-click">下载</span>
       </div>
       <div v-else class="attachment-empty">暂无附件</div>
@@ -227,21 +227,28 @@ const getArticleDetail = async () => {
 }
 
 .attachment-item {
-  width: 232px;
-  height: 36px;
+  display: inline-flex; /* 允许宽度随内容撑开 */
+  align-items: center; /* 垂直居中 "下载" */
+  width: fit-content; /* 根据内容自适应宽度 */
+  max-width: 100%; /* 避免超出父容器 */
+  padding: 8px 16px; /* 内边距 */
+  margin-top: 15px;
   background: #f6f7fb;
-  border-radius: 4px 4px 4px 4px;
   border: 1px solid #eaeaea;
-
+  border-radius: 4px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 14px;
   color: #3d3d3d;
-  padding: 0px 19px 0px 16px;
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+.attachment-name {
+  flex: 0 1 auto; /* 不强制占满，跟随内容 */
+  word-break: break-all; /* 避免超长不换行导致溢出 */
+  white-space: nowrap; /* 与自适应宽度匹配，单行展示 */
+  line-height: 20px;
 }
 
 .attachment-click {
@@ -249,5 +256,7 @@ const getArticleDetail = async () => {
   font-weight: 500;
   font-size: 14px;
   color: #108c58;
+  cursor: pointer;
+  margin-left: 58px;
 }
 </style>

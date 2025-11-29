@@ -101,6 +101,8 @@ function handleTabClick(tab: any) {
 
 <style scoped lang="scss">
 .mall-container {
+  background: #fff;
+  overflow: auto;
 }
 
 .tabs-container {

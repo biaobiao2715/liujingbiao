@@ -8,14 +8,14 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form :model="queryParams" inline :label-width="130" label-position="left">
+    <el-form :model="queryParams" inline :label-width="90" label-position="left">
       <el-form-item label="供应商编号">
         <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入供应商编号" clearable />
       </el-form-item>
       <el-form-item label="供应商名称">
         <el-input v-model="queryParams.companyName" placeholder="请输入供应商名称" clearable />
       </el-form-item>
-      <el-form-item label="统一社会信用代码">
+      <el-form-item label="统一社会信用代码" label-width="130">
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">
@@ -61,9 +61,25 @@
         </template>
       </el-table-column>
       <el-table-column prop="reviewStatus" label="审核状态" width="100">
-        <template v-slot="scope">
+        <!-- <template v-slot="scope">
           <div class="flex-center">
             <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          </div>
+        </template> -->
+        <template #default="scope">
+          <div class="workingMode">
+            <div
+              v-if="scope.row.reviewStatus != null"
+              class="normal"
+              :class="{
+                reviewRejected: scope.row.reviewStatus == 99,
+                green: scope.row.reviewStatus == 1,
+                pendingReview: scope.row.reviewStatus == 0
+              }"
+            ></div>
+            <span v-if="scope.row.reviewStatus == 0" style="color: #ff7b00">待审核</span>
+            <span v-if="scope.row.reviewStatus == 1" style="color: #108c58">审核通过</span>
+            <span v-if="scope.row.reviewStatus == 99" style="color: #f23255">审核退回</span>
           </div>
         </template>
       </el-table-column>
@@ -239,5 +255,29 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
 .pagination {
   margin-top: 24px;
   justify-content: end;
+}
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
 }
 </style>

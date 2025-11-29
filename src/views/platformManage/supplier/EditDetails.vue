@@ -9,7 +9,7 @@
   <el-dialog
     :title="operateMode === 'edit' ? '供应商编辑' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
     v-model="dialogVisible"
-    width="80%"
+    width="50%"
   >
     <div :class="['supplier-edit-details', 'detail-form']" v-loading="loading">
       <!-- 基础信息 -->
@@ -225,12 +225,12 @@
         </el-form-item>
       </el-form>
       <!-- 操作按钮 -->
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'audit'">
         <el-button type="danger" @click="handleAudit(99)">审核退回</el-button>
-        <el-button type="success" @click="handleAudit(1)">审核通过</el-button>
+        <el-button style="background: #108c58; color: #fff" @click="handleAudit(1)">审核通过</el-button>
       </div>
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-        <el-button type="primary" @click="handleSave">保存</el-button>
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+        <el-button style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
       </div>
     </div>
   </el-dialog>

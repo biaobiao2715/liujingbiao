@@ -93,9 +93,9 @@
         </el-col>
       </el-row>
 
-      <div class="btns">
-        <el-button v-throttle type="primary" @click="submit()">发布</el-button>
+      <div class="flex-center-end">
         <el-button v-throttle @click="emitCancel">返回</el-button>
+        <el-button v-throttle type="primary" @click="submit()">发布</el-button>
       </div>
     </el-form>
   </div>
@@ -394,13 +394,6 @@ onMounted(async () => {
 
   .side-card {
     height: 100%;
-  }
-
-  .btns {
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
   }
 }
 

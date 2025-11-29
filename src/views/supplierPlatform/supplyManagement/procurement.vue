@@ -8,16 +8,16 @@
 <template>
   <div class="procurement-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline class="search-bar">
-      <el-form-item label="采购类型">
+    <el-form :model="queryParams" label-position="left" inline>
+      <el-form-item label="采购类型" label-width="auto">
         <!-- 优化为数组类型，支持多级选择 -->
         <GoodsCategorySelect v-model="queryParams.demandCategoryId" @categoryChange="handleCategoryChange" />
       </el-form-item>
-      <el-form-item label="采购区域">
+      <el-form-item label="采购区域" label-width="auto">
         <!-- 优化为数组类型，支持多级选择 -->
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
-      <el-form-item class="search-bar-btns">
+      <el-form-item>
         <el-button v-throttle v-hasPermi="['grain:HnPurchaseDemand:purchaseList']" type="primary" @click="getTableData">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
@@ -134,10 +134,10 @@
         </el-row>
 
         <!-- 操作按钮 -->
-        <el-row type="flex" justify="center" :gutter="5">
+        <div class="flex-center-end">
           <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
           <el-col :span="3"><el-button type="primary" @click="submitQuote">提交</el-button></el-col>
-        </el-row>
+        </div>
       </el-form>
     </el-dialog>
   </div>
@@ -354,19 +354,6 @@ watch(
 <style scoped lang="scss">
 .procurement-management {
   padding: 24px;
-
-  .search-bar {
-    margin-bottom: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    .search-bar-btns {
-      margin-left: auto;
-      display: flex;
-      gap: 8px;
-    }
-  }
 
   .pagination-wrapper {
     display: flex;

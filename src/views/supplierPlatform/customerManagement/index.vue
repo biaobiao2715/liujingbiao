@@ -8,14 +8,14 @@
 <template>
   <div class="customer-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="客户编码" prop="customerNo">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="客户编码" prop="customerNo" label-width="auto">
         <el-input v-model="queryParams.customerNo" placeholder="请输入客户编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="客户名称" prop="customerName">
+      <el-form-item label="客户名称" prop="customerName" label-width="auto">
         <el-input v-model="queryParams.customerName" placeholder="请输入客户名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="客户类型" prop="customerType">
+      <el-form-item label="客户类型" prop="customerType" label-width="auto">
         <el-select v-model="queryParams.customerType" placeholder="全部" clearable>
           <el-option v-for="dict in purchaser_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>

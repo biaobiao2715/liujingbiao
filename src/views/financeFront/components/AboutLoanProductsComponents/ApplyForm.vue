@@ -158,7 +158,7 @@
                   <template #default>
                     <el-button type="primary" plain>
                       <img class="avatar-uploader-icon" src="@/assets/images/finance/upload-icon.png" alt="" />
-                      select file</el-button
+                      上传文件</el-button
                     >
                   </template>
                 </el-upload>
@@ -398,6 +398,23 @@ const disableFutureDate = (time: Date) => {
 };
 
 // ======================== 表单校验规则 ========================
+// 银行卡 Luhn 校验
+function luhnCheck(cardNo: string): boolean {
+  const s = (cardNo || '').replace(/\s+/g, '');
+  if (!/^\d{12,19}$/.test(s)) return false;
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = s.length - 1; i >= 0; i--) {
+    let digit = s.charCodeAt(i) - 48;
+    if (shouldDouble) {
+      digit = digit * 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
 // 覆盖基础必填/手机号格式/身份证格式/贷款金额合法性/上传完成性等场景
 function parseIdCardBirthday(id: string): string | null {
   if (!id) return null;
@@ -483,7 +500,31 @@ const rules: FormRules = {
   loanTerm: [{ required: true, message: '请选择贷款周期', trigger: 'change' }],
   repaymentMethod: [{ required: true, message: '请选择还款方式', trigger: 'change' }],
   collectionBankCode: [{ required: true, message: '请选择收款卡银行', trigger: 'change' }],
-  bankAccountNumber: [{ required: true, message: '请输入银行卡号', trigger: 'blur' }],
+  bankAccountNumber: [
+    { required: true, message: '请输入银行卡号', trigger: 'blur' },
+    {
+      validator: (_: any, value: any, cb: any) => {
+        const raw = String(value || '');
+        const v = raw.replace(/\s+/g, '').trim();
+        if (!v) return cb(new Error('请输入银行卡号'));
+        if (!/^\d{12,19}$/.test(v)) return cb(new Error('银行卡号长度应为12-19位数字'));
+        if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
+        cb();
+      },
+      trigger: 'blur'
+    },
+    {
+      validator: (_: any, value: any, cb: any) => {
+        const raw = String(value || '');
+        const v = raw.replace(/\s+/g, '').trim();
+        if (!v) return cb();
+        if (!/^\d{12,19}$/.test(v)) return cb(new Error('银行卡号长度应为12-19位数字'));
+        if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
+        cb();
+      },
+      trigger: 'change'
+    }
+  ],
   legalPersonIdCardType: [{ required: true, message: '请选择证件类型', trigger: 'change' }],
   contactAddress: [{ required: true, message: '请输入联系地址', trigger: 'blur' }],
   idCardNumber: [
@@ -967,9 +1008,9 @@ onMounted(async () => {
     align-items: center;
   }
   .avatar-uploader-icon {
-    width: 12px;
-    height: 12px;
-    color: #c2c2c2;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
   }
   .avatar-uploader-text {
     height: 16px;

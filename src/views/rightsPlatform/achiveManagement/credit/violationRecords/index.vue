@@ -8,14 +8,14 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="供应商/企业名称" prop="reporterName">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="供应商/企业名称" prop="reporterName" label-width="auto">
         <el-input v-model="queryParams.reporterName" placeholder="请输入供应商或企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="案件编号" prop="caseCode">
+      <el-form-item label="案件编号" prop="caseCode" label-width="auto">
         <el-input v-model="queryParams.caseCode" placeholder="请输入案件编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="案件类型" prop="caseTypeId">
+      <el-form-item label="案件类型" prop="caseTypeId" label-width="auto">
         <el-select v-model="queryParams.caseTypeId" placeholder="案件类型" filterable clearable>
           <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -51,7 +51,7 @@
           <span>{{ scope.row.caseScore }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column fixed="right" label="操作" align="center" width="160">
         <template #default="scope">
           <el-button
             v-throttle
