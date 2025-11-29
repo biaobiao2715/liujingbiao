@@ -47,7 +47,7 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
-          type="primary"
+          color="#F23255"
           @click="handleDelete"
           :loading="actionLoading === 'delete'"
           :disabled="loading || actionLoading !== null"
@@ -59,7 +59,6 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:onAndShelves']"
-          type="primary"
           @click="handleShelf"
           :loading="actionLoading === 'shelf'"
           :disabled="loading || actionLoading !== null"
@@ -72,7 +71,6 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:onAndShelves']"
-          type="primary"
           @click="handleUnshelf"
           :loading="actionLoading === 'unshelf'"
           :disabled="loading || actionLoading !== null"
@@ -81,10 +79,10 @@
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:goods:export']" type="primary" @click="handleExport">导出</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="onPriceHistory">查询价格调整历史</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory">查询价格调整历史</el-button>
       </el-col>
     </el-row>
 
@@ -103,8 +101,22 @@
       <el-table-column label="预警下限" align="center" prop="goodsAlert" />
       <el-table-column label="提醒" align="center" prop="remind" width="100" />
       <el-table-column label="商品状态" align="center" prop="status">
-        <template #default="scope">
+        <!-- <template #default="scope">
           <dict-text :options="goods_status" :value="scope.row.status ?? ''" />
+        </template> -->
+        <template #default="scope">
+          <div class="flex-center-center">
+            <div
+              v-if="scope.row.status != null"
+              class="normal"
+              :class="{
+                green: scope.row.status == 1,
+                reviewRejected: scope.row.status == 0
+              }"
+            ></div>
+            <span v-if="scope.row.status == 0" class="reviewRejected-color">下架</span>
+            <span v-if="scope.row.status == 1" class="green-color">上架</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="发布时间" align="center" prop="launchTime" min-width="160">
@@ -112,13 +124,30 @@
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="500">
+      <el-table-column fixed="right" label="操作" align="center" width="200">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:goods:query']" type="primary" @click="openDetails(scope.row)">详情</el-button>
-          <el-button v-throttle v-hasPermi="['system:goods:editPrice']" type="primary" @click="openDetailsEdit(scope.row)">价格设定</el-button>
-          <el-button v-throttle v-hasPermi="['system:goods:edit']" type="primary" @click="openEdit(scope.row)">编辑</el-button>
-          <el-button v-throttle v-hasPermi="['system:goods:add']" type="primary" @click="openCopy(scope.row)">复制商品</el-button>
-          <el-button v-throttle v-hasPermi="['system:goods:setWarnings']" type="primary" @click="openWarnDialog(scope.row)">设置预警</el-button>
+          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
+            <template v-if="idx < 2">
+              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
+            </template>
+          </template>
+
+          <template v-if="getRowActions(scope.row).length > 3">
+            <el-dropdown>
+              <span class="el-dropdown-link">
+                <el-button v-throttle link type="primary">更多</el-button>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key">
+                    <span class="op-more-item" style="color: #108c58" v-throttle v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{
+                      btn.label
+                    }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -547,10 +576,50 @@ const onDialogSuccess = () => {
 onMounted(async () => {
   getList();
 });
+
+// 行内操作按钮配置生成（用于“更多”分组展示）
+const getRowActions = (row: any) => [
+  {
+    key: 'details',
+    label: '详情',
+    permi: ['system:goods:query'],
+    type: 'primary',
+    onClick: (r: any) => openDetails(r)
+  },
+  {
+    key: 'price',
+    label: '价格设定',
+    permi: ['system:goods:editPrice'],
+    type: 'primary',
+    onClick: (r: any) => openDetailsEdit(r)
+  },
+  {
+    key: 'edit',
+    label: '编辑',
+    permi: ['system:goods:edit'],
+    type: 'primary',
+    onClick: (r: any) => openEdit(r)
+  },
+  {
+    key: 'copy',
+    label: '复制商品',
+    permi: ['system:goods:add'],
+    type: 'primary',
+    onClick: (r: any) => openCopy(r)
+  },
+  {
+    key: 'warn',
+    label: '设置预警',
+    permi: ['system:goods:setWarnings'],
+    type: 'primary',
+    onClick: (r: any) => openWarnDialog(r)
+  }
+];
 </script>
 
 <style scoped lang="scss">
 .supplier-management {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 .pagination {

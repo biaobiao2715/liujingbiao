@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：			index.vue
 功能：			专家培训
-说明:         
+说明:
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-27
 修改人信息：张峰     2025-10-27
@@ -13,7 +13,7 @@
     <el-card shadow="hover">
       <!-- 查询区域 -->
       <div class="mb-[10px]">
-        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
+        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="70">
           <el-form-item label="所属类别" prop="expertName">
             <el-input v-model="queryParams.expertName" placeholder="请选择所属类别" clearable @keyup.enter="handleQuery" />
           </el-form-item>
@@ -47,11 +47,11 @@
       </div>
 
       <div class="mb-12">
-          <el-button v-throttle type="primary">新增</el-button>
-      <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">启用</el-button>
-      <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">禁用</el-button>
-      <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">删除</el-button>
-    </div>
+        <el-button v-throttle type="primary">新增</el-button>
+        <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">启用</el-button>
+        <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">禁用</el-button>
+        <el-button v-throttle type="primary" :disabled="selectedRows.length === 0">删除</el-button>
+      </div>
       <!-- 列表区域 -->
       <el-table
         ref="tableRef"
@@ -59,7 +59,7 @@
         border
         :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
         style="width: 100%"
-         @selection-change="handleSelectionChange"
+        @selection-change="handleSelectionChange"
       >
         <!-- <el-table-column type="selection" width="45" align="center" /> -->
         <el-table-column label="序号" width="60" align="center">
@@ -87,8 +87,8 @@
             <span v-else>入库失败</span>
           </template>
         </el-table-column>
-         <el-table-column prop="expertName" label="发布人" min-width="100" align="center" />
-         <el-table-column prop="expertName" label="状态" min-width="100" align="center" />
+        <el-table-column prop="expertName" label="发布人" min-width="100" align="center" />
+        <el-table-column prop="expertName" label="状态" min-width="100" align="center" />
         <el-table-column label="操作" align="center" width="200">
           <template #default="scope">
             <div style="display: flex; justify-content: space-evenly; align-items: center">

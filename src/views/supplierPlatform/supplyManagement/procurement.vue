@@ -135,8 +135,8 @@
 
         <!-- 操作按钮 -->
         <div class="flex-center-end">
-          <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" @click="submitQuote">提交</el-button></el-col>
+          <el-button @click="quoteDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitQuote">提交</el-button>
         </div>
       </el-form>
     </el-dialog>

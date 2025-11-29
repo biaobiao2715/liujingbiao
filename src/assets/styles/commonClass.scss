@@ -155,3 +155,32 @@
     color: #333;
   }
 }
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
+}
+
+.green-color {
+  color: #108c58;
+}
+// 异常
+.reviewRejected-color {
+  color: #f23255 !important;
+}
+.pendingReview-color {
+  color: #ff7b00 !important;
+}
