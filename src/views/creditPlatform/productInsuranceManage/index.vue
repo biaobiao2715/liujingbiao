@@ -6,7 +6,8 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="100"
+      :label-width="90"
+      label-position="left"
       class="search-form"
     >
       <el-form-item label="产品名称" prop="productName">
@@ -83,90 +84,99 @@
       </el-col>
     </el-row>
 
-    <el-table
-      :data="tableData"
-      border
-      v-loading="loading"
-      style="width: 100%"
-      :default-sort="{ prop: 'createTime', order: 'descending' }"
-      @selection-change="handleSelectionChange"
-      @sort-change="handleSortChange"
-    >
-      <el-table-column type="selection" width="55" />
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="产品名称" align="center" prop="productName" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="产品简介" align="center" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="产品类型" align="center" prop="productType" width="140">
-        <template #default="scope">
-          <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
-        </template>
-      </el-table-column>
-      <el-table-column label="适用对象" align="center" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
-        <template #default="scope">
-          <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" align="center" prop="productStatus" width="100">
-        <template #default="scope">
-          <dict-tag :options="product_status" :value="scope.row.productStatus" />
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
-        <template #default="scope">
-          <span>{{ scope.row.createTime || '--' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button
-            v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:query']"
-            type="primary"
-            @click="handleView(scope.row)"
-          >详情</el-button>
-          <el-button
-            v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit']"
-            v-if="canEdit(scope.row)"
-            type="primary"
-            @click="handleEdit(scope.row)"
-          >编辑</el-button>
-          <el-button
-            v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit']"
-            v-if="canPublish(scope.row)"
-            type="primary"
-            @click="handlePublish(scope.row)"
-          >上架</el-button>
-          <el-button
-            v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:edit']"
-            v-if="canOffline(scope.row)"
-            type="primary"
-            @click="handleOffline(scope.row)"
-          >下架</el-button>
-          <el-button
-            v-throttle
-            v-hasPermi="['system:insuranceProductsVersion:remove']"
-            v-if="canDelete(scope.row)"
-            type="primary"
-            @click="handleDelete(scope.row)"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        border
+        v-loading="loading"
+        style="width: 100%"
+        :default-sort="{ prop: 'createTime', order: 'descending' }"
+        @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column type="index" label="序号" width="55" align="center" />
+        <el-table-column label="产品名称" prop="productName" min-width="150" :show-overflow-tooltip="true" />
+        <el-table-column label="产品简介" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
+        <el-table-column label="产品类型" prop="productType" width="140">
+          <template #default="scope">
+            <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
+          </template>
+        </el-table-column>
+        <el-table-column label="适用对象" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
+          <template #default="scope">
+            <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" prop="productStatus" width="100">
+          <template #default="scope">
+            <dict-tag :options="product_status" :value="scope.row.productStatus" />
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
+          <template #default="scope">
+            <span>{{ scope.row.createTime || '--' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" fixed="right" width="320" class-name="small-padding fixed-width">
+          <template #default="scope">
+            <div class="flex-center operation-btns">
+              <el-button
+                v-throttle
+                v-hasPermi="['system:insuranceProductsVersion:query']"
+                type="primary"
+                link
+                @click="handleView(scope.row)"
+              >详情</el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:insuranceProductsVersion:edit']"
+                v-if="canEdit(scope.row)"
+                type="primary"
+                link
+                @click="handleEdit(scope.row)"
+              >编辑</el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:insuranceProductsVersion:edit']"
+                v-if="canPublish(scope.row)"
+                type="primary"
+                link
+                @click="handlePublish(scope.row)"
+              >上架</el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:insuranceProductsVersion:edit']"
+                v-if="canOffline(scope.row)"
+                type="primary"
+                link
+                @click="handleOffline(scope.row)"
+              >下架</el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:insuranceProductsVersion:remove']"
+                v-if="canDelete(scope.row)"
+                type="primary"
+                link
+                @click="handleDelete(scope.row)"
+              >删除</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <div class="pagination">
-      <pagination
-        v-show="total > 0"
-        :page="queryParams.pageNum"
-        :limit="queryParams.pageSize"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @update:page="handlePageChange"
-        @update:limit="handlePageSizeChange"
-        @pagination="getList"
-      />
+      <div class="pagination">
+        <pagination
+          v-show="total > 0"
+          :page="queryParams.pageNum"
+          :limit="queryParams.pageSize"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @update:page="handlePageChange"
+          @update:limit="handlePageSizeChange"
+          @pagination="getList"
+        />
+      </div>
     </div>
 
     <el-dialog
@@ -435,26 +445,24 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-insurance-manage {
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
 }
 
 .search-form {
-  background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
 
-  .el-form-item {
+  :deep(.el-form-item) {
     min-width: 260px;
     margin-bottom: 12px;
+    margin-right: 10px;
   }
 
-  .el-form-item:last-child {
+  :deep(.el-form-item:last-child) {
     margin-left: 0;
+    margin-right: 0;
     min-width: auto;
     flex-shrink: 0;
   }
@@ -480,30 +488,62 @@ onMounted(() => {
 }
 
 .operation-bar {
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
+
+  .el-col {
+    display: flex;
+    justify-content: flex-start;
+  }
 
   .el-button {
-    width: 100%;
+    width: auto;
+    min-width: 80px;
   }
 }
 
-.el-table {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+.table-wrapper {
+  padding: 20px 24px 10px;
+  overflow: visible;
+
+  :deep(.el-table) {
+    background: transparent;
+    box-shadow: none;
+    
+    .el-table__header {
+      background-color: #fafafa;
+      
+      th {
+        background-color: #fafafa !important;
+        color: #606266;
+        font-weight: 600;
+      }
+    }
+    
+    .el-table__body {
+      tr {
+        &:hover {
+          background-color: #f5f7fa;
+        }
+      }
+    }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 12px 0;
+    margin-top: 16px;
+  }
 }
 
-.pagination {
+.flex-center {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  justify-content: flex-start;
+}
+
+.operation-btns {
+  gap: 8px;
 }
 </style>
