@@ -146,6 +146,7 @@ onMounted(() => {
 const getUserInfo = async () => {
   const res: any = await getInfo();
   userInfo.value = res.data.user;
+  userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
   console.log(res);
   // 采购商
