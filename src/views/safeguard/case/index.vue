@@ -48,13 +48,13 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+        <el-button class="search-btn" v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="success" @click="handleEnableBatch">启用</el-button>
+        <el-button class="custom-action-btn" v-throttle icon="Check" @click="handleEnableBatch">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="warning" @click="handleDisableBatch">禁用</el-button>
+        <el-button class="custom-action-btn" v-throttle icon="Close" @click="handleDisableBatch">禁用</el-button>
       </el-col>
     </el-row>
 
@@ -122,7 +122,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="280" :show-overflow-tooltip="true">
+      <el-table-column label="操作" align="left" fixed="right" width="280" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>
@@ -565,14 +565,38 @@ onMounted(() => {
     }
   }
 
+  .custom-action-btn {
+    background-color: #f2f3f5 !important;
+    border: none !important;
+    color: #333333 !important;
+
+    &:hover {
+      background-color: #e5e7eb !important;
+      color: #333333 !important;
+    }
+
+    &:focus {
+      background-color: #f2f3f5 !important;
+      color: #333333 !important;
+    }
+
+    &.is-disabled {
+      background-color: #f2f3f5 !important;
+      color: #999999 !important;
+      cursor: not-allowed;
+    }
+  }
+
   .mb8 {
-    margin: 0 0 8px -4px !important;
+    margin: 0 0 8px -14px !important;
   }
 
   .operation-buttons {
     display: flex;
     gap: 8px;
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: left;
   }
 
   .operation-link-button {

@@ -41,10 +41,12 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+        <el-button class="search-btn" v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleDeleteBatch">删除</el-button>
+        <el-button class="custom-action-btn delete-btn" v-throttle icon="Delete" :disabled="selectedIds.length === 0" @click="handleDeleteBatch"
+          >删除</el-button
+        >
       </el-col>
     </el-row>
 
@@ -96,7 +98,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="310">
+      <el-table-column label="操作" align="left" fixed="right" width="310">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 前3个操作按钮 -->
@@ -818,10 +820,46 @@ onMounted(() => {
     }
   }
 
+  .custom-action-btn {
+    background-color: #f2f3f5 !important;
+    border: none !important;
+    color: #333333 !important;
+
+    &:hover {
+      background-color: #e5e7eb !important;
+      color: #333333 !important;
+    }
+
+    &:focus {
+      background-color: #f2f3f5 !important;
+      color: #333333 !important;
+    }
+
+    &.is-disabled {
+      background-color: #f2f3f5 !important;
+      color: #999999 !important;
+      cursor: not-allowed;
+    }
+
+    &.delete-btn:not(.is-disabled) {
+      color: #f56c6c !important;
+
+      &:hover {
+        color: #f56c6c !important;
+      }
+
+      &:focus {
+        color: #f56c6c !important;
+      }
+    }
+  }
+
   .operation-buttons {
     display: flex;
     gap: 8px;
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: left;
     flex-wrap: wrap;
   }
 
