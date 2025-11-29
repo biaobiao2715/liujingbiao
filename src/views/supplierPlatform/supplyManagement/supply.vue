@@ -39,13 +39,13 @@
       <el-table-column prop="supplyDescription" label="发布说明" align="center" :show-overflow-tooltip="true" />
       <el-table-column fixed="right" label="操作" width="200" align="center">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" text size="small" @click="handleDetail(scope.row)"
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" link size="small" @click="handleDetail(scope.row)"
             >详情</el-button
           >
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:edit']" type="primary" text size="small" @click="handleEdit(scope.row)"
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:edit']" type="primary" link size="small" @click="handleEdit(scope.row)"
             >编辑</el-button
           >
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:remove']" type="primary" text size="small" @click="handleDelete(scope.row)"
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:remove']" type="primary" link size="small" @click="handleDelete(scope.row)"
             >删除</el-button
           >
         </template>
@@ -120,8 +120,8 @@
 
         <!-- 操作按钮 -->
         <div class="flex-center-end" v-if="dialogMode !== 'detail'">
-          <el-col :span="3"><el-button @click="quoteDialogVisible = false">取消</el-button></el-col>
-          <el-col :span="3"><el-button type="primary" @click="submitQuote">提交发布</el-button></el-col>
+          <el-button @click="quoteDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitQuote">提交发布</el-button>
         </div>
       </el-form>
     </el-dialog>

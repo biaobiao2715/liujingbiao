@@ -68,7 +68,7 @@
       </el-table-column>
       <el-table-column label="审核状态" align="center" prop="reviewStatus" width="100">
         <!-- <template v-slot="scope">
-          <dict-tag :options="review_status" :value="scope.row.reviewStatus" />
+          <dict-text :options="review_status" :value="scope.row.reviewStatus" />
         </template> -->
         <template #default="scope">
           <div class="workingMode">
