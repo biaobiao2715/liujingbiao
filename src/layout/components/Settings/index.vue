@@ -187,7 +187,6 @@ onMounted(() => {
   if (settingsStore.sideTheme == 'theme-dark') {
     handleTheme(SideThemeEnum.LIGHT);
   }
-  console.log(settingsStore.sideTheme, 'settingsStore.sideTheme----------');
 });
 </script>
 

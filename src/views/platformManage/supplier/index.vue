@@ -8,14 +8,14 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form :model="queryParams" inline :label-width="130" label-position="left">
+    <el-form :model="queryParams" inline :label-width="90" label-position="left">
       <el-form-item label="供应商编号">
         <el-input v-model="queryParams.enterpriseNumber" placeholder="请输入供应商编号" clearable />
       </el-form-item>
       <el-form-item label="供应商名称">
         <el-input v-model="queryParams.companyName" placeholder="请输入供应商名称" clearable />
       </el-form-item>
-      <el-form-item label="统一社会信用代码">
+      <el-form-item label="统一社会信用代码" label-width="130">
         <el-input v-model="queryParams.licenseNumber" placeholder="请输入统一社会信用代码" clearable />
       </el-form-item>
       <el-form-item label="审核状态">

@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题: technicalExpertIndex.vue
 功能: 技术专家审核
 说明: 用于展示技术专家的列表和查询功能。
@@ -67,22 +67,24 @@
 
         <el-table-column label="操作" align="center" fixed="right" width="200">
           <template #default="scope">
-            <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-button type="primary" @click="openToggleDialog(scope.row)">
+            <div style="display: flex; justify-content: center; align-items: center">
+              <el-button type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">
                 {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
               </el-button>
               <el-button
                 v-throttle
-                type="primary"
+                type="text"
                 v-if="scope.row.reviewStatus !== '0'"
                 v-hasPermi="['system:baseTechExpertInfo:list']"
                 @click="handleEdit(scope.row, 'view')"
+                style="font-size: 14px; color: #108c58"
                 >查看</el-button
               >
               <el-button
                 v-throttle
                 v-if="scope.row.reviewStatus === '0'"
-                type="primary"
+                type="text"
+                style="font-size: 14px; color: #108c58"
                 v-hasPermi="['system:baseEnterpriseInfo:edit']"
                 @click="handleEdit(scope.row, 'audit')"
                 >审核</el-button
@@ -264,5 +266,6 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
   }
+  padding: 24px;
 }
 </style>

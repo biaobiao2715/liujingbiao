@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题: legalExpertIndex.vue
 功能: 法务专家审核
 说明: 用于展示法务专家的列表和查询功能。
@@ -74,13 +74,14 @@
       </el-table-column>
       <el-table-column label="操作" fixed="right" align="center" width="200">
         <template #default="scope">
-          <div style="display: flex; justify-content: space-evenly; align-items: center">
-            <el-button v-throttle type="primary" @click="openToggleDialog(scope.row)">
+          <div style="display: flex; justify-content: center; align-items: center">
+            <el-button v-throttle type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">
               {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
             </el-button>
             <el-button
               v-throttle
-              type="primary"
+              type="text"
+              style="font-size: 14px; color: #108c58"
               v-if="scope.row.reviewStatus !== '0'"
               v-hasPermi="['system:baseLegalExpertInfo:query']"
               @click="handleEdit(scope.row, 'view')"
@@ -89,7 +90,8 @@
             <el-button
               v-throttle
               v-if="scope.row.reviewStatus === '0'"
-              type="primary"
+              type="text"
+              style="font-size: 14px; color: #108c58"
               v-hasPermi="['system:baseLegalExpertInfo:process']"
               @click="handleEdit(scope.row, 'audit')"
               >审核</el-button
@@ -251,5 +253,6 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
   }
+  padding: 24px;
 }
 </style>
