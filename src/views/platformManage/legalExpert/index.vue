@@ -61,15 +61,42 @@
       <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
       <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
       <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
-        <template #default="scope">
+        <!-- <template #default="scope">
           <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
+        </template> -->
+        <template #default="scope">
+          <div class="workingMode">
+            <div
+              v-if="scope.row.reviewStatus != null"
+              class="normal"
+              :class="{ reviewRejected: scope.row.reviewStatus == 2, green: scope.row.reviewStatus == 1, pendingReview: scope.row.reviewStatus == 0 }"
+            ></div>
+            <span v-if="scope.row.reviewStatus == 0" style="color: #ff7b00">待审核</span>
+            <span v-if="scope.row.reviewStatus == 1" style="color: #108c58">审核通过</span>
+            <span v-if="scope.row.reviewStatus == 2" style="color: #f23255">审核退回</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="入库状态" min-width="100" align="center" prop="storageStatus">
-        <template #default="scope">
-          <span v-if="scope.row.storageStatus === '0'">待入库</span>
+        <!-- <template #default="scope">
+          <span v-if="scope.row.storageStatus === '0'">未入库</span>
           <span v-else-if="scope.row.storageStatus === '1'">已入库</span>
           <span v-else>入库失败</span>
+        </template> -->
+        <template #default="scope">
+          <div class="workingMode">
+            <div
+              v-if="scope.row.storageStatus != null"
+              class="normal"
+              :class="{
+                pendingReview: scope.row.storageStatus == 0,
+                green: scope.row.storageStatus == 1
+              }"
+            ></div>
+            <span v-if="scope.row.storageStatus == 0" style="color: #ff7b00">未入库</span>
+            <span v-if="scope.row.storageStatus == 1" style="color: #108c58">已入库</span>
+            <!-- <span v-if="scope.row.storageStatus == 1" style="color: #108c58">已入库</span> -->
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" fixed="right" align="center" width="200">
@@ -254,5 +281,29 @@ onMounted(() => {
     gap: 12px;
   }
   padding: 24px;
+}
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
 }
 </style>

@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题: legalExpertEditDetails.vue
 功能: 法务专家编辑详情页
 说明: 用于法务专家编辑自己的详细信息
@@ -10,7 +10,7 @@
   <el-dialog
     :title="operateMode === 'edit' ? '法务专家编辑' : operateMode === 'audit' ? '法务专家审核' : '法务专家详情'"
     v-model="dialogVisible"
-    width="80%"
+    width="50%"
   >
     <div v-loading="loading">
       <div :class="['supplier-edit-details', 'detail-form']">
@@ -148,12 +148,12 @@
         </el-form>
 
         <!-- 操作按钮 -->
-        <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
+        <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'audit'">
           <el-button v-throttle type="danger" @click="handleAudit('99')">审核退回</el-button>
-          <el-button v-throttle type="success" @click="handleAudit('1')">审核通过</el-button>
+          <el-button v-throttle style="background: #108c58; color: #fff" @click="handleAudit('1')">审核通过</el-button>
         </div>
-        <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-          <el-button v-throttle type="primary" @click="handleSave">保存</el-button>
+        <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+          <el-button v-throttle style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
         </div>
       </div>
     </div></el-dialog

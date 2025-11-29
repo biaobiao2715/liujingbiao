@@ -207,12 +207,12 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div style="margin-top: 20px; text-align: end" v-if="operateMode === 'audit'">
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'audit'">
         <el-button v-throttle type="danger" @click="cancelAudit(99)">审核退回</el-button>
-        <el-button v-throttle type="success" @click="cancelAudit(1)">审核通过</el-button>
+        <el-button v-throttle style="background: #108c58; color: #fff" @click="cancelAudit(1)">审核通过</el-button>
       </div>
-      <div style="margin-top: 20px; text-align: end" v-if="operateMode === 'edit'">
-        <el-button v-throttle type="primary" @click="handleSave">保存</el-button>
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+        <el-button v-throttle style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
       </div>
 
       <div style="height: 20px"></div>
