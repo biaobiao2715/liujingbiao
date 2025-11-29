@@ -10,7 +10,7 @@
   <div class="p-2 legal-expert-page">
     <!-- 查询区域 -->
     <div class="mb-[10px]">
-      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80" label-position="left">
         <el-form-item label="专家姓名" prop="expertName">
           <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
         </el-form-item>
