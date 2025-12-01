@@ -7,11 +7,11 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline :label-width="90" label-position="left" class="search-form">
-      <el-form-item label="文章名称" prop="articleTitle">
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="文章名称" prop="articleTitle" label-width="auto">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入文章名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime">
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -21,19 +21,17 @@
           end-placeholder="结束日期"
         />
       </el-form-item>
-      <el-form-item label="文章类型" prop="articleType">
-        <el-select v-model="queryParams.articleType" placeholder="全部" filterable clearable>
-          <el-option label="全部" value="" />
+      <el-form-item label="文章类型" prop="articleType" label-width="auto">
+        <el-select v-model="queryParams.articleType" placeholder="请选择" filterable clearable>
           <el-option v-for="dict in art_article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="状态" prop="articleStatus">
-        <el-select v-model="queryParams.articleStatus" placeholder="全部" filterable clearable>
-          <el-option label="全部" value="" />
+      <el-form-item label="状态" prop="articleStatus" label-width="auto">
+        <el-select v-model="queryParams.articleStatus" placeholder="请选择" filterable clearable>
           <el-option v-for="dict in art_article_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
@@ -47,8 +45,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <div class="table-wrapper">
-      <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
@@ -111,27 +108,26 @@
           </div>
         </template>
       </el-table-column>
-      </el-table>
+    </el-table>
 
-      <!-- 分页 -->
-      <div class="pagination">
-        <pagination
-          v-show="total > 0"
-          :page="queryParams.pageNum"
-          :limit="queryParams.pageSize"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @update:page="handlePageChange"
-          @update:limit="handlePageSizeChange"
-          @pagination="getList"
-        />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination">
+      <pagination
+        v-show="total > 0"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
+        @pagination="getList"
+      />
     </div>
 
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -411,27 +407,6 @@ onMounted(() => {
   padding: 24px;
 }
 
-.search-form {
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  flex-wrap: wrap;
-
-  :deep(.el-form-item) {
-    min-width: 260px;
-    margin-bottom: 12px;
-    margin-right: 10px;
-  }
-
-  :deep(.el-form-item:last-child) {
-    margin-left: 0;
-    margin-right: 0;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
-
 .operation-bar {
   margin-bottom: 16px;
 
@@ -446,40 +421,29 @@ onMounted(() => {
   }
 }
 
-.table-wrapper {
-  padding: 20px 24px 10px;
-  overflow: visible;
-
-  :deep(.el-table) {
-    background: transparent;
-    box-shadow: none;
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
     
-    .el-table__header {
-      background-color: #fafafa;
-      
-      th {
-        background-color: #fafafa !important;
-        color: #606266;
-        font-weight: 600;
-      }
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
     }
-    
-    .el-table__body {
-      tr {
-        &:hover {
-          background-color: #f5f7fa;
-        }
+  }
+  
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
       }
     }
   }
+}
 
-  .pagination {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 12px 0;
-    margin-top: 16px;
-  }
+.pagination {
+  margin-top: 24px;
+  justify-content: end;
 }
 
 .flex-center {
@@ -490,5 +454,9 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
+  
+  :deep(.el-button) {
+    font-size: 14px;
+  }
 }
 </style>

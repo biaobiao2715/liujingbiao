@@ -47,48 +47,50 @@ div<!--
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed">
+    <el-table :data="tableData" border v-loading="loading" >
       <el-table-column type="selection" />
-      <el-table-column type="index" width="100" label="序号" align="center" />
+      <el-table-column type="index" width="100" label="序号"    />
       <!-- 举报编号 -->
-      <el-table-column label="举报编号" align="center" prop="reportCode">
+      <el-table-column label="举报编号" align="center" prop="reportCode" width="300">
         <template #default="scope">
           <span>{{ scope.row.reportCode || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 举报类别 -->
-      <el-table-column label="举报类别" align="center" prop="reportTypeId">
+      <el-table-column label="举报类别" align="center" prop="reportTypeId" >
         <template #default="scope">
+           <div class="flex-center"> 
           <dict-tag :options="report_type_id" :value="scope.row.reportTypeId" />
+          </div>
         </template>
       </el-table-column>
       <!-- 被举报方 -->
-      <el-table-column label="被举报方" align="center" prop="reportPersonName">
+      <el-table-column label="被举报方" align="center" prop="reportPersonName" width="210">
         <template #default="scope">
           <span>{{ scope.row.reportPersonName || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 举报商品 -->
-      <el-table-column label="举报商品" align="center" prop="reportGoodsName">
+      <el-table-column label="举报商品" align="center" prop="reportGoodsName" width="100">
         <template #default="scope">
           <span>{{ scope.row.reportGoodsName || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 创建时间 -->
-      <el-table-column label="创建时间" align="center" prop="createTime">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="210">
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 所属状态 -->
-      <el-table-column label="所属状态" align="center" prop="status">
+      <el-table-column label="所属状态" align="center" prop="status" width="100">
         <template #default="scope">
           <dict-tag :options="report_status" :value="scope.row.status" />
         </template>
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right">
+      <el-table-column label="操作" fixed="right" width="180">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 查看按钮 - 已结案和已撤回显示 -->
@@ -154,7 +156,7 @@ div<!--
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"

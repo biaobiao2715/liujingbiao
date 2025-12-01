@@ -13,15 +13,15 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="100"
-      class="search-form"
+      :label-width="90"
+      label-position="left"
     >
       <el-form-item label="普法活动标题" prop="activityTitle">
         <el-input v-model="queryParams.activityTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       
       <el-form-item label="所属状态" prop="activityStatus">
-        <el-select v-model="queryParams.activityStatus" placeholder="请选择状态" filterable clearable>
+        <el-select v-model="queryParams.activityStatus" placeholder="请选择" filterable clearable>
           <el-option 
             v-for="item in legal_popularize_activity_status" 
             :key="item.value" 
@@ -32,7 +32,7 @@
       </el-form-item>
       
       <el-form-item label="所属类型" prop="activityType">
-        <el-select v-model="queryParams.activityType" placeholder="请选择类型" filterable clearable>
+        <el-select v-model="queryParams.activityType" placeholder="请选择" filterable clearable>
           <el-option 
             v-for="item in legal_popularize_activity_type" 
             :key="item.value" 
@@ -55,7 +55,7 @@
         />
       </el-form-item>
       
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
@@ -80,61 +80,61 @@
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       
-      <el-table-column label="普法活动开始时间" align="center" prop="startTime" min-width="180">
+      <el-table-column label="普法活动开始时间" prop="startTime" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.startTime }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="普法活动结束时间" align="center" prop="endTime" min-width="180">
+      <el-table-column label="普法活动结束时间" prop="endTime" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.endTime }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
+      <el-table-column label="普法活动标题" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
         <template #default="scope">
-          <span class="link-type" @click="handleView(scope.row)">{{ scope.row.activityTitle }}</span>
+          <span class="link-type" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%;" @click="handleView(scope.row)">{{ scope.row.activityTitle }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="普法活动地址" align="center" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
+      <el-table-column label="普法活动地址" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
         <template #default="scope">
           <span>{{ scope.row.activityAddress }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="所属类型" align="center" prop="activityType" width="120">
+      <el-table-column label="所属类型" prop="activityType" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-tag :options="legal_popularize_activity_type" :value="String(scope.row.activityType || '')" />
         </template>
       </el-table-column>
       
-      <el-table-column label="联系人" align="center" prop="activityContact" width="100">
+      <el-table-column label="联系人" prop="activityContact" width="100" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.activityContact }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="联系方式" align="center" prop="activityContactPhone" width="120">
+      <el-table-column label="联系方式" prop="activityContactPhone" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.activityContactPhone }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="报名人数" align="center" prop="enrollCount" width="100">
+      <el-table-column label="报名人数" prop="enrollCount" width="100" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.enrollCount || 0 }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+      <el-table-column label="发布时间" prop="publishTime" min-width="160" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="状态" align="center" prop="activityStatus" width="100">
+      <el-table-column label="状态" prop="activityStatus" width="100" :show-overflow-tooltip="true">
         <template #default="scope">
           <el-tag :type="getStatusType(scope.row.activityStatus)">
             <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
@@ -142,14 +142,14 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" align="center" width="280">
+      <el-table-column label="操作" fixed="right" width="280">
         <template #default="scope">
-          <div class="operation-buttons">
+          <div class="flex-center operation-btns">
             <el-button 
               v-throttle 
               v-hasPermi="['skill:lawActivity:edit']" 
               type="primary" 
-              size="small" 
+              link
               @click="handleEdit(scope.row)"
             >
               编辑
@@ -157,8 +157,8 @@
             <el-button 
               v-throttle 
               v-hasPermi="['skill:lawActivity:query']" 
-              type="info" 
-              size="small" 
+              type="primary" 
+              link
               @click="handleView(scope.row)"
             >
               查看
@@ -167,8 +167,8 @@
               v-if="canCancelActivity(scope.row)" 
               v-hasPermi="['skill:lawActivity:cancel']" 
               v-throttle 
-              type="warning" 
-              size="small" 
+              type="primary" 
+              link
               @click="handleCancelActivity(scope.row)"
             >
               取消活动
@@ -177,8 +177,8 @@
               v-if="canDeleteActivity(scope.row)"
               v-throttle 
               v-hasPermi="['skill:lawActivity:remove']" 
-              type="danger" 
-              size="small" 
+              type="primary" 
+              link
               @click="handleDeleteSingle(scope.row)"
             >
               删除
@@ -207,7 +207,7 @@
       :title="dialog.type === 'view' ? '' : getDialogTitle()"
       :show-header="dialog.type !== 'view'"
       :class="{ 'no-header-border': dialog.type === 'view' }"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -619,25 +619,13 @@ onMounted(() => {
   padding: 24px;
 }
 
-.search-form {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 16px;
-
-  :deep(.el-form-item) {
-    min-width: 260px;
-    margin-bottom: 12px;
-    margin-right: 10px;
-  }
-
-  :deep(.el-form-item:last-child) {
-    margin-left: 0;
-    margin-right: 0;
-    min-width: auto;
-    flex-shrink: 0;
+:deep(.el-form) {
+  .el-form-item {
+    white-space: nowrap;
+    
+    .el-form-item__label {
+      white-space: nowrap;
+    }
   }
 }
 
@@ -672,6 +660,18 @@ onMounted(() => {
         background-color: #f5f7fa;
       }
     }
+    
+    td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  
+  .el-table__cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -740,28 +740,17 @@ onMounted(() => {
   }
 }
 
-.operation-buttons {
+.flex-center {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: auto;
-    flex-shrink: 0;
-  }
+  justify-content: flex-start;
 }
 
-:deep(.el-table__body-wrapper) {
-  .operation-buttons {
-    .el-button + .el-button {
-      margin-left: 0;
-    }
+.operation-btns {
+  gap: 8px;
+  
+  :deep(.el-button) {
+    font-size: 14px;
   }
 }
 

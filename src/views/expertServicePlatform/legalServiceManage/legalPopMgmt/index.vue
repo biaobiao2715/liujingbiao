@@ -13,14 +13,12 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="90"
       label-position="left"
-      class="search-form"
     >
-      <el-form-item label="普法标题" prop="title">
+      <el-form-item label="普法标题" prop="title" label-width="auto">
         <el-input v-model="queryParams.title" placeholder="请输入普法标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime">
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -30,8 +28,8 @@
           end-placeholder="结束日期"
         />
       </el-form-item>
-      <el-form-item label="普法类型" prop="contentType">
-        <el-select v-model="queryParams.contentType" placeholder="全部" filterable clearable>
+      <el-form-item label="普法类型" prop="contentType" label-width="auto">
+        <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
           <el-option 
             v-for="dict in legal_popularize_type" 
             :key="dict.value" 
@@ -40,8 +38,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="状态" prop="contentStatus">
-        <el-select v-model="queryParams.contentStatus" placeholder="全部" filterable clearable>
+      <el-form-item label="状态" prop="contentStatus" label-width="auto">
+        <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
           <el-option 
             v-for="dict in legal_popularize_status" 
             :key="dict.value" 
@@ -50,7 +48,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
@@ -171,7 +169,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -571,28 +569,6 @@ onMounted(() => {
   padding: 24px;
 }
 
-.search-form {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 16px;
-
-  :deep(.el-form-item) {
-    min-width: 260px;
-    margin-bottom: 12px;
-    margin-right: 10px;
-  }
-
-  :deep(.el-form-item:last-child) {
-    margin-left: 0;
-    margin-right: 0;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
-
 .operation-bar {
   margin-bottom: 16px;
 
@@ -640,5 +616,9 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
+  
+  :deep(.el-button) {
+    font-size: 14px;
+  }
 }
 </style>

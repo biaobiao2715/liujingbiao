@@ -11,7 +11,7 @@
   <el-dialog
     :model-value="visible"
     :title="dialogTitle"
-    width="80%"
+    width="50%"
     destroy-on-close
     :close-on-click-modal="false"
     @close="handleClose"
@@ -567,10 +567,17 @@ const handleSubmit = async () => {
   
   :deep(.el-button) {
     padding: 4px 8px;
+    font-size: 14px;
     
     .el-icon {
       margin-right: 4px;
     }
+  }
+}
+
+:deep(.el-dialog__footer) {
+  .el-button {
+    font-size: 14px;
   }
 }
 

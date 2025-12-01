@@ -12,11 +12,9 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="90"
       label-position="left"
-      class="search-form"
     >
-      <el-form-item label="留言时间">
+      <el-form-item label="留言时间" label-width="auto">
         <el-date-picker
           v-model="messageDateRange"
           type="datetimerange"
@@ -27,11 +25,11 @@
         />
       </el-form-item>
       
-      <el-form-item label="留言内容" prop="messageContent">
-        <el-input v-model="queryParams.messageContent" placeholder="请输入内容" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="留言内容" prop="messageContent" label-width="auto">
+        <el-input v-model="queryParams.messageContent" :placeholder="queryParams.messageContent ? '' : '请输入内容'" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       
-      <el-form-item label="回复时间">
+      <el-form-item label="回复时间" label-width="auto">
         <el-date-picker
           v-model="replyDateRange"
           type="datetimerange"
@@ -42,8 +40,8 @@
         />
       </el-form-item>
       
-      <el-form-item label="回复状态" prop="questionStatus">
-        <el-select v-model="queryParams.questionStatus" placeholder="全部" filterable clearable>
+      <el-form-item label="回复状态" prop="questionStatus" label-width="auto">
+        <el-select v-model="queryParams.questionStatus" :placeholder="queryParams.questionStatus ? '' : '请选择'" filterable clearable>
           <el-option 
             v-for="item in reply_status" 
             :key="item.value" 
@@ -53,7 +51,7 @@
         </el-select>
       </el-form-item>
       
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
@@ -148,7 +146,7 @@
     <el-dialog
       v-model="detailDialog.visible"
       title="留言详情"
-      width="60%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
     >
@@ -476,10 +474,6 @@ onMounted(() => {
   padding: 24px;
 }
 
-.search-form {
-  margin-bottom: 16px;
-}
-
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
@@ -524,5 +518,9 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
+  
+  :deep(.el-button) {
+    font-size: 14px;
+  }
 }
 </style>
