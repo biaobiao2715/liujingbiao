@@ -34,7 +34,9 @@
             </div>
             <div class="form-row">
               <span class="label">还款状态：</span>
-              <el-tag :type="getStatusType(plan.status)" size="small">{{ plan.statusText }}</el-tag>
+              <span class="status-text" :style="{ color: getStatusColor(plan.status) }">
+                {{ plan.statusText }}
+              </span>
             </div>
           </div>
         </div>
@@ -42,7 +44,7 @@
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">关闭</el-button>
+        <el-button class="primary-close-btn" @click="handleClose">关闭</el-button>
       </div>
     </template>
   </el-dialog>
@@ -74,19 +76,6 @@ const emit = defineEmits<{
 const loading = ref(false);
 const repaymentPlans = ref<RepaymentPlan[]>([]);
 
-const getStatusType = (status: string) => {
-  switch (status) {
-    case 'paid':
-      return 'success';
-    case 'pending':
-      return 'warning';
-    case 'overdue':
-      return 'danger';
-    default:
-      return 'info';
-  }
-};
-
 // 将planStatus转换为组件需要的status
 const getStatusFromPlanStatus = (planStatus: number | string) => {
   const status = Number(planStatus);
@@ -112,6 +101,18 @@ const getStatusText = (planStatus: number | string) => {
     case 0:
     default:
       return '待还款';
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'paid':
+      return '#0B79EF'; // 已还款
+    case 'overdue':
+      return '#FF0000'; // 已逾期
+    case 'pending':
+    default:
+      return '#FF7B00'; // 待还款
   }
 };
 
@@ -213,6 +214,23 @@ const handleClose = () => {
 
 .dialog-footer {
   text-align: right;
+}
+
+.status-text {
+  font-weight: 600;
+}
+
+.primary-close-btn {
+  background-color: #108C58;
+  color: #fff;
+  border-color: #108C58;
+
+  &:hover,
+  &:focus {
+    background-color: #0d7348;
+    border-color: #0d7348;
+    color: #fff;
+  }
 }
 
 // 响应式设计
