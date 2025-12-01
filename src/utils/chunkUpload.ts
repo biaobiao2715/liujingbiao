@@ -52,6 +52,8 @@ export async function uploadByChunks(file: File, onProgress?: (percent: number) 
     return { ossId: initRes.data.fileId, fileName: oss.data[0]?.fileName, url: oss.data[0]?.url };
   }
 
+  if (!initRes.data.chunkSize) return; // 不需要分片
+
   const chunksInfo = initRes.data.chunksInfo || [];
 
   const chunks = createChunks(file, initRes.data.chunkSize);
