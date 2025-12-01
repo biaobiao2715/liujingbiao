@@ -49,17 +49,17 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table v-loading="loading" border :data="dataList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="60" />
       <el-table-column label="预警规则名称" prop="ruleName" />
-      <el-table-column label="信用等级" prop="creditRatingId">
+      <el-table-column label="信用等级" prop="creditRatingId" align="center">
         <template #default="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditRatingId" />
         </template>
       </el-table-column>
       <el-table-column label="预警值" prop="warnValue" />
-      <el-table-column label="所属状态" prop="status">
+      <el-table-column label="所属状态" prop="status" align="center">
         <template #default="scope">
           <dict-tag :options="warn_rule_status" :value="scope.row.status" />
         </template>

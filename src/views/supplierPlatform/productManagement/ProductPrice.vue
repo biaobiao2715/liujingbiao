@@ -32,7 +32,7 @@
       <el-button v-throttle @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
     </div>
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>

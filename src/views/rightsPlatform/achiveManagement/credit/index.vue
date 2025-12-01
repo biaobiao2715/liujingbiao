@@ -22,10 +22,10 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" border :data="tableList" style="table-layout: fixed">
+    <el-table v-loading="loading" :data="tableList" style="table-layout: fixed">
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="名称" prop="companyName" :show-overflow-tooltip="true" />
-      <el-table-column label="信用等级" prop="creditLevel">
+      <el-table-column label="信用等级" prop="creditLevel" align="center">
         <template #default="{ row }">
           <dict-tag :options="plat_credit_rating" :value="row.creditLevel ?? ''" />
         </template>

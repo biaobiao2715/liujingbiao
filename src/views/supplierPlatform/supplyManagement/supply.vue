@@ -28,16 +28,16 @@
       </el-col>
     </el-row>
     <!-- 表格 -->
-    <el-table :data="tableData" border style="width: '100%'" v-loading="loading">
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column prop="categoryName" label="发布类型" align="center" :show-overflow-tooltip="true" />
-      <el-table-column prop="purchaseRegion" label="发布区域" align="center" :show-overflow-tooltip="true">
+    <el-table :data="tableData" style="width: '100%'" v-loading="loading">
+      <el-table-column type="index" label="序号" width="60" />
+      <el-table-column prop="categoryName" label="发布类型" :show-overflow-tooltip="true" />
+      <el-table-column prop="purchaseRegion" label="发布区域" :show-overflow-tooltip="true">
         <template #default="{ row }">
           {{ [row.province, row.city, row.district].filter(Boolean).join(' - ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="supplyDescription" label="发布说明" align="center" :show-overflow-tooltip="true" />
-      <el-table-column fixed="right" label="操作" width="200" align="center">
+      <el-table-column prop="supplyDescription" label="发布说明" :show-overflow-tooltip="true" />
+      <el-table-column fixed="right" label="操作" width="200">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" link size="small" @click="handleDetail(scope.row)"
             >详情</el-button
