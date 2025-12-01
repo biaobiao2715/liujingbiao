@@ -8,7 +8,7 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline>
+    <el-form :model="queryParams" :label-width="80" inline label-position="left">
       <el-form-item label="产品功能">
         <el-input v-model="queryParams.attributeName" placeholder="请输入产品功能" clearable />
       </el-form-item>
