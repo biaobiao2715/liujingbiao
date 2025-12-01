@@ -68,7 +68,14 @@
 
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:creditProductsVersion:add']" type="primary" icon="Plus" @click="handleAdd">
+        <el-button
+          v-throttle
+          v-hasPermi="['system:creditProductsVersion:add']"
+          type="primary"
+          icon="Plus"
+          class="add-btn"
+          @click="handleAdd"
+        >
           新增
         </el-button>
       </el-col>
@@ -78,11 +85,8 @@
       :data="tableData"
       v-loading="loading"
       style="width: 100%"
-      :default-sort="{ prop: 'createTime', order: 'descending' }"
       @selection-change="handleSelectionChange"
-      @sort-change="handleSortChange"
     >
-      <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" prop="productName" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品简介" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
@@ -112,7 +116,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
+      <el-table-column label="创建时间" prop="createTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
@@ -311,17 +315,6 @@ const resetQuery = () => {
   handleQuery();
 };
 
-const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
-  if (order) {
-    queryParams.orderByColumn = prop;
-    queryParams.isAsc = order === 'ascending' ? 'asc' : 'desc';
-  } else {
-    queryParams.orderByColumn = 'createTime';
-    queryParams.isAsc = 'desc';
-  }
-  handleQuery();
-};
-
 const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
   const value = String(status ?? '').trim();
   if (!value) return false;
@@ -491,6 +484,16 @@ onMounted(() => {
   }
 }
 
+.add-btn {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 32px !important;
+  line-height: 32px;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
@@ -546,15 +549,15 @@ onMounted(() => {
 }
 
 .status-dot-success {
-  background-color: #67c23a;
+  background-color: #108c58;
 }
 
 .status-dot-warning {
-  background-color: #e6a23c;
+  background-color: #ff7b00;
 }
 
 .status-dot-danger {
-  background-color: #f56c6c;
+  background-color: #f23255;
 }
 
 .status-dot-info {
@@ -566,15 +569,15 @@ onMounted(() => {
 }
 
 .status-text-success {
-  color: #67c23a;
+  color: #108c58;
 }
 
 .status-text-warning {
-  color: #e6a23c;
+  color: #ff7b00;
 }
 
 .status-text-danger {
-  color: #f56c6c;
+  color: #f23255;
 }
 
 .status-text-info {

@@ -40,13 +40,21 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['credit:creditArticle:add']" type="primary" icon="Plus" @click="handleAdd"> 新增 </el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['credit:creditArticle:add']"
+          type="primary"
+          icon="Plus"
+          class="add-btn"
+          @click="handleAdd"
+        >
+          新增
+        </el-button>
       </el-col>
     </el-row>
 
     <!-- 表格 -->
     <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="文章简介" prop="articleSummary" min-width="200" :show-overflow-tooltip="true" />
@@ -467,6 +475,16 @@ onMounted(() => {
   }
 }
 
+.add-btn {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 32px !important;
+  line-height: 32px;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
@@ -522,15 +540,15 @@ onMounted(() => {
 }
 
 .status-dot-success {
-  background-color: #67c23a;
+  background-color: #108c58;
 }
 
 .status-dot-warning {
-  background-color: #e6a23c;
+  background-color: #ff7b00;
 }
 
 .status-dot-danger {
-  background-color: #f56c6c;
+  background-color: #f23255;
 }
 
 .status-dot-info {
@@ -542,15 +560,15 @@ onMounted(() => {
 }
 
 .status-text-success {
-  color: #67c23a;
+  color: #108c58;
 }
 
 .status-text-warning {
-  color: #e6a23c;
+  color: #ff7b00;
 }
 
 .status-text-danger {
-  color: #f56c6c;
+  color: #f23255;
 }
 
 .status-text-info {
