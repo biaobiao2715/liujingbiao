@@ -8,7 +8,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    width="900px"
+    width="50%"
     :title="isViewMode ? '查看案件类型' : isAddMode ? '新增案件类型' : '编辑案件类型'"
     align-center
     :close-on-click-modal="false"
@@ -988,7 +988,7 @@ const handleClose = () => {
 
 .dialog-footer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 20px;
 }
 </style>
