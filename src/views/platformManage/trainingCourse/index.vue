@@ -358,7 +358,6 @@ const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
   multiple.value = !selection.length;
-  console.log(multiple.value);
 };
 
 /** 弹窗标题 */
@@ -799,14 +798,29 @@ onMounted(() => {
     cursor: not-allowed;
   }
   &:not(.is-disabled) {
-    color: #1d2129 !important;
-
+    color: #ffffff !important;
+    background-color: #108c58 !important;
     &:hover {
-      color: #1d2129 !important;
+      color: #ffffff !important;
+      background-color: #108c58 !important;
     }
 
     &:focus {
-      color: #1d2129 !important;
+      color: #ffffff !important;
+      background-color: #108c58 !important;
+    }
+  }
+  &.delete-btn:not(.is-disabled) {
+    color: #ffffff !important;
+    background-color: #f23255 !important;
+    &:hover {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
+    }
+
+    &:focus {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
     }
   }
 }

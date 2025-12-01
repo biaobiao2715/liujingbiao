@@ -150,7 +150,7 @@
           <!-- <div> -->
           <!-- 待开始 -->
           <template v-if="scope.row.meetingStatus === '1'">
-            <el-tooltip content="查看" placement="top">
+            <el-tooltip content="编辑" placement="top">
               <el-button
                 v-hasPermi="['skill:HnMeetingCultivate:edit']"
                 class="operation-link-button"
@@ -166,28 +166,14 @@
               <span v-else>编辑</span>
             </el-link> -->
             <el-tooltip content="查看" placement="top">
-              <el-button
-                v-hasPermi="['skill:HnMeetingCultivate:edit']"
-                class="operation-link-button"
-                v-throttle
-                type="text"
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
+              <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
             </el-tooltip>
             <!-- <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
               <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
               <span v-else>查看</span>
             </el-link> -->
             <el-tooltip content="取消会议" placement="top">
-              <el-button
-                v-hasPermi="['skill:HnMeetingCultivate:cancel']"
-                class="operation-link-button"
-                v-throttle
-                type="text"
-                @click="handleCancelMeeting(scope.row)"
-              >
+              <el-button v-hasPermi="['skill:HnMeetingCultivate:cancel']" v-throttle type="text" @click="handleCancelMeeting(scope.row)">
                 取消会议
               </el-button>
             </el-tooltip>
@@ -198,7 +184,7 @@
           <!-- 进行中、已结束、已取消 -->
           <template v-else-if="['2', '3', '99'].includes(scope.row.meetingStatus)">
             <el-tooltip content="查看" placement="top">
-              <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
+              <el-button v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
             </el-tooltip>
             <!-- <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
               <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
@@ -207,11 +193,10 @@
             <el-tooltip content="删除" placement="top">
               <el-button
                 v-if="['3', '99'].includes(scope.row.meetingStatus)"
-                class="operation-link-button"
                 v-throttle
                 type="text"
                 @click="handleDelete(scope.row)"
-                v-hasPermi="['skill:HnMeetingCultivate:edit']"
+                v-hasPermi="['skill:HnMeetingCultivate:remove']"
               >
                 删除
               </el-button>
@@ -643,7 +628,6 @@ const handleSave = (data: any) => {
   background-color: #f2f3f5 !important;
   border: none !important;
   color: #1d2129 !important;
-  border: 4px;
   &:hover {
     background-color: #e5e7eb !important;
     color: #1d2129 !important;

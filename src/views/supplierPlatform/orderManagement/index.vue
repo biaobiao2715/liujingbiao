@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：			ordermanagement.vue
 功能：			订单管理页面
-说明:         
+说明:
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-31
 修改人信息：张峰     2025-10-31
@@ -346,7 +346,11 @@ const logisticsRules = {
           'EMS': /^(E\d{10}CS|\d{13})$/,
           '跨越速运': /^KYE\d{7}$/
         };
-
+        const chineseRegex = /[\u4e00-\u9fa5]/; //禁止输入中文
+        if (chineseRegex.test(value)) {
+          callback(new Error('物流单号不能包含中文字符'));
+          return;
+        }
         const company = logisticsForm.value.deliveryCompany;
         if (patterns[company] && !patterns[company].test(value)) {
           callback(new Error('物流单号格式不正确'));
@@ -354,11 +358,10 @@ const logisticsRules = {
           callback();
         }
       },
-      trigger: 'blur'
+      trigger: ['blur', 'change']
     }
   ]
 };
-
 /** 搜索按钮操作 */
 const handleQuery = () => {
   getTableData();
