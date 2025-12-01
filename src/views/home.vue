@@ -148,10 +148,8 @@ const getUserInfo = async () => {
   userInfo.value = res.data.user;
   userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
-  console.log(res);
   // 采购商
   currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
-  console.log(currentPlatform.value);
 };
 
 const getIcon = (svgName: string) => {
@@ -172,7 +170,15 @@ const handleRedirect = (path: string) => {
     return;
   }
   if (path) {
-    router.push(path);
+    // 不同角色进入到后台管理，定位不同页面
+    if (tenantType.value === '0' || tenantType.value === '1') {
+      router.push(path);
+    } else if (tenantType.value === '2' || tenantType.value === '3') {
+      router.push('/supplierPlatform/productManagement');
+    } else if (tenantType.value === '4' || tenantType.value === '5') {
+      router.push('/skill/knowledgeBaseManage');
+    }
+
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
     }, 2000);
