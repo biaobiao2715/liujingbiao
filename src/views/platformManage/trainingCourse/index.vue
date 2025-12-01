@@ -69,7 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          class="custom-btn-style"
+          class="custom-btn-style delete-btn"
           type="primary"
           v-hasPermi="['skill:courseCultivate:remove']"
           @click="handleDelete"
@@ -164,7 +164,7 @@
           <el-tooltip content="查看" placement="top">
             <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
           </el-tooltip>
-          <el-tooltip content="编辑" placement="top">
+          <el-tooltip content="禁用" placement="top">
             <el-button class="operation-link-button" v-if="scope.row.cultivateStatus === '1'" type="text" @click="handleStatusChange(scope.row, '2')">
               禁用
             </el-button>
@@ -213,7 +213,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -783,7 +783,6 @@ onMounted(() => {
   background-color: #f2f3f5 !important;
   border: none !important;
   color: #1d2129 !important;
-  border: 4px;
   &:hover {
     background-color: #e5e7eb !important;
     color: #1d2129 !important;
@@ -815,7 +814,6 @@ onMounted(() => {
   color: #108c58 !important;
   background-color: transparent !important;
   border: none !important;
-  padding: 0 8px !important;
 
   &:hover,
   &:focus {
