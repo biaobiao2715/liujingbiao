@@ -39,15 +39,9 @@
       <el-table-column prop="supplyDescription" label="发布说明" :show-overflow-tooltip="true" />
       <el-table-column fixed="right" label="操作" width="200">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" link size="small" @click="handleDetail(scope.row)"
-            >详情</el-button
-          >
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:edit']" type="primary" link size="small" @click="handleEdit(scope.row)"
-            >编辑</el-button
-          >
-          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:remove']" type="primary" link size="small" @click="handleDelete(scope.row)"
-            >删除</el-button
-          >
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:query']" type="primary" link @click="handleDetail(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:edit']" type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:remove']" type="primary" link @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

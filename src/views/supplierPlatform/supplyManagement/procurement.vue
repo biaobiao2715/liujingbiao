@@ -50,7 +50,6 @@
             v-hasPermi="['grain:hnPurchaseQuote:add']"
             text
             type="primary"
-            size="small"
             @click="handleQuote(scope.row.id)"
             >立即报价</el-button
           >
