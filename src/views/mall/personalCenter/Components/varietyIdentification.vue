@@ -30,15 +30,15 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-          <el-button v-throttle @click="handleReset">重置</el-button>
+          <el-button v-throttle icon="Search" type="primary" @click="handleSearch">查询</el-button>
+          <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
 
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
-          <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
+          <el-button v-throttle icon="Plus" type="primary" @click="handleAdd">新增</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-button v-throttle @click="handleExport"> 导出 </el-button>
@@ -46,7 +46,7 @@
       </el-row>
 
       <!-- 表格展示 -->
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+      <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
           <template #default="scope">

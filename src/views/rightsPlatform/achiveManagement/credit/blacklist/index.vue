@@ -35,7 +35,7 @@
       <el-table-column label="黑名单" prop="companyName" :show-overflow-tooltip="true" />
       <el-table-column label="信用等级" prop="creditLevel">
         <template #default="{ row }">
-          <dict-text :options="plat_credit_rating" :value="row.creditLevel ?? ''" />
+          <dict-tag :options="plat_credit_rating" :value="row.creditLevel ?? ''" />
         </template>
       </el-table-column>
       <el-table-column label="信用积分" prop="sore" />

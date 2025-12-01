@@ -18,8 +18,8 @@
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['grain:HnPurchaseDemand:purchaseList']" type="primary" @click="getTableData">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle icon="Search" v-hasPermi="['grain:HnPurchaseDemand:purchaseList']" type="primary" @click="getTableData">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
     <!-- 表格 -->
@@ -69,7 +69,7 @@
     </div>
 
     <!-- 立即报价弹窗 -->
-    <el-dialog v-model="quoteDialogVisible" width="80%" title="立即报价" :close-on-click-modal="false">
+    <el-dialog v-model="quoteDialogVisible" width="50%" title="立即报价" :close-on-click-modal="false">
       <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="120px">
         <el-divider content-position="left"> <span class="detail-title">采购信息</span> </el-divider>
         <el-row :gutter="20" class="detail-form">
