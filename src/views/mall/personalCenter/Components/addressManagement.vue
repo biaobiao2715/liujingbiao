@@ -56,14 +56,7 @@
       <!-- 已保存地址：替换原先的 div.table-title 为告警提示 -->
       <div class="summary-alert">已发布{{ total }}条 ，还能保存{{ remainCount }}条</div>
       <!-- 表格：加边框与紧凑尺寸 -->
-      <el-table
-        :data="tableData"
-        v-loading="loading"
-        border
-        size="small"
-        style="table-layout: fixed; width: 100%"
-        header-cell-class-name="table-header"
-      >
+      <el-table :data="tableData" v-loading="loading" size="small" style="table-layout: fixed; width: 100%" header-cell-class-name="table-header">
         <el-table-column prop="receiverName" label="收货人" align="center" />
         <el-table-column label="所在地址" min-width="280" align="center">
           <template #default="{ row }">

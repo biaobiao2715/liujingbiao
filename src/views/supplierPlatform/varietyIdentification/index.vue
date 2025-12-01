@@ -7,83 +7,79 @@
 -->
 <template>
   <div class="supplier-management">
-    <!-- 页面标题 -->
-    <div class="menu-title">品种识别记录</div>
-    <div class="pading20">
-      <!-- 搜索条件 -->
-      <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
-        <el-form-item label="识别时间" prop="identifyTime" label-width="auto">
-          <el-date-picker
-            v-model="queryParams.identifyTime"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-          />
-        </el-form-item>
-        <el-form-item label="品种类型" prop="varietyType" label-width="auto">
-          <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
-            <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-          <el-button v-throttle @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+    <!-- 搜索条件 -->
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="识别时间" prop="identifyTime" label-width="auto">
+        <el-date-picker
+          v-model="queryParams.identifyTime"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </el-form-item>
+      <el-form-item label="品种类型" prop="varietyType" label-width="auto">
+        <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
+          <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button v-throttle icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
 
-      <!-- 操作按钮 -->
-      <el-row :gutter="10" class="mb8">
-        <el-col :span="1.5">
-          <el-button v-throttle type="primary" @click="handleAdd">新增</el-button>
-        </el-col>
-        <el-col :span="1.5">
-          <el-button v-throttle @click="handleExport"> 导出 </el-button>
-        </el-col>
-      </el-row>
+    <!-- 操作按钮 -->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button v-throttle icon="Plus" type="primary" @click="handleAdd">新增</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button v-throttle @click="handleExport"> 导出 </el-button>
+      </el-col>
+    </el-row>
 
-      <!-- 表格展示 -->
-      <el-table :data="tableData" border v-loading="loading" style="width: 100%">
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
-          <template #default="scope">
-            <span>{{ proxy.parseTime(scope.row.identifyBeginTime) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="160">
-          <template #default="scope">
-            <span>{{ proxy.parseTime(scope.row.identifyEndTime) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
-          <template #default="scope">
-            <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true" />
-        <el-table-column label="品种类型" align="center" prop="varietyType" width="210" style="color: #0000ff">
-          <template #default="scope">
-            <dict-text :options="review_status" :value="scope.row.varietyType ?? ''" />
-          </template>
-        </el-table-column>
-        <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
-        </el-table-column>
-        <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true">
-          <template #default="scope">
-            <span style="color: #108c58">{{ scope.row.confidenceLevel }}</span>
-          </template>
-        </el-table-column>
-      </el-table>
+    <!-- 表格展示 -->
+    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+      <el-table-column type="index" label="序号" width="55" align="center" />
+      <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
+        <template #default="scope">
+          <span>{{ proxy.parseTime(scope.row.identifyBeginTime) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="160">
+        <template #default="scope">
+          <span>{{ proxy.parseTime(scope.row.identifyEndTime) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
+        <template #default="scope">
+          <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true" />
+      <el-table-column label="品种类型" align="center" prop="varietyType" width="210" style="color: #0000ff">
+        <template #default="scope">
+          <dict-text :options="review_status" :value="scope.row.varietyType ?? ''" />
+        </template>
+      </el-table-column>
+      <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
+      </el-table-column>
+      <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <span style="color: #108c58">{{ scope.row.confidenceLevel }}</span>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <!-- 分页 -->
-      <div class="flex-end pagination">
-        <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
-      </div>
+    <!-- 分页 -->
+    <div class="flex-end pagination">
+      <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
     <el-dialog

@@ -82,7 +82,7 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">关闭</el-button>
+        <el-button type="primary" @click="handleClose">关闭</el-button>
       </div>
     </template>
   </el-dialog>
@@ -404,13 +404,7 @@ const handleClose = () => {
 }
 
 // 弹窗标题
-.dialog-header {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #262626;
-  }
-}
+
 
 // 弹窗内容
 .dialog-content {
@@ -673,7 +667,8 @@ const handleClose = () => {
 
 // 弹窗底部
 .dialog-footer {
-  text-align: center;
+  display: flex;
+  justify-content: flex-end;
 
   .el-button {
     min-width: 80px;

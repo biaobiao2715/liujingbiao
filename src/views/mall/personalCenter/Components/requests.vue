@@ -15,7 +15,7 @@
       <div class="summary-alert">已发布{{ total }}条</div>
 
       <!-- 采购需求表格 -->
-      <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" border :empty-text="'暂无采购需求'">
+      <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" :empty-text="'暂无采购需求'">
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column prop="categoryName" label="采购类目" align="center" :show-overflow-tooltip="true" />
         <el-table-column label="采购区域" align="center" :show-overflow-tooltip="true">
@@ -79,7 +79,7 @@
     </div>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" width="80%" destroy-on-close :close-on-click-modal="false" class="request-detail-dialog" title="采购需求详情">
+    <el-dialog v-model="detailVisible" width="50%" destroy-on-close :close-on-click-modal="false" class="request-detail-dialog" title="采购需求详情">
       <div v-loading="detailLoading" class="detail-body">
         <!-- 采购信息表单 -->
         <el-form ref="formRef" :model="form" label-width="90px" class="detail-form">

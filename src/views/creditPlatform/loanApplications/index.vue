@@ -44,7 +44,7 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
+      <el-table-column label="适用对象" prop="applicableObject" align="center" min-width="150" class-name="nowrap-column">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
         </template>
@@ -58,17 +58,32 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="260" fixed="right">
+      <el-table-column label="操作" align="left" width="260" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
+            <el-button
+              size="small"
+              type="primary"
+              text
+              style="color: #108c58; font-size: 14px"
+              :disabled="!canAudit(scope.row.applyStatus)"
+              @click="handleDetail(scope.row, 'approval')"
+            >
               审批
             </el-button>
-            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" text style="color: #108C58; font-size: 14px" :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
+            <el-button size="small" type="primary" text style="color: #108c58; font-size: 14px" @click="handleDetail(scope.row, 'detail')"
+              >详情</el-button
+            >
+            <el-button
+              size="small"
+              type="success"
+              text
+              style="color: #108c58; font-size: 14px"
+              :disabled="!isApproved(scope.row.applyStatus)"
+              @click="openRepaymentPlan(scope.row)"
               >还款计划</el-button
             >
-            <el-button size="small" type="danger" text style="color: #108C58; font-size: 14px" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="danger" text style="color: #108c58; font-size: 14px" @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -303,8 +318,7 @@ const handleDelete = (row: LoanApplication) => {
         loading.value = false;
       }
     })
-    .catch(() => {
-    });
+    .catch(() => {});
 };
 
 // 每次页面激活时执行（从缓存中恢复）
@@ -319,20 +333,12 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .loan-applications {
+  height: calc(100vh - 120px);
   padding: 24px;
-  background-color:  #F7F8FA;;
-  min-height: calc(100vh - 120px);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .search-form {
-  background: #fff;
-  border-bottom: 1px solid #E5E5E5;
-  // padding: 20px 24px 10px;
-  // border-radius: 8px;
-  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
 
   .el-form-item {
     min-width: 220px;
@@ -355,18 +361,15 @@ onMounted(() => {
     font-size: 14px;
 
     &:disabled {
-      color: #C0C4CC !important;
+      color: #c0c4cc !important;
     }
   }
 }
 
 .pagination {
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .status-text {
@@ -384,5 +387,29 @@ onMounted(() => {
   border-radius: 50%;
   flex-shrink: 0;
   vertical-align: middle;
+}
+
+:deep(.nowrap-column .cell) {
+  white-space: nowrap;
+}
+
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
+
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+  }
 }
 </style>

@@ -6,87 +6,126 @@
     <div v-loading="loading">
       <div class="detail-section">
         <div class="section-title">企业基础信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in companyInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="营业执照">
-            <template v-if="companyLicenseList.length">
-              <el-image
-                v-for="(img, idx) in companyLicenseList"
-                :key="idx"
-                :src="img.url || img"
-                :preview-src-list="companyLicenseList.map((item: any) => item.url || item)"
-                fit="cover"
-                class="license-image"
-              />
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in companyInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input
+                  v-if="!item.isTextarea"
+                  :model-value="item.value"
+                  disabled
+                />
+                <el-input
+                  v-else
+                  type="textarea"
+                  :model-value="item.value"
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  disabled
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="营业执照">
+                <template v-if="companyLicenseList.length">
+                  <el-image
+                    v-for="(img, idx) in companyLicenseList"
+                    :key="idx"
+                    :src="img"
+                    :preview-src-list="companyLicenseList"
+                    fit="cover"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">法人信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in legalInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in legalInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">申请人信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in applicantInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="个人身份证明" :span="2">
-            <template v-if="applicantIdPhotos.length">
-              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image" />
-            </template>
-            <template v-else>
-              <span>--</span>
-            </template>
-          </el-descriptions-item>
-          <el-descriptions-item label="授权文件" :span="2">
-            <template v-if="applicantAuthFiles.length">
-              <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
-                <el-button 
-                  type="primary" 
-                  link 
-                  @click="handleViewFile(file)"
-                  class="file-link"
-                >
-                  <el-icon><Document /></el-icon>
-                  授权文件{{ applicantAuthFiles.length > 1 ? (idx + 1) : '' }}
-                </el-button>
-              </div>
-            </template>
-            <div v-else class="file-placeholder">暂无文件</div>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in applicantInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="个人身份证明">
+                <template v-if="applicantIdPhotos.length">
+                  <el-image
+                    v-for="(img, idx) in applicantIdPhotos"
+                    :key="idx"
+                    :src="img"
+                    :preview-src-list="applicantIdPhotos"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="授权文件">
+                <template v-if="applicantAuthFiles.length">
+                  <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
+                    <el-button
+                      type="primary"
+                      link
+                      @click="handleViewFile(file)"
+                      class="file-link"
+                    >
+                      <el-icon><Document /></el-icon>
+                      授权文件{{ applicantAuthFiles.length > 1 ? idx + 1 : '' }}
+                    </el-button>
+                  </div>
+                </template>
+                <div v-else class="file-placeholder">暂无文件</div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">贷款信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="银行卡正反面" :span="2">
-            <template v-if="bankCardImages.length">
-              <el-image
-                v-for="(img, idx) in bankCardImages"
-                :key="idx"
-                :src="img"
-                :preview-src-list="bankCardImages"
-                class="license-image"
-              />
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in loanInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="银行卡正反面">
+                <template v-if="bankCardImages.length">
+                  <el-image
+                    v-for="(img, idx) in bankCardImages"
+                    :key="idx"
+                    :src="img"
+                    :preview-src-list="bankCardImages"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
@@ -148,6 +187,13 @@ const detailRow = ref<Record<string, any>>(props.data || {});
 const currentDetail = computed(() => detailRow.value || {});
 const productDetailVisible = ref(false);
 const repaymentPlanVisible = ref(false);
+
+type DetailField = {
+  label: string;
+  value: string;
+  span?: number;
+  isTextarea?: boolean;
+};
 
 const reviewStatusMap: Record<string, string> = {
   '0': '待审核',
@@ -300,7 +346,7 @@ watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible,
   }
 });
 
-const companyInfoList = computed(() => {
+const companyInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
   return [
@@ -310,32 +356,20 @@ const companyInfoList = computed(() => {
     { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
     { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
     { label: '注册日期', value: formatValue(row.createTime || row.registerDate) },
-    { label: '注册地址', value: registerRegion ? registerRegion : formatValue(row.registerAddress) },
-    { label: '办公地址', value: formatValue(row.officeAddress) },
+    { label: '注册地址', value: registerRegion || formatValue(row.registerAddress), span: 24 },
+    { label: '办公地址', value: formatValue(row.officeAddress), span: 24 },
     { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
     { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
-    { label: '经营范围', value: formatValue(row.businessScope) }
+    { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
   ];
 });
 
 const companyLicenseList = computed(() => {
   const row = detailRow.value;
-  const licenses = [];
-  
-  // 从 licenses 数组获取
-  if (Array.isArray(row.licenses)) {
-    licenses.push(...row.licenses);
-  }
-  
-  // 从 url 字段获取营业执照
-  if (row.url) {
-    licenses.push({ url: row.url });
-  }
-  
-  return licenses;
+  return collectUrls(row.licenses, row.url);
 });
 
-const legalInfoList = computed(() => {
+const legalInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   return [
     { label: '法人姓名', value: formatValue(row.legalPersonName || row.legalPerson) },
@@ -345,7 +379,7 @@ const legalInfoList = computed(() => {
   ];
 });
 
-const applicantInfoList = computed(() => {
+const applicantInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
   return [
@@ -365,7 +399,7 @@ const applicantAuthFiles = computed(() => {
   return collectUrls(row.authorizationUrl);
 });
 
-const loanInfoList = computed(() => {
+const loanInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const repayment = row.repaymentMethod || row.repaymentType;
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
@@ -428,37 +462,58 @@ const handleViewRepaymentPlan = () => {
 
 <style scoped lang="scss">
 .repayment-detail-dialog {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #303133;
+  :deep(.el-dialog__body) {
+    background-color: #F7F8FA;
+    padding: 24px;
   }
+
+
 }
 
 .detail-section {
   margin-bottom: 20px;
-  background: #fefefe;
-  border-radius: 8px;
-  border: 1px solid #f0f2f5;
-  padding: 16px 20px;
-  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
+  background: #ffffff;
+  padding: 20px 24px;
+
+  :deep(.el-input__wrapper) {
+    box-shadow: none !important;
+    background-color: transparent !important;
+    cursor: default !important;
+    resize: none !important;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-input.is-disabled .el-input__inner),
+  :deep(.el-input.is-disabled .el-input__wrapper .el-input__inner) {
+    cursor: default !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    color: #3D3D3D !important;
+    -webkit-text-fill-color: #3D3D3D !important;
+  }
+
+  :deep(.el-form-item__label) {
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(61, 61, 61, 0.5);
+  }
 }
 
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #303133;
+  color: #108C58;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 16px;
-    background-color: #409eff;
-    border-radius: 2px;
-    margin-right: 8px;
+    width: 2px;
+    height: 13px;
+    background-color: #108C58;
+    border-radius: 4px;
+    margin-right: 5px;
   }
 }
 
@@ -467,7 +522,8 @@ const handleViewRepaymentPlan = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #ebeef5;
+  border: 1px solid #E5E5E5;
+  background-color: #ffffff;
 }
 
 .image-placeholder,

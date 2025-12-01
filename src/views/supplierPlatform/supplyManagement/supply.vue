@@ -16,15 +16,15 @@
         <RegionSelect v-model="queryParams.region" @regionChange="handleAreaChange" style="width: 100%" />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:list']" type="primary" @click="getTableData">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle icon="Search" v-hasPermi="['grain:hnSupplierSupply:list']" type="primary" @click="getTableData">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['grain:hnSupplierSupply:add']" type="primary" @click="handleAdd">发布</el-button>
+        <el-button v-throttle icon="Plus" v-hasPermi="['grain:hnSupplierSupply:add']" type="primary" @click="handleAdd">发布</el-button>
       </el-col>
     </el-row>
     <!-- 表格 -->
@@ -65,7 +65,7 @@
     <!-- 发布/编辑/详情弹窗 -->
     <el-dialog
       v-model="quoteDialogVisible"
-      width="80%"
+      width="50%"
       :title="dialogMode === 'detail' ? '供给需求详情' : dialogMode === 'edit' ? '编辑供给需求' : '发布供给需求'"
       :close-on-click-modal="false"
     >

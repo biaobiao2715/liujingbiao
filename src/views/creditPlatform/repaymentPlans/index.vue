@@ -38,7 +38,7 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
+      <el-table-column label="适用对象" prop="applicableObject" align="center" min-width="150" class-name="nowrap-column">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="scope.row.applicableObject || scope.row.lenderTyp" />
         </template>
@@ -46,73 +46,51 @@
       <el-table-column label="贷款金额(元)" prop="loanAmount" align="center" width="140" />
       <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
       <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" align="center" />
-      <el-table-column label="还款状态" prop="planStatus" align="center" width="120">
+      <el-table-column label="还款状态" prop="planStatus" align="center" width="140">
         <template #default="scope">
-          <dict-tag :options="repayment_status" :value="scope.row.planStatus" />
+          <span class="status-text" :style="{ color: getPlanStatusColor(scope.row.planStatus) }">
+            <span class="status-dot" :style="{ backgroundColor: getPlanStatusColor(scope.row.planStatus) }"></span>
+            {{ getPlanStatusLabel(scope.row.planStatus) }}
+          </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="340" fixed="right">
+      <el-table-column label="操作" align="left" width="340" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
-            <el-button 
+            <el-button
               v-if="scope.row.planStatus === '2'"
-              size="small" 
-              text 
-              style="color: #108C58; font-size: 14px" 
+              size="small"
+              text
+              style="color: #108c58; font-size: 14px"
               @click="handleNotification(scope.row, 'completed')"
             >
               完结通知
             </el-button>
             <el-button
               v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '0'"
-              style="color: #FF7B00; font-size: 14px"
+              style="color: #ff7b00; font-size: 14px"
               size="small"
               text
               @click="handleNotification(scope.row, 'pending')"
             >
               还款提醒
             </el-button>
-            <el-button 
-              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'" 
-              size="small" 
-              text 
-              style="color: #F23255; font-size: 14px" 
+            <el-button
+              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'"
+              size="small"
+              text
+              style="color: #f23255; font-size: 14px"
               @click="handleNotification(scope.row, 'overdue')"
             >
               逾期提示
             </el-button>
-            <el-button 
-              size="small" 
-              type="success" 
-              text 
-              style="color: #108C58; font-size: 14px" 
-              @click="handleRepayment(scope.row)"
-            >
+            <el-button size="small" type="success" text style="color: #108c58; font-size: 14px" @click="handleRepayment(scope.row)">
               还款情况
             </el-button>
-            <el-button 
-              size="small" 
-              type="primary" 
-              text 
-              style="color: #108C58; font-size: 14px" 
-              @click="handleDetail(scope.row)"
-            >
-              详情
-            </el-button>
-
-            <!-- 更多操作下拉菜单 -->
-            <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
-              <el-button size="small" type="info" text style="color: #108C58; font-size: 14px">
-                更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="tracking">追踪</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button size="small" type="primary" text style="color: #108c58; font-size: 14px" @click="handleDetail(scope.row)"> 详情 </el-button>
+            <el-button size="small" text style="color: #108c58; font-size: 14px" @click="handleTracking(scope.row)"> 追踪 </el-button>
+            <el-button size="small" text style="color: #108c58; font-size: 14px" @click="handleDelete(scope.row)"> 删除 </el-button>
           </div>
         </template>
       </el-table-column>
@@ -142,7 +120,6 @@
 import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ArrowDown } from '@element-plus/icons-vue';
 import { getloanApplicationsList, deleteRepaymentRecord, messageRecord, getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
@@ -184,6 +161,37 @@ const queryParams = ref({
   productType: '', // 产品类型
   applicableObject: '' // 适用对象
 });
+
+/**
+ * 获取还款状态颜色
+ * 0=待还款(#FF7B00)，1=还款中(#00BF33)，2=已还清(#0B79EF)，3=已逾期(#FF0000)
+ */
+const getPlanStatusColor = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return '';
+  const code = String(status);
+  switch (code) {
+    case '0':
+      return '#FF7B00'; // 待还款
+    case '1':
+      return '#00BF33'; // 还款中
+    case '2':
+      return '#0B79EF'; // 已还清
+    case '3':
+      return '#FF0000'; // 已逾期
+    default:
+      return '';
+  }
+};
+
+/**
+ * 获取还款状态标签
+ */
+const getPlanStatusLabel = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return '--';
+  const dictList = repayment_status?.value || [];
+  const match = dictList.find((item: any) => String(item.value) === String(status));
+  return match?.label || '--';
+};
 
 // 表格数据和状态
 const tableData = ref<RepaymentPlan[]>([]); // 表格数据
@@ -300,11 +308,6 @@ const handleTracking = (row: RepaymentPlan) => {
   trackingDialogVisible.value = true;
 };
 
-/**
- * 通知按钮 - 根据当前期次状态发送不同的通知
- * @param row - 当前行数据
- * @param type - 通知类型: pending=还款提醒, completed=完结通知, overdue=逾期提示
- */
 const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'completed' | 'overdue') => {
   let actualType: 'pending' | 'completed' | 'overdue' = type || 'pending';
 
@@ -372,17 +375,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
 };
 
 /**
- * 更多操作 - 处理下拉菜单的命令
- */
-const handleMoreAction = (row: RepaymentPlan, command: string) => {
-  if (command === 'tracking') {
-    handleTracking(row);
-  } else if (command === 'delete') {
-    handleDelete(row);
-  }
-};
-
-/**
  * 删除按钮 - 删除还款记录
  */
 const handleDelete = (row: RepaymentPlan) => {
@@ -420,19 +412,12 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .loan-applications {
+  height: calc(100vh - 120px);
   padding: 24px;
-  background-color: #f7f8fa;
-  min-height: calc(100vh - 120px);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .search-form {
-  background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
 
   .el-form-item {
     min-width: 220px;
@@ -455,17 +440,52 @@ onMounted(() => {
     font-size: 14px;
 
     &:disabled {
-      color: #C0C4CC !important;
+      color: #c0c4cc !important;
     }
   }
 }
 
 .pagination {
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+}
+
+:deep(.nowrap-column .cell) {
+  white-space: nowrap;
+}
+
+.status-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
+
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+  }
 }
 </style>

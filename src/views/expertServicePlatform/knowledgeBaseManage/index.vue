@@ -36,15 +36,15 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:list']" icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:list']" icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增文章</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:add']" icon="Plus" type="primary" @click="handleAdd">新增文章</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" @click="handleEnableBatch" :disabled="noSelection || loading"
@@ -107,7 +107,7 @@
           {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right" class-name="op-col">
+      <el-table-column label="操作" width="200" fixed="right" class-name="op-col flex-center">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
             <template v-if="idx < 2">

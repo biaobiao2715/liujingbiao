@@ -14,8 +14,8 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" type="primary" @click="handleQuery">搜索</el-button>
-        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" @click="resetQuery">重置</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" icon="Search" type="primary" @click="handleQuery">搜索</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -23,7 +23,7 @@
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="信用等级" prop="creditRatingId">
         <template #default="{ row }">
-          <dict-text :options="plat_credit_rating" :value="row.creditRatingId ?? ''" />
+          <dict-tag :options="plat_credit_rating" :value="row.creditRatingId ?? ''" />
         </template>
       </el-table-column>
       <el-table-column label="信用积分" prop="creditMinPoints">

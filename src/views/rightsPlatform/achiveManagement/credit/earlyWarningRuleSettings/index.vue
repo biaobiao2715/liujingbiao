@@ -23,15 +23,15 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" type="primary" @click="handleQuery">查询</el-button>
-        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" @click="resetQuery">重置</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" icon="Search" type="primary" @click="handleQuery">查询</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:warnRule:list']" icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" @click="handleAdd" v-hasPermi="['safeguard:warnRule:add']">新增</el-button>
+        <el-button v-throttle icon="Plus" type="primary" @click="handleAdd" v-hasPermi="['safeguard:warnRule:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle :disabled="multiple" @click="handleBatchStatus('0')" v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
@@ -69,7 +69,7 @@
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="240" class-name="op-col">
+      <el-table-column fixed="right" label="操作" width="240" class-name="flex-center op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
             <template v-if="idx < 2">
@@ -357,8 +357,6 @@ const getRowActions = (row: EarlyWarningRuleVO) => {
 .p-2 :deep(.op-col .cell) {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
   font-size: 14px;
 }
 .el-dropdown-link {

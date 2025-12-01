@@ -9,7 +9,7 @@
           <RegionSelect v-model="form.region" @regionChange="handleAreaChange" style="width: 100%" />
         </el-form-item>
         <el-form-item label="采购数量" required prop="quantity">
-          <el-input v-model="form.quantity" placeholder="请输入采购数量"></el-input>
+          <el-input v-model="form.quantity" placeholder="请输入采购数量" inputmode="numeric" @input="onQuantityInput"></el-input>
         </el-form-item>
         <el-form-item label="交付时间/天" required prop="deliveryDay">
           <el-input v-model="form.deliveryDay" placeholder="请输入可交付时间"></el-input>
@@ -54,7 +54,16 @@ const dialogVisible = ref(false);
 const rules = ref({
   demandCategoryId: [{ required: true, message: '请选择采购类目', trigger: 'change' }],
   region: [{ required: true, message: '请选择区域', trigger: 'change' }],
-  quantity: [{ required: true, message: '请输入采购数量', trigger: 'blur' }],
+  quantity: [
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value) return callback(new Error('请输入采购数量'));
+        if (!/^\d+$/.test(value)) return callback(new Error('仅能输入数字'));
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
   deliveryDay: [{ required: true, message: '请输入交付时间', trigger: 'blur' }]
 });
 
@@ -74,6 +83,11 @@ const handleAreaChange = (val: any) => {
   form.deliveryCity = val.city;
   form.deliveryDistrictCode = val.regionCode;
   form.deliveryDistrict = val.region;
+};
+
+// 数量输入仅保留数字
+const onQuantityInput = (val: string) => {
+  form.quantity = (val || '').replace(/[^\d]/g, '');
 };
 
 // 打开发布采购需求弹窗

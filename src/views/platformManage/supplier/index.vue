@@ -51,7 +51,7 @@
           <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
         </template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="信用等级">
+      <el-table-column prop="creditLevel" label="信用等级" width="100">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
         </template>
@@ -82,35 +82,37 @@
       <el-table-column prop="createTime" label="申请时间" width="180"> </el-table-column>
       <el-table-column prop="reviewTime" label="审核时间" width="180"> </el-table-column>
       <el-table-column prop="auditPerson" label="审核人" width="140"></el-table-column>
-      <el-table-column label="操作" fixed="right" width="180" class-name="flex-center">
+      <el-table-column label="操作" fixed="right" width="180">
         <template #default="scope">
-          <el-button
-            v-throttle
-            type="primary"
-            link
-            v-if="scope.row.reviewStatus !== '0'"
-            @click="handleEdit(scope.row, 'view')"
-            v-hasPermi="['system:baseEnterpriseInfo:query']"
-            >查看</el-button
-          >
-          <el-button
-            v-if="scope.row.reviewStatus === '1'"
-            v-throttle
-            link
-            type="primary"
-            @click="handleEdit(scope.row, 'edit')"
-            v-hasPermi="['system:baseEnterpriseInfo:edit']"
-            >修改信用等级</el-button
-          >
-          <el-button
-            v-throttle
-            link
-            v-if="scope.row.reviewStatus === '0'"
-            type="primary"
-            @click="handleEdit(scope.row, 'audit')"
-            v-hasPermi="['system:baseEnterpriseInfo:edit']"
-            >审核</el-button
-          >
+          <div class="flex-center">
+            <el-button
+              v-throttle
+              type="primary"
+              link
+              v-if="scope.row.reviewStatus !== '0'"
+              @click="handleEdit(scope.row, 'view')"
+              v-hasPermi="['system:baseEnterpriseInfo:query']"
+              >查看</el-button
+            >
+            <el-button
+              v-if="scope.row.reviewStatus === '1'"
+              v-throttle
+              link
+              type="primary"
+              @click="handleEdit(scope.row, 'edit')"
+              v-hasPermi="['system:baseEnterpriseInfo:edit']"
+              >修改信用等级</el-button
+            >
+            <el-button
+              v-throttle
+              link
+              v-if="scope.row.reviewStatus === '0'"
+              type="primary"
+              @click="handleEdit(scope.row, 'audit')"
+              v-hasPermi="['system:baseEnterpriseInfo:edit']"
+              >审核</el-button
+            >
+          </div>
         </template>
       </el-table-column>
     </el-table>

@@ -80,7 +80,7 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" plain @click="handleClose">返回</el-button>
+        <el-button type="primary" @click="handleClose">返回</el-button>
       </div>
     </template>
   </el-dialog>
@@ -285,12 +285,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.repayment-plan-dialog {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-  }
-}
 
 .dialog-content {
   min-height: 400px;
@@ -438,6 +432,7 @@ onBeforeUnmount(() => {
 }
 
 .dialog-footer {
-  text-align: center;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
