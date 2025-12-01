@@ -22,12 +22,12 @@
         </div>
         
         <div class="status-enroll-info">
-          <div class="status-info">
-            <span class="status-label">活动状态:</span>
-            <el-tag :type="getStatusType(activityDetail.activityStatus)" class="status-tag">
-              {{ getStatusLabel(activityDetail.activityStatus) }}
-            </el-tag>
-          </div>
+        <div class="status-info">
+          <span class="status-label">活动状态:</span>
+          <span class="status-pill" :class="getStatusClass(activityDetail.activityStatus)">
+            {{ getStatusLabel(activityDetail.activityStatus) }}
+          </span>
+        </div>
           <div class="enroll-info">
             <span class="enroll-label">报名人数:</span>
             <span class="enroll-value">{{ activityDetail.enrollCount || 0 }}人</span>
@@ -181,6 +181,17 @@ const getStatusLabel = (status: string) => {
     String(item.value) === String(status)
   );
   return item?.label || status || '-';
+};
+
+const getStatusClass = (status: string) => {
+  const map: Record<string, string> = {
+    '1': 'status-pending',
+    '2': 'status-started',
+    '3': 'status-finished',
+    '4': 'status-canceled',
+    '99': 'status-finished'
+  };
+  return map[String(status)] || 'status-default';
 };
 
 const getTypeLabel = (type: string) => {
@@ -385,8 +396,46 @@ onMounted(() => {
           color: #606266;
         }
         
-        .status-tag {
-          margin: 0;
+        .status-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 12px;
+          height: 28px;
+          border-radius: 4px;
+          font-size: 14px;
+          border: 1px solid transparent;
+          box-sizing: border-box;
+        }
+        
+        .status-default {
+          color: #606266;
+          border-color: #dcdfe6;
+          background-color: #f5f7fa;
+        }
+        
+        .status-started {
+          color: #409eff;
+          border-color: rgba(64, 158, 255, 0.4);
+          background-color: rgba(64, 158, 255, 0.08);
+        }
+        
+        .status-canceled {
+          color: #c0c4cc;
+          border-color: rgba(192, 196, 204, 0.6);
+          background-color: rgba(192, 196, 204, 0.12);
+        }
+        
+        .status-finished {
+          color: #f56c6c;
+          border-color: rgba(245, 108, 108, 0.4);
+          background-color: rgba(245, 108, 108, 0.08);
+        }
+        
+        .status-pending {
+          color: #f08a24;
+          border-color: rgba(240, 138, 36, 0.4);
+          background-color: rgba(240, 138, 36, 0.08);
         }
       }
       

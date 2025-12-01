@@ -51,7 +51,7 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" :selectable="checkSelectable" />
       <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
@@ -101,22 +101,10 @@
       <el-table-column label="操作" align="left" fixed="right" width="310">
         <template #default="scope">
           <div class="operation-buttons">
-            <!-- 前3个操作按钮 -->
             <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button v-throttle link class="operation-link-button" @click="handleView(scope.row)">查看</el-button>
             <el-button v-throttle link class="operation-link-button" @click="handleUpdateVersion(scope.row)">更新版本</el-button>
-            <!-- 更多操作下拉菜单 -->
-            <el-dropdown trigger="click" @command="(command) => handleMoreCommand(command, scope.row)">
-              <el-button v-throttle link class="operation-link-button">
-                更多
-                <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="delete">删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button v-throttle link class="operation-link-button" @click="handleDeleteSingle(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -217,7 +205,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import Pagination from '@/components/Pagination/index.vue';
-import { UploadFilled, Search, RefreshLeft, ArrowDown } from '@element-plus/icons-vue';
+import { UploadFilled, Search, RefreshLeft } from '@element-plus/icons-vue';
 import {
   fetchLegalDocumentList,
   fetchCreateLegalDocumentList,
@@ -529,13 +517,6 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
-/** 处理更多菜单命令 */
-const handleMoreCommand = (command: string, row: any) => {
-  if (command === 'delete') {
-    handleDeleteSingle(row);
-  }
-};
-
 const checkSelectable = (row: any) => {
   return !row.isUsing;
 };
@@ -791,6 +772,7 @@ onMounted(() => {
 }
 
 .legal-document-container {
+  height: calc(100vh - 120px);
   padding: 20px;
 
   .mb8 {

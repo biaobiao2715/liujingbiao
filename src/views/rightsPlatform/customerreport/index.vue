@@ -10,7 +10,7 @@ div<!--
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
+    <el-form ref="queryFormRef" :model="queryParams" inline  >
       <!-- 举报编号 -->
       <el-form-item label="举报编号" prop="reportCode">
         <el-input v-model="queryParams.reportCode" placeholder="请输入举报编号" clearable @keyup.enter="handleQuery" />
@@ -31,7 +31,7 @@ div<!--
       </el-form-item>
       <!-- 创建时间 -->
       <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
+        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 240px;" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="status">
@@ -47,45 +47,49 @@ div<!--
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" >
-      <el-table-column type="selection" />
-      <el-table-column type="index" width="100" label="序号"    />
+    <el-table :data="tableData"  v-loading="loading" >
+       
+      <el-table-column type="index" width="100" label="序号" align="center"  :show-overflow-tooltip="true"  />
       <!-- 举报编号 -->
-      <el-table-column label="举报编号" align="center" prop="reportCode" width="300">
+      <el-table-column label="举报编号" align="center" prop="reportCode" width="300" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.reportCode || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 举报类别 -->
-      <el-table-column label="举报类别" align="center" prop="reportTypeId" >
+      <el-table-column label="举报类别" align="center" prop="reportTypeId" :show-overflow-tooltip="true" >
         <template #default="scope">
-           <div class="flex-center"> 
-          <dict-tag :options="report_type_id" :value="scope.row.reportTypeId" />
-          </div>
+         
+          <dict-text :options="report_type_id" :value="scope.row.reportTypeId" />
+        
         </template>
       </el-table-column>
       <!-- 被举报方 -->
-      <el-table-column label="被举报方" align="center" prop="reportPersonName" width="210">
+      <el-table-column label="被举报方" align="center" prop="reportPersonName" :show-overflow-tooltip="true" >
         <template #default="scope">
           <span>{{ scope.row.reportPersonName || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 举报商品 -->
-      <el-table-column label="举报商品" align="center" prop="reportGoodsName" width="100">
+      <el-table-column label="举报商品" align="center" prop="reportGoodsName" :show-overflow-tooltip="true"  >
         <template #default="scope">
           <span>{{ scope.row.reportGoodsName || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 创建时间 -->
-      <el-table-column label="创建时间" align="center" prop="createTime" width="210">
+      <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 所属状态 -->
-      <el-table-column label="所属状态" align="center" prop="status" width="100">
+      <el-table-column label="所属状态" align="center" prop="status" width="120" :show-overflow-tooltip="true">
+        
         <template #default="scope">
-          <dict-tag :options="report_status" :value="scope.row.status" />
+          <div class="status-cell-wrapper">
+            <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusName(scope.row.status) }}</span>
+             
+          </div>
         </template>
       </el-table-column>
 
@@ -97,7 +101,7 @@ div<!--
             <el-button
               v-if="scope.row.status === '3' || scope.row.status === '4' || scope.row.status === '0'"
               v-hasPermi="['safeguard:report:query']"
-              style="font-size: 14px;"
+              style="font-size: 14px; color: #108c58"
               v-throttle
               type="primary"
               link
@@ -109,7 +113,7 @@ div<!--
             <!-- 申述按钮 - 只在处理中和已驳回状态显示 -->
             <el-button
               v-if="scope.row.status === '1' || scope.row.status === '2'"
-              style="font-size: 14px;"
+              style="font-size: 14px; color: #108c58"
               v-throttle
               type="success"
               size="small"
@@ -187,7 +191,7 @@ div<!--
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Upload, View, Delete, Document, UploadFilled } from '@element-plus/icons-vue';
+import { Document, Search, RefreshLeft } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import { pickBy } from 'lodash';
 import { getreportlist, reportback } from '@/api/rightsPlatform/customerreport';
@@ -306,6 +310,28 @@ const getList = async () => {
     loading.value = false;
   }
 };
+const statusOptions = [
+  { value: '0', label: '待处理' },
+  { value: '1', label: '处理中' },
+  { value: '2', label: '已驳回' },
+  { value: '3', label: '已结案' },
+  { value: '4', label: '已撤回' }
+];
+const getStatusClass = (status: string | undefined | null) => {
+  const statusMap: Record<string, string> = {
+    '0': 'status-pending', // 待处理
+    '1': 'status-processing', // 处理中
+    '2': 'status-rejected', // 已驳回
+    '3': 'status-closed', // 已结案
+    '4': 'status-withdrawn' // 已撤回
+  };
+  return statusMap[String(status)] || 'status-default';
+};
+const getStatusName = (status: string | undefined | null) => {
+  if (status === undefined || status === null || status === '') return '-';
+  const option = statusOptions.find((item) => item.value === String(status));
+  return option?.label || '-';
+};
 /** 打开弹窗 */
 const openDialog = (type: 'appeal' | 'view', status, id?: string | number) => {
   dialog.value = { visible: true, type, status, id: id ?? null };
@@ -343,7 +369,7 @@ onMounted(() => {
 .content-management {
   padding: 24px;
   //   background-color: #f5f5f5;
-  min-height: 100vh;
+  height: calc(100vh - 120px);
 }
 
 // 主要内容区域 - 大盒子
@@ -465,7 +491,83 @@ onMounted(() => {
     padding: 8px 12px;
   }
 }
+ .status-cell-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+  
+    /* 所属状态样式 */
+  .status-text {
+    position: relative;
+    padding-left: 16px;
 
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+  }
+    .status-pending {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+    .status-processing {
+    color: #e6a23c;
+
+    &::before {
+      background-color: #e6a23c;
+    }
+  }
+    .status-rejected {
+    color: #f56c6c;
+
+    &::before {
+      background-color: #f56c6c;
+    }
+  }
+    .status-closed {
+    color: #108c58;
+
+    &::before {
+      background-color: #108c58;
+    }
+  }
+    .status-withdrawn {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+    .status-default {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+
+  .status-icon {
+    position: absolute;
+    top: 0;
+    right: -10px;
+    font-size: 24px;
+    color: #409eff;
+    z-index: 10;
+    background: #fff;
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 // 操作按钮组样式
 .operation-buttons {
   display: flex;

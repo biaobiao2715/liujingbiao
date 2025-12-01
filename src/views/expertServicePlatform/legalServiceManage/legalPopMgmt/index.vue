@@ -66,7 +66,6 @@
     <!-- 表格 -->
     <el-table
       :data="tableData"
-      border
       v-loading="loading"
       @selection-change="handleSelectionChange"
     >
@@ -106,23 +105,32 @@
       
       <el-table-column label="状态" align="center" prop="status" width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.status === '启用' ? 'success' : 'danger'">
-            {{ scope.row.status }}
-          </el-tag>
+          <div class="status-with-dot">
+            <span 
+              class="status-dot" 
+              :class="`status-dot-${getStatusType(scope.row.status)}`"
+            ></span>
+            <span 
+              class="status-text"
+              :class="`status-text-${getStatusType(scope.row.status)}`"
+            >
+              {{ scope.row.status }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" fixed="right" width="320" class-name="small-padding fixed-width">
+      <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="flex-center operation-btns">
-            <el-button v-throttle v-hasPermi="['skill:lawContent:query']" type="primary" link @click="handleView(scope.row)">详情</el-button>
-            <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
+          <div style="display: flex; justify-content: flex-start; align-items: center">
+            <el-button v-throttle v-hasPermi="['skill:lawContent:query']" type="text" style="font-size: 14px; color: #108c58" @click="handleView(scope.row)">详情</el-button>
+            <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="text" style="font-size: 14px; color: #108c58" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button
               v-throttle
               v-hasPermi="['skill:lawContent:edit']"
               v-if="scope.row.status === '启用'"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '3')"
             >
               禁用
@@ -131,8 +139,8 @@
               v-throttle
               v-hasPermi="['skill:lawContent:edit']"
               v-if="scope.row.status === '禁用'"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '2')"
             >
               启用
@@ -141,8 +149,8 @@
               v-throttle
               v-hasPermi="['skill:lawContent:remove']"
               v-if="scope.row.status === '禁用'"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
               删除
@@ -362,8 +370,7 @@ const handleEnable = () => {
     {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     }
   )
     .then(() => {
@@ -416,8 +423,7 @@ const handleDisable = () => {
     {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     }
   )
     .then(() => {
@@ -467,8 +473,7 @@ const handleDelete = async () => {
       {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'warning',
-        center: true
+        type: 'warning'
       }
     );
     
@@ -513,8 +518,7 @@ const handleStatusChange = async (row: any, newStatus: string) => {
       {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'warning',
-        center: true
+        type: 'warning'
       }
     );
     
@@ -543,8 +547,7 @@ const handleDeleteSingle = async (row: any) => {
       {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
-        type: 'warning',
-        center: true
+        type: 'warning'
       }
     );
     
@@ -559,6 +562,12 @@ const handleDeleteSingle = async (row: any) => {
   }
 };
 
+const getStatusType = (status: string) => {
+  if (status === '启用') return 'success';
+  if (status === '禁用') return 'danger';
+  return 'info';
+};
+
 onMounted(() => {
   getList();
 });
@@ -567,6 +576,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 .operation-bar {
@@ -620,5 +631,56 @@ onMounted(() => {
   :deep(.el-button) {
     font-size: 14px;
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #67c23a;
+}
+
+.status-dot-warning {
+  background-color: #e6a23c;
+}
+
+.status-dot-danger {
+  background-color: #f56c6c;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-success {
+  color: #67c23a;
+}
+
+.status-text-warning {
+  color: #e6a23c;
+}
+
+.status-text-danger {
+  color: #f56c6c;
+}
+
+.status-text-info {
+  color: #909399;
 }
 </style>

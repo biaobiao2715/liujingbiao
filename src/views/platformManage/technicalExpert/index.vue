@@ -40,7 +40,7 @@
       </el-form>
 
       <!-- 表格 -->
-      <el-table ref="tableRef" :data="list" border :header-cell-style="{ fontWeight: 500 }" v-loading="loading">
+      <el-table ref="tableRef" :data="list" border v-loading="loading">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="专家姓名" prop="expertName" align="center" :show-overflow-tooltip="true" />
         <el-table-column label="专家编号" prop="expertNumber" align="center" :show-overflow-tooltip="true">

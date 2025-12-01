@@ -59,7 +59,7 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
@@ -540,6 +540,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .case-type-container {
+  height: calc(100vh - 120px);
   padding: 20px;
 
   .search-actions {

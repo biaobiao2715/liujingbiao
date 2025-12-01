@@ -34,32 +34,42 @@
         <el-button v-throttle icon="Plus" type="primary" @click="handleAdd" v-hasPermi="['safeguard:warnRule:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle :disabled="multiple" @click="handleBatchStatus('0')" v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+        <el-button
+          v-throttle
+          :color="multiple ? '#F2F3F5' : '#108C58'"
+          @click="handleBatchStatus('0')"
+          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
           >启用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle :disabled="multiple" @click="handleBatchStatus('1')" v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+        <el-button
+          v-throttle
+          :color="multiple ? '#F2F3F5' : '#108C58'"
+          @click="handleBatchStatus('1')"
+          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
           >禁用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle color="#F23255" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
+        <el-button v-throttle :color="multiple ? '#F2F3F5' : '#F23255'" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']"
+          >删除</el-button
+        >
       </el-col>
     </el-row>
 
     <!-- 表格 -->
-    <el-table v-loading="loading" border :data="dataList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="dataList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="60" />
       <el-table-column label="预警规则名称" prop="ruleName" />
-      <el-table-column label="信用等级" prop="creditRatingId">
+      <el-table-column label="信用等级" prop="creditRatingId" align="center">
         <template #default="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditRatingId" />
         </template>
       </el-table-column>
       <el-table-column label="预警值" prop="warnValue" />
-      <el-table-column label="所属状态" prop="status">
+      <el-table-column label="所属状态" prop="status" align="center">
         <template #default="scope">
           <dict-tag :options="warn_rule_status" :value="scope.row.status" />
         </template>
@@ -72,11 +82,11 @@
       <el-table-column fixed="right" label="操作" width="240" class-name="flex-center op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx < 2">
+            <template v-if="idx">
               <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
             </template>
           </template>
-          <template v-if="getRowActions(scope.row).length > 3">
+          <!-- <template v-if="getRowActions(scope.row).length > 3">
             <el-dropdown>
               <span class="el-dropdown-link">
                 <el-button v-throttle link type="primary">更多</el-button>
@@ -89,7 +99,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </template>
+          </template> -->
         </template>
       </el-table-column>
     </el-table>
@@ -258,7 +268,7 @@ const handleSelectionChange = (rows: EarlyWarningRuleVO[]) => {
 // 合并后的批量状态更新（target: '0' 启用 | '1' 禁用）
 const handleBatchStatus = async (target: '0' | '1') => {
   if (!ids.value.length) {
-    proxy?.$modal.msgWarning('请选择数据');
+    proxy?.$modal.msgWarning('请先选择数据');
     return;
   }
 
@@ -293,7 +303,7 @@ const handleBatchStatus = async (target: '0' | '1') => {
 const handleDelete = async (row?: EarlyWarningRuleVO) => {
   const targetIds = row ? [row.id!] : ids.value;
   if (!targetIds?.length) {
-    proxy?.$modal.msgWarning('请选择要删除的数据');
+    proxy?.$modal.msgWarning('请先选择数据');
     return;
   }
   const tip = row ? `确认删除规则 "${row.ruleName}" ?` : '确认删除选中规则?';

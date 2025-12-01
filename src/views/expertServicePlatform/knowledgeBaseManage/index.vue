@@ -47,24 +47,36 @@
         <el-button v-throttle v-hasPermi="['system:article:add']" icon="Plus" type="primary" @click="handleAdd">新增文章</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" @click="handleEnableBatch" :disabled="noSelection || loading"
+        <el-button
+          v-throttle
+          v-hasPermi="['system:article:enableAndDisabled']"
+          @click="handleEnableBatch"
+          :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
           >启用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" @click="handleDisableBatch" :disabled="noSelection || loading"
+        <el-button
+          v-throttle
+          v-hasPermi="['system:article:enableAndDisabled']"
+          @click="handleDisableBatch"
+          :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
           >禁用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:remove']" color="#F23255" @click="handleDeleteBatch" :disabled="noSelection || loading"
+        <el-button
+          v-throttle
+          v-hasPermi="['system:article:remove']"
+          :color="loading || noSelection ? '#F2F3F5' : '#F23255'"
+          @click="handleDeleteBatch"
           >删除</el-button
         >
       </el-col>
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed; width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="发布时间" prop="publishTime">
@@ -73,12 +85,12 @@
         </template>
       </el-table-column>
       <el-table-column label="文章标题" prop="articleTitle" :show-overflow-tooltip="true" />
-      <el-table-column label="文章类别" prop="articleType">
+      <el-table-column label="文章类别" prop="articleType" align="center">
         <template #default="scope">
-          <dict-text :options="article_type" :value="scope.row.articleType ?? ''" />
+          <dict-tag :options="article_type" :value="scope.row.articleType ?? ''" />
         </template>
       </el-table-column>
-      <el-table-column label="启用状态" prop="articleStatus">
+      <el-table-column label="启用状态" prop="articleStatus" align="center">
         <!-- <template #default="scope">
           <span>{{ getEnableStatusText(scope.row.articleStatus) }}</span>
         </template> -->
@@ -107,14 +119,14 @@
           {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right" class-name="op-col flex-center">
+      <el-table-column label="操作" width="200" fixed="right" class-name="op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx < 2">
+            <template v-if="idx">
               <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
             </template>
           </template>
-          <template v-if="getRowActions(scope.row).length > 3">
+          <!-- <template v-if="getRowActions(scope.row).length > 3">
             <el-dropdown>
               <span class="el-dropdown-link">
                 <el-button v-throttle link type="primary">更多</el-button>
@@ -127,7 +139,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </template>
+          </template> -->
         </template>
       </el-table-column>
     </el-table>

@@ -119,7 +119,7 @@
       </template>
 
       <FormHeader title="案件类型" />
-      <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
+      <el-table :data="formData.hnCase ? [formData.hnCase] : []">
         <el-table-column prop="caseTypeCode" label="案件类型编号" :show-overflow-tooltip="true" />
         <el-table-column prop="caseTypeId" label="案件类型名称" :show-overflow-tooltip="true">
           <template v-slot="scope">
@@ -207,7 +207,7 @@
       <!--历史申诉材料  -->
       <div v-if="formData.historyAppealList && formData.historyAppealList.length > 0">
         <FormHeader title="历史申诉材料" />
-        <el-table :data="formData.historyAppealList || []" border>
+        <el-table :data="formData.historyAppealList || []">
           <el-table-column type="index" min-width="55" label="序号" />
           <el-table-column prop="createTime" label="申诉时间"></el-table-column>
           <el-table-column label="操作">
@@ -264,7 +264,7 @@
     </el-form>
 
     <!-- 历史申诉材料弹窗 -->
-    <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="70%" destroy-on-close append-to-body @close="closeAppealDialog">
+    <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body @close="closeAppealDialog">
       <div v-loading="appealDialogLoading">
         <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
@@ -325,7 +325,7 @@
     </el-dialog>
 
     <!-- 被举报人详情弹窗 -->
-    <el-dialog v-model="supplierDialogVisible" title="供应商/企业信息" width="70%" append-to-body destroy-on-close>
+    <el-dialog v-model="supplierDialogVisible" title="供应商/企业信息" width="50%" append-to-body destroy-on-close>
       <supplierDetail :id="supplierDialogId" />
     </el-dialog>
   </div>

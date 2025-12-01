@@ -45,14 +45,25 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="文章简介" prop="articleSummary" min-width="200" :show-overflow-tooltip="true" />
       <el-table-column label="状态" prop="articleStatus" width="100">
         <template #default="scope">
-          <dict-tag :options="art_article_status" :value="scope.row.articleStatus" />
+          <div class="status-with-dot">
+            <span 
+              class="status-dot" 
+              :class="`status-dot-${getStatusType(scope.row.articleStatus)}`"
+            ></span>
+            <span 
+              class="status-text"
+              :class="`status-text-${getStatusType(scope.row.articleStatus)}`"
+            >
+              {{ getStatusLabel(scope.row.articleStatus) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="文章类型" prop="articleType" width="120">
@@ -70,17 +81,33 @@
           <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" fixed="right" width="320" class-name="small-padding fixed-width">
+      <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="flex-center operation-btns">
-            <el-button v-throttle v-hasPermi="['credit:creditArticle:query']" type="primary" link @click="handleDetails(scope.row)">详情</el-button>
-            <el-button v-throttle v-hasPermi="['credit:creditArticle:edit']" type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
+          <div style="display: flex; justify-content: flex-start; align-items: center">
+            <el-button
+              v-throttle
+              v-hasPermi="['credit:creditArticle:query']"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleDetails(scope.row)"
+            >
+              详情
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['credit:creditArticle:edit']"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
             <el-button
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
               v-if="canOffline(scope.row)"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '3')"
             >
               下架
@@ -89,8 +116,8 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
               v-if="canPublish(scope.row)"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '2')"
             >
               上架
@@ -99,8 +126,8 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:remove']"
               v-if="canDelete(scope.row)"
-              type="primary"
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleDelete(scope.row)"
             >
               删除
@@ -166,7 +193,7 @@ const { art_article_status, art_article_type } = toRefs<any>(proxy?.useDict('art
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
-  pageSize: 20,
+  pageSize: 10,
   articleTitle: '',
   articleType: '',
   articleStatus: '',
@@ -256,6 +283,23 @@ const getStatusCode = (row: any) => String(row?.articleStatus ?? '');
 const canPublish = (row: any) => ['1', '3'].includes(getStatusCode(row));
 const canOffline = (row: any) => getStatusCode(row) === '2';
 const canDelete = (row: any) => getStatusCode(row) === '3';
+
+const getStatusLabel = (status: string | number) => {
+  const value = String(status ?? '');
+  const list = art_article_status.value || [];
+  const target = list.find((item: any) => String(item.value) === value);
+  return target?.label || '--';
+};
+
+const getStatusType = (status: string | number) => {
+  const value = String(status ?? '');
+  // 根据业务逻辑：1-待上架, 2-已上架, 3-已下架
+  // 已上架用success（绿色），已下架用danger（红色），待上架用warning（橙色）
+  if (value === '2') return 'success'; // 已上架
+  if (value === '3') return 'danger'; // 已下架
+  if (value === '1') return 'warning'; // 待上架
+  return 'info';
+};
 
 const getDialogTitle = () => {
   const map: Record<string, string> = {
@@ -405,6 +449,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 .operation-bar {
@@ -458,5 +504,56 @@ onMounted(() => {
   :deep(.el-button) {
     font-size: 14px;
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #67c23a;
+}
+
+.status-dot-warning {
+  background-color: #e6a23c;
+}
+
+.status-dot-danger {
+  background-color: #f56c6c;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-success {
+  color: #67c23a;
+}
+
+.status-text-warning {
+  color: #e6a23c;
+}
+
+.status-text-danger {
+  color: #f56c6c;
+}
+
+.status-text-info {
+  color: #909399;
 }
 </style>

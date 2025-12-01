@@ -43,7 +43,7 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="企业名称" prop="companyName" min-width="160" :show-overflow-tooltip="true" />
       <el-table-column label="企业编码" prop="enterpriseNumber" width="210" style="color: #0000ff">
@@ -56,12 +56,12 @@
       </el-table-column>
       <el-table-column label="统一社会信用代码" prop="licenseNumber" width="210" :show-overflow-tooltip="true"> </el-table-column>
 
-      <el-table-column label="资质等级" prop="credentialLevel" width="100">
+      <el-table-column label="资质等级" prop="credentialLevel" align="center" width="100">
         <template v-slot="scope">
           <dict-tag :options="plat_qualification_grade" :value="scope.row.credentialLevel" />
         </template>
       </el-table-column>
-      <el-table-column label="信用等级" prop="creditLevel" width="100">
+      <el-table-column label="信用等级" prop="creditLevel" align="center" width="100">
         <template v-slot="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditLevel" />
         </template>

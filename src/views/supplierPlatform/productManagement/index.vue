@@ -47,10 +47,8 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
-          color="#F23255"
+          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#F23255'"
           @click="handleDelete"
-          :loading="actionLoading === 'delete'"
-          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           删除
         </el-button>
@@ -58,10 +56,9 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
-          :loading="actionLoading === 'shelf'"
-          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           上架
         </el-button>
@@ -70,24 +67,23 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
-          :loading="actionLoading === 'unshelf'"
-          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           下架
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
+        <el-button v-throttle color="#F2F3F5" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory">查询价格调整历史</el-button>
+        <el-button v-throttle color="#F2F3F5" v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory">查询价格调整历史</el-button>
       </el-col>
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="商品名称" prop="goodsName" width="150" :show-overflow-tooltip="true" />
@@ -100,7 +96,7 @@
       <el-table-column label="商品类目" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="预警下限" prop="goodsAlert" />
       <el-table-column label="提醒" prop="remind" width="100" />
-      <el-table-column label="商品状态" prop="status">
+      <el-table-column label="商品状态" prop="status" align="center">
         <!-- <template #default="scope">
           <dict-text :options="goods_status" :value="scope.row.status ?? ''" />
         </template> -->
@@ -124,15 +120,15 @@
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="200" class-name="op-col flex-center">
+      <el-table-column fixed="right" label="操作" min-width="300" class-name="op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx < 2">
+            <template v-if="idx">
               <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
             </template>
           </template>
 
-          <template v-if="getRowActions(scope.row).length > 3">
+          <!-- <template v-if="getRowActions(scope.row).length > 3">
             <el-dropdown>
               <span class="el-dropdown-link">
                 <el-button v-throttle link type="primary">更多</el-button>
@@ -145,7 +141,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </template>
+          </template> -->
         </template>
       </el-table-column>
     </el-table>

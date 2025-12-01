@@ -6,7 +6,7 @@
     开发信息: Created by 邓和杰 2025-11-20
 -->
 <template>
-  <el-dialog :model-value="formVisible" width="720px" :title="dialogTitle" align-center :close-on-click-modal="false" @close="handleClose">
+  <el-dialog :model-value="formVisible" width="50%" :title="dialogTitle" align-center :close-on-click-modal="false" @close="handleClose">
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="200px" class="legal-edit-form">
       <el-form-item label="法律文书名称模版" prop="legalDocumentName">
         <el-input v-model="formData.legalDocumentName" placeholder="请输入法律文书模版名称" maxlength="30" show-word-limit />
@@ -230,7 +230,7 @@ const handleClose = () => {
 
   .dialog-footer {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 16px;
   }
 }
