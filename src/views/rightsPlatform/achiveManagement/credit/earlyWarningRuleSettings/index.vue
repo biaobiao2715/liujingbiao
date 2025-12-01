@@ -82,11 +82,11 @@
       <el-table-column fixed="right" label="操作" width="240" class-name="flex-center op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx < 2">
+            <template v-if="idx">
               <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
             </template>
           </template>
-          <template v-if="getRowActions(scope.row).length > 3">
+          <!-- <template v-if="getRowActions(scope.row).length > 3">
             <el-dropdown>
               <span class="el-dropdown-link">
                 <el-button v-throttle link type="primary">更多</el-button>
@@ -99,7 +99,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </template>
+          </template> -->
         </template>
       </el-table-column>
     </el-table>
