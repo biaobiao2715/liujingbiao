@@ -413,7 +413,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .loan-applications {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 
 .search-form {
