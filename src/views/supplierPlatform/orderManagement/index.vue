@@ -61,48 +61,48 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
       <!-- <el-table-column type="selection" width="55" align="center" /> -->
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="销售订单号" align="center" prop="orderSn" width="180" :show-overflow-tooltip="true">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="销售订单号" prop="orderSn" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.orderSn }}</el-link>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" min-width="120">
+      <el-table-column label="商品名称" prop="goodsName" :show-overflow-tooltip="true" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.goodsName || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品数量" align="center" prop="goodsQuantity" width="100">
+      <el-table-column label="商品数量" prop="goodsQuantity" width="100">
         <template #default="scope">
           <span>{{ scope.row.goodsQuantity || 0 }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品价格" align="center" prop="goodsPrice" width="120">
+      <el-table-column label="商品价格" prop="goodsPrice" width="120">
         <template #default="scope">
           <span class="amount-text">¥{{ scope.row.goodsPrice || '0.00' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="配送方式" align="center" prop="deliveryOptions" width="120">
+      <el-table-column label="配送方式" prop="deliveryOptions" width="120">
         <template #default="scope">
           <span>{{ getDeliveryMethodText(scope.row.deliveryOptions) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="下单时间" align="center" prop="createTime" width="160">
+      <el-table-column label="下单时间" prop="createTime" width="160">
         <template #default="scope">
           <span>{{ scope.row.createTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="收货人" align="center" prop="receiverName" width="100">
+      <el-table-column label="收货人" prop="receiverName" width="100">
         <template #default="scope">
           <span>{{ scope.row.receiverName || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="收货电话" align="center" prop="receiverPhone" width="130">
+      <el-table-column label="收货电话" prop="receiverPhone" width="130">
         <template #default="scope">
           <span>{{ scope.row.receiverPhone || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="收货地址" align="center" prop="fullReceiverAddress" width="200" :show-overflow-tooltip="true">
+      <el-table-column label="收货地址" prop="fullReceiverAddress" width="200" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ getFullAddress(scope.row) }}</span>
         </template>
@@ -112,21 +112,28 @@
           <dict-tag :options="order_status" :value="scope.row.orderStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
-          <div style="display: flex; justify-content: space-evenly; align-items: center">
-            <el-link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-link>
-            <el-link type="primary" @click="handleShip(scope.row)" v-hasPermi="['grain:hnSalesOrder:edit']" v-if="scope.row.orderStatus === '1'">
+          <div style="display: flex; justify-content: flex-start; align-items: center">
+            <el-button link type="primary" @click="handleView(scope.row)" v-hasPermi="['system:goods:query']">查看</el-button>
+            <el-button
+              link
+              type="primary"
+              @click="handleShip(scope.row)"
+              v-hasPermi="['grain:hnSalesOrder:edit']"
+              v-if="scope.row.orderStatus === '1'"
+            >
               发货
-            </el-link>
-            <el-link
+            </el-button>
+            <el-button
               type="danger"
+              link
               @click="handleCancel(scope.row)"
               v-hasPermi="['grain:hnSalesOrder:cancelSalesOrder']"
               v-if="scope.row.orderStatus === '1'"
             >
               取消订单
-            </el-link>
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -558,6 +565,7 @@ onActivated(() => {
 
 <style scoped lang="scss">
 .supplier-management {
+  min-height: calc(100vh - 120px);
   padding: 24px;
 }
 
