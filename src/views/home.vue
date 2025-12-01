@@ -51,85 +51,95 @@ const router = useRouter();
 const userInfo = ref();
 // 应用数据
 const applications = ref([
-  // {
-  //   title: '供应商管理后台',
-  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-  //   icon: 'application-icon-1.svg',
-  //   bg: 'application-bg-1.svg',
-  //   redirect: '/platform/index',
-  //   type: []
-  // },
-  // {
-  //   title: '供应商系统',
-  //   description: '供应商系统负责供应商自主供应商进行工作及信息管理',
-  //   icon: 'application-icon-2.svg',
-  //   bg: 'application-bg-2.svg',
-  //   type: []
-  // },
-  // {
-  //   title: '种业数据服务平台',
-  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-  //   icon: 'application-icon-4.svg',
-  //   bg: 'application-bg-4.svg',
-  //   type: []
-  // },
-
   {
-    title: '专家服务平台',
-    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-    icon: 'application-icon-4.svg',
-    bg: 'application-bg-4.svg',
-    redirect: '/index',
-    type: ['4', '5']
-  },
-
-  {
-    title: '后台管理',
+    title: '平台管理系统',
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
     redirect: '/platform/index',
-    type: ['0', '2', '3', '6']
+    type: ['0']
   },
+  // 供应商
   {
-    title: '农资农具销售服务平台',
-    description: '农资农具销售服务平台主要用于针对农户、合作社、农资店、农场等不同客户进行农资农具购买',
+    title: '供应商销售平台',
+    description: '供应商系统负责入驻供应商对自己商品进行上/下架及价格管理、订单管理、供给管理等',
     icon: 'application-icon-3.svg',
     bg: 'application-bg-3.svg',
-    redirect: '/mall',
-    type: ['1']
+    redirect: '/supplierPlatform/productManagement',
+    type: ['2']
   },
+  // 企业
+  {
+    title: '企业销售平台',
+    description: '企业系统负责入驻企业对自己商品进行上/下架及价格管理、订单管理、供给管理等',
+    icon: 'application-icon-3.svg',
+    bg: 'application-bg-3.svg',
+    redirect: '/enterprise/productManagement',
+    type: ['3']
+  },
+  // 采购商
   {
     title: '种子经纪服务平台',
-    description: '该应用为内部人员对供应商进行管理；如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    description: '采购商在商城下单、比价、收藏商品、收货地址管理、发布采购需求、查阅供给需求信息、商品市场行情等',
     icon: 'application-icon-5.svg',
     bg: 'application-bg-5.svg',
     redirect: '/mall',
     type: ['1']
   },
-  // {
-  //   title: '种子维权服务平台',
-  //   description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
-  //   icon: 'application-icon-6.svg',
-  //   bg: 'application-bg-6.svg',
-  //   redirect: '/mall/index',
-  //   type: ['2', '3']
-  // },
+  // 采购商
+  {
+    title: '农资农具销售服务平台',
+    description: '采购商在商城下单、比价、收藏商品、收货地址管理、发布采购需求、查阅供给需求信息、商品市场行情等',
+    icon: 'application-icon-3.svg',
+    bg: 'application-bg-3.svg',
+    redirect: '/mall',
+    type: ['1']
+  },
+  // 供应商、企业
+  {
+    title: '种子维权服务平台',
+    description: '平台审核举报，生成案件，全程跟踪处理，实现维权闭环管理',
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg',
+    redirect: '/rightsPlatform/aaa/customerreport',
+    type: ['2', '3']
+  },
+  // 技术专家、法务专家
+  {
+    title: '种子技术服务平台',
+    description: '整合种业知识库、培训直播与专家咨询，提供全链技术服务等',
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg',
+    redirect: '/skill/knowledgeBaseManage',
+    type: ['4', '5']
+  },
+  // 供应商、企业、采购商
   {
     title: '种子金融服务平台',
-    description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
+    description: '面向农户、经销商、供应商等多元化客户群体，提供金融政策与风险案例的查询服务，以及金融产品的展示与申请功能',
     icon: 'application-icon-7.svg',
     bg: 'application-bg-7.svg',
     redirect: '/financeFront/index',
     type: ['1', '2', '3']
   },
+
+  // 金融机构
+  {
+    title: '种子金融服务管理平台',
+    description: '专为金融机构及管理用户设计，支持金融政策与风险案例的新增、编辑与维护，同时提供金融产品的新增、修改、审批及全生命周期管理功能',
+    icon: 'application-icon-4.svg',
+    bg: 'application-bg-4.svg',
+    redirect: '/credit/dashboard',
+    type: ['6']
+  },
+  // 所有人
   {
     title: '全链条溯源服务系统',
-    description: '全链条溯源服务系统是一种通过技术手段对产品或服务从初始阶段到最终交付的全生命周期各环节进行信息采集、记录、关联和追踪的管理系统。',
+    description: '覆盖企业、基地、生产、质检、加工、销售等环节，实现农产品从田间到餐桌的全过程可追溯',
     icon: 'application-icon-7.svg',
     bg: 'application-bg-7.svg',
     redirect: 'thirdPartyLogin',
-    type: ['1', '2', '3', '4', '5', '6', '7']
+    type: ['0', '1', '2', '3', '4', '5']
   }
 ]);
 
@@ -169,15 +179,22 @@ const handleRedirect = (path: string) => {
     });
     return;
   }
+
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
-    if (tenantType.value === '0' || tenantType.value === '1') {
-      router.push(path);
-    } else if (tenantType.value === '2' || tenantType.value === '3') {
-      router.push('/supplierPlatform/productManagement');
-    } else if (tenantType.value === '4' || tenantType.value === '5') {
-      router.push('/skill/knowledgeBaseManage');
-    }
+    // if (path === '/platform/index') {
+    //   if (tenantType.value === '0' || tenantType.value === '1') {
+    //     router.push(path);
+    //   } else if (tenantType.value === '2' || tenantType.value === '3') {
+    //     router.push('/supplierPlatform/productManagement');
+    //   } else if (tenantType.value === '4' || tenantType.value === '5') {
+    //     router.push('/skill/knowledgeBaseManage');
+    //   } else if (tenantType.value === '6') {
+    //     router.push('/credit/dashboard');
+    //   }
+    // }
+
+    router.push(path);
 
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
