@@ -9,93 +9,93 @@
 -->
 <template>
   <div class="knowledge-case-page" v-loading="loading">
-    <div class="filter-card">
-      <el-form ref="queryFormRef" :model="queryParams" inline label-width="120px">
-        <el-form-item label="知识库案件名称" prop="knowledgeCaseName" v-hasPermi="['safeguard:knowledgeCaseContent:groupName']">
-          <el-select
-            v-model="queryParams.knowledgeCaseName"
-            placeholder="请选择"
-            clearable
-            filterable
-            style="width: 220px"
-          >
-            <el-option v-for="item in caseNameOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createTime">
-          <el-date-picker
-            v-model="queryParams.createTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="选择日期"
-            style="width: 220px"
-            clearable
-          />
-        </el-form-item>
-        <el-form-item label="创建人" prop="createBy">
-          <el-input
-            v-model="queryParams.createBy"
-            placeholder="请输入创建人姓名"
-            clearable
-            style="width: 220px"
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item class="filter-actions">
-          <el-button type="primary" @click="handleSearch" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+    <!-- 搜索条件 -->
+    <el-form
+      ref="queryFormRef"
+      :model="queryParams"
+      inline
+      label-position="left"
+    >
+      <el-form-item label="知识库案件名称" prop="knowledgeCaseName" label-width="auto" v-hasPermi="['safeguard:knowledgeCaseContent:groupName']">
+        <el-select
+          v-model="queryParams.knowledgeCaseName"
+          placeholder="请选择"
+          clearable
+          filterable
+        >
+          <el-option v-for="item in caseNameOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="创建时间" prop="createTime" label-width="auto">
+        <el-date-picker
+          v-model="queryParams.createTime"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="选择日期"
+          clearable
+        />
+      </el-form-item>
+      <el-form-item label="创建人" prop="createBy" label-width="auto">
+        <el-input
+          v-model="queryParams.createBy"
+          placeholder="请输入创建人姓名"
+          clearable
+          @keyup.enter="handleSearch"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSearch" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
 
-    <div class="table-card">
-      <div class="table-toolbar">
-        <div class="toolbar-left">
-          <el-button type="primary" @click="handleCreate" v-hasPermi="['safeguard:knowledgeCaseContent:add']">新增</el-button>
-          <el-button type="danger" plain @click="handleBatchDelete" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
-        </div>
-        <div class="toolbar-right">
-          <span class="table-tips">共查询到 {{ total }} 条数据</span>
-        </div>
-      </div>
+    <!-- 操作栏 -->
+    <el-row :gutter="12" class="operation-bar">
+      <el-col :span="1.5">
+        <el-button type="primary" @click="handleCreate" v-hasPermi="['safeguard:knowledgeCaseContent:add']">新增</el-button>
+        <el-button type="danger" plain @click="handleBatchDelete" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
+      </el-col>
+    </el-row>
 
-      <el-table
-        :data="tableData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :header-cell-style="{ background: '#fafafa', color: '#606266' }"
-      >
-        <el-table-column type="selection" width="50" align="center" />
-        <el-table-column label="序号" width="80" align="center">
-          <template #default="scope">
-            {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="knowledgeCaseName" label="知识库案件名称" min-width="200" align="center" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="创建时间" min-width="180" align="center" show-overflow-tooltip />
-        <el-table-column prop="createBy" label="创建人" min-width="120" align="center" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" align="center">
-          <template #default="scope">
+    <!-- 表格 -->
+    <el-table
+      :data="tableData"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="50" align="center" />
+      <el-table-column label="序号" width="80" align="center">
+        <template #default="scope">
+          {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="knowledgeCaseName" label="知识库案件名称" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="createTime" label="创建时间" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="createBy" label="创建人" min-width="120" show-overflow-tooltip />
+      <el-table-column label="操作" width="200">
+        <template #default="scope">
+          <div class="flex-center operation-btns">
             <el-button type="primary" link @click="handleEdit(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:edit']">编辑</el-button>
             <el-button type="primary" link @click="handleView(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查看</el-button>
             <el-button type="danger" link @click="handleSingleDelete(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <div class="pagination-wrapper">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          :current-page="queryParams.pageNum"
-          :page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
+    <!-- 分页 -->
+    <div class="pagination">
+      <el-pagination
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        :current-page="queryParams.pageNum"
+        :page-size="queryParams.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        @size-change="handleSizeChange"
+        @current-change="handlePageChange"
+      />
     </div>
 
     <!-- 案件详情弹窗（新增/编辑） -->
@@ -341,43 +341,65 @@ onMounted(() => {
 <style scoped lang="scss">
 .knowledge-case-page {
   padding: 24px;
-  background: #f5f6f8;
-  min-height: calc(100vh - 120px);
 }
 
-.filter-card,
-.table-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.filter-card {
+.operation-bar {
   margin-bottom: 16px;
 
-  .filter-actions {
-    margin-left: 16px;
+  .el-col {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .el-button {
+    width: auto;
+    min-width: 80px;
+  }
+
+  .table-tips {
+    color: #909399;
+    font-size: 13px;
   }
 }
 
-.table-card {
-  .table-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-
-    .table-tips {
-      color: #909399;
-      font-size: 13px;
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
+    
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
     }
   }
+  
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+  }
+}
 
-  .pagination-wrapper {
-    margin-top: 16px;
-    display: flex;
-    justify-content: flex-end;
+.pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.operation-btns {
+  gap: 8px;
+  
+  :deep(.el-button) {
+    font-size: 14px;
   }
 }
 </style>

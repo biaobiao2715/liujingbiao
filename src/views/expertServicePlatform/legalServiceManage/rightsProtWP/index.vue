@@ -12,14 +12,13 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="120"
-      class="search-form"
+      label-position="left"
     >
-      <el-form-item label="维权白皮书标题" prop="paperTitle">
+      <el-form-item label="维权白皮书标题" prop="paperTitle" label-width="auto">
         <el-input v-model="queryParams.paperTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       
-      <el-form-item label="所属状态" prop="paperStatus">
+      <el-form-item label="所属状态" prop="paperStatus" label-width="auto">
         <el-select v-model="queryParams.paperStatus" placeholder="请选择" filterable clearable>
           <el-option 
             v-for="item in whitepaper_status" 
@@ -30,7 +29,7 @@
         </el-select>
       </el-form-item>
       
-      <el-form-item label="发布时间">
+      <el-form-item label="发布时间" label-width="auto">
         <el-date-picker
           v-model="dateRange"
           type="datetimerange"
@@ -43,7 +42,7 @@
         />
       </el-form-item>
       
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
@@ -203,7 +202,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -227,7 +226,7 @@
     <el-dialog
       v-model="versionDialog.visible"
       title="更新白皮书版本"
-      width="600px"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="handleVersionDialogClose"
@@ -989,27 +988,6 @@ onMounted(() => {
   padding: 24px;
 }
 
-.search-form {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-
-  :deep(.el-form-item) {
-    min-width: 260px;
-    margin-bottom: 12px;
-    margin-right: 10px;
-  }
-
-  :deep(.el-form-item:last-child) {
-    margin-left: 0;
-    margin-right: 0;
-    min-width: auto;
-    flex-shrink: 0;
-  }
-}
-
 .operation-bar {
   margin-bottom: 16px;
 
@@ -1097,7 +1075,7 @@ onMounted(() => {
   .el-button {
     margin: 0;
     padding: 5px 10px;
-    font-size: 12px;
+    font-size: 14px;
     min-width: auto;
     flex-shrink: 1;
     white-space: nowrap;
@@ -1121,6 +1099,12 @@ onMounted(() => {
 .version-form {
   :deep(.el-form-item__label) {
     white-space: nowrap;
+  }
+}
+
+:deep(.el-dialog__footer) {
+  .el-button {
+    font-size: 14px;
   }
 }
 </style>
