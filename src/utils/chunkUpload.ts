@@ -1,4 +1,4 @@
-import { initUpload, completeUpload, finishUpload } from '@/api/login';
+import { initUpload, completeUpload, finishUpload, getOssListByIds } from '@/api/login';
 import SparkMD5 from 'spark-md5';
 
 const UPLOAD_ID = generateUploadId();
@@ -47,6 +47,10 @@ export async function uploadByChunks(file: File, onProgress?: (percent: number) 
     fileSize: file.size,
     fileHash
   });
+  if (initRes.data.fileExists) {
+    const oss = await getOssListByIds(initRes.data.fileId);
+    return { ossId: initRes.data.fileId, fileName: oss.data[0]?.fileName, url: oss.data[0]?.url };
+  }
 
   const chunksInfo = initRes.data.chunksInfo || [];
 

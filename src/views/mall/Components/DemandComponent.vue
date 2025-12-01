@@ -1,22 +1,27 @@
 <template>
   <div class="demand-component">
     <div class="content">
+      <!-- banner -->
+      <img src="@/assets/mall/demand-banner.png" width="100%" />
       <!-- 筛选条件 -->
-      <el-form :model="queryParams" inline :label-width="80">
-        <el-form-item label="区域">
-          <RegionSelect v-model="region" @regionChange="handleRegionChange" />
-        </el-form-item>
-        <el-form-item label="商品分类">
-          <GoodsCategorySelect v-model="category" @categoryChange="handleCategoryChange" />
-        </el-form-item>
-        <el-form-item>
-          <el-button v-throttle @click="resetQuery">重置</el-button>
-          <el-button v-throttle type="primary" @click="getDemandList">查询</el-button>
-          <el-button v-throttle type="primary" @click="handleOpenDialog()">发布采购需求</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="search-form flex-between">
+        <el-form :model="queryParams" inline :label-width="70" label-position="left">
+          <el-form-item label="区域">
+            <RegionSelect v-model="region" @regionChange="handleRegionChange" />
+          </el-form-item>
+          <el-form-item label="商品分类">
+            <GoodsCategorySelect v-model="category" @categoryChange="handleCategoryChange" />
+          </el-form-item>
+          <el-form-item>
+            <el-button v-throttle @click="resetQuery">重置</el-button>
+            <el-button v-throttle type="primary" @click="getDemandList">查询</el-button>
+          </el-form-item>
+        </el-form>
+        <el-button class="mb-12" v-throttle type="primary" :icon="Plus" @click="handleOpenDialog()">发布采购需求</el-button>
+      </div>
+
       <!-- 数据表格 -->
-      <el-table :data="tableList"  v-loading="loading">
+      <el-table :data="tableList" v-loading="loading" stripe :header-cell-style="{ backgroundColor: '#108c58 !important', color: '#fff' }">
         <el-table-column prop="categoryName" label="发布类型" width="200" show-overflow-tooltip></el-table-column>
         <el-table-column prop="region" label="配送范围" width="200" show-overflow-tooltip>
           <template #default="scope">
@@ -39,7 +44,12 @@
         <el-table-column prop="createTime" label="发布时间" width="200"></el-table-column>
         <el-table-column label="操作" width="150">
           <template #default="scope">
-            <el-button type="text" @click="contact(scope.row)">立即联系</el-button>
+            <el-button type="text" @click="contact(scope.row)">
+              <div class="flex-center gap-4">
+                <img src="@/assets/mall/table-phone-icon.png" width="14" />
+                <div>立即联系</div>
+              </div>
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -75,13 +85,8 @@
       <el-carousel :interval="5000" v-if="hotRecommendations.length > 0">
         <el-carousel-item v-for="(group, index) in groupArray(hotRecommendations, 5)" :key="index">
           <div class="recommendation-grid flex gap-12">
-            <HotGoodsComponent
-              v-for="item in group"
-              :key="item.id"
-              :goods="item"
-              style="width: calc(20% - 12px)"
-              @clickGoods="handleClick(item.id)"
-            />
+            <!-- style="width: calc(20% - 12px)" -->
+            <HotGoodsComponent v-for="item in group" :key="item.id" :goods="item" @clickGoods="handleClick(item.id)" />
           </div>
         </el-carousel-item>
       </el-carousel>
@@ -115,6 +120,7 @@ import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import PublishDemandComponent from './PublishDemandComponent.vue';
 import HotGoodsComponent from './HotGoodsComponent.vue';
 import { useRouter } from 'vue-router';
+import { Plus } from '@element-plus/icons-vue';
 import { supplyHallList, hotRecommendationList, greatGoodsRecommendList, querySupplyInfoById } from '@/api/mall/demand';
 
 const props = withDefaults(
@@ -287,6 +293,19 @@ const groupArray = (array: any[], groupSize: number = 5) => {
 </script>
 
 <style scoped lang="scss">
+.demand-component {
+  width: 1500px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.search-form {
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 20px 20px 0 20px;
+  margin-top: 30px;
+  margin-bottom: 16px;
+}
 .recommendation-grid {
 }
 

@@ -73,7 +73,9 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="证件类型">
-            <el-input v-model="idType" disabled></el-input>
+            <el-select v-model="idType" placeholder="证件类型" filterable clearable disabled>
+              <el-option v-for="dict in card_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -205,12 +207,12 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'audit'">
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'audit'">
         <el-button v-throttle type="danger" @click="cancelAudit(99)">审核退回</el-button>
-        <el-button v-throttle type="success" @click="cancelAudit(1)">审核通过</el-button>
+        <el-button v-throttle style="background: #108c58; color: #fff" @click="cancelAudit(1)">审核通过</el-button>
       </div>
-      <div style="margin-top: 20px; text-align: center" v-if="operateMode === 'edit'">
-        <el-button v-throttle type="primary" @click="handleSave">保存</el-button>
+      <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+        <el-button v-throttle style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
       </div>
 
       <div style="height: 20px"></div>
@@ -220,14 +222,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { baseEnterpriseInfoId, enterpriseEdit, enterpriseReview, getTransactionInfo, getViolationInfo } from '@/api/platform/enterprise/index';
+import {
+  baseEnterpriseInfoId,
+  enterpriseEdit,
+  enterpriseReview,
+  getTransactionInfo,
+  getViolationInfo,
+  updateCreditLevel
+} from '@/api/platform/enterprise/index';
 
 import FormHeader from '@/components/FormHeader/index.vue';
 
 import { FormData } from '@/api/platform/enterprise/types'; //ts类型
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+const { review_status, plat_qualification_grade, plat_credit_rating, card_type } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'card_type')
 );
 
 // 通过 props 接收父组件传参
@@ -287,7 +296,7 @@ const formData = ref<FormData>({
   contacts: [],
   folders: []
 });
-const idType = ref('身份认证');
+const idType = ref('0');
 
 const areaCodes = ref('');
 
@@ -424,14 +433,10 @@ const cancelAudit = async (type: number) => {
 const handleSave = async () => {
   try {
     proxy?.$modal.loading('正在保存，请稍候...');
-    await enterpriseEdit({
-      enterpriseInfo: {
-        ...formData.value,
-        contacts: undefined,
-        folders: undefined
-      },
-      contacts: formData.value.contacts,
-      folder: formData.value.folders
+    await updateCreditLevel({
+      id: formData.value.id,
+      creditLevel: formData.value.creditLevel,
+      credentialLevel: formData.value.credentialLevel
     }).then(() => {
       ElMessage.success('保存成功');
       emit('refresh');

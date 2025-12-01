@@ -8,22 +8,22 @@
 <template>
   <div class="kb-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="130">
-      <el-form-item label="文章类别" prop="articleType">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="文章类别" prop="articleType" label-width="auto">
         <el-select v-model="queryParams.articleType" placeholder="请选择" clearable filterable>
           <el-option v-for="dict in article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="文章标题" prop="articleTitle">
+      <el-form-item label="文章标题" prop="articleTitle" label-width="auto">
         <el-input v-model="queryParams.articleTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="启用状态" prop="articleStatus">
+      <el-form-item label="启用状态" prop="articleStatus" label-width="auto">
         <el-select v-model="queryParams.articleStatus" placeholder="请选择" clearable>
           <el-option label="启用" value="2" />
           <el-option label="禁用" value="3" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime">
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="queryParams.publishTime"
           type="datetimerange"
@@ -35,8 +35,7 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      <div style="width: 100%"></div>
-      <el-form-item label-width="0">
+      <el-form-item>
         <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle @click="handleReset">重置</el-button>
       </el-form-item>
@@ -48,13 +47,13 @@
         <el-button v-throttle v-hasPermi="['system:article:add']" type="primary" @click="handleAdd">新增文章</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleEnableBatch">启用</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" @click="handleEnableBatch">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" type="primary" @click="handleDisableBatch">禁用</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:enableAndDisabled']" @click="handleDisableBatch">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:article:remove']" type="primary" @click="handleDeleteBatch">删除</el-button>
+        <el-button v-throttle v-hasPermi="['system:article:remove']" color="#F23255" @click="handleDeleteBatch">删除</el-button>
       </el-col>
     </el-row>
 
@@ -74,8 +73,22 @@
         </template>
       </el-table-column>
       <el-table-column label="启用状态" align="center" prop="articleStatus">
-        <template #default="scope">
+        <!-- <template #default="scope">
           <span>{{ getEnableStatusText(scope.row.articleStatus) }}</span>
+        </template> -->
+        <template #default="scope">
+          <div class="flex-center-center">
+            <div
+              v-if="scope.row.articleStatus != null"
+              class="normal"
+              :class="{
+                green: scope.row.articleStatus == 2,
+                reviewRejected: scope.row.articleStatus == 3
+              }"
+            ></div>
+            <span v-if="scope.row.articleStatus == 3" class="reviewRejected-color">禁用</span>
+            <span v-if="scope.row.articleStatus == 2" class="green-color">启用</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="浏览量" align="center" prop="viewCount">
@@ -88,29 +101,29 @@
           {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" min-width="200" fixed="right">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['system:article:edit']" type="primary" text @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button
-            v-if="scope.row.articleStatus == '3'"
-            v-throttle
-            v-hasPermi="['system:article:enableAndDisabled']"
-            type="primary"
-            text
-            @click="handleEnable(scope.row)"
-            >启用</el-button
-          >
-          <el-button
-            v-if="scope.row.articleStatus == '2'"
-            v-throttle
-            v-hasPermi="['system:article:enableAndDisabled']"
-            type="primary"
-            text
-            @click="handleDisable(scope.row)"
-            >禁用</el-button
-          >
-          <el-button v-throttle v-hasPermi="['system:article:query']" type="primary" text @click="handleView(scope.row)">查看</el-button>
-          <el-button v-throttle v-hasPermi="['system:article:remove']" type="danger" text @click="handleDeleteOne(scope.row)">删除</el-button>
+          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
+            <template v-if="idx < 2">
+              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
+            </template>
+          </template>
+          <template v-if="getRowActions(scope.row).length > 3">
+            <el-dropdown>
+              <span class="el-dropdown-link">
+                <el-button v-throttle link type="primary">更多</el-button>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key">
+                    <span class="op-more-item" style="color: #108c58" v-throttle v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{
+                      btn.label
+                    }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -317,14 +330,26 @@ const onDialogSuccess = () => {
 onMounted(() => {
   getList();
 });
+
+// 行内操作按钮配置（前三个直接显示，剩余收“更多”）
+const getRowActions = (row: any) => {
+  const actions = [
+    { key: 'edit', label: '编辑', permi: ['system:article:edit'], type: 'primary', onClick: (r: any) => handleEdit(r) },
+    // 根据行状态动态插入“启用/禁用”
+    String(row.articleStatus) === '3'
+      ? { key: 'enable', label: '启用', permi: ['system:article:enableAndDisabled'], type: 'primary', onClick: (r: any) => handleEnable(r) }
+      : { key: 'disable', label: '禁用', permi: ['system:article:enableAndDisabled'], type: 'primary', onClick: (r: any) => handleDisable(r) },
+    { key: 'view', label: '查看', permi: ['system:article:query'], type: 'primary', onClick: (r: any) => handleView(r) },
+    { key: 'delete', label: '删除', permi: ['system:article:remove'], type: 'danger', onClick: (r: any) => handleDeleteOne(r) }
+  ];
+  return actions;
+};
 </script>
 
 <style scoped lang="scss">
 .kb-management {
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  padding: 24px;
 
   .mb8 {
     margin-bottom: 8px;

@@ -19,13 +19,9 @@
             </el-form-item>
             <br />
             <el-form-item>
-              <el-button class="no-hover-effect" type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']"
-                >新增</el-button
-              >
+              <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
               <el-button
-                class="no-hover-effect"
-                type="danger"
-                plain
+                class="custom-action-btn delete-btn"
                 icon="Delete"
                 :disabled="multiple"
                 @click="handleDelete()"
@@ -47,18 +43,20 @@
         <el-table-column label="链接地址" align="center" prop="linkAddress" :show-overflow-tooltip="true" />
         <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true" />
         <el-table-column label="创建人" align="center" prop="createByName" :show-overflow-tooltip="true" />
-        <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" :show-overflow-tooltip="true">
+        <el-table-column label="操作" align="left" fixed="right" class-name="small-padding fixed-width" :show-overflow-tooltip="true">
           <template #default="scope">
-            <el-tooltip content="编辑" placement="top">
-              <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']"
-                >编辑</el-button
-              >
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top">
-              <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']"
-                >删除</el-button
-              >
-            </el-tooltip>
+            <div class="operation-buttons">
+              <el-tooltip content="编辑" placement="top">
+                <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']"
+                  >编辑</el-button
+                >
+              </el-tooltip>
+              <el-tooltip content="删除" placement="top">
+                <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']"
+                  >删除</el-button
+                >
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -267,6 +265,13 @@ onMounted(() => {
   }
 }
 
+.operation-buttons {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  justify-content: flex-start;
+}
+
 .operation-link-button {
   color: #108c58 !important;
   background-color: transparent !important;
@@ -299,6 +304,40 @@ onMounted(() => {
     background-color: #f0f0f0;
     border-color: #d9d9d9;
     color: #595959;
+  }
+}
+
+.custom-action-btn {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #333333 !important;
+
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #333333 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #333333 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+
+  &.delete-btn:not(.is-disabled) {
+    color: #f56c6c !important;
+
+    &:hover {
+      color: #f56c6c !important;
+    }
+
+    &:focus {
+      color: #f56c6c !important;
+    }
   }
 }
 </style>

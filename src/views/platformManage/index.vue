@@ -30,6 +30,7 @@ import FulfillmentChart from '@/views/platformManage/components/FulfillmentChart
   padding: 24px;
   background: #f5f7fa;
   min-height: 100%;
+  padding-top: 0;
 }
 
 .page-title {

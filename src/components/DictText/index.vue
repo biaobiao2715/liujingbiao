@@ -2,14 +2,10 @@
   <div>
     <template v-for="(item, index) in options">
       <template v-if="values.includes(item.value)">
-        <span :key="item.value" :index="index" :class="item.elTagClass">
-          {{ item.label + ' ' }}
-        </span>
+        <span :key="item.value" :index="index" :class="item.elTagClass"> {{ item.label + ' ' }}</span>
       </template>
     </template>
-    <template v-if="unmatch && showValue">
-      {{ unmatchArray }}
-    </template>
+    <template v-if="unmatch && showValue"> {{ unmatchArray }} </template>
   </div>
 </template>
 
@@ -67,5 +63,12 @@ const handleArray = (array: Array<string | number>) => {
 <style lang="scss" scoped>
 .el-tag + .el-tag {
   margin-left: 10px;
+}
+.normal {
+  width: 6px;
+  height: 6px;
+  background-color: aqua;
+  margin-right: 5px;
+  border-radius: 4px;
 }
 </style>

@@ -75,8 +75,8 @@
                   <el-dropdown-item>{{ proxy.$t('navbar.personalCenter') }}</el-dropdown-item>
                 </router-link>
                 <!-- <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
-                <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
-              </el-dropdown-item> -->
+                  <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
+                </el-dropdown-item> -->
                 <el-dropdown-item divided command="logout">
                   <span>{{ proxy.$t('navbar.logout') }}</span>
                 </el-dropdown-item>

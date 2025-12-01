@@ -9,24 +9,18 @@
   <div class="product-category">
     <!-- 新建按钮 -->
     <div class="mb-4">
-      <el-button type="primary" @click="handleCreateCategory()" v-hasPermi="['grain:goodsCategory:add']"> 新增类目 </el-button>
+      <el-button type="primary" :icon="Plus" @click="handleCreateCategory()" v-hasPermi="['grain:goodsCategory:add']"> 新增类目 </el-button>
     </div>
 
     <!-- 树形表格 -->
-    <el-table
-      :data="tableData"
-      row-key="id"
-      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-      style="width: 100%"
-      v-loading="loading"
-    >
+    <el-table :data="tableData" row-key="id" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" v-loading="loading">
       <el-table-column prop="categoryName" label="商品类目" show-overflow-tooltip />
-      <el-table-column prop="orderNum" label="排序" width="120"/>
+      <el-table-column prop="orderNum" label="排序" width="120" />
       <el-table-column prop="createTime" label="创建时间" />
-      <el-table-column label="操作">
+      <el-table-column label="操作" fixed="right" width="200">
         <template #default="{ row }">
           <!-- 操作按钮 -->
-          <div class="flex-center-end">
+          <div class="flex-center">
             <el-button
               type="text"
               @click="handleCreateCategory(row)"
@@ -43,7 +37,7 @@
     </el-table>
 
     <!-- 弹窗表单 -->
-    <el-dialog v-model="dialogVisible" width="500px" :title="form.id ? '编辑类目' : '新增类目'">
+    <el-dialog v-model="dialogVisible" width="50%" :title="form.id ? '编辑类目' : '新增类目'">
       <el-form :model="form" :label-width="80" ref="formRef" :rules="rules">
         <!-- 上级类目 -->
         <el-form-item label="上级类目" prop="parentId" required v-if="form.parentId && form.parentId !== '0'">
@@ -77,6 +71,8 @@ import {
   updateProductCategory,
   deleteProductCategory
 } from '@/api/platform/mallConfiguration/productCategory';
+
+import { Search, Refresh, Plus } from '@element-plus/icons-vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 

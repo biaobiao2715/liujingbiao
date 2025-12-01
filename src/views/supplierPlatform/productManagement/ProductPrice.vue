@@ -8,18 +8,18 @@
 <template>
   <div class="supplier-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
-      <el-form-item label="商品编码">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="商品编码" label-width="auto">
         <el-input v-model="queryParams.goodsCode" placeholder="请输入商品编码" clearable />
       </el-form-item>
-      <el-form-item label="商品名称">
+      <el-form-item label="商品名称" label-width="auto">
         <el-input v-model="queryParams.goodsName" placeholder="请输入商品名称" clearable />
       </el-form-item>
-      <el-form-item label="商品品牌">
+      <el-form-item label="商品品牌" label-width="auto">
         <el-input v-model="queryParams.goodsBrandName" placeholder="请输入商品品牌" clearable />
       </el-form-item>
       <!-- 价格调整日期 -->
-      <el-form-item label="价格调整日期">
+      <el-form-item label="价格调整日期" label-width="auto">
         <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
@@ -29,7 +29,7 @@
     </el-form>
 
     <div class="mb-12">
-      <el-button v-throttle type="primary" @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
+      <el-button v-throttle @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
     </div>
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
@@ -38,16 +38,16 @@
       <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>
       <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
       <el-table-column label="商品品牌" align="center" prop="goodsBrandName"> </el-table-column>
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="210"> </el-table-column>
+      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" :show-overflow-tooltip="true"> </el-table-column>
       <!-- <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column> -->
       <!-- <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column> -->
-      <el-table-column label="调整人" align="center" prop="createBy"> </el-table-column>
+      <el-table-column label="调整人" align="center" prop="createBy" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="价格调整日期" align="center" prop="changeTime" width="160">
         <template #default="scope">
           {{ formatDate(scope.row.changeTime) }}
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="100">
+      <el-table-column fixed="right" label="操作" align="center">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
         </template>

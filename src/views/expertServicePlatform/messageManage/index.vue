@@ -12,7 +12,8 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="80"
+      :label-width="90"
+      label-position="left"
       class="search-form"
     >
       <el-form-item label="留言时间">
@@ -59,16 +60,14 @@
     </el-form>
 
     <!-- 表格 -->
-    <div class="table-wrapper">
-      <el-table
-        :data="tableData"
-        border
-        v-loading="loading"
-        :header-cell-style="{ fontWeight: 500 }"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column type="index" label="序号" width="55" align="center" />
-      
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loading"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="55" align="center" />
+    
       <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.messageTime }}</span>
@@ -104,15 +103,15 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" align="center" width="160" fixed="right">
+      <el-table-column label="操作" align="center" fixed="right" width="180">
         <template #default="scope">
-          <div class="operation-buttons">
+          <div class="flex-center operation-btns">
             <el-button
               v-if="!isQuestionClosed(scope.row)"
               v-throttle
               v-hasPermi="['system:answer:add']"
-              type="success"
-              size="small"
+              type="primary"
+              link
               @click="handleReply(scope.row)"
             >
               回复
@@ -122,7 +121,7 @@
               v-throttle
               v-hasPermi="['system:question:query']"
               type="primary"
-              size="small"
+              link
               @click="handleView(scope.row)"
             >
               查看
@@ -130,8 +129,7 @@
           </div>
         </template>
       </el-table-column>
-      </el-table>
-    </div>
+    </el-table>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -474,56 +472,37 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-// .message-management {
-//   // padding-left: 24px;
-//   // padding-right: 24px;
-//   // color: rgb(246, 248, 250);
-// }
+.message-management {
+  padding: 24px;
+}
 
 .search-form {
-  background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-
-  :deep(.el-form-item) {
-    min-width: 260px;
-    margin-bottom: 12px;
-    margin-right: 10px;
-  }
-
-  :deep(.el-form-item:last-child) {
-    margin-left: 0;
-    margin-right: 0;
-    min-width: auto;
-    flex-shrink: 0;
-  }
+  margin-bottom: 16px;
 }
 
-.table-wrapper {
-  padding: 20px 24px 10px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
-  overflow: visible;
-}
-
-:deep(.table-wrapper .el-table) {
-  background: transparent;
-  box-shadow: none;
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
+    
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+  
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+  }
 }
 
 .pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-top: 24px;
+  justify-content: end;
 }
 
 .link-type {
@@ -537,20 +516,13 @@ onMounted(() => {
   }
 }
 
-.operation-buttons {
+.flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.operation-btns {
   gap: 8px;
-  flex-wrap: nowrap;
-  padding: 0 8px;
-  
-  .el-button {
-    margin: 0;
-    padding: 4px 12px;
-    font-size: 12px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
 }
 </style>

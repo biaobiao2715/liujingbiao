@@ -214,7 +214,7 @@ export function completeUpload(data: any) {
   return request({
     url: '/resource/file/finish-chunk',
     method: 'post',
-    data,
+    data
     // headers: {
     //   ignoreFrequencyLimit: true,
     //   'Content-Type': 'multipart/form-data'
@@ -227,5 +227,13 @@ export function finishUpload(fileHash: string) {
   return request({
     url: `/resource/file/finish-upload/${fileHash}`,
     method: 'post'
+  });
+}
+
+// 查询OSS对象基于id串
+export function getOssListByIds(ossIds: string) {
+  return request({
+    url: `/resource/oss/register/listByIds/${ossIds}`,
+    method: 'get'
   });
 }

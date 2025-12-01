@@ -2,8 +2,15 @@
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
       <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
-        <span v-if="item.redirect === 'noRedirect' || index == levelList.length - 1" class="no-redirect">{{ item.meta?.title }}</span>
-        <a v-else @click.prevent="handleLink(item)">{{ item.meta?.title }}</a>
+        <svg-icon v-if="index == 0" :icon-class="item.meta.icon" style="margin-right: 4px; font-size: 16px" />
+        <span v-if="index == 0" style="margin-right: 4px; color: #a8abb2; font-weight: bold"> / </span>
+        <span
+          v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
+          class="no-redirect"
+          :class="{ 'lastTitle': index == levelList.length - 1 }"
+          >{{ item.meta?.title }}</span
+        >
+        <!-- <a v-else @click.prevent="handleLink(item)" style="">{{ item.meta?.title }}</a> -->
       </el-breadcrumb-item>
     </transition-group>
   </el-breadcrumb>
@@ -86,8 +93,29 @@ onMounted(() => {
   margin-left: 8px;
 
   .no-redirect {
-    color: #97a8be;
+    font-family:
+      PingFang SC,
+      PingFang SC;
+    font-weight: 400;
+    font-size: 14px;
+    color: #4e5969;
+    line-height: 22px;
+    text-align: left;
+    font-style: normal;
+    text-transform: none;
     cursor: text;
   }
+}
+.lastTitle {
+  font-family:
+    PingFang SC,
+    PingFang SC;
+  font-weight: 500;
+  font-size: 14px;
+  color: #1d2129 !important;
+  line-height: 22px;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
 }
 </style>

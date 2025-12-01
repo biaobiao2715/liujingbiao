@@ -71,124 +71,122 @@
       </el-col>
     </el-row>
 
-    <div class="table-wrapper">
-      <el-table
-        :data="tableData"
-        border
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        
-        <el-table-column label="普法活动开始时间" align="center" prop="startTime" min-width="180">
-          <template #default="scope">
-            <span>{{ scope.row.startTime }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="普法活动结束时间" align="center" prop="endTime" min-width="180">
-          <template #default="scope">
-            <span>{{ scope.row.endTime }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
-          <template #default="scope">
-            <span class="link-type" @click="handleView(scope.row)">{{ scope.row.activityTitle }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="普法活动地址" align="center" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
-          <template #default="scope">
-            <span>{{ scope.row.activityAddress }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="所属类型" align="center" prop="activityType" width="120">
-          <template #default="scope">
-            <dict-tag :options="legal_popularize_activity_type" :value="String(scope.row.activityType || '')" />
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="联系人" align="center" prop="activityContact" width="100">
-          <template #default="scope">
-            <span>{{ scope.row.activityContact }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="联系方式" align="center" prop="activityContactPhone" width="120">
-          <template #default="scope">
-            <span>{{ scope.row.activityContactPhone }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="报名人数" align="center" prop="enrollCount" width="100">
-          <template #default="scope">
-            <span>{{ scope.row.enrollCount || 0 }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
-          <template #default="scope">
-            <span>{{ scope.row.publishTime }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="状态" align="center" prop="activityStatus" width="100">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.activityStatus)">
-              <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" align="center" width="280">
-          <template #default="scope">
-            <div class="operation-buttons">
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:lawActivity:edit']" 
-                type="primary" 
-                size="small" 
-                @click="handleEdit(scope.row)"
-              >
-                编辑
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:lawActivity:query']" 
-                type="info" 
-                size="small" 
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
-              <el-button 
-                v-if="canCancelActivity(scope.row)" 
-                v-hasPermi="['skill:lawActivity:cancel']" 
-                v-throttle 
-                type="warning" 
-                size="small" 
-                @click="handleCancelActivity(scope.row)"
-              >
-                取消活动
-              </el-button>
-              <el-button 
-                v-if="canDeleteActivity(scope.row)"
-                v-throttle 
-                v-hasPermi="['skill:lawActivity:remove']" 
-                type="danger" 
-                size="small" 
-                @click="handleDeleteSingle(scope.row)"
-              >
-                删除
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loading"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="55" align="center" />
+      
+      <el-table-column label="普法活动开始时间" align="center" prop="startTime" min-width="180">
+        <template #default="scope">
+          <span>{{ scope.row.startTime }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="普法活动结束时间" align="center" prop="endTime" min-width="180">
+        <template #default="scope">
+          <span>{{ scope.row.endTime }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="普法活动标题" align="center" prop="activityTitle" :show-overflow-tooltip="true" min-width="200">
+        <template #default="scope">
+          <span class="link-type" @click="handleView(scope.row)">{{ scope.row.activityTitle }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="普法活动地址" align="center" prop="activityAddress" :show-overflow-tooltip="true" min-width="250">
+        <template #default="scope">
+          <span>{{ scope.row.activityAddress }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="所属类型" align="center" prop="activityType" width="120">
+        <template #default="scope">
+          <dict-tag :options="legal_popularize_activity_type" :value="String(scope.row.activityType || '')" />
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="联系人" align="center" prop="activityContact" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.activityContact }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="联系方式" align="center" prop="activityContactPhone" width="120">
+        <template #default="scope">
+          <span>{{ scope.row.activityContactPhone }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="报名人数" align="center" prop="enrollCount" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.enrollCount || 0 }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.publishTime }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="状态" align="center" prop="activityStatus" width="100">
+        <template #default="scope">
+          <el-tag :type="getStatusType(scope.row.activityStatus)">
+            <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
+          </el-tag>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="操作" align="center" width="280">
+        <template #default="scope">
+          <div class="operation-buttons">
+            <el-button 
+              v-throttle 
+              v-hasPermi="['skill:lawActivity:edit']" 
+              type="primary" 
+              size="small" 
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button 
+              v-throttle 
+              v-hasPermi="['skill:lawActivity:query']" 
+              type="info" 
+              size="small" 
+              @click="handleView(scope.row)"
+            >
+              查看
+            </el-button>
+            <el-button 
+              v-if="canCancelActivity(scope.row)" 
+              v-hasPermi="['skill:lawActivity:cancel']" 
+              v-throttle 
+              type="warning" 
+              size="small" 
+              @click="handleCancelActivity(scope.row)"
+            >
+              取消活动
+            </el-button>
+            <el-button 
+              v-if="canDeleteActivity(scope.row)"
+              v-throttle 
+              v-hasPermi="['skill:lawActivity:remove']" 
+              type="danger" 
+              size="small" 
+              @click="handleDeleteSingle(scope.row)"
+            >
+              删除
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -622,15 +620,12 @@ onMounted(() => {
 }
 
 .search-form {
-  background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 16px;
 
   :deep(.el-form-item) {
     min-width: 260px;
@@ -647,10 +642,7 @@ onMounted(() => {
 }
 
 .operation-bar {
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
 
   .el-col {
     display: flex;
@@ -663,41 +655,29 @@ onMounted(() => {
   }
 }
 
-.table-wrapper {
-  padding: 20px 24px 10px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
-  overflow: visible;
-}
-
-:deep(.table-wrapper .el-table) {
-  background: transparent;
-  box-shadow: none;
-
+:deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
+    
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
   }
-
-  th {
-    background-color: #fafafa !important;
-    color: #606266;
-    font-weight: 600;
-  }
-
-  .el-table__body tr:hover {
-    background-color: #f5f7fa;
+  
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
   }
 }
 
 .pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-top: 24px;
+  justify-content: end;
 }
 
 .link-type {

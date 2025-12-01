@@ -88,7 +88,7 @@ const applications = ref([
     description: '该应用为内部人员对供应商进行管理：如：入驻供应商审核、供应商启用/停用、供应商上架商品审核等',
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
-    redirect: '/index',
+    redirect: '/platform/index',
     type: ['0', '2', '3', '6']
   },
   {
@@ -146,6 +146,7 @@ onMounted(() => {
 const getUserInfo = async () => {
   const res: any = await getInfo();
   userInfo.value = res.data.user;
+  userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
   console.log(res);
   // 采购商
@@ -161,8 +162,11 @@ const getIcon = (svgName: string) => {
 const handleRedirect = (path: string) => {
   if (path === 'thirdPartyLogin') {
     axios.post('http://192.168.2.149:8000/auth/thirdParty/login', getCacheInfo()).then((res: any) => {
-      if (res.code === 200) {
+      console.log('🚀 ~ handleRedirect ~ res:', res);
+      if (res.code === 200 && res.title != '后台管理') {
         router.push(res.data);
+      } else {
+        router.push('/platform/index');
       }
     });
     return;

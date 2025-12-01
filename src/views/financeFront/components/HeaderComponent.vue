@@ -1,6 +1,6 @@
 <template>
   <div class="flex-center-between header">
-    <div class="welcome-message">Hi, 张三，您好，欢迎来到农合智创</div>
+    <div class="welcome-message">Hi, {{ userStore.nickname || '用户' }}，您好，欢迎来到农合智创</div>
     <div class="right-info flex-center gap-24">
       <el-badge value="1" class="badge">
         <el-icon size="16"><Bell /></el-icon>

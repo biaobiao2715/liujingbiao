@@ -65,128 +65,126 @@
       </el-col>
     </el-row>
 
-    <div class="table-wrapper">
-      <el-table
-        :data="tableData"
-        border
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        
-        <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
-          <template #default="scope">
-            <span>{{ scope.row.updateTime || scope.row.createTime }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="白皮书标题" align="center" prop="paperTitle" :show-overflow-tooltip="true" min-width="200">
-          <template #default="scope">
-            <span>{{ scope.row.paperTitle }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
-          <template #default="scope">
-            <span>{{ scope.row.viewCount || 0 }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
-          <template #default="scope">
-            <span>{{ scope.row.downloadCount || 0 }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="所属状态" align="center" prop="paperStatus" width="100">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.paperStatus)">
-              {{ getStatusLabel(scope.row.paperStatus) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120">
-          <template #default="scope">
-            <span>{{ scope.row.currentVersion }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" align="center" width="450" class-name="small-padding fixed-width">
-          <template #default="scope">
-            <div class="operation-buttons">
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:edit']" 
-                type="primary" 
-                size="small" 
-                @click="handleEdit(scope.row)"
-              >
-                编辑
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:query']" 
-                type="info" 
-                size="small" 
-                @click="handleView(scope.row)"
-              >
-                查看
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:edit']" 
-                type="warning" 
-                size="small" 
-                @click="handleUpdateVersion(scope.row)"
-              >
-                更新版本
-              </el-button>
-              <el-button 
-                v-if="isEnabled(scope.row.paperStatus)" 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:edit']" 
-                type="warning" 
-                size="small" 
-                @click="handleStatusChange(scope.row, '禁用')"
-              >
-                禁用
-              </el-button>
-              <el-button 
-                v-if="isDisabled(scope.row.paperStatus)" 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:edit']" 
-                type="success" 
-                size="small" 
-                @click="handleStatusChange(scope.row, '启用')"
-              >
-                启用
-              </el-button>
-              <el-button 
-                v-if="isDisabled(scope.row.paperStatus)" 
-                v-throttle 
-                v-hasPermi="['skill:whitePaper:remove']" 
-                type="danger" 
-                size="small" 
-                @click="handleDeleteSingle(scope.row)"
-              >
-                删除
-              </el-button>
-              <el-button 
-                v-throttle 
-                v-hasPermi="['system:oss:download']" 
-                type="primary" 
-                size="small" 
-                @click="handleDownload(scope.row)"
-              >
-                下载
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <el-table
+      :data="tableData"
+      border
+      v-loading="loading"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="55" align="center" />
+      
+      <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.updateTime || scope.row.createTime }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="白皮书标题" align="center" prop="paperTitle" :show-overflow-tooltip="true" min-width="200">
+        <template #default="scope">
+          <span>{{ scope.row.paperTitle }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.viewCount || 0 }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
+        <template #default="scope">
+          <span>{{ scope.row.downloadCount || 0 }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="所属状态" align="center" prop="paperStatus" width="100">
+        <template #default="scope">
+          <el-tag :type="getStatusType(scope.row.paperStatus)">
+            {{ getStatusLabel(scope.row.paperStatus) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120">
+        <template #default="scope">
+          <span>{{ scope.row.currentVersion }}</span>
+        </template>
+      </el-table-column>
+      
+      <el-table-column label="操作" align="center" width="450" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <div class="operation-buttons">
+            <el-button 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:edit']" 
+              type="primary" 
+              size="small" 
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:query']" 
+              type="info" 
+              size="small" 
+              @click="handleView(scope.row)"
+            >
+              查看
+            </el-button>
+            <el-button 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:edit']" 
+              type="warning" 
+              size="small" 
+              @click="handleUpdateVersion(scope.row)"
+            >
+              更新版本
+            </el-button>
+            <el-button 
+              v-if="isEnabled(scope.row.paperStatus)" 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:edit']" 
+              type="warning" 
+              size="small" 
+              @click="handleStatusChange(scope.row, '禁用')"
+            >
+              禁用
+            </el-button>
+            <el-button 
+              v-if="isDisabled(scope.row.paperStatus)" 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:edit']" 
+              type="success" 
+              size="small" 
+              @click="handleStatusChange(scope.row, '启用')"
+            >
+              启用
+            </el-button>
+            <el-button 
+              v-if="isDisabled(scope.row.paperStatus)" 
+              v-throttle 
+              v-hasPermi="['skill:whitePaper:remove']" 
+              type="danger" 
+              size="small" 
+              @click="handleDeleteSingle(scope.row)"
+            >
+              删除
+            </el-button>
+            <el-button 
+              v-throttle 
+              v-hasPermi="['system:oss:download']" 
+              type="primary" 
+              size="small" 
+              @click="handleDownload(scope.row)"
+            >
+              下载
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
     <!-- 分页 -->
     <div class="pagination">
@@ -992,14 +990,11 @@ onMounted(() => {
 }
 
 .search-form {
-  background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 
   :deep(.el-form-item) {
     min-width: 260px;
@@ -1016,10 +1011,7 @@ onMounted(() => {
 }
 
 .operation-bar {
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
 
   .el-col {
     display: flex;
@@ -1032,41 +1024,29 @@ onMounted(() => {
   }
 }
 
-.table-wrapper {
-  padding: 20px 24px 10px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
-  overflow: visible;
-}
-
-:deep(.table-wrapper .el-table) {
-  background: transparent;
-  box-shadow: none;
-  
+:deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
+    
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
   }
-
-  .el-table__body tr:hover {
-    background-color: #f5f7fa;
-  }
-
-  th {
-    background-color: #fafafa !important;
-    color: #606266;
-    font-weight: 600;
+  
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
   }
 }
 
 .pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-top: 24px;
+  justify-content: end;
 }
 
 .el-button {

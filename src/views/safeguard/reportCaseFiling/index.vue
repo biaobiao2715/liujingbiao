@@ -99,9 +99,7 @@
       <el-table-column label="所属状态" align="center" prop="status" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="status-cell-wrapper">
-            <el-tag :type="getStatusTagType(scope.row.status)">
-              {{ getStatusName(scope.row.status) }}
-            </el-tag>
+            <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusName(scope.row.status) }}</span>
             <el-icon v-if="scope.row.status === '1' && scope.row.noUrge === '2'" class="status-icon">
               <Document />
             </el-icon>
@@ -110,7 +108,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="240" :show-overflow-tooltip="true">
+      <el-table-column label="操作" align="center" fixed="right" width="240">
         <template #default="scope">
           <div class="operation-buttons-wrapper">
             <!-- 文档图标 - 处理中状态且appeal_time有值时显示在右上角 -->
@@ -133,12 +131,12 @@
                   @click="handleProcess(scope.row)"
                   >处理</el-button
                 >
-                <!-- 处理按钮 - 处理中状态且noUrge为1时显示（置灰、不可点击） -->
-                <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" disabled>处理</el-button>
                 <!-- 查看按钮 - 处理中状态且noUrge为1时显示 -->
                 <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" @click="handleView(scope.row)"
                   >查看</el-button
                 >
+                <!-- 处理按钮 - 处理中状态且noUrge为1时显示（置灰、不可点击） -->
+                <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button no-click" disabled>处理</el-button>
                 <!-- 催促按钮 - 处理中状态且且noUrge为1时显示 -->
                 <el-button v-if="scope.row.noUrge === '1'" v-throttle link class="operation-link-button" @click="handleUrge(scope.row)"
                   >催促</el-button
@@ -243,6 +241,18 @@ const getStatusTagType = (status: string | undefined | null) => {
     '4': undefined // 已撤回无需类型
   };
   return statusMap[String(status)];
+};
+
+// 获取状态对应的 CSS 类名
+const getStatusClass = (status: string | undefined | null) => {
+  const statusMap: Record<string, string> = {
+    '0': 'status-pending', // 待处理
+    '1': 'status-processing', // 处理中
+    '2': 'status-rejected', // 已驳回
+    '3': 'status-closed', // 已结案
+    '4': 'status-withdrawn' // 已撤回
+  };
+  return statusMap[String(status)] || 'status-default';
 };
 
 // 获取列表数据
@@ -388,10 +398,75 @@ onMounted(() => {
     width: 100%;
   }
 
+  /* 所属状态样式 */
+  .status-text {
+    position: relative;
+    padding-left: 16px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+  }
+
+  .status-pending {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+
+  .status-processing {
+    color: #e6a23c;
+
+    &::before {
+      background-color: #e6a23c;
+    }
+  }
+
+  .status-rejected {
+    color: #f56c6c;
+
+    &::before {
+      background-color: #f56c6c;
+    }
+  }
+
+  .status-closed {
+    color: #67c23a;
+
+    &::before {
+      background-color: #67c23a;
+    }
+  }
+
+  .status-withdrawn {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+
+  .status-default {
+    color: #909399;
+
+    &::before {
+      background-color: #909399;
+    }
+  }
+
   .status-icon {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -10px;
     font-size: 24px;
     color: #409eff;
     z-index: 10;
@@ -416,7 +491,7 @@ onMounted(() => {
   .operation-buttons {
     display: flex;
     gap: 8px;
-    justify-content: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
   }
 
@@ -434,6 +509,11 @@ onMounted(() => {
 
     &.is-disabled {
       color: #a0c896 !important;
+    }
+
+    &.no-click {
+      cursor: not-allowed;
+      color: #108c58 !important;
     }
   }
 

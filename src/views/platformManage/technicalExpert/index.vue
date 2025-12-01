@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题: technicalExpertIndex.vue
 功能: 技术专家审核
 说明: 用于展示技术专家的列表和查询功能。
@@ -10,7 +10,7 @@
   <div class="p-2 technical-expert-page">
     <!-- 查询区域 -->
     <div class="mb-[10px]">
-      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="70" label-position="left">
         <el-form-item label="专家姓名" prop="name">
           <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
         </el-form-item>
@@ -55,34 +55,67 @@
           </template>
         </el-table-column>
         <el-table-column label="审核状态" prop="reviewStatus" align="center">
-          <template #default="scope">
+          <!-- <template #default="scope">
             <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
+          </template> -->
+          <template #default="scope">
+            <div class="workingMode">
+              <div
+                v-if="scope.row.reviewStatus != null"
+                class="normal"
+                :class="{
+                  reviewRejected: scope.row.reviewStatus == 2,
+                  green: scope.row.reviewStatus == 1,
+                  pendingReview: scope.row.reviewStatus == 0
+                }"
+              ></div>
+              <span v-if="scope.row.reviewStatus == 0" style="color: #ff7b00">待审核</span>
+              <span v-if="scope.row.reviewStatus == 1" style="color: #108c58">审核通过</span>
+              <span v-if="scope.row.reviewStatus == 2" style="color: #f23255">审核退回</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="入库状态" prop="storageStatus" align="center">
-          <template #default="scope">
+          <!-- <template #default="scope">
             {{ scope.row.storageStatus === '0' ? '未入库' : '已入库' }}
+          </template> -->
+          <template #default="scope">
+            <div class="workingMode">
+              <div
+                v-if="scope.row.storageStatus != null"
+                class="normal"
+                :class="{
+                  pendingReview: scope.row.storageStatus == 0,
+                  green: scope.row.storageStatus == 1
+                }"
+              ></div>
+              <span v-if="scope.row.storageStatus == 0" style="color: #ff7b00">未入库</span>
+              <span v-if="scope.row.storageStatus == 1" style="color: #108c58">已入库</span>
+              <!-- <span v-if="scope.row.storageStatus == 1" style="color: #108c58">已入库</span> -->
+            </div>
           </template>
         </el-table-column>
 
         <el-table-column label="操作" align="center" fixed="right" width="200">
           <template #default="scope">
-            <div style="display: flex; justify-content: space-evenly; align-items: center">
-              <el-button type="primary" @click="openToggleDialog(scope.row)">
+            <div style="display: flex; justify-content: center; align-items: center">
+              <el-button type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">
                 {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
               </el-button>
               <el-button
                 v-throttle
-                type="primary"
+                type="text"
                 v-if="scope.row.reviewStatus !== '0'"
                 v-hasPermi="['system:baseTechExpertInfo:list']"
                 @click="handleEdit(scope.row, 'view')"
+                style="font-size: 14px; color: #108c58"
                 >查看</el-button
               >
               <el-button
                 v-throttle
                 v-if="scope.row.reviewStatus === '0'"
-                type="primary"
+                type="text"
+                style="font-size: 14px; color: #108c58"
                 v-hasPermi="['system:baseEnterpriseInfo:edit']"
                 @click="handleEdit(scope.row, 'audit')"
                 >审核</el-button
@@ -259,10 +292,36 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .technical-expert-page {
+  height: calc(100vh - 120px);
   .table-header {
     display: flex;
     align-items: center;
     gap: 12px;
   }
+  padding: 24px;
+}
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
 }
 </style>

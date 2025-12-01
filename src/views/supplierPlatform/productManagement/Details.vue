@@ -101,9 +101,9 @@
 
       <div style="height: 20px"></div>
 
-      <el-row v-show="operateMode === 'edit'" type="flex" justify="center" :gutter="5">
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitForm">保存</el-button></el-col>
-      </el-row>
+      <div v-show="operateMode === 'edit'" class="flex-center-end">
+        <el-button v-throttle type="primary" @click="submitForm">保存</el-button>
+      </div>
     </el-form>
   </div>
 </template>

@@ -102,7 +102,7 @@
 
         <div class="compare-list">
           <div v-for="(item, index) in compareGoodsList" :key="item.id || index" class="compare-item">
-            <el-icon class="close-btn" @click="removeGoods(index)">
+            <!-- <el-icon class="close-btn" @click="removeGoods(index)">
               <Close />
             </el-icon>
             <el-image :src="item.image || item.sysOssLists?.[0]?.url" fit="cover" class="item-image" />
@@ -111,7 +111,8 @@
               <div class="item-sales">销量{{ formatSales(item.goodsSales) }}</div>
               <div class="item-name">{{ item.goodsName }}</div>
               <div class="item-location">{{ item.location || item.hnBaseEnterpriseInfo?.province }}</div>
-            </div>
+            </div> -->
+            <GoodsItemComponent :goods="item" />
           </div>
 
           <el-empty v-if="compareGoodsList.length === 0" description="暂无对比商品" :image-size="80" />
@@ -134,6 +135,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { goodsCompareList, goodsDetail, comparePrices } from '@/api/mall/goods/index';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import type { Goods } from '../../mall';
+import GoodsItemComponent from '../GoodsItemComponent.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -454,7 +456,7 @@ const fetchGoodsList = async () => {
       params.maxPrice = queryParams.maxPrice;
     }
 
-    const response = await goodsCompareList(params);
+    const response = await goodsCompareList({ ...params, goodsCategoryId: props.goodsId });
     if (response.code === 200) {
       const records = response.rows || [];
       goodsData.value = records;
@@ -840,7 +842,6 @@ onMounted(async () => {
     width: 300px;
     background: #fff;
     border-radius: 4px;
-    padding: 16px;
     height: fit-content;
     max-height: calc(100vh - 40px);
     display: flex;
@@ -849,10 +850,9 @@ onMounted(async () => {
     z-index: 10;
 
     .box-header {
-      padding-bottom: 12px;
-      border-bottom: 1px solid #ebeef5;
-      margin-bottom: 12px;
-
+      background: rgba(16, 140, 88, 0.1);
+      text-align: center;
+      padding: 12px 0;
       .box-title {
         font-size: 16px;
         font-weight: bold;
@@ -863,18 +863,23 @@ onMounted(async () => {
     .compare-list {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 16px;
+      padding: 20px;
       min-height: 200px;
 
       .compare-item {
         position: relative;
-        padding: 12px;
-        border: 1px solid #ebeef5;
         border-radius: 4px;
         margin-bottom: 12px;
         display: flex;
         gap: 12px;
         background: #fafafa;
+
+        ::v-deep .goods-item {
+          .goods-image {
+            width: 258px;
+            height: 258px;
+          }
+        }
 
         .close-btn {
           position: absolute;
@@ -948,13 +953,15 @@ onMounted(async () => {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding-top: 16px;
-      border-top: 1px solid #ebeef5;
+      padding-bottom: 16px;
 
       .start-compare-btn {
-        width: 100%;
+        width: 50%;
         height: 40px;
-        font-size: 15px;
+        margin: 0 auto;
+        background: #108c58;
+        font-size: 20px;
+        color: #fff;
       }
 
       .clear-link {

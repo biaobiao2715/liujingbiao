@@ -1,5 +1,7 @@
 :root {
   --color-main: #108c58;
+  --el-menu-hover-bg-color: red !important;
+
   //   --el-color-primary: var(--color-main) !important;
   //   .el-button--primary:hover {
   //     background-color: #0f7a4f !important;
@@ -8,4 +10,13 @@
   //   .el-button--primary {
   //     --el-button-disabled-bg-color: #25b67c !important;
   //   }
+
+  // 覆盖左侧菜单hover样式
+  .el-menu-item:hover {
+    background-color: #108c581a !important;
+  }
+  .el-menu-item.is-active {
+    color: var(--color-main) !important;
+    background-color: #108c581a !important;
+  }
 }
