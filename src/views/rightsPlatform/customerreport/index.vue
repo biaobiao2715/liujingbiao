@@ -31,7 +31,7 @@ div<!--
       </el-form-item>
       <!-- 创建时间 -->
       <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
+        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 240px;" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="status">
@@ -88,9 +88,7 @@ div<!--
         <template #default="scope">
           <div class="status-cell-wrapper">
             <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusName(scope.row.status) }}</span>
-              <el-icon v-if="scope.row.status === '1' " class="status-icon">
-              <Document />
-            </el-icon>
+             
           </div>
         </template>
       </el-table-column>
@@ -537,10 +535,10 @@ onMounted(() => {
     }
   }
     .status-closed {
-    color: #67c23a;
+    color: #108c58;
 
     &::before {
-      background-color: #67c23a;
+      background-color: #108c58;
     }
   }
     .status-withdrawn {
