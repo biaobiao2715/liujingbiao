@@ -60,7 +60,6 @@
     <!-- 表格 -->
     <el-table
       :data="tableData"
-      border
       v-loading="loading"
     >
       <el-table-column type="selection" width="55" />

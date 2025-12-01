@@ -83,7 +83,6 @@
 
     <el-table
       :data="tableData"
-      border
       v-loading="loading"
       style="width: 100%"
       :default-sort="{ prop: 'createTime', order: 'descending' }"
@@ -312,7 +311,7 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryFormRef.value?.resetFields?.();
   queryParams.pageNum = 1;
-  queryParams.pageSize = 10;
+  queryParams.pageSize = 20;
   queryParams.productName = '';
   queryParams.productType = '';
   queryParams.productStatus = '';

@@ -76,7 +76,6 @@
 
     <el-table
       :data="tableData"
-      border
       v-loading="loading"
       style="width: 100%"
       :default-sort="{ prop: 'createTime', order: 'descending' }"

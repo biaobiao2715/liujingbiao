@@ -45,7 +45,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
@@ -259,8 +259,6 @@ const resetQuery = () => {
   dateRange.value = ['', ''];
   queryParams.value.startTime = '';
   queryParams.value.endTime = '';
-  queryParams.value.pageNum = 1;
-  queryParams.value.pageSize = 10;
   handleQuery();
 };
 
