@@ -27,7 +27,7 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="供应商/企业名称" prop="reporterName" min-width="100" :show-overflow-tooltip="true" />
       <el-table-column label="案件编号" prop="caseCode" width="210" />
@@ -36,7 +36,7 @@
           <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
-      <el-table-column label="处理状态" prop="status">
+      <el-table-column label="处理状态" prop="status" align="center">
         <!-- <template v-slot="scope">
           <dict-text :options="case_status" :value="scope.row.status || ''" />
         </template> -->
@@ -78,7 +78,7 @@
       <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
     </div>
 
-    <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
+    <el-dialog :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
       <Detail :id="selectID" @cancel="cancelDlg" />
     </el-dialog>
   </div>

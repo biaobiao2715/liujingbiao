@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：			index.vue
 功能：			培训课程管理
-说明:         
+说明:
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-11-4
 修改人信息：张峰     2025-11-4
@@ -58,16 +58,26 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd">新增</el-button>
+        <el-button class="search-btn" v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd"
+          >新增</el-button
+        >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="success" @click="handleEnable">启用</el-button>
+        <el-button v-throttle class="custom-btn-style" type="primary" icon="" @click="handleEnable" :disabled="multiple">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="warning" @click="handleDisable">禁用</el-button>
+        <el-button v-throttle class="custom-btn-style" type="primary" @click="handleDisable" :disabled="multiple">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="danger" v-hasPermi="['skill:courseCultivate:remove']" @click="handleDelete">删除</el-button>
+        <el-button
+          v-throttle
+          class="custom-btn-style"
+          type="primary"
+          v-hasPermi="['skill:courseCultivate:remove']"
+          @click="handleDelete"
+          :disabled="multiple"
+          >删除</el-button
+        >
       </el-col>
       <!-- <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar> -->
     </el-row>
@@ -113,7 +123,21 @@
       <!-- 状态 -->
       <el-table-column label="状态" align="center" prop="cultivateStatus" width="100">
         <template #default="scope">
-          <dict-tag :options="cultivate_status" :value="scope.row.cultivateStatus" />
+          <!-- 启用禁用 -->
+          <div class="workingMode">
+            <div
+              v-if="scope.row.cultivateStatus != null"
+              class="normal"
+              :class="{
+                // 启用 1、禁用 2
+                enable: scope.row.cultivateStatus == 1,
+                disable: scope.row.cultivateStatus == 2
+              }"
+            ></div>
+            <span v-if="scope.row.cultivateStatus == 1" style="color: #108c58"> 启用 </span>
+            <span v-if="scope.row.cultivateStatus == 2" style="color: #f23255"> 已禁用 </span>
+          </div>
+          <!-- <dict-tag :options="cultivate_status" :value="scope.row.cultivateStatus" /> -->
         </template>
       </el-table-column>
 
@@ -125,30 +149,53 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" width="280" fixed="right">
+      <el-table-column label="操作" align="left" width="280" fixed="right" class-name="flex-center">
         <template #default="scope">
-          <div class="operation-buttons">
-            <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)" v-hasPermi="['skill:courseCultivate:edit']">
+          <!-- <div class="operation-buttons"> -->
+          <el-tooltip content="编辑" placement="top">
+            <el-button
+              class="operation-link-button"
+              v-throttle
+              type="text"
+              @click="handleEdit(scope.row)"
+              v-hasPermi="['skill:courseCultivate:edit']"
+            >
               编辑
             </el-button>
-            <el-button v-throttle type="info" size="small" @click="handleView(scope.row)"> 查看 </el-button>
-            <el-button v-if="scope.row.cultivateStatus === '1'" type="warning" size="small" @click="handleStatusChange(scope.row, '2')">
+          </el-tooltip>
+          <el-tooltip content="查看" placement="top">
+            <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
+          </el-tooltip>
+          <el-tooltip content="编辑" placement="top">
+            <el-button class="operation-link-button" v-if="scope.row.cultivateStatus === '1'" type="text" @click="handleStatusChange(scope.row, '2')">
               禁用
             </el-button>
-            <el-button v-if="scope.row.cultivateStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
+          </el-tooltip>
+          <el-tooltip content="启用" placement="top">
+            <el-button
+              class="operation-link-button"
+              v-if="scope.row.cultivateStatus === '2'"
+              v-throttle
+              type="text"
+              @click="handleStatusChange(scope.row, '1')"
+            >
               启用
             </el-button>
+          </el-tooltip>
+          <el-tooltip content="删除" placement="top">
             <el-button
+              class="operation-link-button"
               v-throttle
               v-show="scope.row.cultivateStatus === '2'"
-              type="danger"
-              size="small"
+              type="text"
               @click="handleDeleteSingle(scope.row)"
               v-hasPermi="['skill:courseCultivate:remove']"
             >
               删除
             </el-button>
-          </div>
+          </el-tooltip>
+
+          <!-- </div> -->
         </template>
       </el-table-column>
     </el-table>
@@ -243,7 +290,8 @@ const showSearch = ref(true);
 const selectedIds = ref([]);
 // 选中的行数据数组
 const selectedRows = ref([]);
-
+// 多选状态
+const multiple = ref(true);
 // 弹窗控制
 const dialog = ref({
   visible: false,
@@ -311,6 +359,8 @@ const handleReset = () => {
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item) => item.id);
   selectedRows.value = selection;
+  multiple.value = !selection.length;
+  console.log(multiple.value);
 };
 
 /** 弹窗标题 */
@@ -577,9 +627,9 @@ onMounted(() => {
 .content-management {
   padding: 24px;
   //   background-color: #f5f5f5;
-  min-height: 100vh;
+  // min-height: 100vh;
+  height: calc(100vh - 120px);
 }
-
 // 主要内容区域 - 大盒子
 .main-content-box {
   background-color: #fff;
@@ -725,5 +775,80 @@ onMounted(() => {
       margin-left: 0;
     }
   }
+}
+.search-btn {
+  width: 88px;
+  border-radius: 2;
+}
+
+.custom-btn-style {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #1D2129 !important;
+  border: 4px;
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #1D2129 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #1D2129 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+  &:not(.is-disabled) {
+    color: #1D2129 !important;
+
+    &:hover {
+      color: #1D2129 !important;
+    }
+
+    &:focus {
+      color: #1D2129 !important;
+    }
+  }
+}
+.operation-link-button {
+  color: #108c58 !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 8px !important;
+
+  &:hover,
+  &:focus {
+    color: #108c58 !important;
+    background-color: transparent !important;
+  }
+
+  &.is-disabled {
+    color: #a0c896 !important;
+  }
+}
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+// 启用
+.enable {
+  background-color: #108c58;
+}
+// 禁用
+.disable {
+  background-color: #f23255;
 }
 </style>

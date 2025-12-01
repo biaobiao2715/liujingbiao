@@ -1,42 +1,35 @@
 <template>
-  <div class="p-2">
-    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
-      <div v-show="showSearch" class="mb-[10px]">
-        <el-card shadow="hover" style="background: none; border: none">
-          <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="130">
-            <el-form-item label="其他渠道案件名称" prop="caseName">
-              <el-input v-model="queryParams.caseName" placeholder="请输入其他渠道案件名称" clearable @keyup.enter="handleQuery" />
-            </el-form-item>
-            <el-form-item label="创建时间" prop="createTime">
-              <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
-            </el-form-item>
-            <el-form-item label="创建人" prop="createByName">
-              <el-input v-model="queryParams.createByName" placeholder="请输入创建人" clearable @keyup.enter="handleQuery" />
-            </el-form-item>
-            <el-form-item>
-              <el-button class="search-btn" type="primary" :icon="Search" @click="handleQuery">查询</el-button>
-              <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
-            </el-form-item>
-            <br />
-            <el-form-item>
-              <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
-              <el-button
-                class="custom-action-btn delete-btn"
-                icon="Delete"
-                :disabled="multiple"
-                @click="handleDelete()"
-                v-hasPermi="['safeguard:otherCase:remove']"
-              >
-                删除
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </div>
-    </transition>
-
-    <el-card shadow="never" style="background: none; border: none; margin-top: -40px">
-      <el-table v-loading="loading" border :data="otherCaseList" @selection-change="handleSelectionChange">
+  <div class="container">
+    <el-card shadow="never" style="background: none; border: none">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="130">
+        <el-form-item label="其他渠道案件名称" prop="caseName">
+          <el-input v-model="queryParams.caseName" placeholder="请输入其他渠道案件名称" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="创建时间" prop="createTime">
+          <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
+        </el-form-item>
+        <el-form-item label="创建人" prop="createByName">
+          <el-input v-model="queryParams.createByName" placeholder="请输入创建人" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item>
+          <el-button class="search-btn" type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+          <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
+        </el-form-item>
+        <br />
+        <el-form-item>
+          <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
+          <el-button
+            class="custom-action-btn delete-btn"
+            icon="Delete"
+            :disabled="multiple"
+            @click="handleDelete()"
+            v-hasPermi="['safeguard:otherCase:remove']"
+          >
+            删除
+          </el-button>
+        </el-form-item>
+      </el-form>
+      <el-table v-loading="loading" :data="otherCaseList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="55" align="center" :show-overflow-tooltip="true" />
         <el-table-column label="其他渠道案件名称" align="center" prop="caseName" :show-overflow-tooltip="true" />
@@ -240,6 +233,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.container {
+  height: calc(100vh - 120px);
+}
 // 禁用新增和删除按钮的hover变色效果
 .no-hover-effect {
   &:hover {

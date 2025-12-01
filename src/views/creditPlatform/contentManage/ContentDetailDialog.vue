@@ -13,20 +13,30 @@
     <el-divider />
 
     <div class="article-meta">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="文章来源">
-          {{ detailData.articleSource || '--' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="文章类型">
-          <dict-tag :options="art_article_type" :value="detailData.articleType" />
-        </el-descriptions-item>
-        <el-descriptions-item label="创建时间">
-          {{ parseTime(detailData.createTime) || '--' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="修改时间">
-          {{ parseTime(detailData.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') || '--' }}
-        </el-descriptions-item>
-      </el-descriptions>
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">文章来源：</span>
+          <span class="meta-value">{{ detailData.articleSource || '--' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">文章类型：</span>
+          <span class="meta-value">
+            <dict-tag :options="art_article_type" :value="detailData.articleType" />
+          </span>
+        </div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">创建时间：</span>
+          <span class="meta-value">{{ parseTime(detailData.createTime) || '--' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">修改时间：</span>
+          <span class="meta-value">
+            {{ parseTime(detailData.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') || '--' }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="article-content">
@@ -113,6 +123,35 @@ onMounted(() => {
 
 .article-meta {
   margin-bottom: 24px;
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .meta-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #606266;
+
+    &:first-child {
+      margin-right: 40px;
+    }
+  }
+
+  .meta-label {
+    color: #909399;
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+
+  .meta-value {
+    color: #303133;
+    word-break: break-all;
+  }
 }
 
 .article-content {
@@ -127,15 +166,18 @@ onMounted(() => {
 
   .intro-text {
     padding: 16px;
-    background: #f5f7fa;
+    background: #ffffff;
     border-radius: 4px;
+    border: 1px solid #dcdfe6;
     color: #606266;
     line-height: 1.8;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .content-text {
     padding: 16px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
     line-height: 1.8;
     color: #303133;
     word-break: break-word;

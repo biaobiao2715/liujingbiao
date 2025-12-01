@@ -8,19 +8,21 @@
 <template>
   <div class="brand-management">
     <!-- 搜索栏 -->
-    <el-form :model="queryParams" :label-width="80" inline>
+    <el-form :model="queryParams" :label-width="80" inline label-position="left">
       <el-form-item label="品牌名称">
         <el-input v-model="queryParams.attributeName" placeholder="请输入品牌名称" clearable />
       </el-form-item>
       <el-form-item>
         <el-button v-throttle :icon="Search" type="primary" @click="getTableData" v-hasPermi="['grain:goodsAttributes:brandList']">搜索</el-button>
         <el-button v-throttle :icon="Refresh" @click="handleReset" v-hasPermi="['grain:goodsAttributes:brandList']">重置</el-button>
-        <el-button type="primary" :icon="Plus" v-throttle @click="handleAdd" v-hasPermi="['grain:goodsAttributes:brandAdd']">新建品牌名称</el-button>
       </el-form-item>
     </el-form>
+    <el-button type="primary" class="mb-12" :icon="Plus" v-throttle @click="handleAdd" v-hasPermi="['grain:goodsAttributes:brandAdd']"
+      >新建品牌名称</el-button
+    >
 
     <!-- 表格 -->
-    <el-table :data="tableData" border  v-loading="loading">
+    <el-table :data="tableData" border v-loading="loading">
       <el-table-column type="index" label="序号" width="80" />
       <el-table-column prop="attributeName" label="品牌名称" />
       <el-table-column prop="orderNum" label="排序" />
@@ -194,6 +196,7 @@ const handleDelete = async (id: number) => {
 
 <style scoped lang="scss">
 .brand-management {
+  height: calc(100vh - 120px);
   padding: 24px;
 
   .search-bar {

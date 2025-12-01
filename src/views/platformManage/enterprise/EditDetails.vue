@@ -31,10 +31,6 @@
           <el-form-item label="办公地址">
             <el-input v-model="formData.officeAddress" disabled></el-input>
           </el-form-item>
-
-          <el-form-item label="企业经营范围">
-            <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
-          </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="审核状态">
@@ -53,7 +49,13 @@
           </el-form-item>
 
           <el-form-item label="营业执照">
-            <img :src="urlImage" height="100px" width="100px" alt="营业执照" />
+            <img :src="urlImage" height="80px" width="126px" alt="营业执照" />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="企业经营范围">
+            <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
           </el-form-item>
         </el-col>
       </el-row>

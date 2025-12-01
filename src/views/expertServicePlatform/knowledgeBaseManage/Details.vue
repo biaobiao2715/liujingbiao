@@ -35,7 +35,7 @@
     <div v-if="imgList.length" class="attachments">
       <div class="section-title">附件</div>
       <el-divider />
-      <el-table :data="imgList" border>
+      <el-table :data="imgList">
         <el-table-column prop="typeText" label="类型" width="100" align="center">
           <template #default="scope">{{ scope.row.fileSuffixDisplay }}</template>
         </el-table-column>

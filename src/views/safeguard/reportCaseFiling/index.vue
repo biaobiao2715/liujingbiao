@@ -49,7 +49,7 @@
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading">
+    <el-table :data="tableData" v-loading="loading">
       <!-- 序号 -->
       <el-table-column type="index" width="80" label="序号" align="center" :show-overflow-tooltip="true" />
 
@@ -100,9 +100,6 @@
         <template #default="scope">
           <div class="status-cell-wrapper">
             <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusName(scope.row.status) }}</span>
-            <el-icon v-if="scope.row.status === '1' && scope.row.noUrge === '2'" class="status-icon">
-              <Document />
-            </el-icon>
           </div>
         </template>
       </el-table-column>
@@ -164,7 +161,7 @@
     </div>
 
     <!-- 查看/处理弹窗 -->
-    <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="80%">
+    <el-dialog class="dialog-preview" :title="dlgTitle" v-model="dlgPreviewVisible" :before-close="cancelDlg" :destroy-on-close="true" width="50%">
       <Detail
         v-if="dlgPreviewVisible"
         :id="selectID"
@@ -362,6 +359,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .report-case-filing-container {
+  height: calc(100vh - 120px);
   padding: 20px;
 
   .search-actions {
@@ -416,42 +414,42 @@ onMounted(() => {
   }
 
   .status-pending {
-    color: #909399;
+    color: #ff7b00;
 
     &::before {
-      background-color: #909399;
+      background-color: #ff7b00;
     }
   }
 
   .status-processing {
-    color: #e6a23c;
+    color: #00bf33;
 
     &::before {
-      background-color: #e6a23c;
+      background-color: #00bf33;
     }
   }
 
   .status-rejected {
-    color: #f56c6c;
+    color: #ff0000;
 
     &::before {
-      background-color: #f56c6c;
+      background-color: #ff0000;
     }
   }
 
   .status-closed {
-    color: #67c23a;
+    color: #108c58;
 
     &::before {
-      background-color: #67c23a;
+      background-color: #108c58;
     }
   }
 
   .status-withdrawn {
-    color: #909399;
+    color: #bbbdbf;
 
     &::before {
-      background-color: #909399;
+      background-color: #bbbdbf;
     }
   }
 
