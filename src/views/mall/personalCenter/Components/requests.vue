@@ -67,7 +67,7 @@
               style="color: #ef4d0b"
               >关闭</el-button
             >
-            <el-button v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" v-throttle text @click="onDetails(row)">查看</el-button>
+            <el-button v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" v-throttle link @click="onDetails(row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>

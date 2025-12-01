@@ -8,10 +8,10 @@
 <template>
   <div class="meeting-details">
     <!-- 标题与基本信息 -->
-    <h2 class="meeting-title">{{ meetingData.meetingName }}</h2>
+    <div class="meeting-title">{{ meetingData.meetingName }}</div>
     <div class="flex-between">
       <div>
-        <span>发布人：{{ meetingData.publishUser }}</span>
+        <span>发布人：{{ meetingData?.publishUser }}</span>
         <span style="margin-left: 40px">发布时间：{{ meetingData.publishTime }}</span>
       </div>
       <div style="display: flex">
@@ -90,12 +90,15 @@
 import { ref, onMounted } from 'vue';
 import { getcultivateExpert, activityEnrollList, cultivateExpertList } from '@/api/expertServicePlatform/trainingMeeting/index';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { meeting_status, meeting_type, sys_user_sex, meet_expert_type } = toRefs<any>(proxy?.useDict('meeting_status', 'meeting_type', 'sys_user_sex', 'meet_expert_type'));
+const { meeting_status, meeting_type, sys_user_sex, meet_expert_type } = toRefs<any>(
+  proxy?.useDict('meeting_status', 'meeting_type', 'sys_user_sex', 'meet_expert_type')
+);
 
 // 接收父组件传参
 const props = defineProps<{ id: string | number; type: string }>();
 
 const meetingData = ref({
+  publishUser: '',
   meetingCode: '',
   meetingName: '',
   meetingType: '',
@@ -142,10 +145,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.meeting-details {
-  padding: 24px;
-  background: #fff;
-}
 .meeting-title {
   text-align: center;
   font-size: 20px;
