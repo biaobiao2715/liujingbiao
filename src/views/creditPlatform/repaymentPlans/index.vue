@@ -46,9 +46,12 @@
       <el-table-column label="贷款金额(元)" prop="loanAmount" align="center" width="140" />
       <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
       <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" align="center" />
-      <el-table-column label="还款状态" prop="planStatus" align="center" width="120">
+      <el-table-column label="还款状态" prop="planStatus" align="center" width="140">
         <template #default="scope">
-          <dict-tag :options="repayment_status" :value="scope.row.planStatus" />
+          <span class="status-text" :style="{ color: getPlanStatusColor(scope.row.planStatus) }">
+            <span class="status-dot" :style="{ backgroundColor: getPlanStatusColor(scope.row.planStatus) }"></span>
+            {{ getPlanStatusLabel(scope.row.planStatus) }}
+          </span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="left" width="340" fixed="right">
@@ -158,6 +161,37 @@ const queryParams = ref({
   productType: '', // 产品类型
   applicableObject: '' // 适用对象
 });
+
+/**
+ * 获取还款状态颜色
+ * 0=待还款(#FF7B00)，1=还款中(#00BF33)，2=已还清(#0B79EF)，3=已逾期(#FF0000)
+ */
+const getPlanStatusColor = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return '';
+  const code = String(status);
+  switch (code) {
+    case '0':
+      return '#FF7B00'; // 待还款
+    case '1':
+      return '#00BF33'; // 还款中
+    case '2':
+      return '#0B79EF'; // 已还清
+    case '3':
+      return '#FF0000'; // 已逾期
+    default:
+      return '';
+  }
+};
+
+/**
+ * 获取还款状态标签
+ */
+const getPlanStatusLabel = (status: string | number | undefined) => {
+  if (status === undefined || status === null) return '--';
+  const dictList = repayment_status?.value || [];
+  const match = dictList.find((item: any) => String(item.value) === String(status));
+  return match?.label || '--';
+};
 
 // 表格数据和状态
 const tableData = ref<RepaymentPlan[]>([]); // 表格数据
@@ -419,6 +453,20 @@ onMounted(() => {
 
 :deep(.nowrap-column .cell) {
   white-space: nowrap;
+}
+
+.status-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 :deep(.el-table) {

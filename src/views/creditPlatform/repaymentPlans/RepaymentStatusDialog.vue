@@ -59,7 +59,9 @@
                 <el-option label="已还款" :value="1" />
                 <el-option label="已逾期" :value="2" />
               </el-select>
-              <span v-else class="value" :class="getStatusClass(item.planStatus)">{{ getStatusText(item.planStatus) }}</span>
+              <span v-else class="value" :style="{ color: getStatusColor(item.planStatus), fontWeight: 600 }">
+                {{ getStatusText(item.planStatus) }}
+              </span>
             </div>
           </div>
         </div>
@@ -184,17 +186,16 @@ const getStatusText = (status: number | undefined) => {
 };
 
 /**
- * 获取状态样式类
- * @param status - 状态值
- * @returns 样式类名
+ * 获取状态颜色
+ * 待还款(#FF7B00)、已还款(#0B79EF)、已逾期(#FF0000)
  */
-const getStatusClass = (status: number | undefined) => {
-  const classMap: Record<number, string> = {
-    0: 'status-pending', // 待还款
-    1: 'status-paid', // 已还款
-    2: 'status-overdue' // 已逾期
+const getStatusColor = (status: number | undefined) => {
+  const colorMap: Record<number, string> = {
+    0: '#FF7B00',
+    1: '#0B79EF',
+    2: '#FF0000'
   };
-  return status !== undefined ? classMap[status] || '' : '';
+  return status !== undefined ? colorMap[status] || '#606266' : '#606266';
 };
 
 // 获取卡片样式类
@@ -465,20 +466,6 @@ const handleClose = () => {
       }
 
       // 还款状态样式
-      &.status-pending {
-        color: #e6a23c;
-        font-weight: 600;
-      }
-
-      &.status-paid {
-        color: #67c23a;
-        font-weight: 600;
-      }
-
-      &.status-overdue {
-        color: #f56c6c;
-        font-weight: 600;
-      }
     }
 
     .status-select {
@@ -521,4 +508,5 @@ const handleClose = () => {
     width: 100%;
   }
 }
+
 </style>
