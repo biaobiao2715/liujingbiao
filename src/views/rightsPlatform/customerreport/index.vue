@@ -99,6 +99,7 @@ div<!--
               v-hasPermi="['safeguard:report:query']"
               v-throttle
               type="primary"
+              link
               size="small"
               @click="handleEdit(scope.row)"
               >查看</el-button
@@ -110,6 +111,7 @@ div<!--
               v-throttle
               type="success"
               size="small"
+              link
               :disabled="scope.row.rejectTimes == '3' || (scope.row.appealTime != null && scope.row.status === '1') || (scope.row.caseCode == null && scope.row.status === '2')"
               @click="handleAppeal(scope.row)"
             >
