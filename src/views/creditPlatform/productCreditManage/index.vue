@@ -6,10 +6,9 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="90"
       label-position="left"
     >
-      <el-form-item label="产品名称" prop="productName">
+      <el-form-item label="产品名称" prop="productName" label-width="auto">
         <el-input
           v-model="queryParams.productName"
           placeholder="请输入产品名称"
@@ -17,7 +16,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="产品类型" prop="productType">
+      <el-form-item label="产品类型" prop="productType" label-width="auto">
         <el-select
           v-model="queryParams.productType"
           placeholder="请选择"
@@ -31,7 +30,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="状态" prop="productStatus">
+      <el-form-item label="状态" prop="productStatus" label-width="auto">
         <el-select
           v-model="queryParams.productStatus"
           placeholder="请选择"
@@ -45,7 +44,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="适用对象" prop="applicableObject" label-width="90">
+      <el-form-item label="适用对象" prop="applicableObject" label-width="auto">
         <el-select
           v-model="queryParams.applicableObject"
           placeholder="请选择"
@@ -100,7 +99,18 @@
       </el-table-column>
       <el-table-column label="状态" prop="productStatus" width="100">
         <template #default="scope">
-          <dict-tag :options="product_status" :value="scope.row.productStatus" />
+          <div class="status-with-dot">
+            <span 
+              class="status-dot" 
+              :class="`status-dot-${getStatusType(scope.row.productStatus)}`"
+            ></span>
+            <span 
+              class="status-text"
+              :class="`status-text-${getStatusType(scope.row.productStatus)}`"
+            >
+              {{ getStatusLabel(scope.row.productStatus) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" prop="createTime" min-width="160" sortable="custom" :sort-orders="['descending', 'ascending']">
@@ -108,14 +118,58 @@
           <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" fixed="right" width="320" class-name="small-padding fixed-width">
+      <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="flex-center operation-btns">
-            <el-button v-throttle v-hasPermi="['system:creditProductsVersion:query']" type="primary" link @click="handleView(scope.row)">详情</el-button>
-            <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canEdit(scope.row)" type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canPublish(scope.row)" type="primary" link @click="handlePublish(scope.row)">上架</el-button>
-            <el-button v-throttle v-hasPermi="['system:creditProductsVersion:edit']" v-if="canOffline(scope.row)" type="primary" link @click="handleOffline(scope.row)">下架</el-button>
-            <el-button v-throttle v-hasPermi="['system:creditProductsVersion:remove']" v-if="canDelete(scope.row)" type="primary" link @click="handleDelete(scope.row)">删除</el-button>
+          <div style="display: flex; justify-content: flex-start; align-items: center">
+            <el-button
+              v-throttle
+              v-hasPermi="['system:creditProductsVersion:query']"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleView(scope.row)"
+            >
+              详情
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['system:creditProductsVersion:edit']"
+              v-if="canEdit(scope.row)"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['system:creditProductsVersion:edit']"
+              v-if="canPublish(scope.row)"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handlePublish(scope.row)"
+            >
+              上架
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['system:creditProductsVersion:edit']"
+              v-if="canOffline(scope.row)"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleOffline(scope.row)"
+            >
+              下架
+            </el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['system:creditProductsVersion:remove']"
+              v-if="canDelete(scope.row)"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -306,6 +360,22 @@ const canDelete = (row: CreditProduct) => {
   return status !== '2' && status !== 'enabled' && status !== '1';
 };
 
+const getStatusLabel = (status: string | number) => {
+  const value = String(status ?? '');
+  const list = product_status.value || [];
+  const target = list.find((item: any) => String(item.value) === value);
+  return target?.label || '--';
+};
+
+const getStatusType = (status: string | number) => {
+  const value = String(status ?? '');
+  // 根据业务逻辑：2-已上架, 3-已下架, 5-待上架
+  if (value === '2' || value === '1' || value === 'enabled') return 'success'; // 已上架
+  if (value === '3' || value === 'disabled' || value === 'offline') return 'danger'; // 已下架
+  if (value === '5' || value === 'pending' || value === 'waiting' || value === 'draft') return 'warning'; // 待上架
+  return 'info';
+};
+
 const handleAdd = () => {
   dialog.value = { visible: true, type: 'add', id: null };
 };
@@ -404,6 +474,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-credit-manage {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 .operation-bar {
@@ -457,5 +529,56 @@ onMounted(() => {
   :deep(.el-button) {
     font-size: 14px;
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #67c23a;
+}
+
+.status-dot-warning {
+  background-color: #e6a23c;
+}
+
+.status-dot-danger {
+  background-color: #f56c6c;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-success {
+  color: #67c23a;
+}
+
+.status-text-warning {
+  color: #e6a23c;
+}
+
+.status-text-danger {
+  color: #f56c6c;
+}
+
+.status-text-info {
+  color: #909399;
 }
 </style>

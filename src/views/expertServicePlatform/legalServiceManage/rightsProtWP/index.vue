@@ -51,16 +51,58 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:whitePaper:add']" type="primary" @click="handleAdd">新增</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:whitePaper:add']"
+          type="primary"
+          icon="Plus"
+          @click="handleAdd"
+        >
+          新增
+        </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="success" @click="handleEnable">启用</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:whitePaper:edit']"
+          :class="[
+            'white-paper-btn',
+            { 'is-active': selectedRows.length > 0 }
+          ]"
+          :disabled="selectedRows.length === 0"
+          @click="handleEnable"
+        >
+          启用
+        </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" type="warning" @click="handleDisable">禁用</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:whitePaper:edit']"
+          :class="[
+            'white-paper-btn',
+            { 'is-active': selectedRows.length > 0 }
+          ]"
+          :disabled="selectedRows.length === 0"
+          @click="handleDisable"
+        >
+          禁用
+        </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:whitePaper:remove']" type="danger" @click="handleDelete">删除</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:whitePaper:remove']"
+          :class="[
+            'white-paper-btn',
+            'white-paper-btn--danger',
+            { 'is-active': selectedRows.length > 0 }
+          ]"
+          :disabled="selectedRows.length === 0"
+          @click="handleDelete"
+        >
+          删除
+        </el-button>
       </el-col>
     </el-row>
 
@@ -99,9 +141,18 @@
       
       <el-table-column label="所属状态" align="center" prop="paperStatus" width="100">
         <template #default="scope">
-          <el-tag :type="getStatusType(scope.row.paperStatus)">
-            {{ getStatusLabel(scope.row.paperStatus) }}
-          </el-tag>
+          <div class="status-with-dot">
+            <span 
+              class="status-dot" 
+              :class="`status-dot-${getStatusType(scope.row.paperStatus)}`"
+            ></span>
+            <span 
+              class="status-text"
+              :class="`status-text-${getStatusType(scope.row.paperStatus)}`"
+            >
+              {{ getStatusLabel(scope.row.paperStatus) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       
@@ -111,14 +162,14 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" align="center" width="450" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="left" width="450" class-name="small-padding fixed-width">
         <template #default="scope">
-          <div class="operation-buttons">
+          <div style="display: flex; justify-content: flex-start; align-items: center">
             <el-button 
               v-throttle 
               v-hasPermi="['skill:whitePaper:edit']" 
-              type="primary" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
               编辑
@@ -126,8 +177,8 @@
             <el-button 
               v-throttle 
               v-hasPermi="['skill:whitePaper:query']" 
-              type="info" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
             >
               查看
@@ -135,8 +186,8 @@
             <el-button 
               v-throttle 
               v-hasPermi="['skill:whitePaper:edit']" 
-              type="warning" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleUpdateVersion(scope.row)"
             >
               更新版本
@@ -145,8 +196,8 @@
               v-if="isEnabled(scope.row.paperStatus)" 
               v-throttle 
               v-hasPermi="['skill:whitePaper:edit']" 
-              type="warning" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '禁用')"
             >
               禁用
@@ -155,8 +206,8 @@
               v-if="isDisabled(scope.row.paperStatus)" 
               v-throttle 
               v-hasPermi="['skill:whitePaper:edit']" 
-              type="success" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '启用')"
             >
               启用
@@ -165,8 +216,8 @@
               v-if="isDisabled(scope.row.paperStatus)" 
               v-throttle 
               v-hasPermi="['skill:whitePaper:remove']" 
-              type="danger" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
               删除
@@ -174,8 +225,8 @@
             <el-button 
               v-throttle 
               v-hasPermi="['system:oss:download']" 
-              type="primary" 
-              size="small" 
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleDownload(scope.row)"
             >
               下载
@@ -329,6 +380,7 @@ const queryFormRef = ref();
 const dateRange = ref(['', '']);
 const showSearch = ref(true);
 const selectedIds = ref([]);
+const selectedRows = ref<any[]>([]);
 
 const dialog = ref({
   visible: false,
@@ -484,6 +536,7 @@ const handleReset = () => {
 };
 
 const handleSelectionChange = (selection: any[]) => {
+  selectedRows.value = selection;
   selectedIds.value = selection.map((item) => item.id);
 };
 
@@ -511,6 +564,13 @@ const handleEnable = async () => {
     ElMessage.warning('请先选择要启用的白皮书');
     return;
   }
+
+  // 只能启用当前为禁用状态的白皮书
+  const invalidRows = selectedRows.value.filter((row: any) => isEnabled(row.paperStatus));
+  if (invalidRows.length > 0) {
+    ElMessage.warning('所选白皮书中包含已启用的白皮书，无法重复启用');
+    return;
+  }
   
   try {
     await ElMessageBox.confirm(
@@ -531,6 +591,7 @@ const handleEnable = async () => {
       ElMessage.success(`成功启用${ids.length}个白皮书`);
       await getList();
       selectedIds.value = [];
+      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '启用失败，请重试');
     }
@@ -548,6 +609,13 @@ const handleDisable = async () => {
   
   if (ids.length === 0) {
     ElMessage.warning('请先选择要禁用的白皮书');
+    return;
+  }
+
+  // 只能禁用当前为启用状态的白皮书
+  const invalidRows = selectedRows.value.filter((row: any) => isDisabled(row.paperStatus));
+  if (invalidRows.length > 0) {
+    ElMessage.warning('所选白皮书中包含已禁用的白皮书，无法重复禁用');
     return;
   }
   
@@ -570,6 +638,7 @@ const handleDisable = async () => {
       ElMessage.success(`成功禁用${ids.length}个白皮书`);
       await getList();
       selectedIds.value = [];
+      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '禁用失败，请重试');
     }
@@ -587,6 +656,13 @@ const handleDelete = async () => {
   
   if (ids.length === 0) {
     ElMessage.warning('请先选择要删除的白皮书');
+    return;
+  }
+
+  // 只能删除已禁用的白皮书
+  const hasEnabledItems = selectedRows.value.some((row: any) => isEnabled(row.paperStatus));
+  if (hasEnabledItems) {
+    ElMessage.warning('只能删除已禁用的白皮书，请先禁用后再删除');
     return;
   }
   
@@ -607,6 +683,7 @@ const handleDelete = async () => {
       ElMessage.success(`成功删除 ${ids.length} 个白皮书`);
       await getList();
       selectedIds.value = [];
+      selectedRows.value = [];
     } else {
       ElMessage.error(response?.msg || '删除失败，请重试');
     }
@@ -986,6 +1063,70 @@ onMounted(() => {
 <style scoped lang="scss">
 .white-paper-management {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
+}
+
+.operation-bar {
+  margin-bottom: 16px;
+
+  .el-col {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+
+.white-paper-btn {
+  width: auto;
+  min-width: 96px;
+  height: 36px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #f2f3f5;
+  border-color: #f2f3f5;
+  color: #666666;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    background-color: #f4f5f5;
+    border-color: #e6e8eb;
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled) {
+    &:hover {
+      background-color: #e6e8eb;
+      border-color: #e6e8eb;
+    }
+  }
+
+  &.is-active:not(:disabled):not(.white-paper-btn--danger) {
+    background-color: #108c58;
+    border-color: #108c58;
+    color: #ffffff;
+
+    &:hover {
+      background-color: #0d7347;
+      border-color: #0d7347;
+    }
+  }
+
+  &--danger {
+    color: #909399;
+
+    &.is-active:not(:disabled) {
+      background-color: #f23255;
+      border-color: #f23255;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #d42040;
+        border-color: #d42040;
+      }
+    }
+  }
 }
 
 .operation-bar {
@@ -1106,5 +1247,56 @@ onMounted(() => {
   .el-button {
     font-size: 14px;
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #67c23a;
+}
+
+.status-dot-warning {
+  background-color: #e6a23c;
+}
+
+.status-dot-danger {
+  background-color: #f56c6c;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-success {
+  color: #67c23a;
+}
+
+.status-text-warning {
+  color: #e6a23c;
+}
+
+.status-text-danger {
+  color: #f56c6c;
+}
+
+.status-text-info {
+  color: #909399;
 }
 </style>

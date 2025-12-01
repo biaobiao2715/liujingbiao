@@ -92,16 +92,22 @@
       
       <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
         <template #default="scope">
-          <el-tag
-            :type="getReplyStatusType(scope.row.questionStatus)"
-            disable-transitions
-          >
-            {{ getReplyStatusLabel(scope.row.questionStatus) }}
-          </el-tag>
+          <div class="status-with-dot">
+            <span 
+              class="status-dot" 
+              :class="`status-dot-${getReplyStatusType(scope.row.questionStatus)}`"
+            ></span>
+            <span 
+              class="status-text"
+              :class="`status-text-${getReplyStatusType(scope.row.questionStatus)}`"
+            >
+              {{ getReplyStatusLabel(scope.row.questionStatus) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" align="center" fixed="right" width="180">
+      <el-table-column label="操作" align="left" fixed="right" width="180">
         <template #default="scope">
           <div class="flex-center operation-btns">
             <el-button
@@ -472,6 +478,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .message-management {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 :deep(.el-table) {
@@ -513,7 +521,7 @@ onMounted(() => {
 .flex-center {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .operation-btns {
@@ -522,5 +530,56 @@ onMounted(() => {
   :deep(.el-button) {
     font-size: 14px;
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-success {
+  background-color: #67c23a;
+}
+
+.status-dot-warning {
+  background-color: #e6a23c;
+}
+
+.status-dot-danger {
+  background-color: #f56c6c;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-success {
+  color: #67c23a;
+}
+
+.status-text-warning {
+  color: #e6a23c;
+}
+
+.status-text-danger {
+  color: #f56c6c;
+}
+
+.status-text-info {
+  color: #909399;
 }
 </style>

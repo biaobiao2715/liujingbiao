@@ -64,10 +64,27 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:lawActivity:add']" type="primary" @click="handleAdd">新增</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:lawActivity:add']"
+          class="operation-btn operation-btn--primary"
+          icon="Plus"
+          @click="handleAdd"
+        >
+          新增
+        </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['skill:lawActivity:remove']" type="danger" @click="handleDelete">删除</el-button>
+        <el-button
+          v-throttle
+          v-hasPermi="['skill:lawActivity:remove']"
+          class="operation-btn operation-btn--danger"
+          :class="{ 'is-active': selectedRows.length > 0 }"
+          :disabled="selectedRows.length === 0"
+          @click="handleDelete"
+        >
+          删除
+        </el-button>
       </el-col>
     </el-row>
 
@@ -142,14 +159,14 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" fixed="right" width="280">
+      <el-table-column label="操作" fixed="right" align="left" width="280">
         <template #default="scope">
-          <div class="flex-center operation-btns">
+          <div style="display: flex; justify-content: flex-start; align-items: center">
             <el-button 
               v-throttle 
               v-hasPermi="['skill:lawActivity:edit']" 
-              type="primary" 
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
               编辑
@@ -157,8 +174,8 @@
             <el-button 
               v-throttle 
               v-hasPermi="['skill:lawActivity:query']" 
-              type="primary" 
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
             >
               查看
@@ -167,8 +184,8 @@
               v-if="canCancelActivity(scope.row)" 
               v-hasPermi="['skill:lawActivity:cancel']" 
               v-throttle 
-              type="primary" 
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleCancelActivity(scope.row)"
             >
               取消活动
@@ -177,8 +194,8 @@
               v-if="canDeleteActivity(scope.row)"
               v-throttle 
               v-hasPermi="['skill:lawActivity:remove']" 
-              type="primary" 
-              link
+              type="text"
+              style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
               删除
@@ -617,6 +634,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .activity-management {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 :deep(.el-form) {
@@ -636,10 +655,57 @@ onMounted(() => {
     display: flex;
     justify-content: flex-start;
   }
+}
 
-  .el-button {
-    width: auto;
-    min-width: 80px;
+.operation-btn {
+  width: auto;
+  min-width: 100px;
+  height: 36px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #f2f3f5;
+  border-color: #f2f3f5;
+  color: #666666;
+  transition: all 0.2s ease;
+
+  &--primary {
+    padding: 0 24px;
+    background-color: #108c58;
+    border-color: #108c58;
+    color: #ffffff;
+
+    &:not(:disabled):hover {
+      background-color: #0d7347;
+      border-color: #0d7347;
+    }
+  }
+
+  &--danger {
+    color: #909399;
+
+    &.is-active:not(:disabled) {
+      background-color: #f23255;
+      border-color: #f23255;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #d42040;
+        border-color: #d42040;
+      }
+    }
+  }
+
+  &:disabled {
+    background-color: #f4f5f5;
+    border-color: #e6e8eb;
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background-color: #e6e8eb;
+    border-color: #e6e8eb;
   }
 }
 
@@ -672,6 +738,35 @@ onMounted(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .el-table__column--selection {
+    .el-checkbox__inner {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid #c0c4cc;
+      background-color: #ffffff;
+      transition: all 0.2s ease;
+
+      &::after {
+        left: 5px;
+        top: 1px;
+        width: 4px;
+        height: 9px;
+        border: 2px solid #ffffff;
+        border-left: 0;
+        border-top: 0;
+      }
+    }
+
+    .el-checkbox__input.is-checked,
+    .el-checkbox__input.is-indeterminate {
+      .el-checkbox__inner {
+        background-color: #108c58;
+        border-color: #108c58;
+      }
+    }
   }
 }
 

@@ -52,8 +52,28 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button type="primary" @click="handleCreate" v-hasPermi="['safeguard:knowledgeCaseContent:add']">新增</el-button>
-        <el-button type="danger" plain @click="handleBatchDelete" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
+        <el-button
+          v-throttle
+          type="primary"
+          icon="Plus"
+          @click="handleCreate"
+          v-hasPermi="['safeguard:knowledgeCaseContent:add']"
+        >
+          新增
+        </el-button>
+        <el-button
+          v-throttle
+          :class="[
+            'kc-action-btn',
+            'kc-action-btn--danger',
+            { 'is-active': selectionRows.length > 0 }
+          ]"
+          :disabled="!selectionRows.length"
+          @click="handleBatchDelete"
+          v-hasPermi="['safeguard:knowledgeCaseContent:remove']"
+        >
+          删除
+        </el-button>
       </el-col>
     </el-row>
 
@@ -73,12 +93,33 @@
       <el-table-column prop="knowledgeCaseName" label="知识库案件名称" min-width="200" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" min-width="180" show-overflow-tooltip />
       <el-table-column prop="createBy" label="创建人" min-width="120" show-overflow-tooltip />
-      <el-table-column label="操作" width="200">
+      <el-table-column label="操作" width="200" align="left">
         <template #default="scope">
-          <div class="flex-center operation-btns">
-            <el-button type="primary" link @click="handleEdit(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:edit']">编辑</el-button>
-            <el-button type="primary" link @click="handleView(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查看</el-button>
-            <el-button type="danger" link @click="handleSingleDelete(scope.row)" v-hasPermi="['safeguard:knowledgeCaseContent:remove']">删除</el-button>
+          <div style="display: flex; justify-content: flex-start; align-items: center">
+            <el-button
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleEdit(scope.row)"
+              v-hasPermi="['safeguard:knowledgeCaseContent:edit']"
+            >
+              编辑
+            </el-button>
+            <el-button
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleView(scope.row)"
+              v-hasPermi="['safeguard:knowledgeCaseContent:query']"
+            >
+              查看
+            </el-button>
+            <el-button
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleSingleDelete(scope.row)"
+              v-hasPermi="['safeguard:knowledgeCaseContent:remove']"
+            >
+              删除
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -341,6 +382,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .knowledge-case-page {
   padding: 24px;
+  height: calc(100vh - 120px);
+  box-sizing: border-box;
 }
 
 .operation-bar {
@@ -350,16 +393,52 @@ onMounted(() => {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-  }
-
-  .el-button {
-    width: auto;
-    min-width: 80px;
+    gap: 12px;
   }
 
   .table-tips {
     color: #909399;
     font-size: 13px;
+  }
+}
+
+.kc-action-btn {
+  width: auto;
+  min-width: 96px;
+  height: 36px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #f2f3f5;
+  border-color: #f2f3f5;
+  color: #666666;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    background-color: #f4f5f5;
+    border-color: #e6e8eb;
+    color: #c0c4cc;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background-color: #e6e8eb;
+    border-color: #e6e8eb;
+  }
+
+  &--danger {
+    color: #909399;
+
+    &.is-active:not(:disabled) {
+      background-color: #f23255;
+      border-color: #f23255;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #d42040;
+        border-color: #d42040;
+      }
+    }
   }
 }
 

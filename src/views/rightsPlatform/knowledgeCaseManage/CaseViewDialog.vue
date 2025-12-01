@@ -577,7 +577,7 @@ const handleClose = () => {
 }
 
 .dialog-footer {
-  text-align: center;
+  text-align: right;
 }
 
 :deep(.el-dialog__footer) {
