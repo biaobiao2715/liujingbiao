@@ -58,9 +58,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button class="search-btn" v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd"
-          >新增</el-button
-        >
+        <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle class="custom-btn-style" type="primary" icon="" @click="handleEnable" :disabled="multiple">启用</el-button>
@@ -71,7 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          class="custom-btn-style"
+          class="custom-btn-style delete-btn"
           type="primary"
           v-hasPermi="['skill:courseCultivate:remove']"
           @click="handleDelete"
@@ -166,7 +164,7 @@
           <el-tooltip content="查看" placement="top">
             <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
           </el-tooltip>
-          <el-tooltip content="编辑" placement="top">
+          <el-tooltip content="禁用" placement="top">
             <el-button class="operation-link-button" v-if="scope.row.cultivateStatus === '1'" type="text" @click="handleStatusChange(scope.row, '2')">
               禁用
             </el-button>
@@ -215,7 +213,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -784,16 +782,15 @@ onMounted(() => {
 .custom-btn-style {
   background-color: #f2f3f5 !important;
   border: none !important;
-  color: #1D2129 !important;
-  border: 4px;
+  color: #1d2129 !important;
   &:hover {
     background-color: #e5e7eb !important;
-    color: #1D2129 !important;
+    color: #1d2129 !important;
   }
 
   &:focus {
     background-color: #f2f3f5 !important;
-    color: #1D2129 !important;
+    color: #1d2129 !important;
   }
 
   &.is-disabled {
@@ -802,14 +799,14 @@ onMounted(() => {
     cursor: not-allowed;
   }
   &:not(.is-disabled) {
-    color: #1D2129 !important;
+    color: #1d2129 !important;
 
     &:hover {
-      color: #1D2129 !important;
+      color: #1d2129 !important;
     }
 
     &:focus {
-      color: #1D2129 !important;
+      color: #1d2129 !important;
     }
   }
 }
@@ -817,7 +814,6 @@ onMounted(() => {
   color: #108c58 !important;
   background-color: transparent !important;
   border: none !important;
-  padding: 0 8px !important;
 
   &:hover,
   &:focus {

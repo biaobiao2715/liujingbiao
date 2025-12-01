@@ -446,6 +446,10 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
+:deep(.el-button) {
+  border-radius: 4px !important;
+}
+
 .legal-edit-dialog {
   .el-dialog__body {
     padding-top: 10px;

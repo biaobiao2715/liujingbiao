@@ -23,12 +23,19 @@
 
       <!-- 创建时间 -->
       <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" clearable />
+        <el-date-picker
+          v-model="queryParams.createTime"
+          style="width: 180px"
+          type="datetime"
+          placeholder="选择创建时间"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          clearable
+        />
       </el-form-item>
 
       <!-- 创建人 -->
       <el-form-item label="创建人" prop="createByName">
-        <el-input v-model="queryParams.createByName" placeholder="请输入创建人姓名" clearable @keyup.enter="handleQuery" />
+        <el-input v-model="queryParams.createByName" style="width: 160px" placeholder="请输入创建人姓名" clearable @keyup.enter="handleQuery" />
       </el-form-item>
 
       <!-- 查询和重置按钮 -->
@@ -44,9 +51,7 @@
         <el-button class="search-btn" v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button class="custom-action-btn delete-btn" v-throttle icon="Delete" :disabled="selectedIds.length === 0" @click="handleDeleteBatch"
-          >删除</el-button
-        >
+        <el-button v-throttle :color="loading || noSelection ? '#F2F3F5' : '#F23255'" @click="handleDeleteBatch">删除</el-button>
       </el-col>
     </el-row>
 
@@ -202,7 +207,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import Pagination from '@/components/Pagination/index.vue';
 import { UploadFilled, Search, RefreshLeft } from '@element-plus/icons-vue';
@@ -238,6 +243,9 @@ const selectedIds = ref<(string | number)[]>([]);
 
 // 选中的行数据数组
 const selectedRows = ref<any[]>([]);
+
+// 是否无选中项（用于禁用批量按钮）
+const noSelection = computed(() => selectedIds.value.length === 0);
 
 // 查询参数
 const queryParams = reactive({
@@ -375,7 +383,7 @@ const handleAdd = () => {
 };
 
 const showDeleteConfirm = (message: string) => {
-  return ElMessageBox.confirm(message, '操作确认', {
+  return ElMessageBox.confirm(message, '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning',
@@ -780,13 +788,13 @@ onMounted(() => {
   }
 
   .search-actions {
-    margin-left: auto;
-    float: right;
+    // margin-left: auto;
+    // float: right;
 
     .search-btn,
     .reset-btn {
       width: 88px;
-      border-radius: 0;
+      border-radius: 4px;
     }
 
     .reset-btn {
@@ -806,6 +814,7 @@ onMounted(() => {
     background-color: #f2f3f5 !important;
     border: none !important;
     color: #333333 !important;
+    border-radius: 4px !important;
 
     &:hover {
       background-color: #e5e7eb !important;
@@ -850,6 +859,7 @@ onMounted(() => {
     background-color: transparent !important;
     border: none !important;
     padding: 0 8px !important;
+    border-radius: 4px !important;
 
     &:hover,
     &:focus {

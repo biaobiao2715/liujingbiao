@@ -51,10 +51,10 @@
         <el-button class="search-btn" v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button class="custom-action-btn" v-throttle icon="Check" @click="handleEnableBatch">启用</el-button>
+        <el-button v-throttle @click="handleEnableBatch" :color="loading || noSelection ? '#F2F3F5' : '#108C58'">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button class="custom-action-btn" v-throttle icon="Close" @click="handleDisableBatch">禁用</el-button>
+        <el-button v-throttle @click="handleDisableBatch" :color="loading || noSelection ? '#F2F3F5' : '#108C58'">禁用</el-button>
       </el-col>
     </el-row>
 
@@ -115,9 +115,18 @@
       <!-- 所属状态 -->
       <el-table-column label="所属状态" align="center" prop="status" width="100" :show-overflow-tooltip="true">
         <template #default="scope">
-          <el-tag :type="scope.row.status === '0' ? 'success' : 'danger'">
-            {{ scope.row.status === '0' ? '启用' : '禁用' }}
-          </el-tag>
+          <div class="flex-center-center">
+            <div
+              v-if="scope.row.status != null"
+              class="normal"
+              :class="{
+                green: scope.row.status === '0',
+                reviewRejected: scope.row.status === '1'
+              }"
+            ></div>
+            <span v-if="scope.row.status === '1'" class="reviewRejected-color">禁用</span>
+            <span v-if="scope.row.status === '0'" class="green-color">启用</span>
+          </div>
         </template>
       </el-table-column>
 
@@ -152,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, RefreshLeft } from '@element-plus/icons-vue';
 import Pagination from '@/components/Pagination/index.vue';
@@ -189,6 +198,9 @@ const selectedIds = ref<(string | number)[]>([]);
 
 // 选中的行数据数组
 const selectedRows = ref<any[]>([]);
+
+// 是否无选中项（用于禁用批量按钮）
+const noSelection = computed(() => selectedIds.value.length === 0);
 
 // 查询参数
 const queryParams = reactive({
@@ -551,7 +563,7 @@ onMounted(() => {
   .reset-btn {
     margin-left: 10px;
     width: 88px;
-    border-radius: 0;
+    border-radius: 4px;
   }
 
   .reset-btn {
@@ -570,6 +582,7 @@ onMounted(() => {
     background-color: #f2f3f5 !important;
     border: none !important;
     color: #333333 !important;
+    border-radius: 4px !important;
 
     &:hover {
       background-color: #e5e7eb !important;
@@ -605,6 +618,7 @@ onMounted(() => {
     background-color: transparent !important;
     border: none !important;
     padding: 0 8px !important;
+    border-radius: 4px !important;
 
     &:hover,
     &:focus {
