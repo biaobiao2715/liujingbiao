@@ -43,7 +43,7 @@
     <!-- 表格展示 -->
     <el-table :data="computedTableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="60"></el-table-column>
-      <el-table-column prop="companyName" label="供应商名称" width="160" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="companyName" label="供应商名称" min-width="160" show-overflow-tooltip></el-table-column>
       <el-table-column prop="enterpriseNumber" label="供应商编号" width="210"> </el-table-column>
       <el-table-column prop="licenseNumber" label="统一社会信用代码" width="210"></el-table-column>
       <el-table-column prop="credentialLevel" label="资质等级" width="100" align="center">
