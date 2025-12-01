@@ -55,25 +55,51 @@
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
-            <template v-if="scope.row.planStatus === '2'">
-              <el-button size="small" text style="color: #108C58; font-size: 14px" @click="handleNotification(scope.row, 'completed')">完结通知</el-button>
-            </template>
-            <template v-else>
-              <el-button
-                v-if="scope.row.currentPeriodStatus === '0'"
-                style="color: #FF7B00; font-size: 14px"
-                size="small"
-                text
-                @click="handleNotification(scope.row, 'pending')"
-              >
-                还款提醒
-              </el-button>
-              <el-button v-else-if="scope.row.currentPeriodStatus === '2'" size="small" text style="color: #F23255; font-size: 14px" @click="handleNotification(scope.row, 'overdue')">
-                逾期提示
-              </el-button>
-            </template>
-            <el-button size="small" type="success" text style="color: #108C58; font-size: 14px" @click="handleRepayment(scope.row)">还款情况</el-button>
-            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" @click="handleDetail(scope.row)">详情</el-button>
+            <el-button 
+              v-if="scope.row.planStatus === '2'"
+              size="small" 
+              text 
+              style="color: #108C58; font-size: 14px" 
+              @click="handleNotification(scope.row, 'completed')"
+            >
+              完结通知
+            </el-button>
+            <el-button
+              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '0'"
+              style="color: #FF7B00; font-size: 14px"
+              size="small"
+              text
+              @click="handleNotification(scope.row, 'pending')"
+            >
+              还款提醒
+            </el-button>
+            <el-button 
+              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'" 
+              size="small" 
+              text 
+              style="color: #F23255; font-size: 14px" 
+              @click="handleNotification(scope.row, 'overdue')"
+            >
+              逾期提示
+            </el-button>
+            <el-button 
+              size="small" 
+              type="success" 
+              text 
+              style="color: #108C58; font-size: 14px" 
+              @click="handleRepayment(scope.row)"
+            >
+              还款情况
+            </el-button>
+            <el-button 
+              size="small" 
+              type="primary" 
+              text 
+              style="color: #108C58; font-size: 14px" 
+              @click="handleDetail(scope.row)"
+            >
+              详情
+            </el-button>
 
             <!-- 更多操作下拉菜单 -->
             <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
@@ -427,6 +453,10 @@ onMounted(() => {
     flex-shrink: 0;
     padding: 5px 10px;
     font-size: 14px;
+
+    &:disabled {
+      color: #C0C4CC !important;
+    }
   }
 }
 

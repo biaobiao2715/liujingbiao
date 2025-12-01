@@ -353,6 +353,10 @@ onMounted(() => {
     flex-shrink: 0;
     padding: 5px 10px;
     font-size: 14px;
+
+    &:disabled {
+      color: #C0C4CC !important;
+    }
   }
 }
 

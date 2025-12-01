@@ -13,7 +13,7 @@
     </template>
     <div v-loading="loading">
       <div class="detail-section">
-        <div class="section-title">用户信息</div>
+        <div class="section-title">个人信息</div>
         <el-descriptions :column="2" border>
           <el-descriptions-item label="姓名">{{ detail.user.name }}</el-descriptions-item>
           <el-descriptions-item label="出生年月">{{ detail.user.birthday }}</el-descriptions-item>
@@ -690,37 +690,62 @@ const handleViewProductDetail = () => {
 }
 
 .buyer-detail-dialog {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #303133;
+  :deep(.el-dialog__body) {
+    background-color: #F7F8FA;
+    padding: 24px;
+  }
+
+
+
+  :deep(.el-descriptions) {
+    background-color: transparent;
+    
+    .el-descriptions__label {
+      background-color: #FAFAFA;
+      color: #606266;
+      font-weight: 500;
+    }
+    
+    .el-descriptions__content {
+      background-color: #ffffff;
+      color: #303133;
+    }
+    
+    .el-descriptions__table {
+      border: 1px solid #E5E5E5;
+    }
+    
+    .el-descriptions__table td,
+    .el-descriptions__table th {
+      border: 1px solid #E5E5E5;
+    }
   }
 }
 
 .detail-section {
   margin-bottom: 20px;
-  background: #fefefe;
+  background: #ffffff;
   border-radius: 8px;
-  border: 1px solid #f0f2f5;
-  padding: 16px 20px;
-  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
+  border: 1px solid #E5E5E5;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #303133;
+  color: #108C58;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 16px;
-    background-color: #409eff;
-    border-radius: 2px;
-    margin-right: 8px;
+    width: 2px;
+    height: 13px;
+    background-color:#108C58;
+    border-radius: 4px;
+    margin-right: 5px;
   }
 }
 
@@ -729,7 +754,8 @@ const handleViewProductDetail = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #ebeef5;
+  border: 1px solid #E5E5E5;
+  background-color: #ffffff;
 }
 
 .image-placeholder {
