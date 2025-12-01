@@ -208,6 +208,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .product-category {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 /* 弹窗样式 */

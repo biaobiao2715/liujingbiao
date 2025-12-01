@@ -215,10 +215,6 @@ export function completeUpload(data: any) {
     url: '/resource/file/finish-chunk',
     method: 'post',
     data
-    // headers: {
-    //   ignoreFrequencyLimit: true,
-    //   'Content-Type': 'multipart/form-data'
-    // }
   });
 }
 

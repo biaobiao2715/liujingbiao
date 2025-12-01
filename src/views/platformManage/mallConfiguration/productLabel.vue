@@ -15,12 +15,14 @@
       <el-form-item>
         <el-button v-throttle :icon="Search" type="primary" @click="getTableData" v-hasPermi="['grain:goodsAttributes:functionList']">搜索</el-button>
         <el-button v-throttle :icon="Refresh" @click="handleReset" v-hasPermi="['grain:goodsAttributes:functionList']">重置</el-button>
-        <el-button v-throttle :icon="Plus" type="primary" @click="handleAdd" v-hasPermi="['grain:goodsAttributes:functionAdd']">新建产品功能</el-button>
       </el-form-item>
     </el-form>
+    <el-button v-throttle :icon="Plus" class="mb-12" type="primary" @click="handleAdd" v-hasPermi="['grain:goodsAttributes:functionAdd']"
+      >新建产品功能</el-button
+    >
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading">
+    <el-table :data="tableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="80" />
       <el-table-column prop="attributeName" label="产品功能" />
       <el-table-column prop="orderNum" label="排序" />
@@ -193,6 +195,7 @@ const handleDelete = async (id: number) => {
 
 <style scoped lang="scss">
 .brand-management {
+  height: calc(100vh - 120px);
   padding: 24px;
 
   .search-bar {
