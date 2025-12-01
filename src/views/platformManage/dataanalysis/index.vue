@@ -10,142 +10,140 @@
 
 <template>
   <div class="p-2 legal-expert-page">
-    <el-card shadow="hover">
-      <!-- 顶部展示区域 -->
-      <div style="margin-bottom: 2%">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-card>
-              <div>
-                <el-statistic group-separator="," :value="staticdata.serviceCount || 0" title="总服务次数"></el-statistic>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card>
-              <div>
-                <el-statistic group-separator="," :value="staticdata.serviceDuration || 0" title="总时长(分钟)"></el-statistic>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card>
-              <div>
-                <el-statistic group-separator="," :value="staticdata.totalConsultations || 0" title="总咨询量"></el-statistic>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card>
-              <div>
-                <el-statistic group-separator="," :value="staticdata.totalReplies || 0" title="总回复量"></el-statistic>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-      <!-- 查询区域 -->
-      <div class="mb-[10px]">
-        <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
-          <el-form-item label="专家类型" prop="expertType">
-            <el-select v-model="queryParams.expertType" placeholder="请选择专家类型" filterable clearable>
-              <el-option v-for="dict in static_expert_type" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="专家姓名" prop="expertName">
-            <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
-          </el-form-item>
-          <el-form-item label="专家编号" prop="expertNumber">
-            <el-input v-model.trim="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
-          </el-form-item>
-          <!-- <el-form-item label="入驻时间">
+    <!-- 顶部展示区域 -->
+    <div style="margin-bottom: 2%">
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-card>
+            <div>
+              <el-statistic group-separator="," :value="staticdata.serviceCount || 0" title="总服务次数"></el-statistic>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card>
+            <div>
+              <el-statistic group-separator="," :value="staticdata.serviceDuration || 0" title="总时长(分钟)"></el-statistic>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card>
+            <div>
+              <el-statistic group-separator="," :value="staticdata.totalConsultations || 0" title="总咨询量"></el-statistic>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="6">
+          <el-card>
+            <div>
+              <el-statistic group-separator="," :value="staticdata.totalReplies || 0" title="总回复量"></el-statistic>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
+    <!-- 查询区域 -->
+    <div class="mb-[10px]">
+      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80">
+        <el-form-item label="专家类型" prop="expertType">
+          <el-select v-model="queryParams.expertType" placeholder="请选择专家类型" filterable clearable>
+            <el-option v-for="dict in static_expert_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="专家姓名" prop="expertName">
+          <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item label="专家编号" prop="expertNumber">
+          <el-input v-model.trim="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <!-- <el-form-item label="入驻时间">
             <el-date-picker v-model="registrationTime" type="daterange" value-format="YYYY-MM-DD" range-separator=" - "
               start-placeholder="开始时间" end-placeholder="结束时间" @change="handleSelectDate" />
           </el-form-item> -->
-          <el-form-item>
-            <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
-            <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
-          </el-form-item>
-        </el-form>
+        <el-form-item>
+          <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+          <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <!-- 日期筛选区域 -->
+    <div class="date-filter flex items-center mb-[10px]">
+      <div class="filter-buttons flex items-center gap-2">
+        <el-button
+          v-for="btn in timeButtons"
+          :key="btn.value"
+          :class="['custom-btn', { active: activeTime === btn.value }]"
+          @click="handleTimeSelect(btn.value)"
+        >
+          {{ btn.label }}
+        </el-button>
       </div>
-      <!-- 日期筛选区域 -->
-      <div class="date-filter flex items-center mb-[10px]">
-        <div class="filter-buttons flex items-center gap-2">
-          <el-button
-            v-for="btn in timeButtons"
-            :key="btn.value"
-            :class="['custom-btn', { active: activeTime === btn.value }]"
-            @click="handleTimeSelect(btn.value)"
-          >
-            {{ btn.label }}
-          </el-button>
-        </div>
-        <div class="filter-date ml-4">
-          <el-date-picker
-            v-model="registrationTime"
-            type="daterange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            @change="handleSelectDate"
-          />
-        </div>
+      <div class="filter-date ml-4">
+        <el-date-picker
+          v-model="registrationTime"
+          type="daterange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          @change="handleSelectDate"
+        />
       </div>
-      <!-- 列表区域 -->
-      <el-table ref="tableRef" v-loading="loading" border :data="expertList" style="width: 100%">
-        <!-- <el-table-column type="selection" width="45" align="center" /> -->
-        <el-table-column label="序号" width="60" align="center">
-          <template #default="scope">
-            <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="expertType" label="专家类型" min-width="100" align="center">
-          <template #default="scope">
-            <dict-tag :options="static_expert_type" :value="scope.row.expertType" />
-          </template>
-        </el-table-column>
-        <el-table-column label="专家姓名" min-width="140" align="center" prop="expertName" show-overflow-tooltip>
-          <template #default="scope">
-            <span>{{ scope.row.expertName || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="expertNumber" label="专家编码" min-width="130" align="center" show-overflow-tooltip>
-          <template #default="scope">
-            <span>{{ scope.row.expertNumber || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="serviceCount" label="服务次数" min-width="160" align="center">
-          <template #default="scope">
-            <span>{{ scope.row.serviceCount || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="serviceDuration" label="服务时长" min-width="160" align="center">
-          <template #default="scope">
-            <span>{{ scope.row.serviceDuration || '-' }}分钟</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="totalConsultations" label="总咨询量" min-width="160" align="center">
-          <template #default="scope">
-            <span>{{ scope.row.totalConsultations || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="totalReplies" label="总回复量" min-width="160" align="center">
-          <template #default="scope">
-            <span>{{ scope.row.totalReplies || '-' }}</span>
-          </template>
-        </el-table-column>
-      </el-table>
+    </div>
+    <!-- 列表区域 -->
+    <el-table ref="tableRef" v-loading="loading" :data="expertList" style="width: 100%">
+      <!-- <el-table-column type="selection" width="45" align="center" /> -->
+      <el-table-column label="序号" width="60">
+        <template #default="scope">
+          <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="expertType" label="专家类型" min-width="100" align="center">
+        <template #default="scope">
+          <dict-tag :options="static_expert_type" :value="scope.row.expertType" />
+        </template>
+      </el-table-column>
+      <el-table-column label="专家姓名" min-width="140" prop="expertName" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ scope.row.expertName || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="expertNumber" label="专家编码" min-width="130" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ scope.row.expertNumber || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="serviceCount" label="服务次数" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.serviceCount || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="serviceDuration" label="服务时长" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.serviceDuration || '-' }}分钟</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="totalConsultations" label="总咨询量" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.totalConsultations || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="totalReplies" label="总回复量" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.totalReplies || '-' }}</span>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <pagination
-        v-show="total > 0"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        v-model:total="total"
-        @pagination="handleQuery"
-      />
-    </el-card>
+    <pagination
+      v-show="total > 0"
+      v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize"
+      v-model:total="total"
+      @pagination="handleQuery"
+    />
   </div>
 </template>
 
@@ -390,6 +388,7 @@ onActivated(() => {
 
 <style scoped lang="scss">
 .legal-expert-page {
+  height: calc(100vh - 120px);
   .table-header {
     display: flex;
     align-items: center;
