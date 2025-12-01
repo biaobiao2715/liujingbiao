@@ -24,8 +24,8 @@ export default defineConfig(({ mode, command }) => {
       open: true,
       proxy: {
         [env.VITE_APP_BASE_API]: {
-          // target: 'http://192.168.2.149:8080', // 洞穴
-          target: 'http://192.168.2.9:8080', // 马春洋
+          target: 'http://192.168.2.12:8080', // 洞穴
+          // target: 'http://192.168.2.9:8080', // 马春洋
           // target: 'http://192.168.2.221:8000', // 周全
           // target: 'http://192.168.2.253:8080', // 照相机
           //   target: 'http://192.168.2.111:8080', // 爽

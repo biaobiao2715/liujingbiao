@@ -184,6 +184,10 @@ defineExpose({
   openSetting
 });
 onMounted(() => {
+  console.log(isDark.value, 'isDark.value---');
+  if (isDark.value) {
+    isDark.value = false;
+  }
   if (settingsStore.sideTheme == 'theme-dark') {
     handleTheme(SideThemeEnum.LIGHT);
   }
