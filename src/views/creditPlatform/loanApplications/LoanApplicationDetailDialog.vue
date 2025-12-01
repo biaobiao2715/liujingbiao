@@ -6,79 +6,122 @@
     <div v-loading="loading">
       <div class="detail-section">
         <div class="section-title">企业基础信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in companyInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="营业执照">
-            <template v-if="companyLicenseList.length">
-              <el-image
-                v-for="(img, idx) in companyLicenseList"
-                :key="idx"
-                :src="img.url"
-                :preview-src-list="companyLicenseList"
-                fit="cover"
-                class="license-image"
-              />
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in companyInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
+                <el-input
+                  v-else
+                  type="textarea"
+                  :model-value="item.value"
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  disabled
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="营业执照">
+                <template v-if="companyLicenseList.length">
+                  <el-image
+                    v-for="(img, idx) in companyLicenseList"
+                    :key="idx"
+                    :src="img.url"
+                    :preview-src-list="companyLicenseList"
+                    fit="cover"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">法人信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in legalInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in legalInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">申请人信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in applicantInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="个人身份证明" :span="2">
-            <template v-if="applicantIdPhotos.length">
-              <el-image v-for="(img, idx) in applicantIdPhotos" :key="idx" :src="img" :preview-src-list="applicantIdPhotos" class="license-image" />
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="授权文件" :span="2">
-            <template v-if="applicantAuthFiles.length">
-              <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
-                <el-button 
-                  type="primary" 
-                  link 
-                  @click="handleViewFile(file)"
-                  class="file-link"
-                >
-                  <el-icon><Document /></el-icon>
-                  授权文件{{ applicantAuthFiles.length > 1 ? (idx + 1) : '' }}
-                </el-button>
-              </div>
-            </template>
-            <div v-else class="file-placeholder">暂无文件</div>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in applicantInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="个人身份证明">
+                <template v-if="applicantIdPhotos.length">
+                  <el-image
+                    v-for="(img, idx) in applicantIdPhotos"
+                    :key="idx"
+                    :src="img"
+                    :preview-src-list="applicantIdPhotos"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="授权文件">
+                <template v-if="applicantAuthFiles.length">
+                  <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
+                    <el-button
+                      type="primary"
+                      link
+                      @click="handleViewFile(file)"
+                      class="file-link"
+                    >
+                      <el-icon><Document /></el-icon>
+                      授权文件{{ applicantAuthFiles.length > 1 ? idx + 1 : '' }}
+                    </el-button>
+                  </div>
+                </template>
+                <div v-else class="file-placeholder">暂无文件</div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
         <div class="section-title">贷款信息</div>
-        <el-descriptions :column="2" border>
-          <el-descriptions-item v-for="item in loanInfoList" :key="item.label" :label="item.label">
-            {{ item.value }}
-          </el-descriptions-item>
-          <el-descriptions-item label="银行卡正反面" :span="2">
-            <template v-if="bankCardImages.length">
-              <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
-            </template>
-            <span v-else>--</span>
-          </el-descriptions-item>
-        </el-descriptions>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in loanInfoList" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input :model-value="item.value" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="银行卡正反面">
+                <template v-if="bankCardImages.length">
+                  <el-image
+                    v-for="(img, idx) in bankCardImages"
+                    :key="idx"
+                    :src="img"
+                    :preview-src-list="bankCardImages"
+                    class="license-image"
+                  />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
 
       <div class="detail-section">
@@ -490,7 +533,14 @@ const fetchDetail = async () => {
 /**
  * 映射企业基础信息
  */
-const mapCompanyInfo = (row: Record<string, any>) => {
+type DetailField = {
+  label: string;
+  value: string;
+  span?: number;
+  isTextarea?: boolean;
+};
+
+const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
   const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
   
   return [
@@ -504,14 +554,14 @@ const mapCompanyInfo = (row: Record<string, any>) => {
     { label: '办公地址', value: formatValue(row.officeAddress) },
     { label: '资质等级', value: mapValue(CREDENTIAL_LEVEL_MAP, getFieldValue(row, ['credentialLevel', 'qualification'])) },
     { label: '信用等级', value: mapValue(CREDIT_LEVEL_MAP, row.creditLevel) },
-    { label: '经营范围', value: formatValue(row.businessScope) }
+    { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
   ];
 };
 
 /**
  * 映射法人信息
  */
-const mapLegalInfo = (row: Record<string, any>) => {
+const mapLegalInfo = (row: Record<string, any>): DetailField[] => {
   return [
     { label: '法人姓名', value: formatValue(getFieldValue(row, ['legalPersonName', 'legalPerson'])) },
     { label: '证件类型', value: mapValue(ID_CARD_TYPE_MAP, getFieldValue(row, ['legalPersonIdCardType', 'certificateType'])) },
@@ -523,7 +573,7 @@ const mapLegalInfo = (row: Record<string, any>) => {
 /**
  * 映射申请人信息
  */
-const mapApplicantInfo = (row: Record<string, any>) => {
+const mapApplicantInfo = (row: Record<string, any>): DetailField[] => {
   const birthday = getFieldValue(row, ['birthday', 'birthDate']) || 
                    extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']));
   
@@ -537,7 +587,7 @@ const mapApplicantInfo = (row: Record<string, any>) => {
 /**
  * 映射贷款信息
  */
-const mapLoanInfo = (row: Record<string, any>) => {
+const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
   const repayment = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
   
@@ -872,27 +922,66 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #E5E5E5;
   padding: 20px 24px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+
+  :deep(.el-input__wrapper) {
+    box-shadow: none !important;
+    background-color: transparent !important;
+    cursor: default !important;
+    resize: none !important;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-input.is-disabled .el-input__inner),
+  :deep(.el-input.is-disabled .el-input__wrapper .el-input__inner) {
+    cursor: default !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    color: #3D3D3D !important;
+    -webkit-text-fill-color: #3D3D3D !important;
+  }
+
+  :deep(.el-textarea__inner),
+  :deep(.el-textarea.is-disabled .el-textarea__inner) {
+    box-shadow: none !important;
+    background-color: transparent !important;
+    cursor: default !important;
+    resize: none !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    color: #3D3D3D !important;
+    -webkit-text-fill-color: #3D3D3D !important;
+  }
+
+  :deep(.el-form-item__label),
+  :deep(.el-descriptions__label) {
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(61, 61, 61, 0.5);
+  }
+
+  :deep(.el-descriptions__content) {
+    font-weight: 400;
+    font-size: 14px;
+    color: #3D3D3D;
+  }
 }
 
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 14px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #303133;
+  color: #108C58;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 16px;
+    width: 2px;
+    height: 13px;
     background-color: #108C58;
-    border-radius: 2px;
-    margin-right: 8px;
+    border-radius: 4px;
+    margin-right: 5px;
   }
 }
 
