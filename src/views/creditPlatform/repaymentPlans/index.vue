@@ -100,19 +100,22 @@
             >
               详情
             </el-button>
-
-            <!-- 更多操作下拉菜单 -->
-            <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
-              <el-button size="small" type="info" text style="color: #108C58; font-size: 14px">
-                更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="tracking">追踪</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-button
+              size="small"
+              text
+              style="color: #108C58; font-size: 14px"
+              @click="handleTracking(scope.row)"
+            >
+              追踪
+            </el-button>
+            <el-button
+              size="small"
+              text
+              style="color: #108C58; font-size: 14px"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -142,7 +145,6 @@
 import { ref, onMounted, onActivated, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ArrowDown } from '@element-plus/icons-vue';
 import { getloanApplicationsList, deleteRepaymentRecord, messageRecord, getRemainingDetail } from '@/api/creditPlatform/repaymentPlans';
 import RepaymentDetailDialog from './RepaymentDetailDialog.vue';
 import RepaymentBuyerDetailDialog from './RepaymentBuyerDetailDialog.vue';
@@ -300,11 +302,6 @@ const handleTracking = (row: RepaymentPlan) => {
   trackingDialogVisible.value = true;
 };
 
-/**
- * 通知按钮 - 根据当前期次状态发送不同的通知
- * @param row - 当前行数据
- * @param type - 通知类型: pending=还款提醒, completed=完结通知, overdue=逾期提示
- */
 const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'completed' | 'overdue') => {
   let actualType: 'pending' | 'completed' | 'overdue' = type || 'pending';
 
@@ -369,17 +366,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
       console.error('发送通知失败:', error);
     }
   });
-};
-
-/**
- * 更多操作 - 处理下拉菜单的命令
- */
-const handleMoreAction = (row: RepaymentPlan, command: string) => {
-  if (command === 'tracking') {
-    handleTracking(row);
-  } else if (command === 'delete') {
-    handleDelete(row);
-  }
 };
 
 /**

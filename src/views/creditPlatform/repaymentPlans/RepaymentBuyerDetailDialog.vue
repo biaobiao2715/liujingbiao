@@ -7,53 +7,101 @@
     <div v-loading="loading">
     <div class="detail-section">
       <div class="section-title">用户信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="姓名">{{ detail.user.name }}</el-descriptions-item>
-        <el-descriptions-item label="出生年月">{{ detail.user.birthday }}</el-descriptions-item>
-        <el-descriptions-item label="身份证号">{{ detail.user.idNumber }}</el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ detail.user.phone }}</el-descriptions-item>
-        <el-descriptions-item label="联系地址" :span="2">{{ detail.user.address }}</el-descriptions-item>
-        <el-descriptions-item label="身份证正反面" :span="2">
-          <template v-if="detail.user.idPhotos.length">
-            <el-image
-              v-for="(img, idx) in detail.user.idPhotos"
-              :key="idx"
-              :src="img"
-              :preview-src-list="detail.user.idPhotos"
-              class="identity-image"
-            />
-          </template>
-          <template v-else>
-            <span>--</span>
-          </template>
-        </el-descriptions-item>
-      </el-descriptions>
+      <el-form label-width="140px">
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="12">
+            <el-form-item label="姓名">
+              <el-input :model-value="detail.user.name" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="出生年月">
+              <el-input :model-value="detail.user.birthday" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="身份证号">
+              <el-input :model-value="detail.user.idNumber" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号">
+              <el-input :model-value="detail.user.phone" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="联系地址">
+              <el-input :model-value="detail.user.address" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="身份证正反面">
+              <template v-if="detail.user.idPhotos.length">
+                <el-image
+                  v-for="(img, idx) in detail.user.idPhotos"
+                  :key="idx"
+                  :src="img"
+                  :preview-src-list="detail.user.idPhotos"
+                  class="identity-image"
+                />
+              </template>
+              <span v-else>--</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
     </div>
 
     <div class="detail-section">
       <div class="section-title">贷款信息</div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="申请日期">{{ detail.loan.applyDate }}</el-descriptions-item>
-        <el-descriptions-item label="贷款金额">{{ detail.loan.amount }}</el-descriptions-item>
-        <el-descriptions-item label="还款周期">{{ detail.loan.period }}</el-descriptions-item>
-        <el-descriptions-item label="还款方式">{{ detail.loan.repaymentType }}</el-descriptions-item>
-        <el-descriptions-item label="收款卡银行">{{ detail.loan.bank }}</el-descriptions-item>
-        <el-descriptions-item label="银行卡号">{{ detail.loan.bankCardNo }}</el-descriptions-item>
-        <el-descriptions-item label="银行卡正反面" :span="2">
-          <template v-if="detail.loan.cardPhotos.length">
-            <el-image
-              v-for="(img, idx) in detail.loan.cardPhotos"
-              :key="idx"
-              :src="img"
-              :preview-src-list="detail.loan.cardPhotos"
-              class="identity-image"
-            />
-          </template>
-          <template v-else>
-            <span>--</span>
-          </template>
-        </el-descriptions-item>
-      </el-descriptions>
+      <el-form label-width="140px">
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="12">
+            <el-form-item label="申请日期">
+              <el-input :model-value="detail.loan.applyDate" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="贷款金额">
+              <el-input :model-value="detail.loan.amount" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="还款周期">
+              <el-input :model-value="detail.loan.period" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="还款方式">
+              <el-input :model-value="detail.loan.repaymentType" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="收款卡银行">
+              <el-input :model-value="detail.loan.bank" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="银行卡号">
+              <el-input :model-value="detail.loan.bankCardNo" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="银行卡正反面">
+              <template v-if="detail.loan.cardPhotos.length">
+                <el-image
+                  v-for="(img, idx) in detail.loan.cardPhotos"
+                  :key="idx"
+                  :src="img"
+                  :preview-src-list="detail.loan.cardPhotos"
+                  class="identity-image"
+                />
+              </template>
+              <span v-else>--</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
     </div>
 
     <div class="detail-section">
@@ -286,6 +334,11 @@ const handleViewRepaymentPlan = () => {
 
 <style scoped lang="scss">
 .buyer-repayment-detail-dialog {
+  :deep(.el-dialog__body) {
+    background-color: #F7F8FA;
+    padding: 24px;
+  }
+
   .dialog-title {
     font-size: 18px;
     font-weight: 600;
@@ -295,28 +348,48 @@ const handleViewRepaymentPlan = () => {
 
 .detail-section {
   margin-bottom: 20px;
-  background: #fefefe;
-  border-radius: 8px;
-  border: 1px solid #f0f2f5;
-  padding: 16px 20px;
-  box-shadow: 0 2px 10px rgba(31, 45, 61, 0.06);
+  background: #ffffff;
+  padding: 20px 24px;
+
+  :deep(.el-input__wrapper) {
+    box-shadow: none !important;
+    background-color: transparent !important;
+    cursor: default !important;
+    resize: none !important;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-input.is-disabled .el-input__inner),
+  :deep(.el-input.is-disabled .el-input__wrapper .el-input__inner) {
+    cursor: default !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    color: #3D3D3D !important;
+    -webkit-text-fill-color: #3D3D3D !important;
+  }
+
+  :deep(.el-form-item__label) {
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(61, 61, 61, 0.5);
+  }
 }
 
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #303133;
+  color: #108C58;
 
   &::before {
     content: '';
-    width: 4px;
-    height: 16px;
-    background-color: #409eff;
-    border-radius: 2px;
-    margin-right: 8px;
+    width: 2px;
+    height: 13px;
+    background-color: #108C58;
+    border-radius: 4px;
+    margin-right: 5px;
   }
 }
 
@@ -325,7 +398,8 @@ const handleViewRepaymentPlan = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #ebeef5;
+  border: 1px solid #E5E5E5;
+  background-color: #ffffff;
 }
 
 .image-placeholder {
