@@ -155,12 +155,7 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-.repayment-plan-dialog {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-  }
-}
+
 
 .dialog-content {
   padding: 0;

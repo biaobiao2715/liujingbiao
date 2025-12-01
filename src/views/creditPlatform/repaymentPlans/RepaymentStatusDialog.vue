@@ -393,13 +393,7 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-.repayment-status-dialog {
-  .dialog-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #303133;
-  }
-}
+
 
 .dialog-content {
   padding: 20px;
