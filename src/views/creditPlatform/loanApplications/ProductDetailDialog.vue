@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="900px" class="product-detail-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="product-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-title">产品详情</div>
     </template>
@@ -149,9 +149,7 @@ const getDictLabels = (dictList: any[] = [], value: unknown) => {
   if (!dictList.length) return '--';
   const values = normalizeArrayValue(value);
   if (!values.length) return '--';
-  const labels = values
-    .map((item) => getDictLabel(dictList, item))
-    .filter((label) => label && label !== '--');
+  const labels = values.map((item) => getDictLabel(dictList, item)).filter((label) => label && label !== '--');
   return labels.length ? labels.join('、') : '--';
 };
 
@@ -173,18 +171,11 @@ const productTypeText = computed(() => getDictLabel(prod_credit_type?.value, pro
 
 const applicableObjectText = computed(() => getDictLabels(applicable_object?.value, productDetail.value.applicableObject));
 
-const loanAmountRangeText = computed(() =>
-  formatRangeText(productDetail.value.minLoanAmount, productDetail.value.maxLoanAmount, '万元')
-);
+const loanAmountRangeText = computed(() => formatRangeText(productDetail.value.minLoanAmount, productDetail.value.maxLoanAmount, '万元'));
 
 const interestRateRangeText = computed(() => {
   const { baseInterestRate, floatInterestRate } = productDetail.value;
-  if (
-    baseInterestRate === null ||
-    baseInterestRate === undefined ||
-    floatInterestRate === null ||
-    floatInterestRate === undefined
-  ) {
+  if (baseInterestRate === null || baseInterestRate === undefined || floatInterestRate === null || floatInterestRate === undefined) {
     return '--';
   }
   if (Number(baseInterestRate) === Number(floatInterestRate)) {
@@ -265,14 +256,11 @@ const fetchProductDetail = async () => {
   }
 };
 
-watch(
-  [() => props.visible, () => props.productId],
-  ([visible, productId], [prevVisible, prevProductId]) => {
-    if (visible && (!prevVisible || productId !== prevProductId)) {
-      fetchProductDetail();
-    }
+watch([() => props.visible, () => props.productId], ([visible, productId], [prevVisible, prevProductId]) => {
+  if (visible && (!prevVisible || productId !== prevProductId)) {
+    fetchProductDetail();
   }
-);
+});
 
 const handleClose = () => {
   emit('update:visible', false);
@@ -327,14 +315,14 @@ const handleClose = () => {
       border-right: none;
     }
 
-    &:nth-last-child(-n+2) {
+    &:nth-last-child(-n + 2) {
       border-bottom: none;
     }
 
     &.range {
       grid-column: span 2;
       border-right: none;
-      
+
       &:last-child {
         border-bottom: none;
       }
@@ -417,7 +405,7 @@ const handleClose = () => {
       padding: 4px 12px;
       background: #ecf5ff;
       border-radius: 4px;
-      
+
       &:hover {
         background: #d9ecff;
       }
@@ -445,4 +433,3 @@ const handleClose = () => {
   border-radius: 0 0 4px 4px;
 }
 </style>
-

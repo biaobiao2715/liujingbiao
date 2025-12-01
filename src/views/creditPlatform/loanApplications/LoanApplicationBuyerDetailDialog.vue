@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    width="900px"
+    width="50%"
     class="buyer-detail-dialog"
     append-to-body
     destroy-on-close
@@ -120,14 +120,7 @@
 
       <div class="detail-section approval-section">
         <div class="section-title">审批信息</div>
-        <el-alert
-          v-if="showApprovalTip"
-          :title="approvalTipMessage"
-          type="warning"
-          show-icon
-          :closable="false"
-          class="tips"
-        />
+        <el-alert v-if="showApprovalTip" :title="approvalTipMessage" type="warning" show-icon :closable="false" class="tips" />
         <el-form
           v-if="showApprovalForm"
           ref="approvalFormRef"
@@ -700,10 +693,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     }
   } catch (error: any) {
     const responseData = error?.response?.data || error?.data || error;
-    const backendMessage =
-      responseData?.msg || error?.msg || error?.message || responseData?.message;
-    const isCancelledError =
-     backendMessage?.includes('该贷款申请已取消，不能进行审核');
+    const backendMessage = responseData?.msg || error?.msg || error?.message || responseData?.message;
+    const isCancelledError = backendMessage?.includes('该贷款申请已取消，不能进行审核');
     if (!isCancelledError) {
       ElMessage.error(backendMessage || '审批提交失败');
     }
@@ -743,33 +734,31 @@ const handleViewProductDetail = () => {
 
 .buyer-detail-dialog {
   :deep(.el-dialog__body) {
-    background-color: #F7F8FA;
+    background-color: #f7f8fa;
     padding: 24px;
   }
 
-
-
   :deep(.el-descriptions) {
     background-color: transparent;
-    
+
     .el-descriptions__label {
-      background-color: #FAFAFA;
+      background-color: #fafafa;
       color: #606266;
       font-weight: 500;
     }
-    
+
     .el-descriptions__content {
       background-color: #ffffff;
       color: #303133;
     }
-    
+
     .el-descriptions__table {
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
     }
-    
+
     .el-descriptions__table td,
     .el-descriptions__table th {
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
     }
   }
 }
@@ -780,7 +769,7 @@ const handleViewProductDetail = () => {
   // border-radius: 8px;
   padding: 20px 24px;
   // box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.3);
-// border-radius: 8px 8px 8px 8px;
+  // border-radius: 8px 8px 8px 8px;
 
   // 去掉表单的默认样式
   :deep(.el-input__wrapper) {
@@ -797,8 +786,8 @@ const handleViewProductDetail = () => {
     cursor: default !important;
     font-weight: 400 !important;
     font-size: 14px !important;
-    color: #3D3D3D !important;
-    -webkit-text-fill-color: #3D3D3D !important;
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
   }
 
   :deep(.el-textarea__inner),
@@ -809,8 +798,8 @@ const handleViewProductDetail = () => {
     resize: none !important;
     font-weight: 400 !important;
     font-size: 14px !important;
-    color: #3D3D3D !important;
-    -webkit-text-fill-color: #3D3D3D !important;
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
   }
 
   // 表单 label 样式
@@ -827,13 +816,13 @@ const handleViewProductDetail = () => {
   margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #108C58;
+  color: #108c58;
 
   &::before {
     content: '';
     width: 2px;
     height: 13px;
-    background-color:#108C58;
+    background-color: #108c58;
     border-radius: 4px;
     margin-right: 5px;
   }
@@ -844,7 +833,7 @@ const handleViewProductDetail = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
   background-color: #ffffff;
 }
 

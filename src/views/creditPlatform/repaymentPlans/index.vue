@@ -7,8 +7,8 @@
 -->
 <template>
   <div class="loan-applications">
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80" class="search-form">
-      <el-form-item label="申请人" prop="realName">
+    <el-form ref="queryFormRef" :model="queryParams" inline class="search-form">
+      <el-form-item label="申请人" prop="realName" aline="left">
         <el-input v-model="queryParams.realName" placeholder="请输入申请人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="产品类型" prop="productType">
@@ -412,13 +412,12 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .loan-applications {
-  height: calc(100vh - 120px);
   padding: 24px;
+  height: calc(100vh - 120px);
 }
 
 .search-form {
   margin-bottom: 16px;
-
   .el-form-item {
     min-width: 220px;
     margin-bottom: 12px;
@@ -488,4 +487,7 @@ onMounted(() => {
     }
   }
 }
+// ::v-deep .el-form-item__label {
+//   text-align: left !important;
+// }
 </style>

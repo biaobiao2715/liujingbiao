@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="900px" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-title">{{ dialogTitle }}</div>
     </template>
@@ -11,13 +11,7 @@
             <el-col v-for="item in companyInfoList" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
                 <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
-                <el-input
-                  v-else
-                  type="textarea"
-                  :model-value="item.value"
-                  :autosize="{ minRows: 2, maxRows: 4 }"
-                  disabled
-                />
+                <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="24">
@@ -79,12 +73,7 @@
               <el-form-item label="授权文件">
                 <template v-if="applicantAuthFiles.length">
                   <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
-                    <el-button
-                      type="primary"
-                      link
-                      @click="handleViewFile(file)"
-                      class="file-link"
-                    >
+                    <el-button type="primary" link @click="handleViewFile(file)" class="file-link">
                       <el-icon><Document /></el-icon>
                       授权文件{{ applicantAuthFiles.length > 1 ? idx + 1 : '' }}
                     </el-button>
@@ -109,13 +98,7 @@
             <el-col :span="24">
               <el-form-item label="银行卡正反面">
                 <template v-if="bankCardImages.length">
-                  <el-image
-                    v-for="(img, idx) in bankCardImages"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="bankCardImages"
-                    class="license-image"
-                  />
+                  <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -151,11 +134,7 @@
           <el-form-item label="放款日期" prop="loanDate" :required="approvalForm.opinion !== 'reject'">
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item
-            label="第一期还款日期"
-            prop="firstRepaymentDate"
-            :required="approvalForm.opinion !== 'reject'"
-          >
+          <el-form-item label="第一期还款日期" prop="firstRepaymentDate" :required="approvalForm.opinion !== 'reject'">
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
               type="date"
@@ -261,9 +240,7 @@ const emit = defineEmits<{
 
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method, review_status } = toRefs<any>(
-  proxy?.useDict('repayment_method', 'review_status')
-);
+const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -345,15 +322,9 @@ const PENDING_STATUS_CODES = new Set(['0', '1']);
 
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
-  loanDate: [
-    { validator: createConditionalRequiredValidator('请选择放款日期'), trigger: 'change' }
-  ],
-  firstRepaymentDate: [
-    { validator: createConditionalRequiredValidator('请选择第一期还款日期'), trigger: 'change' }
-  ],
-  contractId: [
-    { validator: createConditionalRequiredValidator('请上传贷款合同'), trigger: 'change' }
-  ]
+  loanDate: [{ validator: createConditionalRequiredValidator('请选择放款日期'), trigger: 'change' }],
+  firstRepaymentDate: [{ validator: createConditionalRequiredValidator('请选择第一期还款日期'), trigger: 'change' }],
+  contractId: [{ validator: createConditionalRequiredValidator('请上传贷款合同'), trigger: 'change' }]
 };
 
 // ==================== 工具函数 ====================
@@ -379,17 +350,17 @@ const mapValue = (map: Record<string, string>, value: any): string => {
 const extractBirthdayFromId = (id: string | undefined | null): string => {
   const value = (id || '').trim();
   if (!value) return '';
-  
+
   if (/^\d{17}[\dXx]$/.test(value)) {
     const birth = value.substring(6, 14);
     return `${birth.substring(0, 4)}-${birth.substring(4, 6)}-${birth.substring(6, 8)}`;
   }
-  
+
   if (/^\d{15}$/.test(value)) {
     const birth = value.substring(6, 12);
     return `19${birth.substring(0, 2)}-${birth.substring(2, 4)}-${birth.substring(4, 6)}`;
   }
-  
+
   return '';
 };
 
@@ -407,27 +378,27 @@ const isUrl = (value: string): boolean => {
  */
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = [];
-  
+
   const processItem = (item: any) => {
     if (!item) return;
-    
+
     if (Array.isArray(item)) {
       item.forEach(processItem);
       return;
     }
-    
+
     if (typeof item === 'string') {
       const trimmed = item.trim();
       if (trimmed && isUrl(trimmed)) urls.push(trimmed);
       return;
     }
-    
+
     if (typeof item === 'object') {
       const url = (item.url || item.fileUrl || item.path || item.src || '').toString().trim();
       if (url && isUrl(url)) urls.push(url);
     }
   };
-  
+
   sources.forEach(processItem);
   return urls;
 };
@@ -449,7 +420,7 @@ const getFieldValue = (row: Record<string, any>, fieldNames: string[]): any => {
  */
 const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '--';
-  
+
   // 优先使用字典数据
   if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
     const match = repayment_method.value.find((item: any) => String(item.value) === String(value));
@@ -457,7 +428,7 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
       return match.label;
     }
   }
-  
+
   // 备用映射
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
@@ -467,7 +438,7 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
  */
 const getApplyStatusLabel = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '--';
-  
+
   // 优先使用字典数据
   if (review_status?.value && Array.isArray(review_status.value) && review_status.value.length > 0) {
     const match = review_status.value.find((item: any) => String(item.value) === String(value));
@@ -475,7 +446,7 @@ const getApplyStatusLabel = (value: string | number | undefined | null): string 
       return match.label;
     }
   }
-  
+
   // 备用映射
   return APPLY_STATUS_MAP[String(value)] || '--';
 };
@@ -489,17 +460,17 @@ const fetchDetail = async () => {
     detailData.value = props.data || {};
     return;
   }
-  
+
   loading.value = true;
   try {
     // 获取申请详情
     const res = await getRemainingDetail(props.data.id);
     let merged: Record<string, any> = props.data ? { ...props.data } : {};
-    
+
     if (res?.code === 200 && res.data) {
       merged = { ...merged, ...res.data };
     }
-    
+
     // 获取企业信息
     const lenderId = merged.lenderId;
     if (lenderId) {
@@ -512,9 +483,9 @@ const fetchDetail = async () => {
         console.error('获取企业信息失败:', error);
       }
     }
-    
+
     detailData.value = merged;
-    
+
     // 初始化审批表单
     if (props.mode === 'approval') {
       resetApprovalForm();
@@ -542,7 +513,7 @@ type DetailField = {
 
 const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
   const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
-  
+
   return [
     { label: '供应商编号', value: formatValue(getFieldValue(row, ['enterpriseNumber', 'supplierNo'])) },
     { label: '审核状态', value: mapValue(REVIEW_STATUS_MAP, row.reviewStatus) },
@@ -574,9 +545,8 @@ const mapLegalInfo = (row: Record<string, any>): DetailField[] => {
  * 映射申请人信息
  */
 const mapApplicantInfo = (row: Record<string, any>): DetailField[] => {
-  const birthday = getFieldValue(row, ['birthday', 'birthDate']) || 
-                   extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']));
-  
+  const birthday = getFieldValue(row, ['birthday', 'birthDate']) || extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']));
+
   return [
     { label: '申请人', value: formatValue(getFieldValue(row, ['realName', 'applicantName'])) },
     { label: '出生年月', value: formatValue(birthday) },
@@ -590,7 +560,7 @@ const mapApplicantInfo = (row: Record<string, any>): DetailField[] => {
 const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
   const repayment = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
-  
+
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
@@ -609,15 +579,15 @@ const companyInfoList = computed(() => mapCompanyInfo(detailData.value || {}));
 const companyLicenseList = computed(() => {
   const row = detailData.value || {};
   const licenses = [];
-  
+
   if (Array.isArray(row.licenses)) {
     licenses.push(...row.licenses);
   }
-  
+
   if (row.url) {
     licenses.push({ url: row.url });
   }
-  
+
   return licenses;
 });
 
@@ -657,9 +627,7 @@ const isPendingStatus = computed(() => {
       return true;
     }
   }
-  const label = getApplyStatusLabel(status) || 
-                detailData.value?.applyStatusName || 
-                detailData.value?.applyStatusLabel || '';
+  const label = getApplyStatusLabel(status) || detailData.value?.applyStatusName || detailData.value?.applyStatusLabel || '';
   const labelText = String(label);
   return labelText.includes('待审') || labelText.includes('待审核');
 });
@@ -669,18 +637,11 @@ const hasCompletedResult = computed(() => {
   return status === '2' || status === '3';
 });
 
-const showApprovalTip = computed(() => 
-  !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value
-);
+const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value);
 
-const approvalTipMessage = computed(() => 
-  '当前申请状态为待审核，请前往审批流程处理。'
-);
+const approvalTipMessage = computed(() => '当前申请状态为待审核，请前往审批流程处理。');
 
-const showApprovalForm = computed(() => 
-  (isApprovalMode.value && !hasCompletedResult.value) || 
-  (!isApprovalMode.value && hasCompletedResult.value)
-);
+const showApprovalForm = computed(() => (isApprovalMode.value && !hasCompletedResult.value) || (!isApprovalMode.value && hasCompletedResult.value));
 
 // ==================== 审批表单处理 ====================
 /**
@@ -690,7 +651,7 @@ const normalizeContractFiles = (row: Record<string, any>) => {
   const baseName = row.contractFileName || '合同文件';
   const files = collectUrls(row.contractFiles, row.contractFileUrl, row.contractUrl);
   if (!files.length) return [];
-  
+
   return files.map((url: string, index: number) => ({
     name: files.length === 1 ? baseName : `${baseName}${index + 1}`,
     url,
@@ -706,13 +667,13 @@ const hydrateApprovalForm = (row: Record<string, any>) => {
   approvalForm.loanDate = row.loanDate || '';
   approvalForm.firstRepaymentDate = row.firstRepaymentDate || '';
   approvalForm.contractId = row.contractId || '';
-  
+
   if (row.applyStatus === '3') {
     approvalForm.opinion = 'reject';
   } else if (row.applyStatus === '2') {
     approvalForm.opinion = 'agree';
   }
-  
+
   approvalForm.contractFiles = normalizeContractFiles(row);
 };
 
@@ -733,14 +694,11 @@ const resetApprovalForm = () => {
 };
 
 // ==================== 监听器 ====================
-watch(
-  [() => props.visible, () => props.data?.id],
-  ([visible, id], [prevVisible, prevId]) => {
-    if (visible && (!prevVisible || id !== prevId)) {
-      fetchDetail();
-    }
+watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
+  if (visible && (!prevVisible || id !== prevId)) {
+    fetchDetail();
   }
-);
+});
 
 watch(
   () => props.visible,
@@ -866,10 +824,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     }
   } catch (error: any) {
     const responseData = error?.response?.data || error?.data || error;
-    const backendMessage =
-      responseData?.msg || error?.msg || error?.message || responseData?.message;
-    const isCancelledError =
-       backendMessage?.includes('该贷款申请已取消，不能进行审核');
+    const backendMessage = responseData?.msg || error?.msg || error?.message || responseData?.message;
+    const isCancelledError = backendMessage?.includes('该贷款申请已取消，不能进行审核');
     if (!isCancelledError) {
       ElMessage.error(backendMessage || '审批提交失败');
     }
@@ -888,33 +844,31 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 }
 .loan-detail-dialog {
   :deep(.el-dialog__body) {
-    background-color: #F7F8FA;
+    background-color: #f7f8fa;
     padding: 24px;
   }
 
-  
-
   :deep(.el-descriptions) {
     background-color: transparent;
-    
+
     .el-descriptions__label {
-      background-color: #FAFAFA;
+      background-color: #fafafa;
       color: #606266;
       font-weight: 500;
     }
-    
+
     .el-descriptions__content {
       background-color: #ffffff;
       color: #303133;
     }
-    
+
     .el-descriptions__table {
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
     }
-    
+
     .el-descriptions__table td,
     .el-descriptions__table th {
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
     }
   }
 }
@@ -937,8 +891,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     cursor: default !important;
     font-weight: 400 !important;
     font-size: 14px !important;
-    color: #3D3D3D !important;
-    -webkit-text-fill-color: #3D3D3D !important;
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
   }
 
   :deep(.el-textarea__inner),
@@ -949,8 +903,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     resize: none !important;
     font-weight: 400 !important;
     font-size: 14px !important;
-    color: #3D3D3D !important;
-    -webkit-text-fill-color: #3D3D3D !important;
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
   }
 
   :deep(.el-form-item__label),
@@ -963,7 +917,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   :deep(.el-descriptions__content) {
     font-weight: 400;
     font-size: 14px;
-    color: #3D3D3D;
+    color: #3d3d3d;
   }
 }
 
@@ -973,13 +927,13 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #108C58;
+  color: #108c58;
 
   &::before {
     content: '';
     width: 2px;
     height: 13px;
-    background-color: #108C58;
+    background-color: #108c58;
     border-radius: 4px;
     margin-right: 5px;
   }
@@ -990,7 +944,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
   background-color: #ffffff;
 }
 
@@ -1006,7 +960,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   font-size: 12px;
   background: #fff;
 }
-
 
 .product-link {
   display: flex;
@@ -1048,11 +1001,11 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   gap: 6px;
   padding: 6px 12px;
   font-size: 14px;
-  
+
   .el-icon {
     font-size: 16px;
   }
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -1069,11 +1022,11 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   gap: 6px;
   padding: 6px 12px;
   font-size: 14px;
-  
+
   .el-icon {
     font-size: 16px;
   }
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -1140,5 +1093,4 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     margin-left: 12px;
   }
 }
-
 </style>

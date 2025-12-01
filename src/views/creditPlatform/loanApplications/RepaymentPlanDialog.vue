@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    width="1300px"
+    width="50%"
     class="repayment-plan-dialog"
     append-to-body
     destroy-on-close
@@ -285,7 +285,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-
 .dialog-content {
   min-height: 400px;
 }

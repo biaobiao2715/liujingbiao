@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="loan-applications">
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="80" class="search-form">
+    <el-form ref="queryFormRef" :model="queryParams" inline class="search-form">
       <el-form-item label="申请人" prop="realName">
         <el-input v-model="queryParams.realName" placeholder="请输入申请人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
