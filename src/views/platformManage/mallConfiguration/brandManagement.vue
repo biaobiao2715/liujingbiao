@@ -13,14 +13,14 @@
         <el-input v-model="queryParams.attributeName" placeholder="请输入品牌名称" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="getTableData" v-hasPermi="['grain:goodsAttributes:brandList']">搜索</el-button>
-        <el-button v-throttle @click="handleReset" v-hasPermi="['grain:goodsAttributes:brandList']">重置</el-button>
-        <el-button type="primary" v-throttle @click="handleAdd" v-hasPermi="['grain:goodsAttributes:brandAdd']">新建品牌名称</el-button>
+        <el-button v-throttle :icon="Search" type="primary" @click="getTableData" v-hasPermi="['grain:goodsAttributes:brandList']">搜索</el-button>
+        <el-button v-throttle :icon="Refresh" @click="handleReset" v-hasPermi="['grain:goodsAttributes:brandList']">重置</el-button>
+        <el-button type="primary" :icon="Plus" v-throttle @click="handleAdd" v-hasPermi="['grain:goodsAttributes:brandAdd']">新建品牌名称</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 表格 -->
-    <el-table :data="tableData" border style="width: 100%" v-loading="loading">
+    <el-table :data="tableData" border  v-loading="loading">
       <el-table-column type="index" label="序号" width="80" />
       <el-table-column prop="attributeName" label="品牌名称" />
       <el-table-column prop="orderNum" label="排序" />
@@ -43,7 +43,7 @@
     />
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" width="500px" :title="formData.id ? '编辑品牌名称' : '新增品牌名称'">
+    <el-dialog v-model="dialogVisible" width="50%" :title="formData.id ? '编辑品牌名称' : '新增品牌名称'">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="80px">
         <el-form-item label="品牌名称" prop="attributeName" required>
           <el-input v-model="formData.attributeName" placeholder="请输入品牌名称" maxlength="20" />
@@ -69,6 +69,7 @@ import {
   createProductAttribute,
   updateProductAttribute
 } from '@/api/platform/mallConfiguration/productAttributeLabel';
+import { Search, Refresh, Plus } from '@element-plus/icons-vue';
 
 const tableData = ref([]);
 const dialogVisible = ref(false);
