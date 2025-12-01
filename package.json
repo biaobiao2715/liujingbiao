@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/package",
   "name": "ruoyi-vue-plus",
   "version": "5.5.0-2.5.0",
-  "description": "平台名称全国种子销售服务平台",
+  "description": "全国种子销售服务平台",
   "author": "烁烁",
   "license": "MIT",
   "type": "module",
