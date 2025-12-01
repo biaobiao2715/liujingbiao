@@ -105,7 +105,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right" width="240">
+      <el-table-column label="操作" fixed="right" width="240">
         <template #default="scope">
           <div class="operation-buttons-wrapper">
             <!-- 文档图标 - 处理中状态且appeal_time有值时显示在右上角 -->
@@ -370,7 +370,7 @@ onMounted(() => {
   .reset-btn {
     margin-left: 10px;
     width: 88px;
-    border-radius: 0;
+    border-radius: 4px;
   }
 
   .reset-btn {
@@ -498,6 +498,7 @@ onMounted(() => {
     background-color: transparent !important;
     border: none !important;
     padding: 0 8px !important;
+    border-radius: 4px !important;
 
     &:hover,
     &:focus {
