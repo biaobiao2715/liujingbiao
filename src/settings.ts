@@ -6,7 +6,7 @@ const setting: DefaultSettings = {
    */
   title: import.meta.env.VITE_APP_TITLE,
 
-  theme: '#0f8c59',
+  theme: '#108C58 ',
   // theme: '#409EFF',
 
   /**
