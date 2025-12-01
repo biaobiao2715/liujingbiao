@@ -51,71 +51,43 @@
           <dict-tag :options="repayment_status" :value="scope.row.planStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="340" fixed="right">
+      <el-table-column label="操作" align="left" width="340" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
-            <el-button 
+            <el-button
               v-if="scope.row.planStatus === '2'"
-              size="small" 
-              text 
-              style="color: #108C58; font-size: 14px" 
+              size="small"
+              text
+              style="color: #108c58; font-size: 14px"
               @click="handleNotification(scope.row, 'completed')"
             >
               完结通知
             </el-button>
             <el-button
               v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '0'"
-              style="color: #FF7B00; font-size: 14px"
+              style="color: #ff7b00; font-size: 14px"
               size="small"
               text
               @click="handleNotification(scope.row, 'pending')"
             >
               还款提醒
             </el-button>
-            <el-button 
-              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'" 
-              size="small" 
-              text 
-              style="color: #F23255; font-size: 14px" 
+            <el-button
+              v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'"
+              size="small"
+              text
+              style="color: #f23255; font-size: 14px"
               @click="handleNotification(scope.row, 'overdue')"
             >
               逾期提示
             </el-button>
-            <el-button 
-              size="small" 
-              type="success" 
-              text 
-              style="color: #108C58; font-size: 14px" 
-              @click="handleRepayment(scope.row)"
-            >
+            <el-button size="small" type="success" text style="color: #108c58; font-size: 14px" @click="handleRepayment(scope.row)">
               还款情况
             </el-button>
-            <el-button 
-              size="small" 
-              type="primary" 
-              text 
-              style="color: #108C58; font-size: 14px" 
-              @click="handleDetail(scope.row)"
-            >
-              详情
-            </el-button>
-            <el-button
-              size="small"
-              text
-              style="color: #108C58; font-size: 14px"
-              @click="handleTracking(scope.row)"
-            >
-              追踪
-            </el-button>
-            <el-button
-              size="small"
-              text
-              style="color: #108C58; font-size: 14px"
-              @click="handleDelete(scope.row)"
-            >
-              删除
-            </el-button>
+            <el-button size="small" type="primary" text style="color: #108c58; font-size: 14px" @click="handleDetail(scope.row)"> 详情 </el-button>
+            <el-button size="small" text style="color: #108c58; font-size: 14px" @click="handleTracking(scope.row)"> 追踪 </el-button>
+            <el-button size="small" text style="color: #108c58; font-size: 14px" @click="handleDelete(scope.row)"> 删除 </el-button>
           </div>
         </template>
       </el-table-column>
@@ -406,6 +378,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .loan-applications {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 
@@ -433,7 +406,7 @@ onMounted(() => {
     font-size: 14px;
 
     &:disabled {
-      color: #C0C4CC !important;
+      color: #c0c4cc !important;
     }
   }
 }
