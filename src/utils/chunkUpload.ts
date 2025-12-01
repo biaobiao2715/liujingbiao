@@ -63,8 +63,8 @@ export async function uploadByChunks(file: File, onProgress?: (percent: number) 
 
     // 第一步：上传该 chunk
     const uploadResponse = await fetch(chunkInfo.presignUrl, {
-      method: 'PUT'
-      // body: chunk
+      method: 'PUT',
+      body: chunk
     });
     console.log('上传完成:', uploadResponse);
 
