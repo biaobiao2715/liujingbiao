@@ -40,16 +40,24 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle type="primary" v-hasPermi="['skill:onlineVideo:add']" @click="handleAdd">新增</el-button>
+        <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:onlineVideo:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="success" @click="handleEnable">启用</el-button>
+        <el-button v-throttle type="success" class="custom-action-btn" :disabled="selectedRows.length === 0" @click="handleEnable">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="warning" @click="handleDisable">禁用</el-button>
+        <el-button v-throttle type="warning" class="custom-action-btn" :disabled="selectedRows.length === 0" @click="handleDisable">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="danger" v-hasPermi="['skill:onlineVideo:remove']" @click="handleDelete">删除</el-button>
+        <el-button
+          v-throttle
+          type="danger"
+          v-hasPermi="['skill:onlineVideo:remove']"
+          @click="handleDelete"
+          :disabled="selectedRows.length === 0"
+          class="custom-action-btn delete-btn"
+          >删除</el-button
+        >
       </el-col>
       <!-- <RightToolbar :show-search="showSearch" @query-table="getList"></RightToolbar> -->
     </el-row>
@@ -57,16 +65,16 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed" @selection-change="handleSelectionChange">
       <el-table-column type="selection" />
-      <el-table-column type="index" width="100" label="序号" align="center" />
+      <el-table-column type="index" width="100" label="序号" />
       <!-- 课程标题 -->
-      <el-table-column label="直播名称" align="center" prop="title">
+      <el-table-column label="直播名称" prop="title">
         <template #default="scope">
           <span>{{ scope.row.title || '-' }}</span>
         </template>
       </el-table-column>
 
       <!-- 链接地址 -->
-      <el-table-column label="链接地址" align="center" prop="videoUrl" show-overflow-tooltip>
+      <el-table-column label="链接地址" prop="videoUrl" show-overflow-tooltip>
         <template #default="scope">
           <el-link v-if="scope.row.videoUrl" :href="scope.row.videoUrl" target="_blank" type="primary" :underline="false">
             {{ scope.row.videoUrl || '-' }}
@@ -75,7 +83,7 @@
       </el-table-column>
 
       <!-- 发布时间 -->
-      <el-table-column label="发布时间" align="center" prop="createTime" show-overflow-tooltip>
+      <el-table-column label="发布时间" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.createTime || '-' }}</span>
         </template>
@@ -94,18 +102,21 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="center" fixed="right">
+      <el-table-column label="操作" align="left" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button v-throttle type="primary" size="small" @click="handleEdit(scope.row)" v-hasPermi="['skill:onlineVideo:edit']">
+            <el-button v-throttle link type="primary" size="small" @click="handleEdit(scope.row)" v-hasPermi="['skill:onlineVideo:edit']">
               编辑
             </el-button>
-            <el-button v-if="scope.row.videoStatus === '1'" type="warning" size="small" @click="handleStatusChange(scope.row, '2')"> 禁用 </el-button>
-            <el-button v-if="scope.row.videoStatus === '2'" v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
+            <el-button v-if="scope.row.videoStatus === '1'" link type="warning" size="small" @click="handleStatusChange(scope.row, '2')">
+              禁用
+            </el-button>
+            <el-button v-if="scope.row.videoStatus === '2'" link v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
             <el-button
               v-throttle
+              link
               v-show="scope.row.videoStatus === '2'"
               type="danger"
               size="small"
@@ -134,7 +145,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
@@ -512,7 +523,8 @@ onMounted(() => {
 .content-management {
   padding: 24px;
   //   background-color: #f5f5f5;
-  min-height: 100vh;
+  // min-height: 100vh;
+  height: calc(100vh - 120px);
 }
 
 // 主要内容区域 - 大盒子
@@ -639,7 +651,7 @@ onMounted(() => {
 .operation-buttons {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   flex-wrap: nowrap;
   white-space: nowrap;
@@ -658,6 +670,40 @@ onMounted(() => {
   .operation-buttons {
     .el-button + .el-button {
       margin-left: 0;
+    }
+  }
+}
+
+.custom-action-btn {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #333333 !important;
+
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #333333 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #333333 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+
+  &.delete-btn:not(.is-disabled) {
+    color: #f56c6c !important;
+
+    &:hover {
+      color: #f56c6c !important;
+    }
+
+    &:focus {
+      color: #f56c6c !important;
     }
   }
 }

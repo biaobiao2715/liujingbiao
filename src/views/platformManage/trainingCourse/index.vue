@@ -58,9 +58,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button class="search-btn" v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd"
-          >新增</el-button
-        >
+        <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle class="custom-btn-style" type="primary" icon="" @click="handleEnable" :disabled="multiple">启用</el-button>
@@ -784,16 +782,16 @@ onMounted(() => {
 .custom-btn-style {
   background-color: #f2f3f5 !important;
   border: none !important;
-  color: #1D2129 !important;
+  color: #1d2129 !important;
   border: 4px;
   &:hover {
     background-color: #e5e7eb !important;
-    color: #1D2129 !important;
+    color: #1d2129 !important;
   }
 
   &:focus {
     background-color: #f2f3f5 !important;
-    color: #1D2129 !important;
+    color: #1d2129 !important;
   }
 
   &.is-disabled {
@@ -802,14 +800,14 @@ onMounted(() => {
     cursor: not-allowed;
   }
   &:not(.is-disabled) {
-    color: #1D2129 !important;
+    color: #1d2129 !important;
 
     &:hover {
-      color: #1D2129 !important;
+      color: #1d2129 !important;
     }
 
     &:focus {
-      color: #1D2129 !important;
+      color: #1d2129 !important;
     }
   }
 }
