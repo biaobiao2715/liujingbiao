@@ -47,9 +47,8 @@
           <template #default="scope">
             <div class="operation-buttons">
               <el-tooltip content="编辑" placement="top">
-                <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']"
-                  >编辑</el-button
-                >
+                <!-- <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']" -->
+                <el-button link class="operation-link-button" @click="handleUpdate(scope.row)">编辑</el-button>
               </el-tooltip>
               <el-tooltip content="删除" placement="top">
                 <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']"
