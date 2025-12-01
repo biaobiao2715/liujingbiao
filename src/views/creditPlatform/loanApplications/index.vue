@@ -52,20 +52,23 @@
       <el-table-column label="申请时间" prop="createTime" min-width="180" align="center" />
       <el-table-column label="申请状态" prop="applyStatus" align="center" width="140">
         <template #default="scope">
-          <dict-tag :options="application_status" :value="scope.row.applyStatus" />
+          <span :style="{ color: getStatusColor(scope.row.applyStatus) }" class="status-text">
+            <span class="status-dot" :style="{ backgroundColor: getStatusColor(scope.row.applyStatus) }"></span>
+            {{ getStatusLabel(scope.row.applyStatus) }}
+          </span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="260" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button size="small" type="primary" text :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
+            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" :disabled="!canAudit(scope.row.applyStatus)" @click="handleDetail(scope.row, 'approval')">
               审批
             </el-button>
-            <el-button size="small" type="primary" text @click="handleDetail(scope.row, 'detail')">详情</el-button>
-            <el-button size="small" type="success" text :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
+            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" @click="handleDetail(scope.row, 'detail')">详情</el-button>
+            <el-button size="small" type="success" text style="color: #108C58; font-size: 14px" :disabled="!isApproved(scope.row.applyStatus)" @click="openRepaymentPlan(scope.row)"
               >还款计划</el-button
             >
-            <el-button size="small" type="danger" text @click="handleDelete(scope.row)">删除</el-button>
+            <el-button size="small" type="danger" text style="color: #108C58; font-size: 14px" @click="handleDelete(scope.row)">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -226,6 +229,33 @@ const handleDetail = (row: LoanApplication, mode: 'detail' | 'approval' = 'detai
   }
 };
 
+/**
+ * 获取状态标签文本
+ */
+const getStatusLabel = (status: string | number | undefined): string => {
+  if (status === undefined || status === null) return '';
+  const dictList = application_status?.value || [];
+  const match = dictList.find((item: any) => String(item.value) === String(status));
+  return match ? match.label : '';
+};
+
+/**
+ * 根据状态标签获取对应的颜色
+ */
+const getStatusColor = (status: string | number | undefined): string => {
+  const label = getStatusLabel(status);
+  if (label.includes('驳回') || label.includes('退回')) {
+    return '#F23255';
+  } else if (label.includes('通过')) {
+    return '#108C58';
+  } else if (label.includes('待审核')) {
+    return '#FF7B00';
+  } else if (label.includes('取消')) {
+    return '#BBBDBF';
+  }
+  return '';
+};
+
 const canAudit = (status: string | number | undefined) => {
   if (status === undefined || status === null) return false;
   return pendingStatusValues.value.includes(String(status));
@@ -274,7 +304,6 @@ const handleDelete = (row: LoanApplication) => {
       }
     })
     .catch(() => {
-      ElMessage.info('已取消删除');
     });
 };
 
@@ -291,7 +320,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .loan-applications {
   padding: 24px;
-  background-color: #f7f8fa;
+  background-color:  #F7F8FA;;
   min-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
@@ -300,9 +329,10 @@ onMounted(() => {
 
 .search-form {
   background: #fff;
-  padding: 20px 24px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  border-bottom: 1px solid #E5E5E5;
+  // padding: 20px 24px 10px;
+  // border-radius: 8px;
+  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 
   .el-form-item {
     min-width: 220px;
@@ -322,7 +352,7 @@ onMounted(() => {
     margin: 0;
     flex-shrink: 0;
     padding: 5px 10px;
-    font-size: 12px;
+    font-size: 14px;
   }
 }
 
@@ -332,6 +362,23 @@ onMounted(() => {
   background: #fff;
   padding: 12px 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+}
+
+.status-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 </style>

@@ -56,28 +56,28 @@
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
             <template v-if="scope.row.planStatus === '2'">
-              <el-button size="small" type="success" text @click="handleNotification(scope.row, 'completed')">完结通知</el-button>
+              <el-button size="small" text style="color: #108C58; font-size: 14px" @click="handleNotification(scope.row, 'completed')">完结通知</el-button>
             </template>
             <template v-else>
-              <el-button v-if="scope.row.currentPeriodStatus === '0'" size="small" type="info" text @click="handleNotification(scope.row, 'pending')">
+              <el-button
+                v-if="scope.row.currentPeriodStatus === '0'"
+                style="color: #FF7B00; font-size: 14px"
+                size="small"
+                text
+                @click="handleNotification(scope.row, 'pending')"
+              >
                 还款提醒
               </el-button>
-              <el-button
-                v-else-if="scope.row.currentPeriodStatus === '2'"
-                size="small"
-                type="danger"
-                text
-                @click="handleNotification(scope.row, 'overdue')"
-              >
+              <el-button v-else-if="scope.row.currentPeriodStatus === '2'" size="small" text style="color: #F23255; font-size: 14px" @click="handleNotification(scope.row, 'overdue')">
                 逾期提示
               </el-button>
             </template>
-            <el-button size="small" type="success" text @click="handleRepayment(scope.row)">还款情况</el-button>
-            <el-button size="small" type="primary" text @click="handleDetail(scope.row)">详情</el-button>
-            
+            <el-button size="small" type="success" text style="color: #108C58; font-size: 14px" @click="handleRepayment(scope.row)">还款情况</el-button>
+            <el-button size="small" type="primary" text style="color: #108C58; font-size: 14px" @click="handleDetail(scope.row)">详情</el-button>
+
             <!-- 更多操作下拉菜单 -->
             <el-dropdown trigger="click" @command="(cmd) => handleMoreAction(scope.row, cmd)">
-              <el-button size="small" type="info" text>
+              <el-button size="small" type="info" text style="color: #108C58; font-size: 14px">
                 更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
               </el-button>
               <template #dropdown>
@@ -313,37 +313,36 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  })
-    .then(async () => {
-      try {
-        // 1. 先调用 getRemainingDetail 获取对象数据
-        const detailResponse = await getRemainingDetail(row.id);
-        if (detailResponse && detailResponse.code === 200) {
-          const detailData = detailResponse.data || {};
-          console.log(detailData);
-          console.log(messageType);
+  }).then(async () => {
+    try {
+      // 1. 先调用 getRemainingDetail 获取对象数据
+      const detailResponse = await getRemainingDetail(row.id);
+      if (detailResponse && detailResponse.code === 200) {
+        const detailData = detailResponse.data || {};
+        console.log(detailData);
+        console.log(messageType);
 
-          // 2. 直接将 messageType 添加到对象中
-          const dataWithMessageType = {
-            ...detailData,
-            messageType: messageType
-          };
-          console.log(dataWithMessageType);
+        // 2. 直接将 messageType 添加到对象中
+        const dataWithMessageType = {
+          ...detailData,
+          messageType: messageType
+        };
+        console.log(dataWithMessageType);
 
-          // 3. 调用 messageRecord 接口
-          const messageResponse = await messageRecord(dataWithMessageType);
-          console.log(messageResponse);
-          if (messageResponse && messageResponse.code === 200) {
-            ElMessage.success(`${messages[actualType]}已发送`);
-          } else {
-          }
+        // 3. 调用 messageRecord 接口
+        const messageResponse = await messageRecord(dataWithMessageType);
+        console.log(messageResponse);
+        if (messageResponse && messageResponse.code === 200) {
+          ElMessage.success(`${messages[actualType]}已发送`);
         } else {
-          ElMessage.error(detailResponse?.msg || '获取详情失败');
         }
-      } catch (error) {
-        console.error('发送通知失败:', error);
+      } else {
+        ElMessage.error(detailResponse?.msg || '获取详情失败');
       }
-    })
+    } catch (error) {
+      console.error('发送通知失败:', error);
+    }
+  });
 };
 
 /**
@@ -427,7 +426,7 @@ onMounted(() => {
     margin: 0;
     flex-shrink: 0;
     padding: 5px 10px;
-    font-size: 12px;
+    font-size: 14px;
   }
 }
 
