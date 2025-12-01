@@ -44,7 +44,7 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="center" width="120">
+      <el-table-column label="适用对象" prop="applicableObject" align="center" min-width="150" class-name="nowrap-column">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
         </template>
@@ -384,5 +384,9 @@ onMounted(() => {
   border-radius: 50%;
   flex-shrink: 0;
   vertical-align: middle;
+}
+
+:deep(.nowrap-column .cell) {
+  white-space: nowrap;
 }
 </style>
