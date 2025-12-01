@@ -99,3 +99,19 @@ export function syncTenantDict() {
     method: 'get'
   });
 }
+
+// 同步租户参数配置
+export function syncTenantConfig() {
+  return request({
+    url: '/system/tenant/syncTenantConfig',
+    method: 'get'
+  });
+}
+
+// 同步所有租户套餐：
+export function syncAllTenantPackage() {
+  return request({
+    url: '/system/tenant/syncAllTenantPackage',
+    method: 'get'
+  });
+}

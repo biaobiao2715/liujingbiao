@@ -17,8 +17,8 @@
               <el-input v-model="queryParams.companyName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item>
-              <el-button v-throttle  type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-              <el-button v-throttle  icon="Refresh" @click="resetQuery">重置</el-button>
+              <el-button v-throttle type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+              <el-button v-throttle icon="Refresh" @click="resetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -29,23 +29,37 @@
       <template #header>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:tenant:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+            <el-button v-throttle v-hasPermi="['system:tenant:add']" type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:tenant:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"
+            <el-button v-throttle v-hasPermi="['system:tenant:edit']" type="success" plain icon="Edit" :disabled="single" @click="handleUpdate()"
               >修改</el-button
             >
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:tenant:remove']" type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete()">
+            <el-button
+              v-throttle
+              v-hasPermi="['system:tenant:remove']"
+              type="danger"
+              plain
+              icon="Delete"
+              :disabled="multiple"
+              @click="handleDelete()"
+            >
               删除
             </el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-hasPermi="['system:tenant:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
+            <el-button v-throttle v-hasPermi="['system:tenant:export']" type="warning" plain icon="Download" @click="handleExport">导出</el-button>
           </el-col>
           <el-col :span="1.5">
-            <el-button v-throttle  v-if="userId === 1" type="success" plain icon="Refresh" @click="handleSyncTenantDict">同步租户字典</el-button>
+            <el-button v-throttle v-if="userId === 1" type="success" plain icon="Refresh" @click="handleSyncTenantDict">同步租户字典</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-if="userId === 1" type="success" plain icon="Refresh" @click="handleSyncTenantConfig">同步租户参数配置</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button v-if="userId === 1" type="success" plain icon="Refresh" @click="handleSyncAllTenantPackage">同步所有租户套餐</el-button>
           </el-col>
           <right-toolbar v-model:show-search="showSearch" @query-table="getList"></right-toolbar>
         </el-row>
@@ -72,14 +86,28 @@
         <el-table-column width="150" label="操作" align="center" fixed="right" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="修改" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:tenant:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+              <el-button v-throttle v-hasPermi="['system:tenant:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="同步套餐" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:tenant:edit']" link type="primary" icon="Refresh" @click="handleSyncTenantPackage(scope.row)">
+              <el-button
+                v-throttle
+                v-hasPermi="['system:tenant:edit']"
+                link
+                type="primary"
+                icon="Refresh"
+                @click="handleSyncTenantPackage(scope.row)"
+              >
               </el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
-              <el-button v-throttle  v-hasPermi="['system:tenant:remove']" link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button
+                v-throttle
+                v-hasPermi="['system:tenant:remove']"
+                link
+                type="primary"
+                icon="Delete"
+                @click="handleDelete(scope.row)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -135,8 +163,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-throttle  :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
-          <el-button v-throttle  @click="cancel">取 消</el-button>
+          <el-button v-throttle :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
+          <el-button v-throttle @click="cancel">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -152,7 +180,9 @@ import {
   updateTenant,
   changeTenantStatus,
   syncTenantPackage,
-  syncTenantDict
+  syncTenantDict,
+  syncTenantConfig,
+  syncAllTenantPackage
 } from '@/api/system/tenant';
 import { selectTenantPackage } from '@/api/system/tenantPackage';
 import { useUserStore } from '@/store/modules/user';
@@ -362,6 +392,20 @@ const handleExport = () => {
 const handleSyncTenantDict = async () => {
   await proxy?.$modal.confirm('确认要同步所有租户字典吗？');
   const res = await syncTenantDict();
+  proxy?.$modal.msgSuccess(res.msg);
+};
+
+/**同步租户参数配置*/
+const handleSyncTenantConfig = async () => {
+  await proxy?.$modal.confirm('确认要同步所有租户参数配置吗？');
+  const res = await syncTenantConfig();
+  proxy?.$modal.msgSuccess(res.msg);
+};
+
+/**同步所有租户套餐*/
+const handleSyncAllTenantPackage = async () => {
+  await proxy?.$modal.confirm('确认要同步所有租户套餐吗？');
+  const res = await syncAllTenantPackage();
   proxy?.$modal.msgSuccess(res.msg);
 };
 
