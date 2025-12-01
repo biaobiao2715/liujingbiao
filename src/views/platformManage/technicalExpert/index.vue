@@ -10,12 +10,12 @@
   <div class="p-2 technical-expert-page">
     <!-- 查询区域 -->
     <div class="mb-[10px]">
-      <el-form ref="queryFormRef" :model="queryParams" inline :label-width="70" label-position="left">
-        <el-form-item label="专家姓名" prop="name">
-          <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable @keyup.enter="handleQuery" />
+      <el-form ref="queryFormRef" :model="queryParams" :rules="queryRules" inline :label-width="70" label-position="left">
+        <el-form-item label="专家姓名" prop="expertName">
+          <el-input v-model="queryParams.expertName" placeholder="请输入专家姓名" clearable maxlength="50" @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="专家编号" prop="expertNumber">
-          <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable @keyup.enter="handleQuery" />
+          <el-input v-model="queryParams.expertNumber" placeholder="请输入专家编号" clearable maxlength="50" @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="入驻时间">
           <el-date-picker
@@ -28,7 +28,7 @@
             @change="handleSelectDate"
           />
         </el-form-item>
-        <el-form-item label="审核状态" prop="auditStatus">
+        <el-form-item label="审核状态" prop="reviewStatus">
           <el-select v-model="queryParams.reviewStatus" placeholder="全部" filterable clearable>
             <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
@@ -176,6 +176,37 @@ const queryParams = reactive<TechnicalExpertListRequest>({
   pageNum: 1,
   pageSize: 10
 });
+
+const validateExpertName = (_rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback();
+    return;
+  }
+  const pattern = /^[\u4e00-\u9fa5A-Za-z]{1,50}$/;
+  if (!pattern.test(value)) {
+    callback(new Error('专家姓名仅支持汉字或字母，最长50个字符'));
+    return;
+  }
+  callback();
+};
+
+const validateExpertNumber = (_rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback();
+    return;
+  }
+  const pattern = /^[A-Za-z0-9_-]{1,50}$/;
+  if (!pattern.test(value)) {
+    callback(new Error('专家编号仅支持字母、数字、下划线或短横线，最长50个字符'));
+    return;
+  }
+  callback();
+};
+
+const queryRules = {
+  expertName: [{ validator: validateExpertName, trigger: ['blur', 'change'] }],
+  expertNumber: [{ validator: validateExpertNumber, trigger: ['blur', 'change'] }]
+} as any;
 // 停用/启用弹窗相关
 const loadingStatus = ref(false);
 const toggleDialogVisible = ref(false);
@@ -248,11 +279,16 @@ const refreshData = () => {
 
 // 查询
 const handleQuery = () => {
-  getList();
+  queryFormRef.value?.validate((valid: boolean) => {
+    if (!valid) return;
+    queryParams.pageNum = 1;
+    getList();
+  });
 };
 
 // 重置
 const resetQuery = () => {
+  queryFormRef.value?.resetFields();
   registrationTime.value = [];
   queryParams.expertName = '';
   queryParams.reviewStartTime = '';
