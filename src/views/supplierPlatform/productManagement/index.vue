@@ -33,15 +33,15 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:list']" icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:list']" icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-throttle v-hasPermi="['system:goods:add']" type="primary" @click="handleAdd">新增商品</el-button>
+        <el-button v-throttle v-hasPermi="['system:goods:add']" icon="Plus" type="primary" @click="handleAdd">新增商品</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -124,7 +124,7 @@
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="200" class-name="op-col">
+      <el-table-column fixed="right" label="操作" width="200" class-name="op-col flex-center">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
             <template v-if="idx < 2">

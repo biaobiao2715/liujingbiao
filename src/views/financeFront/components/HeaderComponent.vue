@@ -2,9 +2,19 @@
   <div class="flex-center-between header">
     <div class="welcome-message">Hi, {{ userStore.nickname || '用户' }}，您好，欢迎来到农合智创</div>
     <div class="right-info flex-center gap-24">
-      <el-badge value="1" class="badge">
-        <el-icon size="16"><Bell /></el-icon>
-      </el-badge>
+      <!-- 消息 -->
+      <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
+        <template #reference>
+          <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99" class="badge">
+            <div class="right-menu-item hover-effect" style="display: block">
+              <el-icon size="16"><Bell /></el-icon>
+            </div>
+          </el-badge>
+        </template>
+        <template #default>
+          <notice></notice>
+        </template>
+      </el-popover>
       <el-dropdown @command="handleCommand" style="margin-left: 12px">
         <div class="flex-center gap-12">
           <img src="../../../assets/images/avatar.svg" width="20" />
@@ -28,10 +38,11 @@ import { useRouter } from 'vue-router';
 import { Bell } from '@element-plus/icons-vue';
 import { eventBus } from '@/utils/eventBus';
 import { useUserStore } from '@/store/modules/user';
-
+import notice from '@/layout/components/notice/index.vue';
+import { useNoticeStore } from '@/store/modules/notice';
 const userStore = useUserStore();
 const router = useRouter();
-
+const noticeStore = storeToRefs(useNoticeStore());
 const handleCommand = (command: string) => {
   if (command === 'loginout') {
     handleLogout();
@@ -57,6 +68,17 @@ const handleLogout = () => {
     });
   });
 };
+
+const newNotice = ref(<number>0);
+
+//用深度监听 消息
+watch(
+  () => noticeStore.state.value.notices,
+  (newVal) => {
+    newNotice.value = newVal.filter((item: any) => !item.read).length;
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped lang="scss">

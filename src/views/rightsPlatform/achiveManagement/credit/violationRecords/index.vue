@@ -21,8 +21,8 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" type="primary" @click="handleSearch">查询</el-button>
-        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" @click="handleReset">重置</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:reportCaseFiling:list']" icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -37,8 +37,15 @@
         </template>
       </el-table-column>
       <el-table-column label="处理状态" prop="status">
-        <template v-slot="scope">
+        <!-- <template v-slot="scope">
           <dict-text :options="case_status" :value="scope.row.status || ''" />
+        </template> -->
+
+        <template #default="scope">
+          <div class="flex-center-center">
+            <div v-if="scope.row.status != null" class="normal" :class="{ 'green': scope.row.status == 3 }"></div>
+            <span v-if="scope.row.status == 3" class="green-color">已结案</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="处理时间" prop="updateTime" min-width="160">

@@ -23,8 +23,8 @@
         <el-date-picker v-model="selectedDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" @change="handleSelectDate" />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle icon="Search" type="primary" @click="handleQuery">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 

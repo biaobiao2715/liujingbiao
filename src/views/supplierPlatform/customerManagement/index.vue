@@ -21,8 +21,8 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
+        <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
+        <el-button icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
