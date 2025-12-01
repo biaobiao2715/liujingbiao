@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：			index.vue
 功能：			培训会议管理
-说明:         
+说明:
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-31
 修改人信息：张峰     2025-11-4
@@ -47,12 +47,14 @@
     </el-form>
 
     <div class="mb-12">
-      <el-button v-throttle type="primary" v-hasPermi="['skill:HnMeetingCultivate:add']" @click="handleAdd">新增</el-button>
+      <el-button v-throttle class="search-btn" type="primary" icon="Plus" v-hasPermi="['skill:HnMeetingCultivate:add']" @click="handleAdd"
+        >新增</el-button
+      >
       <el-button
         v-throttle
-        type="danger"
+        type="primary"
+        class="custom-btn-style"
         v-hasPermi="['skill:HnMeetingCultivate:remove']"
-        color="#f23255"
         :disabled="selectedRows.length == 0"
         @click="handleBatchDelete(selectedRows)"
         >删除</el-button
@@ -125,39 +127,66 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="操作" align="left" width="200" fixed="right" class-name="flex-center">
         <template #default="scope">
-          <div style="display: flex; justify-content: space-evenly; align-items: center">
-            <!-- 待开始 -->
-            <template v-if="scope.row.meetingStatus === '1'">
-              <el-link v-hasPermi="['skill:HnMeetingCultivate:edit']" type="primary" :disabled="editLoading" @click="handleEdit(scope.row)">
-                <span v-if="editLoading && currentLoadingId === scope.row.id">加载中...</span>
-                <span v-else>编辑</span>
-              </el-link>
-              <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
-                <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
-                <span v-else>查看</span>
-              </el-link>
-              <el-link v-hasPermi="['skill:HnMeetingCultivate:cancel']" type="primary" @click="handleCancelMeeting(scope.row)">取消会议</el-link>
-              <!-- <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link> -->
-            </template>
-
-            <!-- 进行中、已结束、已取消 -->
-            <template v-else-if="['2', '3', '99'].includes(scope.row.meetingStatus)">
-              <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
-                <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
-                <span v-else>查看</span>
-              </el-link>
-              <el-link
-                v-if="['3', '99'].includes(scope.row.meetingStatus)"
-                v-hasPermi="['skill:HnMeetingCultivate:remove']"
-                type="danger"
-                style="color: #f23255"
-                @click="handleDelete(scope.row)"
-                >删除</el-link
+          <!-- <div> -->
+          <!-- 待开始 -->
+          <template v-if="scope.row.meetingStatus === '1'">
+            <el-tooltip content="查看" placement="top">
+              <el-button
+                v-hasPermi="['skill:HnMeetingCultivate:edit']"
+                class="operation-link-button"
+                v-throttle
+                type="text"
+                @click="handleEdit(scope.row)"
               >
-            </template>
-          </div>
+                编辑
+              </el-button>
+            </el-tooltip>
+            <!-- <el-link v-hasPermi="['skill:HnMeetingCultivate:edit']" type="primary" :disabled="editLoading" @click="handleEdit(scope.row)">
+              <span v-if="editLoading && currentLoadingId === scope.row.id">加载中...</span>
+              <span v-else>编辑</span>
+            </el-link> -->
+            <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
+              <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
+              <span v-else>查看</span>
+            </el-link>
+            <el-link v-hasPermi="['skill:HnMeetingCultivate:cancel']" type="primary" @click="handleCancelMeeting(scope.row)">取消会议</el-link>
+            <!-- <el-link v-hasPermi="['skill:HnMeetingCultivate:remove']" type="danger" @click="handleDelete(scope.row)">删除</el-link> -->
+          </template>
+
+          <!-- 进行中、已结束、已取消 -->
+          <template v-else-if="['2', '3', '99'].includes(scope.row.meetingStatus)">
+            <el-tooltip content="查看" placement="top">
+              <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
+            </el-tooltip>
+            <!-- <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
+              <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
+              <span v-else>查看</span>
+            </el-link> -->
+            <el-tooltip content="删除" placement="top">
+              <el-button
+                v-if="['3', '99'].includes(scope.row.meetingStatus)"
+                class="operation-link-button"
+                v-throttle
+                type="text"
+                @click="handleDelete(scope.row)"
+                v-hasPermi="['skill:HnMeetingCultivate:edit']"
+              >
+                删除
+              </el-button>
+            </el-tooltip>
+            <!-- <el-link
+              v-if="['3', '99'].includes(scope.row.meetingStatus)"
+              v-hasPermi="['skill:HnMeetingCultivate:remove']"
+              type="danger"
+              style="color: #f23255"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-link> -->
+          </template>
+          <!-- </div> -->
         </template>
       </el-table-column>
     </el-table>
@@ -521,6 +550,7 @@ const handleSave = (data: any) => {
 <style scoped lang="scss">
 .supplier-management {
   padding: 24px;
+  height: calc(100vh - 120px);
 }
 
 .pagination {
@@ -564,5 +594,41 @@ const handleSave = (data: any) => {
 :deep(.el-tag) {
   font-weight: 500;
   border: none;
+}
+.search-btn {
+  width: 88px;
+  border-radius: 2;
+}
+.custom-btn-style {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #1d2129 !important;
+  border: 4px;
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #1d2129 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #1d2129 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+  &:not(.is-disabled) {
+    color: #1d2129 !important;
+
+    &:hover {
+      color: #1d2129 !important;
+    }
+
+    &:focus {
+      color: #1d2129 !important;
+    }
+  }
 }
 </style>
