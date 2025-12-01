@@ -90,13 +90,14 @@ div<!--
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" fixed="right" width="180">
+      <el-table-column label="操作" fixed="right" width="180" class-name="flex-center">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 查看按钮 - 已结案和已撤回显示 -->
             <el-button
               v-if="scope.row.status === '3' || scope.row.status === '4' || scope.row.status === '0'"
               v-hasPermi="['safeguard:report:query']"
+              style="font-size: 14px;"
               v-throttle
               type="primary"
               link
@@ -108,6 +109,7 @@ div<!--
             <!-- 申述按钮 - 只在处理中和已驳回状态显示 -->
             <el-button
               v-if="scope.row.status === '1' || scope.row.status === '2'"
+              style="font-size: 14px;"
               v-throttle
               type="success"
               size="small"
