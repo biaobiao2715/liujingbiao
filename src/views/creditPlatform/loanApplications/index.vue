@@ -320,19 +320,10 @@ onMounted(() => {
 <style scoped lang="scss">
 .loan-applications {
   padding: 24px;
-  background-color:  #F7F8FA;;
-  min-height: calc(100vh - 120px);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .search-form {
-  background: #fff;
-  border-bottom: 1px solid #E5E5E5;
-  // padding: 20px 24px 10px;
-  // border-radius: 8px;
-  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
+  margin-bottom: 16px;
 
   .el-form-item {
     min-width: 220px;
@@ -361,12 +352,9 @@ onMounted(() => {
 }
 
 .pagination {
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  // box-shadow: 0 2px 8px rgba(31, 45, 61, 0.08);
 }
 
 .status-text {
@@ -388,5 +376,25 @@ onMounted(() => {
 
 :deep(.nowrap-column .cell) {
   white-space: nowrap;
+}
+
+:deep(.el-table) {
+  .el-table__header {
+    background-color: #fafafa;
+
+    th {
+      background-color: #fafafa !important;
+      color: #606266;
+      font-weight: 600;
+    }
+  }
+
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+    }
+  }
 }
 </style>
