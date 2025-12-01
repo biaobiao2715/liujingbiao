@@ -20,18 +20,18 @@
     </el-form>
 
     <el-table v-loading="loading" border :data="tableList" style="table-layout: fixed">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="信用等级" align="center" prop="creditRatingId">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="信用等级" prop="creditRatingId">
         <template #default="{ row }">
           <dict-text :options="plat_credit_rating" :value="row.creditRatingId ?? ''" />
         </template>
       </el-table-column>
-      <el-table-column label="信用积分" align="center" prop="creditMinPoints">
+      <el-table-column label="信用积分" prop="creditMinPoints">
         <template #default="{ row }"> {{ row.creditMinPoints }} - {{ row.creditMaxPoints }} </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="160">
+      <el-table-column fixed="right" label="操作" width="160" class-name="flex-center">
         <template #default="scope">
-          <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" type="primary" @click="openSetDialog(scope.row)">设置</el-button>
+          <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" link type="primary" @click="openSetDialog(scope.row)">设置</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -182,6 +182,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .p-2 {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 .range-wrapper {

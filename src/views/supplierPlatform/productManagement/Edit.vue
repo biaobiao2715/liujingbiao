@@ -304,6 +304,7 @@ import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/p
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 import goodsImgAvatar from './goodsImgAvatar.vue';
+import { de } from 'element-plus/es/locale';
 // ==========================
 // Props/Emits
 // ==========================
@@ -536,6 +537,7 @@ const onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
 const handleDelete = (file: any) => {
   const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
   if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
+  console.log('删除图片', file, hnGoodsFilesList.value);
   // 图片删除后，主动刷新“商品主图”校验（titleFileList）
   refForm.value?.validateField?.('titleFileList');
 };
@@ -696,6 +698,7 @@ onMounted(async () => {
       } else {
         // 编辑/查看时直接赋值
         formData.value = { ...data };
+        delete formData.value.createTime; // 删除 createTime 字段，防止修改时重复传递
         if (data.sysOssLists && data.sysOssLists.length > 0) {
           hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
         }

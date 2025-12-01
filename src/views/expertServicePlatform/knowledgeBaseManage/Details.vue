@@ -53,7 +53,7 @@
       </el-table>
     </div>
 
-    <div class="flex-center-end">
+    <div class="flex-center-end" style="margin-top: 20px">
       <el-button v-throttle @click="emitCancel">关闭</el-button>
     </div>
   </div>

@@ -50,7 +50,7 @@
           color="#F23255"
           @click="handleDelete"
           :loading="actionLoading === 'delete'"
-          :disabled="loading || actionLoading !== null"
+          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           删除
         </el-button>
@@ -61,7 +61,7 @@
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
           :loading="actionLoading === 'shelf'"
-          :disabled="loading || actionLoading !== null"
+          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           上架
         </el-button>
@@ -73,7 +73,7 @@
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
           :loading="actionLoading === 'unshelf'"
-          :disabled="loading || actionLoading !== null"
+          :disabled="loading || actionLoading !== null || selectedIds.length === 0"
         >
           下架
         </el-button>
@@ -89,18 +89,18 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="商品名称" align="center" prop="goodsName" width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>
-      <el-table-column label="销售价" align="center" prop="salesPrice" width="130" :show-overflow-tooltip="true">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="商品名称" prop="goodsName" width="150" :show-overflow-tooltip="true" />
+      <el-table-column label="商品编码" prop="goodsCode" width="220"> </el-table-column>
+      <el-table-column label="销售价" prop="salesPrice" width="130" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ getSalesPrice(scope.row) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="预警下限" align="center" prop="goodsAlert" />
-      <el-table-column label="提醒" align="center" prop="remind" width="100" />
-      <el-table-column label="商品状态" align="center" prop="status">
+      <el-table-column label="商品类目" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column label="预警下限" prop="goodsAlert" />
+      <el-table-column label="提醒" prop="remind" width="100" />
+      <el-table-column label="商品状态" prop="status">
         <!-- <template #default="scope">
           <dict-text :options="goods_status" :value="scope.row.status ?? ''" />
         </template> -->
@@ -119,12 +119,12 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" align="center" prop="launchTime" min-width="160">
+      <el-table-column label="发布时间" prop="launchTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="200">
+      <el-table-column fixed="right" label="操作" width="200" class-name="op-col">
         <template #default="scope">
           <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
             <template v-if="idx < 2">
@@ -139,10 +139,8 @@
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key">
-                    <span class="op-more-item" style="color: #108c58" v-throttle v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{
-                      btn.label
-                    }}</span>
+                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key" @click="btn.onClick(scope.row)">
+                    <span class="op-more-item" v-throttle v-hasPermi="btn.permi">{{ btn.label }}</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -631,5 +629,24 @@ const getRowActions = (row: any) => [
   .el-button {
     margin: 0 8px;
   }
+}
+
+/* 操作列样式优化：垂直居中 + 14px 字号 */
+.supplier-management :deep(.op-col .cell) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.el-dropdown-link {
+  margin-left: 12px;
+}
+
+.op-more-item {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  color: #108c58;
 }
 </style>

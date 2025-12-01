@@ -120,13 +120,13 @@
 
       <FormHeader title="案件类型" />
       <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
-        <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
-        <el-table-column prop="caseTypeId" label="案件类型名称" align="center">
+        <el-table-column prop="caseTypeCode" label="案件类型编号" :show-overflow-tooltip="true" />
+        <el-table-column prop="caseTypeId" label="案件类型名称" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
           </template>
         </el-table-column>
-        <el-table-column prop="basisName" label="执法依据" align="center">
+        <el-table-column prop="basisName" label="执法依据" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <span
               style="color: #108c58"
@@ -136,7 +136,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="documentName" label="执法文书模板" align="center">
+        <el-table-column prop="documentName" label="执法文书模板" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <span
               style="color: #108c58"
@@ -208,11 +208,11 @@
       <div v-if="formData.historyAppealList && formData.historyAppealList.length > 0">
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
-          <el-table-column type="index" min-width="55" label="序号" align="center" />
-          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
-          <el-table-column label="操作" align="center">
+          <el-table-column type="index" min-width="55" label="序号" />
+          <el-table-column prop="createTime" label="申诉时间"></el-table-column>
+          <el-table-column label="操作">
             <template #default="scope">
-              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+              <el-button v-throttle link type="primary" @click="handlePreview(scope.row)">查看</el-button>
             </template>
           </el-table-column>
         </el-table>

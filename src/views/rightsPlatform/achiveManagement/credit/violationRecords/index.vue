@@ -28,35 +28,36 @@
 
     <!-- 表格展示 -->
     <el-table :data="tableData" border v-loading="loading" style="width: 100%">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="供应商/企业名称" align="center" prop="reporterName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="案件编号" align="center" prop="caseCode" width="210" />
-      <el-table-column label="案件类型" align="center" prop="caseTypeId">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="供应商/企业名称" prop="reporterName" min-width="100" :show-overflow-tooltip="true" />
+      <el-table-column label="案件编号" prop="caseCode" width="210" />
+      <el-table-column label="案件类型" prop="caseTypeId">
         <template v-slot="scope">
           <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
-      <el-table-column label="处理状态" align="center" prop="status">
+      <el-table-column label="处理状态" prop="status">
         <template v-slot="scope">
           <dict-text :options="case_status" :value="scope.row.status || ''" />
         </template>
       </el-table-column>
-      <el-table-column label="处理时间" align="center" prop="updateTime" min-width="160">
+      <el-table-column label="处理时间" prop="updateTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.updateTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="本次扣分" align="center" prop="caseScore" min-width="160">
+      <el-table-column label="本次扣分" prop="caseScore" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.caseScore }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="160">
+      <el-table-column fixed="right" label="操作" width="160" class-name="flex-center">
         <template #default="scope">
           <el-button
             v-throttle
             v-hasPermi="['safeguard:reportCaseFiling:query']"
             v-if="scope.row.status !== '0'"
+            link
             type="primary"
             @click="handleEdit(scope.row)"
             >查看</el-button
@@ -161,6 +162,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .supplier-management {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 .pagination {

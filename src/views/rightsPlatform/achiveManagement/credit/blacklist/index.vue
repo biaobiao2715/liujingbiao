@@ -31,15 +31,15 @@
     </el-form> -->
 
     <el-table v-loading="loading" border :data="tableList" style="table-layout: fixed">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="黑名单" align="center" prop="companyName" :show-overflow-tooltip="true" />
-      <el-table-column label="信用等级" align="center" prop="creditLevel">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="黑名单" prop="companyName" :show-overflow-tooltip="true" />
+      <el-table-column label="信用等级" prop="creditLevel">
         <template #default="{ row }">
           <dict-text :options="plat_credit_rating" :value="row.creditLevel ?? ''" />
         </template>
       </el-table-column>
-      <el-table-column label="信用积分" align="center" prop="sore" />
-      <el-table-column label="案件已结案数量" align="center" prop="caseCount" />
+      <el-table-column label="信用积分" prop="sore" />
+      <el-table-column label="案件已结案数量" prop="caseCount" />
     </el-table>
 
     <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
@@ -105,6 +105,7 @@ onMounted(() => {
 </script>
 <style scoped lang="scss">
 .p-2 {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 </style>

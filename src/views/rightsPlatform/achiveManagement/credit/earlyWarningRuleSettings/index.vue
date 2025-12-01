@@ -34,65 +34,62 @@
         <el-button v-throttle type="primary" @click="handleAdd" v-hasPermi="['safeguard:warnRule:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          type="success"
-          :disabled="multiple"
-          @click="handleBatchStatus('0')"
-          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+        <el-button v-throttle :disabled="multiple" @click="handleBatchStatus('0')" v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
           >启用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          type="warning"
-          :disabled="multiple"
-          @click="handleBatchStatus('1')"
-          v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
+        <el-button v-throttle :disabled="multiple" @click="handleBatchStatus('1')" v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
           >禁用</el-button
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="danger" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
+        <el-button v-throttle color="#F23255" :disabled="multiple" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
       </el-col>
     </el-row>
 
     <!-- 表格 -->
     <el-table v-loading="loading" border :data="dataList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column label="预警规则名称" prop="ruleName" align="center" />
-      <el-table-column label="信用等级" prop="creditRatingId" align="center">
+      <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="60" />
+      <el-table-column label="预警规则名称" prop="ruleName" />
+      <el-table-column label="信用等级" prop="creditRatingId">
         <template #default="scope">
           <dict-tag :options="plat_credit_rating" :value="scope.row.creditRatingId" />
         </template>
       </el-table-column>
-      <el-table-column label="预警值" prop="warnValue" align="center" />
-      <el-table-column label="所属状态" prop="status" align="center">
+      <el-table-column label="预警值" prop="warnValue" />
+      <el-table-column label="所属状态" prop="status">
         <template #default="scope">
           <dict-tag :options="warn_rule_status" :value="scope.row.status" />
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" prop="createTime" align="center" width="180">
+      <el-table-column label="创建时间" prop="createTime" width="180">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center" width="300">
+      <el-table-column fixed="right" label="操作" width="240" class-name="op-col">
         <template #default="scope">
-          <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['safeguard:warnRule:edit']">修改</el-button>
-          <el-button v-throttle link type="info" @click="handleView(scope.row)" v-hasPermi="['safeguard:warnRule:query']">查看</el-button>
-          <el-button
-            v-throttle
-            link
-            :type="scope.row.status == '0' ? 'warning' : 'success'"
-            @click="toggleStatus(scope.row)"
-            v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
-            >{{ scope.row.status == '0' ? '禁用' : '启用' }}</el-button
-          >
-          <!-- 行内删除按钮改为统一方法 -->
-          <el-button v-throttle link type="danger" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
+          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
+            <template v-if="idx < 2">
+              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
+            </template>
+          </template>
+          <template v-if="getRowActions(scope.row).length > 3">
+            <el-dropdown>
+              <span class="el-dropdown-link">
+                <el-button v-throttle link type="primary">更多</el-button>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key" @click="btn.onClick(scope.row)">
+                    <span class="op-more-item" v-throttle v-hasPermi="btn.permi">{{ btn.label }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -309,6 +306,8 @@ const handleDelete = async (row?: EarlyWarningRuleVO) => {
 // 单行切换状态（根据当前状态取反）
 const toggleStatus = async (row: EarlyWarningRuleVO) => {
   const next = row.status === '0' ? '1' : '0';
+  const tip = next === '0' ? '确认启用该数据?' : '确认禁用该数据?';
+  await proxy?.$modal.confirm(tip);
   await enableAndDisabledWarnRule({ ids: row.id!, params: { status: next } });
   proxy?.$modal.msgSuccess(next === '0' ? '已启用' : '已禁用');
   getList();
@@ -324,10 +323,25 @@ const cancel = () => {
 };
 
 onMounted(getList);
+
+// 行内操作按钮配置（前三个直显，超出收“更多”）
+const getRowActions = (row: EarlyWarningRuleVO) => {
+  const actions = [
+    { key: 'edit', label: '修改', permi: ['safeguard:warnRule:edit'], onClick: (r: any) => handleEdit(r) },
+    { key: 'view', label: '查看', permi: ['safeguard:warnRule:query'], onClick: (r: any) => handleView(r) },
+    // 根据当前状态展示启用或禁用
+    String(row.status) === '0'
+      ? { key: 'disable', label: '禁用', permi: ['safeguard:warnRule:enableAndDisabled'], onClick: (r: any) => toggleStatus(r) }
+      : { key: 'enable', label: '启用', permi: ['safeguard:warnRule:enableAndDisabled'], onClick: (r: any) => toggleStatus(r) },
+    { key: 'delete', label: '删除', permi: ['safeguard:warnRule:remove'], onClick: (r: any) => handleDelete(r) }
+  ];
+  return actions;
+};
 </script>
 
 <style scoped lang="scss">
 .p-2 {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 .mb8 {
@@ -337,5 +351,24 @@ onMounted(getList);
   margin-top: 4px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+
+/* 操作列样式优化：垂直居中 + 14px 字号 */
+.p-2 :deep(.op-col .cell) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.el-dropdown-link {
+  margin-left: 12px;
+}
+
+.op-more-item {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  color: #108c58;
 }
 </style>
