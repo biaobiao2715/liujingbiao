@@ -133,6 +133,7 @@ import { Document, Close, Plus } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
@@ -298,9 +299,10 @@ const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
     ElMessage.error('仅支持上传 PDF 文件');
     return false;
   }
-  const isLt10M = file.size / 1024 / 1024 < 10;
-  if (!isLt10M) {
-    ElMessage.error('文件大小不能超过 10MB');
+  const MB = 1024 * 1024;
+  const limit = 100 * MB;
+  if (file.size > limit) {
+    ElMessage.error('文件大小不能超过 100MB');
     return false;
   }
   return true;
@@ -308,9 +310,41 @@ const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
 
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
+  const MB = 1024 * 1024;
+  // 降低阈值，避免普通上传接口的超时问题，5MB 以上的文件都使用分片上传
+  const LARGE_FILE_CHUNK_THRESHOLD = 5 * MB;
+  const useChunkUpload = (file as File).size > LARGE_FILE_CHUNK_THRESHOLD;
+  const modal = (proxy as any)?.$modal;
   uploadLoading.value = true;
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+
   try {
-    const response = await ossUploadImage({ file: file as File });
+    let response: any;
+    
+    if (useChunkUpload) {
+      const chunkRes = await uploadByChunks(file as File, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
+      // 统一处理，兼容不同的返回格式
+      let chunkData = chunkRes;
+      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
+        chunkData = chunkRes.data;
+      }
+      // 兼容 ossId 和 ossid 两种字段名
+      const ossId = chunkData?.ossId || chunkData?.ossid || chunkData?.data?.ossId || chunkData?.data?.ossid;
+      response = {
+        code: 200,
+        data: {
+          ossId: ossId,
+          fileName: chunkData?.fileName || chunkData?.data?.fileName || (file as File).name,
+          url: chunkData?.url || chunkData?.data?.url || ''
+        }
+      };
+    } else {
+      response = await ossUploadImage({ file: file as File });
+    }
+
     if (response.code === 200 && response.data?.ossId) {
       const fileName = response.data.fileName || (file as File).name;
       const displayName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
@@ -337,6 +371,7 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
     onError?.(error);
   } finally {
     uploadLoading.value = false;
+    modal?.closeLoading?.();
   }
 };
 

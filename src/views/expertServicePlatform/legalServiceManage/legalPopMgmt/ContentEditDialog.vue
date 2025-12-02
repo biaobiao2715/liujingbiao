@@ -400,7 +400,7 @@ const scrollToHeading = (id: string) => {
 };
 
 const MB = 1024 * 1024;
-const CHUNK_UPLOAD_THRESHOLD = 5 * MB; // 超过 5MB 走分片上传（与举报材料一致）
+const CHUNK_UPLOAD_THRESHOLD = 100 * MB; // 文件大于100MB时使用分片上传
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';

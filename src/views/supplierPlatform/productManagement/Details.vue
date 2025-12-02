@@ -71,8 +71,8 @@
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsWeight" label="KG(计重)" width="220" align="center"> </el-table-column>
-        <el-table-column prop="goodsPrice" label="销售价" align="center">
+        <el-table-column prop="goodsWeight" label="KG(计重)" width="120" align="center"> </el-table-column>
+        <el-table-column prop="goodsPrice" label="销售价" align="center" width="200">
           <template #default="scope">
             <span v-if="operateMode === 'view'">{{ formatPrice(scope.row.goodsPrice) }}¥</span>
             <div v-if="operateMode === 'edit'" style="display: flex; align-items: center; gap: 8px">
@@ -263,5 +263,9 @@ onMounted(async () => {
   left: 0;
   width: 106px;
   height: 106px;
+}
+
+.price-input {
+  min-width: 120px;
 }
 </style>

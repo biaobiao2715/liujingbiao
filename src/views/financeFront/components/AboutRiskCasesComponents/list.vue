@@ -78,6 +78,7 @@ const queryParams = ref({
   pageSize: 10,
 
   articleTitle: '',
+  articleStatus: 2,
   articleTypes: ['1', '2']
 });
 
