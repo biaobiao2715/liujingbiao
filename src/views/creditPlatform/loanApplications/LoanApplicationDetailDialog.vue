@@ -261,7 +261,7 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
+const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -661,7 +661,6 @@ const dialogTitle = computed(() => {
 });
 
 const isApprovalMode = computed(() => props.mode === 'approval');
-// 详情模式下始终只读，审批模式下可编辑
 // 详情模式下始终只读，审批模式下可编辑
 const isApprovalReadonly = computed(() => {
   // 如果 mode 是 'approval'，则可编辑（返回 false）
