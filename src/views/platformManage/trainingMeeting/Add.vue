@@ -30,7 +30,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议标题" prop="meetingName">
-              <el-input v-model.trim="form.meetingName" placeholder="请输入培训会议标题" :disabled="isView" />
+              <el-input v-model.trim="form.meetingName" maxlength="30" placeholder="请输入培训会议标题" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -42,7 +42,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议地址" prop="meetingAddress">
-              <el-input v-model.trim="form.meetingAddress" placeholder="请输入培训会议地址" :disabled="isView" />
+              <el-input v-model.trim="form.meetingAddress" maxlength="30" placeholder="请输入培训会议地址" :disabled="isView" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -228,8 +228,10 @@
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="confirmExperts">确 定</el-button>
+        <div class="w-full text-center">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="confirmExperts">确 定</el-button>
+        </div>
       </span>
     </template>
   </el-dialog>
@@ -446,13 +448,13 @@ const isView = computed(() => props.mode === 'view');
 // 校验规则
 const rules = {
   meetingName: [
-    { required: true, message: '请输入发布培训会议标题内容', trigger: 'blur' },
-    { pattern: /^[\u4e00-\u9fa5a-zA-Z0-9]{1,30}$/, message: '最多支持30个汉字或字符', trigger: 'blur' }
+    { required: true, message: '请输入发布培训会议标题内容', trigger: 'blur' }
+    // { pattern: /^[\u4e00-\u9fa5a-zA-Z0-9]{1,30}$/, message: '最多支持30个汉字或字符', trigger: 'blur' }
   ],
   meetingType: [{ required: true, message: '请选择培训会议类型', trigger: 'change' }],
   meetingAddress: [
-    { required: true, message: '请输入会议地址', trigger: 'blur' },
-    { pattern: /^[\u4e00-\u9fa5a-zA-Z0-9]{1,30}$/, message: '最多支持30个汉字或字符', trigger: 'blur' }
+    { required: true, message: '请输入会议地址', trigger: 'blur' }
+    // { pattern: /^[\u4e00-\u9fa5a-zA-Z0-9]{1,30}$/, message: '最多支持30个汉字或字符', trigger: 'blur' }
   ],
   meetingStartTime: [
     {

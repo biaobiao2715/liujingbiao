@@ -9,20 +9,20 @@
   <div class="meeting-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
-      <el-form-item label="所属类别" prop="category" label-width="auto">
-        <el-select v-model="queryParams.category" placeholder="请选择" clearable>
+      <el-form-item label="所属类别" prop="meetingType" label-width="auto">
+        <el-select v-model="queryParams.meetingType" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_type" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="发布人" prop="publisher" label-width="auto">
         <el-input v-model="queryParams.publisher" placeholder="请输入发布人姓名" clearable />
       </el-form-item>
-      <el-form-item label="会议标题" prop="meetingTitle" label-width="auto">
-        <el-input v-model="queryParams.meetingTitle" placeholder="请输入会议标题" clearable />
+      <el-form-item label="会议标题" prop="meetingName" label-width="auto">
+        <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
-      <el-form-item label="报名状态" prop="signUpStatus" label-width="auto">
-        <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
-          <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
+      <el-form-item label="报名状态" prop="applicationStatus" label-width="auto">
+        <el-select v-model="queryParams.applicationStatus" placeholder="请选择" clearable>
+          <el-option v-for="item in enroll_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="所属状态" prop="meetingStatus" label-width="auto">
@@ -122,11 +122,11 @@ const { meeting_status, meeting_type, enroll_status } = toRefs<any>(proxy?.useDi
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  category: '',
+  meetingType: '',
   publishTime: [],
   publisher: '',
-  meetingTitle: '',
-  signUpStatus: '',
+  meetingName: '',
+  applicationStatus: '',
   meetingStatus: ''
 });
 
@@ -146,8 +146,8 @@ const selectType = ref<'view' | 'edit' | 'audit'>('view');
 const getList = () => {
   loading.value = true;
   const { publishTime, ...rest } = queryParams.value as any;
-  const [publishStartTime, publishEndTime] = Array.isArray(publishTime) ? publishTime : [];
-  const params = { ...rest, ...(publishStartTime && publishEndTime ? { publishStartTime, publishEndTime } : {}) };
+  const [startTime, endTime] = Array.isArray(publishTime) ? publishTime : [];
+  const params = { ...rest, ...(startTime && endTime ? { startTime, endTime } : {}) };
 
   listHnMeetingCultivate(params).then((res) => {
     tableData.value = res.rows;

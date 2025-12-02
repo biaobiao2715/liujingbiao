@@ -61,7 +61,11 @@
       <el-table-column prop="index" label="序号" width="80" type="index" />
       <el-table-column prop="reportCode" label="举报编号" min-width="180" :show-overflow-tooltip="true" />
       <el-table-column prop="caseCode" label="案件编号" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column prop="reportTypeId" label="举报类别" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column prop="reportTypeId" label="举报类别" min-width="120" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <dict-text :options="report_type_id" :value="scope.row.reportTypeId || ''" />
+        </template>
+      </el-table-column>
       <el-table-column prop="reportGoodsName" label="举报商品" min-width="120" :show-overflow-tooltip="true" />
       <el-table-column prop="createTime" label="创建时间" min-width="180" :show-overflow-tooltip="true" />
       <el-table-column prop="status" label="所属状态" min-width="100" :show-overflow-tooltip="true">
@@ -417,9 +421,6 @@ const getReportTypeText = (reportTypeId: string): string => {
   margin-left: auto;
   display: flex;
   gap: 10px;
-  position: absolute;
-  right: 0;
-  bottom: 20px;
 }
 
 .reset-btn {

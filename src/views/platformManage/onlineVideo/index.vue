@@ -91,11 +91,23 @@
       <!-- 状态 -->
       <el-table-column label="所属状态" align="center" prop="videoStatus">
         <template #default="scope">
-          <dict-tag :options="video_status" :value="scope.row.videoStatus" />
+          <!-- <dict-tag :options="video_status" :value="scope.row.videoStatus" /> -->
+          <div class="workingMode">
+            <div
+              v-if="scope.row.videoStatus != null"
+              class="normal"
+              :class="{
+                reviewRejected: scope.row.videoStatus == 2,
+                green: scope.row.videoStatus == 1
+              }"
+            ></div>
+            <span v-if="scope.row.videoStatus == 1" style="color: #108c58">启用</span>
+            <span v-if="scope.row.videoStatus == 2" style="color: #f23255">禁用</span>
+          </div>
         </template>
       </el-table-column>
       <!-- 发布人 -->
-      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
+      <el-table-column label="发布人" prop="publishUser" width="120" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.publishUser || '-' }}
         </template>
@@ -105,13 +117,9 @@
       <el-table-column label="操作" align="left" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
-            <el-button v-throttle link type="primary" size="small" @click="handleEdit(scope.row)" v-hasPermi="['skill:onlineVideo:edit']">
-              编辑
-            </el-button>
-            <el-button v-if="scope.row.videoStatus === '1'" link type="warning" size="small" @click="handleStatusChange(scope.row, '2')">
-              禁用
-            </el-button>
-            <el-button v-if="scope.row.videoStatus === '2'" link v-throttle type="success" size="small" @click="handleStatusChange(scope.row, '1')">
+            <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['skill:onlineVideo:edit']"> 编辑 </el-button>
+            <el-button v-if="scope.row.videoStatus === '1'" link type="warning" @click="handleStatusChange(scope.row, '2')"> 禁用 </el-button>
+            <el-button v-if="scope.row.videoStatus === '2'" link v-throttle type="success" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
             <el-button
@@ -119,7 +127,6 @@
               link
               v-show="scope.row.videoStatus === '2'"
               type="danger"
-              size="small"
               v-hasPermi="['skill:onlineVideo:remove']"
               @click="handleDeleteSingle(scope.row)"
             >
@@ -658,8 +665,8 @@ onMounted(() => {
 
   .el-button {
     margin: 0;
-    padding: 4px 8px;
-    font-size: 12px;
+    // padding: 4px 8px;
+    // font-size: 12px;
     min-width: auto;
     flex-shrink: 0;
   }
@@ -706,5 +713,29 @@ onMounted(() => {
       color: #f56c6c !important;
     }
   }
+}
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
 }
 </style>
