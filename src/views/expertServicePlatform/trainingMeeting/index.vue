@@ -146,8 +146,8 @@ const selectType = ref<'view' | 'edit' | 'audit'>('view');
 const getList = () => {
   loading.value = true;
   const { publishTime, ...rest } = queryParams.value as any;
-  const [publishStartTime, publishEndTime] = Array.isArray(publishTime) ? publishTime : [];
-  const params = { ...rest, ...(publishStartTime && publishEndTime ? { publishStartTime, publishEndTime } : {}) };
+  const [startTime, endTime] = Array.isArray(publishTime) ? publishTime : [];
+  const params = { ...rest, ...(startTime && endTime ? { startTime, endTime } : {}) };
 
   listHnMeetingCultivate(params).then((res) => {
     tableData.value = res.rows;
