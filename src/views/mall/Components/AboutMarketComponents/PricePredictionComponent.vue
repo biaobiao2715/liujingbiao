@@ -592,8 +592,8 @@ defineExpose({
     position: relative;
     z-index: 10;
     display: grid;
-    grid-template-columns: repeat(3, minmax(200px, 1fr));
-    gap: 12px 150px;
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    gap: 12px 40px;
 
     :deep(.el-form-item) {
       margin: 0 !important;
