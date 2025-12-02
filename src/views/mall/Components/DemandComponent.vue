@@ -62,6 +62,12 @@
         @pagination="getDemandList"
       />
 
+      <!-- 两个banner -->
+      <div class="banners flex-center gap-24">
+        <img src="@/assets/mall/demand-bg-1.png" />
+        <img src="@/assets/mall/demand-bg-2.png" />
+      </div>
+
       <!-- 采购需求弹窗 -->
       <PublishDemandComponent ref="publishDemandRef" @submitSuccess="getDemandList"></PublishDemandComponent>
 
@@ -81,17 +87,23 @@
       </el-dialog>
 
       <!-- 热销推荐 -->
-      <h3>热销推荐</h3>
-      <el-carousel :interval="5000" v-if="hotRecommendations.length > 0">
+      <div class="hot-recommendation">
+        <div class="title">热销推荐</div>
+        <!-- 左侧banner -->
+        <img src="@/assets/mall/demand-bg-3.png" />
+        <div class="recommendation-grid flex gap-12">
+          <HotGoodsComponent v-for="item in hotRecommendations" :key="item.id" :goods="item" @clickGoods="handleClick(item.id)" />
+        </div>
+      </div>
+      <!-- <el-carousel :interval="5000" v-if="hotRecommendations.length > 0">
         <el-carousel-item v-for="(group, index) in groupArray(hotRecommendations, 5)" :key="index">
           <div class="recommendation-grid flex gap-12">
-            <!-- style="width: calc(20% - 12px)" -->
             <HotGoodsComponent v-for="item in group" :key="item.id" :goods="item" @clickGoods="handleClick(item.id)" />
           </div>
         </el-carousel-item>
-      </el-carousel>
+      </el-carousel> -->
 
-      <el-empty v-else></el-empty>
+      <!-- <el-empty v-else></el-empty> -->
 
       <!-- 好物推荐 -->
       <h3>好物推荐</h3>
@@ -306,7 +318,19 @@ const groupArray = (array: any[], groupSize: number = 5) => {
   margin-top: 30px;
   margin-bottom: 16px;
 }
-.recommendation-grid {
+
+.banners {
+  margin: 30px 0 32px 0;
+  img {
+    width: calc(50% - 12px);
+  }
+}
+
+.hot-recommendation {
+  img {
+    width: 360px;
+    height: 936px;
+  }
 }
 
 .address-list {

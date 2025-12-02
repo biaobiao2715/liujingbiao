@@ -221,7 +221,7 @@ const clearPrice = () => {
 
 <style scoped lang="scss">
 .category-container {
-  padding: 12px;
+  margin-top: 32px;
   .title {
     font-size: 20px;
     font-weight: bold;

@@ -2,6 +2,9 @@ import { createWebHistory, createRouter, RouteRecordRaw } from 'vue-router';
 import { getToken } from '@/utils/auth';
 /* Layout */
 import Layout from '@/layout/index.vue';
+// import { useUserStore } from '@/store/modules/user';
+// console.log(useUserStore());
+
 
 /**
  * Note: 路由配置项
@@ -104,27 +107,27 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: { title: '区域价格差异热力图', icon: 'dashboard' },
     hidden: true
   },
-  {
-    path: '/mall/goods-detail',
-    component: () => import('@/views/mall/Components/GoodsDetailComponent.vue'),
-    name: 'GoodsDetail',
-    meta: { title: '商品详情', icon: 'dashboard' },
-    hidden: true
-  },
-  {
-    path: '/mall/compare-goods',
-    component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsPage.vue'),
-    name: 'CompareGoods',
-    meta: { title: '商品比价', icon: 'dashboard' },
-    hidden: true
-  },
-  {
-    path: '/mall/compare-detail',
-    component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsComponent.vue'),
-    name: 'CompareDetail',
-    meta: { title: '比价详情', icon: 'dashboard' },
-    hidden: true
-  },
+  // {
+  //   path: '/mall/goods-detail',
+  //   component: () => import('@/views/mall/Components/GoodsDetailComponent.vue'),
+  //   name: 'GoodsDetail',
+  //   meta: { title: '商品详情', icon: 'dashboard' },
+  //   hidden: true
+  // },
+  // {
+  //   path: '/mall/compare-goods',
+  //   component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsPage.vue'),
+  //   name: 'CompareGoods',
+  //   meta: { title: '商品比价', icon: 'dashboard' },
+  //   hidden: true
+  // },
+  // {
+  //   path: '/mall/compare-detail',
+  //   component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsComponent.vue'),
+  //   name: 'CompareDetail',
+  //   meta: { title: '比价详情', icon: 'dashboard' },
+  //   hidden: true
+  // },
   {
     path: '/user',
     component: Layout,
