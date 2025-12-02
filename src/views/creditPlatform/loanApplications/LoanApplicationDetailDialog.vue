@@ -225,6 +225,8 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close, Document } from '@element-plus/icons-vue';
 import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications';
+import { uploadByChunks } from '@/utils/chunkUpload';
+import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = defineProps<{
@@ -241,6 +243,9 @@ const emit = defineEmits<{
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
+
+const MB = 1024 * 1024;
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -744,23 +749,65 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
+const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
+  const modal = (proxy as any)?.$modal;
+  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+
+  try {
+    let uploadResult: any = {};
+
+    if (useChunkUpload) {
+      uploadResult = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
+      // 兼容处理不同的返回格式和字段名
+      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
+        uploadResult = uploadResult.data;
+      }
+    } else {
+      const response = await ossUploadImage({ file });
+      uploadResult = response?.data || {};
+    }
+
+    // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
+    return {
+      ossId,
+      fileName: file.name,
+      originalName: file.name,
+      url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
+      uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
+    };
+  } catch (error) {
+    console.error('上传文件失败', error);
+    throw error;
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
+
 const handleContractUpload = async (options: any) => {
   if (isApprovalReadonly.value) {
     options?.onError?.(new Error('仅可查看'));
     return;
   }
-  const formData = new FormData();
-  formData.append('file', options.file);
   contractUploading.value = true;
   try {
-    const res = await uploadFile(formData);
-    if (res && res.code === 200 && res.data) {
-      const resData = res.data;
+    const uploadResult = await uploadAttachmentFile(options.file);
+    
+    if (uploadResult?.ossId) {
       const fileInfo = {
-        name: resData.fileName || resData.originalFilename || options.file.name,
-        url: resData.url || resData.fileUrl || resData.path,
-        id: resData.contractId || resData.ossId || resData.id || resData.fileId || '',
-        ossId: resData.ossId
+        name: uploadResult.originalName || options.file.name,
+        url: uploadResult.url,
+        id: uploadResult.ossId,
+        ossId: uploadResult.ossId
       };
       if (!fileInfo.url) {
         throw new Error('上传返回结果缺少文件地址');
@@ -768,14 +815,15 @@ const handleContractUpload = async (options: any) => {
       approvalForm.contractFiles = [fileInfo];
       approvalForm.contractId = String(fileInfo.ossId || fileInfo.id || '');
       approvalFormRef.value?.validateField?.('contractId');
-      options.onSuccess?.(res, options.file);
+      options.onSuccess?.(uploadResult, options.file);
       ElMessage.success('合同上传成功');
     } else {
-      throw new Error(res?.msg || '合同上传失败');
+      throw new Error('上传失败，未获取到文件标识');
     }
   } catch (error: any) {
+    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '合同上传失败';
     options.onError?.(error);
-    ElMessage.error(error?.message || '合同上传失败');
+    ElMessage.error(errorMsg);
   } finally {
     contractUploading.value = false;
   }

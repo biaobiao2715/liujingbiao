@@ -87,10 +87,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close } from '@element-plus/icons-vue';
-import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail, uploadFile, deleteFile } from '@/api/creditPlatform/loanApplications';
+import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail } from '@/api/creditPlatform/loanApplications';
+import { uploadByChunks } from '@/utils/chunkUpload';
+import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 const props = defineProps<{
   visible: boolean;
   data: {
@@ -101,6 +104,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>();
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+
+const MB = 1024 * 1024;
+const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const loading = ref(false);
 const plans = ref<any[]>([]);
@@ -191,36 +199,78 @@ const beforeUpload = (file: any) => {
   return true;
 };
 
+const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
+  const modal = (proxy as any)?.$modal;
+  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+
+  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+
+  try {
+    let uploadResult: any = {};
+
+    if (useChunkUpload) {
+      uploadResult = await uploadByChunks(file, (percent) => {
+        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
+      });
+      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
+      // 兼容处理不同的返回格式和字段名
+      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
+        uploadResult = uploadResult.data;
+      }
+    } else {
+      const response = await ossUploadImage({ file });
+      uploadResult = response?.data || {};
+    }
+
+    // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
+    return {
+      ossId,
+      fileName: file.name,
+      originalName: file.name,
+      url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
+      uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
+    };
+  } catch (error) {
+    console.error('上传文件失败', error);
+    throw error;
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
+
 // 自定义上传
 const handleUpload = async (options: any) => {
   const { file } = options;
-  const formData = new FormData();
-  formData.append('file', file);
 
   try {
-    loading.value = true;
-    const response = await uploadFile(formData);
-    if (response.code === 200 && response.data) {
-      // 保存上传成功的文件信息和ossId
-      uploadedOssId.value = response.data.ossId;
+    const uploadResult = await uploadAttachmentFile(file);
+
+    if (uploadResult?.ossId) {
+      uploadedOssId.value = uploadResult.ossId;
       contractFiles.value = [
         {
-          name: response.data.fileName || file.name,
-          displayName: response.data.fileName || file.name,
-          url: response.data.url,
-          ossId: response.data.ossId,
-          uid: file.uid
+          name: uploadResult.originalName || file.name,
+          displayName: uploadResult.originalName || file.name,
+          url: uploadResult.url,
+          ossId: uploadResult.ossId,
+          uid: uploadResult.uid || file.uid
         }
       ];
       ElMessage.success('上传成功');
+      options.onSuccess?.(uploadResult, file);
     } else {
-      ElMessage.error(response.msg || '上传失败');
+      ElMessage.error('上传失败，请重试');
+      options.onError?.(new Error('上传失败'));
     }
-  } catch (error) {
-    console.error('上传失败:', error);
-    ElMessage.error('上传失败');
-  } finally {
-    loading.value = false;
+  } catch (error: any) {
+    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '上传失败，请重试';
+    ElMessage.error(errorMsg);
+    options.onError?.(error);
   }
 };
 
