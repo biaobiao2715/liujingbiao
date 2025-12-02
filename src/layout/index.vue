@@ -29,7 +29,7 @@ import { AppMain, Navbar, Settings, TagsView } from './components';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
 import { initWebSocket } from '@/utils/websocket';
-import { initSSE } from '@/utils/sse';
+import { initSSE } from '@/utils/sseOld';
 
 const settingsStore = useSettingsStore();
 const theme = computed(() => settingsStore.theme);

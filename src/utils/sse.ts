@@ -2,6 +2,7 @@ import { getToken } from '@/utils/auth';
 import { ElNotification } from 'element-plus';
 import { useNoticeStore } from '@/store/modules/notice';
 import { getRecommendDemand } from '@/api/login';
+import { watch, ref } from 'vue';
 
 // 事件标题映射：根据不同SSE事件使用不同的通知标题
 // purchaseDemand: 采购主题 (推给供应商使用)
@@ -11,6 +12,11 @@ const eventTitleMap: Record<string, string> = {
   purchaseDemand: '采购需求通知',
   supplyDemand: '供给需求通知'
 };
+
+// 防抖标记
+let isProcessing = false;
+// 存储最后一次的数据
+const lastData = ref<{ payload: any; event: string } | null>(null);
 
 function parsePayload(raw: any): any {
   if (raw == null) return null;
@@ -42,11 +48,44 @@ function extractMessage(payload: any): string {
   );
 }
 
+// 处理通知的函数
+function handleNotification(payload: any, event: string) {
+  let msg = extractMessage(payload);
+
+  if (event === 'purchaseDemand') {
+    msg = msg + (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.demandDescription || '');
+  }
+  if (event === 'supplyDemand') {
+    msg = msg + (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.supplyDescription || '');
+  }
+
+  // 添加到通知存储
+  useNoticeStore().addNotice({
+    event: event,
+    message: payload,
+    read: false,
+    time: new Date().toLocaleString()
+  });
+
+  // 显示通知
+  ElNotification({
+    title: eventTitleMap[event] || '消息',
+    message: msg,
+    type: 'success',
+    duration: 3000
+  });
+}
+
 // 初始化
 export const initSSE = (url: any) => {
   if (import.meta.env.VITE_APP_SSE === 'false') {
     return;
   }
+
+  // 重置状态
+  isProcessing = false;
+  lastData.value = null;
+
   url = url + '?Authorization=Bearer ' + getToken() + '&clientid=' + import.meta.env.VITE_APP_CLIENT_ID;
   // 新增采购与供给两个主题
   const { data, event, error } = useEventSource(url, ['message', 'purchaseDemand', 'supplyDemand'], {
@@ -60,36 +99,50 @@ export const initSSE = (url: any) => {
   });
 
   watch(error, () => {
-    console.log('SSE connection error:', error.value);
-    error.value = null;
+    if (error.value) {
+      console.log('SSE connection error:', error.value);
+      error.value = null;
+    }
   });
 
-  watch(data, () => {
-    if (!data.value) return;
-    const payload = parsePayload(data.value);
-    let msg = extractMessage(payload);
+  // 监听数据变化
+  watch(
+    [data, event],
+    ([newData, newEvent]) => {
+      if (!newData || !newEvent) return;
 
-    if (event.value === 'purchaseDemand') {
-      msg = msg + payload.categoryName + '类型；' + payload.demandDescription;
-    }
-    if (event.value === 'supplyDemand') {
-      msg = msg + payload.categoryName + '类型；' + payload.supplyDescription;
-    }
+      const payload = parsePayload(newData);
+      if (!payload) return;
 
-    useNoticeStore().addNotice({
-      event: event.value,
-      message: payload,
-      read: false,
-      time: new Date().toLocaleString()
-    });
-    ElNotification({
-      title: eventTitleMap[event.value] || '消息',
-      message: msg,
-      type: 'success',
-      duration: 3000
-    });
-    data.value = null;
-  });
+      // 如果正在处理，存储最后一次数据
+      if (isProcessing) {
+        lastData.value = { payload, event: newEvent };
+        return;
+      }
+
+      isProcessing = true;
+
+      try {
+        handleNotification(payload, newEvent);
+      } finally {
+        // 重置处理状态
+        setTimeout(() => {
+          isProcessing = false;
+
+          // 检查是否有未处理的数据
+          if (lastData.value) {
+            const { payload: lastPayload, event: lastEvent } = lastData.value;
+            lastData.value = null;
+            handleNotification(lastPayload, lastEvent);
+          }
+        }, 100);
+      }
+
+      // 清空数据
+      data.value = null;
+    },
+    { flush: 'post' }
+  );
 
   // 初始化后仅调用一次推荐需求接口
   getRecommendDemand()
