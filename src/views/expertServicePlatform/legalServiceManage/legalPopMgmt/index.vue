@@ -21,11 +21,13 @@
       <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
           range-separator=" - "
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
         />
       </el-form-item>
       <el-form-item label="普法类型" prop="contentType" label-width="auto">
@@ -254,20 +256,18 @@ const dialog = ref({
 const getList = () => {
   loading.value = true;
   
-  const { title, dateRange: _, ...rest } = queryParams.value as any;
   const [startTime, endTime] = dateRange.value || [];
   
   const params: any = {
-    ...rest,
-    ...(title ? { contentTitle: title } : {}),
-    ...(startTime && endTime ? { startTime, endTime } : {})
+    pageNum: queryParams.value.pageNum,
+    pageSize: queryParams.value.pageSize,
+    ...(queryParams.value.title ? { contentTitle: queryParams.value.title } : {}),
+    ...(queryParams.value.contentType ? { contentType: queryParams.value.contentType } : {}),
+    ...(queryParams.value.contentStatus ? { contentStatus: queryParams.value.contentStatus } : {}),
+    ...(startTime && endTime ? { startTime, endTime } : {}),
+    ...(queryParams.value.orderByColumn ? { orderByColumn: queryParams.value.orderByColumn } : {}),
+    ...(queryParams.value.isAsc ? { isAsc: queryParams.value.isAsc } : {})
   };
-  
-  Object.keys(params).forEach(key => {
-    if (params[key] === '') {
-      delete params[key];
-    }
-  });
   
   getContentList(params).then((res: any) => {
     if (res && res.code === 200) {
@@ -316,8 +316,14 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   dateRange.value = ['', ''];
+  queryParams.value.title = '';
+  queryParams.value.contentType = '';
+  queryParams.value.contentStatus = '';
   queryParams.value.startTime = '';
   queryParams.value.endTime = '';
+  queryParams.value.orderByColumn = '';
+  queryParams.value.isAsc = '';
+  queryParams.value.pageNum = 1;
   handleQuery();
 };
 
