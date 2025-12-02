@@ -113,12 +113,7 @@
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
-            <img
-              class="trend-img"
-              :src="getTrendIcon(row.change)"
-              alt="走势图"
-              @click="handleTrendClick(row)"
-            />
+            <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图" @click="handleTrendClick(row)" />
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
@@ -784,6 +779,7 @@ onBeforeUnmount(() => {
   }
 
   .content-wrapper {
+    padding: 0 15px 15px;
     display: flex;
     gap: 20px;
 
@@ -907,7 +903,7 @@ onBeforeUnmount(() => {
         &.today-card {
           flex: 0 0 auto;
           min-height: auto;
-          
+
           .today-body {
             margin-top: 8px;
           }
@@ -959,9 +955,9 @@ onBeforeUnmount(() => {
       .heatmap-button {
         width: 100%;
         margin-top: 0;
-        background-color: #108C58;
-        border-color: #108C58;
-        
+        background-color: #108c58;
+        border-color: #108c58;
+
         &:hover {
           background-color: #0d7a4a;
           border-color: #0d7a4a;
@@ -1086,5 +1082,4 @@ onBeforeUnmount(() => {
     font-size: 18px;
   }
 }
-
 </style>

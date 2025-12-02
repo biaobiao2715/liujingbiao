@@ -2,30 +2,27 @@
 
 <template>
   <div class="price-prediction-component">
-  
-
     <!-- 图表和分析区域 -->
     <div class="chart-analysis-wrapper">
       <!-- 左侧：图表 -->
       <div class="chart-section">
-  <!-- 查询表单 -->
-    <el-form ref="queryFormRef" :model="queryParams"  class="query-form">
-      <el-form-item label="产地:" prop="origin">
-        <RegionSelect class="full-width-select" v-model="queryParams.origin" @regionChange="handleRegionChange" />
-      </el-form-item>
-      <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect class="full-width-select" v-model="queryParams.variety" @categoryChange="handleCategoryChange" />
-      </el-form-item>
-      <el-form-item label="时间范围:" prop="timeRange">
-        <el-select class="full-width-select" v-model="queryParams.timeRange" placeholder="请选择时间范围" @change="handleTimeRangeChange">
-          <el-option label="未来1个月" value="1" />
-          <el-option label="未来3个月" value="3" />
-          <el-option label="未来6个月" value="6" />
-          <el-option label="未来12个月" value="12" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-
+        <!-- 查询表单 -->
+        <el-form ref="queryFormRef" :model="queryParams" class="query-form">
+          <el-form-item label="产地:" prop="origin">
+            <RegionSelect class="full-width-select" v-model="queryParams.origin" @regionChange="handleRegionChange" />
+          </el-form-item>
+          <el-form-item label="品种:" prop="variety">
+            <GoodsCategorySelect class="full-width-select" v-model="queryParams.variety" @categoryChange="handleCategoryChange" />
+          </el-form-item>
+          <el-form-item label="时间范围:" prop="timeRange">
+            <el-select class="full-width-select" v-model="queryParams.timeRange" placeholder="请选择时间范围" @change="handleTimeRangeChange">
+              <el-option label="未来1个月" value="1" />
+              <el-option label="未来3个月" value="3" />
+              <el-option label="未来6个月" value="6" />
+              <el-option label="未来12个月" value="12" />
+            </el-select>
+          </el-form-item>
+        </el-form>
 
         <div class="chart-title">
           <span class="title-marker"></span>
@@ -46,7 +43,7 @@
       <!-- 右侧：市场分析解读 + 图例 -->
       <div class="analysis-section">
         <div class="analysis-card">
-          <h4 class="analysis-title">市场分析解读</h4>
+          <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
             <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
             <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
@@ -56,7 +53,7 @@
 
         <!-- 图例卡片 -->
         <div class="legend-card">
-          <h4 class="legend-title"><span class="title-marker"></span>图例</h4>
+          <div class="legend-title"><span class="title-marker"></span>图例</div>
           <div class="legend-list">
             <div class="legend-item">
               <span class="legend-line historical-line"></span>
@@ -192,11 +189,7 @@ const parsePriceValue = (val: any) => {
   return num;
 };
 
-const buildSeriesByXAxis = (
-  baseMonths: string[],
-  xAxis?: any[],
-  yAxis?: any[]
-): (number | null)[] => {
+const buildSeriesByXAxis = (baseMonths: string[], xAxis?: any[], yAxis?: any[]): (number | null)[] => {
   const map = new Map<string, number | null>();
   if (Array.isArray(xAxis) && Array.isArray(yAxis)) {
     xAxis.forEach((label: any, idx: number) => {
@@ -206,23 +199,16 @@ const buildSeriesByXAxis = (
   return baseMonths.map((month) => map.get(month) ?? null);
 };
 
-const fillSequentialIfEmpty = (
-  series: (number | null)[],
-  baseMonths: string[],
-  values?: any[]
-) => {
+const fillSequentialIfEmpty = (series: (number | null)[], baseMonths: string[], values?: any[]) => {
   if (series.some((val) => val !== null) || !Array.isArray(values)) return series;
   return baseMonths.map((_, idx) => parsePriceValue(values[idx]));
 };
 
-const deriveExtreme = (
-  series: (number | null)[],
-  months: string[],
-  type: 'max' | 'min'
-): { month: string; price: number } => {
-  const entries = series
-    .map((price, idx) => ({ price, month: months[idx] }))
-    .filter((item) => item.price !== null && item.month) as { price: number; month: string }[];
+const deriveExtreme = (series: (number | null)[], months: string[], type: 'max' | 'min'): { month: string; price: number } => {
+  const entries = series.map((price, idx) => ({ price, month: months[idx] })).filter((item) => item.price !== null && item.month) as {
+    price: number;
+    month: string;
+  }[];
   if (!entries.length) return { month: '', price: 0 };
   const comparator =
     type === 'max'
@@ -327,12 +313,12 @@ const fetchPricePrediction = async () => {
         allMonths.value = data.months.map((m: any) => normalizeMonthLabel(m));
       }
 
-      historicalLineMonths.value = (historicalData.xAxis && Array.isArray(historicalData.xAxis))
-        ? historicalData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr))
-        : [];
-      historicalLinePrices.value = (historicalData.yAxis && Array.isArray(historicalData.yAxis))
-        ? historicalData.yAxis.map((val: any) => Number(val ?? 0))
-        : [];
+      historicalLineMonths.value =
+        historicalData.xAxis && Array.isArray(historicalData.xAxis)
+          ? historicalData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr))
+          : [];
+      historicalLinePrices.value =
+        historicalData.yAxis && Array.isArray(historicalData.yAxis) ? historicalData.yAxis.map((val: any) => Number(val ?? 0)) : [];
 
       let predictionEntries: Array<[string, any]> = [];
       if (predictedData && Array.isArray(predictedData.xAxis) && Array.isArray(predictedData.yAxis)) {
@@ -360,10 +346,7 @@ const fetchPricePrediction = async () => {
       if (historicalCount > 0) {
         const trimmedValues = predictedValues.slice(0, historicalCount);
         if (trimmedValues.length < historicalCount) {
-          predictedLinePrices.value = [
-            ...trimmedValues,
-            ...Array(historicalCount - trimmedValues.length).fill(null)
-          ];
+          predictedLinePrices.value = [...trimmedValues, ...Array(historicalCount - trimmedValues.length).fill(null)];
         } else {
           predictedLinePrices.value = trimmedValues;
         }
@@ -637,7 +620,7 @@ defineExpose({
       flex: 2;
       background-color: #fff;
       border-radius: 4px;
-      padding:0  24px;
+      padding: 0 24px;
       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
@@ -683,6 +666,9 @@ defineExpose({
 
       .analysis-card {
         background-color: #f6ffed;
+        background-image: url('@/assets/images/marketConditions/scbg.png');
+        background-repeat: no-repeat;
+        background-size: 100% 100%; // 背景图大小与容器一致
         border-radius: 4px;
         padding: 20px;
         border: 1px solid #b7eb8f;
@@ -725,10 +711,10 @@ defineExpose({
       }
 
       .legend-card {
-        background-color: #fff;
-        border-radius: 4px;
+        background: #f6f7fb;
         padding: 20px;
-        border: 1px solid #e4e7ed;
+        border-radius: 4px 4px 4px 4px;
+        border: 1px solid rgba(226, 226, 226, 0.6);
 
         .legend-title {
           font-size: 15px;
