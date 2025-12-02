@@ -44,9 +44,12 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="left" min-width="150" class-name="nowrap-column">
+      <el-table-column label="适用对象" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
+          <dict-tag
+            :options="applicable_object"
+            :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject"
+          />
         </template>
       </el-table-column>
       <el-table-column label="申请时间" prop="createTime" min-width="180" align="center" />
