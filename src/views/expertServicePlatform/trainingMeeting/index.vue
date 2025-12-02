@@ -17,8 +17,8 @@
       <el-form-item label="发布人" prop="publisher" label-width="auto">
         <el-input v-model="queryParams.publisher" placeholder="请输入发布人姓名" clearable />
       </el-form-item>
-      <el-form-item label="会议标题" prop="meetingTitle" label-width="auto">
-        <el-input v-model="queryParams.meetingTitle" placeholder="请输入会议标题" clearable />
+      <el-form-item label="会议标题" prop="meetingName" label-width="auto">
+        <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
       <el-form-item label="报名状态" prop="signUpStatus" label-width="auto">
         <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
@@ -125,7 +125,7 @@ const queryParams = ref({
   meetingType: '',
   publishTime: [],
   publisher: '',
-  meetingTitle: '',
+  meetingName: '',
   signUpStatus: '',
   meetingStatus: ''
 });
