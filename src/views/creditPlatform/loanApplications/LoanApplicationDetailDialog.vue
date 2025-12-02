@@ -243,11 +243,13 @@ import { uploadByChunks } from '@/utils/chunkUpload';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   visible: boolean;
   data: Record<string, any> | null;
   mode?: 'detail' | 'approval';
-}>();
+}>(), {
+  mode: 'detail'
+});
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
@@ -531,6 +533,7 @@ const fetchDetail = async () => {
     if (props.mode === 'approval') {
       resetApprovalForm();
     } else {
+      // 详情模式下，填充已有数据（如果有）
       hydrateApprovalForm(merged);
     }
   } catch (error) {
@@ -658,7 +661,13 @@ const dialogTitle = computed(() => {
 });
 
 const isApprovalMode = computed(() => props.mode === 'approval');
-const isApprovalReadonly = computed(() => !isApprovalMode.value);
+// 详情模式下始终只读，审批模式下可编辑
+// 详情模式下始终只读，审批模式下可编辑
+const isApprovalReadonly = computed(() => {
+  // 如果 mode 是 'approval'，则可编辑（返回 false）
+  // 否则（'detail' 或 undefined），则只读（返回 true）
+  return props.mode !== 'approval';
+});
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
 
 const isPendingStatus = computed(() => {
@@ -678,11 +687,19 @@ const hasCompletedResult = computed(() => {
   return status === '2' || status === '3';
 });
 
+// 详情模式下，待审核状态显示提示
 const showApprovalTip = computed(() => !isApprovalMode.value && isPendingStatus.value && !hasCompletedResult.value);
 
 const approvalTipMessage = computed(() => '当前申请状态为待审核，请前往审批流程处理。');
 
-const showApprovalForm = computed(() => (isApprovalMode.value && !hasCompletedResult.value) || (!isApprovalMode.value && hasCompletedResult.value));
+// 审批模式下，待审核或已完成都显示表单；详情模式下，只有已完成才显示表单
+const showApprovalForm = computed(() => {
+  if (isApprovalMode.value) {
+    return isPendingStatus.value || hasCompletedResult.value;
+  } else {
+    return hasCompletedResult.value;
+  }
+});
 
 // ==================== 审批表单处理 ====================
 /**
@@ -1200,6 +1217,28 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
         margin-right: 4px;
       }
     }
+  }
+  
+  // 详情模式下，所有字段置灰
+  :deep(.el-select.is-disabled),
+  :deep(.el-date-editor.is-disabled),
+  :deep(.el-select[disabled]),
+  :deep(.el-date-editor[disabled]) {
+    .el-input__wrapper {
+      background-color: #f5f7fa !important;
+      cursor: not-allowed;
+    }
+    
+    .el-input__inner {
+      color: #c0c4cc !important;
+      cursor: not-allowed;
+    }
+  }
+  
+  // 确保 disabled 状态下的样式
+  :deep(.el-select.is-disabled .el-input__wrapper),
+  :deep(.el-date-editor.is-disabled .el-input__wrapper) {
+    background-color: #f5f7fa !important;
   }
 }
 
