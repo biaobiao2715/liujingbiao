@@ -146,10 +146,9 @@ const addresList = ref([]);
 const queryParams = ref({
   supplyCategoryId: [] as any[], // 采购类型（多级选择，数组）
   region: [] as any[], // 采购区域（多级选择，数组）
-  deliveryDistrictCode: '', // 区县编码
-  deliveryCityCode: '', // 城市编码
-  deliveryProvinceCode: '', // 省份编码
-  deliveryProvince: '', // 省份名称
+  districtCode: '', // 区县编码
+  cityCode: '', // 城市编码
+  provinceCode: '', // 省份编码
   pageNum: 1, // 当前页码
   pageSize: 10 // 每页条数
 });
@@ -257,9 +256,9 @@ const getTableData = async () => {
 const handleReset = () => {
   queryParams.value.supplyCategoryId = [];
   queryParams.value.region = [];
-  queryParams.value.deliveryDistrictCode = '';
-  queryParams.value.deliveryCityCode = '';
-  queryParams.value.deliveryProvinceCode = '';
+  queryParams.value.districtCode = '';
+  queryParams.value.cityCode = '';
+  queryParams.value.provinceCode = '';
   getTableData();
 };
 
@@ -395,9 +394,9 @@ const handleCategoryForm = (value: any) => {
  */
 const handleAreaChange = (val: any) => {
   queryParams.value.region = Array.isArray(val.regionPath) ? val.regionPath : [val.regionPath];
-  queryParams.value.deliveryProvinceCode = val.provinceCode;
-  queryParams.value.deliveryCityCode = val.cityCode;
-  queryParams.value.deliveryDistrictCode = val.regionCode;
+  queryParams.value.provinceCode = val.provinceCode;
+  queryParams.value.cityCode = val.cityCode;
+  queryParams.value.districtCode = val.regionCode;
 };
 
 // 配送范围

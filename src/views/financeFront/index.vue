@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from 'vue';
+import { ref, computed, defineAsyncComponent, watch, nextTick } from 'vue';
 import { ArrowRight } from '@element-plus/icons-vue';
 
 import HeaderComponent from './components/HeaderComponent.vue';
@@ -161,6 +161,12 @@ onMounted(() => {
   });
 });
 
+// 内容区域切换时，滚动到页面顶部
+watch(showArea, async () => {
+  await nextTick();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 // 点击面包屑导航切换显示区域
 const switchShowArea = (item: DetailPayload, isLastItem?: boolean) => {
   // 忽略无实际意义的类型
@@ -214,10 +220,6 @@ const backToHome = () => {
 .finance-container {
   min-height: 100%;
   background-color: #f6f7fb;
-}
-
-.detail-container {
-  // background: #f6f7fb;
 }
 
 .detail-content {

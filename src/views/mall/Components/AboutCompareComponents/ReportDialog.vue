@@ -14,7 +14,7 @@
       </el-form-item>
       <el-form-item label="举报材料：" prop="filesCount" required>
         <el-upload
-          class="report-uploader"
+          :class="['report-uploader', { 'hide-trigger': remaining.totalLeft <= 0 }]"
           ref="uploaderRef"
           :file-list="fileList"
           list-type="picture-card"
@@ -33,6 +33,9 @@
             <div class="report-preview-card">
               <video v-if="isVideo(file)" :src="file.url" class="preview-video" muted playsinline></video>
               <img v-else :src="file.url" class="preview-image" alt="" />
+              <div v-if="file.status === 'uploading'" class="uploading-mask">
+                <el-progress type="circle" :percentage="file.percentage || 0" :width="54" />
+              </div>
               <div v-if="isVideo(file)" class="video-play-indicator">
                 <VideoPlay />
               </div>
@@ -72,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, toRefs, getCurrentInstance, type ComponentInternalInstance } from 'vue';
+import { ref, reactive, watch, toRefs, getCurrentInstance, computed, type ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
 import { Plus, Delete, ZoomIn, VideoPlay } from '@element-plus/icons-vue';
@@ -84,6 +87,8 @@ interface ReportMaterial extends UploadUserFile {
   fileName?: string;
   fileType?: string;
   url?: string;
+  percentage?: number;
+  status?: 'ready' | 'uploading' | 'success' | 'fail';
 }
 
 interface ReportApiMaterial {
@@ -146,7 +151,7 @@ const rules = {
   desc: [{ required: true, message: '请输入举报描述', trigger: 'blur' }],
   filesCount: [
     {
-      validator: (_: any, __: any, cb: Function) => {
+      validator: (_: any, __: any, cb: (err?: Error) => void) => {
         if (!fileList.value || fileList.value.length === 0) {
           cb(new Error('请至少上传一份材料'));
         } else {
@@ -187,12 +192,25 @@ const countTypes = () => {
   });
   return { img, vid };
 };
+const remaining = computed(() => {
+  const { img, vid } = countTypes();
+  return {
+    imgLeft: Math.max(0, MAX_IMAGE - img),
+    vidLeft: Math.max(0, MAX_VIDEO - vid),
+    totalLeft: Math.max(0, MAX_IMAGE + MAX_VIDEO - fileList.value.length)
+  };
+});
 const handleBeforeUpload = (file: any) => {
   const ext = getExt(file.name || '');
   const isImg = imageExt.includes(ext);
   const isVid = videoExt.includes(ext);
   if (!isImg && !isVid) {
     ElMessage.error('仅支持jpg/jpeg/png图片或mp4/mov/avi视频!');
+    return false;
+  }
+  // 重复文件拦截（按名称简单判断）
+  if (fileList.value.some((f) => (f.fileName || f.name) === file.name)) {
+    ElMessage.error('已选择相同文件，请勿重复上传');
     return false;
   }
   const sizeMB = file.size / 1024 / 1024;
@@ -215,7 +233,9 @@ const handleBeforeUpload = (file: any) => {
   }
   return true;
 };
-const handleExceed = () => ElMessage.error('已达到最多可选择的文件数量');
+const handleExceed = () => {
+  ElMessage.error(`已达上限：图片最多${MAX_IMAGE}，视频最多${MAX_VIDEO}`);
+};
 const removeFileManually = (file: ReportMaterial) => {
   try {
     (uploaderRef.value as any)?.handleRemove(file);
@@ -225,57 +245,66 @@ const removeFileManually = (file: ReportMaterial) => {
 };
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-const handleUpload = (file: any) =>
+const handleUpload = (req: any) =>
   new Promise(async (resolve, reject) => {
-    const rawFile = file.file;
+    const rawFile = req.file;
+    // 先创建本地预览并标记上传中
+    const tempUrl = URL.createObjectURL(rawFile);
+    const tempItem: ReportMaterial = {
+      fileName: rawFile.name,
+      name: rawFile.name,
+      url: tempUrl,
+      fileType: isVideo({ name: rawFile.name }) ? '1' : '0',
+      status: 'uploading',
+      percentage: 0
+    };
+    fileList.value.push(tempItem);
+    form.filesCount = fileList.value.length;
     try {
       // 大文件：使用分片上传
       if (rawFile.size > MAX_SIZE) {
-        const res:any = await uploadByChunks(rawFile, (percent) => {
-          console.log('上传进度:', percent + '%');
+        const res: any = await uploadByChunks(rawFile, (percent: number) => {
+          tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+          if (typeof req.onProgress === 'function') req.onProgress({ percent });
         });
-        // 后端返回结构兼容你的原始逻辑
-        const newFile: ReportMaterial = {
-          fileName: res.fileName || rawFile.name,
-          name: res.fileName || rawFile.name,
-          url: res.url,
-          ossId: res.ossId,
-          fileType: isVideo({ name: rawFile.name }) ? '1' : '0',
-          status: 'success'
-        };
-
-        fileList.value.push(newFile);
-        form.filesCount = fileList.value.length;
-        return resolve(newFile);
+        tempItem.fileName = res.fileName || rawFile.name;
+        tempItem.name = res.fileName || rawFile.name;
+        tempItem.url = res.url;
+        tempItem.ossId = res.ossId;
+        tempItem.status = 'success';
+        tempItem.percentage = 100;
+        URL.revokeObjectURL(tempUrl);
+        if (typeof req.onSuccess === 'function') req.onSuccess(res);
+        return resolve(tempItem);
       }
 
-      // 小文件：走原来的 FormData 普通上传
+      // 小文件：FormData 普通上传
       const fd = new FormData();
       fd.append('file', rawFile);
-
       const response: any = await uploadReportFile(fd);
       const data = response?.data || {};
       const fileName = data.fileName || rawFile.name;
-      const newFile: ReportMaterial = {
-        fileName,
-        name: fileName,
-        url: data.url,
-        ossId: data.ossId,
-        fileType: isVideo({ name: fileName }) ? '1' : '0',
-        status: 'success'
-      };
-
-      fileList.value.push(newFile);
-      form.filesCount = fileList.value.length;
-
-      return resolve(newFile);
+      tempItem.fileName = fileName;
+      tempItem.name = fileName;
+      tempItem.url = data.url;
+      tempItem.ossId = data.ossId;
+      tempItem.status = 'success';
+      tempItem.percentage = 100;
+      URL.revokeObjectURL(tempUrl);
+      if (typeof req.onSuccess === 'function') req.onSuccess(data);
+      return resolve(tempItem);
     } catch (error: any) {
       ElMessage.error(error?.msg || '文件上传失败，请重试');
-
+      const idx = fileList.value.indexOf(tempItem);
+      if (idx > -1) fileList.value.splice(idx, 1);
+      form.filesCount = fileList.value.length;
       try {
-        (uploaderRef.value as any)?.handleRemove(file);
+        URL.revokeObjectURL(tempUrl);
       } catch {}
-
+      try {
+        (uploaderRef.value as any)?.handleRemove(tempItem);
+      } catch {}
+      if (typeof req.onError === 'function') req.onError(error);
       reject(error);
     }
   });
@@ -394,6 +423,15 @@ const handleClosed = () => {
 .report-preview-card:hover .preview-mask {
   opacity: 1;
 }
+.uploading-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
 .preview-action {
   font-size: 18px;
   color: #fff;
@@ -412,5 +450,8 @@ const handleClosed = () => {
   color: rgba(255, 255, 255, 0.9);
   font-size: 42px;
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+}
+.report-uploader.hide-trigger .el-upload--picture-card {
+  display: none;
 }
 </style>

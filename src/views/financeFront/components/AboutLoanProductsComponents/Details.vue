@@ -314,7 +314,9 @@ const getLoanAmount = async () => {
   font-style: normal;
   text-transform: none;
   margin-bottom: 22px;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .item_type {
@@ -330,7 +332,9 @@ const getLoanAmount = async () => {
   border-radius: 0px 0px 0px 0px;
   margin-bottom: 19px;
   padding-left: 20px;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .item_productIntro {
@@ -479,7 +483,9 @@ const getLoanAmount = async () => {
 .attachment-name {
   flex: 0 1 auto; /* 不强制占满，跟随内容 */
   word-break: break-all; /* 避免超长不换行导致溢出 */
-  white-space: nowrap; /* 与自适应宽度匹配，单行展示 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   line-height: 20px;
 }
 

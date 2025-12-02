@@ -12,7 +12,7 @@
         <el-input v-model="queryParams.companyName" placeholder="请输入供应商/企业名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="信用等级" prop="creditLevel" label-width="auto">
-        <el-select v-model="queryParams.creditLevel" placeholder="审核状态" filterable clearable>
+        <el-select v-model="queryParams.creditLevel" placeholder="请选择信用等级" filterable clearable>
           <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>

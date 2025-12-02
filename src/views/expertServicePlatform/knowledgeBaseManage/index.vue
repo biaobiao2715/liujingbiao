@@ -49,7 +49,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleEnableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -59,7 +59,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleDisableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -69,7 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
           v-hasPermi="['system:article:remove']"
           :color="loading || noSelection ? '#F2F3F5' : '#F23255'"
           @click="handleDeleteBatch"
@@ -122,27 +122,29 @@
           {{ scope.row.favoriteCount ?? scope.row.favorites ?? 0 }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right" class-name="op-col">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
-          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx">
-              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
-            </template>
-          </template>
-          <!-- <template v-if="getRowActions(scope.row).length > 3">
-            <el-dropdown>
-              <span class="el-dropdown-link">
-                <el-button v-throttle link type="primary">更多</el-button>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key" @click="btn.onClick(scope.row)">
-                    <span class="op-more-item" v-throttle v-hasPermi="btn.permi">{{ btn.label }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template> -->
+          <el-button v-throttle v-hasPermi="['system:article:query']" type="primary" link @click="handleView(scope.row)">查看</el-button>
+          <el-button v-throttle v-hasPermi="['system:article:edit']" type="primary" link @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button
+            v-if="scope.row.articleStatus == '3'"
+            v-throttle
+            v-hasPermi="['system:article:enableAndDisabled']"
+            type="primary"
+            link
+            @click="handleEnable(scope.row)"
+            >启用</el-button
+          >
+          <el-button
+            v-if="scope.row.articleStatus == '2'"
+            v-throttle
+            v-hasPermi="['system:article:enableAndDisabled']"
+            type="primary"
+            link
+            @click="handleDisable(scope.row)"
+            >禁用</el-button
+          >
+          <el-button v-throttle v-hasPermi="['system:article:remove']" type="primary" link @click="handleDeleteOne(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -211,12 +213,6 @@ const selectedRows = ref<any[]>([]);
 
 // 是否无选中项（用于禁用批量按钮）
 const noSelection = computed(() => selectedIds.value.length === 0);
-
-// 映射
-const getEnableStatusText = (s: any) => {
-  const map: Record<string, string> = { '2': '启用', '3': '禁用' };
-  return map[String(s)] || '-';
-};
 
 // 查询列表
 const getList = async () => {
@@ -352,20 +348,6 @@ const onDialogSuccess = () => {
 onMounted(() => {
   getList();
 });
-
-// 行内操作按钮配置（前三个直接显示，剩余收“更多”）
-const getRowActions = (row: any) => {
-  const actions = [
-    { key: 'edit', label: '编辑', permi: ['system:article:edit'], type: 'primary', onClick: (r: any) => handleEdit(r) },
-    // 根据行状态动态插入“启用/禁用”
-    String(row.articleStatus) === '3'
-      ? { key: 'enable', label: '启用', permi: ['system:article:enableAndDisabled'], type: 'primary', onClick: (r: any) => handleEnable(r) }
-      : { key: 'disable', label: '禁用', permi: ['system:article:enableAndDisabled'], type: 'primary', onClick: (r: any) => handleDisable(r) },
-    { key: 'view', label: '查看', permi: ['system:article:query'], type: 'primary', onClick: (r: any) => handleView(r) },
-    { key: 'delete', label: '删除', permi: ['system:article:remove'], type: 'danger', onClick: (r: any) => handleDeleteOne(r) }
-  ];
-  return actions;
-};
 </script>
 
 <style scoped lang="scss">
@@ -386,24 +368,5 @@ const getRowActions = (row: any) => {
   .pagination {
     margin-top: 16px;
   }
-}
-
-/* 操作列样式优化：垂直居中 + 14px 字号 */
-.kb-management :deep(.op-col .cell) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-}
-.el-dropdown-link {
-  margin-left: 12px;
-}
-
-.op-more-item {
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  color: #108c58;
 }
 </style>

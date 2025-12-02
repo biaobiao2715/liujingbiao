@@ -16,7 +16,7 @@
         <el-input v-model="queryParams.goodsName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="商品状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="审核状态" filterable clearable>
+        <el-select v-model="queryParams.status" placeholder="请选择商品状态" filterable clearable>
           <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -47,7 +47,7 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
-          style="color: #1d2129"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#F23255'"
           @click="handleDelete"
         >
@@ -57,7 +57,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
@@ -69,7 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
@@ -125,28 +125,13 @@
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" min-width="300" class-name="op-col">
+      <el-table-column fixed="right" label="操作" min-width="350" class-name="op-col">
         <template #default="scope">
-          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx">
-              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
-            </template>
-          </template>
-
-          <!-- <template v-if="getRowActions(scope.row).length > 3">
-            <el-dropdown>
-              <span class="el-dropdown-link">
-                <el-button v-throttle link type="primary">更多</el-button>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key" @click="btn.onClick(scope.row)">
-                    <span class="op-more-item" v-throttle v-hasPermi="btn.permi">{{ btn.label }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template> -->
+          <el-button v-throttle v-hasPermi="['system:goods:query']" link type="primary" @click="openDetails(scope.row)">详情</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:edit']" link type="primary" @click="openEdit(scope.row)">编辑</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:editPrice']" link type="primary" @click="openDetailsEdit(scope.row)">价格设定</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:add']" link type="primary" @click="openCopy(scope.row)">复制商品</el-button>
+          <el-button v-throttle v-hasPermi="['system:goods:setWarnings']" link type="primary" @click="openWarnDialog(scope.row)">设置预警</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -575,45 +560,6 @@ const onDialogSuccess = () => {
 onMounted(async () => {
   getList();
 });
-
-// 行内操作按钮配置生成（用于“更多”分组展示）
-const getRowActions = (row: any) => [
-  {
-    key: 'details',
-    label: '详情',
-    permi: ['system:goods:query'],
-    type: 'primary',
-    onClick: (r: any) => openDetails(r)
-  },
-  {
-    key: 'price',
-    label: '价格设定',
-    permi: ['system:goods:editPrice'],
-    type: 'primary',
-    onClick: (r: any) => openDetailsEdit(r)
-  },
-  {
-    key: 'edit',
-    label: '编辑',
-    permi: ['system:goods:edit'],
-    type: 'primary',
-    onClick: (r: any) => openEdit(r)
-  },
-  {
-    key: 'copy',
-    label: '复制商品',
-    permi: ['system:goods:add'],
-    type: 'primary',
-    onClick: (r: any) => openCopy(r)
-  },
-  {
-    key: 'warn',
-    label: '设置预警',
-    permi: ['system:goods:setWarnings'],
-    type: 'primary',
-    onClick: (r: any) => openWarnDialog(r)
-  }
-];
 </script>
 
 <style scoped lang="scss">

@@ -79,8 +79,22 @@
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="meetingStatus" min-width="80">
-        <template #default="scope">
+        <!-- <template #default="scope">
           <dict-tag :options="meeting_status" :value="scope.row.meetingStatus" />
+        </template> -->
+        <template #default="scope">
+          <div class="flex-center-center">
+            <div
+              v-if="scope.row.status != null"
+              class="normal"
+              :class="{
+                green: scope.row.meetingStatus == 1,
+                reviewRejected: scope.row.meetingStatus == 0
+              }"
+            ></div>
+            <span v-if="scope.row.meetingStatus == 0" class="reviewRejected-color">下架</span>
+            <span v-if="scope.row.meetingStatus == 1" class="green-color">上架</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" fixed="right" width="120">

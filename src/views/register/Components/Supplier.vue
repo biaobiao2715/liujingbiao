@@ -213,7 +213,7 @@
           </el-table-column>
           <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button v-throttle link @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+              <el-button v-throttle link @click="previewFile(scope.row)" style="color: #108c58; border-width: 0px; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">下载</span>
               </el-button>
@@ -265,7 +265,7 @@
 
           <el-col :span="12">
             <el-form-item label="设置密码" prop="password" required>
-              <el-input v-model="form.password" type="password" placeholder="输入密码，包含8-20位大小写字母、符号或数字三种以上" show-password />
+              <el-input v-model="form.password" type="password" placeholder="长度8-16位，且至少包含大小写字母、数字中的2种" show-password />
             </el-form-item>
           </el-col>
           <el-col :span="12"></el-col>
@@ -449,27 +449,31 @@ const FormRulesarr: FormRules = {
         // 验证格式
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(value)) {
-          callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能早于营业执照签发日期。'));
+          callback(new Error('请输入有效的日期，格式为YYYY-MM-DD。'));
           return;
         }
 
-        // 如果有签发日期，校验不可早于签发日期（严格防御空值/非法值）
-        const issueStr = licenseIssueDate.value as string | null;
-        if (issueStr && typeof issueStr === 'string') {
-          const issue = new Date(issueStr);
-          const inputDate = new Date(value);
-          if (!isNaN(issue.getTime()) && !isNaN(inputDate.getTime()) && inputDate < issue) {
-            callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能早于营业执照签发日期。'));
-            return;
-          }
-        } else {
-          const issue = new Date();
-          const inputDate = new Date(value);
-          if (!isNaN(issue.getTime()) && !isNaN(inputDate.getTime()) && inputDate > issue) {
-            callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能晚于当前日期。'));
-            return;
-          }
-        }
+        // // 如果有签发日期，校验不可早于签发日期（严格防御空值/非法值）
+        // const issueStr = licenseIssueDate.value as string | null;
+        // // 统一按“日期”比较，忽略具体时分秒，允许同一天
+        // const normalize = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        // if (issueStr && typeof issueStr === 'string') {
+        //   const issue = normalize(new Date(issueStr));
+        //   const inputDate = normalize(new Date(value));
+        //   // 仅在输入日期早于签发日期时提示错误；同一天允许
+        //   if (!isNaN(issue.getTime()) && !isNaN(inputDate.getTime()) && inputDate < issue) {
+        //     callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能早于营业执照签发日期。'));
+        //     return;
+        //   }
+        // } else {
+        //   const today = normalize(new Date());
+        //   const inputDate = normalize(new Date(value));
+        //   // 无签发日期时，要求不晚于今天；同一天允许
+        //   if (!isNaN(today.getTime()) && !isNaN(inputDate.getTime()) && inputDate > today) {
+        //     callback(new Error('请输入有效的日期，格式为YYYY-MM-DD，且不能晚于当前日期。'));
+        //     return;
+        //   }
+        // }
 
         callback();
       },

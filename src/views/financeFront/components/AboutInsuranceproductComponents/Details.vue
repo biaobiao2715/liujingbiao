@@ -134,7 +134,9 @@ const getArticleDetail = async () => {
   font-style: normal;
   text-transform: none;
   margin-bottom: 22px;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .item_type {
@@ -146,7 +148,9 @@ const getArticleDetail = async () => {
   font-size: 30px;
   color: #ffffff;
   text-align: left;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
   background: linear-gradient(270deg, rgba(5, 238, 130, 0) 0%, rgba(255, 255, 255, 0.34) 100%);
   border-radius: 0px 0px 0px 0px;
   margin-bottom: 19px;
@@ -247,7 +251,9 @@ const getArticleDetail = async () => {
 .attachment-name {
   flex: 0 1 auto; /* 不强制占满，跟随内容 */
   word-break: break-all; /* 避免超长不换行导致溢出 */
-  white-space: nowrap; /* 与自适应宽度匹配，单行展示 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   line-height: 20px;
 }
 

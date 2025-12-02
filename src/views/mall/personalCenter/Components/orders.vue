@@ -101,12 +101,12 @@
 
           <!-- 被举报方 -->
           <el-form-item label="被举报方" prop="reportPersonName">
-            <el-input v-model="reportForm.reportPersonName" placeholder="带出被举报方信息" />
+            <el-input v-model="reportForm.reportPersonName" placeholder="带出被举报方信息" disabled />
           </el-form-item>
 
           <!-- 举报商品 -->
           <el-form-item label="举报商品" prop="reportGoodsCode">
-            <el-input v-model="reportForm.reportGoodsCode" placeholder="带出举报商品信息" />
+            <el-input v-model="reportForm.reportGoodsCode" placeholder="带出举报商品信息" disabled />
           </el-form-item>
 
           <!-- 举报材料上传 -->
@@ -188,6 +188,7 @@ const reportForm = ref({
 const hnGoodsFilesList = ref<any[]>([]); // 上传的文件列表
 const refShop = ref<any>(null); // 上传组件实例
 let timer: NodeJS.Timeout | null = null; // 防抖定时器
+
 // 自定义校验：至少上传一份材料
 const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => void) => {
   if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) {
@@ -208,7 +209,7 @@ const reportRules = {
     { required: true, message: '请输入举报描述', trigger: 'blur' },
     { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
   ],
-  ossList: [{ validator: validateMaterials, trigger: 'change' }]
+  ossList: [{ required: true, validator: validateMaterials, trigger: 'change' }]
 };
 // -------------------- 方法定义 --------------------
 

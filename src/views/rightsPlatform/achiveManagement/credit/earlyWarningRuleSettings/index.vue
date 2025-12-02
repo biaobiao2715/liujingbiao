@@ -36,8 +36,8 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
           :color="multiple ? '#F2F3F5' : '#108C58'"
+          :style="multiple ? 'color: #1d2129;' : 'color: #fff;'"
           @click="handleBatchStatus('0')"
           v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
           >启用</el-button
@@ -46,7 +46,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="multiple ? 'color: #1d2129;' : 'color: #fff;'"
           :color="multiple ? '#F2F3F5' : '#108C58'"
           @click="handleBatchStatus('1')"
           v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
@@ -56,7 +56,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          style="color: #1d2129"
+          :style="multiple ? 'color: #1d2129;' : 'color: #fff;'"
           :color="multiple ? '#F2F3F5' : '#F23255'"
           @click="handleDelete()"
           v-hasPermi="['safeguard:warnRule:remove']"
@@ -86,27 +86,15 @@
           <span>{{ proxy.parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="240" class-name="flex-center op-col">
+      <el-table-column fixed="right" label="操作" width="220">
         <template #default="scope">
-          <template v-for="(btn, idx) in getRowActions(scope.row)" :key="btn.key">
-            <template v-if="idx">
-              <el-button v-throttle link type="primary" v-hasPermi="btn.permi" @click="btn.onClick(scope.row)">{{ btn.label }}</el-button>
-            </template>
-          </template>
-          <!-- <template v-if="getRowActions(scope.row).length > 3">
-            <el-dropdown>
-              <span class="el-dropdown-link">
-                <el-button v-throttle link type="primary">更多</el-button>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="btn in getRowActions(scope.row).slice(2)" :key="btn.key" @click="btn.onClick(scope.row)">
-                    <span class="op-more-item" v-throttle v-hasPermi="btn.permi">{{ btn.label }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template> -->
+          <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['safeguard:warnRule:edit']">修改</el-button>
+          <el-button v-throttle link type="primary" @click="handleView(scope.row)" v-hasPermi="['safeguard:warnRule:query']">查看</el-button>
+          <el-button v-throttle link type="primary" @click="toggleStatus(scope.row)" v-hasPermi="['safeguard:warnRule:enableAndDisabled']">{{
+            scope.row.status == '0' ? '禁用' : '启用'
+          }}</el-button>
+          <!-- 行内删除按钮改为统一方法 -->
+          <el-button v-throttle link type="primary" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:warnRule:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -368,22 +356,5 @@ const getRowActions = (row: EarlyWarningRuleVO) => {
   margin-top: 4px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
-}
-
-/* 操作列样式优化：垂直居中 + 14px 字号 */
-.p-2 :deep(.op-col .cell) {
-  display: inline-flex;
-  align-items: center;
-  font-size: 14px;
-}
-.el-dropdown-link {
-  margin-left: 12px;
-}
-
-.op-more-item {
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  color: #108c58;
 }
 </style>

@@ -10,7 +10,7 @@
   <div>
     <div class="details_title">
       <div class="flex item-start">
-        <div>{{ form?.articleTitle }}</div>
+        <div class="item_title">{{ form?.articleTitle }}</div>
         <dict-text class="item_type" :options="art_article_type" :value="form.articleType ?? ''" />
       </div>
 
@@ -80,12 +80,19 @@ const getArticleDetail = async () => {
   background: #ffffff;
   border-radius: 8px 8px 8px 8px;
 }
+
+.item_title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .item_type {
   font-size: 14px;
   color: #ff7b00;
   height: 25px;
   display: flex;
   align-items: center;
+  white-space: nowrap;
 
   border-radius: 221px 221px 221px 221px;
   border: 1px solid #ff7b00;

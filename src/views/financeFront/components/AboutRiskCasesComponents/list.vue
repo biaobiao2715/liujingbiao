@@ -79,7 +79,7 @@ const queryParams = ref({
 
   articleTitle: '',
   articleStatus: 2,
-  articleTypes: ['1', '2']
+  articleTypes: ['3']
 });
 
 // 表格数据
