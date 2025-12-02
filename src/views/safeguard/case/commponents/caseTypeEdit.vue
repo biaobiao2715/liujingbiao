@@ -30,9 +30,10 @@
         <template #label>
           <span>案件类型</span>
         </template>
-        <el-select v-model="formData.caseTypeId" placeholder="请选择" :disabled="isViewMode">
+        <el-select v-if="!isViewMode" v-model="formData.caseTypeId" placeholder="请选择">
           <el-option v-for="dict in case_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
+        <span v-else>{{ getCaseTypeLabel(formData.caseTypeId) }}</span>
       </el-form-item>
 
       <!-- 2. 案件编号 -->
@@ -162,9 +163,10 @@
           <span>法律文书模版</span>
         </template>
         <div class="legal-document-section">
-          <el-select v-model="formData.legalDocumentTemplate" placeholder="请选择" filterable>
+          <el-select v-if="!isViewMode" v-model="formData.legalDocumentTemplate" placeholder="请选择" filterable>
             <el-option v-for="item in legalDocumentTemplateOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
+          <span v-else>{{ getLegalDocumentTemplateName(formData.legalDocumentTemplate) }}</span>
         </div>
       </el-form-item>
       <el-table :data="formData.legalDocumentFiles" border class="file-table" size="small" style="margin-top: 20px">
@@ -456,6 +458,11 @@ const loadLegalDocumentTemplateOptions = async () => {
     console.error('获取法律文书模版列表失败:', error);
     legalDocumentTemplateOptions.value = [];
   }
+};
+
+const getCaseTypeLabel = (value: string | number) => {
+  const dict = case_type.value?.find((item: any) => item.value === value);
+  return dict?.label || value || '--';
 };
 
 const getLegalDocumentTemplateName = (id: string) => {

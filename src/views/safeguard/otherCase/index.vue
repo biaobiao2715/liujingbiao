@@ -34,18 +34,13 @@
         <el-table-column label="链接地址" align="center" prop="linkAddress" :show-overflow-tooltip="true" />
         <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true" />
         <el-table-column label="创建人" align="center" prop="createByName" :show-overflow-tooltip="true" />
-        <el-table-column label="操作" align="left" fixed="right" class-name="small-padding fixed-width" :show-overflow-tooltip="true">
+        <el-table-column label="操作" align="left" fixed="right" class-name="small-padding fixed-width">
           <template #default="scope">
             <div class="operation-buttons">
-              <el-tooltip content="编辑" placement="top">
-                <!-- <el-button link class="operation-link-button" @click="handleUpdate(scope.row)" v-hasPermi="['safeguard:otherCase:edit']" -->
-                <el-button link class="operation-link-button" @click="handleUpdate(scope.row)">编辑</el-button>
-              </el-tooltip>
-              <el-tooltip content="删除" placement="top">
-                <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']"
-                  >删除</el-button
-                >
-              </el-tooltip>
+              <el-button link class="operation-link-button" @click="handleUpdate(scope.row)">编辑</el-button>
+              <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">
+                删除
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -281,15 +276,15 @@ onMounted(() => {
   padding: 0 8px !important;
   border-radius: 4px !important;
 
-  &:hover,
-  &:focus {
-    color: #108c58 !important;
-    background-color: transparent !important;
-  }
+  // &:hover,
+  // &:focus {
+  //   color: #108c58 !important;
+  //   background-color: transparent !important;
+  // }
 
-  &.is-disabled {
-    color: #a0c896 !important;
-  }
+  // &.is-disabled {
+  //   color: #a0c896 !important;
+  // }
 }
 
 .search-btn,
