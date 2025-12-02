@@ -80,18 +80,50 @@ const buildSeriesData = (axis: string[], months: string[], values: number[]) => 
 
 const buildScatterData = (axis: string[], months: string[], values: number[], type: 'max' | 'min') => {
   if (!months?.length || !values?.length) return axis.map(() => null);
+
   const map = new Map<string, number>();
   months.forEach((m, idx) => {
     const val = Number(values[idx]);
     if (!Number.isNaN(val)) map.set(m, val);
   });
+
   if (!map.size) return axis.map(() => null);
+
   const comparator = type === 'max' ? Math.max : Math.min;
   const extreme = comparator(...Array.from(map.values()));
-  return axis.map((label) => {
+
+  // 确定需要高亮的索引：
+  // - 最低点：如果有多个，取最前面一个
+  // - 最高点：如果有多个，取最后面一个
+  let targetIndex = -1;
+  if (type === 'min') {
+    for (let i = 0; i < axis.length; i++) {
+      const label = axis[i];
+      const val = map.get(label);
+      if (val === undefined) continue;
+      if (val === extreme) {
+        targetIndex = i;
+        break;
+      }
+    }
+  } else {
+    for (let i = axis.length - 1; i >= 0; i--) {
+      const label = axis[i];
+      const val = map.get(label);
+      if (val === undefined) continue;
+      if (val === extreme) {
+        targetIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (targetIndex === -1) return axis.map(() => null);
+
+  return axis.map((label, idx) => {
+    if (idx !== targetIndex) return null;
     const val = map.get(label);
-    if (val === undefined) return null;
-    return val === extreme ? val : null;
+    return val !== undefined ? val : null;
   });
 };
 
