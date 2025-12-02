@@ -228,8 +228,10 @@
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="confirmExperts">确 定</el-button>
+        <div class="w-full text-center">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="confirmExperts">确 定</el-button>
+        </div>
       </span>
     </template>
   </el-dialog>
