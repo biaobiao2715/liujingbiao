@@ -405,8 +405,11 @@ const handleStatusChange = async (row: any, status: string) => {
   const statusText = status === '2' ? '上架' : '下架';
   try {
     const message = `确定要${statusText}文章「${row.articleTitle || ''}」吗？`;
-    await proxy?.$modal
-      .confirm(message)
+    await ElMessageBox.confirm(message, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
       .then(async () => {
         const success = await confirmStatusChange(row, status);
         if (success) {

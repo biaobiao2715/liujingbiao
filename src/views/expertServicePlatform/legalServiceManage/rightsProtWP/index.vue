@@ -397,8 +397,8 @@ const versionDialog = ref({
 });
 
 const MB = 1024 * 1024;
-// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
-const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
+// 文件大于100MB时使用分片上传
+const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -575,7 +575,7 @@ const handleEnable = async () => {
   try {
     await ElMessageBox.confirm(
       `确定要启用选中的${ids.length}个白皮书吗？`,
-      '系统提示',
+      '提示',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -622,7 +622,7 @@ const handleDisable = async () => {
   try {
     await ElMessageBox.confirm(
       `确定要禁用选中的${ids.length}个白皮书吗？`,
-      '系统提示',
+      '提示',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -948,7 +948,7 @@ const handleStatusChange = async (row: any, status: string) => {
   try {
     await ElMessageBox.confirm(
       `确定要${status}白皮书"${row.paperTitle}"吗？`,
-      '系统提示',
+      '提示',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
