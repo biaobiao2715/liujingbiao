@@ -20,8 +20,8 @@
       <el-form-item label="会议标题" prop="meetingName" label-width="auto">
         <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
-      <el-form-item label="报名状态" prop="signUpStatus" label-width="auto">
-        <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
+      <el-form-item label="报名状态" prop="applicationStatus" label-width="auto">
+        <el-select v-model="queryParams.applicationStatus" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -126,7 +126,7 @@ const queryParams = ref({
   publishTime: [],
   publisher: '',
   meetingName: '',
-  signUpStatus: '',
+  applicationStatus: '',
   meetingStatus: ''
 });
 
