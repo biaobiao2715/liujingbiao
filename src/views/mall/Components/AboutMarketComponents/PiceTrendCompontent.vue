@@ -113,12 +113,12 @@
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
-            <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图" @click="handleTrendClick(row)" />
+            <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图"  />
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
           <template #default="{ row }">
-            <el-link type="primary" @click="viewReport(row)">价格专项报告</el-link>
+            <el-link type="primary" class="report-link" @click="viewReport(row)">价格专项报告</el-link>
           </template>
         </el-table-column>
       </el-table>
@@ -643,31 +643,31 @@ const viewHeatmap = async () => {
 };
 
 // 点击走势图图标，切换到价格走势页面
-const handleTrendClick = (row: any) => {
-  if (!row || !row.goodsCategoryId) {
-    ElMessage.warning('数据异常，无法查看价格走势');
-    return;
-  }
+// const handleTrendClick = (row: any) => {
+//   if (!row || !row.goodsCategoryId) {
+//     ElMessage.warning('数据异常，无法查看价格走势');
+//     return;
+//   }
 
-  // 切换到价格走势标签页
-  eventBus.emit('market:switchTab', 'second');
+//   // 切换到价格走势标签页
+//   eventBus.emit('market:switchTab', 'second');
 
-  // 传递筛选条件给价格走势组件
-  const filterPayload = {
-    goodsCategoryId: row.goodsCategoryId,
-    provinceCode: row.provinceCode || '',
-    cityCode: row.cityCode || '',
-    regionCode: row.regionCode || '',
-    provinceName: row.provinceName || '',
-    cityName: row.cityName || '',
-    regionName: row.regionName || ''
-  };
+//   // 传递筛选条件给价格走势组件
+//   const filterPayload = {
+//     goodsCategoryId: row.goodsCategoryId,
+//     provinceCode: row.provinceCode || '',
+//     cityCode: row.cityCode || '',
+//     regionCode: row.regionCode || '',
+//     provinceName: row.provinceName || '',
+//     cityName: row.cityName || '',
+//     regionName: row.regionName || ''
+//   };
 
-  // 延迟一下确保组件已切换完成
-  setTimeout(() => {
-    eventBus.emit('priceTrend:applyFilters', filterPayload);
-  }, 100);
-};
+//   // 延迟一下确保组件已切换完成
+//   setTimeout(() => {
+//     eventBus.emit('priceTrend:applyFilters', filterPayload);
+//   }, 100);
+// };
 
 // 查看报告
 const viewReport = (row: any) => {
@@ -1059,7 +1059,10 @@ onBeforeUnmount(() => {
     .trend-img {
       width: 18px;
       height: 18px;
-      cursor: pointer;
+    }
+
+    .report-link {
+      white-space: nowrap;
     }
 
     :deep(.change-tag) {
