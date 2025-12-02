@@ -35,16 +35,16 @@
       </el-form-item>
     </el-form>
 
-    <el-table :data="tableData" v-loading="loading">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column label="申请人" prop="realName" align="center" width="120" />
-      <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />
+      <el-table-column label="产品名称" prop="productName" min-width="180" align="center" :show-overflow-tooltip="true" />
       <el-table-column label="产品类型" prop="productType" align="center" width="120">
         <template #default="scope">
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="center" min-width="150" class-name="nowrap-column">
+      <el-table-column label="适用对象" prop="applicableObject" align="left" min-width="150" class-name="nowrap-column">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
         </template>

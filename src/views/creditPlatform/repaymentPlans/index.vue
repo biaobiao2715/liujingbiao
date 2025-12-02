@@ -38,7 +38,7 @@
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" align="center" min-width="150" class-name="nowrap-column">
+      <el-table-column label="适用对象" prop="applicableObject" align="left" min-width="180" class-name="nowrap-column">
         <template #default="scope">
           <dict-tag :options="applicable_object" :value="scope.row.applicableObject || scope.row.lenderTyp" />
         </template>
