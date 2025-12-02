@@ -210,6 +210,10 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
+:deep(.el-button) {
+  border-radius: 4px !important;
+}
+
 .legal-edit-form {
   .tip-text {
     margin: 4px 0 0;

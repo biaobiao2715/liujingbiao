@@ -19,14 +19,12 @@
         <el-form-item>
           <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
           <el-button
-            class="custom-action-btn delete-btn"
-            icon="Delete"
-            :disabled="multiple"
-            @click="handleDelete()"
+            v-throttle
             v-hasPermi="['safeguard:otherCase:remove']"
+            :color="loading || multiple ? '#F2F3F5' : '#F23255'"
+            @click="handleDelete()"
+            >删除</el-button
           >
-            删除
-          </el-button>
         </el-form-item>
       </el-form>
       <el-table v-loading="loading" :data="otherCaseList" @selection-change="handleSelectionChange">
@@ -76,7 +74,7 @@
 </template>
 
 <script setup name="OtherCase" lang="ts">
-import { ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, RefreshLeft } from '@element-plus/icons-vue';
 import { listOtherCase, getOtherCase, delOtherCase, addOtherCase, updateOtherCase } from '@/api/safeguard/otherCase';
 import { OtherCaseVO, OtherCaseQuery, OtherCaseForm } from '@/api/safeguard/otherCase/types';
@@ -205,8 +203,13 @@ const submitForm = () => {
 
 /** 删除按钮操作 */
 const handleDelete = async (row?: OtherCaseVO) => {
+  // 如果是批量删除（没有传入row），检查是否选中了数据
+  if (!row && (!ids.value || ids.value.length === 0)) {
+    ElMessage.warning('请先选择数据');
+    return;
+  }
   const _ids = row?.id || ids.value;
-  await ElMessageBox.confirm('是否确认删除？', '操作确认', {
+  await ElMessageBox.confirm('是否确认删除？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -233,6 +236,10 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+:deep(.el-button) {
+  border-radius: 4px !important;
+}
+
 .container {
   height: calc(100vh - 120px);
 }
@@ -272,6 +279,7 @@ onMounted(() => {
   background-color: transparent !important;
   border: none !important;
   padding: 0 8px !important;
+  border-radius: 4px !important;
 
   &:hover,
   &:focus {
@@ -287,7 +295,7 @@ onMounted(() => {
 .search-btn,
 .reset-btn {
   width: 88px;
-  border-radius: 0;
+  border-radius: 4px;
 }
 
 .reset-btn {
@@ -306,6 +314,7 @@ onMounted(() => {
   background-color: #f2f3f5 !important;
   border: none !important;
   color: #333333 !important;
+  border-radius: 4px !important;
 
   &:hover {
     background-color: #e5e7eb !important;

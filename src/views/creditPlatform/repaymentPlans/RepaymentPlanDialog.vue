@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    width="1300px"
+    width="50%"
     class="repayment-plan-dialog"
     append-to-body
     destroy-on-close
@@ -156,8 +156,6 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-
-
 .dialog-content {
   padding: 0;
 }
@@ -221,9 +219,9 @@ const handleClose = () => {
 }
 
 .primary-close-btn {
-  background-color: #108C58;
+  background-color: #108c58;
   color: #fff;
-  border-color: #108C58;
+  border-color: #108c58;
 
   &:hover,
   &:focus {

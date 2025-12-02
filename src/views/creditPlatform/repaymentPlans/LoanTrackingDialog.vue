@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="1000px" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-header">
         <span class="dialog-title">贷款追踪</span>
@@ -404,7 +404,6 @@ const handleClose = () => {
 }
 
 // 弹窗标题
-
 
 // 弹窗内容
 .dialog-content {

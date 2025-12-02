@@ -213,14 +213,14 @@
           </el-table-column>
           <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button v-throttle text @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+              <el-button v-throttle link @click="previewFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">下载</span>
               </el-button>
 
               <el-button
                 v-throttle
-                text
+                link
                 v-if="scope.row.fileType !== '1'"
                 @click="removeFile(scope.row)"
                 style="color: #ff3131; border-color: #ff3131"

@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column label="操作" width="140" align="center">
           <template #default="scope">
-            <el-button v-throttle type="primary" text @click="downloadAttachment(scope.row)">下载</el-button>
+            <el-button v-throttle type="primary" link @click="downloadAttachment(scope.row)">下载</el-button>
           </template>
         </el-table-column>
       </el-table>

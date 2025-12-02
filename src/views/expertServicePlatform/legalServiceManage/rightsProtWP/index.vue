@@ -56,6 +56,7 @@
           v-hasPermi="['skill:whitePaper:add']"
           type="primary"
           icon="Plus"
+          class="add-btn"
           @click="handleAdd"
         >
           新增
@@ -1075,6 +1076,16 @@ onMounted(() => {
   }
 }
 
+.add-btn {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 32px !important;
+  line-height: 32px;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
 .white-paper-btn {
   width: auto;
   min-width: 96px;
@@ -1264,15 +1275,15 @@ onMounted(() => {
 }
 
 .status-dot-success {
-  background-color: #67c23a;
+  background-color: #108c58;
 }
 
 .status-dot-warning {
-  background-color: #e6a23c;
+  background-color: #ff7b00;
 }
 
 .status-dot-danger {
-  background-color: #f56c6c;
+  background-color: #f23255;
 }
 
 .status-dot-info {
@@ -1284,15 +1295,15 @@ onMounted(() => {
 }
 
 .status-text-success {
-  color: #67c23a;
+  color: #108c58;
 }
 
 .status-text-warning {
-  color: #e6a23c;
+  color: #ff7b00;
 }
 
 .status-text-danger {
-  color: #f56c6c;
+  color: #f23255;
 }
 
 .status-text-info {

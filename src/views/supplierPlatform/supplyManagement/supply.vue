@@ -64,7 +64,7 @@
       :close-on-click-modal="false"
     >
       <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="140px" :disabled="dialogMode === 'detail'">
-        <el-row :gutter="20">
+        <el-row :gutter="20" :class="dialogMode === 'detail' ? 'detail-form' : ''">
           <el-col :span="24">
             <el-form-item label="供给类型：" prop="supplyCategoryId">
               <GoodsCategorySelect
@@ -318,12 +318,17 @@ const handleEdit = async (row: any) => {
 const handleDetail = async (row: any) => {
   dialogMode.value = 'detail';
   const res = await hnSupplierSupplyId(row.id);
+  const arr = Array.isArray(res.data.supplierSupplyDeliveryVos)
+    ? res.data.supplierSupplyDeliveryVos.map((item: any) => [
+        item?.deliveryProvinceCode ?? '',
+        item?.deliveryCityCode ?? '',
+        item?.deliveryAreaCode ?? ''
+      ])
+    : [];
   if (res.code === 200) {
     quoteForm.value = {
       ...res.data,
-      supplierSupplyDeliveryBos: Array.isArray(res.data.supplierSupplyDeliveryBos)
-        ? res.data.supplierSupplyDeliveryBos.map((item: any) => [item.deliveryProvinceCode, item.deliveryCityCode, item.deliveryAreaCode])
-        : []
+      supplierSupplyDeliveryBos: JSON.parse(JSON.stringify(arr))
     };
     quoteDialogVisible.value = true;
     quoteFormRef.value?.clearValidate?.(); // 清除校验状态（等待渲染）

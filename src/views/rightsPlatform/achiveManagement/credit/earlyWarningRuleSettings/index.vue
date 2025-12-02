@@ -36,6 +36,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           :color="multiple ? '#F2F3F5' : '#108C58'"
           @click="handleBatchStatus('0')"
           v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
@@ -45,6 +46,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           :color="multiple ? '#F2F3F5' : '#108C58'"
           @click="handleBatchStatus('1')"
           v-hasPermi="['safeguard:warnRule:enableAndDisabled']"
@@ -52,7 +54,12 @@
         >
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle :color="multiple ? '#F2F3F5' : '#F23255'" @click="handleDelete()" v-hasPermi="['safeguard:warnRule:remove']"
+        <el-button
+          v-throttle
+          style="color: #1d2129"
+          :color="multiple ? '#F2F3F5' : '#F23255'"
+          @click="handleDelete()"
+          v-hasPermi="['safeguard:warnRule:remove']"
           >删除</el-button
         >
       </el-col>

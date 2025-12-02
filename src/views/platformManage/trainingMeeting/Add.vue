@@ -1,7 +1,7 @@
-div<!-- 
+<!--
 标题：			addmeeting.vue
 功能：			新增会议
-说明:         
+说明:
 当前版本：	1.0
 开发信息：	Created by 张峰 2025-10-31
 修改人信息：张峰     2025-11-4
@@ -10,7 +10,7 @@ div<!--
 <template>
   <el-dialog
     v-model="visible"
-    width="80%"
+    width="50%"
     :title="modeTitleMap[mode]"
     :close-on-click-modal="false"
     show-close

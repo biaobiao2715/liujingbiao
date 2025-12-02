@@ -49,6 +49,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleEnableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -58,6 +59,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleDisableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -67,6 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           v-hasPermi="['system:article:remove']"
           :color="loading || noSelection ? '#F2F3F5' : '#F23255'"
           @click="handleDeleteBatch"
@@ -152,7 +155,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'add' ? '新增文章' : dialog.type === 'edit' ? '编辑文章' : '查看文章'"
-      width="80%"
+      width="50%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"
