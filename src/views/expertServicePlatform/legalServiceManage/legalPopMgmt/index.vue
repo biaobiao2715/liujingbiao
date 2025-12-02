@@ -520,7 +520,7 @@ const handleStatusChange = async (row: any, newStatus: string) => {
   try {
     await ElMessageBox.confirm(
       `是否确认${statusText}？`,
-      '操作确认',
+      '提示',
       {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
