@@ -47,7 +47,7 @@ const getBreadcrumb = () => {
   }
   levelListNew.value = matched.filter((item) => item.meta && item.meta.title && item.meta.breadcrumb !== false);
   levelList.value = levelListNew.value.slice(1);
-  console.log('🚀 ~ getBreadcrumb ~ levelList.value :', levelList.value);
+  // console.log('🚀 ~ getBreadcrumb ~ levelList.value :', levelList.value);
 };
 const findPathNum = (str, char = '/') => {
   if (typeof str !== 'string' || str.length === 0) return 0;

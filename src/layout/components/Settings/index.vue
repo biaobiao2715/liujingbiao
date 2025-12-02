@@ -184,7 +184,7 @@ defineExpose({
   openSetting
 });
 onMounted(() => {
-  console.log(isDark.value, 'isDark.value---');
+  // console.log(isDark.value, 'isDark.value---');
   if (isDark.value) {
     isDark.value = false;
   }

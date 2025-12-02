@@ -64,14 +64,14 @@
                 v-if="scope.row.reviewStatus != null"
                 class="normal"
                 :class="{
-                  reviewRejected: scope.row.reviewStatus == 2,
+                  reviewRejected: scope.row.reviewStatus == 99,
                   green: scope.row.reviewStatus == 1,
                   pendingReview: scope.row.reviewStatus == 0
                 }"
               ></div>
               <span v-if="scope.row.reviewStatus == 0" style="color: #ff7b00">待审核</span>
               <span v-if="scope.row.reviewStatus == 1" style="color: #108c58">审核通过</span>
-              <span v-if="scope.row.reviewStatus == 2" style="color: #f23255">审核退回</span>
+              <span v-if="scope.row.reviewStatus == 99" style="color: #f23255">审核退回</span>
             </div>
           </template>
         </el-table-column>
