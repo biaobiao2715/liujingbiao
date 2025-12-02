@@ -183,24 +183,23 @@
 
           <!-- 进行中、已结束、已取消 -->
           <template v-else-if="['2', '3', '99'].includes(scope.row.meetingStatus)">
-            <el-tooltip content="查看" placement="top">
-              <el-button v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
-            </el-tooltip>
+            <el-button v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
+
             <!-- <el-link type="primary" :disabled="detailLoading" @click="handleView(scope.row)">
               <span v-if="detailLoading && currentLoadingId === scope.row.id">加载中...</span>
               <span v-else>查看</span>
             </el-link> -->
-            <el-tooltip content="删除" placement="top">
-              <el-button
-                v-if="['3', '99'].includes(scope.row.meetingStatus)"
-                v-throttle
-                type="text"
-                @click="handleDelete(scope.row)"
-                v-hasPermi="['skill:HnMeetingCultivate:remove']"
-              >
-                删除
-              </el-button>
-            </el-tooltip>
+
+            <el-button
+              v-if="['3', '99'].includes(scope.row.meetingStatus)"
+              v-throttle
+              type="text"
+              @click="handleDelete(scope.row)"
+              v-hasPermi="['skill:HnMeetingCultivate:remove']"
+            >
+              删除
+            </el-button>
+
             <!-- <el-link
               v-if="['3', '99'].includes(scope.row.meetingStatus)"
               v-hasPermi="['skill:HnMeetingCultivate:remove']"
