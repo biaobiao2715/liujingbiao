@@ -887,7 +887,7 @@ onBeforeUnmount(() => {
         .card-chart {
           position: absolute;
           top: 14px;
-          right: 28px;
+          right: 8px;
           width: 120px;
           height: 64px;
           align-items: center;

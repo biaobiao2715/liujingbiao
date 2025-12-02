@@ -627,8 +627,8 @@ defineExpose({
   .chart-analysis-wrapper {
     display: flex;
     gap: 24px;
-    margin-bottom: 30px;
     position: relative;
+    padding: 15px 15px 0px 15px;
     z-index: 1;
 
     .chart-section {

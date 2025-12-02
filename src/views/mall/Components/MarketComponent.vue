@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .market-container {
-  padding: 12px 120px;
+  padding: 12px 0px;
   background-color: #fff;
 }
 
@@ -152,6 +152,7 @@ onBeforeUnmount(() => {
 }
 
 .tab-content {
+  padding: 15px;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
