@@ -1,4 +1,4 @@
-<!-- 价格走势 -->
+<!-- 价格走势图表 -->
 <template>
   <div class="price-trend-chart">
     <div class="chart-header" v-if="showHeader">

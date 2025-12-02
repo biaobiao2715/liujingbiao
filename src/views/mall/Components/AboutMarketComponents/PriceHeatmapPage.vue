@@ -1,4 +1,4 @@
-<!-- 价格走势页面 -->
+<!-- 热地图 -->
 
 <template>
   <div class="price-heatmap-page">

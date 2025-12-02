@@ -55,7 +55,7 @@
               </p>
             </div>
             <div class="card-chart">
-              <img src="@/assets/images/todayPriceLine.png" alt="当日趋势" />
+              <img :src="todayTrendLineIcon" alt="当日趋势" />
             </div>
           </div>
         </div>
@@ -150,6 +150,9 @@ import type { ComponentInternalInstance } from 'vue';
 import trendDownIcon from '@/assets/images/marketConditions/down.png';
 import trendUpIcon from '@/assets/images/marketConditions/up.png';
 import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
+import todayLineUpIcon from '@/assets/images/todayPriceLine.png';
+import todayLineDownIcon from '@/assets/images/marketConditions/linedown.png';
+import todayLineFlatIcon from '@/assets/images/marketConditions/lineP.png';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -350,6 +353,21 @@ const refreshAllData = () => {
   fetchPriceExplanation();
   fetchHotRecommendation();
 };
+
+// 当日趋势小图标：根据近7日趋势文字显示不同曲线
+const todayTrendLineIcon = computed(() => {
+  const trend = priceStats.value.trend || '';
+  if (trend.includes('上升')) {
+    // 略有上升 / 大幅上升
+    return todayLineUpIcon;
+  }
+  if (trend.includes('下降')) {
+    // 略有下降 / 大幅下降
+    return todayLineDownIcon;
+  }
+  // 趋于平稳 或 其它情况
+  return todayLineFlatIcon;
+});
 
 // 切换时间范围
 const changeTimeRange = (days: number) => {
