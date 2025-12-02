@@ -9,8 +9,8 @@
   <div class="meeting-management">
     <!-- 搜索条件 -->
     <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
-      <el-form-item label="所属类别" prop="category" label-width="auto">
-        <el-select v-model="queryParams.category" placeholder="请选择" clearable>
+      <el-form-item label="所属类别" prop="meetingType" label-width="auto">
+        <el-select v-model="queryParams.meetingType" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_type" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -122,7 +122,7 @@ const { meeting_status, meeting_type, enroll_status } = toRefs<any>(proxy?.useDi
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
-  category: '',
+  meetingType: '',
   publishTime: [],
   publisher: '',
   meetingTitle: '',
