@@ -7,7 +7,7 @@
 -->
 <template>
   <el-dialog
-    :title="operateMode === 'edit' ? '供应商编辑' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
+    :title="operateMode === 'edit' ? '修改信用等级' : operateMode === 'audit' ? '供应商审核' : '供应商详情'"
     v-model="dialogVisible"
     width="50%"
   >

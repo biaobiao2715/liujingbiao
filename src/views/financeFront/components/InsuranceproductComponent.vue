@@ -12,7 +12,7 @@
       <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <div class="product-list">
-      <div v-for="item in cases" :key="item.id" class="product-card mb-12">
+      <div v-for="item in cases.slice(0, 4)" :key="item.id" class="product-card mb-12">
         <div class="product-header">
           <div class="title">{{ item.productName }}</div>
           <div class="flex-center gap-8 favorite" @click="toggleFavorite(item)">

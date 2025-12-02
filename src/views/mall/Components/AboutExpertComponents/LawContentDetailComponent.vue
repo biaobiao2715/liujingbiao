@@ -15,6 +15,7 @@
       <div class="flex-center gap-24">
         <div>{{ '发布人：  ' + detail?.authorName }}</div>
         <div>{{ '发布时间：  ' + detail?.createTime }}</div>
+        <div>{{ '普法类型：  ' + getContentType(detail?.contentType) }}</div>
       </div>
       <div class="flex-center gap-12">
         <div class="views flex-center gap-2">
@@ -87,31 +88,47 @@ const getLawContentDetail = async () => {
     }
   });
 };
+
+const getContentType = (type: string) => {
+  switch (type) {
+    case '1':
+      return '法律法规';
+    case '2':
+      return '政策解读';
+    case '3':
+      return '案例分析';
+    case '4':
+      return '司法判决';
+    default:
+      return '未知类型';
+  }
+};
 // 增加浏览量
 const addViewCount = async () => {
   addViewRecords(props.id.toString()).then((res) => {
     console.log(res.data);
-    detail.value.pageViews = res.data || 0;
   });
 };
 
 // 增加下载量
 const addDownloadCount = async (item: any) => {
-  // 利用a标签 下载文件到本地
+  console.log(item);
+  const response = await fetch(item.url);
+  const blob = await response.blob();
+
+  const url = URL.createObjectURL(blob);
+
   const a = document.createElement('a');
-  a.href = item.url;
-  a.target = '_blank';
-  a.download = item.name || '';
-  document.body.appendChild(a);
+  a.href = url;
+  a.download = item.originalName || 'file.txt';
   a.click();
   // 移除a标签
-  document.body.removeChild(a);
+  document.body?.removeChild(a);
 
   addDownloadRecords({
     id: props.id,
     ossVoList: detail.value.sysOssLists || []
   }).then((res) => {
-    console.log(res.data);
     detail.value.downloadCount++;
   });
 };
@@ -165,24 +182,29 @@ const handleCollection = async () => {
       cursor: pointer;
     }
   }
-  
+
   .content-display {
     padding: 20px;
     background: #fff;
     border-radius: 4px;
     line-height: 1.8;
     min-height: 400px;
-    
+
     :deep(img) {
       max-width: 100%;
       height: auto;
     }
-    
+
     :deep(p) {
       margin-bottom: 1em;
     }
-    
-    :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+
+    :deep(h1),
+    :deep(h2),
+    :deep(h3),
+    :deep(h4),
+    :deep(h5),
+    :deep(h6) {
       margin-top: 1.5em;
       margin-bottom: 0.8em;
       font-weight: 600;

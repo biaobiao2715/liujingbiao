@@ -13,9 +13,13 @@
     </div>
     <!-- 列表 -->
     <div class="risk-list">
-      <div class="item" v-for="item in cases" :key="item.id" @click="handleDetail(item)">
-        <div class="article-title mb-12" @click="handleDetail(item)">{{ item.articleTitle }}</div>
-        <div class="article-summary">{{ item.articleSummary }}</div>
+      <div class="item" v-for="item in cases.slice(0, 7)" :key="item.id" @click="handleDetail(item)">
+        <div class="article-title mb-12" @click="handleDetail(item)">
+          {{ item.articleTitle }}
+        </div>
+        <div class="article-summary">
+          {{ item.articleSummary }}
+        </div>
       </div>
       <el-empty v-if="cases.length === 0" description="暂无风险案例"></el-empty>
     </div>
@@ -103,11 +107,17 @@ const handleMore = () => {
         font-weight: 500;
         font-size: 16px;
         color: #3d3d3d;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .article-summary {
         font-weight: 400;
         font-size: 14px;
         color: #767676;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }

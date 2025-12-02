@@ -13,7 +13,7 @@
     <!-- 描述 -->
     <!-- 最新附件表格 -->
     <div class="file-title">最新附件</div>
-    <el-table :data="latestFiles" style="width: 100%">
+    <el-table :data="latestFiles">
       <el-table-column prop="fileSuffix" label="附件类型" />
       <el-table-column prop="fileName" label="附件名称" />
       <el-table-column prop="versionNo" label="版本号" />
@@ -57,7 +57,7 @@ const fetchDetail = async () => {
     detailData.value = response.data || {};
 
     // 处理最新附件
-    response.data.latestFiles.forEach((item) => {
+    response.data?.latestFiles?.forEach((item) => {
       item.sysOssLists.forEach((attachment) => {
         latestFiles.value.push({
           fileName: attachment.originalName,
@@ -65,19 +65,19 @@ const fetchDetail = async () => {
           fileSuffix: attachment.fileSuffix,
           versionNo: item.versionNo,
           updateTime: item.updateTime,
-          fileSize: formatFileSize(JSON.parse(attachment.ext1).fileSize)
+          fileSize: formatFileSize(JSON.parse(attachment.ext1)?.fileSize || 0)
         });
       });
     });
 
     // 处理历史版本附件
-    response.data.historyVersionsList.forEach((item) => {
+    response.data?.historyVersionsList?.forEach((item) => {
       item.sysOssLists.forEach((attachment) => {
         historyFiles.value.push({
           fileName: attachment.originalName,
           url: attachment.url,
           fileSuffix: attachment.fileSuffix,
-          fileSize: formatFileSize(JSON.parse(attachment.ext1).fileSize)
+          fileSize: formatFileSize(JSON.parse(attachment.ext1)?.fileSize || 0)
         });
       });
     });
@@ -95,17 +95,18 @@ const addViewRecords = async () => {
   }
 };
 
-const handleDownloadHistory = (item: any) => {
-  // 利用a标签 下载文件到本地
+const handleDownloadHistory =async (item: any) => {
+  console.log(item);
+  
+  const response = await fetch(item.url);
+  const blob = await response.blob();
+
+  const url = URL.createObjectURL(blob);
+
   const a = document.createElement('a');
-  a.href = item.url;
-  a.target = '_blank';
-  a.download = item.name || '';
-  document.body.appendChild(a);
+  a.href = url;
+  a.download = item.fileName || 'file.txt';
   a.click();
-  // 移除a标签
-  document.body.removeChild(a);
-  console.log(detailData.value);
 
   addWhitePaperDownloadRecords({ id: props.id, ossVoList: detailData.value.latestFiles }).then((res) => {
     console.log(res.data);

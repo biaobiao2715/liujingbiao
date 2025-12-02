@@ -21,7 +21,7 @@
       <div class="flex-between mt-12">
         <div class="goods-tags">
           <!-- 最多三个标签 -->
-          <el-tag v-for="tag in goods?.goodssEnsureName.slice(0, 3)" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
+          <el-tag v-for="tag in goods?.goodssEnsureName?.slice(0, 3)" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
         </div>
         <div class="goods-location">{{ goods?.hnBaseEnterpriseInfo?.province }}</div>
       </div>

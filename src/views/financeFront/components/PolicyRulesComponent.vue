@@ -113,11 +113,14 @@ const handleMore = () => {
     .card-header {
       margin-bottom: 10px;
       .title {
+        width: calc(100% - 240px);
         font-weight: 500;
         font-size: 14px;
         color: #3d3d3d;
-        width: calc(100% - 240px);
         line-height: 16px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
       .title:hover {
         color: #108c58;
@@ -125,10 +128,14 @@ const handleMore = () => {
     }
 
     .card-summary {
+      width: 100%;
       font-weight: 400;
       font-size: 14px;
       color: #767676;
       line-height: 16px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     .card-tag {

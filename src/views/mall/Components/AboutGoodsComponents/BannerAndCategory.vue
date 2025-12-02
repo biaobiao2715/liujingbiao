@@ -16,8 +16,10 @@
 
       <div v-for="item in categorieList" :key="item.id" class="category-item">
         <!-- 一级分类 -->
-        <div class="first-category">
-          {{ item.categoryName }}
+        <div class="first-category flex-center gap-4">
+          <img src="@/assets/mall/seed.png" width="18" v-if="item.categoryName === '种子'" />
+          <img src="@/assets/mall/tool.png" width="18" v-else />
+          <div>{{ item.categoryName }}</div>
         </div>
         <!-- 二级分类 -->
         <div v-for="child in item.children" :key="child.id">
@@ -102,7 +104,6 @@ const fetchCategories = async () => {
   color: #333333;
   font-size: 14px;
   cursor: pointer;
-  padding-left: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e0e0e0;
 }
