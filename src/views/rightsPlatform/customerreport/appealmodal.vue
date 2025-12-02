@@ -18,23 +18,27 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="举报编号" prop="reportCode">
-            <el-input v-model="formData.reportCode" clearable />
+          <el-form-item label="举报编号:" prop="reportCode">
+            <!-- <el-input v-model="formData.reportCode" clearable /> -->
+             {{ formData.reportCode }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="举报时间" prop="createTime">
-            <el-input v-model="formData.createTime" clearable />
+          <el-form-item label="举报时间:" prop="createTime">
+            <!-- <el-input v-model="formData.createTime" clearable /> -->
+             {{ formData.createTime }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="案件编号" prop="caseCode">
-            <el-input v-model="formData.caseCode" clearable />
+          <el-form-item label="案件编号:" prop="caseCode">
+            <!-- <el-input v-model="formData.caseCode" clearable /> -->
+             {{ formData.caseCode }}
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="举报描述" prop="reportDescription">
-            <el-input v-model="formData.reportDescription" clearable />
+            <!-- <el-input v-model="formData.reportDescription" clearable /> -->
+             {{ formData.reportDescription }}
           </el-form-item>
         </el-col>
       </el-row>
@@ -774,9 +778,7 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.content-edit-dialog {
-  padding: 20px 0;
-}
+ 
 
 .section-title {
   position: relative;
