@@ -10,6 +10,10 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import * as echarts from 'echarts';
 import type { ECharts } from 'echarts';
+import historicalMinIcon from '@/assets/images/marketConditions/gwMin.png';
+import historicalMaxIcon from '@/assets/images/marketConditions/gwMax.png';
+import predictedMinIcon from '@/assets/images/marketConditions/ycMin.png';
+import predictedMaxIcon from '@/assets/images/marketConditions/ycMax.png';
 
 interface Props {
   historicalMonths: string[];
@@ -263,18 +267,18 @@ const updateChart = () => {
                 return value !== null && value !== undefined ? 6 : 0;
               },
               itemStyle: {
-                color: '#1abc9c',
+                color: '#f5a623',
                 borderWidth: 2,
                 borderColor: '#fff'
               },
               lineStyle: {
                 width: 3,
-                color: '#1abc9c'
+                color: '#f5a623'
               },
               areaStyle: {
                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(26, 188, 156, 0.35)' },
-                  { offset: 1, color: 'rgba(26, 188, 156, 0.02)' }
+                  { offset: 0, color: 'rgba(245, 166, 35, 0.25)' },
+                  { offset: 1, color: 'rgba(245, 166, 35, 0.02)' }
                 ])
               },
               markArea: {
@@ -283,36 +287,25 @@ const updateChart = () => {
               },
               z: 2
             },
-            // 历史最高点（青绿色三角形向上）
+            // 历史最高点（使用图片标记）
             {
               name: '过往最高点',
               type: 'scatter',
               data: historicalMaxData,
-              symbol: 'triangle',
-              symbolSize: 14,
-              itemStyle: {
-                color: '#fff',
-                borderColor: '#1abc9c',
-                borderWidth: 3
-              },
+              symbol: `image://${historicalMaxIcon}`,
+              symbolSize: 20,
               label: {
                 show: false
               },
               z: 10
             },
-            // 历史最低点（青绿色三角形向下）
+            // 历史最低点（使用图片标记）
             {
               name: '过往最低点',
               type: 'scatter',
               data: historicalMinData,
-              symbol: 'triangle',
-              symbolRotate: 180,
-              symbolSize: 14,
-              itemStyle: {
-                color: '#fff',
-                borderColor: '#1abc9c',
-                borderWidth: 3
-              },
+              symbol: `image://${historicalMinIcon}`,
+              symbolSize: 20,
               label: {
                 show: false
               },
@@ -337,52 +330,41 @@ const updateChart = () => {
                 return value !== null && value !== undefined ? 6 : 0;
               },
               itemStyle: {
-                color: '#f5a623',
+                color: '#1abc9c',
                 borderWidth: 2,
                 borderColor: '#fff'
               },
               lineStyle: {
                 width: 3,
-                color: '#f5a623'
+                color: '#1abc9c'
               },
               areaStyle: {
                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(245, 166, 35, 0.25)' },
-                  { offset: 1, color: 'rgba(245, 166, 35, 0.02)' }
+                  { offset: 0, color: 'rgba(26, 188, 156, 0.35)' },
+                  { offset: 1, color: 'rgba(26, 188, 156, 0.02)' }
                 ])
               },
               z: 2
             },
-            // 预测最高点（橙色三角形向上）
+            // 预测最高点（使用图片标记）
             {
               name: '预测最高点',
               type: 'scatter',
               data: predictedMaxData,
-              symbol: 'triangle',
-              symbolSize: 14,
-              itemStyle: {
-                color: '#fff',
-                borderColor: '#f5a623',
-                borderWidth: 3
-              },
+              symbol: `image://${predictedMaxIcon}`,
+              symbolSize: 20,
               label: {
                 show: false
               },
               z: 10
             },
-            // 预测最低点（橙色三角形向下）
+            // 预测最低点（使用图片标记）
             {
               name: '预测最低点',
               type: 'scatter',
               data: predictedMinData,
-              symbol: 'triangle',
-              symbolRotate: 180,
-              symbolSize: 14,
-              itemStyle: {
-                color: '#fff',
-                borderColor: '#f5a623',
-                borderWidth: 3
-              },
+              symbol: `image://${predictedMinIcon}`,
+              symbolSize: 20,
               label: {
                 show: false
               },

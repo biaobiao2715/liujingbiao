@@ -56,27 +56,27 @@
           <div class="legend-title"><span class="title-marker"></span>图例</div>
           <div class="legend-list">
             <div class="legend-item">
-              <span class="legend-line historical-line"></span>
+              <img class="legend-icon-img" :src="legendIcons.historicalLine" alt="过往月份价格" />
               <span class="legend-text">过往月份价格</span>
             </div>
             <div class="legend-item">
-              <span class="legend-line predicted-line"></span>
+              <img class="legend-icon-img" :src="legendIcons.predictedLine" alt="预测月份价格" />
               <span class="legend-text">预测月份价格</span>
             </div>
             <div class="legend-item">
-              <span class="legend-icon historical-low"></span>
+              <img class="legend-icon-img" :src="legendIcons.historicalMin" alt="过往月份价格最低点" />
               <span class="legend-text">过往月份价格最低点</span>
             </div>
             <div class="legend-item">
-              <span class="legend-icon historical-high"></span>
+              <img class="legend-icon-img" :src="legendIcons.historicalMax" alt="过往月份价格最高点" />
               <span class="legend-text">过往月份价格最高点</span>
             </div>
             <div class="legend-item">
-              <span class="legend-icon predicted-low"></span>
+              <img class="legend-icon-img" :src="legendIcons.predictedMin" alt="预测月份价格最低点" />
               <span class="legend-text">预测月份价格最低点</span>
             </div>
             <div class="legend-item">
-              <span class="legend-icon predicted-high"></span>
+              <img class="legend-icon-img" :src="legendIcons.predictedMax" alt="预测月份价格最高点" />
               <span class="legend-text">预测月份价格最高点</span>
             </div>
           </div>
@@ -93,6 +93,12 @@ import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PricePredictionChart from './PricePredictionChart.vue';
 import { pricePredictionList } from '@/api/mall/marketComponent';
+import historicalLineIcon from '@/assets/images/marketConditions/gw.png';
+import historicalMaxIcon from '@/assets/images/marketConditions/gwMax.png';
+import historicalMinIcon from '@/assets/images/marketConditions/gwMin.png';
+import predictedLineIcon from '@/assets/images/marketConditions/yc.png';
+import predictedMaxIcon from '@/assets/images/marketConditions/ycMax.png';
+import predictedMinIcon from '@/assets/images/marketConditions/ycMin.png';
 
 const queryFormRef = ref();
 const loading = ref(false);
@@ -238,6 +244,15 @@ const marketAnalysis = ref({
   priceRange: '暂无数据',
   suggestion: '暂无数据'
 });
+
+const legendIcons = {
+  historicalLine: historicalLineIcon,
+  predictedLine: predictedLineIcon,
+  historicalMin: historicalMinIcon,
+  historicalMax: historicalMaxIcon,
+  predictedMin: predictedMinIcon,
+  predictedMax: predictedMaxIcon
+};
 
 // 图表标题
 const chartTitle = computed(() => {
@@ -744,65 +759,6 @@ defineExpose({
             align-items: center;
             gap: 10px;
 
-            .legend-line {
-              width: 24px;
-              height: 3px;
-              border-radius: 2px;
-
-              &.historical-line {
-                background: #f5a623;
-              }
-
-              &.predicted-line {
-                background: #1abc9c;
-              }
-            }
-
-            .legend-icon {
-              width: 16px;
-              height: 16px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              position: relative;
-
-              // 过往最低点 - 青绿色向下三角
-              &.historical-low {
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-top: 12px solid #1abc9c;
-              }
-
-              // 过往最高点 - 青绿色向上三角
-              &.historical-high {
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-bottom: 12px solid #1abc9c;
-              }
-
-              // 预测最低点 - 橙色向下三角
-              &.predicted-low {
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-top: 12px solid #f5a623;
-              }
-
-              // 预测最高点 - 橙色向上三角
-              &.predicted-high {
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-bottom: 12px solid #f5a623;
-              }
-            }
-
             .legend-text {
               font-size: 13px;
               color: #606266;
@@ -811,6 +767,12 @@ defineExpose({
         }
       }
     }
+  }
+
+  .legend-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
   }
 
   .procurement-window-section {
