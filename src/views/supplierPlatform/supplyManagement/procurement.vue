@@ -48,7 +48,7 @@
             v-if="scope.row.hasQuote == '0'"
             v-throttle
             v-hasPermi="['grain:hnPurchaseQuote:add']"
-            text
+            link
             type="primary"
             @click="handleQuote(scope.row.id)"
             >立即报价</el-button

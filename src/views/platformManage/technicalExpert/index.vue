@@ -96,7 +96,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" align="center" fixed="right" width="200">
+        <el-table-column label="操作" align="left" fixed="right" width="200" class-name="flex-center">
           <template #default="scope">
             <div style="display: flex; justify-content: center; align-items: center">
               <el-button type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">

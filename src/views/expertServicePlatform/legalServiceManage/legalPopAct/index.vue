@@ -67,7 +67,7 @@
         <el-button
           v-throttle
           v-hasPermi="['skill:lawActivity:add']"
-          class="operation-btn operation-btn--primary"
+          class="operation-btn operation-btn--primary add-btn"
           icon="Plus"
           @click="handleAdd"
         >
@@ -150,11 +150,20 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="状态" prop="activityStatus" width="100" :show-overflow-tooltip="true">
+      <el-table-column label="状态" prop="activityStatus" width="120" :show-overflow-tooltip="true">
         <template #default="scope">
-          <el-tag :type="getStatusType(scope.row.activityStatus)">
-            <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
-          </el-tag>
+          <div class="status-with-dot">
+            <span
+              class="status-dot"
+              :class="`status-dot-${getStatusType(scope.row.activityStatus)}`"
+            ></span>
+            <span
+              class="status-text"
+              :class="`status-text-${getStatusType(scope.row.activityStatus)}`"
+            >
+              <dict-text :options="legal_popularize_activity_status" :value="scope.row.activityStatus" />
+            </span>
+          </div>
         </template>
       </el-table-column>
       
@@ -708,6 +717,16 @@ onMounted(() => {
   }
 }
 
+.add-btn {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 32px !important;
+  line-height: 32px;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
@@ -767,6 +786,63 @@ onMounted(() => {
       }
     }
   }
+}
+
+.status-with-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-primary {
+  background-color: #108c58;
+}
+
+.status-dot-success {
+  background-color: #108c58;
+}
+
+.status-dot-warning {
+  background-color: #ff7b00;
+}
+
+.status-dot-danger {
+  background-color: #f23255;
+}
+
+.status-dot-info {
+  background-color: #909399;
+}
+
+.status-text {
+  font-size: 14px;
+}
+
+.status-text-primary {
+  color: #108c58;
+}
+
+.status-text-success {
+  color: #108c58;
+}
+
+.status-text-warning {
+  color: #ff7b00;
+}
+
+.status-text-danger {
+  color: #f23255;
+}
+
+.status-text-info {
+  color: #909399;
 }
 
 .pagination {

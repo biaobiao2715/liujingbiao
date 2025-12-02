@@ -47,6 +47,7 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
+          style="color: #1d2129"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#F23255'"
           @click="handleDelete"
         >
@@ -56,6 +57,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
@@ -67,6 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
+          style="color: #1d2129"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
@@ -75,10 +78,12 @@
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle color="#F2F3F5" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
+        <el-button v-throttle color="#F2F3F5" style="color: #1d2129" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle color="#F2F3F5" v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory">查询价格调整历史</el-button>
+        <el-button v-throttle color="#F2F3F5" style="color: #1d2129" v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory"
+          >查询价格调整历史</el-button
+        >
       </el-col>
     </el-row>
 

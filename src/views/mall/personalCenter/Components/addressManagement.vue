@@ -72,8 +72,8 @@
         <el-table-column label="操作" fixed="right" min-width="160" align="center">
           <template #default="{ row }">
             <div class="ops">
-              <el-button v-hasPermi="['grain:userAddress:edit']" @click="onEdit(row)" v-throttle text style="color: #ff7b00">修改</el-button>
-              <el-button v-hasPermi="['grain:userAddress:remove']" @click="onDelete(row)" v-throttle text style="color: #ef4d0b">删除</el-button>
+              <el-button v-hasPermi="['grain:userAddress:edit']" @click="onEdit(row)" v-throttle link style="color: #ff7b00">修改</el-button>
+              <el-button v-hasPermi="['grain:userAddress:remove']" @click="onDelete(row)" v-throttle link style="color: #ef4d0b">删除</el-button>
             </div>
           </template>
         </el-table-column>

@@ -71,10 +71,10 @@
         <el-table-column prop="fileName" label="附件名" align="center" />
         <el-table-column label="操作" width="250" align="center">
           <template #default="scope">
-            <el-button v-throttle text @click="reuploadFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
+            <el-button v-throttle link @click="reuploadFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
               <span style="height: 16px; line-height: 16px">重新上传</span>
             </el-button>
-            <el-button v-throttle text @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
+            <el-button v-throttle link @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
               <span style="height: 16px; line-height: 16px">删除</span>
             </el-button>
           </template>

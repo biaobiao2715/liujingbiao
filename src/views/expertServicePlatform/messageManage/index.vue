@@ -62,7 +62,6 @@
       :data="tableData"
       v-loading="loading"
     >
-      <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
     
       <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
@@ -547,15 +546,15 @@ onMounted(() => {
 }
 
 .status-dot-success {
-  background-color: #67c23a;
+  background-color: #108c58;
 }
 
 .status-dot-warning {
-  background-color: #e6a23c;
+  background-color: #ff7b00;
 }
 
 .status-dot-danger {
-  background-color: #f56c6c;
+  background-color: #f23255;
 }
 
 .status-dot-info {
@@ -567,15 +566,15 @@ onMounted(() => {
 }
 
 .status-text-success {
-  color: #67c23a;
+  color: #108c58;
 }
 
 .status-text-warning {
-  color: #e6a23c;
+  color: #ff7b00;
 }
 
 .status-text-danger {
-  color: #f56c6c;
+  color: #f23255;
 }
 
 .status-text-info {

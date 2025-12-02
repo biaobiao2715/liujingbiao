@@ -38,7 +38,7 @@
         <el-button v-throttle icon="Plus" type="primary" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button color="#F2F3F5" v-throttle @click="handleExport"> 导出 </el-button>
+        <el-button color="#F2F3F5" style="color: #1d2129" v-throttle @click="handleExport"> 导出 </el-button>
       </el-col>
     </el-row>
 

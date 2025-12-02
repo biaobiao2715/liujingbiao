@@ -8,29 +8,29 @@
 <template>
   <div class="meeting-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="110">
-      <el-form-item label="所属类别" prop="category">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
+      <el-form-item label="所属类别" prop="category" label-width="auto">
         <el-select v-model="queryParams.category" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_type" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布人" prop="publisher">
+      <el-form-item label="发布人" prop="publisher" label-width="auto">
         <el-input v-model="queryParams.publisher" placeholder="请输入发布人姓名" clearable />
       </el-form-item>
-      <el-form-item label="会议标题" prop="meetingTitle">
+      <el-form-item label="会议标题" prop="meetingTitle" label-width="auto">
         <el-input v-model="queryParams.meetingTitle" placeholder="请输入会议标题" clearable />
       </el-form-item>
-      <el-form-item label="报名状态" prop="signUpStatus">
+      <el-form-item label="报名状态" prop="signUpStatus" label-width="auto">
         <el-select v-model="queryParams.signUpStatus" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="所属状态" prop="meetingStatus">
+      <el-form-item label="所属状态" prop="meetingStatus" label-width="auto">
         <el-select v-model="queryParams.meetingStatus" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime">
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="queryParams.publishTime"
           type="datetimerange"
@@ -42,38 +42,38 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="handleSearch">查询</el-button>
-        <el-button @click="handleReset">重置</el-button>
+        <el-button icon="Search" type="primary" @click="handleSearch">查询</el-button>
+        <el-button icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="会议开始时间" align="center" prop="meetingStartTime" min-width="160">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="会议开始时间" prop="meetingStartTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.meetingStartTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议结束时间" align="center" prop="meetingEndTime" min-width="160">
+      <el-table-column label="会议结束时间" prop="meetingEndTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.meetingEndTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议标题" align="center" prop="meetingName" min-width="120" :show-overflow-tooltip="true" />
-      <el-table-column label="会议地址" align="center" prop="meetingAddress" min-width="180" :show-overflow-tooltip="true" />
+      <el-table-column label="会议标题" prop="meetingName" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="会议地址" prop="meetingAddress" min-width="160" :show-overflow-tooltip="true" />
       <el-table-column label="所属分类" align="center" prop="meetingType" min-width="100">
         <template #default="scope">
           <dict-tag :options="meeting_type" :value="scope.row.meetingType" />
         </template>
       </el-table-column>
-      <el-table-column label="联系方式" align="center" prop="meetingPhone" min-width="120" />
+      <el-table-column label="联系方式" prop="meetingPhone" min-width="120" />
       <el-table-column label="报名状态" align="center" prop="enrollStatus" min-width="80">
         <template #default="scope">
           <dict-tag :options="enroll_status" :value="scope.row.enrollStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+      <el-table-column label="发布时间" prop="publishTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
         </template>
@@ -83,9 +83,9 @@
           <dict-tag :options="meeting_status" :value="scope.row.meetingStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="100">
+      <el-table-column label="操作" fixed="right" width="120">
         <template #default="scope">
-          <el-button type="primary" @click="handleView(scope.row)">查看</el-button>
+          <el-button type="primary" link @click="handleView(scope.row)">查看</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -103,7 +103,7 @@
       :close-on-click-modal="true"
       :destroy-on-close="true"
       append-to-body
-      width="80%"
+      width="50%"
     >
       <Details :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
     </el-dialog>
@@ -225,6 +225,7 @@ const handleView = (row: any) => {
 
 <style scoped lang="scss">
 .meeting-management {
+  height: calc(100vh - 120px);
   padding: 24px;
 }
 .pagination {

@@ -31,7 +31,7 @@
               style="color: #ef4d0b"
               >关闭</el-button
             >
-            <el-button v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle text style="color: #108c58">查看</el-button>
+            <el-button v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle link style="color: #108c58">查看</el-button>
           </template>
         </el-table-column>
       </el-table>

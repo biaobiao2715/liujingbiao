@@ -56,6 +56,7 @@
           v-throttle
           type="primary"
           icon="Plus"
+          class="add-btn"
           @click="handleCreate"
           v-hasPermi="['safeguard:knowledgeCaseContent:add']"
         >
@@ -399,6 +400,16 @@ onMounted(() => {
     color: #909399;
     font-size: 13px;
   }
+}
+
+.add-btn {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 32px !important;
+  line-height: 32px;
+  padding: 0 !important;
+  box-sizing: border-box;
 }
 
 .kc-action-btn {
