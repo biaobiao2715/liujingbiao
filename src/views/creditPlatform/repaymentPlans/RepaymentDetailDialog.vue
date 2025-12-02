@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="900px" class="repayment-detail-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="repayment-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-title">贷后管理详情（企业）</div>
     </template>
@@ -10,18 +10,8 @@
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoList" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
-                <el-input
-                  v-if="!item.isTextarea"
-                  :model-value="item.value"
-                  disabled
-                />
-                <el-input
-                  v-else
-                  type="textarea"
-                  :model-value="item.value"
-                  :autosize="{ minRows: 2, maxRows: 4 }"
-                  disabled
-                />
+                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
+                <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="24">
@@ -83,12 +73,7 @@
               <el-form-item label="授权文件">
                 <template v-if="applicantAuthFiles.length">
                   <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
-                    <el-button
-                      type="primary"
-                      link
-                      @click="handleViewFile(file)"
-                      class="file-link"
-                    >
+                    <el-button type="primary" link @click="handleViewFile(file)" class="file-link">
                       <el-icon><Document /></el-icon>
                       授权文件{{ applicantAuthFiles.length > 1 ? idx + 1 : '' }}
                     </el-button>
@@ -113,13 +98,7 @@
             <el-col :span="24">
               <el-form-item label="银行卡正反面">
                 <template v-if="bankCardImages.length">
-                  <el-image
-                    v-for="(img, idx) in bankCardImages"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="bankCardImages"
-                    class="license-image"
-                  />
+                  <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -177,9 +156,7 @@ const emit = defineEmits<{
 
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method } = toRefs<any>(
-  proxy?.useDict('repayment_method')
-);
+const { repayment_method } = toRefs<any>(proxy?.useDict('repayment_method'));
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -241,7 +218,7 @@ const formatValue = (value: any) => {
  */
 const getRepaymentMethodLabel = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '--';
-  
+
   // 优先使用字典数据
   if (repayment_method?.value && Array.isArray(repayment_method.value) && repayment_method.value.length > 0) {
     const match = repayment_method.value.find((item: any) => String(item.value) === String(value));
@@ -249,7 +226,7 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
       return match.label;
     }
   }
-  
+
   // 备用映射
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
@@ -441,16 +418,14 @@ const handleViewFile = (fileUrl: string) => {
 
 const handleViewContract = () => {
   // 从多个可能的位置获取合同地址
-  const contractUrl = currentDetail.value?.contractUrl || 
-                     currentDetail.value?.contractFileUrl ||
-                     props.data?.contractUrl ||
-                     props.data?.contractFileUrl;
-  
+  const contractUrl =
+    currentDetail.value?.contractUrl || currentDetail.value?.contractFileUrl || props.data?.contractUrl || props.data?.contractFileUrl;
+
   if (!contractUrl) {
     ElMessage.warning('暂无合同文件');
     return;
   }
-  
+
   // 在新窗口中打开合同地址
   window.open(contractUrl, '_blank');
 };
@@ -463,11 +438,9 @@ const handleViewRepaymentPlan = () => {
 <style scoped lang="scss">
 .repayment-detail-dialog {
   :deep(.el-dialog__body) {
-    background-color: #F7F8FA;
+    background-color: #f7f8fa;
     padding: 24px;
   }
-
-
 }
 
 .detail-section {
@@ -488,8 +461,8 @@ const handleViewRepaymentPlan = () => {
     cursor: default !important;
     font-weight: 400 !important;
     font-size: 14px !important;
-    color: #3D3D3D !important;
-    -webkit-text-fill-color: #3D3D3D !important;
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
   }
 
   :deep(.el-form-item__label) {
@@ -505,13 +478,13 @@ const handleViewRepaymentPlan = () => {
   margin-bottom: 16px;
   display: flex;
   align-items: center;
-  color: #108C58;
+  color: #108c58;
 
   &::before {
     content: '';
     width: 2px;
     height: 13px;
-    background-color: #108C58;
+    background-color: #108c58;
     border-radius: 4px;
     margin-right: 5px;
   }
@@ -522,7 +495,7 @@ const handleViewRepaymentPlan = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
   background-color: #ffffff;
 }
 
@@ -549,11 +522,11 @@ const handleViewRepaymentPlan = () => {
   gap: 6px;
   padding: 6px 12px;
   font-size: 14px;
-  
+
   .el-icon {
     font-size: 16px;
   }
-  
+
   &:hover {
     opacity: 0.8;
   }

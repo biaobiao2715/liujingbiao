@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="visible" width="900px" class="repayment-status-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="repayment-status-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-header">
         <span class="dialog-title">还款情况</span>
@@ -394,8 +394,6 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-
-
 .dialog-content {
   padding: 20px;
   min-height: 400px;
@@ -508,5 +506,4 @@ const handleClose = () => {
     width: 100%;
   }
 }
-
 </style>
