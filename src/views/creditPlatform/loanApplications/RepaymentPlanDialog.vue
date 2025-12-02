@@ -108,7 +108,7 @@ const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>(
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
+const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
 
 const loading = ref(false);
 const plans = ref<any[]>([]);
@@ -186,16 +186,12 @@ const beforeUpload = (file: any) => {
   const isValidType = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
     file.type
   );
-  const isLt10M = file.size / 1024 / 1024 < 10;
 
   if (!isValidType) {
     ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
-  if (!isLt10M) {
-    ElMessage.error('文件大小不能超过 10MB！');
-    return false;
-  }
+  
   return true;
 };
 

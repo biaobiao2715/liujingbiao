@@ -264,7 +264,7 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
 
 const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
+const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
 
 const loading = ref(false);
 const detailData = ref<Record<string, any>>({});
