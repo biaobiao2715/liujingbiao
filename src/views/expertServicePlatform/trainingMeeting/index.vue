@@ -22,7 +22,7 @@
       </el-form-item>
       <el-form-item label="报名状态" prop="applicationStatus" label-width="auto">
         <el-select v-model="queryParams.applicationStatus" placeholder="请选择" clearable>
-          <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option v-for="item in enroll_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="所属状态" prop="meetingStatus" label-width="auto">
