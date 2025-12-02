@@ -129,16 +129,26 @@
           label-width="100px"
           class="approval-form no-wrap-label"
         >
-          <el-form-item label="审批意见" prop="opinion">
+          <el-form-item label="审批意见" prop="opinion" class="required-field">
             <el-select v-model="approvalForm.opinion" :disabled="isApprovalReadonly">
               <el-option label="同意" value="agree" />
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item label="放款日期" prop="loanDate" :required="approvalForm.opinion !== 'reject'">
+          <el-form-item 
+            label="放款日期" 
+            prop="loanDate" 
+            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
+            class="date-picker-field"
+          >
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item label="第一期还款日期" prop="firstRepaymentDate" :required="approvalForm.opinion !== 'reject'">
+          <el-form-item 
+            label="第一期还款日期" 
+            prop="firstRepaymentDate"
+            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
+            class="date-picker-field"
+          >
             <el-date-picker
               v-model="approvalForm.firstRepaymentDate"
               type="date"
@@ -147,7 +157,11 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item label="贷款合同" prop="contractId" class="contract-field" :required="approvalForm.opinion !== 'reject'">
+          <el-form-item 
+            label="贷款合同" 
+            prop="contractId" 
+            :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]"
+          >
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -265,13 +279,14 @@ const approvalForm = reactive({
 });
 
 const createConditionalRequiredValidator = (message: string) => {
-  return (_rule: any, value: any, callback: (error?: Error) => void) => {
+  return (rule: any, value: any, callback: (error?: Error) => void) => {
     if (approvalForm.opinion === 'reject') {
       callback();
       return;
     }
     if (value === undefined || value === null || value === '') {
-      callback(new Error(message));
+      const errorMessage = rule.message || message;
+      callback(new Error(errorMessage));
     } else {
       callback();
     }
@@ -300,9 +315,30 @@ const APPLY_STATUS_MAP: Record<string, string> = {
 
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
-  loanDate: [{ validator: createConditionalRequiredValidator('请选择放款日期'), trigger: 'change' }],
-  firstRepaymentDate: [{ validator: createConditionalRequiredValidator('请选择第一期还款日期'), trigger: 'change' }],
-  contractId: [{ validator: createConditionalRequiredValidator('请上传贷款合同'), trigger: 'change' }]
+  loanDate: [
+    { 
+      required: true,
+      message: '请选择放款日期', 
+      trigger: 'change',
+      validator: createConditionalRequiredValidator('请选择放款日期')
+    }
+  ],
+  firstRepaymentDate: [
+    { 
+      required: true,
+      message: '请选择第一期还款日期', 
+      trigger: 'change',
+      validator: createConditionalRequiredValidator('请选择第一期还款日期')
+    }
+  ],
+  contractId: [
+    { 
+      required: true,
+      message: '请上传贷款合同', 
+      trigger: 'change',
+      validator: createConditionalRequiredValidator('请上传贷款合同')
+    }
+  ]
 };
 /**
  * 格式化值，空值返回 '--'
@@ -1021,6 +1057,41 @@ const handleViewProductDetail = () => {
     color: #909399;
     font-size: 12px;
     margin-left: 12px;
+  }
+}
+
+.required-field {
+  :deep(.el-form-item__label) {
+    &::before {
+      content: '*';
+      color: #f56c6c;
+      margin-right: 4px;
+    }
+  }
+}
+
+// 调整日期选择器清除图标位置
+.approval-form {
+  :deep(.el-date-editor) {
+    .el-input__suffix {
+      right: 8px;
+    }
+    
+    .el-input__suffix-inner {
+      .el-input__clear {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// 日期选择器字段边框
+.date-picker-field {
+  :deep(.el-date-editor) {
+    .el-input__wrapper {
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+    }
   }
 }
 </style>
