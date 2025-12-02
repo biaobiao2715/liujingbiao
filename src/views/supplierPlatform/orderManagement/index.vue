@@ -205,7 +205,13 @@
           </el-form-item>
 
           <el-form-item label="物流单号：" prop="deliverySn">
-            <el-input v-model.trim="logisticsForm.deliverySn" placeholder="请输入物流单号" maxlength="20"></el-input>
+            <el-input
+              v-model.trim="logisticsForm.deliverySn"
+              @input="filterChinese"
+              placeholder="请输物流单号"
+              maxlength="20"
+              ref="logisticsFormFormRef"
+            ></el-input>
           </el-form-item>
         </el-form>
       </template>
@@ -231,7 +237,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onActivated, getCurrentInstance } from 'vue';
+import { ref, onMounted, onActivated, getCurrentInstance, reactive } from 'vue';
 import { toRefs } from '@vueuse/core';
 import { ElMessage } from 'element-plus';
 import { getorderList, cancelorderapi, modifypersonnel } from '@/api/supplier/productManagement/ordermanagement';
@@ -288,7 +294,7 @@ const shipmentForm = ref({
   deliveryOptions: '' //配送方式
 });
 /* 物流信息 */
-const logisticsForm = ref({
+const logisticsForm = reactive({
   deliveryCompany: '', //快递公司
   deliverySn: '' //物流单号
 });
@@ -311,13 +317,13 @@ const handleDeliveryOptionChange = (value) => {
 
   if (value === '1') {
     // 如果选择的是同城自提，隐藏物流信息
-    logisticsForm.value.deliveryCompany = '';
-    logisticsForm.value.deliverySn = '';
+    logisticsForm.deliveryCompany = '';
+    logisticsForm.deliverySn = '';
     logisticsVisible.value = false; // 隐藏物流信息
   } else if (value === '2') {
     // 如果选择的是快递，显示物流信息
-    logisticsForm.value.deliveryCompany = '';
-    logisticsForm.value.deliverySn = '';
+    logisticsForm.deliveryCompany = '';
+    logisticsForm.deliverySn = '';
     logisticsVisible.value = true; // 显示物流信息
   }
 };
@@ -351,7 +357,7 @@ const logisticsRules = {
           callback(new Error('物流单号不能包含中文字符'));
           return;
         }
-        const company = logisticsForm.value.deliveryCompany;
+        const company = logisticsForm.deliveryCompany;
         if (patterns[company] && !patterns[company].test(value)) {
           callback(new Error('物流单号格式不正确'));
         } else {
@@ -361,6 +367,14 @@ const logisticsRules = {
       trigger: ['blur', 'change']
     }
   ]
+};
+const filterChinese = () => {
+  if (logisticsForm.deliverySn) {
+    // 使用正则表达式替换所有中文字符
+    logisticsForm.deliverySn = logisticsForm.deliverySn.replace(/[\u4E00-\u9FA5]/g, '');
+    // 控制输入框失焦
+    logisticsFormFormRef.value.blur();
+  }
 };
 /** 搜索按钮操作 */
 const handleQuery = () => {
