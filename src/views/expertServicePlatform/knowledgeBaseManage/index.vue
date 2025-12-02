@@ -155,7 +155,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'add' ? '新增文章' : dialog.type === 'edit' ? '编辑文章' : '查看文章'"
-      width="50%"
+      width="80%"
       destroy-on-close
       :close-on-click-modal="false"
       @close="dialog.type = ''"

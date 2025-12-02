@@ -80,6 +80,7 @@ const queryParams = ref({
   pageSize: 10,
   productType: '',
   isNoTenant: true,
+  productStatus: '2',
   productName: ''
 });
 

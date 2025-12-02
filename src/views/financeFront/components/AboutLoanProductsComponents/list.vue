@@ -96,6 +96,7 @@ const queryParams = ref({
   productName: '',
   productType: '',
   isNoTenant: true,
+  productStatus: '2',
   // 多选的贷款周期，提交时转换为逗号分隔字符串
   loanCycle: [] as string[]
 });

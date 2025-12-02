@@ -263,7 +263,10 @@ const MAX_SIZE = 100 * 1024 * 1024; // 5MB
 const buildUploadPayload = async (file: File, progressPrefix: string) => {
   let result: any;
   if (file.size > MAX_SIZE) {
-    const res = await uploadByChunks(file, (p: number) => console.log(`${progressPrefix}进度: ${p}%`));
+    const res: any = await uploadByChunks(file, (percent) => {
+      console.log('上传进度:', percent + '%');
+    });
+
     if (!res || !res.ossId) throw new Error('分片上传失败');
     result = {
       ossId: res.ossId,
