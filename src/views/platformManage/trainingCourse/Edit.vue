@@ -473,7 +473,7 @@ const handleFileChange = async ({ file }: any) => {
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_SIZE = 100 * 1024 * 1024; // 100MB
     if (file.size > MAX_SIZE) {
       // 使用分片上传
       const res: any = await uploadByChunks(file, (p) => {

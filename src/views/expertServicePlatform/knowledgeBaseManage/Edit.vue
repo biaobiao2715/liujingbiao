@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-import { uploadByChunks } from '@/utils/chunkUpload0';
+import { uploadByChunks } from '@/utils/chunkUpload';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['success', 'cancel']);
 
@@ -257,7 +257,7 @@ const validateFile = (file: File) => {
 };
 
 // 统一的大小阈值（>5MB 走分片）
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 100 * 1024 * 1024; // 5MB
 
 // 通过文件对象执行上传，返回标准化的附件对象
 const buildUploadPayload = async (file: File, progressPrefix: string) => {

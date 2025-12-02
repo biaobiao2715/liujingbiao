@@ -346,7 +346,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
-import { uploadByChunks } from '@/utils/chunkUpload0';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { 
   getWhitePaperList, 
   deleteWhitePaper, 
