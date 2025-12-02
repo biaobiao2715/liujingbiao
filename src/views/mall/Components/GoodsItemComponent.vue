@@ -30,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import { eventBus } from '@/utils/eventBus';
+
 const emit = defineEmits(['clickGoods']);
 // 接收外部传入的商品信息
 const props = defineProps({
@@ -50,11 +52,9 @@ const props = defineProps({
   }
 });
 
-onMounted(() => {});
-
 // 点击商品时触发方法
-const handleClick = (item) => {
-  emit('clickGoods', item);
+const handleClick = () => {
+  eventBus.emit('activeTabChange', { command: 'goodsDetail', goods: props.goods });
 };
 </script>
 
@@ -67,12 +67,15 @@ const handleClick = (item) => {
 }
 
 .goods-image {
-  width: 284px;
-  height: 284px;
+  // width: 284px;
+  // height: 284px;
+  width: auto;
+  height: auto;
   margin-bottom: 10px;
 }
 
 .goods-info {
+  padding: 0 12px;
   display: flex;
   flex-direction: column;
 }

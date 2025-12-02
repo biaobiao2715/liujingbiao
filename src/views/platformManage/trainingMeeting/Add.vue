@@ -19,7 +19,7 @@
   >
     <!-- 内容区 -->
     <div class="dialog-body">
-      <el-form ref="formRef" :model="form" label-width="120px" style="margin-top: 20px" :rules="rules">
+      <el-form ref="formRef" :model="form" label-width="110px" label-position="left" :rules="rules">
         <el-row :gutter="20">
           <el-col :span="12" v-if="isView">
             <el-form-item label="培训会议状态" prop="meetingStatus">
@@ -175,7 +175,7 @@
       </div>
     </template>
     <!-- 查询 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="100">
+    <el-form ref="queryFormRef" :model="queryParams" inline :label-width="70" label-position="left">
       <el-form-item label="专家姓名">
         <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable />
       </el-form-item>
@@ -217,7 +217,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <div class="flex-center pagination">
+    <div class="flex-center pagination" style="display: flex; justify-content: end; align-items: end">
       <pagination
         v-show="total > 0"
         v-model:page="queryParams.pageNum"
@@ -728,7 +728,7 @@ const handleSave = async () => {
 }
 
 .pagination {
-  margin-top: 15px;
+  /* margin-top: 15px; */
   margin-bottom: 15px;
 }
 
@@ -745,6 +745,7 @@ const handleSave = async () => {
 
 .dialog-body {
   padding: 20px;
+  padding-top: 0;
   /* height: calc(100vh - 60px); */
   /* overflow-y: auto; */
 }

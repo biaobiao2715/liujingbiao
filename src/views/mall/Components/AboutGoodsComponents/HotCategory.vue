@@ -38,7 +38,7 @@ const hotCategoryList = ref([
 
 <style scoped lang="scss">
 .hot-category-container {
-  padding: 12px;
+  margin-top: 32px;
 }
 .title {
   font-size: 20px;

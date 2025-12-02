@@ -63,7 +63,7 @@
                 <span class="overlay-text">加入对比</span>
               </div>
 
-              <el-image :src="item.sysOssLists?.[0]?.url" fit="cover" class="goods-image" />
+              <!-- <el-image :src="item.sysOssLists?.[0]?.url" fit="cover" class="goods-image" />
               <div class="goods-info">
                 <div class="price-row">
                   <span class="price">¥{{ getPrice(item) }}元/袋</span>
@@ -76,7 +76,8 @@
                   </el-tag>
                   <span class="location">{{ item.hnBaseEnterpriseInfo?.province }}</span>
                 </div>
-              </div>
+              </div> -->
+              <GoodsItemComponent :goods="item" />
             </div>
           </div>
           <div v-else class="empty-state-wrapper">
@@ -494,12 +495,13 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .compare-goods-page {
+  width: 1500px;
   padding: 20px;
   background: #f5f7fa;
   position: relative;
 
   .page-content {
-    max-width: 1400px;
+    width: 100%;
     position: relative;
     margin: 0 auto;
   }

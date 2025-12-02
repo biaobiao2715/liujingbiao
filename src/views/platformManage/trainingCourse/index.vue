@@ -150,48 +150,37 @@
       <el-table-column label="操作" align="left" width="280" fixed="right" class-name="flex-center">
         <template #default="scope">
           <!-- <div class="operation-buttons"> -->
-          <el-tooltip content="编辑" placement="top">
-            <el-button
-              class="operation-link-button"
-              v-throttle
-              type="text"
-              @click="handleEdit(scope.row)"
-              v-hasPermi="['skill:courseCultivate:edit']"
-            >
-              编辑
-            </el-button>
-          </el-tooltip>
-          <el-tooltip content="查看" placement="top">
-            <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
-          </el-tooltip>
-          <el-tooltip content="禁用" placement="top">
-            <el-button class="operation-link-button" v-if="scope.row.cultivateStatus === '1'" type="text" @click="handleStatusChange(scope.row, '2')">
-              禁用
-            </el-button>
-          </el-tooltip>
-          <el-tooltip content="启用" placement="top">
-            <el-button
-              class="operation-link-button"
-              v-if="scope.row.cultivateStatus === '2'"
-              v-throttle
-              type="text"
-              @click="handleStatusChange(scope.row, '1')"
-            >
-              启用
-            </el-button>
-          </el-tooltip>
-          <el-tooltip content="删除" placement="top">
-            <el-button
-              class="operation-link-button"
-              v-throttle
-              v-show="scope.row.cultivateStatus === '2'"
-              type="text"
-              @click="handleDeleteSingle(scope.row)"
-              v-hasPermi="['skill:courseCultivate:remove']"
-            >
-              删除
-            </el-button>
-          </el-tooltip>
+
+          <el-button class="operation-link-button" v-throttle type="text" @click="handleEdit(scope.row)" v-hasPermi="['skill:courseCultivate:edit']">
+            编辑
+          </el-button>
+
+          <el-button class="operation-link-button" v-throttle type="text" @click="handleView(scope.row)"> 查看 </el-button>
+
+          <el-button class="operation-link-button" v-if="scope.row.cultivateStatus === '1'" type="text" @click="handleStatusChange(scope.row, '2')">
+            禁用
+          </el-button>
+
+          <el-button
+            class="operation-link-button"
+            v-if="scope.row.cultivateStatus === '2'"
+            v-throttle
+            type="text"
+            @click="handleStatusChange(scope.row, '1')"
+          >
+            启用
+          </el-button>
+
+          <el-button
+            class="operation-link-button"
+            v-throttle
+            v-show="scope.row.cultivateStatus === '2'"
+            type="text"
+            @click="handleDeleteSingle(scope.row)"
+            v-hasPermi="['skill:courseCultivate:remove']"
+          >
+            删除
+          </el-button>
 
           <!-- </div> -->
         </template>

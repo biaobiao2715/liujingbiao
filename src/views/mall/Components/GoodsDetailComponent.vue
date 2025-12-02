@@ -235,6 +235,7 @@ import PlaceOrderComponent from './AboutCompareComponents/PlaceOrderComponent.vu
 import GoodsItemComponent from './GoodsItemComponent.vue';
 import { Check } from '@element-plus/icons-vue';
 import ReportDialog from './AboutCompareComponents/ReportDialog.vue';
+import { eventBus } from '@/utils/eventBus';
 
 const props = defineProps<{
   id?: number;
@@ -469,18 +470,21 @@ const updateBreadcrumb = () => {
 
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
 const operateOrder = (type: number) => {
+  console.log(type);
+  
   switch (type) {
     case 1:
       // 加入比价 - 跳转到比价选择页面
-      if (!goods.value) {
-        ElMessage.warning('商品信息加载中，请稍候');
-        return;
-      }
-      // 跳转到比价页面，传递商品id
-      router.push({
-        path: '/mall/compare-goods',
-        query: { id: goods.value.id }
-      });
+      // if (!goods.value) {
+      //   ElMessage.warning('商品信息加载中，请稍候');
+      //   return;
+      // }
+      // // 跳转到比价页面，传递商品id
+      // router.push({
+      //   path: '/mall/compare-goods',
+      //   query: { id: goods.value.id }
+      // });
+      eventBus.emit('activeTabChange', { command: 'compareGoods', goods: goods.value });
       break;
     case 2:
       if (!baseInfo.currentSpec) {
