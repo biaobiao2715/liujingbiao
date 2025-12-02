@@ -131,7 +131,7 @@
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="left" fixed="right" width="280" :show-overflow-tooltip="true">
+      <el-table-column label="操作" align="left" fixed="right" width="280">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>

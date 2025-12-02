@@ -109,7 +109,9 @@
             <el-button v-throttle link class="operation-link-button" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button v-throttle link class="operation-link-button" @click="handleView(scope.row)">查看</el-button>
             <el-button v-throttle link class="operation-link-button" @click="handleUpdateVersion(scope.row)">更新版本</el-button>
-            <el-button v-throttle link class="operation-link-button" @click="handleDeleteSingle(scope.row)">删除</el-button>
+            <el-button v-throttle link class="operation-link-button" :disabled="scope.row.isUsing" @click="handleDeleteSingle(scope.row)"
+              >删除</el-button
+            >
           </div>
         </template>
       </el-table-column>
@@ -164,7 +166,7 @@
             accept=".pdf,.doc,.docx"
           >
             <el-button class="upload-trigger" type="primary" :loading="uploadLoading">
-              <el-icon class="el-icon--left"><UploadFilled /></el-icon>
+              <el-icon class="el-icon--left"><Plus /></el-icon>
               上传文件
             </el-button>
             <span v-if="updateForm.fileList.length" class="selected-file">{{ updateForm.fileList[0].name }}</span>
@@ -189,7 +191,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button class="legal-btn-cancel" @click="updateDialogVisible = false">取消</el-button>
-          <el-button class="legal-btn-primary" type="primary" @click="handleConfirmUpdate">确认</el-button>
+          <el-button type="primary" @click="handleConfirmUpdate">确认</el-button>
         </div>
       </template>
     </el-dialog>
@@ -210,7 +212,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import Pagination from '@/components/Pagination/index.vue';
-import { UploadFilled, Search, RefreshLeft } from '@element-plus/icons-vue';
+import { UploadFilled, Search, RefreshLeft, Plus } from '@element-plus/icons-vue';
 import {
   fetchLegalDocumentList,
   fetchCreateLegalDocumentList,
@@ -390,7 +392,7 @@ const showDeleteConfirm = (message: string) => {
     customClass: 'legal-confirm-dialog',
     confirmButtonClass: 'legal-confirm-primary',
     cancelButtonClass: 'legal-confirm-cancel',
-    center: true
+    center: false
   });
 };
 
@@ -723,17 +725,25 @@ onMounted(() => {
 :deep(.legal-confirm-dialog) {
   .el-message-box__header {
     padding-bottom: 0;
+    text-align: left;
   }
 
   .el-message-box__title {
     font-size: 18px;
     font-weight: 600;
+    text-align: left;
   }
 
   .el-message-box__content {
     padding-top: 8px;
     color: #333;
     font-size: 15px;
+    text-align: left;
+  }
+
+  .el-message-box__btns {
+    text-align: right;
+    justify-content: flex-end;
   }
 }
 
@@ -764,19 +774,13 @@ onMounted(() => {
 
 .dialog-footer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 20px;
 }
 
 .legal-btn-cancel {
   border-color: #d9d9d9;
   color: #333;
-}
-
-.legal-btn-primary {
-  background-color: #0d5dff;
-  border-color: #0d5dff;
-  color: #fff;
 }
 
 .legal-document-container {
@@ -910,15 +914,9 @@ onMounted(() => {
   gap: 16px;
 
   .upload-trigger {
-    background-color: #f5f5f5;
+    // background-color: #f5f5f5;
     border-color: #d9d9d9;
-    color: #000;
-
-    &:hover {
-      border-color: #0d5dff;
-      color: #0d5dff;
-      background-color: #fff;
-    }
+    // color: #000;
   }
 }
 

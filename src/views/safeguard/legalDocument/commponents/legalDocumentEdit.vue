@@ -25,16 +25,16 @@
       v-loading="loading"
       element-loading-text="加载中..."
     >
-      <el-form-item :label="isViewMode ? '文书名称' : '法律文书模版名称'" prop="legalDocumentName">
+      <el-form-item :label="isViewMode ? '文书名称' : '法律文书模版名称'" prop="legalDocumentName" class="legal-form-left-item">
         <el-input v-model="formData.legalDocumentName" placeholder="请输入法律文书模版名称" maxlength="30" show-word-limit :disabled="isViewMode" />
         <p v-if="!formData.legalDocumentName && !isViewMode" class="tip-text">请输入法律文书模版名称，最多支持30个汉字</p>
       </el-form-item>
 
-      <el-form-item label="法律文书模版编号">
+      <el-form-item label="法律文书模版编号" class="legal-form-left-item">
         <el-input v-model="formData.legalDocumentCode" disabled />
       </el-form-item>
 
-      <el-form-item label="法律文书模版文件" prop="legalFiles" v-if="!isViewMode">
+      <el-form-item label="法律文书模版文件" prop="legalFiles" v-if="!isViewMode" class="legal-form-left-item">
         <el-upload
           ref="uploadRef"
           class="upload-wrapper"
@@ -115,7 +115,7 @@
         </div>
       </div>
 
-      <el-form-item label="所属状态" prop="status">
+      <el-form-item label="所属状态" prop="status" class="legal-form-left-item">
         <el-select v-if="!isViewMode" v-model="formData.status" placeholder="请选择">
           <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
@@ -457,6 +457,18 @@ const handleClose = () => {
 }
 
 .legal-edit-form {
+  .legal-form-left-item {
+    :deep(.el-form-item__label) {
+      width: auto !important;
+      padding-right: 12px !important;
+      margin-right: 0 !important;
+    }
+
+    :deep(.el-form-item__content) {
+      margin-left: 0 !important;
+    }
+  }
+
   .tip-text {
     margin-top: 4px;
     color: #f56c6c;
