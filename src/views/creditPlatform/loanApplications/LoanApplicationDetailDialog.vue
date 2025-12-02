@@ -827,9 +827,9 @@ const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
 
     // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
     const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
-    if (!ossId) {
-      throw new Error('上传失败，未获取到文件标识');
-    }
+    // if (!ossId) {
+    //   throw new Error('上传失败，未获取到文件标识');
+    // }
 
     return {
       ossId,
