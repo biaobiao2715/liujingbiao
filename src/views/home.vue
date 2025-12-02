@@ -39,7 +39,7 @@ import { useRouter } from 'vue-router';
 import { getInfo, thirdPartyLogin } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
-import { initSSE } from '@/utils/sseOld';
+import { initSSE } from '@/utils/sse';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 
