@@ -15,7 +15,8 @@
   .el-menu-item:hover {
     background-color: #108c581a !important;
   }
-  .el-menu-item.is-active {
+  .el-menu-item.is-active,
+  .el-sub-menu__title:hover {
     color: var(--color-main) !important;
     background-color: #108c581a !important;
   }
