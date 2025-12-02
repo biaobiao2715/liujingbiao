@@ -18,7 +18,7 @@
         <div v-if="titleTouched && !formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
-      <el-form-item label="上传附件" prop="attachment" required :show-message="false">
+      <el-form-item label="上传附件">
         <div class="attachment-section">
           <el-upload
             action="#"
@@ -33,15 +33,6 @@
               <el-icon class="el-icon--left"><Upload /></el-icon>
               添加附件
             </el-button>
-            <template #tip>
-              <div
-                v-if="attachmentTouched && attachmentList.length === 0"
-                class="upload-tip warning"
-                style="color: #f56c6c; font-weight: 500;"
-              >
-                请上传一个附件
-              </div>
-            </template>
           </el-upload>
         </div>
       </el-form-item>
@@ -189,7 +180,6 @@ const formRef = ref();
 const saving = ref(false);
 const loading = ref(false);
 const titleTouched = ref(false);
-const attachmentTouched = ref(false);
 
 const formData = ref({
   id: undefined as number | string | undefined,
@@ -382,18 +372,6 @@ const rules = {
   paperTitle: [
     { required: true, message: '请输入标题内容，最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
-  ],
-  attachment: [
-    {
-      validator: (_rule: any, _value: any, callback: any) => {
-        if (attachmentList.value.length === 0) {
-          callback(new Error('请上传一个附件'));
-        } else {
-          callback();
-        }
-      },
-      trigger: ['change', 'blur']
-    }
   ]
 };
 
@@ -624,9 +602,6 @@ const handleFileChange = async (file: any) => {
         });
       }
       
-      formData.value.attachment = 'has_attachment';
-      formRef.value?.validateField('attachment');
-      
       ElMessage.success('附件上传成功');
     } else {
       ElMessage.error('上传失败，请重试');
@@ -730,8 +705,6 @@ const handleRemoveFile = (file: any) => {
       );
       if (index !== -1) {
         attachmentList.value.splice(index, 1);
-        formData.value.attachment = attachmentList.value.length > 0 ? 'has_attachment' : '';
-        formRef.value?.validateField('attachment');
         ElMessage.success('附件删除成功');
       }
     })
@@ -887,7 +860,6 @@ const fetchWhitePaperDetail = async () => {
       ElMessage.error(response?.msg || '获取白皮书详情失败');
     }
     titleTouched.value = false;
-    attachmentTouched.value = false;
   } catch (error) {
     ElMessage.error('获取白皮书详情失败，请稍后重试');
   } finally {
@@ -899,20 +871,10 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
   
   titleTouched.value = true;
-  attachmentTouched.value = true;
   
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
-    
-    const attachmentValid = await new Promise((resolve) => {
-      formRef.value?.validateField('attachment', (valid: boolean) => {
-        resolve(valid);
-      });
-    });
-    if (!attachmentValid) {
-      return;
-    }
     
     // 编辑模式下如果没有上传新附件，跳过版本号验证
     if (props.type === 'add' && attachmentList.value.length > 0) {
@@ -1055,7 +1017,6 @@ watch(
       uploadedVersions.value = [];
       formRef.value?.resetFields?.();
       titleTouched.value = false;
-      attachmentTouched.value = false;
     }
   },
   { immediate: true }
