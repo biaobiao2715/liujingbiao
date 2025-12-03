@@ -149,7 +149,7 @@ const SECRET_KEY = 'grain_sales_secret_key';
 
 const tenantType = ref('');
 
-onMounted(() => {
+onMounted(async () => {
   getUserInfo();
 });
 
@@ -200,9 +200,8 @@ const getCacheInfo = () => {
   const clientId = import.meta.env.VITE_APP_CLIENT_ID;
 
   return {
-    username: JSON.parse(decryptedData).phone,
-    password: JSON.parse(decryptedData).password,
-
+    username: userStore.userName,
+    password: '111111',
     clientId,
     tenantId: userInfo.value.tenantId,
     'form': true,
