@@ -256,12 +256,7 @@
 
             <el-col :span="12">
               <el-form-item label="设置密码" prop="password" required>
-                <el-input
-                  v-model="formData.password"
-                  type="password"
-                  placeholder="输入密码，包含8-20位大小写字母、符号或数字两种以上"
-                  show-password
-                />
+                <el-input v-model="formData.password" type="password" placeholder="长度8-16位，且至少包含大小写字母、数字中的2种" show-password />
               </el-form-item>
             </el-col>
             <el-col :span="12"></el-col>
@@ -532,11 +527,17 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    { min: 8, max: 16, message: '密码长度为8-16位', trigger: 'blur' },
     {
       validator: (rule, value) => {
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
-          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+        const v = String(value || '');
+        if (v.length < 8 || v.length > 16) return new Error('密码长度为8-16位');
+        let cnt = 0;
+        if (/[A-Z]/.test(v)) cnt++;
+        if (/[a-z]/.test(v)) cnt++;
+        if (/\d/.test(v)) cnt++;
+        if (cnt < 2) {
+          return new Error('密码需为8-16位，且至少包含大小写字母、数字中的2种');
         }
         return true;
       },
