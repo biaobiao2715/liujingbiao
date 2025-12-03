@@ -653,7 +653,7 @@ const handleDiplomaChange = (file: any) => {
             const data = res?.data?.[0] || {};
             Object.keys(data).forEach((key) => {
               const mappedKey = ocrMap[key] || key;
-              if (data[key] && mappedKey !== 'sex') {
+              if (data[key] && mappedKey !== 'sex' && mappedKey !== 'enrollmentDate') {
                 formData.value[mappedKey] = data[key];
               } else if (mappedKey === 'sex' && data[key]) {
                 formData.value[mappedKey] = data[key] === '男' ? '0' : '1';
