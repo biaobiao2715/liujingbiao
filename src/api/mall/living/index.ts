@@ -8,5 +8,11 @@ export function VideoList(data: any) {
     params: data
   });
 }
-
-
+// 增加播放量
+export function addViewRecordsApi(data: any) {
+  return request({
+    url: 'skill-server/skill/addViewRecords',
+    method: 'get',
+    params: data
+  });
+}
