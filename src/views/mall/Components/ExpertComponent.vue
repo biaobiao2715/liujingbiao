@@ -1,6 +1,8 @@
 <template>
   <div class="expert-container">
     <div class="show-area" v-if="showArea === 'area'">
+      <!-- 轮播图组件 -->
+      <BannerComponent />
       <!-- 专家咨询 -->
       <ConsultationComponent @detailChange="showDetail" />
       <!-- 专家问答 -->
@@ -57,6 +59,7 @@ import LivingComponent from './AboutExpertComponents/LivingComponent.vue'; // �
 import LawContentDetailComponent from './AboutExpertComponents/LawContentDetailComponent.vue'; // 普法内容详情组件
 import LawActivityDetailComponent from './AboutExpertComponents/LawActivityDetailComponent.vue'; // 普法活动详情组件
 import LawWhiteDetailComponent from './AboutExpertComponents/LawWhiteDetailComponent.vue'; // 普法白皮书组件
+import BannerComponent from './AboutExpertComponents/BannerComponent.vue'; // 轮播图组件
 
 type showAreaType =
   | 'area'

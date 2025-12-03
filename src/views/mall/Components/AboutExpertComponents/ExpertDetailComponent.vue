@@ -87,9 +87,7 @@ const getQuestionList = async () => {
 
 // 获取头像url
 const getAvatarUrl = (imgList) => {
-  console.log(imgList);
-
-  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo.url;
+  return imgList.filter((img) => img.fileType === '0')[0]?.ossInfo?.url;
 };
 
 defineExpose({

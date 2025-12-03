@@ -112,7 +112,6 @@ const addViewCount = async () => {
 
 // 增加下载量
 const addDownloadCount = async (item: any) => {
-  console.log(item);
   const response = await fetch(item.url);
   const blob = await response.blob();
 
@@ -122,7 +121,6 @@ const addDownloadCount = async (item: any) => {
   a.href = url;
   a.download = item.originalName || 'file.txt';
   a.click();
-  // 移除a标签
   document.body?.removeChild(a);
 
   addDownloadRecords({

@@ -130,6 +130,11 @@ const initTenantList = async () => {
 const handleLogin = async () => {
   loading.value = true;
   accountForm.value.username = accountForm.value.phone; // 将手机号赋值给用户名字段
+  if (!tenantMap.value || Object.keys(tenantMap.value).length === 0) {
+    ElMessage.error('租户列表为空,请刷新页面重试');
+    loading.value = false;
+    return;
+  }
 
   try {
     if (!validatePhoneNumber()) return; // 校验手机号
@@ -147,6 +152,11 @@ const handleLogin = async () => {
       clientId: import.meta.env.VITE_APP_CLIENT_ID
     })
       .then(async (res: any) => {
+        if (res.code !== 200) {
+          ElMessage.error(res.msg || '登录失败,请稍后重试');
+          loading.value = false;
+          return;
+        }
         ElMessage.success('登录成功');
         // 存储 token
         setToken(res.data.access_token);

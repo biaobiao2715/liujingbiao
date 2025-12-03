@@ -19,7 +19,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-empty v-if="cases.length === 0" description="暂无政策法规"></el-empty>
+      <el-empty v-if="cases.length === 0" description="政策法规待发布"></el-empty>
     </div>
   </div>
 </template>
@@ -38,9 +38,9 @@ const loading = ref(false);
 // 基础查询参数（如需筛选可在此扩展）
 const queryParams = ref({
   pageNum: 1,
-  pageSize: 10,
+  pageSize: 12,
   articleStatus: 2,
-  articleTypes: ['1', '2']
+  articleTypes: ['1', '2', '4', '99'] // 只获取政策法规和行业资讯和其他
 });
 
 onMounted(() => {

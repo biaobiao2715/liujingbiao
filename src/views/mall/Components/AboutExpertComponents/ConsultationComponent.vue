@@ -1,39 +1,42 @@
 <template>
   <!-- 专家咨询 -->
   <div class="consultation-container">
-    <el-card>
-      <template #header>
-        <div class="flex-center-between">
-          <div class="flex-center gap-24">
-            <div class="title">专家咨询</div>
-            <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" />
-          </div>
-          <el-button type="text" @click="toggleExpand">
-            <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
-            <el-icon v-else size="32"><ArrowDownBold /></el-icon>
-          </el-button>
+    <div class="title">热门专家</div>
+    <div class="content-box">
+      <div class="flex-center-between">
+        <div class="flex-center gap-24">
+          <!-- <div class="title">专家咨询</div> -->
+          <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" />
         </div>
-      </template>
+        <el-button type="text" @click="toggleExpand">
+          <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
+          <el-icon v-else size="32"><ArrowDownBold /></el-icon>
+        </el-button>
+      </div>
 
       <div class="content flex gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
-        <el-card v-for="(expert, index) in expertList" :key="expert.id" class="expert-item" shadow="hover" v-show="isExpanded || index < 4">
-          <div class="title-info flex gap-12" @click="handleDetail(expert)">
-            <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
-            <div>
-              <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
-              <div class="flex gap-24 mt-12">
-                <el-statistic title="咨询量" :value="expert.questionCount" />
-                <el-statistic title="回复量" :value="expert.answerCount" />
+        <el-row>
+          <el-col>
+            <el-card v-for="(expert, index) in expertList" :key="expert.id" class="expert-item" v-show="isExpanded || index < 4">
+              <div class="title-info flex gap-12" @click="handleDetail(expert)">
+                <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
+                <div>
+                  <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
+                  <div class="flex gap-24 mt-12">
+                    <el-statistic title="咨询量" :value="expert.questionCount" />
+                    <el-statistic title="回复量" :value="expert.answerCount" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="description">{{ expert.expertInfo }}</div>
-          <div class="flex-center-center">
-            <el-button @click="handleConsultation(expert)">立即咨询</el-button>
-          </div>
-        </el-card>
+              <div class="description">{{ expert.expertInfo }}</div>
+              <div class="flex-center-center">
+                <el-button @click="handleConsultation(expert)">立即咨询</el-button>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
-    </el-card>
+    </div>
     <!-- 专家详情弹窗 -->
     <ExpertDetailComponent ref="expertDetailRef" @submitSuccess="handleChange"></ExpertDetailComponent>
     <!-- 咨询专家弹窗 -->
@@ -113,13 +116,23 @@ const handleDetail = (expert) => {
 <style scoped lang="scss">
 .consultation-container {
   .title {
+    color: #3d3d3d;
     font-size: 20px;
     font-weight: bold;
+    border-left: 2px solid #108c58;
+    padding-left: 8px;
+    line-height: 16px;
+    margin-bottom: 16px;
+  }
+
+  .content-box {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
   }
 
   .content {
-    min-height: 200px;
-    transition: max-height 0.3s ease;
+    margin-top: 16px;
 
     &.expanded {
       max-height: none;
@@ -129,6 +142,7 @@ const handleDetail = (expert) => {
       width: calc(25% - 8px);
       margin-bottom: 10px;
       cursor: pointer;
+      border-radius: 8px;
       .title-info {
         font-size: 16px;
         font-weight: bold;
