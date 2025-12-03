@@ -126,7 +126,7 @@
               发货
             </el-button>
             <el-button
-              type="danger"
+              type="primary"
               link
               @click="handleCancel(scope.row)"
               v-hasPermi="['grain:hnSalesOrder:cancelSalesOrder']"
@@ -138,7 +138,13 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="操作确认" v-model="dialogVisible" width="30%">
+    <el-dialog title="提示" v-model="dialogVisible" width="30%">
+      <template #header="{ close, titleId, titleClass }">
+        <div class="flex items-center">
+          <el-icon color="#e6a23c" size="24"><WarningFilled /></el-icon>
+          <span class="ml-2">提示</span>
+        </div>
+      </template>
       <span>取消后无法恢复，是否确认取消订单</span>
       <template #footer>
         <span class="dialog-footer">

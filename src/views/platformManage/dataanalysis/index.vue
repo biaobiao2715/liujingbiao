@@ -422,7 +422,8 @@ onActivated(() => {
     }
 
     &.active {
-      background-color: #409eff;
+      // background-color: #409eff;
+      background-color: var(--el-color-primary);
       color: #fff;
     }
   }

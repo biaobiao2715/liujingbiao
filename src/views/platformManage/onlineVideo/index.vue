@@ -43,19 +43,30 @@
         <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:onlineVideo:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle type="success" class="custom-action-btn" :disabled="selectedRows.length === 0" @click="handleEnable">启用</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button v-throttle type="warning" class="custom-action-btn" :disabled="selectedRows.length === 0" @click="handleDisable">禁用</el-button>
+        <el-button
+          v-throttle
+          :style="selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :color="selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
+          @click="handleEnable"
+          >启用</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button
           v-throttle
-          type="danger"
+          :style="selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :color="selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
+          @click="handleDisable"
+          >禁用</el-button
+        >
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          v-throttle
           v-hasPermi="['skill:onlineVideo:remove']"
           @click="handleDelete"
-          :disabled="selectedRows.length === 0"
-          class="custom-action-btn delete-btn"
+          :style="selectedRows.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :color="selectedRows.length === 0 ? '#F2F3F5' : '#F23255'"
           >删除</el-button
         >
       </el-col>
@@ -118,15 +129,15 @@
         <template #default="scope">
           <div class="operation-buttons">
             <el-button v-throttle link type="primary" @click="handleEdit(scope.row)" v-hasPermi="['skill:onlineVideo:edit']"> 编辑 </el-button>
-            <el-button v-if="scope.row.videoStatus === '1'" link type="warning" @click="handleStatusChange(scope.row, '2')"> 禁用 </el-button>
-            <el-button v-if="scope.row.videoStatus === '2'" link v-throttle type="success" @click="handleStatusChange(scope.row, '1')">
+            <el-button v-if="scope.row.videoStatus === '1'" link type="primary" @click="handleStatusChange(scope.row, '2')"> 禁用 </el-button>
+            <el-button v-if="scope.row.videoStatus === '2'" link v-throttle type="primary" @click="handleStatusChange(scope.row, '1')">
               启用
             </el-button>
             <el-button
               v-throttle
               link
               v-show="scope.row.videoStatus === '2'"
-              type="danger"
+              type="primary"
               v-hasPermi="['skill:onlineVideo:remove']"
               @click="handleDeleteSingle(scope.row)"
             >
@@ -319,11 +330,10 @@ const handleEnable = () => {
   }
 
   // 弹窗确认
-  ElMessageBox.confirm('是否确认启用？', '操作确认', {
+  ElMessageBox.confirm('是否确认启用？', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
-    type: 'warning',
-    center: true
+    type: 'warning'
   })
     .then(() => {
       // 批量启用 - 使用正确的数据格式
@@ -375,11 +385,10 @@ const handleDisable = () => {
   }
 
   // 弹窗确认
-  ElMessageBox.confirm('是否确认禁用？', '操作确认', {
+  ElMessageBox.confirm('是否确认禁用？', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
-    type: 'warning',
-    center: true
+    type: 'warning'
   })
     .then(() => {
       // 批量停用 - 使用正确的数据格式
@@ -425,11 +434,10 @@ const handleDelete = async () => {
   }
 
   try {
-    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '操作确认', {
+    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     });
 
     await hnOnlineVideodelete(selectedIds.value);
@@ -472,11 +480,10 @@ const handleStatusChange = async (row: any, newStatus: string) => {
   const statusText = newStatus === '1' ? '启用' : '禁用';
 
   try {
-    await ElMessageBox.confirm(`是否确认${statusText}？`, '操作确认', {
+    await ElMessageBox.confirm(`是否确认${statusText}？`, '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     });
 
     await updateStatus({
@@ -500,11 +507,10 @@ const handleDeleteSingle = async (row: any) => {
     return ElMessage.warning('请禁用后再删除');
   }
   try {
-    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '操作确认', {
+    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     });
 
     await hnOnlineVideodelete([row.id]);
