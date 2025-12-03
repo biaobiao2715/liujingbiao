@@ -21,7 +21,7 @@
       </el-form-item>
       <!-- 手机号输入 -->
       <el-form-item label="手机号" prop="phoneNumber">
-        <el-input v-model="form.phoneNumber" placeholder="请输入手机号" />
+        <el-input v-model="form.phoneNumber" maxlength="11" @input="onPhoneInput" placeholder="请输入手机号" />
       </el-form-item>
       <!-- 短信验证码输入 -->
       <el-form-item label="短信验证码" prop="smsCode">
@@ -103,6 +103,7 @@ const rules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phoneNumber: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
+    { min: 11, max: 11, message: '手机号必须为11位', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
@@ -156,6 +157,11 @@ onMounted(() => {
     }
   });
 });
+
+const onPhoneInput = (val) => {
+  // 强制过滤所有非数字
+  form.value.phoneNumber = val.replace(/\D/g, '').slice(0, 11);
+};
 
 // 切换密码可见性
 const togglePasswordVisibility = () => {
@@ -226,5 +232,14 @@ const submitForm = () => {
 
 .next-button {
   width: 100%;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
 }
 </style>

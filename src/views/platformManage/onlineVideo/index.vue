@@ -21,8 +21,8 @@
         <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择发布时间" value-format="YYYY-MM-DD HH:mm:ss" />
       </el-form-item>
       <!-- 发布人 -->
-      <el-form-item label="发布人" prop="publishUse">
-        <el-input v-model.trim="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="发布人" prop="publishUser">
+        <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="videoStatus">
@@ -63,11 +63,11 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="table-layout: fixed" @selection-change="handleSelectionChange">
       <el-table-column type="selection" />
       <el-table-column type="index" width="100" label="序号" />
       <!-- 课程标题 -->
-      <el-table-column label="直播名称" prop="title">
+      <el-table-column label="直播名称" prop="title" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.title || '-' }}</span>
         </template>
@@ -196,7 +196,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   title: '', //直播名称
-  publishUse: '', // 发布人
+  publishUser: '', // 发布人
   videoStatus: '', // 所属状态
   createTime: '' //发布时间
 });
@@ -231,7 +231,7 @@ const getList = () => {
   console.log('queryParams.value', queryParams.value);
 
   // 调用API接口
-  gethnOnlineVideoList(queryParams.value)
+  gethnOnlineVideoList({ ...queryParams.value, orderByColumn: 'createTime', isAsc: 'desc' })
     .then((res: any) => {
       if (res && res.code === 200) {
         tableData.value = res.rows || [];
@@ -268,7 +268,7 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     title: '', //直播名称
-    publishUse: '', // 发布人
+    publishUser: '', // 发布人
     videoStatus: '', // 所属状态
     createTime: '' //发布时间
   };
