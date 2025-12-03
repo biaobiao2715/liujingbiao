@@ -21,8 +21,8 @@
         <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择发布时间" value-format="YYYY-MM-DD HH:mm:ss" />
       </el-form-item>
       <!-- 发布人 -->
-      <el-form-item label="发布人" prop="publishUse">
-        <el-input v-model.trim="queryParams.publishUse" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="发布人" prop="publishUser">
+        <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="videoStatus">
@@ -196,7 +196,7 @@ const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
   title: '', //直播名称
-  publishUse: '', // 发布人
+  publishUser: '', // 发布人
   videoStatus: '', // 所属状态
   createTime: '' //发布时间
 });
@@ -268,7 +268,7 @@ const handleReset = () => {
     pageNum: 1,
     pageSize: 10,
     title: '', //直播名称
-    publishUse: '', // 发布人
+    publishUser: '', // 发布人
     videoStatus: '', // 所属状态
     createTime: '' //发布时间
   };
