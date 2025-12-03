@@ -68,15 +68,14 @@ const getArticleDetail = async () => {
   border-radius: 8px 8px 8px 8px;
   /* 背景优化：保留白色底色 + 分离尺寸，稍作内边距偏移避免紧贴边缘 */
   background: #ffffff url('@/assets/images/finance/loan-book-decoration.png') no-repeat right 40px top 0px;
-  background-size: 180px auto;
+  /* 背景图高度自适应容器高度，宽度按比例自适应 */
+  background-size: auto 100%;
   /* 视网膜屏细节提升（可选） */
   image-rendering: -webkit-optimize-contrast;
 }
 
 .item_title {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 30px;
 }
 .item_type {
   font-size: 14px;
@@ -93,13 +92,14 @@ const getArticleDetail = async () => {
 }
 
 .item-start {
-  height: 21px;
+  // height: 27px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 28px;
   color: #3d3d3d;
-  line-height: 21px;
-  margin-bottom: 36px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
 }
 
 .item-end {

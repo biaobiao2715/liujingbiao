@@ -304,7 +304,6 @@ const getLoanAmount = async () => {
 }
 
 .item_productName {
-  height: 69px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 50px;
@@ -314,9 +313,6 @@ const getLoanAmount = async () => {
   font-style: normal;
   text-transform: none;
   margin-bottom: 22px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .item_type {

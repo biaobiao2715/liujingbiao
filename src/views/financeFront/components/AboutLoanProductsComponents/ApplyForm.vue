@@ -11,7 +11,7 @@
     - 注释补充: 2025-11-24 Copilot
 -->
 <template>
-  <div class="supplier-edit-details" :class="{ 'details-mode': DetailsStatus === 'details' }">
+  <div class="supplier-edit-details">
     <!-- 基础信息 -->
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px">
       <!-- 供应商/企业 -->
@@ -111,12 +111,22 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="法人证件正面" class="uploadcss" prop="idCardPhotoFront2">
-                <SingleImageUpload :uploader="uploaderLegalFront" :placeholder-src="idCardFrontPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderLegalFront"
+                  :placeholder-src="idCardFrontPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传人像面"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="法人证件反面" class="uploadcss" prop="idCardPhotoBack2">
-                <SingleImageUpload :uploader="uploaderLegalBack" :placeholder-src="idCardBackPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderLegalBack"
+                  :placeholder-src="idCardBackPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传国徽面"
+                />
               </el-form-item>
             </el-col>
           </el-row>
@@ -139,7 +149,12 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderIdFront"
+                  :placeholder-src="idCardFrontPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传人像面"
+                />
               </el-form-item>
             </el-col>
 
@@ -154,6 +169,7 @@
                   :http-request="uploaderAuthorization.uploadRequest"
                   :on-remove="uploaderAuthorization.handleRemove"
                   :on-exceed="uploaderAuthorization.handleExceed"
+                  :disabled="DetailsStatus === 'details'"
                 >
                   <template #default>
                     <el-button type="primary" plain>
@@ -167,7 +183,12 @@
 
             <el-col :span="12">
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderIdBack"
+                  :placeholder-src="idCardBackPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传国徽面"
+                />
               </el-form-item>
             </el-col>
           </el-row>
@@ -217,12 +238,22 @@
             <el-col :span="12"></el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderIdFront"
+                  :placeholder-src="idCardFrontPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传人像面"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholder" />
+                <SingleImageUpload
+                  :uploader="uploaderIdBack"
+                  :placeholder-src="idCardBackPlaceholder"
+                  :disabled="DetailsStatus === 'details'"
+                  caption="上传国徽面"
+                />
               </el-form-item>
             </el-col>
           </el-row>
@@ -272,12 +303,22 @@
           <el-col :span="12"></el-col>
           <el-col :span="12">
             <el-form-item label="银行卡正面" class="uploadcss" prop="bankCardPhotoFront">
-              <SingleImageUpload :uploader="uploaderBankFront" :placeholder-src="bankCardFrontPlaceholder" />
+              <SingleImageUpload
+                :uploader="uploaderBankFront"
+                :placeholder-src="bankCardFrontPlaceholder"
+                :disabled="DetailsStatus === 'details'"
+                caption="上传银行卡正面"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="银行卡反面" class="uploadcss" prop="bankCardPhotoBack">
-              <SingleImageUpload :uploader="uploaderBankBack" :placeholder-src="bankCardBackPlaceholder" />
+              <SingleImageUpload
+                :uploader="uploaderBankBack"
+                :placeholder-src="bankCardBackPlaceholder"
+                :disabled="DetailsStatus === 'details'"
+                caption="上传银行卡反面"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -321,6 +362,7 @@ import idCardFrontPlaceholder from '@/assets/images/finance/id-card-front-placeh
 import idCardBackPlaceholder from '@/assets/images/finance/id-card-back-placeholder.png';
 import bankCardFrontPlaceholder from '@/assets/images/finance/bank-card-front-placeholder.png';
 import bankCardBackPlaceholder from '@/assets/images/finance/bank-card-back-placeholder.png';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 统一加载需要的字典（审核状态/资质等级/信用等级/证件类型/贷款周期/还款方式/银行代码）
@@ -741,20 +783,40 @@ function createPdfUploader(targetField: keyof typeof formData.value, exceedMsg: 
     }
     return true;
   };
+
   const uploadRequest = async (opt: UploadRequestOptions) => {
     try {
-      const res = await ossUploadImage({ file: opt.file as File });
-      if (res.code === 200) {
+      // 统一的大小阈值（>5MB 走分片）
+      const MAX_SIZE = 100 * 1024 * 1024; // 5MB
+      if ((opt.file as File).size > MAX_SIZE) {
+        // 分片上传
+        const res: any = await uploadByChunks(opt.file, (percent) => {
+          console.log('上传进度:', percent + '%');
+        });
+
+        if (!res || !res.ossId) throw new Error('分片上传失败');
         const f: UploadFile = {
-          name: res.data?.fileName || opt.file.name,
+          name: res.fileName || opt.file.name,
           status: 'success',
-          url: res.data?.url || '',
+          url: res.url,
           uid: (opt.file as any).uid
         } as UploadFile;
         files.value = [f];
-        formData.value[targetField] = res.data?.ossId || '';
+        formData.value[targetField] = res.ossId || '';
       } else {
-        ElMessage.error(res.msg || '上传失败');
+        const res = await ossUploadImage({ file: opt.file as File });
+        if (res.code === 200) {
+          const f: UploadFile = {
+            name: res.data?.fileName || opt.file.name,
+            status: 'success',
+            url: res.data?.url || '',
+            uid: (opt.file as any).uid
+          } as UploadFile;
+          files.value = [f];
+          formData.value[targetField] = res.data?.ossId || '';
+        } else {
+          ElMessage.error(res.msg || '上传失败');
+        }
       }
     } catch (e: any) {
       ElMessage.error(e?.message || '上传失败');
@@ -783,7 +845,9 @@ const SingleImageUpload = defineComponent({
   name: 'SingleImageUpload',
   props: {
     uploader: { type: Object, required: true },
-    placeholderSrc: { type: String, required: true }
+    placeholderSrc: { type: String, required: true },
+    disabled: { type: Boolean, default: false },
+    caption: { type: String, default: '' }
   },
   setup(props: any) {
     return () =>
@@ -797,13 +861,20 @@ const SingleImageUpload = defineComponent({
           showFileList: false,
           beforeUpload: props.uploader.beforeUpload,
           httpRequest: props.uploader.uploadRequest,
-          onExceed: props.uploader.handleExceed
+          onExceed: props.uploader.handleExceed,
+          disabled: props.disabled
         },
         {
           default: () => [
             props.uploader.files.value.length < 1
-              ? h('img', { src: props.placeholderSrc, class: 'avatar' })
-              : h('img', { src: props.uploader.files.value[0].url, alt: '', class: 'avatar' })
+              ? h('div', [
+                  h('img', { src: props.placeholderSrc, class: 'avatar' }),
+                  props.caption ? h('div', { class: 'avatar-uploader-text' }, props.caption) : null
+                ])
+              : h('div', [
+                  h('img', { src: props.uploader.files.value[0].url, alt: '', class: 'avatar' }),
+                  props.caption ? h('div', { class: 'avatar-uploader-text' }, props.caption) : null
+                ])
           ]
         }
       );
@@ -923,7 +994,7 @@ onMounted(async () => {
 
       // 法人身份证
       setFromUrl(uploaderLegalFront, formData.value.frontCardUrl);
-      setFromUrl(uploaderLegalBack, formData.value.bankCardUrl);
+      setFromUrl(uploaderLegalBack, formData.value.backCardUrl);
       setFromUrl(uploaderAuthorization, formData.value.authorizationUrl);
       await populateBirthdayIfNeeded(applyRes.data);
       // 编辑模式下也尝试加载产品详情（可能限制显示）
@@ -1035,16 +1106,15 @@ onMounted(async () => {
   width: 180px;
   height: 108px;
   border-width: 0px;
+  background-color: #ffffff;
   .avatar {
     width: 180px;
     height: 108px;
     object-fit: cover;
     display: block;
   }
-}
-
-/* 详情模式下隐藏上传的占位卡片 */
-.supplier-edit-details.details-mode ::v-deep .el-upload--picture-card {
-  display: none;
+  .avatar-uploader-text {
+    text-align: center;
+  }
 }
 </style>

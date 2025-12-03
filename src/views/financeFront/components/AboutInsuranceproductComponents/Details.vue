@@ -124,7 +124,6 @@ const getArticleDetail = async () => {
 }
 
 .item_productName {
-  height: 69px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 50px;
