@@ -101,7 +101,7 @@ const applications = ref([
     description: '平台审核举报，生成案件，全程跟踪处理，实现维权闭环管理',
     icon: 'application-icon-4.svg',
     bg: 'application-bg-4.svg',
-    redirect: '/rightsPlatform/aaa/customerreport',
+    redirect: '/rightsPlatform/way/customerreport',
     type: ['2', '3']
   },
   // 技术专家、法务专家
