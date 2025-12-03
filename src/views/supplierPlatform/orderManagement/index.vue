@@ -206,7 +206,7 @@
           <!-- 下拉框 -->
           <el-form-item label="快递公司：" prop="deliveryCompany">
             <el-select v-model="logisticsForm.deliveryCompany" placeholder="请选择快递公司" clearable>
-              <el-option v-for="item in deliveryCompanyList" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+              <el-option v-for="item in deliveryCompanyList" :key="item.value" :label="item.label" :value="item.label"> </el-option>
             </el-select>
           </el-form-item>
 
