@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { ref, getCurrentInstance } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
-import { getGoodsPriceHistoryList, getGoodsPriceHistoryDetail } from '@/api/supplier/productManagement/productPrice';
+import { getGoodsPriceHistoryList, getGoodsPriceHistoryDetail, goodsPriceHistoryExport } from '@/api/supplier/productManagement/productPrice';
 import PriceDetailDialog from './PriceDetailDialog.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -159,18 +159,30 @@ const handleReset = () => {
 
 // 导出按钮操作
 const handleExport = () => {
-  if (selectedRows.value.length === 0) {
-    ElMessage.error('请先选择要导出的数据');
-    return;
-  }
   const goodsIds = selectedRows.value.map((row) => row.goodsId);
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const fileName = `商品价格调整历史_${year}-${month}-${day}.xlsx`;
-  const params = { ids: goodsIds.join(',') };
-  proxy.download('/grain-sales/goodsPriceHistory/export', params, fileName);
+  // 解构查询参数
+  const { pageNum, pageSize, ...daochu } = queryParams.value;
+
+  // 构造导出参数
+  const params =
+    goodsIds.length > 0
+      ? { ids: goodsIds.join(',') } // 只导出选中的商品
+      : { ...daochu }; // 导出当前查询条件下的全部商品
+
+  // goodsPriceHistoryExport(params).then((res) => {
+  //   if (res.code === 200) {
+  //     // proxy.downloadFile(res.data, fileName);
+  //   } else {
+  //     ElMessage.error(res.msg || '导出失败');
+  //   }
+  // });
+
+  proxy.download('/grain-sales/goodsPriceHistory/export', params, fileName, 'get');
 };
 
 // 获取商品价格历史列表

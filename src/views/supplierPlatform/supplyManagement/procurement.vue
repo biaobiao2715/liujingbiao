@@ -321,13 +321,19 @@ const handleCategoryChange = (value: any) => {
  * @param val 区域对象
  */
 const handleAreaChange = (val: any) => {
-  queryParams.value.region = Array.isArray(val.regionPath) ? val.regionPath : [val.regionPath];
-  queryParams.value.deliveryProvinceCode = val.provinceCode;
-  // queryParams.value.deliveryProvince = val.province;
-  queryParams.value.deliveryCityCode = val.cityCode;
-  // queryParams.value.deliveryCity = val.city;
-  queryParams.value.deliveryDistrictCode = val.regionCode;
-  // queryParams.value.deliveryDistrict = val.region;
+  const regionPath = val?.regionPath;
+  // 当 val 为空或未选择区域时，全部重置为 ''
+  if (!val || (Array.isArray(regionPath) ? regionPath.length === 0 : !regionPath)) {
+    queryParams.value.region = [];
+    queryParams.value.deliveryProvinceCode = '';
+    queryParams.value.deliveryCityCode = '';
+    queryParams.value.deliveryDistrictCode = '';
+    return;
+  }
+  queryParams.value.region = Array.isArray(regionPath) ? regionPath : [regionPath];
+  queryParams.value.deliveryProvinceCode = val?.provinceCode ?? '';
+  queryParams.value.deliveryCityCode = val?.cityCode ?? '';
+  queryParams.value.deliveryDistrictCode = val?.regionCode ?? '';
 };
 
 // 进入页面后尝试根据路由 id 打开

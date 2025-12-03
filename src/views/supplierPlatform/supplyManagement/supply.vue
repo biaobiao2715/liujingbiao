@@ -381,7 +381,7 @@ const submitQuote = () => {
  * @param value 选中的类型数组
  */
 const handleCategoryChange = (value: any) => {
-  queryParams.value.supplyCategoryId = value;
+  queryParams.value.supplyCategoryId = value || '';
 };
 
 const handleCategoryForm = (value: any) => {
@@ -393,10 +393,20 @@ const handleCategoryForm = (value: any) => {
  * @param val 区域对象
  */
 const handleAreaChange = (val: any) => {
-  queryParams.value.region = Array.isArray(val.regionPath) ? val.regionPath : [val.regionPath];
-  queryParams.value.provinceCode = val.provinceCode;
-  queryParams.value.cityCode = val.cityCode;
-  queryParams.value.districtCode = val.regionCode;
+  // console.log('选择的区域:', val);
+  const regionPath = val?.regionPath;
+  // 当 val 为空或未选择区域时，全部重置为 ''
+  if (!val || (Array.isArray(regionPath) ? regionPath.length === 0 : !regionPath)) {
+    queryParams.value.region = [];
+    queryParams.value.provinceCode = '';
+    queryParams.value.cityCode = '';
+    queryParams.value.districtCode = '';
+    return;
+  }
+  queryParams.value.region = Array.isArray(regionPath) ? regionPath : [regionPath];
+  queryParams.value.provinceCode = val?.provinceCode ?? '';
+  queryParams.value.cityCode = val?.cityCode ?? '';
+  queryParams.value.districtCode = val?.regionCode ?? '';
 };
 
 // 配送范围

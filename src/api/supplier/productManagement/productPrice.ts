@@ -28,7 +28,7 @@ export function exportGoodsPriceHistory(data: any) {
 /**
  * 获取商品价格修改历史记录详情
  */
-export function getGoodsPriceHistoryDetail(params: { id:  number|string; pageNum: number; pageSize: number }) {
+export function getGoodsPriceHistoryDetail(params: { id: number | string; pageNum: number; pageSize: number }) {
   return request({
     url: `/grain-sales/goodsPriceHistory/hnGoodsPriceHistorDetail/${params.id}`,
     method: 'get',
@@ -64,5 +64,16 @@ export function deleteGoodsPriceHistory(ids: string) {
   return request({
     url: `/grain-sales/goodsPriceHistory/${ids}`,
     method: 'delete'
+  });
+}
+
+/**
+ * 导出商品价格修改历史记录
+ */
+export function goodsPriceHistoryExport(data: any) {
+  return request({
+    url: '/grain-sales/goodsPriceHistory/export',
+    method: 'get',
+    params: data
   });
 }
