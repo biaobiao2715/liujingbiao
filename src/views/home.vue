@@ -167,35 +167,26 @@ const getIcon = (svgName: string) => {
 };
 
 // 处理点击跳转 用axios原始请求方式
-const handleRedirect = (path: string) => {
+const handleRedirect = async (path: string) => {
+  // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
-    axios.post('http://192.168.2.149:8000/auth/thirdParty/login', getCacheInfo()).then((res: any) => {
-      console.log('🚀 ~ handleRedirect ~ res:', res);
-      if (res.code === 200 && res.title != '后台管理') {
-        router.push(res.data);
-      } else {
-        router.push('/platform/index');
-      }
-    });
+    const res = await thirdPartyLogin({ ...getCacheInfo() });
+    if (res.code === 200 && res.data) {
+      // axios.post('http://192.168.2.149:8000/auth/thirdParty/login', getCacheInfo()).then((res: any) => {
+      //   console.log('🚀 ~ handleRedirect ~ res:', res);
+      //   if (res.code === 200 && res.title != '后台管理') {
+      //     router.push(res.data);
+      //   } else {
+      //     router.push('/platform/index');
+      //   }
+      // });
+    }
     return;
   }
 
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
-    // if (path === '/platform/index') {
-    //   if (tenantType.value === '0' || tenantType.value === '1') {
-    //     router.push(path);
-    //   } else if (tenantType.value === '2' || tenantType.value === '3') {
-    //     router.push('/supplierPlatform/productManagement');
-    //   } else if (tenantType.value === '4' || tenantType.value === '5') {
-    //     router.push('/skill/knowledgeBaseManage');
-    //   } else if (tenantType.value === '6') {
-    //     router.push('/credit/dashboard');
-    //   }
-    // }
-
     router.push(path);
-
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
     }, 2000);
@@ -209,19 +200,19 @@ const getCacheInfo = () => {
   const clientId = import.meta.env.VITE_APP_CLIENT_ID;
 
   return {
-    // username: JSON.parse(decryptedData).phone,
-    // password: JSON.parse(decryptedData).password,
+    username: JSON.parse(decryptedData).phone,
+    password: JSON.parse(decryptedData).password,
 
-    // clientId,
-    // tenantId: userInfo.value.tenantId,
-    // 'form': true,
-    // 'grantType': 'password'
-    'username': '18000000000',
-    'password': '$2a$10$N.zmdr9k7uOCQb0bta/Oaurb.NyTiOcx0XaRiPURlbFsy6f.dRqNS',
-    'tenantId': '000000',
+    clientId,
+    tenantId: userInfo.value.tenantId,
     'form': true,
-    'grantType': 'password',
-    'clientId': 'e5cd7e4891bf95d1d19206ce24a7b32e'
+    'grantType': 'password'
+    // 'username': '18000000000',
+    // 'password': '$2a$10$N.zmdr9k7uOCQb0bta/Oaurb.NyTiOcx0XaRiPURlbFsy6f.dRqNS',
+    // 'tenantId': '000000',
+    // 'form': true,
+    // 'grantType': 'password',
+    // 'clientId': 'e5cd7e4891bf95d1d19206ce24a7b32e'
   };
 };
 
