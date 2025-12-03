@@ -314,7 +314,6 @@ enum idTypeEnum {
   expert = 'jszjId',
   legal = 'fwzjId'
 }
-const licenseIssueDate = ref(null); // 营业执照签发日期（OCR可能返回，用于注册日期校验）
 const initFormData: FormData = {
   companyName: '',
   signUpCapital: '',
@@ -893,19 +892,24 @@ const handleDiplomaChange = (file: UploadFile) => {
             });
             form.value.companyName = brr.companyName; // 企业名称
             form.value.licenseNumber = brr.unifiedSocialCreditCode; // 统一社会信用代码
-            form.value.signUpTime = brr.establishmentDate; // 注册日期
+            form.value.signUpTime = proxy.parseTime(brr.establishmentDate, '{y}-{m}-{d}'); // 注册日期
             form.value.signUpCapital = brr.registeredCapital; // 注册资本
             form.value.signUpAddress = brr.address; // 注册地址
             // 根据营业执照地址尝试解析省市区编码自动回填
             const regionCodes = parseAddressToRegionCodes(brr.address);
-            if (regionCodes.length) {
-              form.value.areaCodes = regionCodes;
+            if (regionCodes) {
+              form.value.areaCodes = regionCodes.regionPath;
+              form.value.provinceCode = regionCodes.provinceCode;
+              form.value.cityCode = regionCodes.cityCode;
+              form.value.districtCode = regionCodes.districtCode;
+              form.value.province = regionCodes.province;
+              form.value.city = regionCodes.city;
+              form.value.district = regionCodes.region;
+              // console.log('自动解析地址为省市区：', regionCodes);
             }
             form.value.officeAddress = brr.address; // 办公地址
             form.value.businessScope = brr.businessScope; // 经营范围
             form.value.legalPerson = brr.legalRepresentative; // 法人
-            // 可能的签发日期字段（若OCR返回）
-            licenseIssueDate.value = brr.issueDate || brr.approvalDate || null;
 
             // tableList.value[0].contactUserName = brr.legalRepresentative;
             // OCR 回填后保持三个字段联动一致

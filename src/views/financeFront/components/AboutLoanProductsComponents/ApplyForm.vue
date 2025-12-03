@@ -800,7 +800,7 @@ function createPdfUploader(targetField: keyof typeof formData.value, exceedMsg: 
   const uploadRequest = async (opt: UploadRequestOptions) => {
     try {
       // 统一的大小阈值（>5MB 走分片）
-      const MAX_SIZE = 100 * 1024 * 1024; // 5MB
+      const MAX_SIZE = 50 * 1024 * 1024; // 5MB
       if ((opt.file as File).size > MAX_SIZE) {
         // 分片上传
         const res: any = await uploadByChunks(opt.file, (percent) => {

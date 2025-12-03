@@ -12,7 +12,7 @@
       <div class="more" @click="handleMore">查看更多 >></div>
     </div>
     <!-- 列表 -->
-    <div class="risk-list">
+    <div class="risk-list" v-if="cases.length > 0">
       <div class="item" v-for="item in cases.slice(0, 7)" :key="item.id" @click="handleDetail(item)">
         <div class="article-title mb-12" @click="handleDetail(item)">
           {{ item.articleTitle }}
@@ -21,8 +21,8 @@
           {{ item.articleSummary }}
         </div>
       </div>
-      <el-empty v-if="cases.length === 0" description="暂无风险案例"></el-empty>
     </div>
+    <el-empty v-else description="风险案例待发布"></el-empty>
   </div>
 </template>
 

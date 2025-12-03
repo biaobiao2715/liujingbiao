@@ -256,12 +256,7 @@
 
             <el-col :span="12">
               <el-form-item label="设置密码" prop="password" required>
-                <el-input
-                  v-model="formData.password"
-                  type="password"
-                  placeholder="输入密码，包含8-20位大小写字母、符号或数字两种以上"
-                  show-password
-                />
+                <el-input v-model="formData.password" type="password" placeholder="长度8-16位，且至少包含大小写字母、数字中的2种" show-password />
               </el-form-item>
             </el-col>
             <el-col :span="12"></el-col>
@@ -287,7 +282,7 @@ import { isIdCard } from '@/utils/validate';
 import { TechnicalExpert } from '@/api/register/technicalExpert/types';
 import { ocrUploadImage, uploadImage } from '@/api/register';
 import { FileType } from '@/api/register/types';
-import { FormRules } from 'element-plus';
+import { dayjs, FormRules } from 'element-plus';
 import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一接口
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { technicalExpertInfoRegister } from '@/api/register/technicalExpert'; //注册接口
@@ -340,7 +335,8 @@ const ocrMap = {
   degree: 'degree',
   educationLevel: 'education',
   certificateNumber: 'graduationCertNo',
-  issueDate: 'graduationDate'
+  issueDate: 'graduationDate',
+  enrollmentDate: 'enrollmentDate'
 };
 const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string }> = {
   // 专家姓名
@@ -532,11 +528,17 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   smsCode: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, max: 20, message: '密码长度为8-20位', trigger: 'blur' },
+    { min: 8, max: 16, message: '密码长度为8-16位', trigger: 'blur' },
     {
       validator: (rule, value) => {
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:"<>?]).{8,}/.test(value)) {
-          return new Error('密码需包含大小写字母、数字和符号中的至少三种');
+        const v = String(value || '');
+        if (v.length < 8 || v.length > 16) return new Error('密码长度为8-16位');
+        let cnt = 0;
+        if (/[A-Z]/.test(v)) cnt++;
+        if (/[a-z]/.test(v)) cnt++;
+        if (/\d/.test(v)) cnt++;
+        if (cnt < 2) {
+          return new Error('密码需为8-16位，且至少包含大小写字母、数字中的2种');
         }
         return true;
       },
@@ -650,23 +652,14 @@ const handleDiplomaChange = (file: any) => {
         return ocrUploadImage({ image_url_list: [res.data.url] })
           .then((res) => {
             const data = res?.data?.[0] || {};
-            const rawText = data?.rawText || '';
-            if (rawText) {
-              const m = rawText.match(/身份证号[:：]?\s*([0-9]{17}[0-9Xx])/);
-              const id = m?.[1] || null;
-              if (id) {
-                formData.value.idCard = id;
-              }
-              const sexMatch = rawText.match(/性别[:： ]?\s*([男女])/);
-              const sex = sexMatch?.[1] || null;
-              if (sex) {
-                formData.value.sex = sex === '男' ? '0' : '1';
-              }
-            }
             Object.keys(data).forEach((key) => {
               const mappedKey = ocrMap[key] || key;
-              if (data[key]) {
+              if (data[key] && mappedKey !== 'sex' && mappedKey !== 'enrollmentDate') {
                 formData.value[mappedKey] = data[key];
+              } else if (mappedKey === 'sex' && data[key]) {
+                formData.value[mappedKey] = data[key] === '男' ? '0' : '1';
+              } else if (key === 'enrollmentDate' && data[key]) {
+                formData.value[mappedKey] = dayjs(data[key]).format('YYYY-MM-DD');
               }
             });
           })

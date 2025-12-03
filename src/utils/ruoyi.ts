@@ -8,6 +8,16 @@ export function parseTime(time: any, pattern?: string) {
   if (typeof time === 'object') {
     date = time;
   } else {
+    // 兼容中文日期：YYYY年MM月DD日 或 YYYY年M月D日
+    if (typeof time === 'string') {
+      const zh = time.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日?$/);
+      if (zh) {
+        const y = zh[1];
+        const m = zh[2].padStart(2, '0');
+        const d = zh[3].padStart(2, '0');
+        time = `${y}/${m}/${d}`; // 转为可解析格式
+      }
+    }
     if (typeof time === 'string' && /^[0-9]+$/.test(time)) {
       time = parseInt(time);
     } else if (typeof time === 'string') {

@@ -8,14 +8,14 @@
 
 <template>
   <div class="metting-detail-container">
-    <div class="title">{{ detail?.title }}</div>
+    <div class="title">{{ detail?.meetingName }}</div>
     <!-- 课程描述 -->
     <div class="description flex-center gap-24 mt-24 mb-24">
       <!-- 头像 -->
       <img :src="detail?.avatar" width="40" />
       <div>{{ '发布人：  ' + detail?.publishUser }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <el-tag type="primary">{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</el-tag>
+      <el-tag type="primary">{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</el-tag>
       <div class="status">
         会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
@@ -31,7 +31,7 @@
     <div class="detail">
       <div>会议主题：{{ detail?.meetingName }}</div>
       <div>会议联系人：{{ detail?.meetingContact }}</div>
-      <div>会议类别：{{ detail?.meetingType === '1' ? '技术知识' : '法务知识' }}</div>
+      <div>会议类别：{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</div>
       <div>会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
       <div>会议地点：{{ detail?.meetingAddress }}</div>
       <div v-if="detail?.meetingStatus === '99'">取消原因：{{ detail?.cancelReason }}</div>

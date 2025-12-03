@@ -471,7 +471,7 @@ const updateBreadcrumb = () => {
 // 1 加入比价 2 加入收藏 3 立即下单 4 电话沟通 5 我要举报
 const operateOrder = (type: number) => {
   console.log(type);
-  
+
   switch (type) {
     case 1:
       // 加入比价 - 跳转到比价选择页面
@@ -510,9 +510,9 @@ const operateOrder = (type: number) => {
           await checkFavoriteStatus();
           // 根据最新状态显示提示信息
           if (isFavorite.value) {
-            ElMessage.success('加入收藏成功');
+            ElMessage.success(res.msg || '加入收藏成功');
           } else {
-            ElMessage.success('取消收藏成功');
+            ElMessage.success(res.msg || '取消收藏成功');
           }
         }
       });
@@ -1280,11 +1280,15 @@ defineExpose({
       }
 
       .goods-detail-content {
+        overflow: auto;
         line-height: 1.8;
         color: #333;
         font-size: 14px;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        ::v-deep img {
+          max-width: 100%;
+        }
 
         .detail-text {
           margin: 10px 0;

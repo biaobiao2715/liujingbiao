@@ -45,7 +45,7 @@
         </el-form-item>
         <!-- 类目名称 -->
         <el-form-item label="类目名称" prop="categoryName" required>
-          <el-input v-model="form.categoryName" placeholder="请输入类目名称" maxlength="20" />
+          <el-input v-model="form.categoryName" placeholder="请输入类目名称" maxlength="10" />
         </el-form-item>
         <!-- 排序 -->
         <el-form-item label="排序" prop="orderNum" required>

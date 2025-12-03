@@ -5,8 +5,26 @@ import areaData from 'china-area-data';
  * 仅做包含匹配；无法匹配的层级会跳过。
  * @param address 原始地址，例如：中国（湖北）自贸区宜昌片区生物产业园花艳一路9号
  */
-export function parseAddressToRegionCodes(address: string): string[] {
-  if (!address) return [];
+export function parseAddressToRegionCodes(address: string): {
+  regionPath: string[];
+  provinceCode: string;
+  cityCode: string;
+  districtCode: string;
+  province: string;
+  city: string;
+  region: string;
+} {
+  if (!address) {
+    return {
+      regionPath: [],
+      provinceCode: '',
+      cityCode: '',
+      districtCode: '',
+      province: '',
+      city: '',
+      region: ''
+    };
+  }
   const text = normalizeAddress(address);
 
   // 第一阶段：省匹配
@@ -53,8 +71,30 @@ export function parseAddressToRegionCodes(address: string): string[] {
     }
   }
 
-  if (!provinceCode) return []; // 仍无法识别省/市
-  if (!cityCode) return [provinceCode];
+  if (!provinceCode) {
+    return {
+      regionPath: [],
+      provinceCode: '',
+      cityCode: '',
+      districtCode: '',
+      province: '',
+      city: '',
+      region: ''
+    };
+  }
+
+  if (!cityCode) {
+    const provinceNameOnly = areaData['86'][provinceCode] || '';
+    return {
+      regionPath: [provinceCode],
+      provinceCode,
+      cityCode: '',
+      districtCode: '',
+      province: provinceNameOnly,
+      city: '',
+      region: ''
+    };
+  }
 
   // 区县匹配（若未找到则尝试回退通过区名反推城市）
   const districtMap = areaData[cityCode];
@@ -91,7 +131,22 @@ export function parseAddressToRegionCodes(address: string): string[] {
     }
   }
 
-  return [provinceCode, cityCode, districtCode].filter(Boolean);
+  // 计算名称
+  const provinceName = provinceCode ? areaData['86'][provinceCode] || '' : '';
+  const cityName = cityCode ? areaData[provinceCode]?.[cityCode] || '' : '';
+  const districtName = districtCode ? areaData[cityCode]?.[districtCode] || '' : '';
+
+  const arr = {
+    regionPath: [provinceCode, cityCode, districtCode].filter(Boolean),
+    provinceCode: provinceCode || '',
+    cityCode: cityCode || '',
+    districtCode: districtCode || '',
+    province: provinceName,
+    city: cityName,
+    region: districtName
+  };
+
+  return arr;
 }
 
 function normalizeAddress(address: string): string {

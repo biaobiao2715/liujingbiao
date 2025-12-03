@@ -85,15 +85,18 @@
         <template #default="scope">
           <div class="flex-center-center">
             <div
-              v-if="scope.row.status != null"
+              v-if="scope.row.meetingStatus != null"
               class="normal"
               :class="{
-                green: scope.row.meetingStatus == 1,
-                reviewRejected: scope.row.meetingStatus == 0
+                green: scope.row.meetingStatus == 1 || scope.row.meetingStatus == 2,
+                reviewRejected: scope.row.meetingStatus == 3,
+                pendingReview: scope.row.meetingStatus == 99
               }"
             ></div>
-            <span v-if="scope.row.meetingStatus == 0" class="reviewRejected-color">下架</span>
-            <span v-if="scope.row.meetingStatus == 1" class="green-color">上架</span>
+            <span v-if="scope.row.meetingStatus == 1" class="green-color">待开始</span>
+            <span v-if="scope.row.meetingStatus == 2" class="green-color">进行中</span>
+            <span v-if="scope.row.meetingStatus == 3" class="reviewRejected-color">已结束</span>
+            <span v-if="scope.row.meetingStatus == 99" class="pendingReview-color">已取消</span>
           </div>
         </template>
       </el-table-column>
