@@ -160,7 +160,21 @@
 
             <el-col :span="12">
               <el-form-item label="授权文件" prop="authorizationFile" class="uploadcss">
+                <div
+                  v-if="
+                    DetailsStatus === 'details' &&
+                    uploaderAuthorization &&
+                    uploaderAuthorization.files &&
+                    uploaderAuthorization.files.value &&
+                    uploaderAuthorization.files.value.length > 0
+                  "
+                  style="color: #108c58; padding: 0 11px"
+                  @click="downloadAttachment(uploaderAuthorization.files.value[0].url, uploaderAuthorization.files.value[0].name)"
+                >
+                  {{ uploaderAuthorization.files.value[0].name || '查看授权文件' }}
+                </div>
                 <el-upload
+                  v-else
                   :file-list="uploaderAuthorization.files.value"
                   :limit="1"
                   action="#"
@@ -169,7 +183,6 @@
                   :http-request="uploaderAuthorization.uploadRequest"
                   :on-remove="uploaderAuthorization.handleRemove"
                   :on-exceed="uploaderAuthorization.handleExceed"
-                  :disabled="DetailsStatus === 'details'"
                 >
                   <template #default>
                     <el-button type="primary" plain>
@@ -899,6 +912,22 @@ watch(
   }
 );
 
+const downloadAttachment = async (url, name) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = name || '授权文件.pdf'; // 设置文件名
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href); // 释放 URL 对象
+  } catch (error) {
+    console.error('下载失败', error);
+  }
+};
+
 // ========== 字典筛选（根据产品详情限制可选项） ==========
 // 贷款周期可选项（由产品详情的 loanCycle 决定）
 const loanCycleOptions = computed(() => {
@@ -970,7 +999,7 @@ onMounted(async () => {
     if (applyRes && applyRes.code === 200) {
       formData.value = { ...formData.value, ...(applyRes.data || {}) };
       // 根据详情返回的直链回显图片（可选）
-      const setFromUrl = (uploader: ReturnType<typeof createSingleUploader>, url?: string) => {
+      const setFromUrl = (uploader: ReturnType<typeof createSingleUploader>, url?: string, name?: string) => {
         const u = String(url || '').trim();
         if (!u) {
           uploader.files.value = [];
@@ -978,7 +1007,7 @@ onMounted(async () => {
         }
         uploader.files.value = [
           {
-            name: '已上传',
+            name: name || '已上传',
             status: 'success',
             url: u,
             uid: Math.random().toString(36).slice(2)
@@ -994,8 +1023,8 @@ onMounted(async () => {
 
       // 法人身份证
       setFromUrl(uploaderLegalFront, formData.value.frontCardUrl);
-      setFromUrl(uploaderLegalBack, formData.value.backCardUrl);
-      setFromUrl(uploaderAuthorization, formData.value.authorizationUrl);
+      setFromUrl(uploaderLegalBack, formData.value.bankCardUrl);
+      setFromUrl(uploaderAuthorization, formData.value.authorizationUrl, formData.value.authorizationFileName);
       await populateBirthdayIfNeeded(applyRes.data);
       // 编辑模式下也尝试加载产品详情（可能限制显示）
       await loadProductDetails();
@@ -1104,7 +1133,6 @@ onMounted(async () => {
 // }
 ::v-deep .el-upload--picture-card {
   width: 180px;
-  height: 108px;
   border-width: 0px;
   background-color: #ffffff;
   .avatar {
