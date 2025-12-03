@@ -9,10 +9,11 @@ export const fetchCaseTypeList = (params: any) =>
   });
 
 // 查询案件类型下拉选项
-export const fetchCaseTypeOptions = () =>
+export const fetchCaseTypeOptions = (params?: any) =>
   request({
     url: '/safeguard-server/case/caseList',
-    method: 'get'
+    method: 'get',
+    params
   });
 
 // 启用/禁用案件类型

@@ -499,42 +499,42 @@ const getReportTypeText = (reportTypeId: string): string => {
 }
 
 .status-pending {
-  color: #ffa113;
+  color: #ff7b00;
 
   &::before {
-    background-color: #ffa113;
+    background-color: #ff7b00;
   }
 }
 
 .status-processing {
-  color: #008cff;
+  color: #00bf33;
 
   &::before {
-    background-color: #008cff;
+    background-color: #00bf33;
   }
 }
 
 .status-rejected {
-  color: #ef4d0b;
+  color: #ff0000;
 
   &::before {
-    background-color: #ef4d0b;
+    background-color: #ff0000;
   }
 }
 
 .status-closed {
-  color: #bbbdbf;
+  color: #108c58;
 
   &::before {
-    background-color: #bbbdbf;
+    background-color: #108c58;
   }
 }
 
 .status-withdrawn {
-  color: #333333;
+  color: #bbbdbf;
 
   &::before {
-    background-color: #333333;
+    background-color: #bbbdbf;
   }
 }
 
@@ -558,7 +558,8 @@ const getReportTypeText = (reportTypeId: string): string => {
   gap: 0;
   flex-wrap: wrap;
   align-items: center;
-  padding-left: 20px;
+  justify-content: flex-start;
+  padding-left: 0;
 }
 
 .operation-view-btn,
@@ -567,15 +568,6 @@ const getReportTypeText = (reportTypeId: string): string => {
   background-color: transparent !important;
   border: none !important;
   padding: 0 8px !important;
-  position: relative;
-
-  &:not(:last-child)::after {
-    content: '|';
-    position: absolute;
-    right: -8px;
-    color: #d9d9d9;
-    font-weight: normal;
-  }
 
   &:hover,
   &:focus {
@@ -593,20 +585,20 @@ const getReportTypeText = (reportTypeId: string): string => {
 }
 
 .operation-withdraw-btn {
-  color: #ef4d0b !important;
+  color: #108c58 !important;
 
   &:hover,
   &:focus {
-    color: #ef4d0b !important;
+    color: #108c58 !important;
   }
 }
 
 .operation-resubmit-btn {
-  color: #008cff !important;
+  color: #108c58 !important;
 
   &:hover,
   &:focus {
-    color: #008cff !important;
+    color: #108c58 !important;
   }
 }
 </style>

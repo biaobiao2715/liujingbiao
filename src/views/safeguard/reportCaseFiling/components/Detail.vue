@@ -934,7 +934,7 @@ const handleSave = async () => {
 // 加载案件类型选项
 const loadCaseTypeOptions = async () => {
   try {
-    const res = await fetchCaseTypeOptions();
+    const res = await fetchCaseTypeOptions({ status: 0 });
     const list: any[] = res?.data || res || [];
     caseTypeOptions.value = (Array.isArray(list) ? list : []).map((item: any) => ({
       value: item.id ?? item.caseTypeId ?? item.value ?? '',
