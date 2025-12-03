@@ -14,6 +14,8 @@
           v-model="queryParams.productName"
           placeholder="请输入产品名称"
           clearable
+          maxlength="50"
+          show-word-limit
           @keyup.enter="handleQuery"
         />
       </el-form-item>
@@ -288,6 +290,7 @@ const getList = () => {
   loading.value = true;
   const params = {
     ...queryParams,
+    productName: queryParams.productName ? queryParams.productName.trim() : '',
     applicableObject: Array.isArray(queryParams.applicableObject) && queryParams.applicableObject.length > 0 
       ? queryParams.applicableObject.join(',') 
       : queryParams.applicableObject

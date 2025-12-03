@@ -9,7 +9,14 @@
     <!-- 搜索条件 -->
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="文章名称" prop="articleTitle" label-width="auto">
-        <el-input v-model="queryParams.articleTitle" placeholder="请输入文章名称" clearable @keyup.enter="handleQuery" />
+        <el-input
+          v-model="queryParams.articleTitle"
+          placeholder="请输入文章名称"
+          clearable
+          maxlength="50"
+          show-word-limit
+          @keyup.enter="handleQuery"
+        />
       </el-form-item>
       <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
@@ -241,6 +248,9 @@ const getList = async () => {
         delete params[key as keyof typeof params];
       }
     });
+    if (params.articleTitle) {
+      params.articleTitle = params.articleTitle.trim();
+    }
     const response = await getCreditArticleList(params);
     if (response && response.code === 200) {
       tableData.value = response.rows || response.data || [];

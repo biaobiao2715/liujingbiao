@@ -198,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, nextTick } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, nextTick, watch } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
@@ -280,6 +280,15 @@ const formData = ref<CreditProductForm>({
 
 const attachmentFileList = ref<UploadFile[]>([]);
 
+watch(
+  () => formData.value.minLoanAmount,
+  () => {
+    if (formRef.value) {
+      formRef.value.validateField('maxLoanAmount').catch(() => {});
+    }
+  }
+);
+
 const rules: FormRules = {
   productName: [
     { required: true, message: '请输入产品名称', trigger: 'blur' },
@@ -292,6 +301,8 @@ const rules: FormRules = {
       validator: (_rule, value, callback) => {
         if (value === null || value === undefined) {
           callback(new Error('请输入最小贷款额度'));
+        } else if (value < 1) {
+          callback(new Error('最小额度需大于等于1万元'));
         } else {
           callback();
         }
@@ -304,8 +315,10 @@ const rules: FormRules = {
       validator: (_rule, value, callback) => {
         if (value === null || value === undefined) {
           callback(new Error('请输入最大贷款额度'));
-        } else if (formData.value.minLoanAmount !== null && value < (formData.value.minLoanAmount ?? 0)) {
-          callback(new Error('最大额度需大于等于最小额度'));
+        } else if (formData.value.minLoanAmount === null || formData.value.minLoanAmount === undefined) {
+          callback(new Error('请先输入最小贷款额度'));
+        } else if (value <= (formData.value.minLoanAmount ?? 0)) {
+          callback(new Error('最大额度需大于最小额度'));
         } else {
           callback();
         }

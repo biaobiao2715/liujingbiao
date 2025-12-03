@@ -35,9 +35,9 @@
           clearable
         />
       </el-form-item>
-      <el-form-item label="创建人" prop="createBy" label-width="auto">
+      <el-form-item label="创建人" prop="createByName" label-width="auto">
         <el-input
-          v-model="queryParams.createBy"
+          v-model="queryParams.createByName"
           placeholder="请输入创建人姓名"
           clearable
           @keyup.enter="handleSearch"
@@ -92,7 +92,7 @@
       </el-table-column>
       <el-table-column prop="knowledgeCaseName" label="知识库案件名称" min-width="200" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" min-width="180" show-overflow-tooltip />
-      <el-table-column prop="createBy" label="创建人" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="createByName" label="创建人" min-width="120" show-overflow-tooltip />
       <el-table-column label="操作" width="200" align="left">
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
@@ -172,7 +172,7 @@ interface KnowledgeCaseItem {
   id?: string | number;
   knowledgeCaseName?: string;
   createTime?: string;
-  createBy?: string;
+  createByName?: string;
 }
 
 const queryFormRef = ref<FormInstance>();
@@ -193,7 +193,7 @@ const viewDialogVisible = ref(false);
 const queryParams = reactive({
   knowledgeCaseName: '',
   createTime: '',
-  createBy: '',
+  createByName: '',
   pageNum: 1,
   pageSize: 10
 });
@@ -207,7 +207,7 @@ const handleReset = () => {
   queryFormRef.value?.resetFields();
   queryParams.knowledgeCaseName = '';
   queryParams.createTime = '';
-  queryParams.createBy = '';
+  queryParams.createByName = '';
   queryParams.pageNum = 1;
   queryParams.pageSize = 10;
   fetchTableData();
