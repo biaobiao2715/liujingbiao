@@ -14,11 +14,14 @@
       <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
           range-separator=" - "
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          @change="handleDateRangeChange"
         />
       </el-form-item>
       <el-form-item label="文章类型" prop="articleType" label-width="auto">
@@ -231,7 +234,14 @@ const dialog = ref({
 const getList = async () => {
   loading.value = true;
   try {
-    const response = await getCreditArticleList(queryParams.value);
+    const params = { ...queryParams.value };
+    Object.keys(params).forEach((key) => {
+      const value = params[key as keyof typeof params];
+      if (value === '' || value === undefined || value === null) {
+        delete params[key as keyof typeof params];
+      }
+    });
+    const response = await getCreditArticleList(params);
     if (response && response.code === 200) {
       tableData.value = response.rows || response.data || [];
       total.value = response.total || 0;
@@ -247,18 +257,30 @@ const getList = async () => {
 };
 
 /** 查询按钮事件 */
+const applyDateRange = () => {
+  const [start, end] = dateRange.value || [];
+  queryParams.value.startTime = start ? `${start}` : '';
+  queryParams.value.endTime = end ? `${end}` : '';
+};
+
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
-  queryParams.value.startTime = dateRange.value[0] || '';
-  queryParams.value.endTime = dateRange.value[1] || '';
+  applyDateRange();
   getList();
 };
 
 /** 搜索按钮事件 */
 const handleSearch = () => {
-  queryParams.value.startTime = dateRange.value[0] || '';
-  queryParams.value.endTime = dateRange.value[1] || '';
+  applyDateRange();
   handleQuery();
+};
+
+const handleDateRangeChange = (value: string[] | null) => {
+  if (!value || value.length === 0) {
+    dateRange.value = ['', ''];
+    queryParams.value.startTime = '';
+    queryParams.value.endTime = '';
+  }
 };
 
 /** 重置按钮操作 */

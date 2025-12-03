@@ -200,8 +200,14 @@
       <template v-if="logisticsVisible">
         <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
         <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
-          <el-form-item label="快递公司：" prop="deliveryCompany">
+          <!-- <el-form-item label="快递公司：" prop="deliveryCompany">
             <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+          </el-form-item> -->
+          <!-- 下拉框 -->
+          <el-form-item label="快递公司：" prop="deliveryCompany">
+            <el-select v-model="logisticsForm.deliveryCompany" placeholder="请选择快递公司" clearable>
+              <el-option v-for="item in deliveryCompanyList" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+            </el-select>
           </el-form-item>
 
           <el-form-item label="物流单号：" prop="deliverySn">
@@ -210,13 +216,13 @@
               @input="filterChinese"
               placeholder="请输物流单号"
               maxlength="20"
-              ref="logisticsFormFormRef"
+              ref="logisticsDeliverySn"
             ></el-input>
           </el-form-item>
         </el-form>
       </template>
       <template #footer>
-        <el-button @click="shipmentVisible = false">取消</el-button>
+        <el-button @click="cancelBtnFun">取消</el-button>
         <el-button type="primary" :loading="shipmentloading" @click="shipmentInfo">保存</el-button>
       </template>
     </el-dialog>
@@ -246,6 +252,10 @@ import Detail from './Detail.vue';
 const { proxy } = getCurrentInstance() as any;
 
 const { order_status } = toRefs<any>((proxy as any)?.useDict('order_status'));
+const { delivery_company } = toRefs<any>((proxy as any)?.useDict('delivery_company'));
+
+//
+let deliveryCompanyList = reactive([]);
 
 const tableData = ref([]); // 表格数据
 
@@ -277,6 +287,7 @@ const logisticsVisible = ref(false); //是否展示物流信息
 const shipmentFormFormRef = ref(null);
 
 const logisticsFormFormRef = ref(null);
+const logisticsDeliverySn = ref(null);
 /* 发货的row */
 const rowdata = ref();
 // 搜索表单数据
@@ -325,9 +336,20 @@ const handleDeliveryOptionChange = (value) => {
     logisticsForm.deliveryCompany = '';
     logisticsForm.deliverySn = '';
     logisticsVisible.value = true; // 显示物流信息
+    // 获取delivery_company
+    console.log(delivery_company.value);
+    deliveryCompanyList = delivery_company.value;
   }
 };
-
+// 发货点击取消
+const cancelBtnFun = () => {
+  shipmentVisible.value = false;
+  logisticsVisible.value = false;
+  // 清空数据
+  logisticsForm.deliveryCompany = '';
+  logisticsForm.deliverySn = '';
+  console.log(logisticsForm);
+};
 /* 发货表单校验 */
 const shipmentRules = {
   deliveryOptions: [{ required: true, message: '请选择配送方式', trigger: 'change' }]
@@ -370,10 +392,14 @@ const logisticsRules = {
 };
 const filterChinese = () => {
   if (logisticsForm.deliverySn) {
-    // 使用正则表达式替换所有中文字符
-    logisticsForm.deliverySn = logisticsForm.deliverySn.replace(/[\u4E00-\u9FA5]/g, '');
-    // 控制输入框失焦
-    logisticsFormFormRef.value.blur();
+    if (logisticsForm.deliverySn.match(/[\u4E00-\u9FA5]/)) {
+      logisticsForm.deliverySn = logisticsForm.deliverySn.replace(/[\u4E00-\u9FA5]/g, '');
+      logisticsDeliverySn.value.blur();
+      let t = setTimeout(() => {
+        clearTimeout(t);
+        logisticsDeliverySn.value.focus();
+      }, 100);
+    }
   }
 };
 /** 搜索按钮操作 */
@@ -556,8 +582,8 @@ const shipmentInfo = async () => {
     };
     // 如果选择的是快递，追加物流信息
     if (shipmentForm.value.deliveryOptions === '2') {
-      params['deliveryCompany'] = logisticsForm.value.deliveryCompany.trim();
-      params['deliverySn'] = logisticsForm.value.deliverySn.trim();
+      params['deliveryCompany'] = logisticsForm.deliveryCompany.trim();
+      params['deliverySn'] = logisticsForm.deliverySn.trim();
     }
 
     await modifypersonnel(params);
@@ -565,7 +591,11 @@ const shipmentInfo = async () => {
     getTableData(); //更新列表
     ElMessage.success('发货成功');
   } catch (error) {
-    ElMessage.error(error);
+    console.log(error);
+    for (const key in error as any) {
+      ElMessage.error(error[key][0]);
+    }
+    // ElMessage.error(error);
   } finally {
     shipmentloading.value = false;
   }
