@@ -63,11 +63,11 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="table-layout: fixed" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="table-layout: fixed" @selection-change="handleSelectionChange">
       <el-table-column type="selection" />
       <el-table-column type="index" width="100" label="序号" />
       <!-- 课程标题 -->
-      <el-table-column label="直播名称" prop="title">
+      <el-table-column label="直播名称" prop="title" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.title || '-' }}</span>
         </template>
@@ -231,7 +231,7 @@ const getList = () => {
   console.log('queryParams.value', queryParams.value);
 
   // 调用API接口
-  gethnOnlineVideoList(queryParams.value)
+  gethnOnlineVideoList({ ...queryParams.value, orderByColumn: 'createTime', isAsc: 'desc' })
     .then((res: any) => {
       if (res && res.code === 200) {
         tableData.value = res.rows || [];

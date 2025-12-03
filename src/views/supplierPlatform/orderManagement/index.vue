@@ -59,7 +59,7 @@
       <el-button v-throttle type="primary" @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
     </div> -->
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <!-- <el-table-column type="selection" width="55" align="center" /> -->
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="销售订单号" prop="orderSn" width="180" :show-overflow-tooltip="true">
