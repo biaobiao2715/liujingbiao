@@ -331,19 +331,38 @@ const loadCurrentAttachments = async () => {
   }
 };
 
+const parseVersionValue = (version: string) => {
+  if (!version) return 0;
+  const parts = version.split('.');
+  const major = Number(parts[0]) || 0;
+  const minor = Number(parts[1]) || 0;
+  return major * 1000 + minor;
+};
+
+const resolveVersion = (item: any) =>
+  item.versionNo ||
+  item.version ||
+  item.versionNum ||
+  item.currentVersion ||
+  (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].versionNo) ||
+  '';
+
 const historyVersions = computed(() => {
   const list = detailData.value.historyVersionsList;
   if (!list || !Array.isArray(list) || list.length === 0) {
     return [];
   }
+
+  const sortedList = [...list].sort((a: any, b: any) => {
+    const versionDiff = parseVersionValue(resolveVersion(b)) - parseVersionValue(resolveVersion(a));
+    if (versionDiff !== 0) return versionDiff;
+    const timeA = new Date(a.updateTime || a.createTime || 0).getTime();
+    const timeB = new Date(b.updateTime || b.createTime || 0).getTime();
+    return timeB - timeA;
+  });
   
-  return list.map((item: any) => {
-    const version = item.versionNo 
-      || item.version 
-      || item.versionNum
-      || item.currentVersion
-      || (item.ossVoList && item.ossVoList[0] && item.ossVoList[0].versionNo)
-      || '';
+  return sortedList.map((item: any) => {
+    const version = resolveVersion(item);
     
     // 优先从 sysOssLists 获取 ossId 和 url
     let ossId = item.ossId;
