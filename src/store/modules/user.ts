@@ -10,6 +10,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(getToken());
   const name = ref('');
   const nickname = ref('');
+  const userName = ref('');
   const userId = ref<string | number>('');
   const userType = ref<string | number>('');
   const tenantId = ref<string>('');
@@ -50,6 +51,7 @@ export const useUserStore = defineStore('user', () => {
       }
       name.value = user.userName;
       nickname.value = user.nickName;
+      userName.value = user.userName || '';
       avatar.value = profile;
       userId.value = user.userId;
       userType.value = data.tenantType || '';
@@ -78,6 +80,7 @@ export const useUserStore = defineStore('user', () => {
     tenantId,
     token,
     nickname,
+    userName,
     avatar,
     roles,
     permissions,
