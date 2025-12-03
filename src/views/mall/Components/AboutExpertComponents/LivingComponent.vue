@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { VideoList } from '@/api/mall/living/index';
+import { VideoList, addViewRecordsApi } from '@/api/mall/living/index';
 
 const loading = ref(false);
 const liveData = ref<any[]>([]);
@@ -48,16 +48,19 @@ const value = ref(0); // 0 默认，1 最新发布时间
 const options = ref([
   { label: '默认', value: 0 },
   { label: '最新发布时间', value: 1 },
-  { label: '最多播放量', value: 2 }
+  { label: '最多浏览量', value: 2 }
 ]);
 
 // 获取直播列表
 const getVideoList = async () => {
   loading.value = true;
   try {
+    // 0、1默认按发布时间查，2按播放量查
+    const params = value.value === 2 ? { orderByColumn: 'createTime', isAsc: 'desc' } : { viewSort: true, sortDesc: true };
     const res = await VideoList({
       videoStatus: '1', // 启用
-      type: value.value // 0 默认，1 最新发布时间 2 最多播放量
+      type: value.value, // 0 默认，1 最新发布时间 2 最多播放量
+      ...params
     });
     if (res.code === 200) {
       liveData.value = res.rows || res.data || [];
@@ -83,6 +86,8 @@ onMounted(() => {
 // 点击视频卡片，跳转到视频链接
 const handleVideoClick = (item: any) => {
   if (item.videoUrl) {
+    // 调用增加播放量的接口
+    addViewRecordsApi({ id: item.id, viewType: '8' });
     // 在新标签页打开视频链接
     window.open(item.videoUrl, '_blank');
   } else {
