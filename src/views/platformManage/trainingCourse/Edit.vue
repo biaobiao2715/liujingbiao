@@ -239,8 +239,26 @@ const rules = {
   cultivateStatus: [{ required: true, message: '请选择发布状态', trigger: 'change' }],
   cultivateType: [{ required: true, message: '请选择课程类别', trigger: 'change' }],
   cultivateContent: [
-    { required: true, message: '请输入文章内容', trigger: 'blur' },
-    { min: 10, message: '内容至少 10 个字符', trigger: 'blur' }
+    {
+      required: true,
+      validator: (rule: any, value: any, callback: any) => {
+        const plainText = String(value)
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
+        if (!plainText) {
+          callback(new Error('请输入文章内容'));
+          return;
+        }
+        if (plainText.length < 10) {
+          callback(new Error('内容至少 10 个字符'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'blur'
+    }
+    // { min: 10, message: '内容至少 10 个字符', trigger: 'blur' }
   ]
 };
 
