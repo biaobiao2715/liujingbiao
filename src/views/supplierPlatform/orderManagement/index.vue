@@ -109,7 +109,22 @@
       </el-table-column>
       <el-table-column label="订单状态" align="center" prop="orderStatus" width="100">
         <template #default="scope">
-          <dict-tag :options="order_status" :value="scope.row.orderStatus" />
+          <!-- <dict-tag :options="order_status" :value="scope.row.orderStatus" /> -->
+          <div class="workingMode">
+            <div
+              v-if="scope.row.orderStatus != null"
+              class="normal"
+              :class="{
+                reviewRejected: scope.row.orderStatus === '99',
+                green: ['2', '3'].includes(scope.row.orderStatus),
+                pendingReview: scope.row.orderStatus === '1'
+              }"
+            ></div>
+            <span v-if="scope.row.orderStatus === '1'" style="color: #ff7b00">待发货</span>
+            <span v-if="scope.row.orderStatus === '2'" style="color: #108c58">已发货</span>
+            <span v-if="scope.row.orderStatus === '3'" style="color: #108c58">已完成</span>
+            <span v-if="scope.row.orderStatus === '99'" style="color: #f23255">已取消</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
@@ -663,5 +678,30 @@ onActivated(() => {
 :deep(.el-tag) {
   font-weight: 500;
   border: none;
+}
+
+// 工作模式
+.workingMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 正常
+.normal {
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+.green {
+  background: #108c58;
+}
+// 异常
+.reviewRejected {
+  background: #f23255 !important;
+}
+.pendingReview {
+  background: #ff7b00 !important;
 }
 </style>
