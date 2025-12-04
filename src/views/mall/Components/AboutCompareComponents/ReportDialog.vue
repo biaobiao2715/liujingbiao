@@ -365,6 +365,7 @@ const handleSubmit = () => {
 };
 
 const handleClosed = () => {
+  fileList.value = [];
   emit('closed');
 };
 </script>
