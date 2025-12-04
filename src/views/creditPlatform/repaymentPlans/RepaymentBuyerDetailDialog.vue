@@ -70,7 +70,10 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="贷款金额">
-                <el-input :model-value="detail.loan.amount" disabled />
+                <el-input
+                  :model-value="detail.loan.amount === '--' ? '--' : `${detail.loan.amount} 万元`"
+                  disabled
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">

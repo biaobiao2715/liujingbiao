@@ -603,8 +603,12 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
   const repayment = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
 
+  const amount = row.loanAmount;
+  const amountText =
+    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
+
   return [
-    { label: '贷款金额', value: formatValue(row.loanAmount) },
+    { label: '贷款金额', value: amountText },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
     { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: formatValue(getFieldValue(row, ['collectionAccountName', 'bankName'])) },

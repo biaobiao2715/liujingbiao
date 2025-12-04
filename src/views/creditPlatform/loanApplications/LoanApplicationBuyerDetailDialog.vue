@@ -511,9 +511,13 @@ const mapLoanInfo = (row: Record<string, any>) => {
   const repaymentMethod = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentTypeText = repaymentMethod ? getRepaymentMethodLabel(repaymentMethod) : undefined;
 
+  const amount = row.loanAmount;
+  const amountText =
+    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
+
   return {
     applyDate: formatValue(getFieldValue(row, ['createTime', 'applyTime'])),
-    amount: formatValue(row.loanAmount),
+    amount: amountText,
     period: formatValue(row.loanTerm),
     repaymentType: formatValue(repaymentTypeText),
     bank: formatValue(getFieldValue(row, ['collectionBankCode', 'bankName'])),
