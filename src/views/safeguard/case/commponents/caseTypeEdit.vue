@@ -875,7 +875,6 @@ const handleSubmit = () => {
     if (!valid) return;
     const hasNewUpload = isUpload.value;
     formData.currentVersion = isAddMode.value ? '1.0' : formData.legalBasisFiles[0].version;
-    console.log('formData', formData);
     emit('submit', {
       ...formData,
       legalBasisFiles: hasNewUpload ? formData.legalBasisFiles : [],
