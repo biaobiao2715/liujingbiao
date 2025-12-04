@@ -23,7 +23,7 @@
           <div class="card-body">
             <div class="info-row">
               <span class="label">还款日期：</span>
-              <span class="value">{{ item.repaymentDate }}</span>
+              <span class="value">{{ formatDateOnly(item.repaymentDate) }}</span>
             </div>
 
             <div class="info-row">
@@ -104,6 +104,21 @@ const loading = ref(false);
 const getCurrentYearMonth = () => {
   const now = new Date();
   return `${now.getFullYear()}-${now.getMonth() + 1}`;
+};
+
+/**
+ * 只保留日期部分（YYYY-MM-DD）
+ */
+const formatDateOnly = (value: string | undefined | null) => {
+  if (!value) return '--';
+  // 支持 'YYYY-MM-DD' 或 'YYYY-MM-DD HH:mm:ss'
+  const str = String(value);
+  const datePart = str.split(' ')[0];
+  // 简单校验是否类似日期格式
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(datePart)) {
+    return datePart;
+  }
+  return str;
 };
 
 /**
