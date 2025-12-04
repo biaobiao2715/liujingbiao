@@ -131,16 +131,11 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item 
-            label="放款日期" 
-            prop="loanDate" 
-            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
-            class="date-picker-field"
-          >
+          <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item 
-            label="第一期还款日期" 
+          <el-form-item
+            label="第一期还款日期"
             prop="firstRepaymentDate"
             :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
             class="date-picker-field"
@@ -153,11 +148,7 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item 
-            label="贷款合同" 
-            prop="contractId" 
-            :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]"
-          >
+          <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -239,17 +230,27 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close, Document } from '@element-plus/icons-vue';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
+import {
+  getRemainingDetail,
+  getEnterprise,
+  auditLoanApplication,
+  uploadFile as uploadContractFile,
+  deleteFile as deleteContractFile
+} from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import ProductDetailDialog from './ProductDetailDialog.vue';
+import { log } from 'console';
 
-const props = withDefaults(defineProps<{
-  visible: boolean;
-  data: Record<string, any> | null;
-  mode?: 'detail' | 'approval';
-}>(), {
-  mode: 'detail'
-});
+const props = withDefaults(
+  defineProps<{
+    visible: boolean;
+    data: Record<string, any> | null;
+    mode?: 'detail' | 'approval';
+  }>(),
+  {
+    mode: 'detail'
+  }
+);
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
@@ -343,25 +344,25 @@ const PENDING_STATUS_CODES = new Set(['0', '1']);
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
   loanDate: [
-    { 
+    {
       required: true,
-      message: '请选择放款日期', 
+      message: '请选择放款日期',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请选择放款日期')
     }
   ],
   firstRepaymentDate: [
-    { 
+    {
       required: true,
-      message: '请选择第一期还款日期', 
+      message: '请选择第一期还款日期',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请选择第一期还款日期')
     }
   ],
   contractId: [
-    { 
+    {
       required: true,
-      message: '请上传贷款合同', 
+      message: '请上传贷款合同',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请上传贷款合同')
     }
@@ -475,9 +476,6 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
 };
 
 /**
- * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
- */
-/**
  * 从字典获取银行名称
  */
 const getBankLabel = (value: string | number | undefined | null): string => {
@@ -520,10 +518,17 @@ const fetchDetail = async () => {
   try {
     // 获取申请详情
     const res = await getRemainingDetail(props.data.id);
+    console.log('申请详情接口返回的createTime:', res.data.createTime);
+
     let merged: Record<string, any> = props.data ? { ...props.data } : {};
 
     if (res?.code === 200 && res.data) {
-      merged = { ...merged, ...res.data };
+      merged = {
+        ...merged,
+        ...res.data,
+        // 明确优先使用申请详情接口的createTime
+        createTime: res.data.createTime
+      };
     }
 
     // 获取企业信息
@@ -531,8 +536,15 @@ const fetchDetail = async () => {
     if (lenderId) {
       try {
         const extra = await getEnterprise(lenderId);
+        console.log('企业信息接口返回的createTime:', extra.data.createTime);
+
         if (extra?.code === 200 && extra.data) {
-          merged = { ...merged, ...extra.data };
+          // 合并企业信息但不覆盖申请时间，企业创建时间单独存储
+          merged = {
+            ...extra.data,
+            ...merged,
+            enterpriseCreateTime: extra.data.createTime // 企业注册时间单独存储
+          };
         }
       } catch (error) {
         console.error('获取企业信息失败:', error);
@@ -576,7 +588,7 @@ const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
     { label: '供应商名称', value: formatValue(row.companyName) },
     { label: '社会统一信用代码', value: formatValue(getFieldValue(row, ['licenseNumber', 'creditCode'])) },
     { label: '注册资本', value: formatValue(getFieldValue(row, ['signUpCapital', 'registeredCapital'])) },
-    { label: '注册日期', value: formatValue(getFieldValue(row, ['createTime', 'registerDate'])) },
+    { label: '注册日期', value: formatValue(getFieldValue(row, ['enterpriseCreateTime', 'registerDate'])) },
     { label: '注册地址', value: registerRegion || formatValue(row.registerAddress) },
     { label: '办公地址', value: formatValue(row.officeAddress) },
     { label: '资质等级', value: mapValue(CREDENTIAL_LEVEL_MAP, getFieldValue(row, ['credentialLevel', 'qualification'])) },
@@ -621,8 +633,7 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
   const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(getFieldValue(row, ['collectionAccountName', 'bankName']));
 
   const amount = row.loanAmount;
-  const amountText =
-    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
+  const amountText = amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
 
   return [
     { label: '贷款金额', value: amountText },
@@ -630,7 +641,8 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
     { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])) },
-    { label: '申请时间', value: formatValue(getFieldValue(row, ['createTime', 'applyTime'])) }
+    // 优先使用申请详情接口返回的createTime作为申请时间
+    { label: '申请时间', value: formatValue(row.createTime) }
   ];
 };
 
@@ -682,8 +694,6 @@ const dialogTitle = computed(() => {
 const isApprovalMode = computed(() => props.mode === 'approval');
 // 详情模式下始终只读，审批模式下可编辑
 const isApprovalReadonly = computed(() => {
-  // 如果 mode 是 'approval'，则可编辑（返回 false）
-  // 否则（'detail' 或 undefined），则只读（返回 true）
   return props.mode !== 'approval';
 });
 const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
@@ -929,7 +939,7 @@ const handleContractUpload = (req: any) =>
 
 const handleRemoveFile = async (file?: any) => {
   if (isApprovalReadonly.value) return;
-  
+
   const fileToRemove = file || approvalForm.contractFiles[0];
   if (!fileToRemove) return;
 
@@ -941,18 +951,18 @@ const handleRemoveFile = async (file?: any) => {
       return;
     }
   }
-  
+
   const idx = approvalForm.contractFiles.findIndex((f) => f.url === fileToRemove.url || f.serverUrl === fileToRemove.serverUrl);
   if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
   approvalForm.contractId = '';
-  
+
   // 清理本地 blob URL
   if (fileToRemove?.url && fileToRemove.url.startsWith('blob:')) {
     try {
       URL.revokeObjectURL(fileToRemove.url);
     } catch {}
   }
-  
+
   approvalFormRef.value?.validateField?.('contractId');
 };
 
@@ -1278,14 +1288,14 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     .el-input__suffix {
       right: 8px;
     }
-    
+
     .el-input__suffix-inner {
       .el-input__clear {
         margin-right: 4px;
       }
     }
   }
-  
+
   // 详情模式下，所有字段置灰
   :deep(.el-select.is-disabled),
   :deep(.el-date-editor.is-disabled),
@@ -1295,13 +1305,13 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
       background-color: #f5f7fa !important;
       cursor: not-allowed;
     }
-    
+
     .el-input__inner {
       color: #c0c4cc !important;
       cursor: not-allowed;
     }
   }
-  
+
   // 确保 disabled 状态下的样式
   :deep(.el-select.is-disabled .el-input__wrapper),
   :deep(.el-date-editor.is-disabled .el-input__wrapper) {
