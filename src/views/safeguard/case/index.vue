@@ -499,7 +499,7 @@ const buildCasePayload = (data: any) => {
   return {
     caseTypeId: data.caseTypeId,
     propertyList: (data.keyAttributes || []).map((item: any) => ({
-      propertyName: item.propertyName || item.name || ''
+      propertyName: item.name || ''
     })),
     legalBasisList: (data.legalBasisFiles || []).map((item: any) => ({
       ossId: item.ossId,

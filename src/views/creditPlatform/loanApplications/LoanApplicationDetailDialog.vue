@@ -161,9 +161,9 @@
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
-                  <div v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || idx" class="contract-file-item">
-                    <el-link :href="file.url" target="_blank" type="primary">
-                      {{ file.name || `合同文件${idx + 1}` }}
+                  <div v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || file.serverUrl || idx" class="contract-file-item">
+                    <el-link :href="file.serverUrl || file.url" target="_blank" type="primary">
+                      {{ file.displayName || file.name || `合同文件${idx + 1}` }}
                     </el-link>
                     <el-icon class="file-remove-icon" @click="handleRemoveFile" title="删除文件">
                       <Close />
@@ -173,15 +173,16 @@
                 <el-upload
                   v-if="!approvalForm.contractFiles.length"
                   class="contract-uploader inline-uploader"
-                  :disabled="contractUploading || submittingApproval"
+                  :disabled="submittingApproval"
                   accept=".pdf,.doc,.docx"
                   :limit="1"
                   :file-list="approvalForm.contractFiles"
                   :http-request="handleContractUpload"
+                  :before-upload="beforeUpload"
                   :on-remove="handleRemoveFile"
                   :show-file-list="false"
                 >
-                  <el-button type="primary" :loading="contractUploading" icon="Upload"> 点击上传 </el-button>
+                  <el-button type="primary" icon="Upload"> 点击上传 </el-button>
                   <template #tip>
                     <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
                   </template>
@@ -192,14 +193,14 @@
               <div class="contract-files-view" v-if="approvalForm.contractFiles.length">
                 <el-button
                   v-for="(file, idx) in approvalForm.contractFiles"
-                  :key="file.url || idx"
+                  :key="file.url || file.serverUrl || idx"
                   type="primary"
                   link
-                  @click="handleViewFile(file.url)"
+                  @click="handleViewFile(file.serverUrl || file.url)"
                   class="contract-view-btn"
                 >
                   <el-icon><Document /></el-icon>
-                  {{ file.name || `合同文件${idx + 1}` }}
+                  {{ file.displayName || file.name || `合同文件${idx + 1}` }}
                 </el-button>
               </div>
               <span v-else>--</span>
@@ -209,14 +210,14 @@
             <el-button
               type="primary"
               :loading="submittingApproval && currentApprovalAction === 'agree'"
-              :disabled="submittingApproval || contractUploading"
+              :disabled="submittingApproval"
               @click="handleSubmitApproval('agree')"
             >
               审批通过
             </el-button>
             <el-button
               :loading="submittingApproval && currentApprovalAction === 'reject'"
-              :disabled="submittingApproval || contractUploading"
+              :disabled="submittingApproval"
               @click="handleSubmitApproval('reject')"
             >
               审批驳回
@@ -238,9 +239,8 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close, Document } from '@element-plus/icons-vue';
-import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile } from '@/api/creditPlatform/loanApplications';
+import { getRemainingDetail, getEnterprise, auditLoanApplication, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
 const props = withDefaults(defineProps<{
@@ -260,8 +260,7 @@ const emit = defineEmits<{
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
 
-const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -293,7 +292,6 @@ const createConditionalRequiredValidator = (message: string) => {
   };
 };
 const submittingApproval = ref(false);
-const contractUploading = ref(false);
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
 
 // ==================== 常量定义 ====================
@@ -801,90 +799,139 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
-const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
-  const modal = (proxy as any)?.$modal;
-  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
+// 上传前验证
+const beforeUpload = (file: any) => {
+  const isValidType = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
+    file.type
+  );
 
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+  if (!isValidType) {
+    ElMessage.error('只能上传 Word/PDF 格式的文件！');
+    return false;
+  }
 
-  try {
-    let uploadResult: any = {};
+  // 重复文件拦截（按名称简单判断）
+  if (approvalForm.contractFiles.some((f) => (f.fileName || f.name) === file.name)) {
+    ElMessage.error('已选择相同文件，请勿重复上传');
+    return false;
+  }
 
-    if (useChunkUpload) {
-      uploadResult = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
-      // 兼容处理不同的返回格式和字段名
-      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
-        uploadResult = uploadResult.data;
-      }
-    } else {
-      const response = await ossUploadImage({ file });
-      uploadResult = response?.data || {};
+  // 文件大小限制（200MB）
+  const sizeMB = file.size / 1024 / 1024;
+  if (sizeMB > 200) {
+    ElMessage.error('上传文件大小不能超过200MB!');
+    return false;
+  }
+
+  // 限制只能上传一个文件
+  if (approvalForm.contractFiles.length >= 1) {
+    ElMessage.error('只能上传一个合同文件');
+    return false;
+  }
+
+  return true;
+};
+
+const handleContractUpload = (req: any) =>
+  new Promise(async (resolve, reject) => {
+    if (isApprovalReadonly.value) {
+      req?.onError?.(new Error('仅可查看'));
+      return reject(new Error('仅可查看'));
     }
 
-    // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
-    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
-    // if (!ossId) {
-    //   throw new Error('上传失败，未获取到文件标识');
-    // }
-
-    return {
-      ossId,
-      fileName: file.name,
-      originalName: file.name,
-      url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
-      uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
+    const rawFile = req.file;
+    // 先创建本地预览并标记上传中
+    const tempUrl = URL.createObjectURL(rawFile);
+    const tempItem: any = {
+      fileName: rawFile.name,
+      name: rawFile.name,
+      displayName: rawFile.name,
+      url: tempUrl,
+      fileType: '0', // 合同文件类型
+      status: 'uploading',
+      percentage: 0
     };
-  } catch (error) {
-    console.error('上传文件失败', error);
-    throw error;
-  } finally {
-    modal?.closeLoading?.();
-  }
-};
-
-const handleContractUpload = async (options: any) => {
-  if (isApprovalReadonly.value) {
-    options?.onError?.(new Error('仅可查看'));
-    return;
-  }
-  contractUploading.value = true;
-  try {
-    const uploadResult = await uploadAttachmentFile(options.file);
-    
-    if (uploadResult?.ossId) {
-      const fileInfo = {
-        name: uploadResult.originalName || options.file.name,
-        url: uploadResult.url,
-        id: uploadResult.ossId,
-        ossId: uploadResult.ossId
-      };
-      if (!fileInfo.url) {
-        throw new Error('上传返回结果缺少文件地址');
+    approvalForm.contractFiles = [tempItem];
+    try {
+      // 大文件：使用分片上传
+      if (rawFile.size > MAX_SIZE) {
+        const res: any = await uploadByChunks(rawFile, (percent: number) => {
+          tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+          if (typeof req.onProgress === 'function') req.onProgress({ percent });
+        });
+        tempItem.fileName = res.fileName || rawFile.name;
+        tempItem.name = res.fileName || rawFile.name;
+        tempItem.displayName = res.fileName || rawFile.name;
+        // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
+        tempItem.serverUrl = res.url;
+        tempItem.ossId = res.ossId;
+        tempItem.id = res.ossId;
+        tempItem.status = 'success';
+        tempItem.percentage = 100;
+        approvalForm.contractId = String(res.ossId || '');
+        approvalFormRef.value?.validateField?.('contractId');
+        if (typeof req.onSuccess === 'function') req.onSuccess(res);
+        return resolve(tempItem);
       }
-      approvalForm.contractFiles = [fileInfo];
-      approvalForm.contractId = String(fileInfo.ossId || fileInfo.id || '');
-      approvalFormRef.value?.validateField?.('contractId');
-      options.onSuccess?.(uploadResult, options.file);
-      ElMessage.success('合同上传成功');
-    } else {
-      throw new Error('上传失败，未获取到文件标识');
-    }
-  } catch (error: any) {
-    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '合同上传失败';
-    options.onError?.(error);
-    ElMessage.error(errorMsg);
-  } finally {
-    contractUploading.value = false;
-  }
-};
 
-const handleRemoveFile = () => {
+      // 小文件：FormData 普通上传
+      const fd = new FormData();
+      fd.append('file', rawFile);
+      const response: any = await uploadContractFile(fd);
+      const data = response?.data || {};
+      const fileName = data.fileName || rawFile.name;
+      tempItem.fileName = fileName;
+      tempItem.name = fileName;
+      tempItem.displayName = fileName;
+      // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
+      tempItem.serverUrl = data.url;
+      tempItem.ossId = data.ossId;
+      tempItem.id = data.ossId;
+      tempItem.status = 'success';
+      tempItem.percentage = 100;
+      approvalForm.contractId = String(data.ossId || '');
+      approvalFormRef.value?.validateField?.('contractId');
+      if (typeof req.onSuccess === 'function') req.onSuccess(data);
+      return resolve(tempItem);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '文件上传失败，请重试');
+      const idx = approvalForm.contractFiles.indexOf(tempItem);
+      if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
+      approvalForm.contractId = '';
+      try {
+        URL.revokeObjectURL(tempUrl);
+      } catch {}
+      if (typeof req.onError === 'function') req.onError(error);
+      reject(error);
+    }
+  });
+
+const handleRemoveFile = async (file?: any) => {
   if (isApprovalReadonly.value) return;
-  approvalForm.contractFiles = [];
+  
+  const fileToRemove = file || approvalForm.contractFiles[0];
+  if (!fileToRemove) return;
+
+  if (fileToRemove?.ossId) {
+    try {
+      await deleteContractFile([fileToRemove.ossId]);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '删除文件失败，请重试');
+      return;
+    }
+  }
+  
+  const idx = approvalForm.contractFiles.findIndex((f) => f.url === fileToRemove.url || f.serverUrl === fileToRemove.serverUrl);
+  if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
   approvalForm.contractId = '';
+  
+  // 清理本地 blob URL
+  if (fileToRemove?.url && fileToRemove.url.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(fileToRemove.url);
+    } catch {}
+  }
+  
   approvalFormRef.value?.validateField?.('contractId');
 };
 

@@ -96,7 +96,7 @@ const handleDetail = (article: any) => {
   cursor: pointer;
   .essay-left {
     .title {
-      width: 120px;
+      width: 300px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

@@ -15,9 +15,9 @@
       </div>
 
       <div class="content flex gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
-        <el-row>
-          <el-col>
-            <el-card v-for="(expert, index) in expertList" :key="expert.id" class="expert-item" v-show="isExpanded || index < 4">
+        <el-row :gutter="24">
+          <el-col :span="6" v-for="(expert, index) in expertList" :key="expert.id">
+            <el-card class="expert-item" v-show="isExpanded || index < 4">
               <div class="title-info flex gap-12" @click="handleDetail(expert)">
                 <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
                 <div>
@@ -139,7 +139,6 @@ const handleDetail = (expert) => {
     }
 
     .expert-item {
-      width: calc(25% - 8px);
       margin-bottom: 10px;
       cursor: pointer;
       border-radius: 8px;

@@ -24,30 +24,29 @@
             <div class="upload-inline">
               <div class="contract-files" v-if="contractFiles.length">
                 <div class="contract-file-item">
-                  <el-link :href="contractFiles[0].url" target="_blank" type="primary" class="contract-link">
+                  <el-link :href="contractFiles[0].serverUrl || contractFiles[0].url" target="_blank" type="primary" class="contract-link">
                     {{ contractFiles[0].displayName || contractFiles[0].name }}
                   </el-link>
-                  <el-icon class="file-remove-icon" @click="handleDeleteFile" title="删除文件">
+                  <el-icon class="file-remove-icon" @click.stop="handleDeleteFile" title="删除文件">
                     <Close />
                   </el-icon>
                 </div>
               </div>
               <el-upload
                 v-if="!contractFiles.length"
-                :auto-upload="true"
+                ref="uploaderRef"
+                :file-list="contractFiles"
                 action="#"
                 accept=".pdf,.doc,.docx"
-                :file-list="contractFiles"
-                list-type="text"
-                :show-file-list="false"
                 :http-request="handleUpload"
                 :before-upload="beforeUpload"
                 :on-remove="handleContractRemove"
+                :limit="1"
                 class="contract-uploader"
               >
                 <el-button type="primary" icon="Upload">点击上传</el-button>
                 <template #tip>
-                  <div class="upload-tip">支持 Word/PDF 格式</div>
+                  <div class="upload-tip">支持 Word/PDF 格式，文件大小不超过200MB</div>
                 </template>
               </el-upload>
             </div>
@@ -87,13 +86,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue';
+import { ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
+import type { UploadUserFile } from 'element-plus';
 import { Close } from '@element-plus/icons-vue';
-import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail } from '@/api/creditPlatform/loanApplications';
+import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+
+interface ContractFile extends UploadUserFile {
+  ossId?: string | number;
+  fileName?: string;
+  fileType?: string;
+  url?: string;
+  serverUrl?: string; // 后端返回的地址
+  percentage?: number;
+  status?: 'ready' | 'uploading' | 'success' | 'fail';
+  displayName?: string;
+}
+
 const props = defineProps<{
   visible: boolean;
   data: {
@@ -107,14 +118,13 @@ const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>(
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const MB = 1024 * 1024;
-const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
-
 const loading = ref(false);
 const plans = ref<any[]>([]);
-const contractFiles = ref<any[]>([]); //合同地址
-const uploadedOssId = ref<string>(''); //上传后的ossId
+const contractFiles = ref<ContractFile[]>([]);
+const uploaderRef = ref();
 const objectUrls = new Map<string, string>();
+
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 // 获取还款计划详情
 const fetchRepaymentPlan = async () => {
@@ -144,7 +154,8 @@ const fetchContractUrl = async () => {
             name: '贷款合同',
             displayName: '贷款合同',
             url: contractUrl,
-            uid: 'contract-file'
+            uid: Date.now(),
+            status: 'success'
           }
         ];
       }
@@ -153,21 +164,6 @@ const fetchContractUrl = async () => {
     console.error('获取合同地址失败:', error);
   }
 };
-const normalizeFiles = (files: Array<any> = []) =>
-  files.map((item, index) => {
-    if (typeof item === 'string') {
-      return { name: item, displayName: item, url: item, uid: `preset-${index}` };
-    }
-    if (!item.url && item.raw) {
-      const url = URL.createObjectURL(item.raw);
-      objectUrls.set(item.uid, url);
-      item.url = url;
-    }
-    if (!item.displayName) {
-      item.displayName = item.name || `文件${index + 1}`;
-    }
-    return item;
-  });
 
 // 监听弹窗打开，调用接口获取数据
 watch(
@@ -191,108 +187,129 @@ const beforeUpload = (file: any) => {
     ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
-  
+
+  // 重复文件拦截（按名称简单判断）
+  if (contractFiles.value.some((f) => (f.fileName || f.name) === file.name)) {
+    ElMessage.error('已选择相同文件，请勿重复上传');
+    return false;
+  }
+
+  // 文件大小限制（200MB，与视频文件相同）
+  const sizeMB = file.size / 1024 / 1024;
+  if (sizeMB > 200) {
+    ElMessage.error('上传文件大小不能超过200MB!');
+    return false;
+  }
+
+  // 限制只能上传一个文件
+  if (contractFiles.value.length >= 1) {
+    ElMessage.error('只能上传一个合同文件');
+    return false;
+  }
+
   return true;
 };
 
-const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
-  const modal = (proxy as any)?.$modal;
-  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
-
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
-
-  try {
-    let uploadResult: any = {};
-
-    if (useChunkUpload) {
-      uploadResult = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
-      // 兼容处理不同的返回格式和字段名
-      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
-        uploadResult = uploadResult.data;
-      }
-    } else {
-      const response = await ossUploadImage({ file });
-      uploadResult = response?.data || {};
-    }
-
-    // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
-    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
-    if (!ossId) {
-      throw new Error('上传失败，未获取到文件标识');
-    }
-
-    return {
-      ossId,
-      fileName: file.name,
-      originalName: file.name,
-      url: uploadResult?.url || uploadResult?.data?.url || uploadResult?.fileUrl || '',
-      uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
-    };
-  } catch (error) {
-    console.error('上传文件失败', error);
-    throw error;
-  } finally {
-    modal?.closeLoading?.();
-  }
-};
-
 // 自定义上传
-const handleUpload = async (options: any) => {
-  const { file } = options;
+const handleUpload = (req: any) =>
+  new Promise(async (resolve, reject) => {
+    const rawFile = req.file;
+    // 先创建本地预览并标记上传中
+    const tempUrl = URL.createObjectURL(rawFile);
+    const tempItem: ContractFile = {
+      fileName: rawFile.name,
+      name: rawFile.name,
+      displayName: rawFile.name,
+      url: tempUrl,
+      fileType: '0', // 合同文件类型
+      status: 'uploading',
+      percentage: 0
+    };
+    contractFiles.value = [tempItem];
+    try {
+      // 大文件：使用分片上传
+      if (rawFile.size > MAX_SIZE) {
+        const res: any = await uploadByChunks(rawFile, (percent: number) => {
+          tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+          if (typeof req.onProgress === 'function') req.onProgress({ percent });
+        });
+        tempItem.fileName = res.fileName || rawFile.name;
+        tempItem.name = res.fileName || rawFile.name;
+        tempItem.displayName = res.fileName || rawFile.name;
+        // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
+        tempItem.serverUrl = res.url;
+        tempItem.ossId = res.ossId;
+        tempItem.status = 'success';
+        tempItem.percentage = 100;
+        // 不立即 revoke，保持本地 URL 用于显示
+        if (typeof req.onSuccess === 'function') req.onSuccess(res);
+        return resolve(tempItem);
+      }
 
-  try {
-    const uploadResult = await uploadAttachmentFile(file);
-
-    if (uploadResult?.ossId) {
-      uploadedOssId.value = uploadResult.ossId;
-      contractFiles.value = [
-        {
-          name: uploadResult.originalName || file.name,
-          displayName: uploadResult.originalName || file.name,
-          url: uploadResult.url,
-          ossId: uploadResult.ossId,
-          uid: uploadResult.uid || file.uid
-        }
-      ];
-      ElMessage.success('上传成功');
-      options.onSuccess?.(uploadResult, file);
-    } else {
-      ElMessage.error('上传失败，请重试');
-      options.onError?.(new Error('上传失败'));
+      // 小文件：FormData 普通上传
+      const fd = new FormData();
+      fd.append('file', rawFile);
+      const response: any = await uploadContractFile(fd);
+      const data = response?.data || {};
+      const fileName = data.fileName || rawFile.name;
+      tempItem.fileName = fileName;
+      tempItem.name = fileName;
+      tempItem.displayName = fileName;
+      // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
+      tempItem.serverUrl = data.url;
+      tempItem.ossId = data.ossId;
+      tempItem.status = 'success';
+      tempItem.percentage = 100;
+      // 不立即 revoke，保持本地 URL 用于显示
+      if (typeof req.onSuccess === 'function') req.onSuccess(data);
+      return resolve(tempItem);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '文件上传失败，请重试');
+      const idx = contractFiles.value.indexOf(tempItem);
+      if (idx > -1) contractFiles.value.splice(idx, 1);
+      try {
+        URL.revokeObjectURL(tempUrl);
+      } catch {}
+      try {
+        (uploaderRef.value as any)?.handleRemove(tempItem);
+      } catch {}
+      if (typeof req.onError === 'function') req.onError(error);
+      reject(error);
     }
-  } catch (error: any) {
-    const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || '上传失败，请重试';
-    ElMessage.error(errorMsg);
-    options.onError?.(error);
+  });
+
+const removeFileManually = (file: ContractFile) => {
+  try {
+    (uploaderRef.value as any)?.handleRemove(file);
+  } catch (error) {
+    console.error(error);
   }
 };
 
 // 删除文件
-const handleDeleteFile = () => {
+const handleDeleteFile = async () => {
   if (!contractFiles.value.length) return;
 
-  // 直接清空文件列表，不调用删除接口
-  contractFiles.value = [];
-  ElMessage.success('删除成功');
+  const file = contractFiles.value[0];
+  await handleContractRemove(file);
 };
 
-const handleContractRemove = (file: any, fileList: any[]) => {
-  if (objectUrls.has(file.uid)) {
-    URL.revokeObjectURL(objectUrls.get(file.uid)!);
-    objectUrls.delete(file.uid);
-  }
-  contractFiles.value = normalizeFiles(fileList);
-};
-
-const previewFile = () => {
-  if (contractFiles.value.length) {
-    const file = contractFiles.value[0];
-    if (file.url) {
-      window.open(file.url, '_blank');
+const handleContractRemove = async (file: ContractFile) => {
+  if (file?.ossId) {
+    try {
+      await deleteContractFile([file.ossId]);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '删除文件失败，请重试');
+      return;
     }
+  }
+  const idx = contractFiles.value.findIndex((f) => f.url === file.url || f.serverUrl === file.serverUrl);
+  if (idx > -1) contractFiles.value.splice(idx, 1);
+  // 清理本地 blob URL
+  if (file?.url && file.url.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(file.url);
+    } catch {}
   }
 };
 
@@ -303,8 +320,13 @@ const handleSubmit = async () => {
   try {
     loading.value = true;
 
+    // 获取当前上传文件的 ossId
+    const currentOssId = contractFiles.value.length > 0 && contractFiles.value[0]?.ossId 
+      ? String(contractFiles.value[0].ossId) 
+      : undefined;
+
     // 直接传递还款计划数组
-    const response = await updateRepaymentPlan(props.data.id, uploadedOssId.value || undefined, plans.value);
+    const response = await updateRepaymentPlan(props.data.id, currentOssId, plans.value);
 
     if (response.code === 200) {
       ElMessage.success('提交成功');
@@ -327,6 +349,14 @@ const handleClose = () => {
 onBeforeUnmount(() => {
   objectUrls.forEach((url) => URL.revokeObjectURL(url));
   objectUrls.clear();
+  // 清理所有本地 blob URL
+  contractFiles.value.forEach((file) => {
+    if (file?.url && file.url.startsWith('blob:')) {
+      try {
+        URL.revokeObjectURL(file.url);
+      } catch {}
+    }
+  });
 });
 </script>
 

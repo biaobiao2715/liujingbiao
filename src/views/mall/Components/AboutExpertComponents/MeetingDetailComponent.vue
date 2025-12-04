@@ -15,7 +15,9 @@
       <img :src="detail?.avatar" width="40" />
       <div>{{ '发布人：  ' + detail?.publishUser }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <el-tag type="primary">{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</el-tag>
+      <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+
+      <!-- <el-tag type="primary">{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</el-tag> -->
       <div class="status">
         会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
       </div>
@@ -29,12 +31,15 @@
     <el-divider></el-divider>
     <!-- 详细信息 -->
     <div class="detail">
-      <div>会议主题：{{ detail?.meetingName }}</div>
-      <div>会议联系人：{{ detail?.meetingContact }}</div>
-      <div>会议类别：{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</div>
-      <div>会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
-      <div>会议地点：{{ detail?.meetingAddress }}</div>
-      <div v-if="detail?.meetingStatus === '99'">取消原因：{{ detail?.cancelReason }}</div>
+      <div class="item">会议主题：{{ detail?.meetingName }}</div>
+      <div class="item">会议联系人：{{ detail?.meetingContact }}</div>
+      <div class="item flex-center gap-12">
+        <div>会议类别：</div>
+        <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+      </div>
+      <div class="item">会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
+      <div class="item">会议地点：{{ detail?.meetingAddress }}</div>
+      <div v-if="detail?.meetingStatus === '99'" class="item">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
 </template>
@@ -42,6 +47,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { meetingDetail, activityApply } from '@/api/mall/expert';
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { meeting_type } = toRefs<any>(proxy?.useDict('meeting_type'));
 
 // 报名状态（0：未报名 1：已报名）
 
@@ -122,7 +129,7 @@ const handleApply = async () => {
     }
   }
   .detail {
-    div {
+    .item {
       margin-top: 24px;
     }
   }

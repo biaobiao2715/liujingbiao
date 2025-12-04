@@ -378,6 +378,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
   major: [{ required: true, message: '请输入专业名称', trigger: 'blur' }],
   // 毕业日期
   graduationDate: [
+    { type: 'date', required: true, message: '请选择毕业日期', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
