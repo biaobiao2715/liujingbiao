@@ -338,6 +338,20 @@ const initFormData: FormData = {
 };
 // 更新表单验证规则
 const FormRulesarr: FormRules = {
+  businessLicense: [
+    {
+      required: true,
+      validator: (rule: any, value: any, callback: any) => {
+        const hasBusinessLicense = fileListtable.value.some((file) => file.fileType === '1' && file.ossId);
+        if (!hasBusinessLicense) {
+          callback(new Error('请上传营业执照'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'change'
+    }
+  ],
   companyName: [
     { required: true, message: props.selectedIdentity == 'supplier' ? '供应商名称不能为空' : '企业名称不能为空', trigger: 'blur' },
     {
@@ -820,6 +834,7 @@ const submitForm = () => {
     if (valid) {
       const arr = validateAndSubmit();
       if (!arr) return;
+
       const params = {
         code: form.value.smsCode,
         enterpriseInfo: {

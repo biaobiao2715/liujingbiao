@@ -10,7 +10,7 @@
     <!-- 查询条件 -->
     <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-position="left">
       <el-form-item label="预警规则" prop="ruleName" label-width="auto">
-        <el-input v-model="queryParams.ruleName" placeholder="请输入规则名称" clearable @keyup.enter="handleQuery" />
+        <el-input v-model="queryParams.ruleName" placeholder="请输入预警规则名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="信用等级" prop="creditRatingId" label-width="auto">
         <el-select v-model="queryParams.creditRatingId" placeholder="请选择信用等级" clearable>
@@ -18,7 +18,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="预警状态" prop="status" label-width="auto">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+        <el-select v-model="queryParams.status" placeholder="请选择预警状态" clearable>
           <el-option v-for="d in warn_rule_status" :key="d.value" :label="d.label" :value="d.value" />
         </el-select>
       </el-form-item>
