@@ -39,7 +39,7 @@
               range-separator="-"
               start-placeholder="开始时间"
               end-placeholder="结束时间"
-              style="width: 360px"
+              :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             />
           </el-form-item>
           <el-form-item label="所属状态：">
@@ -99,7 +99,13 @@
     <report-edit ref="reportEditRef" v-model="reportEditVisible" @submit-success="handleEditSubmitSuccess" />
 
     <!-- 查看举报弹窗组件 -->
-    <report-view ref="reportViewRef" v-model="reportViewVisible" :report-data="currentReportData" />
+    <report-view
+      v-if="reportViewVisible"
+      ref="reportViewRef"
+      v-model="reportViewVisible"
+      :report-data="currentReportData"
+      :key="`report-view-${currentReportData?.id || Date.now()}`"
+    />
 
     <!-- 撤回弹窗 -->
     <el-dialog v-model="withdrawDialogVisible" title="操作确认" width="420px" :close-on-click-modal="false" @close="handleWithdrawCancel">
@@ -125,7 +131,7 @@
 
 <script setup lang="ts">
 // 引入 Vue 能力/类型，增强类型安全
-import { ref, toRefs, onMounted, getCurrentInstance, computed, watch, type ComponentInternalInstance } from 'vue';
+import { ref, toRefs, onMounted, getCurrentInstance, computed, watch, nextTick, type ComponentInternalInstance } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { reportList, reportBack, resubmitReportList, type Report, type ReportQueryParams } from '@/api/mall/personalCenter/myReport';
 import Pagination from '@/components/Pagination/index.vue';
@@ -363,6 +369,11 @@ const handleEditSubmitSuccess = () => {
 
 // 处理查看
 const handleView = async (row: Report) => {
+  // 先关闭弹窗，确保状态重置
+  reportViewVisible.value = false;
+  // 等待下一个 tick，确保组件已销毁
+  await nextTick();
+
   try {
     // 调用接口获取详细信息
     const res = await resubmitReportList(row.id);
@@ -375,15 +386,17 @@ const handleView = async (row: Report) => {
     } else {
       currentReportData.value = row;
     }
-    // 显示查看弹窗
-    reportViewVisible.value = true;
   } catch (error: any) {
     console.error('获取举报详情失败:', error);
     ElMessage.error(error.msg || error.message || '获取详情失败');
-    // 即使接口失败，也显示弹窗，使用列表数据
+    // 即使接口失败，也使用列表数据
     currentReportData.value = row;
-    reportViewVisible.value = true;
   }
+
+  // 等待下一个 tick，确保数据已更新
+  await nextTick();
+  // 显示查看弹窗
+  reportViewVisible.value = true;
 };
 
 // 根据状态值获取状态文本
