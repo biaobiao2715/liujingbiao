@@ -6,16 +6,22 @@
           <GoodsCategorySelect v-model="form.demandCategoryId" :emitPath="false" @categoryChange="handleCategoryChange" />
         </el-form-item>
         <el-form-item label="区域" required prop="region">
-          <RegionSelect v-model="form.region" @regionChange="handleAreaChange" style="width: 100%" />
+          <RegionSelect v-model="form.region" :checkStrictly="true" @regionChange="handleAreaChange" style="width: 100%" />
         </el-form-item>
         <el-form-item label="采购数量" required prop="quantity">
           <el-input v-model="form.quantity" placeholder="请输入采购数量" inputmode="numeric" @input="onQuantityInput"></el-input>
         </el-form-item>
         <el-form-item label="交付时间/天" required prop="deliveryDay">
-          <el-input v-model="form.deliveryDay" placeholder="请输入可交付时间"></el-input>
+          <el-input v-model="form.deliveryDay" placeholder="请输入可交付时间（支持一位小数，例如 1.5）" @input="onDeliveryDayInput"></el-input>
         </el-form-item>
         <el-form-item label="采购说明" prop="demandDescription">
-          <el-input v-model="form.demandDescription" type="textarea" placeholder="请输入采购说明"></el-input>
+          <el-input
+            v-model="form.demandDescription"
+            type="textarea"
+            placeholder="请输入采购说明（最多200字符）"
+            :maxlength="200"
+            show-word-limit
+          ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -58,13 +64,38 @@ const rules = ref({
     {
       validator: (_rule: any, value: any, callback: any) => {
         if (!value) return callback(new Error('请输入采购数量'));
-        if (!/^\d+$/.test(value)) return callback(new Error('仅能输入数字'));
+        if (!/^\d+$/.test(value)) return callback(new Error('仅支持自然数'));
+        const num = Number(value);
+        if (!(num > 0)) return callback(new Error('采购数量需大于0'));
+        if (num > 9999) return callback(new Error('最大支持9999'));
         callback();
       },
       trigger: ['blur', 'change']
     }
   ],
-  deliveryDay: [{ required: true, message: '请输入交付时间', trigger: 'blur' }]
+  deliveryDay: [
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (!value) return callback(new Error('请输入交付时间'));
+        // 支持最多一位小数，最大9999，且>0
+        if (!/^\d{1,4}(\.\d)?$/.test(value)) return callback(new Error('最多一位小数，最大9999'));
+        const num = Number(value);
+        if (!(num > 0)) return callback(new Error('交付时间需大于0'));
+        if (num > 9999) return callback(new Error('最大支持9999'));
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+  demandDescription: [
+    {
+      validator: (_rule: any, value: any, callback: any) => {
+        if (value && String(value).length > 200) return callback(new Error('采购说明最多200字符'));
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
+  ]
 });
 
 // 处理分类变化
@@ -87,7 +118,32 @@ const handleAreaChange = (val: any) => {
 
 // 数量输入仅保留数字
 const onQuantityInput = (val: string) => {
-  form.quantity = (val || '').replace(/[^\d]/g, '');
+  const raw = (val || '').replace(/[^\d]/g, '');
+  // 去除前导零
+  const normalized = raw.replace(/^0+(\d)/, '$1');
+  // 限制最大值 9999
+  form.quantity = normalized ? String(Math.min(Number(normalized), 9999)) : '';
+};
+
+// 交付时间输入：允许一位小数，最大9999
+const onDeliveryDayInput = (val: string) => {
+  let s = (val || '').replace(/[^\d.]/g, '');
+  // 只保留第一个小数点
+  const firstDot = s.indexOf('.');
+  if (firstDot !== -1) {
+    s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '');
+  }
+  // 保留至多一位小数
+  const m = s.match(/^\d{0,4}(?:\.\d?)?/);
+  s = m ? m[0] : '';
+  // 去除前导零的整数部分规范化
+  const parts = s.split('.');
+  if (parts[0]) parts[0] = parts[0].replace(/^0+(\d)/, '$1');
+  s = parts.join('.');
+  // 限制最大值 9999
+  const num = Number(s);
+  if (!isNaN(num) && num > 9999) s = '9999';
+  form.deliveryDay = s;
 };
 
 // 打开发布采购需求弹窗

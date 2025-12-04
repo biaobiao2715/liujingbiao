@@ -8,7 +8,7 @@
 <template>
   <div class="footer-container">
     <div class="footer-content flex-center-center">
-      Copyright 12015-2022 服务有限公司 版权所有  |  police京公网安备 11010202007266号  |  京ICP备07033173号-1  |  经营证照  | 
+      Copyright 2015-2022 服务有限公司 版权所有  |  police京公网安备 11010202007266号  |  京ICP备07033173号-1  |  经营证照  | 
       经营许可证编号：京ICP证161338号
     </div>
   </div>
