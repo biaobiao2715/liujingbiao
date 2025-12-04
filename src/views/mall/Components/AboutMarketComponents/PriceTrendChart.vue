@@ -27,7 +27,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   title: '价格走势图',
-  unit: '单位: 元/斤',
+  unit: '单位: 元/kg',
   showHeader: true,
   yAxisMin: 0,
   yAxisInterval: 15

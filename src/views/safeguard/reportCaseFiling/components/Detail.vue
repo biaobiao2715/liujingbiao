@@ -518,7 +518,7 @@
 
           <el-col :span="24">
             <el-form-item label="申诉时间：">
-              <el-input v-model="appealDetail.updateTime" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.appealTime" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
 
@@ -560,7 +560,7 @@
 
           <el-col :span="24">
             <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -916,10 +916,10 @@ const appealVideoList = ref<FileViewItem[]>([]); // 申诉视频列表
 // 弹窗：历史申诉材料
 const appealDialogVisible = ref(false);
 const appealDialogLoading = ref(false);
-const appealDetail = ref<{ appealReason: string; updateTime: string; rejectReason: string }>({
+const appealDetail = ref<{ appealReason: string; appealTime: string; backReason: string }>({
   appealReason: '',
-  updateTime: '',
-  rejectReason: ''
+  appealTime: '',
+  backReason: ''
 });
 const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
 const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
@@ -1180,8 +1180,8 @@ const handlePreview = async (row: any) => {
 
     // 文本信息
     appealDetail.value.appealReason = data.appealReason ?? '';
-    appealDetail.value.updateTime = data.updateTime ?? '';
-    appealDetail.value.rejectReason = data.rejectReason ?? '';
+    appealDetail.value.appealTime = data.appealTime ?? '';
+    appealDetail.value.backReason = data.backReason ?? '';
 
     // 附件信息（兼容多种字段命名）
     const files =
@@ -1201,8 +1201,8 @@ const handlePreview = async (row: any) => {
     histAppealImagePreviewUrls.value = [];
     histAppealVideoList.value = [];
     appealDetail.value.appealReason = '';
-    appealDetail.value.updateTime = '';
-    appealDetail.value.rejectReason = '';
+    appealDetail.value.appealTime = '';
+    appealDetail.value.backReason = '';
   } finally {
     appealDialogLoading.value = false;
   }
@@ -1212,7 +1212,7 @@ const handlePreview = async (row: any) => {
 /** 关闭弹窗并重置数据 */
 const closeAppealDialog = () => {
   appealDialogVisible.value = false;
-  appealDetail.value = { appealReason: '', updateTime: '', rejectReason: '' };
+  appealDetail.value = { appealReason: '', appealTime: '', backReason: '' };
   histAppealImageList.value = [];
   histAppealImagePreviewUrls.value = [];
   histAppealVideoList.value = [];

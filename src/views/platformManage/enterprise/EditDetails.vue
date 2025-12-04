@@ -138,15 +138,15 @@
       </el-row>
 
       <FormHeader title="资料清单" />
-      <el-table :data="formData.folders" border>
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="name" label="附件名" align="center">
+      <el-table :data="formData.folders">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column prop="name" label="附件名">
           <template #default="scope">
             {{ scope.row.ossInfo.originalName }}
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" align="center"></el-table-column>
-        <el-table-column label="操作" align="center">
+        <el-table-column prop="remark" label="备注"></el-table-column>
+        <el-table-column label="操作">
           <template #default="scope">
             <el-button v-throttle type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)">下载</el-button>
           </template>
@@ -179,7 +179,7 @@
             </el-col>
           </el-row>
 
-          <el-table :data="activityInfo.transactionActivity.orders" border>
+          <el-table :data="activityInfo.transactionActivity.orders">
             <el-table-column type="index" label="序号" width="100"></el-table-column>
             <el-table-column prop="createTime" label="交易时间"> </el-table-column>
             <el-table-column prop="orderSn" label="订单编号"></el-table-column>
@@ -193,7 +193,7 @@
           </el-table>
         </div>
         <div v-show="enterpriseProfileType === '2'">
-          <el-table :data="activityInfo.violationRecords" border>
+          <el-table :data="activityInfo.violationRecords">
             <el-table-column type="index" label="序号" width="100"></el-table-column>
             <el-table-column prop="closeCaseTime" label="违规时间"> </el-table-column>
             <el-table-column prop="dealResult" label="违规描述"></el-table-column>
