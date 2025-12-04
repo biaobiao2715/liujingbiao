@@ -60,19 +60,19 @@
       </el-row>
 
       <FormHeader title="商品信息" />
-      <el-table :data="tableList" border style="width: 100%">
-        <el-table-column prop="goodsName" label="商品名称" width="200" align="center" :show-overflow-tooltip="true">
+      <el-table :data="tableList" style="width: 100%">
+        <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default>
             <div class="spec-name">{{ formData.goodsName }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsCode" label="商品编码" width="220" align="center">
+        <el-table-column prop="goodsCode" label="商品编码" width="220">
           <template #default>
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsWeight" label="KG(计重)" width="120" align="center"> </el-table-column>
-        <el-table-column prop="goodsPrice" label="销售价" align="center" width="200">
+        <el-table-column prop="goodsWeight" label="KG(计重)" width="120"> </el-table-column>
+        <el-table-column prop="goodsPrice" label="销售价" width="200">
           <template #default="scope">
             <span v-if="operateMode === 'view'">{{ formatPrice(scope.row.goodsPrice) }}¥</span>
             <div v-if="operateMode === 'edit'" style="display: flex; align-items: center; gap: 8px">
@@ -91,12 +91,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsSpecificationValue" label="商品规格" align="center">
+        <el-table-column prop="goodsSpecificationValue" label="商品规格">
           <template #default="scope">
             <span>{{ scope.row.goodsSpecificationValue }}{{ formData.goodsSpecificationName }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsStock" label="可用库存" align="center" />
+        <el-table-column prop="goodsStock" label="可用库存" />
       </el-table>
 
       <div style="height: 20px"></div>

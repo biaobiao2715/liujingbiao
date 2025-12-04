@@ -7,18 +7,18 @@
 <template>
   <el-dialog v-model="dialogVisible" title="价格调整明细" width="800px">
     <el-table :data="props.data || []" v-loading="props.loading" style="width: 100%">
-      <el-table-column type="index" label="序号" width="80" align="center" :index="getIndex" />
-      <el-table-column label="商品规格" align="center">
+      <el-table-column type="index" label="序号" width="80" :index="getIndex" />
+      <el-table-column label="商品规格">
         <template #default="scope">
           {{ formatSpecification(scope.row) }}
         </template>
       </el-table-column>
-      <el-table-column label="调整前销售价格" align="center">
+      <el-table-column label="调整前销售价格">
         <template #default="scope">
           {{ formatPrice(scope.row.goodsOldPrice, scope.row.goodsSpecificationName) }}
         </template>
       </el-table-column>
-      <el-table-column label="调整后销售价格" align="center">
+      <el-table-column label="调整后销售价格">
         <template #default="scope">
           {{ formatPrice(scope.row.goodsNewPrice, scope.row.goodsSpecificationName) }}
         </template>

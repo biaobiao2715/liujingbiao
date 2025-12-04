@@ -89,62 +89,15 @@
         <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
       </div>
 
-      <!-- 举报商品弹窗 -->
-      <el-dialog v-model="reportDialogVisible" title="我要举报" width="600px" :close-on-click-modal="false">
-        <el-form :model="reportForm" :rules="reportRules" ref="reportFormRef" label-width="120px">
-          <!-- 举报类别 -->
-          <el-form-item label="举报类别" prop="reportTypeId">
-            <el-select v-model="reportForm.reportTypeId" placeholder="请选择">
-              <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-
-          <!-- 被举报方 -->
-          <el-form-item label="被举报方" prop="reportPersonName">
-            <el-input v-model="reportForm.reportPersonName" placeholder="带出被举报方信息" disabled />
-          </el-form-item>
-
-          <!-- 举报商品 -->
-          <el-form-item label="举报商品" prop="reportGoodsCode">
-            <el-input v-model="reportForm.reportGoodsCode" placeholder="带出举报商品信息" disabled />
-          </el-form-item>
-
-          <!-- 举报材料上传 -->
-          <el-form-item label="举报材料" prop="ossList" class="uploadcss">
-            <el-upload
-              :file-list="hnGoodsFilesList"
-              :limit="9"
-              ref="refShop"
-              list-type="picture-card"
-              action="#"
-              :before-upload="handleBeforeUpload"
-              :http-request="uploadFile"
-              :on-remove="handleDelete"
-              :on-exceed="handleExceed"
-            >
-              <el-icon class="avatar-uploader-icon"><Plus /></el-icon>
-            </el-upload>
-            <div>1.支持jpg、jpeg、png三种图片格式，最多上传六张图片，每张图片大小不超过10MB</div>
-            <div>2.支持MP4、mov、avi三种视频格式，最多上传三个视频，每个视频限制大小200MB</div>
-          </el-form-item>
-
-          <!-- 举报描述 -->
-          <el-form-item label="举报描述" prop="reportDescription" required>
-            <el-input
-              type="textarea"
-              v-model="reportForm.reportDescription"
-              placeholder="请输入举报描述，最大长度为200个字"
-              maxlength="200"
-              show-word-limit
-              :rows="3"
-            />
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button @click="reportDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitReport">提交</el-button>
-        </template>
-      </el-dialog>
+      <!-- 我要举报弹窗（封装组件） -->
+      <ReportDialog
+        v-model="reportDialogVisible"
+        :default-target="reportForm?.reportPersonName || ''"
+        :default-goods-info="reportForm?.reportGoodsCode || ''"
+        :report-person-id="reportForm?.reportPersonId || ''"
+        :report-goods-code="reportForm?.reportGoodsCode || ''"
+        @submit="handleReportSubmitData"
+      />
     </div>
   </div>
 </template>
@@ -154,6 +107,7 @@
 import { ref, reactive, toRefs, onMounted, nextTick, getCurrentInstance, type ComponentInternalInstance } from 'vue';
 import { orderConfirm, orderCancel, orderList, ossUploadImage, addReportChannel, Order } from '@/api/mall/personalCenter/orders';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import ReportDialog from '@/views/mall/Components/AboutCompareComponents/ReportDialog.vue';
 
 // -------------------- 响应式数据 --------------------
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -226,6 +180,7 @@ const onTabChange = (name: string | number) => {
   }
   getList();
 };
+const handleReportSubmitData = (_payload: any) => {};
 
 /**
  * 获取订单列表

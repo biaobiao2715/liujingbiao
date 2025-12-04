@@ -142,8 +142,8 @@
             <el-button class="flex-buttom" @click="addTableCell" type="primary" plain>新增规格值</el-button>
           </div>
 
-          <el-table :data="hnGoodsSpecificationDataList" border style="width: 100%">
-            <el-table-column prop="goodsWeight" label="KG(计重)" align="center">
+          <el-table :data="hnGoodsSpecificationDataList" style="width: 100%">
+            <el-table-column prop="goodsWeight" label="KG(计重)">
               <template #header>
                 <span class="required">KG(计重)</span>
               </template>
@@ -162,7 +162,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="goodsSpecificationValue" label="单位" align="center">
+            <el-table-column prop="goodsSpecificationValue" label="单位">
               <template #header>
                 <span class="required">
                   {{ selectedSpecification(formData.goodsSpecification) }}
@@ -182,7 +182,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column prop="goodsPrice" label="销售价" align="center">
+            <el-table-column prop="goodsPrice" label="销售价">
               <template #header>
                 <span class="required">销售价</span>
               </template>
@@ -203,7 +203,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column prop="goodsStock" label="可用库存" align="center">
+            <el-table-column prop="goodsStock" label="可用库存">
               <template #header>
                 <span class="required">可用库存</span>
               </template>
@@ -221,7 +221,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column fixed="right" label="操作" align="center">
+            <el-table-column fixed="right" label="操作">
               <template #default="scope">
                 <el-button v-if="hnGoodsSpecificationDataList.length > 1" v-throttle link @click="removeTableCell(scope.$index)" type="primary">
                   删除行
