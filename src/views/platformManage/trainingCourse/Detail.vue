@@ -257,7 +257,6 @@ const processAttachmentList = (attachments: any[]): any[] => {
 const handleDownload = async (file: any) => {
   console.log('file', file);
   try {
-    debugger;
     const response = await fetch(file.url);
     const blob = await response.blob();
     const link = document.createElement('a');
