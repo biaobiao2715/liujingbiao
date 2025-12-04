@@ -67,9 +67,9 @@
       <!-- <img src="@/assets/images/register1.svg" class="el-icon-view" /> -->
       <!-- <img src="@/assets/images/register4.svg" class="el-icon-view" /> -->
       <el-table :data="fileListtable" stripe>
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="fileName" label="附件名" align="center" />
-        <el-table-column label="操作" width="250" align="center">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column prop="fileName" label="附件名" />
+        <el-table-column label="操作" width="250">
           <template #default="scope">
             <el-button v-throttle link @click="reuploadFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
               <span style="height: 16px; line-height: 16px">重新上传</span>

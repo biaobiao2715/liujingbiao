@@ -38,21 +38,21 @@
     <!-- 参会专家人员信息 -->
     <div class="table-section">
       <h3>参会专家人员信息</h3>
-      <el-table :data="expertList" border>
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="expertCode" label="专家编码" align="center" />
+      <el-table :data="expertList">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column prop="expertCode" label="专家编码" />
         <el-table-column prop="expertType" label="专家类型" align="center">
           <template #default="scope">
             <dict-tag :options="meet_expert_type" :value="scope.row.expertType" />
           </template>
         </el-table-column>
-        <el-table-column prop="expertName" label="专家姓名" align="center" />
-        <el-table-column prop="expertSex" label="专家性别" align="center">
+        <el-table-column prop="expertName" label="专家姓名" />
+        <el-table-column prop="expertSex" label="专家性别">
           <template #default="scope">
             <dict-tag :options="sys_user_sex" :value="scope.row.expertSex" />
           </template>
         </el-table-column>
-        <el-table-column prop="contactPhone" label="专家联系电话" align="center" />
+        <el-table-column prop="contactPhone" label="专家联系电话" />
       </el-table>
       <div class="pagination">
         <pagination
@@ -68,10 +68,10 @@
     <!-- 报名参加人员信息 -->
     <div class="table-section">
       <h3>报名参加人员信息</h3>
-      <el-table :data="signUpList" border>
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column prop="enrollUserNickName" label="报名人姓名" align="center" />
-        <el-table-column prop="enrollUserPhone" label="报名人联系电话" align="center" />
+      <el-table :data="signUpList">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column prop="enrollUserNickName" label="报名人姓名" />
+        <el-table-column prop="enrollUserPhone" label="报名人联系电话" />
       </el-table>
       <div class="pagination">
         <pagination

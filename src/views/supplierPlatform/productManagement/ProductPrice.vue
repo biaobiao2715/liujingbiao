@@ -33,21 +33,21 @@
     </div>
     <!-- 表格展示 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="商品编码" align="center" prop="goodsCode" width="220"> </el-table-column>
-      <el-table-column label="商品名称" align="center" prop="goodsName" :show-overflow-tooltip="true" />
-      <el-table-column label="商品品牌" align="center" prop="goodsBrandName"> </el-table-column>
-      <el-table-column label="商品类目" align="center" prop="goodsCategoryName" :show-overflow-tooltip="true"> </el-table-column>
-      <!-- <el-table-column label="调整前销售价格" align="center" prop="goodsOldPrice"> </el-table-column> -->
-      <!-- <el-table-column label="调整后销售价格" align="center" prop="goodsNewPrice"> </el-table-column> -->
-      <el-table-column label="调整人" align="center" prop="createBy" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="价格调整日期" align="center" prop="changeTime" width="160">
+      <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="商品编码" prop="goodsCode" width="220"> </el-table-column>
+      <el-table-column label="商品名称" prop="goodsName" :show-overflow-tooltip="true" />
+      <el-table-column label="商品品牌" prop="goodsBrandName"> </el-table-column>
+      <el-table-column label="商品类目" prop="goodsCategoryName" :show-overflow-tooltip="true"> </el-table-column>
+      <!-- <el-table-column label="调整前销售价格"  prop="goodsOldPrice"> </el-table-column> -->
+      <!-- <el-table-column label="调整后销售价格"  prop="goodsNewPrice"> </el-table-column> -->
+      <el-table-column label="调整人" prop="createBy" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column label="价格调整日期" prop="changeTime" width="160">
         <template #default="scope">
           {{ formatDate(scope.row.changeTime) }}
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column fixed="right" label="操作">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row)">查看</el-button>
         </template>

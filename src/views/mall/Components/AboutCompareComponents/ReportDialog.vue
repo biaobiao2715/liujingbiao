@@ -87,6 +87,7 @@ interface ReportMaterial extends UploadUserFile {
   fileName?: string;
   fileType?: string;
   url?: string;
+  fileSize?: number | string;
   percentage?: number;
   status?: 'ready' | 'uploading' | 'success' | 'fail';
 }
@@ -251,6 +252,7 @@ const handleUpload = (req: any) =>
       name: rawFile.name,
       url: tempUrl,
       fileType: isVideo({ name: rawFile.name }) ? '1' : '0',
+      fileSize: rawFile.size,
       status: 'uploading',
       percentage: 0
     };
@@ -316,6 +318,7 @@ const initDefaults = () => {
   form.desc = '';
   form.filesCount = 0;
   fileList.value = [];
+  formRef.value?.clearValidate();
 };
 
 const buildPayload = (): ReportSubmitPayload => ({
@@ -326,6 +329,7 @@ const buildPayload = (): ReportSubmitPayload => ({
   ossList: fileList.value.map((item) => ({
     ossId: item.ossId,
     fileName: item.fileName,
+    fileSize: item.fileSize,
     fileType: item.fileType ?? (isVideo({ name: item.fileName || item.name || '' }) ? '1' : '0'),
     url: item.url
   }))
@@ -351,6 +355,7 @@ const handleSubmit = () => {
       ElMessage.success('已提交举报');
       emit('submit', payload);
       visible.value = false;
+      uploaderRef.value.clearFiles();
     } catch (error: any) {
       ElMessage.error(error?.msg || '举报提交失败，请稍后重试');
     } finally {
@@ -360,11 +365,15 @@ const handleSubmit = () => {
 };
 
 const handleClosed = () => {
+  fileList.value = [];
   emit('closed');
 };
 </script>
 
 <style scoped>
+.report-dialog :deep(.el-form-item__label) {
+  background: none !important;
+}
 .report-uploader .el-upload--picture-card {
   border: 1px dashed #c0ccda;
 }
