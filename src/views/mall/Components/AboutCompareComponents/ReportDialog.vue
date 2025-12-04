@@ -218,10 +218,6 @@ const handleBeforeUpload = (file: any) => {
     ElMessage.error('上传图片大小不能超过10MB!');
     return false;
   }
-  if (isVid && sizeMB > 200) {
-    ElMessage.error('上传视频大小不能超过200MB!');
-    return false;
-  }
   const { img, vid } = countTypes();
   if (isImg && img >= MAX_IMAGE) {
     ElMessage.error('最多上传六张图片');
@@ -262,21 +258,21 @@ const handleUpload = (req: any) =>
     form.filesCount = fileList.value.length;
     try {
       // 大文件：使用分片上传
-      if (rawFile.size > MAX_SIZE) {
-        const res: any = await uploadByChunks(rawFile, (percent: number) => {
-          tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
-          if (typeof req.onProgress === 'function') req.onProgress({ percent });
-        });
-        tempItem.fileName = res.fileName || rawFile.name;
-        tempItem.name = res.fileName || rawFile.name;
-        tempItem.url = res.url;
-        tempItem.ossId = res.ossId;
-        tempItem.status = 'success';
-        tempItem.percentage = 100;
-        URL.revokeObjectURL(tempUrl);
-        if (typeof req.onSuccess === 'function') req.onSuccess(res);
-        return resolve(tempItem);
-      }
+      // if (rawFile.size > MAX_SIZE) {
+      const res: any = await uploadByChunks(rawFile, (percent: number) => {
+        tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+        if (typeof req.onProgress === 'function') req.onProgress({ percent });
+      });
+      tempItem.fileName = res.fileName || rawFile.name;
+      tempItem.name = res.fileName || rawFile.name;
+      tempItem.url = res.url;
+      tempItem.ossId = res.ossId;
+      tempItem.status = 'success';
+      tempItem.percentage = 100;
+      URL.revokeObjectURL(tempUrl);
+      if (typeof req.onSuccess === 'function') req.onSuccess(res);
+      return resolve(tempItem);
+      // }
 
       // 小文件：FormData 普通上传
       const fd = new FormData();
@@ -309,7 +305,8 @@ const handleUpload = (req: any) =>
     }
   });
 
-const handleRemove = async (file: ReportMaterial) => {
+const handleRemove = async (fileRaw: ReportMaterial) => {
+  const file: any = fileRaw.response;
   if (file?.ossId) {
     try {
       await deleteReportFile([file.ossId]);
@@ -322,6 +319,7 @@ const handleRemove = async (file: ReportMaterial) => {
   if (idx > -1) fileList.value.splice(idx, 1);
   form.filesCount = fileList.value.length;
 };
+
 const onPreview = (file: any) => {
   const url = file?.url || '';
   preview.url = url;

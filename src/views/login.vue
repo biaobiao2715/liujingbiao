@@ -131,7 +131,7 @@ const handleLogin = async () => {
   loading.value = true;
   accountForm.value.username = accountForm.value.phone; // 将手机号赋值给用户名字段
   if (!tenantMap.value || Object.keys(tenantMap.value).length === 0) {
-    ElMessage.error('租户列表为空,请刷新页面重试');
+    ElMessage.error('未匹配到租户,请刷新页面重试');
     loading.value = false;
     return;
   }

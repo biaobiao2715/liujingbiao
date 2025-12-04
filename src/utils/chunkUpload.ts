@@ -1,24 +1,9 @@
 import { initUpload, completeUpload, finishUpload, getOssListByIds } from '@/api/login';
 import SparkMD5 from 'spark-md5';
 
-const UPLOAD_ID = generateUploadId();
-
-function generateUploadId() {
-  return crypto?.randomUUID?.() || generateUUIDFallback(); // 浏览器原生支持
-}
-
-function generateUUIDFallback() {
-  // 简单 UUID 生成（RFC4122 v4 格式）
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 /** 计算文件 MD5 */
-async function computeHash(file: File): Promise<string> {
-  return new Promise((resolve) => {
+const computeHash = (file: File): Promise<string> =>
+  new Promise((resolve) => {
     const reader = new FileReader();
     const spark = new SparkMD5.ArrayBuffer();
 
@@ -29,73 +14,70 @@ async function computeHash(file: File): Promise<string> {
 
     reader.readAsArrayBuffer(file);
   });
-}
 
-/** 将文件切片 */
-function createChunks(file: File, size: number) {
+/** 切片 */
+const createChunks = (file: File, size: number) => {
+  if (!file || size <= 0) return [];
   const chunks: Blob[] = [];
-  let cur = 0;
-
-  while (cur < file.size) {
+  for (let cur = 0; cur < file.size; cur += size) {
     chunks.push(file.slice(cur, cur + size));
-    cur += size;
   }
-
   return chunks;
-}
+};
 
 /** 主上传流程 */
 export async function uploadByChunks(file: File, onProgress?: (percent: number) => void) {
-  // (1) 计算 MD5
   const fileHash = await computeHash(file);
 
-  // (2) 初始化上传，获得 uploadId
+  // 初始化上传
   const initRes = await initUpload({
-    uploadId: UPLOAD_ID,
     fileName: file.name,
     fileSize: file.size,
     fileHash
   });
-  if (initRes.data.fileExists) {
-    const oss = await getOssListByIds(initRes.data.fileId);
-    return { ossId: initRes.data.fileId, fileName: oss.data[0]?.fileName, url: oss.data[0]?.url };
+  const data = initRes.data;
+
+  /** 情况一：文件已存在，直接返回 */
+  if (data.fileExists) {
+    const oss = await getOssListByIds(data.fileId);
+    const info = oss.data[0];
+    return { ossId: data.fileId, fileName: info?.fileName, url: info?.url };
   }
 
-  if (!initRes.data.chunkSize) return; // 不需要分片
+  /** 情况二：不需要分片，可直接整文件 PUT 上传 */
+  if (!data.chunksInfo?.length) {
+    const resp = await fetch(data.uploadUrl, { method: 'PUT', body: file });
 
-  const chunksInfo = initRes.data.chunksInfo || [];
+    if (resp.ok) {
+      return (await finishUpload(fileHash)).data;
+    }
+    return Promise.reject('上传失败');
+  }
 
-  const chunks = createChunks(file, initRes.data.chunkSize);
+  /** 情况三：需要分片上传 */
+  const chunks = createChunks(file, data.chunkSize);
+  const chunksInfo = data.chunksInfo;
 
-  // 调用minio的接口
   for (let i = 0; i < chunksInfo.length; i++) {
-    const chunkInfo = chunksInfo[i];
-    const chunk = chunks[i];
+    const { presignUrl } = chunksInfo[i];
 
-    // 第一步：上传该 chunk
-    const uploadResponse = await fetch(chunkInfo.presignUrl, {
-      method: 'PUT',
-      body: chunk
+    // 上传单个分片
+    const uploadResp = await fetch(presignUrl, { method: 'PUT', body: chunks[i] });
+    if (!uploadResp.ok) continue;
+
+    // 通知分片完成
+    const res = await completeUpload({
+      uploadId: data.uploadId,
+      index: i,
+      fileHash,
+      presignUrl
     });
-    console.log('上传完成:', uploadResponse);
 
-    if (uploadResponse.ok) {
-      // 第二步：单片上传成功后立即告诉服务端
-      const res = await completeUpload({
-        uploadId: initRes.data.uploadId,
-        index: i,
-        fileHash,
-        presignUrl: chunkInfo.presignUrl
-      });
-
-      if (res.code === 200) {
-        onProgress?.(Math.round((i / chunksInfo.length) * 100));
-      }
+    if (res.code === 200) {
+      onProgress?.(Math.round(((i + 1) / chunksInfo.length) * 100));
     }
   }
 
-  // (4) 所有分片上传完 -> 通知后端合并
-  const mergeRes = await finishUpload(fileHash);
-
-  return mergeRes;
+  // 通知合并文件
+  return finishUpload(fileHash);
 }

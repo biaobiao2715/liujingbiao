@@ -40,8 +40,6 @@ import { getInfo, thirdPartyLogin } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
-import axios from 'axios';
-import CryptoJS from 'crypto-js';
 
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -145,8 +143,6 @@ const applications = ref([
 
 const currentPlatform = ref([]);
 
-const SECRET_KEY = 'grain_sales_secret_key';
-
 const tenantType = ref('');
 
 onMounted(async () => {
@@ -195,10 +191,7 @@ const handleRedirect = async (path: string) => {
 
 // 获取用户信息
 const getCacheInfo = () => {
-  const rememberedAccount = localStorage.getItem('rememberedAccount');
-  const decryptedData = CryptoJS.AES.decrypt(rememberedAccount, SECRET_KEY).toString(CryptoJS.enc.Utf8);
   const clientId = import.meta.env.VITE_APP_CLIENT_ID;
-
   return {
     username: userStore.userName,
     password: '111111',
