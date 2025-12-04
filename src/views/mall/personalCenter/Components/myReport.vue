@@ -26,18 +26,20 @@
             <el-input v-model="queryParams.caseCode" placeholder="" />
           </el-form-item>
           <el-form-item label="举报商品：">
-            <el-input v-model="queryParams.reportGoodsName" placeholder="请输入举报商品" />
+            <el-input v-model="queryParams.reportGoodsCode" placeholder="请输入举报商品" />
           </el-form-item>
         </div>
         <div v-show="isExpanded" class="form-row">
-          <el-form-item label="创建时间：">
+          <el-form-item label="时间范围：">
             <el-date-picker
               v-model="queryParams.createTime"
-              type="datetime"
+              type="datetimerange"
               value-format="YYYY-MM-DD HH:mm:ss"
               format="YYYY-MM-DD HH:mm:ss"
-              placeholder="请选择创建时间"
-              style="width: 180px"
+              range-separator="-"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              style="width: 360px"
             />
           </el-form-item>
           <el-form-item label="所属状态：">
@@ -123,7 +125,7 @@
 
 <script setup lang="ts">
 // 引入 Vue 能力/类型，增强类型安全
-import { ref, toRefs, onMounted, getCurrentInstance, computed, type ComponentInternalInstance } from 'vue';
+import { ref, toRefs, onMounted, getCurrentInstance, computed, watch, type ComponentInternalInstance } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { reportList, reportBack, resubmitReportList, type Report, type ReportQueryParams } from '@/api/mall/personalCenter/myReport';
 import Pagination from '@/components/Pagination/index.vue';
@@ -155,8 +157,8 @@ const reportTypeOptions = [
   { value: 5, label: '其他' }
 ];
 
-// 查询参数
-const queryParams = ref<ReportQueryParams>({
+// 查询参数（扩展类型以支持日期范围数组）
+const queryParams = ref<ReportQueryParams & { createTime?: string | string[] | null }>({
   pageNum: 1,
   pageSize: 10,
   reportCode: '', //举报编号
@@ -196,8 +198,18 @@ const getList = async () => {
   loading.value = true;
 
   try {
-    console.log('调用接口，查询参数：', queryParams.value);
-    const res = await reportList(queryParams.value);
+    // 处理日期范围：将数组转换为开始时间和结束时间
+    const params: any = { ...queryParams.value };
+    if (Array.isArray(params.createTime) && params.createTime.length === 2) {
+      params.startTime = params.createTime[0];
+      params.endTime = params.createTime[1];
+      delete params.createTime;
+    } else {
+      delete params.createTime;
+    }
+
+    console.log('调用接口，查询参数：', params);
+    const res = await reportList(params);
     console.log('接口返回结果：', res);
     // 响应拦截器已经处理了非200的情况，这里直接使用返回的数据
     // 如果接口返回成功，res 就是 res.data（因为响应拦截器返回的是 res.data）
@@ -263,6 +275,31 @@ const withdrawRules = {
 const currentWithdrawRow = ref<Report | null>(null);
 const withdrawLoading = ref(false);
 const canSubmitWithdraw = computed(() => withdrawForm.value.reason.trim().length > 0 && !withdrawLoading.value);
+
+// 监听弹窗状态，确保同时只显示一个弹窗（必须在所有弹窗变量定义之后）
+watch(reportEditVisible, (newVal) => {
+  if (newVal) {
+    // 打开编辑弹窗时，关闭查看弹窗和撤回弹窗
+    reportViewVisible.value = false;
+    withdrawDialogVisible.value = false;
+  }
+});
+
+watch(reportViewVisible, (newVal) => {
+  if (newVal) {
+    // 打开查看弹窗时，关闭编辑弹窗和撤回弹窗
+    reportEditVisible.value = false;
+    withdrawDialogVisible.value = false;
+  }
+});
+
+watch(withdrawDialogVisible, (newVal) => {
+  if (newVal) {
+    // 打开撤回弹窗时，关闭编辑弹窗和查看弹窗
+    reportEditVisible.value = false;
+    reportViewVisible.value = false;
+  }
+});
 
 const handleWithdraw = (row: Report) => {
   currentWithdrawRow.value = row;
@@ -439,7 +476,7 @@ const getReportTypeText = (reportTypeId: string): string => {
   color: #108c58;
   font-size: 14px;
   position: absolute;
-  left: 45%;
+  left: 60%;
   cursor: pointer;
   white-space: nowrap;
 }
