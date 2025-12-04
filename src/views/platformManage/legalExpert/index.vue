@@ -43,23 +43,22 @@
     <el-table
       ref="tableRef"
       v-loading="loading"
-      border
       :data="expertList.slice((queryParams.pageNum - 1) * queryParams.pageSize, queryParams.pageNum * queryParams.pageSize)"
     >
       <!-- <el-table-column type="selection" width="45" align="center" /> -->
-      <el-table-column label="序号" width="60" align="center">
+      <el-table-column label="序号" width="60">
         <template #default="scope">
           <span>{{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="expertName" label="专家名称" min-width="100" align="center" />
-      <el-table-column label="专家编号" min-width="140" align="center">
+      <el-table-column prop="expertName" label="专家名称" min-width="100" />
+      <el-table-column label="专家编号" min-width="140">
         <template #default="scope">
           <el-link type="primary" @click="handleEdit(scope.row, 'view')">{{ scope.row.expertNumber || '--' }}</el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="phoneNumber" label="联系电话" min-width="130" align="center" />
-      <el-table-column prop="registrationTime" label="入驻时间" min-width="160" align="center" />
+      <el-table-column prop="phoneNumber" label="联系电话" min-width="130" />
+      <el-table-column prop="registrationTime" label="入驻时间" min-width="160" />
       <el-table-column label="审核状态" min-width="120" align="center" prop="reviewStatus">
         <!-- <template #default="scope">
           <el-button type="primary">{{ review_status?.find((item) => item.value === scope.row.reviewStatus)?.label || '--' }}</el-button>
@@ -103,7 +102,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="操作" fixed="right" align="left" width="200" class-name="flex-center">
+      <el-table-column label="操作" fixed="right" width="200" class-name="flex-center">
         <template #default="scope">
           <div style="display: flex; justify-content: center; align-items: center">
             <el-button v-throttle type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">
@@ -141,8 +140,14 @@
 
     <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="handleQuery" />
     <el-dialog v-model="toggleDialogVisible" width="30%">
-      <template #header>
+      <!-- <template #header>
         <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
+      </template> -->
+      <template #header="{ close, titleId, titleClass }">
+        <div class="flex items-center">
+          <el-icon color="#e6a23c" size="24"><WarningFilled /></el-icon>
+          <span class="ml-2">提示</span>
+        </div>
       </template>
       <div>{{ toggleDialogData.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
       <template #footer>
