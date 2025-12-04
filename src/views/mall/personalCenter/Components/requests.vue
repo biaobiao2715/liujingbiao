@@ -33,7 +33,7 @@
             <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
           </template>
         </el-table-column>
-        <el-table-column prop="publishTime" label="发布时间" align="center" width="140">
+        <el-table-column prop="publishTime" label="发布时间" align="center" width="180">
           <template #default="scope">
             <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
           </template>
@@ -41,7 +41,7 @@
         <el-table-column label="操作" min-width="240" align="center">
           <template #default="{ row }">
             <el-button
-              v-if="row.hasQuote == '0'"
+              v-if="row.hasQuote == '0' && row.demandStatus == '1'"
               v-hasPermi="['grain:HnPurchaseDemand:edit']"
               @click="onEdit(row)"
               v-throttle
@@ -50,7 +50,7 @@
               >修改</el-button
             >
             <el-button
-              v-if="row.hasQuote == '1'"
+              v-if="row.hasQuote == '1' && row.demandStatus == '1'"
               v-hasPermi="['grain:HnPurchaseDemand:edit']"
               @click="onComplete(row)"
               v-throttle
@@ -59,7 +59,7 @@
               >完成</el-button
             >
             <el-button
-              v-if="row.hasQuote == '1'"
+              v-if="row.demandStatus == '1'"
               v-hasPermi="['grain:HnPurchaseDemand:edit']"
               @click="onDelete(row)"
               v-throttle
@@ -104,13 +104,7 @@
         <!-- 供应商信息 -->
         <div class="section">
           <el-divider content-position="left"><div class="section-title">供应商信息</div></el-divider>
-          <el-table
-            :data="supplierList"
-            border
-            size="small"
-            :empty-text="'暂无供应商回复'"
-            :default-sort="{ prop: 'replyTime', order: 'descending' }"
-          >
+          <el-table :data="supplierList" size="small" :empty-text="'暂无供应商回复'" :default-sort="{ prop: 'replyTime', order: 'descending' }">
             <el-table-column type="index" label="序号" width="60" align="center" />
             <el-table-column prop="supplierName" label="供应商名称" align="center" />
             <el-table-column prop="unitPrice" label="报价" align="center">

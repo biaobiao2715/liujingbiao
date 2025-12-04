@@ -257,11 +257,11 @@ function getTime(item: any) {
 }
 
 .article_name {
-  height: 50px;
-  line-height: 50px;
+  line-height: 21px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-size: 14px;
   color: #333333;
+  margin: 15px 0;
   display: flex;
   align-items: center;
 }
@@ -273,6 +273,12 @@ function getTime(item: any) {
 
   margin-right: 6px;
   background-image: url('@/assets/images/mall/training-meeting-icon.png');
+  /* 作为 flex 子项时不参与收缩，避免被挤压变形 */
+  flex: 0 0 16px;
+  min-width: 16px;
+  flex-shrink: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .article_type {
