@@ -472,7 +472,7 @@ const fetchPricePrediction = async () => {
         const minText = formatPriceValue(minPredictEntry.price);
         const maxText = formatPriceValue(maxPredictEntry.price);
         if (minText && maxText) {
-          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元/斤`;
+          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元/kg`;
         }
       } else if (data.priceRange) {
         marketAnalysis.value.priceRange = data.priceRange;

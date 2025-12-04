@@ -43,30 +43,18 @@
         <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:onlineVideo:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          :style="selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
-          :color="selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
-          @click="handleEnable"
-          >启用</el-button
-        >
+        <el-button v-throttle class="custom-btn-style primary-btn" @click="handleEnable" :disabled="selectedIds.length === 0">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          :style="selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
-          :color="selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
-          @click="handleDisable"
-          >禁用</el-button
-        >
+        <el-button v-throttle class="custom-btn-style primary-btn" @click="handleDisable" :disabled="selectedIds.length === 0">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           v-throttle
           v-hasPermi="['skill:onlineVideo:remove']"
           @click="handleDelete"
-          :style="selectedRows.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
-          :color="selectedRows.length === 0 ? '#F2F3F5' : '#F23255'"
+          class="custom-btn-style delete-btn"
+          :disabled="selectedIds.length === 0"
           >删除</el-button
         >
       </el-col>
@@ -743,5 +731,63 @@ onMounted(() => {
 }
 .pendingReview {
   background: #ff7b00 !important;
+}
+
+.custom-btn-style {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #1d2129 !important;
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #1d2129 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #1d2129 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+  &:not(.is-disabled) {
+    color: #1d2129 !important;
+
+    &:hover {
+      color: #1d2129 !important;
+    }
+
+    &:focus {
+      color: #1d2129 !important;
+    }
+  }
+  &.delete-btn:not(.is-disabled) {
+    color: #ffffff !important;
+    background-color: #f23255 !important;
+    &:hover {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
+    }
+
+    &:focus {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
+    }
+  }
+  &.primary-btn:not(.is-disabled) {
+    color: #ffffff !important;
+    background-color: #108c58 !important;
+    &:hover {
+      color: #ffffff !important;
+      background-color: #108c58 !important;
+    }
+
+    &:focus {
+      color: #ffffff !important;
+      background-color: #108c58 !important;
+    }
+  }
 }
 </style>

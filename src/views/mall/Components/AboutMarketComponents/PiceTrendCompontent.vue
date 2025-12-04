@@ -24,7 +24,7 @@
 
         <PriceTrendChart
           :title="`小麦种子价格（近${activeTimeRange}日）`"
-          unit="单位: 元/斤"
+          unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
           :y-axis-min="yAxisMin"
@@ -45,7 +45,7 @@
           <div class="today-body">
             <div class="card-info">
               <p class="card-metric">
-                当日均价 (元/斤) ：<span>{{ priceStats.todayPrice.toFixed(2) }}</span>
+                当日均价 (元/kg) ：<span>{{ priceStats.todayPrice.toFixed(2) }}</span>
               </p>
               <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
                 <span style="font-size: 14px; color: #7a7a7a; font-weight: 400"> 相较昨日价格：</span>
@@ -68,13 +68,13 @@
           </div>
           <div class="card-content">
             <p class="card-metric">
-              近7日最高价 (元/斤) : <span style="font-size: 18px">{{ priceStats.maxPrice.toFixed(2) }}</span>
+              近7日最高价 (元/kg) : <span style="font-size: 18px">{{ priceStats.maxPrice.toFixed(2) }}</span>
             </p>
             <p class="card-metric">
-              近7日最低价 (元/斤) : <span style="font-size: 18px">{{ priceStats.minPrice.toFixed(2) }}</span>
+              近7日最低价 (元/kg) : <span style="font-size: 18px">{{ priceStats.minPrice.toFixed(2) }}</span>
             </p>
             <p class="card-metric">
-              近7日均价 (元/斤) : <span style="font-size: 18px"> {{ priceStats.avgPrice.toFixed(2) }}</span>
+              近7日均价 (元/kg) : <span style="font-size: 18px"> {{ priceStats.avgPrice.toFixed(2) }}</span>
             </p>
             <p class="price-trend">
               近7日价格趋势 : <span class="trend-text">{{ priceStats.trend }}</span>
@@ -542,7 +542,7 @@ const fetchHotRecommendation = async () => {
           time,
           variety: item.goodsCategoryName || '--',
           origin,
-          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/斤` : '--',
+          price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
           change,
           // 保留原始字段用于弹窗
           goodsCategoryId: item.goodsCategoryId || '',

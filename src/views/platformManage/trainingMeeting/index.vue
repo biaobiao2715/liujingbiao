@@ -61,25 +61,25 @@
       >
     </div>
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" label="序号" width="55" align="center" />
-      <el-table-column label="会议开始时间" align="center" prop="meetingStartTime" width="180" :show-overflow-tooltip="true">
+      <el-table-column type="index" label="序号" width="55" />
+      <el-table-column label="会议开始时间" prop="meetingStartTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.meetingStartTime || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议结束时间" align="center" prop="meetingEndTime" width="180" :show-overflow-tooltip="true">
+      <el-table-column label="会议结束时间" prop="meetingEndTime" width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.meetingEndTime || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议标题" align="center" prop="meetingName" :show-overflow-tooltip="true" min-width="120">
+      <el-table-column label="会议标题" prop="meetingName" :show-overflow-tooltip="true" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.meetingName || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议地址" align="center" prop="meetingAddress" :show-overflow-tooltip="true" min-width="120">
+      <el-table-column label="会议地址" prop="meetingAddress" :show-overflow-tooltip="true" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.meetingAddress || '-' }}</span>
         </template>
@@ -89,28 +89,28 @@
           <dict-tag :options="meeting_type" :value="scope.row.meetingType" />
         </template>
       </el-table-column>
-      <el-table-column label="联系人" align="center" prop="meetingContact" :show-overflow-tooltip="true" min-width="120">
+      <el-table-column label="联系人" prop="meetingContact" :show-overflow-tooltip="true" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.meetingContact || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="联系方式" align="center" prop="meetingPhone" :show-overflow-tooltip="true" min-width="120">
+      <el-table-column label="联系方式" prop="meetingPhone" :show-overflow-tooltip="true" min-width="120">
         <template #default="scope">
           <span>{{ scope.row.meetingPhone || '-' }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="报名人数" align="center" prop="enrollCount" width="120">
+      <el-table-column label="报名人数" prop="enrollCount" width="120">
         <template #default="scope">
           <span>{{ scope.row.enrollCount || '0' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" align="center" prop="publishTime" width="120" show-overflow-tooltip>
+      <el-table-column label="发布时间" prop="publishTime" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishTime || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="浏览量" align="center" prop="pageViews" width="120">
+      <el-table-column label="浏览量" prop="pageViews" width="120">
         <template #default="scope">
           <span>{{ scope.row.pageViews || '-' }}</span>
         </template>
@@ -139,13 +139,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
+      <el-table-column label="发布人" prop="publishUser" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishUser || '-' }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="left" width="200" fixed="right" class-name="flex-center">
+      <el-table-column label="操作" width="200" fixed="right" class-name="flex-center">
         <template #default="scope">
           <!-- <div> -->
           <!-- 待开始 -->
