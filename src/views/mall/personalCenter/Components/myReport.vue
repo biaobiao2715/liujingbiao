@@ -492,7 +492,7 @@ const getReportTypeText = (reportTypeId: string): string => {
   color: #108c58;
   font-size: 14px;
   position: absolute;
-  left: 60%;
+  left: 65%;
   cursor: pointer;
   white-space: nowrap;
 }

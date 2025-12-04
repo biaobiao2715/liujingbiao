@@ -320,7 +320,7 @@ const reasonSection = computed(() => {
   } else if (status === '3') {
     result.show = true;
     result.title = '平台反馈处理结果';
-    result.content = props.reportData?.deal_result || '--';
+    result.content = props.reportData?.dealResult || '--';
   } else if (status === '4') {
     result.show = true;
     result.title = '举报人撤回原因';
