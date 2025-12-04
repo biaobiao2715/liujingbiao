@@ -282,9 +282,24 @@ const attachmentFileList = ref<UploadFile[]>([]);
 
 watch(
   () => formData.value.minLoanAmount,
+  (newVal, oldVal) => {
+    // 当最小额度变化时，重新验证最大额度
+    if (formRef.value && (newVal !== oldVal)) {
+      nextTick(() => {
+        formRef.value?.validateField('maxLoanAmount').catch(() => {});
+      });
+    }
+  }
+);
+
+watch(
+  () => formData.value.maxLoanAmount,
   () => {
+    // 当最大额度变化时，重新验证最小额度（确保最小额度仍然有效）
     if (formRef.value) {
-      formRef.value.validateField('maxLoanAmount').catch(() => {});
+      nextTick(() => {
+        formRef.value?.validateField('minLoanAmount').catch(() => {});
+      });
     }
   }
 );
@@ -299,13 +314,23 @@ const rules: FormRules = {
   minLoanAmount: [
     {
       validator: (_rule, value, callback) => {
-        if (value === null || value === undefined) {
+        // 检查值是否为空（包括 null、undefined、0）
+        if (value === null || value === undefined || value === 0) {
           callback(new Error('请输入最小贷款额度'));
-        } else if (value < 1) {
-          callback(new Error('最小额度需大于等于1万元'));
-        } else {
-          callback();
+          return;
         }
+        // 检查是否为有效数字
+        const numValue = Number(value);
+        if (isNaN(numValue)) {
+          callback(new Error('请输入有效的数字'));
+          return;
+        }
+        // 检查最小额度是否大于等于1
+        if (numValue < 1) {
+          callback(new Error('最小额度需大于等于1万元'));
+          return;
+        }
+        callback();
       },
       trigger: 'blur'
     }
@@ -313,15 +338,29 @@ const rules: FormRules = {
   maxLoanAmount: [
     {
       validator: (_rule, value, callback) => {
-        if (value === null || value === undefined) {
+        // 检查值是否为空（包括 null、undefined、0）
+        if (value === null || value === undefined || value === 0) {
           callback(new Error('请输入最大贷款额度'));
-        } else if (formData.value.minLoanAmount === null || formData.value.minLoanAmount === undefined) {
-          callback(new Error('请先输入最小贷款额度'));
-        } else if (value <= (formData.value.minLoanAmount ?? 0)) {
-          callback(new Error('最大额度需大于最小额度'));
-        } else {
-          callback();
+          return;
         }
+        // 检查最小额度是否已输入
+        const minAmount = formData.value.minLoanAmount;
+        if (minAmount === null || minAmount === undefined || minAmount === 0) {
+          callback(new Error('请先输入最小贷款额度'));
+          return;
+        }
+        // 检查最大额度是否大于最小额度
+        const numValue = Number(value);
+        const numMinAmount = Number(minAmount);
+        if (isNaN(numValue) || isNaN(numMinAmount)) {
+          callback(new Error('请输入有效的数字'));
+          return;
+        }
+        if (numValue <= numMinAmount) {
+          callback(new Error('最大额度需大于最小额度'));
+          return;
+        }
+        callback();
       },
       trigger: 'blur'
     }

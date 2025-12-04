@@ -219,6 +219,15 @@ const resetQuery = () => {
 
 // 区域选择
 const handleRegionChange = (val: any) => {
+  // console.log('选择的区域:', val);
+  const regionPath = val?.regionPath;
+  // 当 val 为空或未选择区域时，全部重置为 ''
+  if (!val || (Array.isArray(regionPath) ? regionPath.length === 0 : !regionPath)) {
+    queryParams.provinceCode = '';
+    queryParams.cityCode = '';
+    queryParams.districtCode = '';
+    return;
+  }
   queryParams.provinceCode = val.provinceCode || '';
   queryParams.cityCode = val.cityCode || '';
   queryParams.districtCode = val.regionCode || '';
@@ -226,7 +235,8 @@ const handleRegionChange = (val: any) => {
 
 // 分类选择
 const handleCategoryChange = (value: string[]) => {
-  queryParams.supplyCategoryId = value[value?.length - 1];
+  // console.log('选择的分类:', value);
+  queryParams.supplyCategoryId = Array.isArray(value) ? value[value?.length - 1] : '';
 };
 
 // 获取采购需求列表

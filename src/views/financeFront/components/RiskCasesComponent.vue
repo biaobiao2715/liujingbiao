@@ -14,7 +14,7 @@
     <!-- 列表 -->
     <div class="risk-list" v-if="cases.length > 0">
       <div class="item" v-for="item in cases.slice(0, 7)" :key="item.id" @click="handleDetail(item)">
-        <div class="article-title mb-12" @click="handleDetail(item)">
+        <div class="article-title mb-12">
           {{ item.articleTitle }}
         </div>
         <div class="article-summary">

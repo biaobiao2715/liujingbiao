@@ -88,15 +88,15 @@
               v-if="scope.row.meetingStatus != null"
               class="normal"
               :class="{
-                green: scope.row.meetingStatus == 1 || scope.row.meetingStatus == 2,
-                reviewRejected: scope.row.meetingStatus == 3,
-                pendingReview: scope.row.meetingStatus == 99
+                green: scope.row.meetingStatus == 2,
+                reviewRejected: scope.row.meetingStatus == 3 || scope.row.meetingStatus == 99,
+                pendingReview: scope.row.meetingStatus == 1
               }"
             ></div>
-            <span v-if="scope.row.meetingStatus == 1" class="green-color">待开始</span>
+            <span v-if="scope.row.meetingStatus == 1" class="pendingReview-color">待开始</span>
             <span v-if="scope.row.meetingStatus == 2" class="green-color">进行中</span>
             <span v-if="scope.row.meetingStatus == 3" class="reviewRejected-color">已结束</span>
-            <span v-if="scope.row.meetingStatus == 99" class="pendingReview-color">已取消</span>
+            <span v-if="scope.row.meetingStatus == 99" class="reviewRejected-color">已取消</span>
           </div>
         </template>
       </el-table-column>
