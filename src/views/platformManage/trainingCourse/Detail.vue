@@ -74,10 +74,10 @@
       <div class="detail-row" v-if="detailData.attachments && detailData.attachments.length > 0">
         <span class="detail-label">附件列表:</span>
         <div class="attachments-list">
-          <el-table :data="detailData.attachments" border>
+          <el-table :data="detailData.attachments">
             <el-table-column label="附件名称" prop="originalName" />
-            <el-table-column label="文件大小" prop="fileSize" width="120" align="center"></el-table-column>
-            <el-table-column label="操作" width="120" align="center">
+            <el-table-column label="文件大小" prop="fileSize" width="120"></el-table-column>
+            <el-table-column label="操作" width="120">
               <template #default="scope">
                 <el-button type="primary" size="small" text @click="handleDownload(scope.row)"> 下载 </el-button>
               </template>
@@ -257,6 +257,7 @@ const processAttachmentList = (attachments: any[]): any[] => {
 const handleDownload = async (file: any) => {
   console.log('file', file);
   try {
+    debugger;
     const response = await fetch(file.url);
     const blob = await response.blob();
     const link = document.createElement('a');

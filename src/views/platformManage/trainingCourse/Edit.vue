@@ -103,8 +103,8 @@
         <el-table v-if="attachmentList.length > 0" :data="attachmentList" stripe class="attachment-table">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column prop="fileName" label="附件名称" align="left" :show-overflow-tooltip="true" />
-          <el-table-column prop="fileSize" label="文件大小" width="120" align="center" />
-          <el-table-column label="操作" width="200" align="center">
+          <el-table-column prop="fileSize" label="文件大小" width="120" />
+          <el-table-column label="操作" width="200">
             <template #default="scope">
               <el-button type="primary" link @click="handleAgainFile(scope.row, scope.$index)">
                 <el-icon>
@@ -491,45 +491,24 @@ const handleFileChange = async ({ file }: any) => {
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
-    const MAX_SIZE = 100 * 1024 * 1024; // 100MB
-    if (file.size > MAX_SIZE) {
-      // 使用分片上传
-      const res: any = await uploadByChunks(file, (p) => {
-        console.log(`上传进度: ${p}%`);
-      });
-      console.log(res, file, '切片成功了');
+    // 使用分片上传
+    const res: any = await uploadByChunks(file, (p) => {
+      console.log(`上传进度: ${p}%`);
+    });
+    console.log(res, file, '切片成功了');
 
-      attachmentList.value.push({
-        ossId: res.ossId,
-        fileName: res.fileName || file.name,
-        originalName: res.fileName || file.name,
-        fileSuffix: file.type,
-        url: res.url,
-        fileSize: formatFileSize(file.size),
-        uid: file.uid
-      });
-      console.log(attachmentList.value, '切片后push的');
+    attachmentList.value.push({
+      ossId: res.ossId,
+      fileName: res.fileName || file.name,
+      originalName: res.fileName || file.name,
+      fileSuffix: file.type,
+      url: res.url,
+      fileSize: formatFileSize(file.size),
+      uid: file.uid
+    });
+    console.log(attachmentList.value, '切片后push的');
 
-      ElMessage.success('附件上传成功');
-    } else {
-      let rawFile = file;
-      console.log('最终上传的参数', rawFile);
-      const response = await ossUploadImage({ file: rawFile });
-      if (response.code === 200 && response.data?.ossId) {
-        attachmentList.value.push({
-          ossId: response.data.ossId,
-          fileName: response.data.fileName,
-          originalName: file.name,
-          fileSuffix: file.type,
-          url: response.data.url,
-          fileSize: formatFileSize(file.size),
-          uid: file.uid
-        });
-        ElMessage.success('附件上传成功');
-      } else {
-        ElMessage.error(response?.msg || '上传失败，请重试');
-      }
-    }
+    ElMessage.success('附件上传成功');
   } catch (error) {
     console.error('附件上传失败:', error);
     ElMessage.error('上传失败，请重试');
