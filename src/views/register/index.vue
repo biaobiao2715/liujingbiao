@@ -64,6 +64,10 @@ import LegalExpertForm from './Components/LegalExpert.vue';
 import { useRoute } from 'vue-router';
 // 引入成功组件
 import Success from './Components/Success.vue';
+import step1Icon from '@/assets/images/step-1.svg';
+import step2Icon from '@/assets/images/step-2.svg';
+import step3Icon from '@/assets/images/step-3.svg';
+import step4Icon from '@/assets/images/step-4.svg';
 
 // 定义身份类型
 export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'legal';
@@ -82,16 +86,16 @@ const phoneNumber = ref(route.query.phoneNumber); // 获取路由中的手机号
 
 // 定义步骤标题数组
 const steps = ref([
-  { title: '选择身份信息', icon: '../../assets/images/step-1.svg' },
-  { title: '填写信息', icon: '../../assets/images/step-2.svg' },
-  { title: '申请注册成功', icon: '../../assets/images/step-4.svg' }
+  { title: '选择身份信息', icon: step1Icon },
+  { title: '填写信息', icon: step2Icon },
+  { title: '申请注册成功', icon: step4Icon }
 ]);
 
 // 采购商注册流程
 const buyerSteps = ref([
-  { title: '选择身份信息', icon: '../../assets/images/step-1.svg' },
-  { title: '填写采购商信息', icon: '../../assets/images/step-2.svg' },
-  { title: '申请注册成功', icon: '../../assets/images/step-4.svg' }
+  { title: '选择身份信息', icon: step1Icon },
+  { title: '填写采购商信息', icon: step2Icon },
+  { title: '申请注册成功', icon: step4Icon }
 ]);
 
 onMounted(() => {

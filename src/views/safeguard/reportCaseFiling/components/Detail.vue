@@ -1259,6 +1259,23 @@ const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
   return out;
 };
 
+// 工具方法：判断是否为视频文件
+const isVideoFile = (item: any): boolean => {
+  // 优先使用 fileType 字段判断
+  const fileType = String(item?.fileType || item?.ossInfo?.fileType || '');
+  if (fileType === '1') {
+    return true;
+  }
+  // 如果 fileType 不存在或不是 '1'，则根据文件扩展名判断
+  const url = item?.ossInfo?.url || item?.url || '';
+  const originalName = item?.ossInfo?.originalName || item?.originalName || '';
+  const fileName = originalName || url;
+  if (!fileName) return false;
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  const videoExts = ['mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'm4v'];
+  return videoExts.includes(ext);
+};
+
 // 工具方法：拆分图片/视频并格式化
 const splitFiles = (files: any[]) => {
   const images: FileViewItem[] = [];
@@ -1272,8 +1289,8 @@ const splitFiles = (files: any[]) => {
       name: info?.originalName
     } as FileViewItem;
     if (!base.url) return;
-    if (String(item?.fileType) === '1') {
-      const size = Number(info?.fileSize);
+    if (isVideoFile(item)) {
+      const size = Number(info?.fileSize || item?.fileSize || 0);
       videos.push({ ...base, sizeText: formatByteSize(size) });
     } else {
       images.push(base);
@@ -1315,6 +1332,7 @@ const fetchDetail = async () => {
     // 使用统一方法构建申诉材料
     const appealFiles = safeArray(formData.value?.newAppealFile?.appealFiles || []);
     const a = splitFiles(appealFiles);
+    console.log('a', a);
     appealImageList.value = a.images;
     appealImagePreviewUrls.value = buildPreviewUrls(a.images);
     appealVideoList.value = a.videos;

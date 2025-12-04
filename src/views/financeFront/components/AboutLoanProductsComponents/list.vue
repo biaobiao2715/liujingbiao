@@ -36,7 +36,7 @@
         <el-table-column label="产品名称" align="center" prop="productName" min-width="100" :show-overflow-tooltip="true" />
         <el-table-column label="适用对象" align="center" prop="applicableObject" :show-overflow-tooltip="true">
           <template v-slot="scope">
-            <dict-tag :options="plat_credit_rating" :value="scope.row.applicableObject" />
+            <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
           </template>
         </el-table-column>
         <el-table-column label="产品类型" align="center" prop="productType">
@@ -87,7 +87,7 @@ import { getCreditProductsVersionNoTenantListInfo } from '@/api/financeFront/Loa
 import editDetails from './Details.vue';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { prod_credit_type, plat_credit_rating, loan_cycle } = toRefs<any>(proxy?.useDict('prod_credit_type', 'plat_credit_rating', 'loan_cycle'));
+const { prod_credit_type, applicable_object, loan_cycle } = toRefs<any>(proxy?.useDict('prod_credit_type', 'applicable_object', 'loan_cycle'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,

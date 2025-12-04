@@ -198,7 +198,7 @@ const getLoanAmount = async () => {
 }
 .item-right {
   width: 317px;
-  height: 305px;
+  // height: 305px;
   border-radius: 8px;
   flex: 0 0 317px;
   padding: 0 20px;
