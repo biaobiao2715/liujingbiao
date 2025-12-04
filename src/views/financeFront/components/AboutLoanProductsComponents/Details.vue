@@ -23,8 +23,8 @@
             <div class="kpi-list-li-text">贷款最长周期</div>
           </div>
           <div class="kpi-list-li">
-            <div class="kpi-list-li-num">
-              <dict-text :options="repayment_method" :value="form.repaymentMethod.split(',').pop() ?? ''" />
+            <div class="kpi-list-li-num" :class="{ 'kpi-list-li-num--small': !isSingleRepaymentMethod }">
+              {{ repaymentMethodDisplay }}
             </div>
             <div class="kpi-list-li-text">还款方式</div>
           </div>
@@ -134,6 +134,42 @@ const handleApply = () => {
 
 const attachments = computed(() => (form.value as any).ossFileVo || []);
 const firstAttachment = computed(() => attachments.value[0] || null);
+
+// 还款方式显示：
+// - 当只有一个方式时，使用大号字体
+// - 当有多个方式时，按“方式1 | 方式2 | ...”拼接，并使用小号字体
+const repaymentMethodList = computed<string[]>(() => {
+  const raw = (form.value.repaymentMethod || '').toString();
+  if (!raw) return [];
+  // 支持以逗号分隔的值列表
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+});
+
+const repaymentMethodMap = computed<Record<string, string>>(() => {
+  // 将 `repayment_method` 字典转为 {value: label}
+  const dictArr = (repayment_method?.value || []) as Array<{ label?: string; value?: string | number }>;
+  const map: Record<string, string> = {};
+  dictArr.forEach((item) => {
+    const key = String(item.value ?? '');
+    const val = String(item.label ?? '');
+    if (key) map[key] = val;
+  });
+  return map;
+});
+
+const repaymentMethodDisplay = computed<string>(() => {
+  const list = repaymentMethodList.value;
+  if (!list.length) return '';
+  const map = repaymentMethodMap.value;
+  const labels = list.map((code) => map[code] ?? code);
+  // 多个时使用 “ | ” 拼接
+  return labels.length === 1 ? labels[0] : labels.join(' | ');
+});
+
+const isSingleRepaymentMethod = computed<boolean>(() => repaymentMethodList.value.length <= 1);
 
 const downloadAttachmentByObj = async (file?: { originalName?: string; url?: string }) => {
   if (!file?.url) {
@@ -448,6 +484,11 @@ const getLoanAmount = async () => {
   height: 41px;
   line-height: 41px;
   margin-bottom: 10px;
+  white-space: nowrap;
+}
+.kpi-list-li-num--small {
+  font-size: 20px;
+  line-height: 41px;
 }
 .kpi-list-li-text {
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
@@ -456,6 +497,12 @@ const getLoanAmount = async () => {
   color: #ffffff;
   height: 22px;
   line-height: 22px;
+}
+
+/* 优化最后一列（还款方式）左侧与白色分隔线的视觉间距 */
+.kpi-list-li:last-child .kpi-list-li-num,
+.kpi-list-li:last-child .kpi-list-li-text {
+  padding-left: 12px;
 }
 
 .attachment-item {

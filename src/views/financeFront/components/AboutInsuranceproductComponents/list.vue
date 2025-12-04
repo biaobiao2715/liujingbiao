@@ -81,6 +81,8 @@ const queryParams = ref({
   productType: '',
   isNoTenant: true,
   productStatus: '2',
+  orderByColumn: 'create_time',
+  isAsc: 'desc',
   productName: ''
 });
 
