@@ -108,10 +108,6 @@
       <el-table-column label="操作" fixed="right" width="240">
         <template #default="scope">
           <div class="operation-buttons-wrapper">
-            <!-- 文档图标 - 处理中状态且appeal_time有值时显示在右上角 -->
-            <el-icon v-if="scope.row.status === '1' && scope.row.appeal_time" class="operation-icon">
-              <Document />
-            </el-icon>
             <div class="operation-buttons">
               <!-- 待处理状态：只显示处理按钮 -->
               <template v-if="scope.row.status === '0'">

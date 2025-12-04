@@ -3,7 +3,7 @@
   功能: 违规记录详情页
   说明: 用于违规记录详情查看
   当前版本: 1.0
-  开发信息: Created by 刘景彪 2025-11-13
+  开发信息: Created by 邓和杰 2025-11-22
 -->
 <template>
   <div class="supplier-edit-details">
@@ -127,7 +127,7 @@
 
       <!-- 已驳回状态：显示驳回原因 -->
       <template v-if="isRejected">
-        <FormHeader title="驳回举报人原因" />
+        <FormHeader title="驳回供应商/企业原因" />
         <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
             <el-form-item label="驳回原因：">
@@ -559,7 +559,6 @@
           </el-col>
 
           <el-col :span="24">
-            {{ appealDetail }}
             <el-form-item label="平台驳回申诉理由：">
               <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
