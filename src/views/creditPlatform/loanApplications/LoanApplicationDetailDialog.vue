@@ -258,7 +258,7 @@ const emit = defineEmits<{
 
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
+const { repayment_method, review_status, bank_code } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status', 'bank_code'));
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -477,6 +477,20 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
 /**
  * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
  */
+/**
+ * 从字典获取银行名称
+ */
+const getBankLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  if (bank_code?.value && Array.isArray(bank_code.value) && bank_code.value.length > 0) {
+    const match = bank_code.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  return '--';
+};
+
 const getApplyStatusLabel = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '--';
 
@@ -602,12 +616,19 @@ const mapApplicantInfo = (row: Record<string, any>): DetailField[] => {
 const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
   const repayment = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
+  const bankCode = getFieldValue(row, ['collectionBankCode', 'bankCode']);
+  const bankLabel = getBankLabel(bankCode);
+  const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(getFieldValue(row, ['collectionAccountName', 'bankName']));
+
+  const amount = row.loanAmount;
+  const amountText =
+    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
 
   return [
-    { label: '贷款金额', value: formatValue(row.loanAmount) },
+    { label: '贷款金额', value: amountText },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
     { label: '还款方式', value: formatValue(repaymentText) },
-    { label: '收款银行卡', value: formatValue(getFieldValue(row, ['collectionAccountName', 'bankName'])) },
+    { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])) },
     { label: '申请时间', value: formatValue(getFieldValue(row, ['createTime', 'applyTime'])) }
   ];

@@ -46,7 +46,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="贷款金额(元)" prop="loanAmount" align="center" width="140" />
+      <el-table-column label="贷款金额(万元)" prop="loanAmount" align="center" width="140" />
       <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
       <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" align="center" />
       <el-table-column label="还款状态" prop="planStatus" align="center" width="140">

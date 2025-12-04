@@ -156,7 +156,7 @@ const emit = defineEmits<{
 
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method } = toRefs<any>(proxy?.useDict('repayment_method'));
+const { repayment_method, bank_code } = toRefs<any>(proxy?.useDict('repayment_method', 'bank_code'));
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -234,6 +234,20 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
 const mapValue = (map: Record<string, string>, value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return map[String(value)] || '--';
+};
+
+/**
+ * 根据 bank_code 字典获取银行名称
+ */
+const getBankLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  if (bank_code?.value && Array.isArray(bank_code.value) && bank_code.value.length > 0) {
+    const match = bank_code.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  return '--';
 };
 
 const extractBirthdayFromId = (id: string | undefined | null) => {
@@ -380,11 +394,14 @@ const loanInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const repayment = row.repaymentMethod || row.repaymentType;
   const repaymentText = repayment ? getRepaymentMethodLabel(repayment) : undefined;
+  const bankCode = row.collectionBankCode || row.bankCode;
+  const bankLabel = getBankLabel(bankCode);
+  const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(row.collectionAccountName || row.bankName);
   return [
     { label: '贷款金额', value: formatValue(row.loanAmount) },
     { label: '贷款期限', value: formatValue(row.loanTerm) },
     { label: '还款方式', value: formatValue(repaymentText) },
-    { label: '收款银行卡', value: formatValue(row.collectionAccountName || row.bankName) },
+    { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
     { label: '申请时间', value: formatValue(row.createTime || row.applyTime) }
   ];

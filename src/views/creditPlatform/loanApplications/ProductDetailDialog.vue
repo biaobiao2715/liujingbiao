@@ -4,7 +4,8 @@
       <div class="dialog-title">产品详情</div>
     </template>
     <div v-loading="loading" class="product-detail-content">
-      <div class="section-title">基础信息</div>
+      <div class="section-title">基本信息</div>
+
       <div class="info-grid">
         <div class="info-item">
           <span class="label">产品名称：</span>
@@ -12,15 +13,36 @@
         </div>
         <div class="info-item">
           <span class="label">产品类型：</span>
-          <span class="value">{{ productTypeText }}</span>
+          <span class="value">
+            <dict-tag :options="prodCreditOptions" :value="productDetail.productType" />
+          </span>
         </div>
         <div class="info-item">
           <span class="label">适用对象：</span>
-          <span class="value">{{ applicableObjectText }}</span>
+          <span class="value">
+            <dict-tag :options="applicableObjectOptions" :value="applicableObjectValue" />
+          </span>
         </div>
         <div class="info-item range">
           <span class="label">可贷金额：</span>
-          <span class="value">{{ loanAmountRangeText }}</span>
+          <span class="value">
+            <template
+              v-if="
+                productDetail.minLoanAmount !== null &&
+                productDetail.minLoanAmount !== undefined &&
+                productDetail.maxLoanAmount !== null &&
+                productDetail.maxLoanAmount !== undefined
+              "
+            >
+              <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
+                {{ productDetail.minLoanAmount }} 万元
+              </template>
+              <template v-else>
+                {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
+              </template>
+            </template>
+            <template v-else>--</template>
+          </span>
         </div>
         <div class="info-item range">
           <span class="label">利率/费率：</span>
@@ -28,11 +50,15 @@
         </div>
         <div class="info-item">
           <span class="label">可贷周期：</span>
-          <span class="value">{{ loanCycleText }}</span>
+          <span class="value">
+            <dict-tag :options="loanCycleOptions" :value="loanCycleValue" />
+          </span>
         </div>
         <div class="info-item">
           <span class="label">还款方式：</span>
-          <span class="value">{{ repaymentMethodText }}</span>
+          <span class="value">
+            <dict-tag :options="repaymentMethodOptions" :value="repaymentMethodValue" />
+          </span>
         </div>
       </div>
 
@@ -48,47 +74,37 @@
         />
       </div>
 
-      <div class="info-block">
+      <div class="info-block" v-if="productDetail.productAdvantages">
         <span class="label">产品优势：</span>
-        <div v-if="productDetail.productAdvantages" class="rich-text-content" v-html="productDetail.productAdvantages"></div>
-        <div v-else class="rich-text-content empty-content">暂无内容</div>
+        <div class="rich-text-content" v-html="productDetail.productAdvantages"></div>
       </div>
 
-      <div class="info-block">
+      <div class="info-block" v-if="productDetail.applicableInstructions">
         <span class="label">适用说明：</span>
-        <div v-if="productDetail.applicableInstructions" class="rich-text-content" v-html="productDetail.applicableInstructions"></div>
-        <div v-else class="rich-text-content empty-content">暂无内容</div>
+        <div class="rich-text-content" v-html="productDetail.applicableInstructions"></div>
       </div>
 
-      <div class="info-block">
+      <div class="info-block" v-if="productDetail.applicationInstructions">
         <span class="label">申请条件：</span>
-        <div v-if="productDetail.applicationInstructions" class="rich-text-content" v-html="productDetail.applicationInstructions"></div>
-        <div v-else class="rich-text-content empty-content">暂无内容</div>
+        <div class="rich-text-content" v-html="productDetail.applicationInstructions"></div>
       </div>
 
-      <div class="info-block">
+      <div class="info-block" v-if="cooperationFileList.length > 0">
         <span class="label">合作机构：</span>
         <div class="attachment-content">
-          <template v-if="cooperationFileList.length > 0">
-            <el-link
-              v-for="(file, idx) in cooperationFileList"
-              :key="file.uid || idx"
-              :href="file.url"
-              target="_blank"
-              type="primary"
-              class="file-link"
-            >
-              {{ file.name }}
-            </el-link>
-          </template>
-          <span v-else class="empty-text">暂无文件</span>
+          <el-upload
+            class="upload-display"
+            :file-list="cooperationFileList"
+            :disabled="true"
+            list-type="text"
+          />
         </div>
       </div>
 
-      <div class="info-block">
+      <div class="info-block" v-if="productDetail.productRemark">
         <span class="label">产品备注：</span>
         <el-input
-          :model-value="productDetail.productRemark || ''"
+          :model-value="productDetail.productRemark"
           type="textarea"
           class="readonly-textarea"
           :autosize="{ minRows: 3 }"
@@ -128,50 +144,25 @@ const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = to
 const loading = ref(false);
 const productDetail = ref<any>({});
 
-const normalizeArrayValue = (value: unknown) => {
+const formatDictValue = (value: unknown) => {
   if (Array.isArray(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    return value.split(',').map((item) => item.trim());
+  if (typeof value === 'string') {
+    const arr = value
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item !== '');
+    return arr.length ? arr : undefined;
   }
-  if (value !== undefined && value !== null) {
-    return [value];
+  if (value === undefined || value === null || value === '') {
+    return undefined;
   }
-  return [];
+  return [value];
 };
 
-const getDictLabel = (dictList: any[] = [], value: string | number | undefined | null) => {
-  if (value === undefined || value === null || dictList.length === 0) return '--';
-  const match = dictList.find((item) => String(item.value) === String(value));
-  return match?.label || '--';
-};
-
-const getDictLabels = (dictList: any[] = [], value: unknown) => {
-  if (!dictList.length) return '--';
-  const values = normalizeArrayValue(value);
-  if (!values.length) return '--';
-  const labels = values.map((item) => getDictLabel(dictList, item)).filter((label) => label && label !== '--');
-  return labels.length ? labels.join('、') : '--';
-};
-
-const formatRangeText = (min?: number | string | null, max?: number | string | null, unit = '') => {
-  const hasMin = min !== undefined && min !== null && min !== '';
-  const hasMax = max !== undefined && max !== null && max !== '';
-  if (!hasMin && !hasMax) return '--';
-  if (hasMin && hasMax) {
-    if (Number(min) === Number(max)) {
-      return `${min}${unit}`;
-    }
-    return `${min}${unit} - ${max}${unit}`;
-  }
-  if (hasMin) return `${min}${unit}`;
-  return `${max}${unit}`;
-};
-
-const productTypeText = computed(() => getDictLabel(prod_credit_type?.value, productDetail.value.productType));
-
-const applicableObjectText = computed(() => getDictLabels(applicable_object?.value, productDetail.value.applicableObject));
-
-const loanAmountRangeText = computed(() => formatRangeText(productDetail.value.minLoanAmount, productDetail.value.maxLoanAmount, '万元'));
+const prodCreditOptions = computed(() => prod_credit_type?.value ?? []);
+const applicableObjectOptions = computed(() => applicable_object?.value ?? []);
+const loanCycleOptions = computed(() => loan_cycle?.value ?? []);
+const repaymentMethodOptions = computed(() => repayment_method?.value ?? []);
 
 const interestRateRangeText = computed(() => {
   const { baseInterestRate, floatInterestRate } = productDetail.value;
@@ -184,32 +175,9 @@ const interestRateRangeText = computed(() => {
   return `${baseInterestRate}% - ${floatInterestRate}%`;
 });
 
-const loanCycleText = computed(() => getDictLabels(loan_cycle?.value, productDetail.value.loanCycle));
-
-// 还款方式备用映射（当字典数据不可用时使用）
-const repaymentMethodLabelsMap: Record<string, string> = {
-  '0': '等额本息',
-  '2': '等额本金',
-  '3': '先息后本',
-  '4': '先本后息'
-};
-
-const repaymentMethodText = computed(() => {
-  const values = normalizeArrayValue(productDetail.value.repaymentMethod);
-  if (!values.length) return '--';
-  const labels = values
-    .map((item) => {
-      // 优先使用字典数据
-      const dictLabel = getDictLabel(repayment_method?.value, item);
-      if (dictLabel && dictLabel !== '--') {
-        return dictLabel;
-      }
-      // 备用映射
-      return repaymentMethodLabelsMap[String(item)] || '--';
-    })
-    .filter((label) => label && label !== '--');
-  return labels.length ? labels.join('、') : '--';
-});
+const applicableObjectValue = computed(() => formatDictValue(productDetail.value.applicableObject));
+const loanCycleValue = computed(() => formatDictValue(productDetail.value.loanCycle));
+const repaymentMethodValue = computed(() => formatDictValue(productDetail.value.repaymentMethod));
 
 const cooperationFileList = computed<UploadFile[]>(() => {
   if (productDetail.value.ossFileVo && Array.isArray(productDetail.value.ossFileVo) && productDetail.value.ossFileVo.length > 0) {
@@ -278,110 +246,106 @@ const handleClose = () => {
 
 .product-detail-content {
   padding: 20px;
-  background: #fafafa;
 }
 
 .section-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #303133;
   margin-bottom: 16px;
-  padding: 12px 16px;
-  background: #fff;
-  border-radius: 4px;
-  border-left: 3px solid #409eff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  margin-bottom: 20px;
-  background: #fff;
-  border-radius: 4px;
-  border: 1px solid #ebeef5;
-  overflow: hidden;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 16px 24px;
+  margin-bottom: 24px;
+}
 
-  .info-item {
-    display: flex;
-    align-items: center;
-    padding: 14px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    border-right: 1px solid #f0f0f0;
-    min-height: 48px;
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #303133;
 
-    &:nth-child(2n) {
-      border-right: none;
-    }
+  .label {
+    min-width: 100px;
+    color: #606266;
+    text-align: right;
+    padding-right: 8px;
+    flex-shrink: 0;
+  }
 
-    &:nth-last-child(-n + 2) {
-      border-bottom: none;
-    }
+  .value {
+    flex: 1;
+    color: #303133;
+    word-break: break-word;
+  }
 
-    &.range {
-      grid-column: span 2;
-      border-right: none;
-
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-
-    .label {
-      min-width: 90px;
-      color: #606266;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .value {
-      flex: 1;
-      color: #303133;
-      font-size: 14px;
-    }
+  &.range {
+    grid-column: span 2;
   }
 }
 
 .info-block {
   display: flex;
-  margin-bottom: 20px;
   align-items: flex-start;
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-  border: 1px solid #ebeef5;
+  gap: 12px;
+  margin-bottom: 24px;
 
   .label {
-    min-width: 90px;
+    min-width: 100px;
     color: #606266;
-    font-size: 14px;
-    font-weight: 500;
-    padding-top: 8px;
+    text-align: right;
+    line-height: 32px;
     flex-shrink: 0;
   }
 
   .readonly-textarea {
     flex: 1;
+    max-width: 800px;
+
     :deep(.el-textarea__inner) {
       background-color: #f5f7fa;
+      border-radius: 6px;
       border: 1px solid #dcdfe6;
+      color: #303133;
       cursor: default;
-      color: #606266;
-      font-size: 14px;
+      resize: none;
     }
   }
 
   .rich-text-content {
     flex: 1;
-    padding: 12px;
+    padding: 16px;
     background-color: #f5f7fa;
+    border-radius: 6px;
     border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    min-height: 80px;
+    color: #303133;
     line-height: 1.8;
-    color: #606266;
-    font-size: 14px;
+    min-height: 100px;
+    word-break: break-word;
+
+    :deep(img) {
+      max-width: 100%;
+      height: auto;
+    }
+
+    :deep(p) {
+      margin: 8px 0;
+    }
+
+    :deep(ul),
+    :deep(ol) {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    :deep(li) {
+      margin: 4px 0;
+    }
 
     &.empty-content {
       color: #909399;
@@ -395,41 +359,66 @@ const handleClose = () => {
 
   .attachment-content {
     flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 6px;
+    max-width: 800px;
 
-    .file-link {
-      font-size: 14px;
-      padding: 4px 12px;
-      background: #ecf5ff;
-      border-radius: 4px;
+    .upload-display {
+      :deep(.el-upload) {
+        display: none;
+      }
 
-      &:hover {
-        background: #d9ecff;
+      :deep(.el-upload-list) {
+        margin-top: 0;
+      }
+
+      :deep(.el-upload-list__item) {
+        margin-top: 8px;
+      }
+
+      :deep(.el-upload-list__item-delete) {
+        display: none !important;
       }
     }
 
-    .empty-text {
+    &.empty-text {
       color: #909399;
       font-size: 14px;
-      font-style: italic;
+      line-height: 32px;
     }
   }
 }
 
 .footer-actions {
   display: flex;
-  justify-content: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #ebeef5;
-  background: #fff;
-  margin-left: -20px;
-  margin-right: -20px;
-  margin-bottom: -20px;
-  padding-bottom: 20px;
-  border-radius: 0 0 4px 4px;
+  justify-content: flex-end;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #e4e7ed;
+}
+
+@media (max-width: 920px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item.range {
+    grid-column: span 1;
+  }
+
+  .info-block {
+    flex-direction: column;
+    align-items: stretch;
+
+    .label {
+      text-align: left;
+      padding-right: 0;
+      margin-bottom: 8px;
+    }
+
+    .readonly-textarea,
+    .rich-text-content,
+    .attachment-content {
+      max-width: 100%;
+    }
+  }
 }
 </style>

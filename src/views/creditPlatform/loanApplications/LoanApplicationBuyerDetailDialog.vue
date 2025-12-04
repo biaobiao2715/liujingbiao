@@ -261,7 +261,7 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method, review_status } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status'));
+const { repayment_method, review_status, bank_code } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status', 'bank_code'));
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -440,6 +440,20 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
 /**
  * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
  */
+/**
+ * 获取银行名称
+ */
+const getBankLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  if (bank_code?.value && Array.isArray(bank_code.value) && bank_code.value.length > 0) {
+    const match = bank_code.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  return '--';
+};
+
 const getApplyStatusLabel = (value: string | number | undefined | null): string => {
   if (value === undefined || value === null || value === '') return '--';
 
@@ -510,13 +524,20 @@ const mapUserInfo = (row: Record<string, any>) => {
 const mapLoanInfo = (row: Record<string, any>) => {
   const repaymentMethod = getFieldValue(row, ['repaymentMethod', 'repaymentType']);
   const repaymentTypeText = repaymentMethod ? getRepaymentMethodLabel(repaymentMethod) : undefined;
+  const bankCode = getFieldValue(row, ['collectionBankCode', 'bankCode']);
+  const bankLabel = getBankLabel(bankCode);
+  const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(getFieldValue(row, ['collectionBankCode', 'bankName']));
+
+  const amount = row.loanAmount;
+  const amountText =
+    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
 
   return {
     applyDate: formatValue(getFieldValue(row, ['createTime', 'applyTime'])),
-    amount: formatValue(row.loanAmount),
+    amount: amountText,
     period: formatValue(row.loanTerm),
     repaymentType: formatValue(repaymentTypeText),
-    bank: formatValue(getFieldValue(row, ['collectionBankCode', 'bankName'])),
+    bank: bankDisplay,
     bankCardNo: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])),
     cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
   };

@@ -6,7 +6,7 @@
         开发信息: Created by 邓和杰 2025-11-06
     -->
 <template>
-  <el-dialog v-model="dialogVisible" title="编辑举报信息" width="60%" :before-close="handleCancel">
+  <el-dialog v-model="dialogVisible" title="编辑举报信息" width="60%" :before-close="handleCancel" @close="handleCancel">
     <div class="edit-header">
       <p class="status-info" v-if="statusLabel">状态：{{ statusLabel }}</p>
     </div>
@@ -119,10 +119,12 @@ const emit = defineEmits<{
   'submit-success': [];
 }>();
 
-// 控制弹窗显示状态
+// 控制弹窗显示状态 - 确保关闭时同步状态
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => {
+    emit('update:modelValue', value);
+  }
 });
 
 // 状态和数据
@@ -466,10 +468,11 @@ const handleSubmit = async () => {
   }
 };
 
-// 取消操作
+// 取消操作 - 确保状态同步
 const handleCancel = () => {
-  // 关闭弹窗
-  dialogVisible.value = false;
+  // 直接更新 modelValue，computed 会自动处理
+  emit('update:modelValue', false);
+  resetForm();
 };
 
 // 暴露方法给父组件

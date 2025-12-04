@@ -172,7 +172,7 @@
     <!-- 发货 -->
     <el-dialog v-model="shipmentVisible" title="订单发货" width="600px">
       <span style="display: inline-block; padding-bottom: 10px; color: #abaeb5; font-weight: 700">商品信息</span>
-      <el-table :data="[rowdata]" border style="width: 100%">
+      <el-table :data="[rowdata]" style="width: 100%">
         <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default="{ row }">
             {{ row.goodsName || '-' }}
@@ -185,14 +185,14 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="goodsQuantity" label="数量" align="center">
+        <el-table-column prop="goodsQuantity" label="数量">
           <template #default="{ row }">
             {{ row.goodsQuantity || 0 }}
           </template>
         </el-table-column>
 
         <!--  小计：数量 × 单价 -->
-        <el-table-column label="小计" align="center">
+        <el-table-column label="小计">
           <template #default="{ row }">
             {{ ((Number(row.goodsPrice) || 0) * (Number(row.goodsQuantity) || 0)).toFixed(2) }}
           </template>

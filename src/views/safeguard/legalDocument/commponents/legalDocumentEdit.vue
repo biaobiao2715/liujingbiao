@@ -39,10 +39,14 @@
           ref="uploadRef"
           class="upload-wrapper"
           :file-list="[]"
-          :auto-upload="false"
+          action="#"
+          :http-request="handleUpload"
+          :before-upload="handleBeforeUpload"
+          :on-remove="handleRemove"
+          :on-exceed="handleExceed"
           :show-file-list="false"
-          :on-change="handleUploadChange"
           accept=".pdf,.doc,.docx"
+          :limit="1"
           :disabled="loading"
         >
           <el-button type="primary" :loading="uploadLoading">
@@ -136,7 +140,8 @@
 import { ref, reactive, watch, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { UploadFilled, Document } from '@element-plus/icons-vue';
-import { ossUploadImage } from '@/api/supplier/productManagement/product';
+import { uploadFile as uploadReportFile, deleteFile as deleteReportFile } from '@/api/mall/goods/index';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 interface LegalFile {
   fileType?: string;
@@ -316,7 +321,12 @@ const getNextVersion = (version?: string) => {
   return `${major}.${minor}`;
 };
 
-const validateFile = (file: File) => {
+const handleBeforeUpload = (file: File) => {
+  // 检查是否正在上传
+  if (uploadLoading.value) {
+    ElMessage.warning('文件上传中，请勿重复上传');
+    return false;
+  }
   const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   const ext = file.name.split('.').pop()?.toLowerCase();
   const extAllowed = ['pdf', 'doc', 'docx'].includes(ext || '');
@@ -332,43 +342,112 @@ const validateFile = (file: File) => {
   return true;
 };
 
-const handleUploadChange = async (file: any) => {
-  const raw = file?.raw;
-  if (!raw || !validateFile(raw)) return;
-  uploadLoading.value = true;
-  try {
-    const response = await ossUploadImage({ file: raw });
-    const data = response?.data || {};
-    let nextVersion = currentVersion.value;
-    if (!isUpload.value) {
-      nextVersion = getNextVersion(currentVersion.value);
-      currentVersion.value = nextVersion;
-      isUpload.value = true;
-    } else {
-      nextVersion = currentVersion.value;
+const handleExceed = () => ElMessage.error('只能上传一个文件');
+
+const handleUpload = (req: any) =>
+  new Promise(async (resolve, reject) => {
+    const rawFile = req.file;
+
+    // 再次检查是否正在上传
+    if (uploadLoading.value) {
+      ElMessage.warning('文件上传中，请勿重复上传');
+      reject(new Error('文件上传中，请勿重复上传'));
+      return;
     }
-    const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
-    const uploadTimeText = formatDateTime(uploadTimestamp);
-    const newFile: LegalFile = {
-      fileType: 'document',
-      fileTypeText: '文档',
-      originalName: data.originalName || raw.name,
-      fileSize: data.fileSize || raw.size,
-      version: nextVersion,
-      uploadTime: uploadTimeText,
-      remark: '',
-      ossId: data.ossId,
-      url: data.url
-    };
-    formData.legalFiles = [newFile];
-    formRef.value?.validateField?.('legalFiles');
-    ElMessage.success('文件上传成功');
-  } catch (error) {
-    console.error('文件上传失败:', error);
-    ElMessage.error('文件上传失败，请稍后再试');
-  } finally {
-    uploadLoading.value = false;
+
+    if (!handleBeforeUpload(rawFile)) {
+      reject(new Error('文件验证失败'));
+      return;
+    }
+
+    uploadLoading.value = true;
+    try {
+      // 统一使用分片上传（参考 ReportDialog.vue）
+      const res: any = await uploadByChunks(rawFile, (percent: number) => {
+        // 更新上传进度
+        if (typeof req.onProgress === 'function') {
+          req.onProgress({ percent });
+        }
+      });
+
+      // 从返回结果中获取数据（参考 ReportDialog.vue）
+      if (!res || !res.ossId) {
+        throw new Error('上传失败：未获取到文件ID');
+      }
+
+      const fileName = res.fileName || rawFile.name;
+      const ossId = res.ossId;
+      const url = res.url;
+
+      // 版本管理逻辑
+      let nextVersion = currentVersion.value;
+      if (!isUpload.value) {
+        nextVersion = getNextVersion(currentVersion.value);
+        currentVersion.value = nextVersion;
+        isUpload.value = true;
+      } else {
+        nextVersion = currentVersion.value;
+      }
+
+      const uploadTimestamp = Date.now();
+      const uploadTimeText = formatDateTime(uploadTimestamp);
+      const newFile: LegalFile = {
+        fileType: 'document',
+        fileTypeText: '文档',
+        originalName: fileName,
+        fileSize: rawFile.size,
+        version: nextVersion,
+        uploadTime: uploadTimeText,
+        remark: '',
+        ossId: ossId,
+        url: url
+      };
+
+      formData.legalFiles = [newFile];
+      formRef.value?.validateField?.('legalFiles');
+
+      if (typeof req.onSuccess === 'function') {
+        req.onSuccess(res);
+      }
+
+      ElMessage.success('文件上传成功');
+      resolve(newFile);
+    } catch (error: any) {
+      console.error('文件上传失败:', error);
+
+      // 改进错误提示（参考 ReportDialog.vue）
+      const errorMsg = error?.msg || error?.message || '文件上传失败，请稍后再试';
+      if (errorMsg.includes('文件上传中') || errorMsg.includes('重复上传')) {
+        ElMessage.warning(errorMsg);
+      } else {
+        ElMessage.error(errorMsg);
+      }
+
+      try {
+        (uploadRef.value as any)?.handleRemove(req);
+      } catch {}
+
+      if (typeof req.onError === 'function') {
+        req.onError(error);
+      }
+
+      reject(error);
+    } finally {
+      uploadLoading.value = false;
+    }
+  });
+
+const handleRemove = async (file: LegalFile) => {
+  if (file?.ossId) {
+    try {
+      await deleteReportFile([file.ossId]);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '删除文件失败，请重试');
+      return;
+    }
   }
+  formData.legalFiles = [];
+  isUpload.value = false;
 };
 
 const handleRemoveFile = (index: number) => {

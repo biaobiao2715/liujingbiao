@@ -275,8 +275,8 @@ watch([category, timeRange], () => {
 }
 
 .category-item.active {
-  background: #ffe451;
-  color: #333;
+  background: #108c58;
+  color: #fff;
   font-weight: 600;
 }
 
@@ -319,9 +319,9 @@ watch([category, timeRange], () => {
 }
 
 .time-tab.active {
-  background: #ffe451;
-  border-color: #ffe451;
-  color: #333;
+  background: #108c58;
+  border-color: #108c58;
+  color: #fff;
   font-weight: 600;
 }
 </style>

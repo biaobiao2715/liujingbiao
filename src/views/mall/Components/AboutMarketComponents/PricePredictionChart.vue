@@ -255,7 +255,7 @@ const updateChart = () => {
     },
     yAxis: {
       type: 'value',
-      name: '元/斤',
+      name: '元/kg',
       nameTextStyle: {
         color: '#86909c',
         fontSize: 12,

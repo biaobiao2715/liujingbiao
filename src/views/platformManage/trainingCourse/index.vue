@@ -81,38 +81,38 @@
     </el-row>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData" border v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
       <!-- 发布时间 -->
-      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+      <el-table-column label="发布时间" prop="publishTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
         </template>
       </el-table-column>
       <!-- 课程标题 -->
-      <el-table-column label="课程标题" align="center" prop="cultivateName" min-width="160">
+      <el-table-column label="课程标题" prop="cultivateName" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.cultivateName }}</span>
         </template>
       </el-table-column>
 
       <!-- 所属类别 -->
-      <el-table-column label="所属类别" align="center" prop="cultivateType" width="120">
+      <el-table-column label="所属类别" prop="cultivateType" width="120">
         <template #default="scope">
           <dict-tag :options="cultivate_type" :value="scope.row.cultivateType" />
         </template>
       </el-table-column>
 
       <!-- 浏览量 -->
-      <el-table-column label="浏览量" align="center" prop="pageViews" width="100">
+      <el-table-column label="浏览量" prop="pageViews" width="100">
         <template #default="scope">
           <span>{{ scope.row.pageViews != null ? scope.row.pageViews : 0 }}</span>
         </template>
       </el-table-column>
 
       <!-- 收藏量 -->
-      <el-table-column label="收藏量" align="center" prop="collectCount" width="100">
+      <el-table-column label="收藏量" prop="collectCount" width="100">
         <template #default="scope">
           <span>{{ scope.row.collectCount != null ? scope.row.collectCount : 0 }}</span>
         </template>
@@ -140,14 +140,14 @@
       </el-table-column>
 
       <!-- 发布人 -->
-      <el-table-column label="发布人" align="center" prop="publishUser" width="120" show-overflow-tooltip>
+      <el-table-column label="发布人" prop="publishUser" width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.publishUser }}</span>
         </template>
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" align="left" width="280" fixed="right" class-name="flex-center">
+      <el-table-column label="操作" width="280" fixed="right" class-name="flex-center">
         <template #default="scope">
           <!-- <div class="operation-buttons"> -->
 
@@ -540,11 +540,10 @@ const handleStatusChange = async (row: any, newStatus: string) => {
   const statusText = newStatus === '1' ? '启用' : '禁用';
 
   try {
-    await ElMessageBox.confirm(`是否确认${statusText}？`, '操作确认', {
+    await ElMessageBox.confirm(`是否确认${statusText}？`, '提示', {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
-      type: 'warning',
-      center: true
+      type: 'warning'
     });
 
     await updateStatus({

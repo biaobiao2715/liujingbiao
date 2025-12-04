@@ -70,7 +70,10 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="贷款金额">
-                <el-input :model-value="detail.loan.amount" disabled />
+                <el-input
+                  :model-value="detail.loan.amount === '--' ? '--' : `${detail.loan.amount} 万元`"
+                  disabled
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -157,7 +160,7 @@ const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>(
 
 // ==================== 字典数据 ====================
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { repayment_method } = toRefs<any>(proxy?.useDict('repayment_method'));
+const { repayment_method, bank_code } = toRefs<any>(proxy?.useDict('repayment_method', 'bank_code'));
 
 // ==================== 状态管理 ====================
 const loading = ref(false);
@@ -273,12 +276,29 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
 
+/**
+ * 根据 bank_code 字典获取银行名称
+ */
+const getBankLabel = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null || value === '') return '--';
+  if (bank_code?.value && Array.isArray(bank_code.value) && bank_code.value.length > 0) {
+    const match = bank_code.value.find((item: any) => String(item.value) === String(value));
+    if (match?.label) {
+      return match.label;
+    }
+  }
+  return '--';
+};
+
 // ==================== 计算属性 ====================
 const detail = computed(() => {
   const row = detailRow.value || {};
   const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
   const repaymentMethod = row.repaymentMethod || row.repaymentType;
   const repaymentTypeText = repaymentMethod ? getRepaymentMethodLabel(repaymentMethod) : undefined;
+  const bankCode = row.collectionBankCode || row.bankCode;
+  const bankLabel = getBankLabel(bankCode);
+  const bankDisplay = bankLabel !== '--' ? bankLabel : fallback(row.collectionBankCode || row.bankName);
 
   return {
     user: {
@@ -294,7 +314,7 @@ const detail = computed(() => {
       amount: fallback(row.loanAmount),
       period: fallback(row.loanTerm),
       repaymentType: fallback(repaymentTypeText),
-      bank: fallback(row.collectionBankCode || row.bankName),
+      bank: bankDisplay,
       bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
       cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
     }
