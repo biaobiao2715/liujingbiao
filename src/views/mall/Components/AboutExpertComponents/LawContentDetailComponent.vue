@@ -121,7 +121,6 @@ const addDownloadCount = async (item: any) => {
   a.href = url;
   a.download = item.originalName || 'file.txt';
   a.click();
-  document.body?.removeChild(a);
 
   addDownloadRecords({
     id: props.id,

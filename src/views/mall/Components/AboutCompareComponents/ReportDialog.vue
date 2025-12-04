@@ -257,8 +257,6 @@ const handleUpload = (req: any) =>
     fileList.value.push(tempItem);
     form.filesCount = fileList.value.length;
     try {
-      // 大文件：使用分片上传
-      // if (rawFile.size > MAX_SIZE) {
       const res: any = await uploadByChunks(rawFile, (percent: number) => {
         tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
         if (typeof req.onProgress === 'function') req.onProgress({ percent });
@@ -271,23 +269,6 @@ const handleUpload = (req: any) =>
       tempItem.percentage = 100;
       URL.revokeObjectURL(tempUrl);
       if (typeof req.onSuccess === 'function') req.onSuccess(res);
-      return resolve(tempItem);
-      // }
-
-      // 小文件：FormData 普通上传
-      const fd = new FormData();
-      fd.append('file', rawFile);
-      const response: any = await uploadReportFile(fd);
-      const data = response?.data || {};
-      const fileName = data.fileName || rawFile.name;
-      tempItem.fileName = fileName;
-      tempItem.name = fileName;
-      tempItem.url = data.url;
-      tempItem.ossId = data.ossId;
-      tempItem.status = 'success';
-      tempItem.percentage = 100;
-      URL.revokeObjectURL(tempUrl);
-      if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(tempItem);
     } catch (error: any) {
       ElMessage.error(error?.msg || '文件上传失败，请重试');

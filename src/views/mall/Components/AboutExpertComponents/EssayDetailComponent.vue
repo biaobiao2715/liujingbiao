@@ -36,7 +36,7 @@
       <el-table-column prop="originalName" label="文件名" />
       <el-table-column prop="size" label="文件大小" width="180">
         <template #default="scope">
-          {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
+          {{ formatFileSize(scope.row.ext1?.fileSize || 0) }}
         </template>
       </el-table-column>
       <el-table-column prop="downloadUrl" label="操作">
@@ -83,7 +83,13 @@ const getArticleDetail = async () => {
   const res = await getArticle(props.id);
   if (res.code === 200) {
     detail.value = res.data || {};
-    fileList.value = detail.value.commonRelevanceFilesVos[0].remoteOssVos || [];
+    fileList.value =
+      detail.value.commonRelevanceFilesVos.map((item) => {
+        return {
+          ...item.remoteOssVos[0],
+          ext1: JSON.parse(item?.remoteOssVos[0]?.ext1 || '{}')
+        };
+      }) || [];
   }
 };
 
@@ -119,15 +125,15 @@ const handleCollection = async () => {
 
 // 增加下载量
 const addDownloadCount = async (item: any) => {
-  // 利用a标签 下载文件到本地
+  const response = await fetch(item.url);
+  const blob = await response.blob();
+
+  const url = URL.createObjectURL(blob);
+
   const a = document.createElement('a');
-  a.href = item.url;
-  a.target = '_blank';
-  a.download = item.name || '';
-  document.body.appendChild(a);
+  a.href = url;
+  a.download = item.originalName || 'file.txt';
   a.click();
-  // 移除a标签
-  document.body.removeChild(a);
 };
 </script>
 
