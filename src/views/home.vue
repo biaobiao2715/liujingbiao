@@ -171,17 +171,17 @@ const handleRedirect = async (path: string) => {
     const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
       ...getCacheInfo()
     });
+    console.log(response);
     const res = response.data;
     if (res.code === 200 && res.data?.accessToken) {
       const token = res.data.accessToken;
       // http://8.153.15.72:82
       // 1. 打开第三方系统
-      const newWindow = window.open('http://8.153.15.72:82', '_blank');
+      const newWindow = window.open(res.data.redirectUrl, '_blank');
       // 等新页面加载一会，再发送消息
       setTimeout(() => {
         if (!newWindow) return;
-
-        newWindow.postMessage({ type: 'SET_TOKEN', token }, 'http://8.153.15.72:82');
+        newWindow.postMessage({ type: 'SET_TOKEN', token }, res.data.redirectUrl);
       }, 300); // 基本 300~500ms 足够
     }
     return;
