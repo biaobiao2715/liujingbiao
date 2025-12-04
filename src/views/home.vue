@@ -169,25 +169,20 @@ const handleRedirect = async (path: string) => {
     // const res = await thirdPartyLogin({ ...getCacheInfo() });
 
     const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
-      'username': '18000000000',
-      'password': '111111',
-      'clientId': 'e5cd7e4891bf95d1d19206ce24a7b32e',
-      'tenantId': '000000',
-      'form': true,
-      'grantType': 'password'
+      ...getCacheInfo()
     });
     const res = response.data;
     if (res.code === 200 && res.data?.accessToken) {
       const token = res.data.accessToken;
       // http://8.153.15.72:82
       // 1. 打开第三方系统
-      const newWindow = window.open('http://localhost:81', '_blank');
+      const newWindow = window.open('http://8.153.15.72:82', '_blank');
       // 等新页面加载一会，再发送消息
       setTimeout(() => {
         if (!newWindow) return;
 
-        newWindow.postMessage({ type: 'SET_TOKEN', token }, 'http://localhost:81');
-      }, 200); // 基本 300~500ms 足够
+        newWindow.postMessage({ type: 'SET_TOKEN', token }, 'http://8.153.15.72:82');
+      }, 300); // 基本 300~500ms 足够
     }
     return;
   }
