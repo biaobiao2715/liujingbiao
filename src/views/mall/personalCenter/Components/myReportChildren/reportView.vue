@@ -6,181 +6,183 @@
     开发信息: Created by 邓和杰 2025-11-07
 -->
 <template>
-  <el-dialog v-model="dialogVisible" title="举报信息详情" width="60%">
-    <!-- 基本信息 -->
-    <div class="info-section">
-      <h3 class="section-title">基本信息</h3>
-      <template v-if="!isProcessingStatus">
-        <el-form :label-width="100" :inline="false" class="report-form">
-          <el-row>
-            <el-col :span="12">
-              <el-form-item label="举报编号" required>
-                <span class="form-value">{{ reportData?.reportCode || '--' }}</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="举报类别" required>
-                <span class="form-value">{{ getReportTypeText(reportData?.reportTypeId) || '--' }}</span>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row>
-            <el-col :span="12">
-              <el-form-item label="被举报方" required>
-                <span class="form-value">{{ reportData?.reportPersonName || '--' }}</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="举报商品" required>
-                <span class="form-value">{{ reportData?.reportGoodsName || '--' }}</span>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row>
-            <el-col :span="24">
-              <el-form-item label="举报描述" required>
-                <span class="form-value form-description">{{ reportData?.reportDescription || '--' }}</span>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-      </template>
+  <el-dialog v-model="dialogVisible" title="举报信息详情" width="60%" :close-on-click-modal="false" :close-on-press-escape="true">
+    <div v-loading="loading" element-loading-text="加载中..." style="min-height: 200px">
+      <!-- 基本信息 -->
+      <div class="info-section">
+        <h3 class="section-title">基本信息</h3>
+        <template v-if="!isProcessingStatus">
+          <el-form :label-width="100" :inline="false" class="report-form">
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="举报编号" required>
+                  <span class="form-value">{{ reportData?.reportCode || '--' }}</span>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="举报类别" required>
+                  <span class="form-value">{{ getReportTypeText(reportData?.reportTypeId) || '--' }}</span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="被举报方" required>
+                  <span class="form-value">{{ reportData?.reportPersonName || '--' }}</span>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="举报商品" required>
+                  <span class="form-value">{{ reportData?.reportGoodsName || '--' }}</span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="举报描述" required>
+                  <span class="form-value form-description">{{ reportData?.reportDescription || '--' }}</span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </template>
 
-      <template v-else>
-        <div class="basic-info-text">
-          <div class="info-text-row">
-            <div class="info-text-item">
-              <span class="label">举报类型：</span>
-              <span class="value">{{ getReportTypeText(reportData?.reportTypeId) || '--' }}</span>
+        <template v-else>
+          <div class="basic-info-text">
+            <div class="info-text-row">
+              <div class="info-text-item">
+                <span class="label">举报类型：</span>
+                <span class="value">{{ getReportTypeText(reportData?.reportTypeId) || '--' }}</span>
+              </div>
+              <div class="info-text-item">
+                <span class="label">举报编号：</span>
+                <span class="value">{{ reportData?.reportCode || '--' }}</span>
+              </div>
             </div>
-            <div class="info-text-item">
-              <span class="label">举报编号：</span>
-              <span class="value">{{ reportData?.reportCode || '--' }}</span>
+            <div class="info-text-row">
+              <div class="info-text-item">
+                <span class="label">举报时间：</span>
+                <span class="value">{{ reportData?.createTime || '--' }}</span>
+              </div>
+              <div class="info-text-item">
+                <span class="label">案件编号：</span>
+                <span class="value">{{ reportData?.caseCode || '--' }}</span>
+              </div>
+            </div>
+            <div class="info-text-row">
+              <div class="info-text-item full-width">
+                <span class="label">举报描述：</span>
+                <span class="value description">{{ reportData?.reportDescription || '--' }}</span>
+              </div>
             </div>
           </div>
-          <div class="info-text-row">
-            <div class="info-text-item">
-              <span class="label">举报时间：</span>
-              <span class="value">{{ reportData?.createTime || '--' }}</span>
-            </div>
-            <div class="info-text-item">
-              <span class="label">案件编号：</span>
-              <span class="value">{{ reportData?.caseCode || '--' }}</span>
-            </div>
-          </div>
-          <div class="info-text-row">
-            <div class="info-text-item full-width">
-              <span class="label">举报描述：</span>
-              <span class="value description">{{ reportData?.reportDescription || '--' }}</span>
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- 举报材料 -->
-    <div v-if="shouldShowMaterials" class="info-section">
-      <h3 class="section-title">*举报材料</h3>
-
-      <!-- 图片区域 -->
-      <div class="material-section">
-        <label class="material-label">图片：</label>
-        <div class="image-list">
-          <div v-for="(image, index) in imagesDisplay" :key="index" class="image-item">
-            <el-image
-              :src="image || 'https://element-plus.org/images/component-demo.svg'"
-              fit="cover"
-              class="preview-image"
-              :preview-src-list="imagesDisplay"
-              :initial-index="index"
-            />
-          </div>
-        </div>
+        </template>
       </div>
 
-      <!-- 视频区域 -->
-      <div class="material-section">
-        <label class="material-label">视频：</label>
-        <div class="video-list">
-          <div v-for="(video, index) in videosDisplay" :key="index" class="video-item">
-            <div class="video-placeholder">
-              <div class="video-content">{{ '视频' }}</div>
-              <div class="video-size">{{ formatFileSize(video.fileSize || video.size || 0) }}</div>
-              <div class="download-area">
-                <el-button type="primary" size="small" class="download-btn" @click="handleDownloadVideo(video)">下载视频</el-button>
+      <!-- 举报材料 -->
+      <div v-if="shouldShowMaterials" class="info-section">
+        <h3 class="section-title">*举报材料</h3>
+
+        <!-- 图片区域 -->
+        <div class="material-section">
+          <label class="material-label">图片：</label>
+          <div class="image-list">
+            <div v-for="(image, index) in imagesDisplay" :key="index" class="image-item">
+              <el-image
+                :src="image || 'https://element-plus.org/images/component-demo.svg'"
+                fit="cover"
+                class="preview-image"
+                :preview-src-list="imagesDisplay"
+                :initial-index="index"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 视频区域 -->
+        <div class="material-section">
+          <label class="material-label">视频：</label>
+          <div class="video-list">
+            <div v-for="(video, index) in videosDisplay" :key="index" class="video-item">
+              <div class="video-placeholder">
+                <div class="video-content">{{ '视频' }}</div>
+                <div class="video-size">{{ formatFileSize(video.fileSize || video.size || 0) }}</div>
+                <div class="download-area">
+                  <el-button type="primary" size="small" class="download-btn" @click="handleDownloadVideo(video)">下载视频</el-button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 所属状态 -->
-    <div class="status-section">
-      <h3 class="section-title">所属状态: {{ currentScenario?.title }}</h3>
+      <!-- 所属状态 -->
+      <div class="status-section">
+        <h3 class="section-title">所属状态: {{ currentScenario?.title }}</h3>
 
-      <div class="status-timeline">
-        <template v-for="stage in statusStages" :key="stage.id">
-          <div v-if="stage.show" :class="{ 'timeline-item': true, 'active-connection': stage.active }">
-            <div class="timeline-node" :class="{ 'active': stage.active }">
-              <span class="icon-wrapper">✓</span>
+        <div class="status-timeline">
+          <template v-for="stage in statusStages" :key="stage.id">
+            <div v-if="stage.show" :class="{ 'timeline-item': true, 'active-connection': stage.active }">
+              <div class="timeline-node" :class="{ 'active': stage.active }">
+                <span class="icon-wrapper">✓</span>
+              </div>
+
+              <div class="timeline-content">
+                <div class="stage-name">{{ stage.name }}</div>
+                <div class="stage-time" v-if="stage.time">{{ stage.time }}</div>
+              </div>
             </div>
-
-            <div class="timeline-content">
-              <div class="stage-name">{{ stage.name }}</div>
-              <div class="stage-time" v-if="stage.time">{{ stage.time }}</div>
-            </div>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
-    </div>
 
-    <!-- 案件类型（仅在处理中或处理中撤回显示） -->
-    <div v-if="shouldShowCaseType" class="info-section">
-      <h3 class="section-title">
-        案件类型:
-        <el-icon class="info-icon" :size="16">
-          <QuestionFilled />
-        </el-icon>
-      </h3>
-      <el-table :data="caseTypeData" border style="width: 100%">
-        <el-table-column label="案例类型编号" align="center" min-width="200">
-          <template #default="scope">
-            {{ scope.row.caseTypeCode || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="案例类型名称" align="center" min-width="150">
-          <template #default="scope">
-            {{ getCaseTypeName(scope.row.caseTypeId) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="执法依据" align="center" min-width="150">
-          <template #default="scope">
-            <el-link
-              v-if="scope.row.newBasisFile?.ossInfo?.originalName"
-              type="primary"
-              :underline="false"
-              @click="handleDownloadCaseFile(scope.row.newBasisFile)"
-            >
-              {{ scope.row.newBasisFile.ossInfo.originalName }}
-            </el-link>
-            <span v-else>--</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="执法文书模版" align="center" min-width="180">
-          <template #default="scope">
-            <el-link type="primary" :underline="false" @click="handleDownloadCaseFile(scope.row.newDocumentFile)">
-              {{ scope.row.newDocumentFile.ossInfo.originalName }}
-            </el-link>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+      <!-- 案件类型（仅在处理中或处理中撤回显示） -->
+      <div v-if="shouldShowCaseType" class="info-section">
+        <h3 class="section-title">
+          案件类型:
+          <el-icon class="info-icon" :size="16">
+            <QuestionFilled />
+          </el-icon>
+        </h3>
+        <el-table :data="caseTypeData" border style="width: 100%">
+          <el-table-column label="案例类型编号" align="center" min-width="200">
+            <template #default="scope">
+              {{ scope.row.caseTypeCode || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="案例类型名称" align="center" min-width="150">
+            <template #default="scope">
+              {{ getCaseTypeName(scope.row.caseTypeId) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="执法依据" align="center" min-width="150">
+            <template #default="scope">
+              <el-link
+                v-if="scope.row.newBasisFile?.ossInfo?.originalName"
+                type="primary"
+                :underline="false"
+                @click="handleDownloadCaseFile(scope.row.newBasisFile)"
+              >
+                {{ scope.row.newBasisFile?.ossInfo?.originalName || '--' }}
+              </el-link>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="执法文书模版" align="center" min-width="180">
+            <template #default="scope">
+              <el-link type="primary" :underline="false" @click="handleDownloadCaseFile(scope.row.newDocumentFile)">
+                {{ scope.row.newDocumentFile?.ossInfo?.originalName || '--' }}
+              </el-link>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
-    <!-- 驳回原因、平台反馈处理结果、举报人撤回原因、 -->
-    <div v-if="reasonSection.show" class="info-section">
-      <h3 class="section-title">{{ reasonSection.title }}</h3>
-      <p class="info-paragraph">{{ reasonSection.content }}</p>
+      <!-- 驳回原因、平台反馈处理结果、举报人撤回原因、 -->
+      <div v-if="reasonSection.show" class="info-section">
+        <h3 class="section-title">{{ reasonSection.title }}</h3>
+        <p class="info-paragraph">{{ reasonSection.content }}</p>
+      </div>
     </div>
 
     <!-- 底部按钮 -->
@@ -318,7 +320,7 @@ const reasonSection = computed(() => {
   } else if (status === '3') {
     result.show = true;
     result.title = '平台反馈处理结果';
-    result.content = props.reportData?.deal_result || '--';
+    result.content = props.reportData?.dealResult || '--';
   } else if (status === '4') {
     result.show = true;
     result.title = '举报人撤回原因';
@@ -339,6 +341,10 @@ const props = defineProps({
     default: () => ({
       status: ''
     })
+  },
+  loading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -490,15 +496,24 @@ const currentStatus = computed(() => currentScenario.value.stages.find((s) => s.
 
 // 移除 watch，使用 computed 自动处理双向绑定
 
-// 监听举报数据变化，更新显示内容
+// 监听举报数据变化，更新显示内容（只在弹窗显示时监听）
 watch(
-  () => props.reportData,
-  (newData) => {
-    if (newData && newData.status) {
-      reportStatus.value = newData.status;
+  () => props.modelValue,
+  (isVisible) => {
+    if (isVisible && props.reportData?.status) {
+      reportStatus.value = props.reportData.status;
     }
-  },
-  { deep: true }
+  }
+);
+
+// 监听数据变化（浅层监听，避免深度监听导致的性能问题）
+watch(
+  () => props.reportData?.status,
+  (newStatus) => {
+    if (props.modelValue && newStatus) {
+      reportStatus.value = newStatus;
+    }
+  }
 );
 
 // 关闭弹窗 - 确保状态同步（通过 computed 的 set 自动处理）
@@ -839,5 +854,10 @@ defineExpose({
   word-break: break-all;
   display: block;
   min-height: auto;
+}
+
+/* loading 容器样式 */
+:deep(.el-loading-mask) {
+  border-radius: 4px;
 }
 </style>
