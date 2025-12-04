@@ -39,12 +39,20 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 12,
+  queryParam: '',
   articleStatus: 2,
   articleTypes: ['1', '2', '4', '99'] // 只获取政策法规和行业资讯和其他
 });
 
 onMounted(() => {
   fetchCases();
+  eventBus.on('financeSearch', (data: any) => {
+    if (data.category === 'policy') {
+      queryParams.value.pageNum = 1;
+      queryParams.value.queryParam = data.queryParam || '';
+      fetchCases();
+    }
+  });
 });
 
 // 获取列表数据
@@ -101,7 +109,7 @@ const handleMore = () => {
 
   .card-list {
     display: flex;
-    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
     background-color: #fff;
   }

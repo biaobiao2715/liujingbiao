@@ -29,7 +29,7 @@
                     <span>{{ course.pageViews }}</span>
                   </div>
                   <div class="collection flex-center gap-2">
-                    <el-icon size="20" v-if="!course.isCollected"><Star /></el-icon>
+                    <el-icon size="20" v-if="!course.isFavorite"><Star /></el-icon>
                     <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
                     <span>{{ course.collectCount }}</span>
                   </div>

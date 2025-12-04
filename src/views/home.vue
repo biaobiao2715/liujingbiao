@@ -40,7 +40,7 @@ import { getInfo, thirdPartyLogin } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
-
+import axios from 'axios';
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -166,16 +166,23 @@ const getIcon = (svgName: string) => {
 const handleRedirect = async (path: string) => {
   // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
-    const res = await thirdPartyLogin({ ...getCacheInfo() });
-    if (res.code === 200 && res.data) {
-      // axios.post('http://192.168.2.149:8000/auth/thirdParty/login', getCacheInfo()).then((res: any) => {
-      //   console.log('🚀 ~ handleRedirect ~ res:', res);
-      //   if (res.code === 200 && res.title != '后台管理') {
-      //     router.push(res.data);
-      //   } else {
-      //     router.push('/platform/index');
-      //   }
-      // });
+    // const res = await thirdPartyLogin({ ...getCacheInfo() });
+
+    const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
+      ...getCacheInfo()
+    });
+    const res = response.data;
+    if (res.code === 200 && res.data?.accessToken) {
+      const token = res.data.accessToken;
+      // http://8.153.15.72:82
+      // 1. 打开第三方系统
+      const newWindow = window.open('http://8.153.15.72:82', '_blank');
+      // 等新页面加载一会，再发送消息
+      setTimeout(() => {
+        if (!newWindow) return;
+
+        newWindow.postMessage({ type: 'SET_TOKEN', token }, 'http://8.153.15.72:82');
+      }, 300); // 基本 300~500ms 足够
     }
     return;
   }
