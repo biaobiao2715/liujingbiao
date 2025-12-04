@@ -70,14 +70,28 @@ import { eventBus } from '@/utils/eventBus';
 
 const products = ref([]);
 
+const queryParams = ref({
+  pageNum: 1,
+  pageSize: 6,
+  queryParam: '',
+  productStatus: '2'
+});
+
 onMounted(() => {
   fetchProducts();
+  eventBus.on('financeSearch', (data: any) => {
+    if (data.category === 'loan') {
+      queryParams.value.pageNum = 1;
+      queryParams.value.queryParam = data.queryParam || '';
+      fetchProducts();
+    }
+  });
 });
 
 // 获取列表数据
 const fetchProducts = async () => {
   try {
-    const res = await getCreditProductsVersionNoTenantList({ pageNum: 1, pageSize: 6, productStatus: '2' });
+    const res = await getCreditProductsVersionNoTenantList(queryParams.value);
     if (res.code === 200) {
       products.value = res.rows || [];
     }

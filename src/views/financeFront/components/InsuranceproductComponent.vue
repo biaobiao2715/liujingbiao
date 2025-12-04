@@ -54,6 +54,7 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  queryParam: '',
   productStatus: '2'
 });
 
@@ -67,6 +68,14 @@ const productTypeMap: Record<number, { label: string; type: any }> = {
 
 onMounted(() => {
   fetchCases();
+  eventBus.on('financeSearch', (data: any) => {
+    console.log(data);
+    if (data.category === 'insurance') {
+      queryParams.value.pageNum = 1;
+      queryParams.value.queryParam = data.queryParam || '';
+      fetchCases();
+    }
+  });
 });
 
 // 获取列表数据

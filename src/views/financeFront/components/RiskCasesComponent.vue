@@ -41,12 +41,20 @@ const loading = ref(false);
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
+  queryParam: '',
   articleStatus: 2,
   articleType: 3
 });
 
 onMounted(() => {
   fetchCases();
+  eventBus.on('financeSearch', (data: any) => {
+    if (data.category === 'risk') {
+      queryParams.value.pageNum = 1;
+      queryParams.value.queryParam = data.queryParam || '';
+      fetchCases();
+    }
+  });
 });
 
 // 获取列表数据

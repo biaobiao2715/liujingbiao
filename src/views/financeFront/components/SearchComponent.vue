@@ -17,30 +17,58 @@
             </el-select>
           </template>
           <template #append>
-            <el-button @click="handleSearch">搜索</el-button>
+            <el-button @click="handleSearch()">搜索</el-button>
           </template>
         </el-input>
 
-        <div class="hot-search">热门搜索：玉米种子 小麦种子 水稻种子 油菜种子</div>
+        <div class="hot-search">
+          热门搜索：
+          <span v-for="(item, index) in hotSearch" :key="index" class="hot-item" @click="handleSearch(item.label)">{{ item.label }}</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { eventBus } from '@/utils/eventBus';
 import { ref } from 'vue';
 
+const selectedCategory = ref('loan');
+
+const searchQuery = ref('');
+
 const categories = [
-  { label: '信贷产品', value: 'financial' },
+  { label: '信贷产品', value: 'loan' },
   { label: '保险产品', value: 'insurance' },
   { label: '政策法规', value: 'policy' },
   { label: '风险案例', value: 'risk' }
 ];
 
-const selectedCategory = ref('');
-const searchQuery = ref('');
+const hotSearch = [
+  {
+    label: '贷款',
+    value: 'loan'
+  },
+  {
+    label: '保险',
+    value: 'insurance'
+  },
+  {
+    label: '政策解读',
+    value: 'policy'
+  },
+  {
+    label: '风险案例',
+    value: 'risk'
+  }
+];
 
-const handleSearch = () => {
+const handleSearch = (hotKey?: string) => {
+  eventBus.emit('financeSearch', {
+    category: selectedCategory.value,
+    queryParam: hotKey || searchQuery.value || ''
+  });
   console.log('搜索分类:', selectedCategory.value);
   console.log('搜索内容:', searchQuery.value);
 };
@@ -110,5 +138,13 @@ const handleSearch = () => {
   font-size: 12px;
   color: #626262;
   text-align: left;
+
+  .hot-item {
+    margin-right: 12px;
+    &:hover {
+      cursor: pointer;
+      color: #108c58;
+    }
+  }
 }
 </style>

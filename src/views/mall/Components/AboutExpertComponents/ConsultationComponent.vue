@@ -4,34 +4,52 @@
     <div class="title">热门专家</div>
     <div class="content-box">
       <div class="flex-center-between">
-        <div class="flex-center gap-24">
+        <div class="flex-center gap-12">
           <!-- <div class="title">专家咨询</div> -->
-          <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" />
+          <!-- <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" /> -->
+
+          <el-button :type="activeTab === 'technology' ? 'primary' : 'text'" plain round @click="handleChange('technology')" :disabled="expertLoading"
+            >技术专家</el-button
+          >
+          <el-button :type="activeTab === 'legal' ? 'primary' : 'text'" plain round @click="handleChange('legal')" :disabled="expertLoading"
+            >法务专家</el-button
+          >
         </div>
-        <el-button type="text" @click="toggleExpand">
-          <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
-          <el-icon v-else size="32"><ArrowDownBold /></el-icon>
-        </el-button>
+        <div type="text" :class="{ 'rotate-180': isExpanded }" @click="toggleExpand">
+          <img src="@/assets/mall/expert-expand-icon.png" width="18" />
+        </div>
       </div>
 
       <div class="content flex gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
-        <el-row :gutter="24">
+        <el-row :gutter="24" style="width: 100%">
           <el-col :span="6" v-for="(expert, index) in expertList" :key="expert.id">
             <el-card class="expert-item" v-show="isExpanded || index < 4">
-              <div class="title-info flex gap-12" @click="handleDetail(expert)">
-                <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
-                <div>
-                  <div>{{ expert.expertName }} - {{ expert.technicalQualification }}</div>
-                  <div class="flex gap-24 mt-12">
-                    <el-statistic title="咨询量" :value="expert.questionCount" />
-                    <el-statistic title="回复量" :value="expert.answerCount" />
-                  </div>
+              <div class="title-info flex-center-center gap-12" @click="handleDetail(expert)">
+                <div class="avatar-container flex-center-center">
+                  <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
+                </div>
+                <div class="name">{{ expert.expertName }}</div>
+                <div class="qualification">{{ expert.technicalQualification }}</div>
+                <div class="description">
+                  专家简介：
+                  <span>
+                    {{ expert.expertInfo }}
+                  </span>
                 </div>
               </div>
-              <div class="description">{{ expert.expertInfo }}</div>
-              <div class="flex-center-center">
-                <el-button @click="handleConsultation(expert)">立即咨询</el-button>
+              <div class="flex-center-center gap-12 mt-12">
+                <div class="flex-center-center statistic-item">
+                  <div class="number">{{ expert.questionCount }}</div>
+                  <div class="label">咨询量</div>
+                </div>
+                <div class="divider"></div>
+                <div class="flex-center-center statistic-item">
+                  <div class="number">{{ expert.answerCount }}</div>
+                  <div class="label">回复量</div>
+                </div>
               </div>
+
+              <div @click="handleConsultation(expert)" class="consultation-btn flex-center-center">咨询专家</div>
             </el-card>
           </el-col>
         </el-row>
@@ -70,10 +88,12 @@ onMounted(() => {
   getTechnologyExpertList();
 });
 
-const handleChange = async () => {
+const handleChange = async (tab) => {
+  activeTab.value = tab;
   expertLoading.value = true;
   activeTab.value === 'technology' ? await getTechnologyExpertList() : await getLegalExpertList();
   expertLoading.value = false;
+  console.log(activeTab.value);
 };
 
 const toggleExpand = () => {
@@ -119,7 +139,7 @@ const handleDetail = (expert) => {
     color: #3d3d3d;
     font-size: 20px;
     font-weight: bold;
-    border-left: 2px solid #108c58;
+    border-left: 4px solid #108c58;
     padding-left: 8px;
     line-height: 16px;
     margin-bottom: 16px;
@@ -144,22 +164,94 @@ const handleDetail = (expert) => {
       border-radius: 8px;
       .title-info {
         font-size: 16px;
-        font-weight: bold;
         margin-bottom: 5px;
-
-        .avatar {
-          width: 50px;
-          height: 50px;
+        padding: 20px 16px;
+        background-color: rgba(16, 140, 88, 0.05);
+        border-radius: 8px;
+        flex-direction: column;
+        .avatar-container {
+          width: 74px;
+          height: 74px;
+          border-radius: 50%;
+          padding: 4px;
+          border: 1px solid #108c58;
+        }
+        .el-avatar {
+          width: 70px;
+          height: 70px;
           border-radius: 50%;
         }
 
         .name {
-          font-size: 14px;
-          font-weight: normal;
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .qualification {
+          font-size: 16px;
+          font-weight: bold;
           color: var(--color-main);
-          cursor: pointer;
+        }
+        .description {
+          width: 100%;
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+          height: 40px;
+          overflow: hidden; /* 修改为隐藏超出内容 */
+          text-overflow: ellipsis;
+          // 超出展示省略号
+          display: -webkit-box; /* 添加多行省略号支持 */
+          -webkit-line-clamp: 2; /* 限制显示的行数 */
+          -webkit-box-orient: vertical; /* 设置盒子方向为垂直 */
+          span {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+          }
         }
       }
+
+      .statistic-item {
+        flex-direction: column;
+        .number {
+          font-size: 24px;
+          font-weight: bold;
+          color: var(--color-main);
+          font-family: YouSheBiaoTiYuan, YouSheBiaoTiYuan;
+        }
+        .label {
+          font-size: 14px;
+          font-weight: 500;
+          color: #3d3d3d;
+          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+        }
+      }
+
+      .divider {
+        width: 1px;
+        height: 24px;
+        margin: 0 24px;
+        border-left: 1px dashed #d8d8d8;
+      }
+
+      .consultation-btn {
+        width: 163px;
+        height: 40px;
+        background: rgba(16, 140, 88, 0.1);
+        border-radius: 20px;
+        border: 1px solid #108c58;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        color: var(--color-main);
+        margin: 20px auto 0 auto;
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+
       .hot {
         .hot-tag {
           gap: 4px;
@@ -174,16 +266,8 @@ const handleDetail = (expert) => {
         }
       }
 
-      .description {
-        width: 100%;
-        height: 80px;
-        margin: 12px 0;
-        font-size: 12px;
-        overflow: hidden; /* 修改为隐藏超出内容 */
-        text-overflow: ellipsis;
-        display: -webkit-box; /* 添加多行省略号支持 */
-        -webkit-line-clamp: 3; /* 限制显示的行数 */
-        -webkit-box-orient: vertical; /* 设置盒子方向为垂直 */
+      .rotate-180 {
+        transform: rotate(180deg);
       }
     }
   }

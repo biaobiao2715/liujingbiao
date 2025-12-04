@@ -53,12 +53,12 @@
               </div>
             </div>
 
-            <div v-else-if="row.title === '产品保障'" class="flex-center-center gap-8">
+            <div v-else-if="row.title === '产品保障'" class="flex-center-center gap-8 wrap">
               <el-tag v-for="value in item.goodssEnsureName" :key="value">{{ value }}</el-tag>
               <div v-if="!item.goodssEnsureName.length">-</div>
             </div>
 
-            <div v-else-if="row.title === '产品功能'" class="flex-center-center gap-8">
+            <div v-else-if="row.title === '产品功能'" class="flex-center-center gap-8 wrap">
               <el-tag v-for="value in item.goodsAbilityName" :key="value">{{ value }}</el-tag>
               <div v-if="!item.goodssEnsureName.length">-</div>
             </div>
@@ -192,5 +192,8 @@ const fetchData = async () => {
       }
     }
   }
+}
+.wrap {
+  flex-wrap: wrap;
 }
 </style>
