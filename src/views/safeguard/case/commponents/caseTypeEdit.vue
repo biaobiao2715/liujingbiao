@@ -86,10 +86,14 @@
             ref="legalBasisUploadRef"
             class="upload-wrapper"
             :file-list="[]"
-            :auto-upload="false"
+            action="#"
+            :http-request="handleLegalBasisUpload"
+            :before-upload="handleLegalBasisBeforeUpload"
+            :on-remove="handleLegalBasisRemove"
+            :on-exceed="handleLegalBasisExceed"
             :show-file-list="false"
-            :on-change="handleLegalBasisUploadChange"
             accept=".pdf,.doc,.docx,.xls,.xlsx"
+            :limit="1"
             :disabled="loading"
           >
             <el-button type="primary" :loading="legalBasisUploadLoading">
@@ -263,10 +267,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue';
+import { ref, reactive, watch, computed, getCurrentInstance, toRefs } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { UploadFilled, Document } from '@element-plus/icons-vue';
-import { ossUploadImage } from '@/api/supplier/productManagement/product';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { fetchCreateLegalDocumentList, getLegalDocumentDetail } from '@/api/safeguard/legalDocument';
 import { getCaseTypeDetail } from '@/api/safeguard/case';
 
@@ -517,7 +522,12 @@ const getNextVersion = (version?: string) => {
   return `${major}.${minor}`;
 };
 
-const validateFile = (file: File) => {
+const handleLegalBasisBeforeUpload = (file: File) => {
+  // 检查是否正在上传
+  if (legalBasisUploadLoading.value) {
+    ElMessage.warning('文件上传中，请勿重复上传');
+    return false;
+  }
   const allowed = [
     'application/pdf',
     'application/msword',
@@ -539,6 +549,8 @@ const validateFile = (file: File) => {
   return true;
 };
 
+const handleLegalBasisExceed = () => ElMessage.error('只能上传一个文件');
+
 // 关键属性相关
 const handleAddKeyAttribute = () => {
   formData.keyAttributes.push({ name: '' });
@@ -559,52 +571,110 @@ const validateKeyAttributeName = (index: number) => {
 };
 
 // 法律依据文件相关
-const handleLegalBasisUploadChange = async (file: any) => {
-  const raw = file?.raw;
-  if (!raw || !validateFile(raw)) return;
-  legalBasisUploadLoading.value = true;
-  try {
-    const response = await ossUploadImage({ file: raw });
-    const data = response?.data || {};
-    let nextVersion = currentVersion.value;
-    // 编辑模式：版本号只在第一次上传时变化，后续上传使用相同版本
-    // 变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
-    if (!isAddMode.value) {
-      if (!isUpload.value) {
-        nextVersion = getNextVersion(currentVersion.value);
-        currentVersion.value = nextVersion;
-        isUpload.value = true; // 标记已上传，后续上传不再变化版本号
-      } else {
-        nextVersion = currentVersion.value; // 使用已变化的版本号
-      }
-    } else {
-      // 新增模式：版本号始终为 1.0，但仍需标记为已上传以便提交文件
-      nextVersion = '1.0';
-      currentVersion.value = '1.0';
-      isUpload.value = true;
+const handleLegalBasisUpload = (req: any) =>
+  new Promise(async (resolve, reject) => {
+    const rawFile = req.file;
+
+    // 再次检查是否正在上传
+    if (legalBasisUploadLoading.value) {
+      ElMessage.warning('文件上传中，请勿重复上传');
+      reject(new Error('文件上传中，请勿重复上传'));
+      return;
     }
-    const uploadTimestamp = data.uploadTime || data.createTime || Date.now();
-    const uploadTimeText = formatDateTime(uploadTimestamp);
-    const newFile: LegalFile = {
-      fileType: 'document',
-      fileTypeText: '文件',
-      originalName: data.originalName || raw.name,
-      fileSize: data.fileSize || raw.size,
-      version: nextVersion,
-      uploadTime: uploadTimeText,
-      remark: '',
-      ossId: data.ossId,
-      url: data.url
-    };
-    formData.legalBasisFiles = [newFile];
-    formRef.value?.validateField?.('legalBasisFiles');
-    ElMessage.success('文件上传成功');
-  } catch (error) {
-    console.error('文件上传失败:', error);
-    ElMessage.error('文件上传失败，请稍后再试');
-  } finally {
-    legalBasisUploadLoading.value = false;
-  }
+
+    if (!handleLegalBasisBeforeUpload(rawFile)) {
+      reject(new Error('文件验证失败'));
+      return;
+    }
+
+    legalBasisUploadLoading.value = true;
+    try {
+      // 统一使用分片上传（参考 legalDocumentEdit.vue）
+      const res: any = await uploadByChunks(rawFile, (percent: number) => {
+        // 更新上传进度
+        if (typeof req.onProgress === 'function') {
+          req.onProgress({ percent });
+        }
+      });
+
+      // 从返回结果中获取数据
+      if (!res || !res.ossId) {
+        throw new Error('上传失败：未获取到文件ID');
+      }
+
+      const fileName = res.fileName || rawFile.name;
+      const ossId = res.ossId;
+      const url = res.url;
+
+      let nextVersion = currentVersion.value;
+      // 编辑模式：版本号只在第一次上传时变化，后续上传使用相同版本
+      // 变化规则：1.0->1.1, 1.8->1.9, 1.9->2.0
+      if (!isAddMode.value) {
+        if (!isUpload.value) {
+          nextVersion = getNextVersion(currentVersion.value);
+          currentVersion.value = nextVersion;
+          isUpload.value = true; // 标记已上传，后续上传不再变化版本号
+        } else {
+          nextVersion = currentVersion.value; // 使用已变化的版本号
+        }
+      } else {
+        // 新增模式：版本号始终为 1.0，但仍需标记为已上传以便提交文件
+        nextVersion = '1.0';
+        currentVersion.value = '1.0';
+        isUpload.value = true;
+      }
+
+      const uploadTimestamp = Date.now();
+      const uploadTimeText = formatDateTime(uploadTimestamp);
+      const newFile: LegalFile = {
+        fileType: 'document',
+        fileTypeText: '文件',
+        originalName: fileName,
+        fileSize: rawFile.size,
+        version: nextVersion,
+        uploadTime: uploadTimeText,
+        remark: '',
+        ossId: ossId,
+        url: url
+      };
+
+      formData.legalBasisFiles = [newFile];
+      formRef.value?.validateField?.('legalBasisFiles');
+
+      if (typeof req.onSuccess === 'function') {
+        req.onSuccess(res);
+      }
+
+      ElMessage.success('文件上传成功');
+      resolve(newFile);
+    } catch (error: any) {
+      console.error('文件上传失败:', error);
+
+      // 改进错误提示
+      const errorMsg = error?.msg || error?.message || '文件上传失败，请稍后再试';
+      if (errorMsg.includes('文件上传中') || errorMsg.includes('重复上传')) {
+        ElMessage.warning(errorMsg);
+      } else {
+        ElMessage.error(errorMsg);
+      }
+
+      try {
+        (legalBasisUploadRef.value as any)?.handleRemove(req);
+      } catch {}
+
+      if (typeof req.onError === 'function') {
+        req.onError(error);
+      }
+
+      reject(error);
+    } finally {
+      legalBasisUploadLoading.value = false;
+    }
+  });
+
+const handleLegalBasisRemove = async (file: LegalFile) => {
+  formData.legalBasisFiles = [];
+  isUpload.value = false;
 };
 
 const handleRemoveLegalBasisFile = (index: number) => {

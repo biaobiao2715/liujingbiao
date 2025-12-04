@@ -444,7 +444,7 @@ const statusScenarios: Record<string, any> = {
   },
   // 已撤回状态 - 处理中撤回
   '4-processing': {
-    title: '已撤回（处理中）',
+    title: '已撤回',
     stages: [
       { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
       { id: 2, name: '处理中', time: props.reportData?.updateTime || props.reportData?.createTime || '', active: true, show: true },
@@ -454,7 +454,7 @@ const statusScenarios: Record<string, any> = {
   },
   // 已撤回状态 - 待处理撤回
   '4-pending': {
-    title: '已撤回（待处理）',
+    title: '已撤回',
     stages: [
       { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
       { id: 2, name: '已撤回', time: props.reportData?.withdrawTime || props.reportData?.updateTime || '', active: true, show: true }
