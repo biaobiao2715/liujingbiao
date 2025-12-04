@@ -693,12 +693,7 @@ const submitApply = async () => {
   } finally {
   }
 };
-// 查看产品详情
-const handleShowDetails = () => {
-  const id = props.productId || formData.value.productId;
-  emit('switchShowArea', { type: 'LoanProductsComponentDetails', id, uniqueId: new Date().getTime() });
-};
-
+// 申请退回
 const submitPutApply = async () => {
   // ======================== 提交退回主流程 ========================
   // 1. 直接调用退回接口
@@ -722,10 +717,17 @@ const submitPutApply = async () => {
   }
 };
 
+// 查看产品详情
+const handleShowDetails = () => {
+  const id = props.productId || formData.value.productId;
+  emit('switchShowArea', { type: 'LoanProductsComponentDetails', id, uniqueId: new Date().getTime() });
+};
+
 const handleShowClsoe = () => {
   emit('switchShowArea', { type: 'PersonalCenter', id: null, uniqueId: new Date().getTime() });
 };
 
+// ======================== 图片上传器工厂函数 ========================
 interface SingleUploader {
   files: ReturnType<typeof ref<UploadFile[]>>;
   beforeUpload: (raw: UploadRawFile) => boolean;
@@ -751,25 +753,26 @@ function createSingleUploader(targetField: keyof typeof formData.value, exceedMs
   };
   const uploadRequest = async (opt: UploadRequestOptions) => {
     try {
-      const res = await ossUploadImage({ file: opt.file as File });
-      if (res.code === 200) {
-        // 保存文件信息
-        const f: UploadFile = {
-          name: res.data?.fileName || '',
-          status: 'success',
-          url: res.data?.url || '',
-          uid: (opt.file as any).uid
-        } as UploadFile;
-        files.value = [f];
-        // 写入 ossId
-        formData.value[targetField] = res.data?.ossId || '';
-      } else {
-        files.value = [];
-        formData.value[targetField] = '';
-        ElMessage.error(res.msg || '上传失败');
-      }
+      const res: any = await uploadByChunks(opt.file, (percent: number) => {
+        console.log('上传进度:', percent + '%');
+      });
+
+      // const res = await ossUploadImage({ file: opt.file as File });
+
+      // 保存文件信息
+      const f: UploadFile = {
+        name: res.fileName || '',
+        status: 'success',
+        url: res.url || '',
+        uid: (opt.file as any).uid
+      } as UploadFile;
+      files.value = [f];
+      // 写入 ossId
+      formData.value[targetField] = res.ossId || '';
     } catch (e: any) {
       ElMessage.error(e?.message || '上传失败');
+      files.value = [];
+      formData.value[targetField] = '';
     }
   };
   const handleRemove = (file: UploadFile) => {
@@ -799,40 +802,20 @@ function createPdfUploader(targetField: keyof typeof formData.value, exceedMsg: 
 
   const uploadRequest = async (opt: UploadRequestOptions) => {
     try {
-      // 统一的大小阈值（>5MB 走分片）
-      const MAX_SIZE = 50 * 1024 * 1024; // 5MB
-      if ((opt.file as File).size > MAX_SIZE) {
-        // 分片上传
-        const res: any = await uploadByChunks(opt.file, (percent) => {
-          console.log('上传进度:', percent + '%');
-        });
+      const res: any = await uploadByChunks(opt.file, (percent: number) => {
+        console.log('上传进度:', percent + '%');
+      });
 
-        if (!res || !res.ossId) throw new Error('分片上传失败');
-        const f: UploadFile = {
-          name: res.fileName || opt.file.name,
-          status: 'success',
-          url: res.url,
-          uid: (opt.file as any).uid
-        } as UploadFile;
-        files.value = [f];
-        formData.value[targetField] = res.ossId || '';
-      } else {
-        const res = await ossUploadImage({ file: opt.file as File });
-        if (res.code === 200) {
-          const f: UploadFile = {
-            name: res.data?.fileName || opt.file.name,
-            status: 'success',
-            url: res.data?.url || '',
-            uid: (opt.file as any).uid
-          } as UploadFile;
-          files.value = [f];
-          formData.value[targetField] = res.data?.ossId || '';
-        } else {
-          ElMessage.error(res.msg || '上传失败');
-        }
-      }
+      const f: UploadFile = {
+        name: res.fileName || opt.file.name,
+        status: 'success',
+        url: res.url,
+        uid: (opt.file as any).uid
+      } as UploadFile;
+      files.value = [f];
+      formData.value[targetField] = res.ossId || '';
     } catch (e: any) {
-      ElMessage.error(e?.message || '上传失败');
+      ElMessage.error(e?.msg || '文件上传失败，请重试');
     }
   };
   const handleRemove = (file: UploadFile) => {

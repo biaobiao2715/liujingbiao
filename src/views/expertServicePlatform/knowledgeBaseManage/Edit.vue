@@ -71,12 +71,8 @@
         <el-table-column prop="fileName" label="附件名" />
         <el-table-column label="操作" width="250">
           <template #default="scope">
-            <el-button v-throttle link @click="reuploadFile(scope.row)" style="color: #108c58; border-color: #108c58; margin-right: 10px">
-              <span style="height: 16px; line-height: 16px">重新上传</span>
-            </el-button>
-            <el-button v-throttle link @click="removeFile(scope.row)" style="color: #ff3131; border-color: #ff3131">
-              <span style="height: 16px; line-height: 16px">删除</span>
-            </el-button>
+            <el-button type="primary" v-throttle link @click="reuploadFile(scope.row)"> 重新上传 </el-button>
+            <el-button type="primary" v-throttle link @click="removeFile(scope.row)"> 删除 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -256,39 +252,22 @@ const validateFile = (file: File) => {
   return true;
 };
 
-// 统一的大小阈值（>5MB 走分片）
-const MAX_SIZE = 100 * 1024 * 1024; // 5MB
-
 // 通过文件对象执行上传，返回标准化的附件对象
 const buildUploadPayload = async (file: File, progressPrefix: string) => {
-  let result: any;
-  if (file.size > MAX_SIZE) {
-    const res: any = await uploadByChunks(file, (percent) => {
-      console.log('上传进度:', percent + '%');
-    });
+  const res: any = await uploadByChunks(file, (percent: number) => {
+    console.log(`${progressPrefix}分片上传进度:`, percent + '%');
+  });
 
-    if (!res || !res.ossId) throw new Error('分片上传失败');
-    result = {
-      ossId: res.ossId,
-      fileName: res.fileName || file.name,
-      name: res.fileName || file.name,
-      originalName: res.fileName || file.name,
-      fileSuffix: file.type,
-      url: res.url
-    };
-  } else {
-    const response = await ossUploadImage({ file });
-    if (response.code !== 200 || !response.data?.ossId) throw new Error(response?.msg || '上传失败');
-    result = {
-      ossId: response.data.ossId,
-      fileName: response.data.fileName || file.name,
-      name: response.data.fileName || file.name,
-      originalName: response.data.fileName || file.name,
-      fileSuffix: file.type,
-      url: response.data.url
-    };
-  }
-  return result;
+  if (!res || !res.ossId) throw new Error('分片上传失败');
+
+  return {
+    ossId: res.ossId,
+    fileName: res.fileName || file.name,
+    name: res.fileName || file.name,
+    originalName: res.fileName || file.name,
+    fileSuffix: file.type,
+    url: res.url
+  };
 };
 
 const handleChange = async (file: any) => {

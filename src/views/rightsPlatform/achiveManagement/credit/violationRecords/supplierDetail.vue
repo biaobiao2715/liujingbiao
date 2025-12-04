@@ -34,7 +34,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="审核状态">
-            <el-select v-model="formData.reviewStatus" placeholder="请选择审核状态" filterable clearable disabled>
+            <el-select v-model="formData.reviewStatus" filterable clearable disabled>
               <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
@@ -49,7 +49,7 @@
           </el-form-item>
 
           <el-form-item label="营业执照">
-            <img :src="urlImage" height="80px" width="126px" alt="营业执照" />
+            <img v-if="urlImage" :src="urlImage" height="80px" width="126px" alt="营业执照" />
           </el-form-item>
         </el-col>
 
@@ -75,8 +75,8 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="证件类型">
-            <el-select v-model="idType" placeholder="证件类型" filterable clearable disabled>
-              <el-option v-for="dict in card_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+            <el-select v-model="contactF.contactUserType" filterable clearable disabled>
+              <el-option v-for="dict in contact_user_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -237,8 +237,8 @@ import FormHeader from '@/components/FormHeader/index.vue';
 
 import { FormData } from '@/api/platform/enterprise/types'; //ts类型
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating, card_type } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'card_type')
+const { review_status, plat_qualification_grade, plat_credit_rating, contact_user_type } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'contact_user_type')
 );
 
 // 通过 props 接收父组件传参，并设定默认值（type 默认为 'view'）
@@ -309,7 +309,6 @@ const formData = ref<FormData>({
   contacts: [],
   folders: []
 });
-const idType = ref('0');
 
 const areaCodes = ref('');
 

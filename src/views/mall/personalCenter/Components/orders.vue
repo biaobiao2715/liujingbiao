@@ -95,7 +95,7 @@
         :default-target="reportForm?.reportPersonName || ''"
         :default-goods-info="reportForm?.reportGoodsCode || ''"
         :report-person-id="reportForm?.reportPersonId || ''"
-        :report-goods-code="reportForm?.reportGoodsCode || ''"
+        :report-goods-code="reportForm?.goodsId || ''"
         @submit="handleReportSubmitData"
       />
     </div>
@@ -127,44 +127,14 @@ const loading = ref(false);
 
 /** 举报弹窗相关 */
 const reportDialogVisible = ref(false);
-const reportFormRef = ref();
-
 // 表单模型，增加一个 materials 字段用于配合校验（与上传列表联动）
 const reportForm = ref({
-  reportId: '',
   reportPersonId: '',
-  reportTypeId: '',
   reportPersonName: '',
   reportGoodsCode: '',
-  reportDescription: '',
-  ossList: []
+  goodsId: ''
 });
-const hnGoodsFilesList = ref<any[]>([]); // 上传的文件列表
-const refShop = ref<any>(null); // 上传组件实例
-let timer: NodeJS.Timeout | null = null; // 防抖定时器
 
-// 自定义校验：至少上传一份材料
-const validateMaterials = (_rule: any, _value: any, callback: (err?: Error) => void) => {
-  if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) {
-    callback(new Error('请至少上传一份举报材料'));
-  } else {
-    callback();
-  }
-};
-
-const reportRules = {
-  reportTypeId: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
-  reportPersonName: [
-    { required: true, message: '请输入被举报方', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度为 2-50 个字符', trigger: 'blur' }
-  ],
-  reportGoodsCode: [{ required: true, message: '请输入举报商品', trigger: 'blur' }],
-  reportDescription: [
-    { required: true, message: '请输入举报描述', trigger: 'blur' },
-    { min: 1, max: 200, message: '描述最多 200 字', trigger: 'blur' }
-  ],
-  ossList: [{ required: true, validator: validateMaterials, trigger: 'change' }]
-};
 // -------------------- 方法定义 --------------------
 
 /**
@@ -254,137 +224,12 @@ const confirmReceipt = async (orderId: number) => {
  */
 const openReportDialog = (row: any) => {
   reportForm.value = {
-    reportId: row.userId,
     reportPersonId: row.enterpriseId || '',
-    reportTypeId: '',
     reportPersonName: row.enterpriseName || '',
     reportGoodsCode: row.orderItems[0]?.goodsName || '',
-    reportDescription: '',
-    ossList: []
+    goodsId: row.orderItems[0]?.goodsId
   };
-  hnGoodsFilesList.value = [];
-  setTimeout(() => reportFormRef.value?.clearValidate(), 100);
-
-  // 先显示弹窗，等待内部表单渲染完成后再做重置与填充，避免初次渲染触发校验
   reportDialogVisible.value = true;
-};
-
-/**
- * 提交举报
- */
-const submitReport = () => {
-  reportForm.value.ossList = hnGoodsFilesList.value;
-  reportFormRef.value
-    ?.validate()
-    .then(() => {
-      // 校验通过，提交举报逻辑
-      console.log('举报内容:', reportForm.value);
-
-      const arr = {
-        ...reportForm.value,
-        status: '0' // 设置举报状态为“待处理”
-      };
-      addReportChannel(arr).then(() => {
-        ElMessage.success('举报已提交');
-        reportDialogVisible.value = false;
-      });
-    })
-    .catch(() => {
-      // 校验不通过，不提交举报
-      ElMessage.error('请填写完整举报信息');
-    });
-};
-
-/**
- * 删除举报材料
- * @param file 文件对象
- */
-const handleDelete = (file: any) => {
-  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
-  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
-};
-
-/**
- * 上传举报材料
- * @param file 文件对象
- */
-const uploadFile = (file: any) =>
-  new Promise((resolve, reject) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => processUpload(file, resolve, reject), 500);
-  });
-
-/**
- * 处理文件上传
- */
-const processUpload = (file: any, resolve: any, reject: any) => {
-  const fileData: File = file.file;
-  const isImage = (fileData.type || '').startsWith('image/');
-  const typeCode = isImage ? '0' : '1'; // 0：图片 1：视频
-
-  // 将大小与类型一并传到后端
-  ossUploadImage({ file: fileData })
-    .then((response) => {
-      const newFile = {
-        name: response.data.fileName || fileData.name || '举报材料',
-        url: response.data.url,
-        path: response.data.url, // 供删除时对齐使用
-        fileType: typeCode, // 0：图片 1：视频
-        foreignType: '3', //0：法律依据文件 1：法律文书模版 2：品种信息识别 3：举报材料 4：申诉材料 等
-        fileSize: fileData.size,
-        ossId: response.data.ossId
-      } as any;
-      hnGoodsFilesList.value.push(newFile);
-      reportFormRef.value?.validateField('ossList');
-      resolve(newFile);
-    })
-    .catch((error) => {
-      ElMessage.error(error.msg || '文件上传失败，请重试');
-      refShop.value.handleRemove(file);
-      reject(error);
-    });
-};
-
-/**
- * 超出上传数量限制
- */
-const handleExceed = () => ElMessage.error(`已达到最多可选择的文件数量!`);
-
-/**
- * 上传前校验
- * @param file 文件对象
- * @returns 是否允许上传
- */
-const handleBeforeUpload = (file: File) => {
-  const isImage = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
-  const isVideo = ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(file.type); // mp4/mov/avi
-
-  if (!isImage && !isVideo) {
-    ElMessage.error('仅支持图片(jpg/jpeg/png)或视频(mp4/mov/avi)');
-    return false;
-  }
-  if (isImage && file.size / 1024 / 1024 > 10) {
-    ElMessage.error('单张图片大小不能超过 10MB');
-    return false;
-  }
-  if (isVideo && file.size / 1024 / 1024 > 200) {
-    ElMessage.error('单个视频大小不能超过 200MB');
-    return false;
-  }
-
-  // 按类型分别限制数量：图片 <= 6，视频 <= 3
-  const imgCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('image/')).length;
-  const videoCount = hnGoodsFilesList.value.filter((f) => (f.raw?.type || f.type || '').startsWith('video/')).length;
-
-  if (isImage && imgCount >= 6) {
-    ElMessage.error('最多上传 6 张图片');
-    return false;
-  }
-  if (isVideo && videoCount >= 3) {
-    ElMessage.error('最多上传 3 个视频');
-    return false;
-  }
-  return true;
 };
 
 // -------------------- 生命周期 --------------------

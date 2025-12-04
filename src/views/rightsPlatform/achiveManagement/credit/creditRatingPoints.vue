@@ -9,7 +9,7 @@
   <div class="p-2">
     <el-form ref="queryFormRef" :model="queryParams" label-position="left" inline>
       <el-form-item label="信用等级" prop="creditRatingId" label-width="auto">
-        <el-select v-model="queryParams.creditRatingId" placeholder="审核状态" filterable clearable>
+        <el-select v-model="queryParams.creditRatingId" placeholder="请选择信用等级" filterable clearable>
           <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -42,7 +42,7 @@
     <el-dialog v-model="dialog.visible" title="设置信用等级积分" width="560px" @closed="resetForm">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="score-form">
         <el-form-item label="信用等级：" prop="creditRatingId">
-          <el-select v-model="form.creditRatingId" placeholder="请选择信用等级" disabled filterable clearable>
+          <el-select :model-value="String(form.creditRatingId)" placeholder="请选择信用等级" disabled>
             <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
@@ -66,6 +66,7 @@
 
 <script setup name="Dict" lang="ts">
 import { getCreditRatingPointsList, getCreditRating, updateCreditRating } from '@/api/rightsPlatform/achiveManagement/credit/creditRatingPoints';
+import { string } from 'vue-types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { plat_credit_rating } = toRefs<any>(proxy?.useDict('plat_credit_rating'));
@@ -94,6 +95,10 @@ const form = ref({
   creditMinPoints: null as number | null,
   creditMaxPoints: null as number | null
 });
+
+const getCreditRatingId = (value: string | number) => {
+  return String(value);
+};
 
 /** 查询字典类型列表 */
 const getList = async () => {
