@@ -40,7 +40,7 @@
       </el-form>
 
       <!-- 表格 -->
-      <el-table ref="tableRef" :data="list" border v-loading="loading">
+      <el-table ref="tableRef" :data="list" v-loading="loading">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="专家姓名" prop="expertName" align="center" :show-overflow-tooltip="true" />
         <el-table-column label="专家编号" prop="expertNumber" align="center" :show-overflow-tooltip="true">
@@ -140,8 +140,14 @@
         @pagination="handleQuery"
       />
       <el-dialog v-model="toggleDialogVisible" width="30%">
-        <template #header>
+        <!-- <template #header>
           <span>{{ toggleDialogData.startStopStatus === '1' ? '停用' : '启用' }}</span>
+        </template> -->
+        <template #header="{ close, titleId, titleClass }">
+          <div class="flex items-center">
+            <el-icon color="#e6a23c" size="24"><WarningFilled /></el-icon>
+            <span class="ml-2">提示</span>
+          </div>
         </template>
         <div>{{ toggleDialogData.startStopStatus === '1' ? '请确认是否停用该专家信息?' : '请确认是否启用该专家信息？' }}</div>
         <template #footer>

@@ -117,8 +117,8 @@
         <!-- 资料清单 -->
         <el-form :model="formData" label-width="140px">
           <FormHeader title="资料清单" />
-          <el-table :data="formData.hnBaseRegisterFolderVoList" border>
-            <el-table-column label="序号" width="100" align="center">
+          <el-table :data="formData.hnBaseRegisterFolderVoList">
+            <el-table-column label="序号" width="100">
               <template #default="scope">
                 <span>{{ scope.$index + 1 }}</span>
               </template>
@@ -131,7 +131,7 @@
             <el-table-column prop="remark" label="备注"></el-table-column>
             <el-table-column label="操作">
               <template #default="scope">
-                <el-button v-throttle type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)"
+                <el-button v-throttle link type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)"
                   >下载</el-button
                 >
               </template>
