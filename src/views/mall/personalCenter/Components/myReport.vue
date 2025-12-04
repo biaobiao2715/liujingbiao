@@ -182,31 +182,6 @@ const reportEditRef = ref<InstanceType<typeof ReportEdit> | null>(null);
 const reportViewVisible = ref(false);
 const reportViewRef = ref<InstanceType<typeof ReportView> | null>(null);
 
-// 监听弹窗状态，确保同时只显示一个弹窗
-watch(reportEditVisible, (newVal) => {
-  if (newVal) {
-    // 打开编辑弹窗时，关闭查看弹窗和撤回弹窗
-    reportViewVisible.value = false;
-    withdrawDialogVisible.value = false;
-  }
-});
-
-watch(reportViewVisible, (newVal) => {
-  if (newVal) {
-    // 打开查看弹窗时，关闭编辑弹窗和撤回弹窗
-    reportEditVisible.value = false;
-    withdrawDialogVisible.value = false;
-  }
-});
-
-watch(withdrawDialogVisible, (newVal) => {
-  if (newVal) {
-    // 打开撤回弹窗时，关闭编辑弹窗和查看弹窗
-    reportEditVisible.value = false;
-    reportViewVisible.value = false;
-  }
-});
-
 // 当前查看/编辑的举报数据
 const currentReportData = ref<Report | null>(null);
 
@@ -300,6 +275,31 @@ const withdrawRules = {
 const currentWithdrawRow = ref<Report | null>(null);
 const withdrawLoading = ref(false);
 const canSubmitWithdraw = computed(() => withdrawForm.value.reason.trim().length > 0 && !withdrawLoading.value);
+
+// 监听弹窗状态，确保同时只显示一个弹窗（必须在所有弹窗变量定义之后）
+watch(reportEditVisible, (newVal) => {
+  if (newVal) {
+    // 打开编辑弹窗时，关闭查看弹窗和撤回弹窗
+    reportViewVisible.value = false;
+    withdrawDialogVisible.value = false;
+  }
+});
+
+watch(reportViewVisible, (newVal) => {
+  if (newVal) {
+    // 打开查看弹窗时，关闭编辑弹窗和撤回弹窗
+    reportEditVisible.value = false;
+    withdrawDialogVisible.value = false;
+  }
+});
+
+watch(withdrawDialogVisible, (newVal) => {
+  if (newVal) {
+    // 打开撤回弹窗时，关闭编辑弹窗和查看弹窗
+    reportEditVisible.value = false;
+    reportViewVisible.value = false;
+  }
+});
 
 const handleWithdraw = (row: Report) => {
   currentWithdrawRow.value = row;
