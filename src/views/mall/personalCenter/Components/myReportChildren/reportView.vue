@@ -6,11 +6,10 @@
     开发信息: Created by 邓和杰 2025-11-07
 -->
 <template>
-  <el-dialog v-model="dialogVisible" title="举报信息详情" width="60%" destroy-on-close>
+  <el-dialog v-model="dialogVisible" title="举报信息详情" width="60%">
     <!-- 基本信息 -->
     <div class="info-section">
       <h3 class="section-title">基本信息</h3>
-
       <template v-if="!isProcessingStatus">
         <el-form :label-width="100" :inline="false" class="report-form">
           <el-row>
@@ -170,11 +169,7 @@
         </el-table-column>
         <el-table-column label="执法文书模版" align="center" min-width="180">
           <template #default="scope">
-            <el-link
-              type="primary"
-              :underline="false"
-              @click="handleDownloadCaseFile(scope.row.newDocumentFile)"
-            >
+            <el-link type="primary" :underline="false" @click="handleDownloadCaseFile(scope.row.newDocumentFile)">
               {{ scope.row.newDocumentFile.ossInfo.originalName }}
             </el-link>
           </template>
@@ -350,8 +345,13 @@ const props = defineProps({
 // Emits定义
 const emit = defineEmits(['update:modelValue', 'close']);
 
-// 弹窗显示状态
-const dialogVisible = ref(false);
+// 弹窗显示状态 - 使用 computed 确保双向绑定一致性
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    emit('update:modelValue', value);
+  }
+});
 
 // 举报状态文本
 const reportStatus = ref('');
@@ -488,18 +488,7 @@ const currentScenario = computed(() => {
 const statusStages = computed(() => currentScenario.value.stages);
 const currentStatus = computed(() => currentScenario.value.stages.find((s) => s.id === currentScenario.value.currentStageId));
 
-// 监听外部v-model变化
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    dialogVisible.value = newVal;
-  }
-);
-
-// 监听弹窗内部显示状态变化
-watch(dialogVisible, (newVal) => {
-  emit('update:modelValue', newVal);
-});
+// 移除 watch，使用 computed 自动处理双向绑定
 
 // 监听举报数据变化，更新显示内容
 watch(
@@ -512,7 +501,7 @@ watch(
   { deep: true }
 );
 
-// 关闭弹窗
+// 关闭弹窗 - 确保状态同步（通过 computed 的 set 自动处理）
 const handleClose = () => {
   dialogVisible.value = false;
   emit('close');
@@ -666,10 +655,6 @@ defineExpose({
 .timeline-item.active-connection .stage-name,
 .timeline-item.active-connection .stage-time {
   color: #409eff;
-}
-
-.dialog-footer {
-  text-align: center;
 }
 
 /* 信息区域样式 */
