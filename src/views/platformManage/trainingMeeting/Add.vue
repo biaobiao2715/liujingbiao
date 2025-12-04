@@ -85,29 +85,29 @@
         </el-row>
       </el-form>
       <!-- 选中的数据 -->
-      <el-table ref="tableRef" :data="paginatedSelectedExperts" border v-loading="formloading" style="width: 100%">
+      <el-table ref="tableRef" :data="paginatedSelectedExperts" v-loading="formloading" style="width: 100%">
         <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="专家类型" align="center" prop="expertType" width="180">
+        <el-table-column label="专家类型" prop="expertType" width="90">
           <template #default="scope">
             {{ scope.row.expertType === '1' ? '技术专家' : '法务专家' }}
           </template>
         </el-table-column>
-        <el-table-column label="专家姓名" align="center" prop="expertName" width="180" :show-overflow-tooltip="true">
+        <el-table-column label="专家姓名" prop="expertName" width="100" :show-overflow-tooltip="true">
           <template #default="scope">
             <span>{{ scope.row.expertName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="专家性别" align="center" prop="sex" :show-overflow-tooltip="true" min-width="120">
+        <el-table-column label="专家性别" prop="sex" :show-overflow-tooltip="true" min-width="80">
           <template #default="scope">
             <dict-tag :options="sys_user_sex" :value="scope.row.sex || scope.row.expertSex" />
           </template>
         </el-table-column>
-        <el-table-column label="专家编号" align="center" prop="expertCode" :show-overflow-tooltip="true" min-width="120">
+        <el-table-column label="专家编号" prop="expertCode" :show-overflow-tooltip="true" min-width="200">
           <template #default="scope">
             <span>{{ scope.row.expertCode || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="联系电话" align="center" width="120">
+        <el-table-column label="联系电话" width="120">
           <template #default="scope">
             <span> {{ scope.row.contactPhone || '-' }}</span>
           </template>
@@ -134,7 +134,7 @@
         报名参加会议人员信息
         <span style="color: #666; font-size: 14px">(报名人数：{{ registrantsNumber }}人)</span>
       </div>
-      <el-table v-if="isView" ref="tableRef" :data="registration" border v-loading="registrationloading" style="table-layout: fixed">
+      <el-table v-if="isView" ref="tableRef" :data="registration" v-loading="registrationloading" style="table-layout: fixed">
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="报名人姓名" align="center" prop="expertName" :show-overflow-tooltip="true">
           <template #default="scope">
