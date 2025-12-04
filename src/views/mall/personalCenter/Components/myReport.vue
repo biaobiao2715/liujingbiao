@@ -99,13 +99,7 @@
     <report-edit ref="reportEditRef" v-model="reportEditVisible" @submit-success="handleEditSubmitSuccess" />
 
     <!-- 查看举报弹窗组件 -->
-    <report-view
-      v-if="reportViewVisible"
-      ref="reportViewRef"
-      v-model="reportViewVisible"
-      :report-data="currentReportData"
-      :key="`report-view-${currentReportData?.id || Date.now()}`"
-    />
+    <report-view ref="reportViewRef" v-model="reportViewVisible" :report-data="currentReportData" :loading="reportViewLoading" />
 
     <!-- 撤回弹窗 -->
     <el-dialog v-model="withdrawDialogVisible" title="操作确认" width="420px" :close-on-click-modal="false" @close="handleWithdrawCancel">
@@ -131,7 +125,7 @@
 
 <script setup lang="ts">
 // 引入 Vue 能力/类型，增强类型安全
-import { ref, toRefs, onMounted, getCurrentInstance, computed, watch, nextTick, type ComponentInternalInstance } from 'vue';
+import { ref, toRefs, onMounted, getCurrentInstance, computed, watch, type ComponentInternalInstance } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { reportList, reportBack, resubmitReportList, type Report, type ReportQueryParams } from '@/api/mall/personalCenter/myReport';
 import Pagination from '@/components/Pagination/index.vue';
@@ -190,6 +184,8 @@ const reportViewRef = ref<InstanceType<typeof ReportView> | null>(null);
 
 // 当前查看/编辑的举报数据
 const currentReportData = ref<Report | null>(null);
+// 查看弹窗加载状态
+const reportViewLoading = ref(false);
 
 // 控制筛选区域展开/收起状态
 const isExpanded = ref(true);
@@ -369,34 +365,41 @@ const handleEditSubmitSuccess = () => {
 
 // 处理查看
 const handleView = async (row: Report) => {
-  // 先关闭弹窗，确保状态重置
-  reportViewVisible.value = false;
-  // 等待下一个 tick，确保组件已销毁
-  await nextTick();
+  // 如果弹窗已经打开，先关闭，避免重复打开
+  if (reportViewVisible.value) {
+    reportViewVisible.value = false;
+    // 等待弹窗关闭完成
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  // 清空之前的数据
+  currentReportData.value = null;
+  // 显示弹窗并进入loading状态
+  reportViewLoading.value = true;
+  reportViewVisible.value = true;
 
   try {
     // 调用接口获取详细信息
     const res = await resubmitReportList(row.id);
-    // 合并接口返回的数据到当前行数据
+    // 设置接口返回的数据
     if (res && res.data) {
       currentReportData.value = {
         ...row,
         ...res.data
       };
     } else {
+      // 如果接口返回数据为空，使用列表数据
       currentReportData.value = row;
     }
   } catch (error: any) {
     console.error('获取举报详情失败:', error);
     ElMessage.error(error.msg || error.message || '获取详情失败');
-    // 即使接口失败，也使用列表数据
+    // 接口失败时使用列表数据
     currentReportData.value = row;
+  } finally {
+    // 接口调用完成，去掉loading
+    reportViewLoading.value = false;
   }
-
-  // 等待下一个 tick，确保数据已更新
-  await nextTick();
-  // 显示查看弹窗
-  reportViewVisible.value = true;
 };
 
 // 根据状态值获取状态文本
@@ -489,7 +492,7 @@ const getReportTypeText = (reportTypeId: string): string => {
   color: #108c58;
   font-size: 14px;
   position: absolute;
-  left: 60%;
+  left: 65%;
   cursor: pointer;
   white-space: nowrap;
 }

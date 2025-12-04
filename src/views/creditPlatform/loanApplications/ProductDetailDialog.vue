@@ -25,7 +25,24 @@
         </div>
         <div class="info-item range">
           <span class="label">可贷金额：</span>
-          <span class="value">{{ loanAmountRangeText }}</span>
+          <span class="value">
+            <template
+              v-if="
+                productDetail.minLoanAmount !== null &&
+                productDetail.minLoanAmount !== undefined &&
+                productDetail.maxLoanAmount !== null &&
+                productDetail.maxLoanAmount !== undefined
+              "
+            >
+              <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
+                {{ productDetail.minLoanAmount }} 万元
+              </template>
+              <template v-else>
+                {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
+              </template>
+            </template>
+            <template v-else>--</template>
+          </span>
         </div>
         <div class="info-item range">
           <span class="label">利率/费率：</span>
@@ -142,26 +159,10 @@ const formatDictValue = (value: unknown) => {
   return [value];
 };
 
-const formatRangeText = (min?: number | string | null, max?: number | string | null, unit = '') => {
-  const hasMin = min !== undefined && min !== null && min !== '';
-  const hasMax = max !== undefined && max !== null && max !== '';
-  if (!hasMin && !hasMax) return '--';
-  if (hasMin && hasMax) {
-    if (Number(min) === Number(max)) {
-      return `${min}${unit}`;
-    }
-    return `${min}${unit} - ${max}${unit}`;
-  }
-  if (hasMin) return `${min}${unit}`;
-  return `${max}${unit}`;
-};
-
 const prodCreditOptions = computed(() => prod_credit_type?.value ?? []);
 const applicableObjectOptions = computed(() => applicable_object?.value ?? []);
 const loanCycleOptions = computed(() => loan_cycle?.value ?? []);
 const repaymentMethodOptions = computed(() => repayment_method?.value ?? []);
-
-const loanAmountRangeText = computed(() => formatRangeText(productDetail.value.minLoanAmount, productDetail.value.maxLoanAmount, '万元'));
 
 const interestRateRangeText = computed(() => {
   const { baseInterestRate, floatInterestRate } = productDetail.value;
