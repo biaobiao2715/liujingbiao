@@ -58,6 +58,7 @@ let geocoder: any = null;
 let autoComplete: any = null;
 let searchInput: HTMLInputElement | null = null;
 const mapReady = ref(false);
+const enableLocate = false; // 关闭内置定位按钮
 
 // 计算属性：位置数据
 const location = computed({
@@ -232,29 +233,32 @@ const initMap = async () => {
           </svg>
         `;
 
-        // 创建蓝色向上箭头图标（定位按钮）
-        const locationIcon = document.createElement('div');
-        locationIcon.style.cssText = `
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f5f5f5;
-          border-radius: 4px;
-          cursor: pointer;
-          margin-left: 4px;
-        `;
-        // 使用 <el-icon><LocationInformation /></el-icon>
-        const locIconVNode = h(
-          ElIcon,
-          { size: 16, color: '#4A90E2' },
-          () => h(LocationInformation)
-        );
-        const locIconMount = document.createElement('div');
-        render(locIconVNode, locIconMount);
-        if (locIconMount.firstElementChild) {
-          locationIcon.appendChild(locIconMount.firstElementChild);
+        // 创建蓝色向上箭头图标（定位按钮，按需启用）
+        let locationIcon: HTMLDivElement | null = null;
+        if (enableLocate) {
+          locationIcon = document.createElement('div');
+          locationIcon.style.cssText = `
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 4px;
+          `;
+          // 使用 <el-icon><LocationInformation /></el-icon>
+          const locIconVNode = h(
+            ElIcon,
+            { size: 16, color: '#4A90E2' },
+            () => h(LocationInformation)
+          );
+          const locIconMount = document.createElement('div');
+          render(locIconVNode, locIconMount);
+          if (locIconMount.firstElementChild) {
+            locationIcon.appendChild(locIconMount.firstElementChild);
+          }
         }
 
         // 搜索功能
@@ -291,26 +295,28 @@ const initMap = async () => {
         searchIcon.onclick = handleSearch;
         
         // 定位图标点击（定位到当前位置）
-        locationIcon.onclick = () => {
-          if (geolocation) {
-            geolocation.getCurrentPosition((status: string, result: any) => {
-              if (status === 'complete' && result.position) {
-                const { lng, lat } = result.position;
-                location.value = {
-                  longitude: lng.toFixed(7),
-                  latitude: lat.toFixed(7),
-                  address: result.formattedAddress || '',
-                  zone: [],
-                  name: ''
-                };
-                if (map.value) {
-                  map.value.setZoomAndCenter(16, [lng, lat]);
-                  drawMarker();
+        if (enableLocate && locationIcon) {
+          locationIcon.onclick = () => {
+            if (geolocation) {
+              geolocation.getCurrentPosition((status: string, result: any) => {
+                if (status === 'complete' && result.position) {
+                  const { lng, lat } = result.position;
+                  location.value = {
+                    longitude: lng.toFixed(7),
+                    latitude: lat.toFixed(7),
+                    address: result.formattedAddress || '',
+                    zone: [],
+                    name: ''
+                  };
+                  if (map.value) {
+                    map.value.setZoomAndCenter(16, [lng, lat]);
+                    drawMarker();
+                  }
                 }
-              }
-            });
-          }
-        };
+              });
+            }
+          };
+        }
         
         // 输入框回车搜索
         searchInput.onkeypress = (e: KeyboardEvent) => {
@@ -361,7 +367,9 @@ const initMap = async () => {
 
         // 将图标和输入框添加到容器
         rightIconContainer.appendChild(searchIcon);
-        rightIconContainer.appendChild(locationIcon);
+        if (enableLocate && locationIcon) {
+          rightIconContainer.appendChild(locationIcon);
+        }
         searchContainer.appendChild(leftIconContainer);
         searchContainer.appendChild(searchInput);
         searchContainer.appendChild(rightIconContainer);
@@ -379,7 +387,9 @@ const initMap = async () => {
           }
         });
 
-        map.value.addControl(geolocation);
+        if (enableLocate) {
+          map.value.addControl(geolocation);
+        }
         map.value.addControl(toolbar);
         map.value.addControl(scale);
       }
@@ -433,10 +443,11 @@ const drawMarker = () => {
     marker.setMap(null);
   }
 
-  // 创建新标记
+  // 创建新标记（使用高德原生默认图标）
   marker = new AMapObj.Marker({
     position: new AMapObj.LngLat(longitude, latitude),
-    anchor: 'bottom-center'
+    anchor: 'bottom-center',
+    zIndex: 1200
   });
 
   map.value.add(marker);
