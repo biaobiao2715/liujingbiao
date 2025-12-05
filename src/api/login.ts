@@ -200,6 +200,15 @@ export function thirdPartyLogin(data: any) {
   });
 }
 
+// 查询溯源用户是否存在
+export function queryTraceableUser(data: any) {
+  return request({
+    url: '/traceable/traceableAccountBind/queryTraceableUser',
+    method: 'get',
+    params: data || {}
+  });
+}
+
 // 新分片-初始化上传，对内接口，需后端业务方调用，完善业务参数
 export function initUpload(data: any) {
   return request({
