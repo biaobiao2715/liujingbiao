@@ -475,14 +475,18 @@ const geocodeAddress = (addr: string) => {
   if (!geocoder || !map.value) return;
   geocoder.getLocation(addr, (status: string, result: any) => {
     if (status === 'complete' && result?.geocodes?.length) {
-      const { location: loc } = result.geocodes[0];
+      const { location: loc, addressComponent } = result.geocodes[0];
       if (loc && loc.lng != null && loc.lat != null) {
+        const zoneArr: string[] = [];
+        if (addressComponent?.province) zoneArr.push(addressComponent.province);
+        if (addressComponent?.city) zoneArr.push(addressComponent.city);
+        if (addressComponent?.district) zoneArr.push(addressComponent.district);
         location.value = {
           longitude: Number(loc.lng).toFixed(7),
           latitude: Number(loc.lat).toFixed(7),
-          // 不改用户输入的地址，保持原值
+          // 保持用户输入的地址，不覆盖
           address: props.modelValue?.address || location.value.address || addr,
-          zone: location.value.zone || [],
+          zone: zoneArr.length ? zoneArr : location.value.zone || [],
           name: location.value.name || ''
         };
         drawMarker();
@@ -501,14 +505,14 @@ const syncAddressToMap = (addr: string) => {
         const poi = result.poiList.pois[0];
         if (poi?.location) {
           const { lng, lat } = poi.location;
-          const { pname, cityname, adname, address, name } = poi;
+          const { pname, cityname, adname } = poi;
           location.value = {
             longitude: Number(lng).toFixed(7),
             latitude: Number(lat).toFixed(7),
-            // 不改用户输入的地址，保持原值
+            // 保持用户输入的地址，不覆盖
             address: props.modelValue?.address || location.value.address || addr,
             zone: [pname, cityname, adname],
-            name: name || ''
+            name: location.value.name || ''
           };
           drawMarker();
           return;
