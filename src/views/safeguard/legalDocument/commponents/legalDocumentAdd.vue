@@ -29,28 +29,28 @@
         </el-upload>
       </el-form-item>
 
-      <el-table v-if="formData.attachments.length" :data="formData.attachments" border size="small">
-        <el-table-column type="index" label="序号" width="70" align="center" />
+      <el-table v-if="formData.attachments.length" :data="formData.attachments" size="small">
+        <el-table-column type="index" label="序号" width="70" />
         <el-table-column prop="fileTypeText" label="附件类型" width="120" align="center" />
         <el-table-column prop="originalName" label="附件名称" min-width="200" />
-        <el-table-column prop="fileSize" label="附件大小" width="120" align="center">
+        <el-table-column prop="fileSize" label="附件大小" width="120">
           <template #default="{ row }">
             {{ formatFileSize(row.fileSize) }}
           </template>
         </el-table-column>
-        <el-table-column prop="version" label="版本号" width="120" align="center" />
-        <el-table-column label="操作" width="100" align="center">
+        <el-table-column prop="version" label="版本号" width="120" />
+        <el-table-column label="操作" width="100">
           <template #default="{ $index }">
             <el-button type="text" @click="handleRemoveAttachment($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-form-item label="所属状态" prop="status">
+      <!-- <el-form-item label="所属状态" prop="status">
         <el-select v-model="formData.status" placeholder="请选择">
           <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
 
     <template #footer>
@@ -67,6 +67,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { UploadFilled } from '@element-plus/icons-vue';
 import { ossUploadImage } from '@/api/supplier/productManagement/product';
+import { uploadByChunks } from '@/utils/chunkUpload';
 import { createLegalDocument } from '@/api/safeguard/legalDocument';
 
 interface AttachmentItem {
@@ -83,7 +84,7 @@ const props = defineProps<{
   modelValue: boolean;
   data?: {
     legalDocumentName?: string;
-    status?: string;
+    // status?: string;
     attachments?: AttachmentItem[];
   };
   title?: string;
@@ -100,8 +101,8 @@ const uploadLoading = ref(false);
 
 const formData = reactive({
   legalDocumentName: '',
-  attachments: [] as AttachmentItem[],
-  status: ''
+  attachments: [] as AttachmentItem[]
+  // status: ''
 });
 const statusOptions = [
   { value: '0', label: '启用' },
@@ -110,8 +111,8 @@ const statusOptions = [
 
 const formRules = {
   legalDocumentName: [{ required: true, message: '请输入法律文书模版名称', trigger: 'blur' }],
-  attachments: [{ required: true, message: '请至少上传一个文件', trigger: 'change' }],
-  status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
+  attachments: [{ required: true, message: '请至少上传一个文件', trigger: 'change' }]
+  // status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
 };
 
 const dialogTitle = computed(() => props.title || '新增法律文书模版');
@@ -121,7 +122,7 @@ const loading = computed(() => props.loading || false);
 const resetForm = () => {
   formData.legalDocumentName = '';
   formData.attachments = [];
-  formData.status = '';
+  // formData.status = '';
   formRef.value?.resetFields?.();
 };
 
@@ -130,7 +131,7 @@ watch(
   (val) => {
     if (val) {
       formData.legalDocumentName = props.data?.legalDocumentName || '';
-      formData.status = props.data?.status || '';
+      // formData.status = props.data?.status || '';
       formData.attachments = props.data?.attachments?.map((item) => ({ ...(item as AttachmentItem) })) || [];
     } else {
       resetForm();
@@ -167,7 +168,12 @@ const handleFileUpload = async (uploadFile: any) => {
   if (!rawFile || !handleBeforeUpload(rawFile)) return;
   uploadLoading.value = true;
   try {
-    const response = await ossUploadImage({ file: rawFile });
+    // const response = await ossUploadImage({ file: rawFile });
+    // 使用分片上传
+    const response: any = await uploadByChunks(rawFile, (p) => {
+      console.log(`上传进度: ${p}%`);
+    });
+    console.log(response, rawFile, '切片成功了');
     const data = response?.data || {};
     const item: AttachmentItem = {
       fileType: 'document',
