@@ -322,24 +322,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
     }
   ],
   // 性别
-  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
-  // 专家简介
-  professionalSummary: [
-    {
-      required: true,
-      message: '请输入专家简介',
-      trigger: 'blur',
-      validator: (rule: any, value: any, callback: any) => {
-        if (!value) {
-          callback(new Error('请输入专家简介'));
-        } else if (value.length > 150 || !/^[一-龥A-Za-z0-9\s]+$/.test(value)) {
-          callback(new Error('简介只能包含汉字、字母、数字和空格，最长不超过150字节。'));
-        } else {
-          callback();
-        }
-      }
-    }
-  ],
+  sex: [{ required: true, message: '请选择性别', trigger: ['change', 'blur'] }],
   // 照片
   photo: [
     {
@@ -358,10 +341,10 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   idCard: [
     {
       trigger: 'blur',
-      required: false,
+      required: true,
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback();
+          callback(new Error('请输入身份证号'));
         } else if (!isIdCard(value)) {
           callback(new Error('请输入正确的身份证号'));
         } else {
@@ -374,7 +357,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   practiceCertificateType: [
     {
       required: true,
-      trigger: 'change',
+      trigger: ['change', 'blur'],
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
           callback(new Error('请输入执业证类型'));
@@ -387,7 +370,7 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   // 法律执业资格或律师资格证号
   legalPracticeQualification: [{ required: true, message: '请输入法律执业资格或律师资格证号', trigger: 'blur' }],
   // 发证日期
-  issueDate: [{ required: true, message: '请选择发证日期', trigger: 'change' }],
+  issueDate: [{ required: true, message: '请选择发证日期', trigger: ['change', 'blur'] }],
   // 技术资格证号
   technicalQualification: [{ required: true, message: '请输专业技术资格名称', trigger: 'blur' }],
   // 联系电话

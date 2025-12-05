@@ -179,7 +179,7 @@
 
             <el-col :span="12"></el-col>
             <el-col :span="12">
-              <el-form-item label="专家简介" prop="expertInfo" required>
+              <el-form-item label="专家简介" prop="expertInfo">
                 <el-input
                   v-model="formData.expertInfo"
                   type="textarea"
@@ -414,7 +414,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 学位
-  degree: [{ required: true, message: '请选择学位', trigger: 'change' }],
+  degree: [{ required: true, message: '请选择学位', trigger: ['change', 'blur'] }],
   // 毕业证书编号
   graduationCertNo: [
     {
@@ -491,9 +491,9 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 入学日期
-  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: 'change' }],
+  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: ['change', 'blur'] }],
   // 学历
-  education: [{ required: true, message: '请选择学历', trigger: 'change' }],
+  education: [{ required: true, message: '请选择学历', trigger: ['change', 'blur'] }],
   // 毕业学校
   graduationSchool: [
     {
