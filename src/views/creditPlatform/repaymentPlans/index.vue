@@ -57,7 +57,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="left" width="340" fixed="right">
+      <el-table-column label="操作" align="left" width="340" fixed="right" class-name="op-col">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
@@ -435,7 +435,7 @@ onMounted(() => {
 
 .operation-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
@@ -451,6 +451,12 @@ onMounted(() => {
       color: #c0c4cc !important;
     }
   }
+}
+
+/* 去掉操作列左右内边距，防止内容被压缩 */
+:deep(.op-col .cell) {
+  padding-left: 0 !important;
+  padding-right: 8px !important;
 }
 
 .pagination {
