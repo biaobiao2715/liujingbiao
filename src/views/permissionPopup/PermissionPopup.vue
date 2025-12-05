@@ -9,10 +9,6 @@
     @close="handleClose"
   >
     <div class="permission-popup">
-      <div class="note-text">
-        注:信息补充完整后提交申请,审核通过后可使用该系统具体功能
-      </div>
-      
       <el-form
         ref="formRef"
         :model="formData"
@@ -45,55 +41,88 @@
               <el-input v-model="formData.legalPerson" placeholder="请输入法人/联系人" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="联系电话" prop="contactPhone">
-              <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="地址" prop="address">
-              <el-input v-model="formData.address" placeholder="请输入地址" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 位置选择 -->
-        <el-form-item label="位置" prop="location">
-          <AMap
-            :model-value="mapData"
-            @update:model-value="handleMapUpdate"
-            map-id="permission-map"
-          />
+      <el-col :span="12">
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
         </el-form-item>
-
-        <!-- 简介 -->
-        <el-form-item label="简介" prop="introduction">
-          <el-input
-            v-model="formData.introduction"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入简介"
-          />
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="formData.address" placeholder="请输入地址" />
         </el-form-item>
+      </el-col>
+    </el-row>  
 
-        <!-- 营业执照附件 -->
-        <el-form-item label="营业执照附件" prop="businessLicense">
+    <!-- 位置选择 -->
+    <el-form-item label="位置" prop="location">
+      <AMap
+        :model-value="mapData"
+        @update:model-value="handleMapUpdate"
+        map-id="permission-map"
+      />
+    </el-form-item>
+
+    <!-- 简介 -->
+    <el-form-item label="简介" prop="introduction">
+      <el-input
+        v-model="formData.introduction"
+        type="textarea"
+        :rows="4"
+        placeholder="请输入简介"
+      />
+    </el-form-item>
+
+    <!-- 营业执照附件（上传逻辑与 RepaymentPlanDialog 对齐） -->
+    <el-form-item label="营业执照附件" prop="businessLicense">
+      <div class="upload-row">
+        <div class="upload-inline" :class="{ 'uploading-layout': licenseFiles.length && licenseFiles[0].status === 'uploading' }">
+          <div class="contract-files" v-if="licenseFiles.length">
+            <div class="contract-file-item">
+              <template v-if="licenseFiles[0].status === 'success'">
+                <el-link
+                  :href="licenseFiles[0].serverUrl || licenseFiles[0].url"
+                  target="_blank"
+                  type="primary"
+                  class="contract-link"
+                >
+                  {{ licenseFiles[0].displayName || licenseFiles[0].name }}
+                </el-link>
+                <el-icon
+                  class="file-remove-icon"
+                  @click.stop="handleDeleteFile"
+                  title="删除文件"
+                >
+                  <Close />
+                </el-icon>
+              </template>
+              <template v-else-if="licenseFiles[0].status === 'uploading'">
+                <div class="uploading-status">
+                  <el-icon class="uploading-icon"><Loading /></el-icon>
+                  <span class="uploading-text">上传中...</span>
+                </div>
+              </template>
+            </div>
+          </div>
           <el-upload
-            class="license-uploader"
+            v-if="!licenseFiles.length || (licenseFiles.length > 0 && licenseFiles[0].status !== 'success')"
+            ref="uploaderRef"
+            :file-list="licenseFiles"
             action="#"
-            :auto-upload="false"
-            :on-change="handleLicenseChange"
-            :on-remove="handleLicenseRemove"
-            :file-list="licenseFileList"
-            :limit="1"
             accept=".jpg,.jpeg,.png,.pdf"
+            :http-request="handleUpload"
+            :before-upload="beforeUpload"
+            :on-remove="handleLicenseRemove"
+            :limit="1"
+            class="contract-uploader"
           >
-            <el-button type="primary">选择文件</el-button>
+            <el-button type="primary" icon="Upload">点击上传</el-button>
             <template #tip>
               <div class="upload-tip">支持 JPG、PNG、PDF 格式，文件大小不超过10MB</div>
             </template>
           </el-upload>
-        </el-form-item>
+        </div>
+      </div>
+    </el-form-item>
       </el-form>
     </div>
 
@@ -107,9 +136,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
-import type { FormInstance, FormRules, UploadFile } from 'element-plus';
+import { ref, reactive, computed } from 'vue';
+import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
+import { Close, Loading } from '@element-plus/icons-vue';
+import type { UploadUserFile } from 'element-plus';
+import { uploadByChunks } from '@/utils/chunkUpload';
+import { uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
 import AMap from './AMap.vue';
 
 const props = defineProps<{
@@ -125,6 +158,17 @@ const emit = defineEmits<{
 const formRef = ref<FormInstance>();
 const submitting = ref(false);
 
+interface LicenseFile extends UploadUserFile {
+  ossId?: string | number;
+  fileName?: string;
+  fileType?: string;
+  url?: string;
+  serverUrl?: string;
+  percentage?: number;
+  status?: 'ready' | 'uploading' | 'success' | 'fail';
+  displayName?: string;
+}
+
 const formData = reactive({
   companyName: '',
   creditCode: '',
@@ -135,10 +179,13 @@ const formData = reactive({
   longitude: '',
   latitude: '',
   introduction: '',
-  businessLicense: null as File | null
+  // 用于校验：上传成功后写入 ossId
+  businessLicense: ''
 });
 
-const licenseFileList = ref<UploadFile[]>([]);
+const licenseFiles = ref<LicenseFile[]>([]);
+const uploaderRef = ref();
+const objectUrls = new Map<string, string>();
 
 const rules: FormRules = {
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
@@ -151,7 +198,19 @@ const rules: FormRules = {
   ],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
   introduction: [{ required: true, message: '请输入简介', trigger: 'blur' }],
-  businessLicense: [{ required: true, message: '请上传营业执照附件', trigger: 'change' }]
+  businessLicense: [
+    {
+      required: true,
+      validator: (_: any, __: any, callback: any) => {
+        if (licenseFiles.value.length && licenseFiles.value[0].status === 'success') {
+          callback();
+        } else {
+          callback(new Error('请上传营业执照附件'));
+        }
+      },
+      trigger: 'change'
+    }
+  ]
 };
 
 // 地图数据
@@ -181,32 +240,154 @@ const handleMapUpdate = (val: any) => {
   }
 };
 
-const handleClose = () => {
-  emit('update:visible', false);
-  emit('close');
-  // 重置表单
-  formRef.value?.resetFields();
-  licenseFileList.value = [];
-  formData.businessLicense = null;
+// 上传前校验（按业务要求：JPG/PNG/PDF，<=10MB，单文件）
+const beforeUpload = (file: any) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  const isValidType = allowedTypes.includes(file.type);
+
+  if (!isValidType) {
+    ElMessage.error('只能上传 JPG、PNG、PDF 格式的文件！');
+    return false;
+  }
+
+  // 重复文件拦截（按名称简单判断）
+  if (licenseFiles.value.some((f) => (f.fileName || f.name) === file.name)) {
+    ElMessage.error('已选择相同文件，请勿重复上传');
+    return false;
+  }
+
+  // 文件大小限制（10MB）
+  const sizeMB = file.size / 1024 / 1024;
+  if (sizeMB > 10) {
+    ElMessage.error('上传文件大小不能超过10MB!');
+    return false;
+  }
+
+  // 限制只能上传一个文件
+  if (licenseFiles.value.length >= 1) {
+    ElMessage.error('只能上传一个附件');
+    return false;
+  }
+
+  return true;
 };
 
-const handleLicenseChange = (file: UploadFile) => {
-  const rawFile = file.raw;
-  if (rawFile) {
-    // 检查文件大小（10MB）
-    const maxSize = 10 * 1024 * 1024;
-    if (rawFile.size > maxSize) {
-      ElMessage.error('文件大小不能超过10MB');
+// 自定义上传（与 RepaymentPlanDialog 一致）
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB：大文件走分片
+const handleUpload = (req: any) =>
+  new Promise(async (resolve, reject) => {
+    const rawFile = req.file;
+    const tempUrl = URL.createObjectURL(rawFile);
+    const tempItem: LicenseFile = {
+      fileName: rawFile.name,
+      name: rawFile.name,
+      displayName: rawFile.name,
+      url: tempUrl,
+      fileType: 'license',
+      status: 'uploading',
+      percentage: 0
+    };
+    licenseFiles.value = [tempItem];
+    objectUrls.set(rawFile.name, tempUrl);
+    try {
+      if (rawFile.size > MAX_SIZE) {
+        const res: any = await uploadByChunks(rawFile, (percent: number) => {
+          if (typeof req.onProgress === 'function') req.onProgress({ percent });
+        });
+        const uploadedFile: LicenseFile = {
+          fileName: res.fileName || rawFile.name,
+          name: res.fileName || rawFile.name,
+          displayName: res.fileName || rawFile.name,
+          url: tempUrl,
+          serverUrl: res.url,
+          ossId: res.ossId,
+          fileType: 'license',
+          status: 'success',
+          percentage: 100
+        };
+        licenseFiles.value = [uploadedFile];
+        formData.businessLicense = String(res.ossId || '');
+        ElMessage.success('文件上传成功');
+        if (typeof req.onSuccess === 'function') req.onSuccess(res);
+        return resolve(uploadedFile);
+      }
+
+      const fd = new FormData();
+      fd.append('file', rawFile);
+      const response: any = await uploadContractFile(fd);
+      const data = response?.data || {};
+      const fileName = data.fileName || rawFile.name;
+      const uploadedFile: LicenseFile = {
+        fileName: fileName,
+        name: fileName,
+        displayName: fileName,
+        url: tempUrl,
+        serverUrl: data.url,
+        ossId: data.ossId,
+        fileType: 'license',
+        status: 'success',
+        percentage: 100
+      };
+      licenseFiles.value = [uploadedFile];
+      formData.businessLicense = String(data.ossId || '');
+      ElMessage.success('文件上传成功');
+      if (typeof req.onSuccess === 'function') req.onSuccess(data);
+      return resolve(uploadedFile);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '文件上传失败，请重试');
+      const idx = licenseFiles.value.indexOf(tempItem);
+      if (idx > -1) licenseFiles.value.splice(idx, 1);
+      try {
+        URL.revokeObjectURL(tempUrl);
+      } catch {}
+      try {
+        (uploaderRef.value as any)?.handleRemove(tempItem);
+      } catch {}
+      if (typeof req.onError === 'function') req.onError(error);
+      reject(error);
+    }
+  });
+
+// 删除文件
+const handleLicenseRemove = async (file: LicenseFile) => {
+  if (file?.ossId) {
+    try {
+      await deleteContractFile([file.ossId]);
+    } catch (error: any) {
+      ElMessage.error(error?.msg || '删除文件失败，请重试');
       return;
     }
-    formData.businessLicense = rawFile;
-    licenseFileList.value = [file];
+  }
+  const idx = licenseFiles.value.findIndex((f) => f.url === file.url || f.serverUrl === file.serverUrl);
+  if (idx > -1) licenseFiles.value.splice(idx, 1);
+  formData.businessLicense = '';
+  if (file?.url && file.url.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(file.url);
+    } catch {}
   }
 };
 
-const handleLicenseRemove = () => {
-  formData.businessLicense = null;
-  licenseFileList.value = [];
+const handleDeleteFile = async () => {
+  if (!licenseFiles.value.length) return;
+  await handleLicenseRemove(licenseFiles.value[0]);
+};
+
+const handleClose = () => {
+  emit('update:visible', false);
+  emit('close');
+  formRef.value?.resetFields();
+  licenseFiles.value.forEach((file) => {
+    if (file?.url && file.url.startsWith('blob:')) {
+      try {
+        URL.revokeObjectURL(file.url);
+      } catch {}
+    }
+  });
+  objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  objectUrls.clear();
+  licenseFiles.value = [];
+  formData.businessLicense = '';
 };
 
 const handleSubmit = async () => {
@@ -216,21 +397,18 @@ const handleSubmit = async () => {
     await formRef.value.validate();
     submitting.value = true;
 
-    // 这里调用提交接口
-    // const formDataToSubmit = new FormData();
-    // Object.keys(formData).forEach(key => {
-    //   if (key === 'businessLicense' && formData.businessLicense) {
-    //     formDataToSubmit.append(key, formData.businessLicense);
-    //   } else {
-    //     formDataToSubmit.append(key, formData[key]);
-    //   }
-    // });
+    // 此处可调用真实提交接口；带上附件 ossId 与下载地址
+    const payload = {
+      ...formData,
+      businessLicenseOssId: licenseFiles.value[0]?.ossId || '',
+      businessLicenseUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
+    };
 
     // 模拟提交
     setTimeout(() => {
       ElMessage.success('提交成功');
       submitting.value = false;
-      emit('submit', { ...formData });
+      emit('submit', payload);
       handleClose();
     }, 1000);
   } catch (error) {
@@ -267,6 +445,112 @@ const handleSubmit = async () => {
         color: #909399;
         font-size: 12px;
         margin-top: 8px;
+      }
+    }
+
+    .upload-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .upload-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      &.uploading-layout {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+
+    .contract-files {
+      display: flex;
+      align-items: center;
+    }
+
+    .contract-file-item {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f5f7fa;
+
+        .file-remove-icon {
+          opacity: 1;
+        }
+      }
+    }
+
+    .contract-link {
+      font-size: 14px;
+    }
+
+    .uploading-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #409eff;
+      font-size: 14px;
+
+      .uploading-icon {
+        animation: rotating 2s linear infinite;
+      }
+
+      .uploading-text {
+        color: #409eff;
+      }
+    }
+
+    @keyframes rotating {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .file-remove-icon {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 16px;
+      color: #f56c6c;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: white;
+      border-radius: 50%;
+      padding: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        color: #f23030;
+      }
+    }
+
+    .contract-uploader {
+      display: inline-flex;
+      align-items: center;
+
+      :deep(.el-upload-list) {
+        display: none;
+      }
+
+      .upload-tip {
+        color: #909399;
+        font-size: 12px;
+        margin-left: 12px;
       }
     }
   }
