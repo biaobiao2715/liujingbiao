@@ -69,7 +69,12 @@
                         <p>上传照片</p>
                       </div>
                     </div>
-                    <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                    <div v-if="photoUrl" class="image-with-delete">
+                      <img :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                      <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removePhoto">
+                        <el-icon><Close /></el-icon>
+                      </el-button>
+                    </div>
                   </div>
                 </el-upload>
                 <span class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</span>
@@ -133,7 +138,7 @@
           ></el-col>
           <el-col :span="12"></el-col>
           <el-col :span="12">
-            <el-form-item label="专家简介:" prop="professionalSummary" required>
+            <el-form-item label="专家简介:" prop="professionalSummary">
               <el-input
                 v-model="formData.professionalSummary"
                 type="textarea"
@@ -266,7 +271,7 @@ const ocrMap = {
   certificateNumber: 'practiceCertificateNumber',
   issuingAuthority: 'issuingAuthority',
   issueDate: 'issueDate',
-  qualificationDate: 'issueDate',
+  //   qualificationDate: 'issueDate',
   specialization: 'technicalQualification'
 };
 // 表单数据
@@ -587,6 +592,15 @@ const removeDiploma = () => {
   }
   formRef.value?.validateField('diploma');
 };
+const removePhoto = () => {
+  photoUrl.value = '';
+  const idx = qualificationList.value.findIndex((item) => item.fileType === '0');
+  if (idx !== -1) {
+    qualificationList.value.splice(idx, 1);
+    qualificationList.value.forEach((item, i) => (item.index = i + 1));
+  }
+  formRef.value?.validateField('photo');
+};
 
 // 上传律师证
 const handleDiplomaChange = (file: any) => {
@@ -618,21 +632,24 @@ const handleDiplomaChange = (file: any) => {
         const rawText = data?.rawText || '';
         if (rawText) {
           // 正则提取身份证号字符串开头的后边18位数字
-          const m = rawText.match(/身份证号[:：]?\s*([0-9]{17}[0-9Xx])/);
+          const m = rawText.match(/([0-9]{17}[0-9Xx])/);
           const id = m?.[1] || null;
           if (id) {
             formData.value.idCard = id;
           }
-          //   提取男女
-          const sexMatch = rawText.match(/性别[:： ]?\s*([男女])/);
+          //   只提取男女
+          const sexMatch = rawText.match(/(男|女)/);
           const sex = sexMatch?.[1] || null;
           if (sex) {
             formData.value.sex = sex === '男' ? '0' : '1';
           }
         }
         Object.keys(data).forEach((key) => {
-          if (data[key]) {
-            formData.value[ocrMap[key] || key] = data[key];
+          const mappedKey = ocrMap[key] || key;
+          if (data[key] && mappedKey !== 'sex') {
+            formData.value[mappedKey] = data[key];
+          } else if (mappedKey === 'sex' && data[key]) {
+            formData.value[mappedKey] = data[key] === '男' ? '0' : '1';
           }
         });
       } catch (error) {
@@ -710,6 +727,8 @@ const previewQualification = async (file: any) => {
 
 // 下一步按钮处理函数
 const handleNextStep = () => {
+  console.log(formData.value);
+
   formRef.value?.validate((valid: boolean) => {
     if (valid) {
       const list = qualificationList.value.map((item) => ({

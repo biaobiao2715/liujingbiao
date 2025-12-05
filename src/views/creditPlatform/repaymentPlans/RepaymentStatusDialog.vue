@@ -264,34 +264,7 @@ const canEditStatus = (item: RepaymentItem) => {
   return canEditCardNumber(item);
 };
 
-// Luhn算法校验银行卡号
-const luhnCheck = (cardNumber: string): boolean => {
-  if (!/^\d+$/.test(cardNumber)) {
-    return false;
-  }
-
-  let sum = 0;
-  let isEven = false;
-
-  // 从右往左遍历
-  for (let i = cardNumber.length - 1; i >= 0; i--) {
-    let digit = parseInt(cardNumber.charAt(i), 10);
-
-    if (isEven) {
-      digit *= 2;
-      if (digit > 9) {
-        digit -= 9;
-      }
-    }
-
-    sum += digit;
-    isEven = !isEven;
-  }
-
-  return sum % 10 === 0;
-};
-
-// 校验银行卡号
+// 校验银行卡号（简化：只校验12-19位数字）
 const validateCardNumber = (item: RepaymentItem) => {
   const cardNumber = (item.repaymentCardNo || '').replace(/\s/g, '');
 
@@ -306,12 +279,7 @@ const validateCardNumber = (item: RepaymentItem) => {
     return;
   }
 
-  if (cardNumber.length < 16 || cardNumber.length > 19) {
-    item.cardNumberError = '请输入正确的卡号';
-    return;
-  }
-
-  if (!luhnCheck(cardNumber)) {
+  if (cardNumber.length < 12 || cardNumber.length > 19) {
     item.cardNumberError = '请输入正确的卡号';
     return;
   }
