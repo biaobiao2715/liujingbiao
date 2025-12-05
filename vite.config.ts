@@ -37,6 +37,12 @@ export default defineConfig(({ mode, command }) => {
           changeOrigin: true,
           ws: true,
           rewrite: (path) => path.replace(new RegExp('^' + env.VITE_APP_BASE_API), '')
+        },
+        // 文件自动解析服务（8.153.15.72:3001）
+        '/file-parse': {
+          target: 'http://8.153.15.72:3001',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/file-parse/, '')
         }
       }
     },
