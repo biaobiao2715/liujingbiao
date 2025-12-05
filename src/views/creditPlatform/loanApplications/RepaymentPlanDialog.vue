@@ -21,19 +21,36 @@
         <div class="contract-upload">
           <div class="upload-row">
             <div class="label">贷款合同：</div>
-            <div class="upload-inline">
+            <div class="upload-inline" :class="{ 'uploading-layout': contractFiles.length && contractFiles[0].status === 'uploading' }">
               <div class="contract-files" v-if="contractFiles.length">
                 <div class="contract-file-item">
-                  <el-link :href="contractFiles[0].serverUrl || contractFiles[0].url" target="_blank" type="primary" class="contract-link">
-                    {{ contractFiles[0].displayName || contractFiles[0].name }}
-                  </el-link>
-                  <el-icon class="file-remove-icon" @click.stop="handleDeleteFile" title="删除文件">
-                    <Close />
-                  </el-icon>
+                  <template v-if="contractFiles[0].status === 'success'">
+                    <el-link 
+                      :href="contractFiles[0].serverUrl || contractFiles[0].url" 
+                      target="_blank" 
+                      type="primary" 
+                      class="contract-link"
+                    >
+                      {{ contractFiles[0].displayName || contractFiles[0].name }}
+                    </el-link>
+                    <el-icon 
+                      class="file-remove-icon" 
+                      @click.stop="handleDeleteFile" 
+                      title="删除文件"
+                    >
+                      <Close />
+                    </el-icon>
+                  </template>
+                  <template v-else-if="contractFiles[0].status === 'uploading'">
+                    <div class="uploading-status">
+                      <el-icon class="uploading-icon"><Loading /></el-icon>
+                      <span class="uploading-text">上传中...</span>
+                    </div>
+                  </template>
                 </div>
               </div>
               <el-upload
-                v-if="!contractFiles.length"
+                v-if="!contractFiles.length || (contractFiles.length > 0 && contractFiles[0].status !== 'success')"
                 ref="uploaderRef"
                 :file-list="contractFiles"
                 action="#"
@@ -90,7 +107,7 @@ import { ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
-import { Close } from '@element-plus/icons-vue';
+import { Close, Loading } from '@element-plus/icons-vue';
 import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 
@@ -147,13 +164,15 @@ const fetchContractUrl = async () => {
   try {
     const response: any = await getRemainingDetail(props.data.id);
     if (response.code === 200 && response.data) {
-      const contractUrl = response.data.contractUrl || response.data.url || '';
+      const contractUrl = response.data.contractUrl || '';
+      const contractName = response.data.contractName || '';
       if (contractUrl) {
         contractFiles.value = [
           {
-            name: '贷款合同',
-            displayName: '贷款合同',
+            name: contractName,
+            displayName: contractName,
             url: contractUrl,
+            serverUrl: contractUrl,
             uid: Date.now(),
             status: 'success'
           }
@@ -225,25 +244,30 @@ const handleUpload = (req: any) =>
       status: 'uploading',
       percentage: 0
     };
+    // 上传中时显示上传状态
     contractFiles.value = [tempItem];
     try {
       // 大文件：使用分片上传
       if (rawFile.size > MAX_SIZE) {
         const res: any = await uploadByChunks(rawFile, (percent: number) => {
-          tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
           if (typeof req.onProgress === 'function') req.onProgress({ percent });
         });
-        tempItem.fileName = res.fileName || rawFile.name;
-        tempItem.name = res.fileName || rawFile.name;
-        tempItem.displayName = res.fileName || rawFile.name;
-        // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
-        tempItem.serverUrl = res.url;
-        tempItem.ossId = res.ossId;
-        tempItem.status = 'success';
-        tempItem.percentage = 100;
-        // 不立即 revoke，保持本地 URL 用于显示
+        // 上传成功后，更新文件信息并显示
+        const uploadedFile: ContractFile = {
+          fileName: res.fileName || rawFile.name,
+          name: res.fileName || rawFile.name,
+          displayName: res.fileName || rawFile.name,
+          url: tempUrl,
+          serverUrl: res.url,
+          ossId: res.ossId,
+          fileType: '0',
+          status: 'success',
+          percentage: 100
+        };
+        contractFiles.value = [uploadedFile];
+        ElMessage.success('文件上传成功');
         if (typeof req.onSuccess === 'function') req.onSuccess(res);
-        return resolve(tempItem);
+        return resolve(uploadedFile);
       }
 
       // 小文件：FormData 普通上传
@@ -252,17 +276,22 @@ const handleUpload = (req: any) =>
       const response: any = await uploadContractFile(fd);
       const data = response?.data || {};
       const fileName = data.fileName || rawFile.name;
-      tempItem.fileName = fileName;
-      tempItem.name = fileName;
-      tempItem.displayName = fileName;
-      // 保存后端地址到 serverUrl，url 保持本地 blob URL 用于显示
-      tempItem.serverUrl = data.url;
-      tempItem.ossId = data.ossId;
-      tempItem.status = 'success';
-      tempItem.percentage = 100;
-      // 不立即 revoke，保持本地 URL 用于显示
+      // 上传成功后，更新文件信息并显示
+      const uploadedFile: ContractFile = {
+        fileName: fileName,
+        name: fileName,
+        displayName: fileName,
+        url: tempUrl,
+        serverUrl: data.url,
+        ossId: data.ossId,
+        fileType: '0',
+        status: 'success',
+        percentage: 100
+      };
+      contractFiles.value = [uploadedFile];
+      ElMessage.success('文件上传成功');
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
-      return resolve(tempItem);
+      return resolve(uploadedFile);
     } catch (error: any) {
       ElMessage.error(error?.msg || '文件上传失败，请重试');
       const idx = contractFiles.value.indexOf(tempItem);
@@ -396,6 +425,12 @@ onBeforeUnmount(() => {
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+
+      &.uploading-layout {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
     }
 
     .contract-files {
@@ -425,6 +460,31 @@ onBeforeUnmount(() => {
       font-size: 14px;
     }
 
+    .uploading-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #409eff;
+      font-size: 14px;
+
+      .uploading-icon {
+        animation: rotating 2s linear infinite;
+      }
+
+      .uploading-text {
+        color: #409eff;
+      }
+    }
+
+    @keyframes rotating {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
     .file-remove-icon {
       position: absolute;
       top: -6px;
@@ -447,6 +507,11 @@ onBeforeUnmount(() => {
     .contract-uploader {
       display: inline-flex;
       align-items: center;
+
+      // 隐藏 el-upload 自带的文件列表和进度条
+      :deep(.el-upload-list) {
+        display: none;
+      }
 
       .upload-tip {
         color: #909399;

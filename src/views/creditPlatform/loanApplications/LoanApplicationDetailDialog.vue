@@ -153,16 +153,24 @@
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
                   <div v-for="(file, idx) in approvalForm.contractFiles" :key="file.url || file.serverUrl || idx" class="contract-file-item">
-                    <el-link :href="file.serverUrl || file.url" target="_blank" type="primary">
-                      {{ file.displayName || file.name || `合同文件${idx + 1}` }}
-                    </el-link>
-                    <el-icon class="file-remove-icon" @click="handleRemoveFile" title="删除文件">
-                      <Close />
-                    </el-icon>
+                    <template v-if="file.status === 'success'">
+                      <el-link :href="file.serverUrl || file.url" target="_blank" type="primary">
+                        {{ file.displayName || file.name || `合同文件${idx + 1}` }}
+                      </el-link>
+                      <el-icon class="file-remove-icon" @click="handleRemoveFile" title="删除文件">
+                        <Close />
+                      </el-icon>
+                    </template>
+                    <template v-else-if="file.status === 'uploading'">
+                      <div class="uploading-status">
+                        <el-icon class="uploading-icon"><Loading /></el-icon>
+                        <span class="uploading-text">上传中...</span>
+                      </div>
+                    </template>
                   </div>
                 </div>
                 <el-upload
-                  v-if="!approvalForm.contractFiles.length"
+                  v-if="!approvalForm.contractFiles.length || (approvalForm.contractFiles.length > 0 && approvalForm.contractFiles[0].status === 'success')"
                   class="contract-uploader inline-uploader"
                   :disabled="submittingApproval"
                   accept=".pdf,.doc,.docx"
@@ -229,7 +237,7 @@ import { computed, reactive, watch, ref, nextTick, getCurrentInstance, toRefs } 
 import type { FormInstance, FormRules } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Close, Document } from '@element-plus/icons-vue';
+import { Close, Document, Loading } from '@element-plus/icons-vue';
 import {
   getRemainingDetail,
   getEnterprise,
@@ -1281,6 +1289,31 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     color: #909399;
     font-size: 12px;
     margin-left: 12px;
+  }
+
+  .uploading-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #409eff;
+    font-size: 14px;
+
+    .uploading-icon {
+      animation: rotating 2s linear infinite;
+    }
+
+    .uploading-text {
+      color: #409eff;
+    }
+  }
+
+  @keyframes rotating {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 }
 
