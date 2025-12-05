@@ -128,7 +128,7 @@
             ref="uploaderRef"
             :file-list="licenseFiles"
             action="#"
-            accept=".jpg,.jpeg,.png,.pdf"
+            accept=".jpg,.jpeg,.png"
             :http-request="handleUpload"
             :before-upload="beforeUpload"
             :on-remove="handleLicenseRemove"
@@ -137,7 +137,7 @@
           >
             <el-button type="primary" icon="Upload">点击上传</el-button>
             <template #tip>
-              <div class="upload-tip">支持 JPG、PNG格式，图片大小不超过10MB</div>
+              <div class="upload-tip">仅支持 JPG、PNG 图片，大小不超过10MB</div>
             </template>
           </el-upload>
         </div>
@@ -268,7 +268,7 @@ const handleMapUpdate = (val: any) => {
 
 // 上传前校验（按业务要求：JPG/PNG/PDF，<=10MB，单文件）
 const beforeUpload = (file: any) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  const allowedTypes = ['image/jpeg', 'image/png'];
   const isValidType = allowedTypes.includes(file.type);
 
   if (!isValidType) {
