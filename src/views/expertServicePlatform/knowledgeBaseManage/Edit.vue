@@ -64,8 +64,7 @@
       <input ref="reuploadInputRef" type="file" style="display: none" :accept="acceptTypes" @change="handleReuploadChange" />
 
       <div class="h20"></div>
-      <!-- <img src="@/assets/images/register1.svg" class="el-icon-view" /> -->
-      <!-- <img src="@/assets/images/register4.svg" class="el-icon-view" /> -->
+
       <el-table :data="fileListtable" stripe>
         <el-table-column type="index" label="序号" width="55" />
         <el-table-column prop="fileName" label="附件名" />
@@ -78,6 +77,38 @@
       </el-table>
 
       <div class="h20"></div>
+
+      <el-col :span="12">
+        <el-form-item label="上传主图" prop="articleCover">
+          <el-upload
+            action="#"
+            :auto-upload="false"
+            :accept="'.jpg,.jpeg,.png'"
+            list-type="picture-card"
+            :file-list="coverFileList"
+            :on-change="handleCoverChange"
+            :on-remove="handleCoverRemove"
+            :show-file-list="true"
+          >
+            <el-icon><Plus /></el-icon>
+            <template #file="{ file }">
+              <img :src="file.url" class="el-upload-list__item-thumbnail" alt="主图" />
+              <span class="el-upload-list__item-actions">
+                <span class="el-upload-list__item-preview" @click="previewCover(file)">
+                  <el-icon><ZoomIn /></el-icon>
+                </span>
+                <span class="el-upload-list__item-delete" @click="handleCoverRemove(file)">
+                  <el-icon><Delete /></el-icon>
+                </span>
+              </span>
+            </template>
+            <template #tip>
+              <div class="upload-tip">注：支持jpg、png两种格式，大小不超过10MB。</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-col>
+      <el-col :span="12"></el-col>
 
       <el-row :gutter="20">
         <el-col :span="12">
@@ -101,6 +132,7 @@
 import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
+import { Plus, ZoomIn, Delete, Document } from '@element-plus/icons-vue';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['success', 'cancel']);
 
@@ -119,6 +151,8 @@ const form = ref<any>({
 });
 const formRef = ref();
 const fileListtable = ref<Array<any>>([]);
+// 主图文件列表（最多1个）
+const coverFileList = ref<Array<any>>([]);
 const tocList = ref([]); // 目录列表
 const rules = {
   articleTitle: [
@@ -291,6 +325,51 @@ const handleChange = async (file: any) => {
   }
 };
 
+// 主图上传：仅允许图片、大小不超过10MB、始终只有一张
+const handleCoverChange = async (file: any) => {
+  const raw: File | undefined = file?.raw;
+  if (!raw) return;
+  const ext = (raw.name.split('.').pop() || '').toLowerCase();
+  if (!['jpg', 'jpeg', 'png'].includes(ext)) {
+    ElMessage.error('主图仅支持JPG/PNG格式');
+    return;
+  }
+  const MB = 1024 * 1024;
+  if (raw.size > 10 * MB) {
+    ElMessage.error('主图大小不能超过10MB');
+    return;
+  }
+  proxy?.$modal.loading('正在上传主图，请稍候...');
+  try {
+    const payload = await buildUploadPayload(raw, '主图');
+    form.value.articleCover = payload.url;
+    coverFileList.value = [
+      {
+        uid: file.uid || Date.now().toString(),
+        name: payload.fileName,
+        url: payload.url,
+        ossId: payload.ossId,
+        status: 'success'
+      }
+    ];
+  } catch (error) {
+    console.error('主图上传失败:', error);
+    ElMessage.error('主图上传失败，请重试');
+  } finally {
+    proxy?.$modal.closeLoading();
+  }
+};
+
+const handleCoverRemove = (file?: any) => {
+  coverFileList.value = [];
+  form.value.articleCover = '';
+};
+
+const previewCover = (file: any) => {
+  const url = file?.url || form.value.articleCover;
+  if (url) window.open(url);
+};
+
 // 重新上传功能：点击后弹出文件选择并替换该行内容
 const reuploadIndex = ref<number | null>(null);
 const reuploadInputRef = ref<HTMLInputElement | null>(null);
@@ -357,6 +436,18 @@ onMounted(async () => {
       if (first?.fileName) {
         const ext = (String(first.fileName).split('.').pop() || '').toLowerCase();
         lockedCategory.value = getCategoryByExt(ext);
+      }
+
+      // 带入主图展示
+      if (res.data.articleCover) {
+        coverFileList.value = [
+          {
+            uid: Date.now().toString(),
+            name: '主图',
+            url: res.data.articleCover,
+            status: 'success'
+          }
+        ];
       }
     } else {
       ElMessage.error(res?.msg ?? '获取文章信息失败');
@@ -522,5 +613,20 @@ onMounted(async () => {
       padding: 0 10px;
     }
   }
+}
+
+::v-deep.el-upload-list--picture-card {
+  display: block;
+}
+::v-deep .el-upload-list--picture-card .el-upload-list__item {
+  width: 106px;
+  height: 106px;
+}
+::v-deep .el-upload--picture-card {
+  width: 106px;
+  height: 106px;
+  line-height: 106px;
+  float: left;
+  margin: 0 8px 8px 0;
 }
 </style>

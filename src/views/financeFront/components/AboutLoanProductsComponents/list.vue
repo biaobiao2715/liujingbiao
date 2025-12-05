@@ -12,15 +12,15 @@
       <!-- 搜索条件 -->
       <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
         <el-form-item label="产品名称" prop="productName" label-width="auto">
-          <el-input v-model="queryParams.productName" placeholder="请输入企业编码" clearable @keyup.enter="handleQuery" />
+          <el-input v-model="queryParams.productName" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="产品类型" prop="productType" label-width="auto">
-          <el-select v-model="queryParams.productType" placeholder="产品类型" filterable clearable>
+          <el-select v-model="queryParams.productType" placeholder="请选择产品类型" filterable clearable>
             <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="贷款周期" prop="loanCycle" label-width="auto">
-          <el-select v-model="queryParams.loanCycle" placeholder="贷款周期" multiple filterable clearable>
+          <el-select v-model="queryParams.loanCycle" placeholder="请选择贷款周期" multiple filterable clearable>
             <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
@@ -34,7 +34,7 @@
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="产品名称" align="center" prop="productName" min-width="100" :show-overflow-tooltip="true" />
-        <el-table-column label="适用对象" align="center" prop="applicableObject" :show-overflow-tooltip="true">
+        <el-table-column label="适用对象" align="center" prop="applicableObject" width="200" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
           </template>
@@ -46,7 +46,7 @@
         </el-table-column>
         <el-table-column label="额度（万元）" align="center" prop="maxLoanAmount"></el-table-column>
 
-        <el-table-column label="周期(月)" align="center" prop="loanCycle" :show-overflow-tooltip="true">
+        <el-table-column label="周期(月)" align="center" prop="loanCycle" width="260" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <dict-tag :options="loan_cycle" :value="scope.row.loanCycle" />
           </template>

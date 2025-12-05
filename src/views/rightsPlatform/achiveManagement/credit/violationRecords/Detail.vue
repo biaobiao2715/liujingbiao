@@ -93,10 +93,9 @@
             <div class="evidence">
               <template v-if="reportVideoList.length">
                 <div v-for="(v, idx) in reportVideoList" :key="v.url + idx" class="video-card">
-                  <div class="size">{{ v.sizeText }}</div>
-
-                  <el-image :key="v.url + idx" :src="v.url" :initial-index="idx" fit="cover" class="evidence-image-item" />
-                  <div class="ops">
+                  <div class="video-size">{{ v.sizeText }}</div>
+                  <video :src="v.url" class="evidence-video-item" playsinline controls preload="metadata" crossorigin="anonymous"></video>
+                  <div class="video-ops">
                     <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载原件</el-button>
                   </div>
                 </div>
@@ -107,11 +106,11 @@
         </el-col>
       </el-row>
 
-      <FormHeader title="举报状态" />
-      <!-- 保持原先展示 -->
-      <template v-if="stepsList.length">
-        <el-steps class="custom-steps" finish-status="success" style="margin: 0 100px" :active="stepsList.length">
-          <el-step v-for="value in stepsList" :key="value.status" :title="getDictText(case_status, value.status)" :description="value.time" />
+      <FormHeader :title="`所属状态: ${getDictText(case_status, formData.status)}`" />
+      <!-- 仅展示状态为 0、1、3 的步骤 -->
+      <template v-if="filteredSteps.length">
+        <el-steps class="custom-steps" finish-status="success" style="margin: 0 100px" :active="filteredSteps.length">
+          <el-step v-for="value in filteredSteps" :key="value.status" :title="getDictText(case_status, value.status)" :description="value.time" />
         </el-steps>
       </template>
       <template v-else>
@@ -186,9 +185,9 @@
             <div class="evidence">
               <template v-if="appealVideoList.length">
                 <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
-                  <div class="size">{{ v.sizeText }}</div>
-                  <div class="icon">视频</div>
-                  <div class="ops">
+                  <div class="video-size">{{ v.sizeText }}</div>
+                  <video :src="v.url" class="evidence-video-item" playsinline controls preload="metadata" crossorigin="anonymous"></video>
+                  <div class="video-ops">
                     <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载原件</el-button>
                   </div>
                 </div>
@@ -200,7 +199,7 @@
 
         <el-col :span="24">
           <el-form-item label="平台驳回申诉理由：">
-            <el-input v-model="formData.newAppealFile.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
           </el-form-item>
         </el-col>
       </el-row>
@@ -232,8 +231,9 @@
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item label="扣分分值：">
-            <el-input v-model="formData.caseScore" disabled autosize />
+          <el-form-item label="扣分：">
+            <el-input v-model="caseScoreText" disabled autosize />
+            <!-- <div>{{ caseScoreText }}</div> -->
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -244,8 +244,9 @@
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item label="信用分数：">
-            <el-input v-model="formData.sore" disabled autosize />
+          <el-form-item label="剩余信用分数：">
+            <el-input v-model="remainingScoreText" disabled autosize />
+            <!-- {{ remainingScoreText }} -->
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -303,9 +304,9 @@
               <div class="evidence">
                 <template v-if="histAppealVideoList.length">
                   <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
-                    <div class="size">{{ v.sizeText }}</div>
-                    <div class="icon">视频</div>
-                    <div class="ops">
+                    <div class="video-size">{{ v.sizeText }}</div>
+                    <video :src="v.url" class="evidence-video-item" playsinline controls preload="metadata" crossorigin="anonymous"></video>
+                    <div class="video-ops">
                       <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载原件</el-button>
                     </div>
                   </div>
@@ -317,7 +318,7 @@
 
           <el-col :span="24">
             <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="appealDetail.backAppealReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -409,6 +410,8 @@ const stepsList = computed(() => {
   const list = (formData.value as any).statusAndDate;
   return Array.isArray(list) ? list : [];
 });
+// 过滤仅展示 status 为 0、1、3 的步骤
+const filteredSteps = computed(() => stepsList.value.filter((s: any) => ['0', '1', '3'].includes(String(s?.status))));
 
 const reportImageList = ref<FileViewItem[]>([]); // 举报图片列表
 const reportImagePreviewUrls = ref<string[]>([]); // 举报图片预览 URL 列表
@@ -421,10 +424,11 @@ const appealVideoList = ref<FileViewItem[]>([]); // 申诉视频列表
 // 弹窗：历史申诉材料
 const appealDialogVisible = ref(false);
 const appealDialogLoading = ref(false);
-const appealDetail = ref<{ appealReason: string; appealTime: string; backAppealReason: string }>({
+const appealDetail = ref<{ appealReason: string; appealTime: string; backAppealReason: string; backReason: string }>({
   appealReason: '',
   appealTime: '',
-  backAppealReason: ''
+  backAppealReason: '',
+  backReason: ''
 });
 const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
 const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
@@ -502,6 +506,7 @@ const handlePreview = async (row: any) => {
     appealDetail.value.appealReason = data.appealReason ?? '';
     appealDetail.value.appealTime = data.appealTime ?? '';
     appealDetail.value.backAppealReason = data.backAppealReason ?? '';
+    appealDetail.value.backReason = data.backReason ?? '';
 
     // 附件信息（兼容多种字段命名）
     const files =
@@ -523,6 +528,7 @@ const handlePreview = async (row: any) => {
     appealDetail.value.appealReason = '';
     appealDetail.value.appealTime = '';
     appealDetail.value.backAppealReason = '';
+    appealDetail.value.backReason = '';
   } finally {
     appealDialogLoading.value = false;
   }
@@ -532,7 +538,7 @@ const handlePreview = async (row: any) => {
 /** 关闭弹窗并重置数据 */
 const closeAppealDialog = () => {
   appealDialogVisible.value = false;
-  appealDetail.value = { appealReason: '', appealTime: '', backAppealReason: '' };
+  appealDetail.value = { appealReason: '', appealTime: '', backAppealReason: '', backReason: '' };
   histAppealImageList.value = [];
   histAppealImagePreviewUrls.value = [];
   histAppealVideoList.value = [];
@@ -579,7 +585,22 @@ const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
   return out;
 };
 
-// 工具方法：拆分图片/视频并格式化
+// 工具方法：根据文件名/后缀判断是否为视频
+const isVideoByName = (name?: string) => {
+  if (!name) return false;
+  const lower = name.toLowerCase();
+  const videoExts = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.mkv', '.webm', '.m4v', '.3gp'];
+  return videoExts.some((ext) => lower.endsWith(ext));
+};
+// 工具方法：根据文件名/后缀判断是否为图片
+const isImageByName = (name?: string) => {
+  if (!name) return false;
+  const lower = name.toLowerCase();
+  const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+  return imageExts.some((ext) => lower.endsWith(ext));
+};
+
+// 工具方法：拆分图片/视频并格式化（兼容 fileType 为空）
 const splitFiles = (files: any[]) => {
   const images: FileViewItem[] = [];
   const videos: FileViewItem[] = [];
@@ -588,12 +609,40 @@ const splitFiles = (files: any[]) => {
     const base = {
       url: info?.url,
       ossId: info?.ossId,
-      originalName: info?.originalName,
-      name: info?.originalName
+      originalName: info?.originalName || item?.originalName,
+      name: info?.originalName || item?.originalName
     } as FileViewItem;
     if (!base.url) return;
-    if (String(item?.fileType) === '1') {
-      const size = Number(info?.fileSize);
+
+    const declaredType = item?.fileType; // 0 图片 1 视频，可能为空
+    const fileSuffix = info?.fileSuffix ? String(info.fileSuffix).toLowerCase() : undefined;
+    const name = base.originalName || info?.fileName;
+
+    // 优先使用后端声明的 fileType
+    let asVideo: boolean | null = null;
+    if (declaredType !== undefined && declaredType !== null && String(declaredType) !== '') {
+      asVideo = String(declaredType) === '1';
+    }
+
+    // 若未声明或为空，则根据文件名/后缀判断
+    if (asVideo === null) {
+      if (name && (isVideoByName(name) || (!isImageByName(name) && fileSuffix === 'mp4'))) {
+        asVideo = true;
+      } else if (name && isImageByName(name)) {
+        asVideo = false;
+      } else if (fileSuffix) {
+        // 兜底根据后缀判断
+        const lower = `.${fileSuffix}`.toLowerCase();
+        if (['.mp4', '.mov', '.avi', '.wmv', '.flv', '.mkv', '.webm', '.m4v', '.3gp'].includes(lower)) {
+          asVideo = true;
+        } else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(lower)) {
+          asVideo = false;
+        }
+      }
+    }
+
+    if (asVideo === true) {
+      const size = Number(item?.fileSize);
       videos.push({ ...base, sizeText: formatByteSize(size) });
     } else {
       images.push(base);
@@ -632,6 +681,21 @@ const fetchDetail = async () => {
 };
 
 onMounted(fetchDetail);
+
+// 计算属性：展示优化
+const caseScoreText = computed(() => {
+  const v = (formData.value as any)?.caseScore;
+  const n = Number(v);
+  if (!isFinite(n)) return '';
+  return `- ${Math.max(0, n)}`;
+});
+
+const remainingScoreText = computed(() => {
+  const v = (formData.value as any)?.sore;
+  const n = Number(v);
+  if (!isFinite(n)) return '';
+  return `${n}分`;
+});
 </script>
 
 <style scoped lang="scss">
@@ -684,10 +748,11 @@ onMounted(fetchDetail);
   overflow: hidden;
   background: #f6f6f6;
 }
+
 .video-card {
   position: relative;
   width: 160px;
-  height: 120px;
+  height: 150px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   background: #fafafa;
@@ -696,25 +761,21 @@ onMounted(fetchDetail);
   align-items: center;
   justify-content: center;
 }
-.video-card .size {
+.video-size {
   position: absolute;
   top: 6px;
   right: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #108c58;
 }
-.video-card .icon {
-  font-size: 18px;
-  color: #1989fa;
-  margin-bottom: 8px;
-}
-.video-card .ops {
-  position: absolute;
-  bottom: 6px;
-}
-.evidence-empty {
-  color: #909399;
-  font-size: 13px;
+.evidence-video-item {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #d7d7d7;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f6f6f6;
+  object-fit: cover;
 }
 
 ::v-deep .el-step__head.is-success {
