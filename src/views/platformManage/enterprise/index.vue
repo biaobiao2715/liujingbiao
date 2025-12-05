@@ -119,7 +119,7 @@
               type="primary"
               @click="handleEdit(scope.row, 'edit')"
               v-hasPermi="['system:baseEnterpriseInfo:edit']"
-              >修改信用等级</el-button
+              >修改信誉等级</el-button
             >
             <el-button
               v-throttle
