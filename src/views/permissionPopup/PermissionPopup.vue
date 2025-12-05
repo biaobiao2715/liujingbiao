@@ -48,7 +48,12 @@
       </el-col>
       <el-col :span="12">
         <el-form-item label="地址" prop="address">
-          <el-input v-model="formData.address" placeholder="请输入地址" />
+          <el-input
+            v-model="formData.address"
+            placeholder="请输入地址"
+            @blur="handleAddressBlur"
+            @keyup.enter="handleAddressBlur"
+          />
         </el-form-item>
       </el-col>
     </el-row>  
@@ -59,8 +64,23 @@
         :model-value="mapData"
         @update:model-value="handleMapUpdate"
         map-id="permission-map"
+        :address-sync-signal="addressSyncSignal"
       />
     </el-form-item>
+
+    <!-- 经纬度显示，与上方布局对齐 -->
+    <el-row :gutter="20" class="coord-row">
+      <el-col :span="12">
+        <el-form-item label="经度">
+          <el-input v-model="formData.longitude" readonly />
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="纬度">
+          <el-input v-model="formData.latitude" readonly />
+        </el-form-item>
+      </el-col>
+    </el-row>
 
     <!-- 简介 -->
     <el-form-item label="简介" prop="introduction">
@@ -117,7 +137,7 @@
           >
             <el-button type="primary" icon="Upload">点击上传</el-button>
             <template #tip>
-              <div class="upload-tip">支持 JPG、PNG、PDF 格式，文件大小不超过10MB</div>
+              <div class="upload-tip">支持 JPG、PNG格式，图片大小不超过10MB</div>
             </template>
           </el-upload>
         </div>
@@ -186,6 +206,7 @@ const formData = reactive({
 const licenseFiles = ref<LicenseFile[]>([]);
 const uploaderRef = ref();
 const objectUrls = new Map<string, string>();
+const addressSyncSignal = ref(0);
 
 const rules: FormRules = {
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
@@ -230,6 +251,11 @@ const mapData = computed({
     }
   }
 });
+
+// 地址输入框失焦后，同步地图位置
+const handleAddressBlur = () => {
+  addressSyncSignal.value += 1;
+};
 
 // 地图更新处理
 const handleMapUpdate = (val: any) => {

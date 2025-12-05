@@ -1,24 +1,15 @@
 <template>
   <div class="map-wrapper">
     <div ref="mapContainer" class="map-container" :id="mapId"></div>
-    <el-row :gutter="20" class="location-coords" v-if="showCoords">
-      <el-col :span="12">
-        <el-form-item label="经度">
-          <el-input v-model="location.longitude" readonly placeholder="点击地图选择经度" />
-        </el-form-item>
-      </el-col>
-      <el-col :span="12">
-        <el-form-item label="纬度">
-          <el-input v-model="location.latitude" readonly placeholder="点击地图选择纬度" />
-        </el-form-item>
-      </el-col>
-    </el-row>
+    
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef, h, render } from 'vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import { Promotion, LocationInformation } from '@element-plus/icons-vue';
+import { ElIcon } from 'element-plus';
 
 // 高德地图安全密钥配置
 (window as any)._AMapSecurityConfig = {
@@ -36,11 +27,13 @@ const props = withDefaults(
     };
     showCoords?: boolean;
     mapId?: string;
+    addressSyncSignal?: number; // 外部触发地址同步信号（如输入框 blur 后递增）
   }>(),
   {
     modelValue: () => ({}),
     showCoords: true,
-    mapId: 'amap-container'
+    mapId: 'amap-container',
+    addressSyncSignal: 0
   }
 );
 
@@ -64,6 +57,7 @@ let placeSearch: any = null;
 let geocoder: any = null;
 let autoComplete: any = null;
 let searchInput: HTMLInputElement | null = null;
+const mapReady = ref(false);
 
 // 计算属性：位置数据
 const location = computed({
@@ -103,9 +97,13 @@ const initMap = async () => {
 
     // 等待地图加载完成
     map.value.on('complete', () => {
+      mapReady.value = true;
       // 如果已有经纬度，绘制标记
       if (location.value.latitude && location.value.longitude) {
         drawMarker();
+      } else if (location.value.address) {
+        // 如果仅有地址，进行一次地理编码
+        geocodeAddress(location.value.address);
       }
     });
 
@@ -166,7 +164,7 @@ const initMap = async () => {
           padding: 0 8px;
         `;
 
-        // 创建左侧图标容器（蓝色纸飞机图标）
+        // 创建左侧图标容器（使用 Element Plus Promotion 图标）
         const leftIconContainer = document.createElement('div');
         leftIconContainer.style.cssText = `
           width: 28px;
@@ -179,12 +177,17 @@ const initMap = async () => {
           margin-right: 8px;
           flex-shrink: 0;
         `;
-        leftIconContainer.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 1L1 4L8 7L15 4L8 1Z" fill="white"/>
-            <path d="M1 4V12L8 15L15 12V4" stroke="white" stroke-width="1.5" fill="none"/>
-          </svg>
-        `;
+        // 使用 <el-icon><Promotion /></el-icon>
+        const iconVNode = h(
+          ElIcon,
+          { size: 16, color: '#ffffff' },
+          () => h(Promotion)
+        );
+        const iconMount = document.createElement('div');
+        render(iconVNode, iconMount);
+        if (iconMount.firstElementChild) {
+          leftIconContainer.appendChild(iconMount.firstElementChild);
+        }
 
         // 创建搜索输入框
         searchInput = document.createElement('input');
@@ -241,12 +244,17 @@ const initMap = async () => {
           cursor: pointer;
           margin-left: 4px;
         `;
-        locationIcon.innerHTML = `
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1V13M1 7H13" stroke="#4A90E2" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="7" cy="7" r="2" fill="#4A90E2"/>
-          </svg>
-        `;
+        // 使用 <el-icon><LocationInformation /></el-icon>
+        const locIconVNode = h(
+          ElIcon,
+          { size: 16, color: '#4A90E2' },
+          () => h(LocationInformation)
+        );
+        const locIconMount = document.createElement('div');
+        render(locIconVNode, locIconMount);
+        if (locIconMount.firstElementChild) {
+          locationIcon.appendChild(locIconMount.firstElementChild);
+        }
 
         // 搜索功能
         const handleSearch = () => {
@@ -449,6 +457,69 @@ watch(
   },
   { deep: true }
 );
+
+// 监听外部同步信号（例如输入框 blur 后递增）再去地理编码
+watch(
+  () => props.addressSyncSignal,
+  () => {
+    const addr = props.modelValue?.address;
+    if (!addr || !addr.toString().trim()) return;
+    if (!mapReady.value || !geocoder) return;
+    syncAddressToMap(addr.toString().trim());
+  }
+);
+
+// 地址转经纬度
+const geocodeAddress = (addr: string) => {
+  if (!geocoder || !map.value) return;
+  geocoder.getLocation(addr, (status: string, result: any) => {
+    if (status === 'complete' && result?.geocodes?.length) {
+      const { location: loc } = result.geocodes[0];
+      if (loc && loc.lng != null && loc.lat != null) {
+        location.value = {
+          longitude: Number(loc.lng).toFixed(7),
+          latitude: Number(loc.lat).toFixed(7),
+          // 不改用户输入的地址，保持原值
+          address: props.modelValue?.address || location.value.address || addr,
+          zone: location.value.zone || [],
+          name: location.value.name || ''
+        };
+        drawMarker();
+      }
+    }
+  });
+};
+
+// 与搜索一致的地址同步逻辑：优先 PlaceSearch，失败再地理编码
+const syncAddressToMap = (addr: string) => {
+  if (!addr) return;
+  // 优先使用 placeSearch，结果与搜索一致
+  if (placeSearch) {
+    placeSearch.search(addr, (status: string, result: any) => {
+      if (status === 'complete' && result?.poiList?.pois?.length) {
+        const poi = result.poiList.pois[0];
+        if (poi?.location) {
+          const { lng, lat } = poi.location;
+          const { pname, cityname, adname, address, name } = poi;
+          location.value = {
+            longitude: Number(lng).toFixed(7),
+            latitude: Number(lat).toFixed(7),
+            // 不改用户输入的地址，保持原值
+            address: props.modelValue?.address || location.value.address || addr,
+            zone: [pname, cityname, adname],
+            name: name || ''
+          };
+          drawMarker();
+          return;
+        }
+      }
+      // 若未找到，回退到地理编码
+      geocodeAddress(addr);
+    });
+  } else {
+    geocodeAddress(addr);
+  }
+};
 
 onMounted(async () => {
   await nextTick();
