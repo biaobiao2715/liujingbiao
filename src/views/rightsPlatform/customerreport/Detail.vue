@@ -135,7 +135,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <div class="section-title">申诉时间:{{ formData.appealTime }}</div>
+    <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
        <el-row :gutter="20" class="detail-form">
         <el-col :span="12"> 
         <div v-if="formData.enterpriseType=='0'" class="detail-form-title">供应商申诉:</div>
@@ -183,16 +183,14 @@
               </div>
             </el-form-item>
           </el-col>
-
-          <el-col :span="24">
-       
-            <el-form-item label="申诉驳回原因：">
+          <el-col :span="24"  v-if="Number(formData.status) === 2">
+            <el-form-item label="申诉驳回原因："  >
               <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
-        </el-row>
-
-    <div >
+      </el-row>
+  
+    <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3" >
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
           <el-table-column type="index" min-width="55" label="序号" align="center" />
@@ -204,27 +202,32 @@
           </el-table-column>
         </el-table>
       </div>
-    <div class="section-title">平台处理结果:</div>
-    <el-row :gutter="20" class="detail-form">
+      
+    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
+    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3">
         <el-col :span="24">
             <el-form-item label="信用等级：">
-              <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize />
+              <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
+            <dict-text :options="plat_credit_rating" :value="formData.creditLevel" />
+
             </el-form-item>
           </el-col>
              <el-col :span="24">
             <el-form-item label="扣分：">
-              <el-input v-model="formData.sore" type="textarea" :rows="4" disabled autosize />
+              <!-- <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize /> -->
+               <div style="color: red;">{{ - formData.caseScore }}</div>  
             </el-form-item>
           </el-col>
              <el-col :span="24">
             <el-form-item label="评分：">
-              <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize />
+              <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
+               {{ formData.sore }}分
             </el-form-item>
           </el-col>
-          
     </el-row>
 
- 
+    <div class="section-title"  v-if="Number(formData.status) === 4">举报人撤回原因</div>
+    <div class="section-title-che" style="font-size: 18px;margin-left: 15px;"  v-if="Number(formData.status) === 4">{{ formData.reportDescription }}</div>  
 
        
 
@@ -265,7 +268,7 @@ const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预�
 const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 
 // 使用字典数据
-const { report_status, report_type_id,case_type } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type'));
+const { report_status, report_type_id,case_type, plat_credit_rating } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type','plat_credit_rating'));
 /* 申述理由 */
 const presentarguments = ref();
 // 表单引用
@@ -286,6 +289,7 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
+  withdrawCause,
   status: '' ,//订单状态
   appealTime:'',//申诉时间
   enterpriseType:'',//0供应商 1企业
@@ -454,6 +458,7 @@ const fetchContentDetail = async () => {
         createTime: data.createTime || '',
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
+        withdrawCause:data.withdrawCause || '',
         status: data.status || '',
          appealTime:data.appealTime || '',
         enterpriseType:data.enterpriseType || '',//0供应商 1企业
@@ -525,7 +530,7 @@ const handleSubmit = async () => {
       caseCode: formData.value.caseCode,
       reportDescription: formData.value.reportDescription,
       status: formData.value.status,
-      
+      withdrawCause:formData.value.withdrawCause,
     };
     console.log('submitData提交的数据', submitData);
     return;

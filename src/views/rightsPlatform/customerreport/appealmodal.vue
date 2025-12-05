@@ -96,8 +96,8 @@
       </el-table-column>
       <!-- 案件类型名称 -->
       <el-table-column label="案件类型名称" align="center" prop="caseTypeId">
-        <template #default="scope">
-          <span>{{ scope.row.caseTypeId }}</span>
+        <template v-slot="scope">
+          <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
 
@@ -135,9 +135,33 @@
         </template>
       </el-table-column>
     </el-table>
-    <div class="section-title">申述材料</div>
+     
+       <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
+       <el-row :gutter="20" class="detail-form">
+       
+          <el-col :span="24" v-if="Number(formData.status) === 2">
+       
+            <el-form-item label="申诉驳回原因："  >
+              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+   <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3" >
+        <FormHeader title="历史申诉材料" />
+        <el-table :data="formData.historyAppealList || []" border>
+          <el-table-column type="index" min-width="55" label="序号" align="center" />
+          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+          <el-table-column label="操作" align="center">
+            <template #default="scope">
+              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+        <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 1 || Number(formData.status) === 3">申诉材料</div>
     <!-- 附件上传区域 -->
-    <div class="attachment-section">
+    <div class="attachment-section" v-if="Number(formData.status) === 2 || Number(formData.status) === 1 || Number(formData.status) === 3">
       <el-upload
        v-if="props.type === 'appeal'"
         action="#"
@@ -186,8 +210,8 @@
         </el-table-column>
       </el-table>
     </div>
-    <div class="section-title">申述理由</div>
-    <div>
+    <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 1">申诉理由</div>
+    <div v-if="Number(formData.status) === 2 || Number(formData.status) === 1">
       <el-input type="textarea" maxlength="200" show-word-limit :rows="2" placeholder="请输入申诉理由" v-model="presentarguments"> </el-input>
     </div>
     <div class="form-actions">
@@ -222,7 +246,7 @@ const casetableData = ref([]); //案件类型list
 const hnReportHistoryList = ref([]); //案件类型list
 const count = ref(0);
 // 使用字典数据
-const { report_status, report_type_id } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id'));
+const { report_status, report_type_id, case_type } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type'));
 /* 申述理由 */
 const presentarguments = ref();
 // 表单引用
@@ -243,6 +267,9 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
+  backAppealReason:'',
+  historyAppealList: [],
+  appealTime:'',
   status: '' //订单状态
 });
 const reuploadIndex = ref(-1); // 记录当前重新上传的索引
@@ -338,6 +365,9 @@ const fetchContentDetail = async () => {
         createTime: data.createTime || '',
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
+        backAppealReason: data.backAppealReason || '',
+        historyAppealList: data.historyAppealList || [],
+        appealTime: data.appealTime || '',
         status: data.status || ''
       };
       casetableData.value = data.reportCaseFiling || [];
