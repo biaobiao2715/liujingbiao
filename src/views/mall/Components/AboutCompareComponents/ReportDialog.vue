@@ -155,6 +155,8 @@ const rules = {
       validator: (_: any, __: any, cb: (err?: Error) => void) => {
         if (!fileList.value || fileList.value.length === 0) {
           cb(new Error('请至少上传一份材料'));
+        } else if (!fileList.value.every((item) => item.ossId)) {
+          cb(new Error('请等待材料上传完成'));
         } else {
           cb();
         }
@@ -271,6 +273,7 @@ const handleUpload = (req: any) =>
       tempItem.percentage = 100;
       URL.revokeObjectURL(tempUrl);
       if (typeof req.onSuccess === 'function') req.onSuccess(res);
+      ElMessage.success('文件上传成功');
       return resolve(tempItem);
     } catch (error: any) {
       ElMessage.error(error?.msg || '文件上传失败，请重试');
