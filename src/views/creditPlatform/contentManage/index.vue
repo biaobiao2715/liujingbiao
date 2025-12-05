@@ -114,6 +114,7 @@
             <el-button
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
+              v-if="canEdit(scope.row)"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
@@ -123,22 +124,22 @@
             <el-button
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
-              v-if="canOffline(scope.row)"
+              v-if="canPublish(scope.row)"
               type="text"
               style="font-size: 14px; color: #108c58"
-              @click="handleStatusChange(scope.row, '3')"
+              @click="handlePublish(scope.row)"
             >
-              下架
+              上架
             </el-button>
             <el-button
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
-              v-if="canPublish(scope.row)"
+              v-if="canOffline(scope.row)"
               type="text"
               style="font-size: 14px; color: #108c58"
-              @click="handleStatusChange(scope.row, '2')"
+              @click="handleOffline(scope.row)"
             >
-              上架
+              下架
             </el-button>
             <el-button
               v-throttle
@@ -196,10 +197,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense } from 'vue';
+import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCreditArticleList, updateCreditArticle, deleteCreditArticle, getCreditArticleDetail } from '@/api/creditPlatform/contentManage';
+import { useUserStore } from '@/store/modules/user';
 
 const ContentFormDialog = defineAsyncComponent(() => import('./ContentFormDialog.vue'));
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
@@ -207,6 +209,20 @@ const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDi
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
 const { art_article_status, art_article_type } = toRefs<any>(proxy?.useDict('art_article_status', 'art_article_type'));
+
+const userStore = useUserStore();
+const isAdmin = computed(() => {
+  const roles = userStore.roles || [];
+  return roles.includes('admin') || roles.includes('Admin') || roles.includes('ADMIN') || roles.includes('superadmin');
+});
+const isFinancialInstitution = computed(() => {
+  const roles = userStore.roles || [];
+  return roles.some(role => 
+    role === 'financial_institution' || 
+    role === 'financial' || 
+    role?.toLowerCase().includes('financial')
+  );
+});
 
 // 搜索表单数据
 const queryParams = ref({
@@ -319,10 +335,42 @@ const handleSelectionChange = (selection: any[]) => {
   selectedRows.value = selection;
 };
 
-const getStatusCode = (row: any) => String(row?.articleStatus ?? '');
-const canPublish = (row: any) => ['1', '3'].includes(getStatusCode(row));
-const canOffline = (row: any) => getStatusCode(row) === '2';
-const canDelete = (row: any) => getStatusCode(row) === '3';
+const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
+  const value = String(status ?? '').trim();
+  if (!value) return false;
+  const lowerValue = value.toLowerCase();
+  return candidates.some((item) => {
+    const target = String(item ?? '').trim();
+    if (!target) return false;
+    return value === target || lowerValue === target.toLowerCase();
+  });
+};
+
+const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
+const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['1', '5', '待上架', 'pending', 'waiting']);
+
+const canPublish = (row: any) => {
+  const status = row.articleStatus;
+  const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
+  if (!canStatusPublish) return false;
+  if (isFinancialInstitution.value) return false;
+  return isAdmin.value;
+};
+
+const canOffline = (row: any) => {
+  const status = row.articleStatus;
+  return status === '2' || status === 'enabled' || status === '1';
+};
+
+const canEdit = (row: any) => {
+  const status = row.articleStatus;
+  return isOfflineStatus(status) || isPendingStatus(status);
+};
+
+const canDelete = (row: any) => {
+  const status = row.articleStatus;
+  return status !== '2' && status !== 'enabled' && status !== '1';
+};
 
 const getStatusLabel = (status: string | number) => {
   const value = String(status ?? '');
@@ -433,54 +481,59 @@ const confirmStatusChange = async (row: any, status: string | number) => {
 };
 
 /** 状态变更（上架/下架） */
-const handleStatusChange = async (row: any, status: string) => {
-  const statusText = status === '2' ? '上架' : '下架';
-  try {
-    const message = `确定要${statusText}文章「${row.articleTitle || ''}」吗？`;
-    await ElMessageBox.confirm(message, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-      .then(async () => {
-        const success = await confirmStatusChange(row, status);
-        if (success) {
-          getList();
-        }
-      })
-      .catch(() => {});
-  } catch (error) {
-    console.error(`${statusText}失败:`, error);
-  }
+const handlePublish = async (row: any) => {
+  ElMessageBox.confirm(`确认要上架「${row.articleTitle || ''}」吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const success = await confirmStatusChange(row, '2');
+      if (success) {
+        getList();
+      }
+    } catch (error) {
+      ElMessage.error('上架失败，请稍后重试');
+    }
+  }).catch(() => {});
+};
+
+const handleOffline = async (row: any) => {
+  ElMessageBox.confirm(`确认要下架「${row.articleTitle || ''}」吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const success = await confirmStatusChange(row, '3');
+      if (success) {
+        getList();
+      }
+    } catch (error) {
+      ElMessage.error('下架失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 /** 删除按钮 */
 const handleDelete = (row: any) => {
-  console.log('删除的行数据:', row);
-  console.log('传递的ID:', row.id, '类型:', typeof row.id);
-  ElMessageBox.confirm(`确定要删除文章"${row.articleTitle}"吗？`, '提示', {
+  ElMessageBox.confirm(`确认要删除「${row.articleTitle || ''}」吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  })
-    .then(async () => {
-      try {
-        console.log('删除请求参数:', { ids: [row.id] });
-        const response = await deleteCreditArticle({ ids: [row.id] });
-        if (response && response.code === 200) {
-          ElMessage.success('删除成功');
-          getList();
-        } else {
-          ElMessage.error(response?.msg || '删除失败');
-        }
-      } catch (error) {
-        console.error('删除失败:', error);
-        ElMessage.error('删除失败，请重试');
+  }).then(async () => {
+    try {
+      const response = await deleteCreditArticle({ ids: [row.id] });
+      if (response && response.code === 200) {
+        ElMessage.success('删除成功');
+        getList();
+      } else {
+        ElMessage.error(response?.msg || '删除失败');
       }
-    })
-    .catch(() => {
-      ElMessage.info('删除操作已取消');
-    });
+    } catch (error) {
+      ElMessage.error('删除失败，请稍后重试');
+    }
+  }).catch(() => {});
 };
 
 // 页面加载时获取列表数据

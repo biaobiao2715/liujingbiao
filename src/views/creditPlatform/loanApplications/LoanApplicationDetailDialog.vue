@@ -73,9 +73,9 @@
               <el-form-item label="授权文件">
                 <template v-if="applicantAuthFiles.length">
                   <div v-for="(file, idx) in applicantAuthFiles" :key="idx" class="file-item">
-                    <el-button type="primary" link @click="handleViewFile(file)" class="file-link">
+                    <el-button type="primary" link @click="handleViewFile(typeof file === 'string' ? file : file.url)" class="file-link">
                       <el-icon><Document /></el-icon>
-                      授权文件{{ applicantAuthFiles.length > 1 ? idx + 1 : '' }}
+                      {{ typeof file === 'string' ? `授权文件${applicantAuthFiles.length > 1 ? idx + 1 : ''}` : file.name }}
                     </el-button>
                   </div>
                 </template>
@@ -677,7 +677,19 @@ const applicantIdPhotos = computed(() => {
 
 const applicantAuthFiles = computed(() => {
   const row = detailData.value || {};
-  return collectUrls(row.authorizationUrl);
+  const urls = collectUrls(row.authorizationUrl);
+  const fileName = row.authorizationFileName;
+  
+  // 如果有文件名，返回包含文件名和URL的对象数组
+  if (fileName && urls.length > 0) {
+    return urls.map((url, idx) => ({
+      url,
+      name: urls.length === 1 ? fileName : `${fileName}${idx + 1}`
+    }));
+  }
+  
+  // 如果没有文件名，返回URL数组（保持向后兼容）
+  return urls;
 });
 
 const loanInfoList = computed(() => mapLoanInfo(detailData.value || {}));

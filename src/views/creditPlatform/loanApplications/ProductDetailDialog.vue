@@ -54,7 +54,7 @@
             <dict-tag :options="loanCycleOptions" :value="loanCycleValue" />
           </span>
         </div>
-        <div class="info-item">
+        <div class="info-item repayment-method-item">
           <span class="label">还款方式：</span>
           <span class="value">
             <dict-tag :options="repaymentMethodOptions" :value="repaymentMethodValue" />
@@ -286,6 +286,32 @@ const handleClose = () => {
 
   &.range {
     grid-column: span 2;
+  }
+
+  &.repayment-method-item {
+    align-items: flex-start;
+
+    .value {
+      :deep(> div) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-start;
+        align-content: flex-start;
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      :deep(.el-tag) {
+        margin: 0 !important;
+        margin-left: 0 !important;
+        flex-shrink: 0;
+      }
+
+      :deep(.el-tag + .el-tag) {
+        margin-left: 0 !important;
+      }
+    }
   }
 }
 

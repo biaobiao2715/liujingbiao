@@ -312,7 +312,7 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryFormRef.value?.resetFields?.();
   queryParams.pageNum = 1;
-  queryParams.pageSize = 20;
+  queryParams.pageSize = 10;
   queryParams.productName = '';
   queryParams.productType = '';
   queryParams.productStatus = '';
@@ -322,10 +322,23 @@ const resetQuery = () => {
   handleQuery();
 };
 
+const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
+  const value = String(status ?? '').trim();
+  if (!value) return false;
+  const lowerValue = value.toLowerCase();
+  return candidates.some((item) => {
+    const target = String(item ?? '').trim();
+    if (!target) return false;
+    return value === target || lowerValue === target.toLowerCase();
+  });
+};
+
+const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
+const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['1', '5', '待上架', 'pending', 'waiting']);
+
 const canPublish = (row: InsuranceProduct) => {
   const status = row.productStatus;
-  const canStatusPublish = status === '5' || status === 'pending' || status === 'waiting' || 
-                          status === '3' || status === 'disabled' || status === 'draft';
+  const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
   if (!canStatusPublish) return false;
   if (isFinancialInstitution.value) return false;
   return isAdmin.value;
@@ -333,17 +346,17 @@ const canPublish = (row: InsuranceProduct) => {
 
 const canOffline = (row: InsuranceProduct) => {
   const status = row.productStatus;
-  return status === '2' || status === 'enabled' || status === '1';
+  return status === '2' || status === 'enabled';
 };
 
 const canEdit = (row: InsuranceProduct) => {
   const status = row.productStatus;
-  return status === '3' || status === 'disabled' || status === '5' || status === 'pending' || status === 'waiting' || status === 'draft';
+  return isOfflineStatus(status) || isPendingStatus(status);
 };
 
 const canDelete = (row: InsuranceProduct) => {
   const status = row.productStatus;
-  return status !== '2' && status !== 'enabled' && status !== '1';
+  return status !== '2' && status !== 'enabled';
 };
 
 const getStatusLabel = (status: string | number) => {
@@ -355,10 +368,10 @@ const getStatusLabel = (status: string | number) => {
 
 const getStatusType = (status: string | number) => {
   const value = String(status ?? '');
-  // 根据业务逻辑：2-已上架, 3-已下架, 5-待上架
-  if (value === '2' || value === '1' || value === 'enabled') return 'success'; // 已上架
+  // 根据业务逻辑：2-已上架, 3-已下架, 1/5-待上架
+  if (value === '2' || value === 'enabled') return 'success'; // 已上架
   if (value === '3' || value === 'disabled' || value === 'offline') return 'danger'; // 已下架
-  if (value === '5' || value === 'pending' || value === 'waiting' || value === 'draft') return 'warning'; // 待上架
+  if (value === '1' || value === '5' || value === 'pending' || value === 'waiting' || value === 'draft') return 'warning'; // 待上架
   return 'info';
 };
 

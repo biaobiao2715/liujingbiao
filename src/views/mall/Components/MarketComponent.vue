@@ -1,11 +1,11 @@
 <template>
   <div class="market-container">
     <!-- 面包屑导航 -->
-    <!-- <el-breadcrumb :separator-icon="ArrowRight" class="breadcrumb-container">
+    <el-breadcrumb :separator-icon="ArrowRight" class="breadcrumb-container">
       <el-breadcrumb-item>当前位置</el-breadcrumb-item>
       <el-breadcrumb-item>市场行情</el-breadcrumb-item>
       <el-breadcrumb-item class="active">{{ currentTabLabel }}</el-breadcrumb-item>
-    </el-breadcrumb> -->
+    </el-breadcrumb>
 
     <div class="market-tabs">
       <button class="tab-item" :class="{ active: activeName === 'first' }" @click="switchTab('first')">今日行情</button>
@@ -22,13 +22,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { ArrowRight } from '@element-plus/icons-vue';
 import TodayTrendComponent from './AboutMarketComponents/TodayTrendComponent.vue';
 import PriceTrendComponent from './AboutMarketComponents/PiceTrendCompontent.vue';
 import PricePredictionComponent from './AboutMarketComponents/PricePredictionComponent.vue';
 import { eventBus } from '@/utils/eventBus';
 
 const activeName = ref('first');
+
+const currentTabLabel = computed(() => {
+  const labelMap: Record<string, string> = {
+    first: '今日行情',
+    second: '价格走势',
+    third: '价格预测与分析'
+  };
+  return labelMap[activeName.value] || '市场行情';
+});
 const todayTrendRef = ref<InstanceType<typeof TodayTrendComponent> | null>(null);
 const priceTrendRef = ref<InstanceType<typeof PriceTrendComponent> | null>(null);
 const pricePredictionRef = ref<InstanceType<typeof PricePredictionComponent> | null>(null);
@@ -98,8 +108,7 @@ onBeforeUnmount(() => {
 }
 
 .breadcrumb-container {
-  margin-bottom: 16px;
-  padding: 8px 0;
+  padding: 8px 28px;
   font-size: 14px;
 
   :deep(.el-breadcrumb__item) {
