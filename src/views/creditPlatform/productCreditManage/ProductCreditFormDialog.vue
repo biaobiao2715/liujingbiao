@@ -348,15 +348,15 @@ const rules: FormRules = {
           callback(new Error('请先输入最小贷款额度'));
           return;
         }
-        // 检查最大额度是否大于最小额度
+        // 检查最大额度是否大于等于最小额度
         const numValue = Number(value);
         const numMinAmount = Number(minAmount);
         if (isNaN(numValue) || isNaN(numMinAmount)) {
           callback(new Error('请输入有效的数字'));
           return;
         }
-        if (numValue <= numMinAmount) {
-          callback(new Error('最大额度需大于最小额度'));
+        if (numValue < numMinAmount) {
+          callback(new Error('最大额度需大于等于最小额度'));
           return;
         }
         callback();
