@@ -144,7 +144,8 @@ const initMap = async () => {
           pageSize: 30,
           pageIndex: 1,
           citylimit: false,
-          autoFitView: true
+          // 与外部搜索/同步保持一致：不自动缩放，使用统一缩放逻辑
+          autoFitView: false
         });
 
         // 创建搜索容器（高德地图原生样式）
