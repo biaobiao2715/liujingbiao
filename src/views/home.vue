@@ -40,7 +40,7 @@
 import { ref, getCurrentInstance, onMounted } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { useRouter } from 'vue-router';
-import { getInfo, thirdPartyLogin } from '@/api/login';
+import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
@@ -172,6 +172,12 @@ const getIcon = (svgName: string) => {
 const handleRedirect = async (path: string) => {
   // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
+    // 调用溯源用户校验接口
+    try {
+      await queryTraceableUser({});
+    } catch (error) {
+      console.error('查询溯源用户失败:', error);
+    }
     // 显示权限申请弹窗
     permissionPopupVisible.value = true;
     return;
@@ -316,6 +322,7 @@ const handleLogout = () => {
     overflow: hidden;
     text-overflow: ellipsis;
     -webkit-line-clamp: 4; /* 限制显示行数，可自行调 */
+    line-clamp: 4;
     word-break: break-word; /* 超长单词自动换行 */
     white-space: normal; /* 允许换行 */
   }
