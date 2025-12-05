@@ -50,8 +50,7 @@
               <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
                 <span style="font-size: 12px; color: #7a7a7a; font-weight: 400"> 相较昨日价格：</span>
                 <span>{{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%</span>
-                <el-icon v-if="priceStats.priceChange > 0" class="text-red"><i-ep-arrow-up /></el-icon>
-                <el-icon v-else-if="priceStats.priceChange < 0" class="text-green"><i-ep-arrow-down /></el-icon>
+             
                 <img class="trend-img" :src="getTrendIcon(priceStats.priceChange)" alt="走势图" />
               </p>
             </div>
@@ -949,7 +948,7 @@ onBeforeUnmount(() => {
     }
 
     .summary-section {
-      flex: 1;
+      flex: 1.2;
       display: flex;
       flex-direction: column;
       gap: 16px;

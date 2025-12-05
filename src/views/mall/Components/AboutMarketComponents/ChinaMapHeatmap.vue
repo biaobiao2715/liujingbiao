@@ -95,6 +95,21 @@ const updateChart = () => {
     maxValue = 80;
   }
 
+  // 如果 minValue 和 maxValue 相等（所有数据值相同），给它们一个范围以避免全黄
+  if (minValue === maxValue) {
+    const baseValue = minValue;
+    // 如果值为0，使用固定范围
+    if (baseValue === 0) {
+      minValue = 0;
+      maxValue = 100;
+    } else {
+      // 否则使用百分比范围（±10%）
+      const range = Math.max(baseValue * 0.1, 1); // 至少1的差值
+      minValue = Math.max(0, baseValue - range);
+      maxValue = baseValue + range;
+    }
+  }
+
   // 调试：打印数据
   if (process.env.NODE_ENV === 'development') {
     console.log('地图数据:', mapData);
