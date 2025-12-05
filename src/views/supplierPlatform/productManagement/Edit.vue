@@ -452,12 +452,13 @@ const submitForm = () => {
       }))
     };
 
+    if (formData.value.status === '0') delete requestData.launchTime;
+    if (formData.value.status === '1') delete requestData.takeDownTime;
+
     if (operateMode.value === 'edit') {
       await goodsUpdate(requestData);
       ElMessage.success('修改成功');
     } else {
-      if (formData.value.status === '0') delete requestData.launchTime;
-      if (formData.value.status === '1') delete requestData.takeDownTime;
       await goodsAdd(requestData);
       ElMessage.success('新增成功');
     }

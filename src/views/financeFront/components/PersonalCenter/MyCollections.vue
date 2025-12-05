@@ -200,7 +200,10 @@ const handleFavorite = async (item: any, type: string) => {
 
 // 查看详情
 const handleDetail = (row: any, type: string) => {
-  eventBus.emit('showComponentByCommand', { type, id: row.id });
+  eventBus.emit('showComponentByCommand', {
+    type,
+    id: type == 'LoanProductsComponentDetails' ? row.creditProductsVersionVo.id : row.remoteInsuranceProductsVersionVo.id
+  });
 };
 </script>
 
