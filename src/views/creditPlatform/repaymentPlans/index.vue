@@ -115,7 +115,11 @@
     <RepaymentDetailDialog v-model:visible="detailDialogVisible" :data="detailData" />
     <RepaymentBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" />
     <LoanTrackingDialog v-model:visible="trackingDialogVisible" :data="detailData" />
-    <RepaymentStatusDialog v-model:visible="repaymentStatusDialogVisible" :data="detailData" />
+    <RepaymentStatusDialog
+      v-model:visible="repaymentStatusDialogVisible"
+      :data="detailData"
+      @refresh="handleRefresh"
+    />
   </div>
 </template>
 
@@ -406,6 +410,11 @@ const handleDelete = (row: RepaymentPlan) => {
       }
     })
     .catch(() => {});
+};
+
+// 子弹窗刷新列表
+const handleRefresh = () => {
+  getList();
 };
 
 // 每次页面激活时执行（从缓存中恢复）

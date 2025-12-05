@@ -93,6 +93,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
+  (event: 'refresh'): void;
 }>();
 
 const loading = ref(false);
@@ -359,6 +360,7 @@ const handleSubmit = async () => {
       ElMessage.success('提交成功');
       // 重新获取数据
       await fetchRepaymentPlan();
+      emit('refresh');
       emit('update:visible', false);
     } else {
       ElMessage.error(response.msg || '提交失败');
