@@ -30,7 +30,9 @@
       <el-image :src="form.articleCover" fit="contain" />
     </div>
 
-    <div class="content" v-html="form.articleContent"></div>
+    <!-- <div class="content" v-html=""></div> -->
+    <!-- 编辑器内容 -->
+    <ContentWithToc :content="form.articleContent" ref="contentWithTocRef" />
 
     <div v-if="imgList.length" class="attachments">
       <div class="section-title">附件</div>
@@ -65,7 +67,7 @@ import { View, Star } from '@element-plus/icons-vue';
 import { getArticle } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { ElMessage } from 'element-plus';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
-
+import ContentWithToc from '@/components/ContentWithToc/index.vue';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['cancel']);
 
