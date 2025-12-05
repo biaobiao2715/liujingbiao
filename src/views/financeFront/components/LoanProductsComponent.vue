@@ -140,7 +140,6 @@ const handleFavorite = async (item: any) => {
       transform 0.2s,
       box-shadow 0.2s;
     position: relative;
-
     .tag {
       position: absolute;
       top: 12px;
@@ -168,17 +167,24 @@ const handleFavorite = async (item: any) => {
       margin-bottom: 12px;
       .favorite {
         cursor: pointer;
+        /* 关键：在 flex 容器中允许子项收缩，避免被内容撑开 */
+        min-width: 0;
       }
       .name {
         font-size: 16px;
         font-weight: bold;
         color: #333;
+        /* 关键：在与图标并排的 flex 场景下需要可收缩宽度 */
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
     }
 
     .content {
       margin-bottom: 12px;
-
       .limit {
         background: url('@/assets/images/finance/limit-bg.png') no-repeat center center;
         background-size: cover;
@@ -229,15 +235,15 @@ const handleFavorite = async (item: any) => {
         height: 24px;
         background-color: #999;
       }
-      // 最多两行 超出展示省略号
+      // 最多两行，单行时高度约20px，两行约40px
       .description {
         font-size: 14px;
         color: #676767;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        line-height: 21px;
+        height: 42px; // 限制最多两行高度
+        overflow: hidden; // 超出裁剪隐藏
+        display: block; // 让高度随内容自适应到1或2行
+        word-break: break-word; // 处理长单词/连续字符换行
       }
     }
 
