@@ -199,23 +199,98 @@ const initDefaultRateChart = () => {
 const updateChart = () => {
   if (!chartInstance || !chartData.value || chartData.value.length === 0) return;
   
-  // 根据数据格式处理，可能是 xAxis/yAxis 格式或数组格式
+  // 根据数据格式处理，可能是 xAxis/yAxis 格式或数组格式（支持两条线：总违约率、本月违约率）
   let xAxisData: string[] = [];
-  let yAxisData: number[] = [];
+  let totalSeries: number[] = [];
+  let monthSeries: number[] = [];
   
   if (chartData.value[0]?.xAxis && chartData.value[0]?.yAxis) {
     // xAxis/yAxis 格式
     xAxisData = chartData.value[0].xAxis || [];
-    yAxisData = (chartData.value[0].yAxis || []).map((v: any) => Number(v) || 0);
+    const yAxisRaw = chartData.value[0].yAxis || [];
+    // 如果返回多维数组，默认第1维为总违约率，第2维为本月违约率
+    if (Array.isArray(yAxisRaw[0])) {
+      totalSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
+      monthSeries = (yAxisRaw[1] || []).map((v: any) => Number(v) || 0);
+    } else {
+      totalSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+    }
   } else if (Array.isArray(chartData.value)) {
     // 数组格式，假设有 time 或 month 字段
     xAxisData = chartData.value.map((item: any) => item.time || item.month || item.date || '');
-    yAxisData = chartData.value.map((item: any) => {
-      const rate = item.defaultRate || item.rate || item.value || 0;
+    totalSeries = chartData.value.map((item: any) => {
+      const rate =
+        item.totalDefaultRate ??
+        item.totalRate ??
+        item.defaultRate ??
+        item.rate ??
+        item.value ??
+        0;
+      return Number(rate) || 0;
+    });
+    monthSeries = chartData.value.map((item: any) => {
+      const rate =
+        item.monthDefaultRate ??
+        item.currentDefaultRate ??
+        item.currentRate ??
+        item.monthRate ??
+        item.subRate ??
+        0;
       return Number(rate) || 0;
     });
   }
   
+  const legendData = ['总违约率', '本月违约率'];
+  const series = [
+    {
+      name: '总违约率',
+      type: 'line',
+      smooth: true,
+      data: totalSeries,
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: { color: '#f56c6c' },
+      lineStyle: { color: '#f56c6c' },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(245, 108, 108, 0.6)' },
+          { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
+        ])
+      }
+    }
+  ];
+
+  // 仅在有数据时展示第二条
+  const hasMonthSeries = monthSeries.some((v) => v !== 0);
+  if (hasMonthSeries) {
+    series.push({
+      name: '本月违约率',
+      type: 'line',
+      smooth: true,
+      data: monthSeries,
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: { color: '#409eff' },
+      lineStyle: { color: '#409eff' },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(64, 158, 255, 0.45)' },
+          { offset: 1, color: 'rgba(64, 158, 255, 0.05)' }
+        ])
+      }
+    });
+  } else {
+    // 只有一条线时，图例只显示一条
+    legendData.splice(1, 1);
+  }
+
+  // 动态 Y 轴上限，默认 1%
+  const maxVal = Math.max(
+    ...(totalSeries.length ? totalSeries : [0]),
+    ...(monthSeries.length ? monthSeries : [0])
+  );
+  const yMax = maxVal > 0 ? Math.ceil(maxVal * 1.2 * 100) / 100 : 1;
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -225,16 +300,19 @@ const updateChart = () => {
       }
     },
     legend: {
-      data: ['违约率'],
+      data: legendData,
       textStyle: {
         color: '#fff'
       },
-      top: 10
+      top: 10,
+      left: 'center',
+      itemGap: 20
     },
     grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
+      left: 40,
+      right: 30,
+      bottom: 40,
+      top: 40,
       containLabel: true
     },
     xAxis: {
@@ -252,6 +330,9 @@ const updateChart = () => {
     },
     yAxis: {
       type: 'value',
+      min: 0,
+      max: yMax,
+      splitNumber: 5,
       axisLabel: {
         formatter: '{value}%',
         color: '#fff'
@@ -267,26 +348,7 @@ const updateChart = () => {
         }
       }
     },
-    series: [
-      {
-        name: '违约率',
-        type: 'line',
-        smooth: true,
-        data: yAxisData,
-        itemStyle: {
-          color: '#f56c6c'
-        },
-        lineStyle: {
-          color: '#f56c6c'
-        },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(245, 108, 108, 0.6)' },
-            { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
-          ])
-        }
-      }
-    ]
+    series
   };
   chartInstance.setOption(option);
 };

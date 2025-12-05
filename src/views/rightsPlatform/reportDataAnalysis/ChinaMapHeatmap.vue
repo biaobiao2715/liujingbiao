@@ -38,6 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
 const mapContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
+const selectedIsland = ref<string | null>(null);
+const islandRegions = ['海南', '广东', '台湾', '南海诸岛'];
 
 // 加载中国地图数据
 const loadChinaMap = () => {
@@ -76,6 +78,31 @@ const initChart = () => {
     chartInstance?.resize();
     // 加载地图数据
     loadChinaMap();
+  });
+
+  // 选择事件：仅在选中目标岛屿时显示拆分小图
+  chartInstance.on('selectchanged', (params: any) => {
+    // params.selected 结构：{ seriesName: { [name]: boolean } }
+    const selectedMap = params?.selected?.['举报数据'] || {};
+    const selectedNames = Object.keys(selectedMap).filter((k) => selectedMap[k]);
+    const island = selectedNames.find((n) => islandRegions.includes(n)) || null;
+    selectedIsland.value = island;
+    chartInstance?.setOption({
+      series: [
+        {
+          regions: islandRegions.map((name) => {
+            const isSelected = island === name;
+            return {
+              name,
+              label: { show: isSelected },
+              itemStyle: { opacity: isSelected ? 1 : 0 },
+              emphasis: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } },
+              select: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } }
+            };
+          })
+        }
+      ]
+    });
   });
 };
 
@@ -203,6 +230,18 @@ const updateChart = () => {
         map: 'china',
         roam: false,
         zoom: 1.2,
+        selectedMode: 'single',
+        // 特殊区域（岛屿/拆分小图）仅在选中时展示
+        regions: ['海南', '广东', '台湾', '南海诸岛'].map((name) => {
+          const isSelected = selectedIsland.value === name;
+          return {
+            name,
+            label: { show: isSelected },
+            itemStyle: { opacity: isSelected ? 1 : 0 },
+            emphasis: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } },
+            select: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } }
+          };
+        }),
         label: {
           show: true,
           fontSize: 10, // 【修改6】标签字体略小，避免放大后重叠
@@ -247,9 +286,9 @@ const updateChart = () => {
             const name = params.name;
             // 香港向上偏移，澳门向下偏移
             if (name === '香港') {
-              return [0, -10];
+              return [50, -14]; // 更大右移并上移，远离广东
             } else if (name === '澳门') {
-              return [0, 10];
+              return [50, 14]; // 更大右移并下移，远离广东
             }
             return [0, 0];
           },

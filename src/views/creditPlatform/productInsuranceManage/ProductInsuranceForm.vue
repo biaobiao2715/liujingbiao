@@ -132,7 +132,7 @@ import { ElMessage } from 'element-plus';
 import { Document, Close, Plus } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
-import { uploadByChunks } from '@/utils/chunkUpload';
+import { uploadFileForParse } from '@/api/common/fileUpload';
 import { listByIds } from '@/api/system/oss';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
@@ -311,34 +311,24 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
   const modal = (proxy as any)?.$modal;
   uploadLoading.value = true;
-  modal?.loading?.('正在上传附件，请稍候...');
+  modal?.loading?.('正在上传附件并解析，请稍候...');
 
   try {
-    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传
-    const res: any = await uploadByChunks(file as File, (percent: number) => {
-      modal?.setLoadingText?.(`正在上传...${percent}%`);
-    });
+    // 使用文件自动解析接口
+    const response = await uploadFileForParse(file as File);
 
-    // 兼容处理不同的返回格式
-    let uploadResult = res;
-    if (res && !res.ossId && !res.ossid && res.data) {
-      uploadResult = res.data;
-    }
+    // 接口可能返回 { data: {...} } 或直接返回数据
+    const responseData = (response as any)?.data || response;
 
-    // 兼容 ossId 和 ossid 两种字段名
-    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
-    if (!ossId) {
-      throw new Error('上传失败，未获取到文件标识');
-    }
-
-    // 保存 ossId 作为附件标识
     const fileName = (file as File).name;
     const displayName = fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
-    formData.value.branchOfficeAttachment = ossId;
-    formData.value.branchOfficeAttachmentName = uploadResult?.fileName || uploadResult?.data?.fileName || displayName;
+
+    // 保存解析结果（后端解析后的完整数据）
+    formData.value.branchOfficeAttachment = responseData;
+    formData.value.branchOfficeAttachmentName = displayName;
     attachmentFileList.value = [
       buildUploadFileItem({
-        name: formData.value.branchOfficeAttachmentName
+        name: displayName
       })
     ];
     ElMessage.success('附件上传成功');
@@ -346,10 +336,10 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
     if (formRef.value) {
       formRef.value.validateField('branchOfficeAttachment');
     }
-    onSuccess?.(uploadResult);
+    onSuccess?.(response);
   } catch (error: any) {
     console.error('文件上传失败:', error);
-    ElMessage.error(error?.msg || error?.message || '上传失败，请重试');
+    ElMessage.error(error?.message || error?.response?.data?.message || '上传失败，请重试');
     onError?.(error);
   } finally {
     uploadLoading.value = false;
