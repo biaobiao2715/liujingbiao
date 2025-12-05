@@ -19,7 +19,7 @@
       <!-- 步骤条，动态展示不同身份的注册流程 -->
       <div class="steps-container">
         <el-steps :active="activeStep" align-center>
-          <el-step v-for="(step, index) in selectedIdentity === 'buyer' ? buyerSteps : steps" :key="index" :title="step.title">
+          <el-step v-for="(step, index) in computedSteps" :key="index" :title="step.title">
             <template #icon>
               <img :src="getIcon(step.icon)" class="step-icon" />
             </template>
@@ -64,10 +64,7 @@ import LegalExpertForm from './Components/LegalExpert.vue';
 import { useRoute } from 'vue-router';
 // 引入成功组件
 import Success from './Components/Success.vue';
-import step1Icon from '@/assets/images/step-1.svg';
-import step2Icon from '@/assets/images/step-2.svg';
-import step3Icon from '@/assets/images/step-3.svg';
-import step4Icon from '@/assets/images/step-4.svg';
+import { computed, onMounted } from 'vue';
 
 // 定义身份类型
 export type IdentityType = 'buyer' | 'supplier' | 'enterprise' | 'expert' | 'legal';
@@ -84,19 +81,55 @@ const account = ref('');
 
 const phoneNumber = ref(route.query.phoneNumber); // 获取路由中的手机号参数
 
-// 定义步骤标题数组
-const steps = ref([
-  { title: '选择身份信息', icon: step1Icon },
-  { title: '填写信息', icon: step2Icon },
-  { title: '申请注册成功', icon: step4Icon }
-]);
+// 步骤与图标配置（英文标题），统一按身份生成
+const STEP_ICONS = {
+  step1: 'step-1.svg',
+  step2: 'step-2.svg',
+  step4: 'step-4.svg',
+  step5: 'step-5.png',
+  step6: 'step-6.png',
+  buyerSelected: 'buyer-1.png',
+  buyerUnselected: 'buyer-2.png',
+  supplierSelected: 'supplier-1.png',
+  supplierUnselected: 'supplier-2.png',
+  enterpriseSelected: 'enterprise-1.png',
+  enterpriseUnselected: 'enterprise-2.png',
+  expertSelected: 'expert-1.png',
+  expertUnselected: 'expert-2.png',
+  legalSelected: 'legal-1.png',
+  legalUnselected: 'legal-2.png'
+} as const;
 
-// 采购商注册流程
-const buyerSteps = ref([
-  { title: '选择身份信息', icon: step1Icon },
-  { title: '填写采购商信息', icon: step2Icon },
-  { title: '申请注册成功', icon: step4Icon }
-]);
+// 第二步标题按身份映射
+const SECOND_TITLES: Record<IdentityType | 'default', string> = {
+  default: '填写信息',
+  buyer: '填写采购商信息',
+  supplier: '填写供应商信息',
+  enterprise: '填写企业信息',
+  expert: '填写技术专家信息',
+  legal: '填写法务专家信息'
+};
+
+// 生成第二步图标文件名：identity-1/2.png；默认身份用 step-2
+const getStep2Icon = (id: IdentityType | 'default', selected: boolean): string => {
+  if (id === 'default') return STEP_ICONS.step2;
+  const num = selected ? 1 : 2;
+  return `${id}-${num}.png`;
+};
+
+const computedSteps = computed(() => {
+  const id = (selectedIdentity.value || 'default') as IdentityType | 'default';
+  const step1 = { title: '选择身份信息', icon: STEP_ICONS.step1 };
+  const step2 = {
+    title: SECOND_TITLES[id],
+    icon: getStep2Icon(id, activeStep.value >= 2)
+  };
+  const step3 = {
+    title: '申请注册成功',
+    icon: activeStep.value >= 3 ? STEP_ICONS.step5 : STEP_ICONS.step6
+  };
+  return [step1, step2, step3];
+});
 
 onMounted(() => {
   // 页面加载时，检查路由参数是否存在手机号
@@ -108,8 +141,10 @@ onMounted(() => {
   }
 });
 
-const getIcon = (svgName: string) => {
-  return new URL(`${svgName}`, import.meta.url).href;
+// 统一从 '@/assets/images/' 路径解析图标文件名
+const getIcon = (fileName: string) => {
+  // 使用相对路径以兼容 Vite 的 import.meta.url 解析
+  return new URL(`../../assets/images/${fileName}`, import.meta.url).href;
 };
 
 // 更新身份选择
@@ -120,26 +155,7 @@ const handleIdentityUpdate = (identity: IdentityType) => {
   }
   selectedIdentity.value = identity;
 
-  // 根据选择的身份动态调整步骤条第二步的文字提示
-  switch (identity) {
-    case 'buyer':
-      steps.value[1].title = '填写采购商信息';
-      break;
-    case 'supplier':
-      steps.value[1].title = '填写供应商信息';
-      break;
-    case 'enterprise':
-      steps.value[1].title = '填写企业信息';
-      break;
-    case 'expert':
-      steps.value[1].title = '填写技术专家信息';
-      break;
-    case 'legal':
-      steps.value[1].title = '填写法务专家信息';
-      break;
-    default:
-      break;
-  }
+  // 步骤标题已通过 STEPS_MAP 自动匹配，无需手动修改
 };
 
 // 下一步逻辑
@@ -194,5 +210,10 @@ const nextStep = (info?: { username: string; account: string }) => {
 .step01 {
   background: url('../assets/images/step-1.svg') no-repeat center center;
   background-size: cover;
+}
+
+.step-icon {
+  width: 32px;
+  height: 32px;
 }
 </style>
