@@ -363,7 +363,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 性别
-  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  sex: [{ required: true, message: '请选择性别', trigger: ['change', 'blur'] }],
   // 出生年月
   birthDate: [
     {
@@ -394,17 +394,17 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 专家简介
   expertInfo: [
     {
-      required: true,
+      required: false,
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback(new Error('请输入专家简介'));
+          callback();
         } else if (value.length > 150) {
           callback(new Error('专家简介最多150个字符'));
         } else {
@@ -458,7 +458,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 照片
@@ -472,7 +472,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 身份证号
