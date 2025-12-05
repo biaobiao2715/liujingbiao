@@ -17,7 +17,7 @@
         <el-input v-model="code" placeholder="六位短信验证码" maxlength="6" size="large">
           <template #append>
             <!-- 发送验证码按钮 -->
-            <el-button v-throttle  type="primary" :disabled="countdown > 0" @click="sendCode">
+            <el-button v-throttle type="primary" :disabled="countdown > 0" @click="sendCode">
               {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
             </el-button>
           </template>
@@ -33,7 +33,7 @@
       </el-form-item>
       <!-- 提交按钮 -->
       <el-form-item>
-        <el-button v-throttle  type="primary" @click="handleSubmit" class="w-100">提交</el-button>
+        <el-button v-throttle type="primary" @click="handleSubmit" class="w-100">提交</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -76,7 +76,7 @@ const handleSubmit = () => {
     }).then((res) => {
       if (res.code === 200) {
         ElMessage.success('密码重置成功');
-        router.push({ name: 'login' }); // 重置成功后跳转到登录页
+        router.push({ path: 'login' }); // 重置成功后跳转到登录页
       } else {
         ElMessage.error(res.msg || '密码重置失败');
       }
