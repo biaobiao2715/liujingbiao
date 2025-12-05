@@ -8,51 +8,55 @@
 
 <template>
   <div class="course-meeting-container">
-    <el-card>
-      <template #header>
-        <div class="flex-center gap-24">
-          <div class="card-header">专家课程</div>
-          <el-segmented v-model="activeTab" :options="tabsList" :disabled="loading" />
-        </div>
-      </template>
+    <div class="flex-center-center gap-24 mb-12">
+      <el-button :type="activeTab === 'course' ? 'primary' : 'info'" round @click="activeTab = 'course'">培训课程</el-button>
+      <el-button :type="activeTab === 'meeting' ? 'primary' : 'info'" round @click="activeTab = 'meeting'">培训会议</el-button>
+    </div>
 
-      <div v-loading="loading">
-        <!-- 课程 -->
-        <el-row :gutter="12" v-if="activeTab === 'course'">
-          <el-col :span="6" v-for="(course, index) in courseList" :key="index">
-            <el-card shadow="hover">
-              <div class="course-item" @click="handleDetail('courseDetail', course.id)">
-                <img :src="course.imageFile.url" class="course-image" width="100" />
-                <div class="hot flex-center gap-12">
-                  <div class="views flex-center gap-2">
-                    <el-icon size="20"><View /></el-icon>
-                    <span>{{ course.pageViews }}</span>
-                  </div>
-                  <div class="collection flex-center gap-2">
-                    <el-icon size="20" v-if="!course.isFavorite"><Star /></el-icon>
-                    <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
-                    <span>{{ course.collectCount }}</span>
-                  </div>
+    <div v-loading="loading">
+      <!-- 课程 -->
+      <el-row :gutter="12" v-if="activeTab === 'course'">
+        <el-col :span="6" v-for="(course, index) in courseList" :key="index">
+          <div class="course-item" @click="handleDetail('courseDetail', course.id)">
+            <div class="course-image" :style="{ backgroundImage: 'url(' + course.imageFile.url + ')' }">
+              <div class="hot-info flex-center-between">
+                <div class="views flex-center gap-4">
+                  <el-icon size="15"><View /></el-icon>
+                  <span>{{ course.pageViews }}</span>
                 </div>
-                <div class="course-info">
-                  <div class="course-title">{{ course.cultivateName }}</div>
-                  <div class="course-type">{{ '课程类型: ' + (course.cultivateType === '0' ? '农业知识' : '法律知识') }}</div>
-                  <div class="course-time">{{ '发布时间: ' + course.publishTime }}</div>
+                <div class="collection flex-center gap-4">
+                  <el-icon size="16" v-if="!course.isFavorite"><Star /></el-icon>
+                  <el-icon size="20" color="#ff9800" v-else> <StarFilled /></el-icon>
+                  <span>{{ course.collectCount }}</span>
                 </div>
               </div>
-            </el-card>
-          </el-col>
-          <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
-        </el-row>
-        <!-- 会议 -->
-        <div class="meeting-list" v-else>
-          <div class="meeting-item" v-for="(meeting, index) in meetingList" :key="index" @click="handleDetail('meetingDetail', meeting.id)">
-            <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
+            </div>
+
+            <div class="course-info">
+              <div class="course-title">{{ course.cultivateName }}</div>
+              <div class="course-type flex-center gap-8">
+                <div>课程类型:</div>
+                <dict-tag :options="cultivate_type" :value="course.cultivateType" />
+              </div>
+              <div class="course-time">{{ '发布时间:  ' + course.publishTime }}</div>
+            </div>
           </div>
-          <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" class="margin-center" />
-        </div>
+        </el-col>
+        <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
+      </el-row>
+      <!-- 会议 -->
+      <div class="meeting-list" v-else>
+        <el-row :gutter="48">
+          <el-col :span="12" v-for="meeting in meetingList" :key="meeting.id">
+            <div class="meeting-item flex-center" @click="handleDetail('meetingDetail', meeting.id)">
+              <div class="point"></div>
+              <div class="meeting-title">{{ getMeetingDescription(meeting) }}</div>
+            </div>
+          </el-col>
+        </el-row>
+        <el-empty description="暂无培训会议信息" v-if="meetingList.length === 0" class="margin-center" />
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -60,11 +64,10 @@
 import { ref, onMounted } from 'vue';
 import { courseCultivateList, meetingCultivateList } from '@/api/mall/expert';
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { cultivate_type } = toRefs<any>(proxy?.useDict('cultivate_type', 'video_status'));
+
 const emit = defineEmits(['detailChange']);
-const tabsList = [
-  { label: '培训课程', value: 'course' },
-  { label: '培训会议', value: 'meeting' }
-];
 
 const loading = ref(false);
 const activeTab = ref('course');
@@ -114,7 +117,19 @@ const handleDetail = (type: string, id: string) => {
 }
 
 .meeting-list {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
   .meeting-item {
+    gap: 6px;
+    border-bottom: 1px dashed #ccc;
+    .point {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-main);
+      border-radius: 50%;
+      display: inline-block;
+    }
     .meeting-title {
       padding: 12px;
       cursor: pointer;
@@ -129,8 +144,48 @@ const handleDetail = (type: string, id: string) => {
   font-weight: bold;
 }
 .course-item {
-  height: 220px;
+  // height: 220px;
   cursor: pointer;
+  background-color: #fff;
+  border-radius: 8px;
+  .course-image {
+    width: 100%;
+    height: 265px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    .hot-info {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 20px;
+      font-size: 14px;
+      color: #fff;
+    }
+  }
+  .course-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .course-title {
+      font-size: 16px;
+      color: #333;
+      font-weight: bold;
+    }
+    .course-type {
+      font-size: 14px;
+      color: #333;
+    }
+    .course-time {
+      font-size: 14px;
+      color: #a5a5a5;
+    }
+  }
 }
 .el-col {
   margin-bottom: 16px;

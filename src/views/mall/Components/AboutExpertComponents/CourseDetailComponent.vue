@@ -15,7 +15,7 @@
       <img :src="detail?.avatar" width="40" />
       <div>{{ '发布人：  ' + detail?.createBy }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <el-tag type="primary">{{ detail?.cultivateType === '0' ? '农业知识' : '法律知识' }}</el-tag>
+      <dict-tag :options="cultivate_type" :value="detail?.cultivateType" />
       <div class="flex-center gap-12">
         <div class="views flex-center gap-2">
           <el-icon size="20"><View /></el-icon>
@@ -40,7 +40,7 @@
       <el-table-column prop="originalName" label="文件名" />
       <el-table-column prop="size" label="文件大小" width="180">
         <template #default="scope">
-          {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize||0) }}
+          {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize || 0) }}
         </template>
       </el-table-column>
       <el-table-column prop="downloadUrl" label="下载">
@@ -58,6 +58,9 @@ import { courseDetail } from '@/api/mall/expert';
 import { addToFavorites, checkFavorite } from '@/api/mall/index';
 import ContentWithToc from '@/components/ContentWithToc/index.vue';
 import { formatFileSize } from '@/utils/fileUtils';
+
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const { cultivate_type } = toRefs<any>(proxy?.useDict('cultivate_type'));
 
 const props = defineProps({
   id: {
