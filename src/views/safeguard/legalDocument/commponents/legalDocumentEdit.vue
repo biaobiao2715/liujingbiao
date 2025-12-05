@@ -58,23 +58,23 @@
       </el-form-item>
 
       <div>
-        <el-table v-if="formData.legalFiles.length" :data="formData.legalFiles" border class="file-table" size="small">
-          <el-table-column type="index" label="序号" width="60" align="center" />
+        <el-table v-if="formData.legalFiles.length" :data="formData.legalFiles" class="file-table" size="small">
+          <el-table-column type="index" label="序号" width="60" />
           <el-table-column prop="fileTypeText" label="附件类型" width="120" align="center" />
-          <el-table-column prop="originalName" label="附件名称" min-width="200" />
-          <el-table-column prop="fileSize" label="附件大小" width="120" align="center">
+          <el-table-column prop="originalName" label="附件名称" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="fileSize" label="附件大小" width="120">
             <template #default="{ row }">
               {{ formatFileSize(row.fileSize) }}
             </template>
           </el-table-column>
-          <el-table-column prop="version" :label="isViewMode ? '版本号' : '最新版本号'" width="120" align="center" />
-          <el-table-column v-if="!isViewMode" prop="uploadTime" label="最新上传时间" width="180" align="center" />
-          <el-table-column v-if="!isViewMode" label="备注" min-width="180">
+          <el-table-column prop="version" :label="isViewMode ? '版本号' : '最新版本号'" width="120" />
+          <el-table-column v-if="!isViewMode" prop="uploadTime" label="最新上传时间" width="180" />
+          <el-table-column v-if="!isViewMode" label="备注" min-width="180" show-overflow-tooltip>
             <template #default>
               <el-input v-model="formData.legalFiles[0].remark" placeholder="请输入备注内容" maxlength="100" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100" align="center">
+          <el-table-column label="操作" width="100">
             <template #default="{ row, $index }">
               <el-button v-if="isViewMode" link type="primary" @click="handleDownloadFile(row)">下载</el-button>
               <el-button v-else link type="danger" @click="handleRemoveFile($index)">删除</el-button>
@@ -88,18 +88,18 @@
           <el-icon><Document /></el-icon>
           <span>历史版本</span>
         </div>
-        <el-table :data="pagedHistoryList" border size="small">
-          <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="updateTime" label="修改时间" width="180" align="center" />
-          <el-table-column prop="fileName" label="附件名称" min-width="200" />
-          <el-table-column prop="fileSize" label="附件大小" width="120" align="center">
+        <el-table :data="pagedHistoryList" size="small">
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="updateTime" label="修改时间" width="180" />
+          <el-table-column prop="fileName" label="附件名称" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="fileSize" label="附件大小" width="120">
             <template #default="{ row }">
               {{ formatFileSize(row.fileSize) }}
             </template>
           </el-table-column>
-          <el-table-column prop="version" label="历史版本" width="120" align="center" />
+          <el-table-column prop="version" label="历史版本" width="120" />
           <el-table-column prop="remark" label="备注" min-width="180" />
-          <el-table-column label="操作" width="100" align="center">
+          <el-table-column label="操作" width="100">
             <template #default="{ row }">
               <el-button link type="primary" @click="handleDownload(row)">下载</el-button>
             </template>
@@ -119,12 +119,12 @@
         </div>
       </div>
 
-      <el-form-item label="所属状态" prop="status" class="legal-form-left-item">
+      <!-- <el-form-item label="所属状态" prop="status" class="legal-form-left-item">
         <el-select v-if="!isViewMode" v-model="formData.status" placeholder="请选择">
           <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <span v-else>{{ statusText }}</span>
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
 
     <template #footer>
@@ -172,7 +172,7 @@ const props = defineProps<{
   data?: {
     legalDocumentName?: string;
     legalDocumentCode?: string;
-    status?: string;
+    // status?: string;
     legalFiles?: LegalFile[];
     historyList?: HistoryFile[];
     currentVersion?: string;
@@ -194,7 +194,7 @@ const currentVersion = ref('1.0');
 const formData = reactive({
   legalDocumentName: '',
   legalDocumentCode: '',
-  status: '',
+  // status: '',
   remark: '',
   legalFiles: [] as LegalFile[]
 });
@@ -217,21 +217,21 @@ const statusOptions = [
   { value: '1', label: '禁用' }
 ];
 
-const statusText = computed(() => {
-  const option = statusOptions.find((item) => item.value === formData.status);
-  return option?.label || '--';
-});
+// const statusText = computed(() => {
+//   const option = statusOptions.find((item) => item.value === formData.status);
+//   return option?.label || '--';
+// });
 
 const formRules = {
   legalDocumentName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-  legalFiles: [{ required: true, message: '请上传文件', trigger: 'change' }],
-  status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
+  legalFiles: [{ required: true, message: '请上传文件', trigger: 'change' }]
+  // status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
 };
 
 const applyData = (val?: typeof props.data) => {
   formData.legalDocumentName = val?.legalDocumentName || '';
   formData.legalDocumentCode = val?.legalDocumentCode || '';
-  formData.status = val?.status || '';
+  // formData.status = val?.status || '';
   formData.remark = val?.remark || '';
   formData.legalFiles = val?.legalFiles?.map((item) => ({ ...item })) || [];
   historyList.value = val?.historyList?.map((item) => ({ ...item })) || [];
@@ -264,7 +264,7 @@ watch(
 const resetForm = () => {
   formData.legalDocumentName = '';
   formData.legalDocumentCode = '';
-  formData.status = '';
+  // formData.status = '';
   formData.remark = '';
   formData.legalFiles = [];
   historyList.value = [];

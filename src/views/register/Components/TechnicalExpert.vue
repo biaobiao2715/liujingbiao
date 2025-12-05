@@ -70,7 +70,12 @@
                           <p>上传照片</p>
                         </div>
                       </div>
-                      <img v-if="photoUrl" :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                      <div v-if="photoUrl" class="image-with-delete">
+                        <img :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                        <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removePhoto">
+                          <el-icon><Close /></el-icon>
+                        </el-button>
+                      </div>
                     </div>
                   </el-upload>
                   <p class="upload-tip">单个文件最大10M 支持扩展名：jpg.jpeg.png</p>
@@ -692,6 +697,15 @@ const removeDiploma = () => {
     qualificationList.value.forEach((item, i) => (item.index = i + 1));
   }
   formRef.value?.validateField('diploma');
+};
+const removePhoto = () => {
+  photoUrl.value = '';
+  const idx = qualificationList.value.findIndex((item) => item.fileType === '0');
+  if (idx !== -1) {
+    qualificationList.value.splice(idx, 1);
+    qualificationList.value.forEach((item, i) => (item.index = i + 1));
+  }
+  formRef.value?.validateField('photo');
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {
