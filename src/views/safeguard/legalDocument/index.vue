@@ -51,7 +51,7 @@
         <el-button class="search-btn" v-throttle type="primary" icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle :color="loading || noSelection ? '#F2F3F5' : '#F23255'" @click="handleDeleteBatch">删除</el-button>
+        <el-button class="custom-btn-style" v-throttle @click="handleDeleteBatch" :disabled="selectedIds.length <= 0">删除</el-button>
       </el-col>
     </el-row>
 
@@ -945,6 +945,52 @@ onMounted(() => {
 
   &.is-disabled {
     color: #f6b7c0 !important;
+  }
+}
+.custom-btn-style {
+  background-color: #f2f3f5 !important;
+  border: none !important;
+  color: #1d2129 !important;
+  &:hover {
+    background-color: #e5e7eb !important;
+    color: #1d2129 !important;
+  }
+
+  &:focus {
+    background-color: #f2f3f5 !important;
+    color: #1d2129 !important;
+  }
+
+  &.is-disabled {
+    background-color: #f2f3f5 !important;
+    color: #999999 !important;
+    cursor: not-allowed;
+  }
+  &:not(.is-disabled) {
+    color: #ffffff !important;
+    background-color: #108c58 !important;
+    &:hover {
+      color: #ffffff !important;
+      background-color: #108c58 !important;
+    }
+
+    &:focus {
+      color: #ffffff !important;
+      background-color: #108c58 !important;
+    }
+  }
+  &.delete-btn:not(.is-disabled) {
+    color: #ffffff !important;
+    background-color: #f23255 !important;
+    &:hover {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
+    }
+
+    &:focus {
+      color: #ffffff !important;
+      background-color: #f23255 !important;
+    }
   }
 }
 </style>
