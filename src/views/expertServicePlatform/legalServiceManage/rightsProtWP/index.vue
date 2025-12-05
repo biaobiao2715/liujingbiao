@@ -345,7 +345,6 @@ import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspe
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { 
   getWhitePaperList, 
@@ -397,8 +396,6 @@ const versionDialog = ref({
 });
 
 const MB = 1024 * 1024;
-// 文件大于100MB时使用分片上传
-const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB;
 
 const uploadRef = ref();
 const versionFormRef = ref();
@@ -820,38 +817,35 @@ const validateVersionFile = (file: File): boolean => {
 
 const uploadWhitePaperVersionFile = async (file: File) => {
   const modal = (proxy as any)?.$modal;
-  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
-
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传文件，请稍候...');
+  modal?.loading?.('正在上传文件，请稍候...');
 
   try {
-    if (useChunkUpload) {
-      let chunkRes = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
-      // 统一处理，兼容不同的返回格式
-      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
-        chunkRes = chunkRes.data;
-      }
-      // 兼容 ossId 和 ossid 两种字段名
-      const ossId = chunkRes?.ossId || chunkRes?.ossid || chunkRes?.data?.ossId || chunkRes?.data?.ossid;
-      return {
-        ossId: ossId,
-        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
-        url: chunkRes?.url || chunkRes?.data?.url,
-        originalName: file.name
-      };
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传
+    const res: any = await uploadByChunks(file, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
+
+    // 兼容处理不同的返回格式
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
     }
 
-    const response = await ossUploadImage({ file });
-    const data = response?.data || {};
+    // 兼容 ossId 和 ossid 两种字段名
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
     return {
-      ossId: data.ossId,
-      fileName: data.fileName || data.originalName || file.name,
-      url: data.url,
+      ossId: ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || file.name,
+      url: uploadResult?.url || uploadResult?.data?.url || '',
       originalName: file.name
     };
+  } catch (error: any) {
+    console.error('文件上传失败:', error);
+    throw new Error(error?.msg || error?.message || '上传失败，请重试');
   } finally {
     modal?.closeLoading?.();
   }

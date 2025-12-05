@@ -150,7 +150,6 @@ import { ref, watch, getCurrentInstance, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Delete, Document, Paperclip, FolderOpened } from '@element-plus/icons-vue';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
 import { 
@@ -173,8 +172,6 @@ const emit = defineEmits<{
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const MB = 1024 * 1024;
-// 降低阈值，避免普通上传接口的超时问题（默认5秒超时），1MB 以上的文件都使用分片上传
-const LARGE_FILE_CHUNK_THRESHOLD = 1 * MB;
 
 const formRef = ref();
 const saving = ref(false);
@@ -203,25 +200,18 @@ const attachmentList = ref<Array<{
 
 const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
   const modal = (proxy as any)?.$modal;
-  const useChunkUpload = file.size > LARGE_FILE_CHUNK_THRESHOLD;
-
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+  modal?.loading?.('正在上传附件，请稍候...');
 
   try {
-    let uploadResult: any = {};
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传
+    const res: any = await uploadByChunks(file, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
 
-    if (useChunkUpload) {
-      uploadResult = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      // 分片上传返回的数据结构：mergeRes.data = { url, fileName, ossid }
-      // 兼容处理不同的返回格式和字段名
-      if (uploadResult && !uploadResult.ossId && !uploadResult.ossid && uploadResult.data) {
-        uploadResult = uploadResult.data;
-      }
-    } else {
-      const response = await ossUploadImage({ file });
-      uploadResult = response?.data || {};
+    // 兼容处理不同的返回格式
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
     }
 
     // 兼容 ossId 和 ossid 两种字段名（API 返回可能是 ossid）
@@ -242,9 +232,9 @@ const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
       fileSize: formatFileSize(file.size),
       uid: options?.uid || `${Date.now()}_${Math.random().toString(36).slice(2)}`
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('上传文件失败', error);
-    throw error;
+    throw new Error(error?.msg || error?.message || '上传失败，请重试');
   } finally {
     modal?.closeLoading?.();
   }

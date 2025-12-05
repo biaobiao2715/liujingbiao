@@ -152,7 +152,6 @@ import {
   addContent,
   editContent
 } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
@@ -400,7 +399,6 @@ const scrollToHeading = (id: string) => {
 };
 
 const MB = 1024 * 1024;
-const CHUNK_UPLOAD_THRESHOLD = 100 * MB; // 文件大于100MB时使用分片上传
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -431,45 +429,39 @@ const validateFile = (file: File): boolean => {
 };
 
 const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
-  const useChunkUpload = file.size > CHUNK_UPLOAD_THRESHOLD;
   const modal = (proxy as any)?.$modal;
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+  modal?.loading?.('正在上传附件，请稍候...');
 
   try {
-    let payload: { ossId?: number | string; fileName?: string; url?: string } = {};
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传
+    const res: any = await uploadByChunks(file, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
 
-    if (useChunkUpload) {
-      const chunkRes = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      payload = {
-        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
-        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
-        url: chunkRes?.url || chunkRes?.fileUrl || chunkRes?.data?.url || ''
-      };
-    } else {
-      const response = await ossUploadImage({ file });
-      const data = response?.data || {};
-      payload = {
-        ossId: data.ossId,
-        fileName: data.fileName || file.name,
-        url: data.url
-      };
+    // 兼容处理不同的返回格式
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
     }
 
-    if (!payload?.ossId) {
+    // 兼容 ossId 和 ossid 两种字段名
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
       throw new Error('上传失败，未获取到文件标识');
     }
 
     return {
-      ossId: payload.ossId,
-      fileName: payload.fileName || file.name,
+      ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || file.name,
       originalName: file.name,
       fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
-      url: payload.url || '',
+      url: uploadResult?.url || uploadResult?.data?.url || '',
       fileSize: formatFileSize(file.size),
       uid: options?.uid || String(Date.now() + Math.random())
     };
+  } catch (error: any) {
+    console.error('附件上传失败:', error);
+    throw new Error(error?.msg || error?.message || '上传失败，请重试');
   } finally {
     modal?.closeLoading?.();
   }
