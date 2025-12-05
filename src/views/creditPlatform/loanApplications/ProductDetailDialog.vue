@@ -48,7 +48,7 @@
           <span class="label">利率/费率：</span>
           <span class="value">{{ interestRateRangeText }}</span>
         </div>
-        <div class="info-item">
+        <div class="info-item loan-cycle-item">
           <span class="label">可贷周期：</span>
           <span class="value">
             <dict-tag :options="loanCycleOptions" :value="loanCycleValue" />
@@ -289,6 +289,33 @@ const handleClose = () => {
   }
 
   &.repayment-method-item {
+    align-items: flex-start;
+
+    .value {
+      :deep(> div) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-start;
+        align-content: flex-start;
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      :deep(.el-tag) {
+        margin: 0 !important;
+        margin-left: 0 !important;
+        flex-shrink: 0;
+      }
+
+      :deep(.el-tag + .el-tag) {
+        margin-left: 0 !important;
+      }
+    }
+  }
+
+  /* 可贷周期与还款方式展示一致：标签多行左对齐 */
+  &.loan-cycle-item {
     align-items: flex-start;
 
     .value {
