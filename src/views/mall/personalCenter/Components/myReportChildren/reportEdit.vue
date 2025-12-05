@@ -453,7 +453,8 @@ const handleSubmit = async () => {
       ossList: uploadingFiles.value.map((file) => ({
         ossId: file.id,
         fileName: file.originalName || file.name,
-        fileType: file.fileType || file.type || '0'
+        fileType: file.fileType || file.type || '0',
+        fileSize: formatFileSize(file.fileSize)
       }))
     };
     await resubmitReportAll(submitData);
