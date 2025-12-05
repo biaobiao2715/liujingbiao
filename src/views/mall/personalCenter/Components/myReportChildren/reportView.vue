@@ -147,7 +147,7 @@
         <el-table :data="caseTypeData" border style="width: 100%">
           <el-table-column label="案例类型编号" align="center" min-width="200">
             <template #default="scope">
-              {{ scope.row.caseTypeCode || '--' }}
+              {{ scope.row.caseCode || '--' }}
             </template>
           </el-table-column>
           <el-table-column label="案例类型名称" align="center" min-width="150">
@@ -195,10 +195,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Plus, QuestionFilled } from '@element-plus/icons-vue';
-
+import { fetchCaseTypeOptions, getCaseTypeDetail } from '@/api/safeguard/case';
+let caseTypeOptions = reactive([]); //案件类型数组
 // 举报类别选项数组（与父组件保持一致）
 const reportTypeOptions = [
   { value: 1, label: '假种子销售' },
@@ -262,12 +263,22 @@ const shouldShowCaseType = computed(() => props.reportData?.status === '1' || is
 
 const getCaseTypeName = (caseTypeId: string | number) => {
   if (!caseTypeId && caseTypeId !== 0) return '--';
-  const map: Record<string, string> = {
-    '1': '商品侵权',
-    '2': '无证经营'
-  };
-  return map[String(caseTypeId)] || '--';
+  // caseTypeId匹配caseTypeOptions中的 caseTypeId 并返回 caseTypeName
+  const option = caseTypeOptions.find((item) => item.caseTypeId === caseTypeId)?.caseTypeName;
+  return option || '--';
 };
+
+// 加载案件类型选项
+const loadCaseTypeOptions = async () => {
+  try {
+    const res = await fetchCaseTypeOptions({ status: 0 });
+    caseTypeOptions = Object.assign(caseTypeOptions, (res as any) || []);
+  } catch (error) {
+    console.error('获取案件类型列表失败:', error);
+    ElMessage.error('获取案件类型列表失败');
+  }
+};
+loadCaseTypeOptions();
 
 const handleDownloadCaseFile = async (file: any) => {
   const url = file?.ossInfo?.url;
@@ -358,7 +369,16 @@ const dialogVisible = computed({
     emit('update:modelValue', value);
   }
 });
-
+// 监听 dialogVisible 改变
+watch(
+  () => props.modelValue, // 为什么是props.modelValue
+  (value) => {
+    // console.log(value);
+    if (value) {
+      loadCaseTypeOptions();
+    }
+  }
+);
 // 举报状态文本
 const reportStatus = ref('');
 

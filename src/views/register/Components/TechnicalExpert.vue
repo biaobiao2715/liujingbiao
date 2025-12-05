@@ -179,7 +179,7 @@
 
             <el-col :span="12"></el-col>
             <el-col :span="12">
-              <el-form-item label="专家简介" prop="expertInfo" required>
+              <el-form-item label="专家简介" prop="expertInfo">
                 <el-input
                   v-model="formData.expertInfo"
                   type="textarea"
@@ -363,7 +363,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 性别
-  sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  sex: [{ required: true, message: '请选择性别', trigger: ['change', 'blur'] }],
   // 出生年月
   birthDate: [
     {
@@ -394,17 +394,17 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 专家简介
   expertInfo: [
     {
-      required: true,
+      required: false,
       trigger: 'blur',
       validator: (rule: any, value: any, callback: any) => {
         if (!value) {
-          callback(new Error('请输入专家简介'));
+          callback();
         } else if (value.length > 150) {
           callback(new Error('专家简介最多150个字符'));
         } else {
@@ -414,7 +414,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 学位
-  degree: [{ required: true, message: '请选择学位', trigger: 'change' }],
+  degree: [{ required: true, message: '请选择学位', trigger: ['change', 'blur'] }],
   // 毕业证书编号
   graduationCertNo: [
     {
@@ -458,7 +458,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 照片
@@ -472,7 +472,7 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback();
         }
       },
-      trigger: 'change'
+      trigger: ['change', 'blur']
     }
   ],
   // 身份证号
@@ -491,9 +491,9 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
     }
   ],
   // 入学日期
-  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: 'change' }],
+  enrollmentDate: [{ required: true, message: '请选择入学日期', trigger: ['change', 'blur'] }],
   // 学历
-  education: [{ required: true, message: '请选择学历', trigger: 'change' }],
+  education: [{ required: true, message: '请选择学历', trigger: ['change', 'blur'] }],
   // 毕业学校
   graduationSchool: [
     {

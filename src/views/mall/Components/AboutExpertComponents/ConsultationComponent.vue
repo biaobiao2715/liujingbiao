@@ -53,6 +53,8 @@
             </el-card>
           </el-col>
         </el-row>
+
+        <el-empty v-if="expertList.length === 0" description="暂无专家入驻，请耐心等待"></el-empty>
       </div>
     </div>
     <!-- 专家详情弹窗 -->
@@ -102,7 +104,7 @@ const toggleExpand = () => {
 
 // 技术专家列表（无租户）
 const getTechnologyExpertList = async () => {
-  const res = await technologyExpertList({});
+  const res = await technologyExpertList({ storageStatus: '1', startStopStatus: '1' });
   if (res.code === 200) {
     expertList.value = res.rows;
   }
@@ -110,7 +112,7 @@ const getTechnologyExpertList = async () => {
 
 // 法律专家列表（无租户）
 const getLegalExpertList = async () => {
-  const res = await legalExpertList({});
+  const res = await legalExpertList({ storageStatus: '1', startStopStatus: '1' });
   if (res.code === 200) {
     expertList.value = res.rows;
   }
