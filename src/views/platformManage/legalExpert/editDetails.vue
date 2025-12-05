@@ -15,7 +15,7 @@
     <div v-loading="loading">
       <div :class="['supplier-edit-details', 'detail-form']">
         <!-- 基础信息 -->
-        <el-form :model="formData" label-width="140px" :disabled="true">
+        <el-form :model="formData" label-width="180px" :disabled="true">
           <FormHeader title="法律专家基础信息" />
           <el-row :gutter="20">
             <el-col :span="24">

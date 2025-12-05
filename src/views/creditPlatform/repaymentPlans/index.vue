@@ -313,16 +313,31 @@ const handleTracking = (row: RepaymentPlan) => {
 
 const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'completed' | 'overdue') => {
   let actualType: 'pending' | 'completed' | 'overdue' = type || 'pending';
+  let messageType = '0';
 
-  if (!type) {
-    if (row.planStatus === '2') {
-      actualType = 'completed';
-    } else if (row.currentPeriodStatus === '0') {
+  // 首先判断 planStatus 是否是 2
+  if (row.planStatus === '2') {
+    // planStatus = 2 → messageType = 3（完结通知）
+    actualType = 'completed';
+    messageType = '3';
+  } else {
+    // planStatus 不是 2，根据 currentPeriodStatus 判断
+    if (row.currentPeriodStatus === '0') {
+      // currentPeriodStatus = 0 → messageType = 1（还款提醒）
       actualType = 'pending';
+      messageType = '1';
     } else if (row.currentPeriodStatus === '2') {
+      // currentPeriodStatus = 2 → messageType = 2（逾期提示）
       actualType = 'overdue';
+      messageType = '2';
+    } else if (row.currentPeriodStatus === '1') {
+      // currentPeriodStatus = 1 → 不显示还款提示按钮（这里不应该被调用，但为了安全处理）
+      ElMessage.warning('当前期次已还款，无需发送提示');
+      return;
     } else {
+      // 默认情况
       actualType = 'pending';
+      messageType = '1';
     }
   }
 
@@ -331,15 +346,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
     completed: '完结通知',
     overdue: '逾期提示'
   };
-
-  // 根据通知类型确定 messageType
-  // 还款提醒 → "0", 完结通知 → "3", 逾期提示 → "2"
-  const messageTypeMap: Record<string, string> = {
-    pending: '0',
-    completed: '3',
-    overdue: '2'
-  };
-  const messageType = messageTypeMap[actualType] || '0';
 
   ElMessageBox.confirm(`确定向 ${row.realName} 发送${messages[actualType]}吗？`, '提示', {
     confirmButtonText: '确定',
