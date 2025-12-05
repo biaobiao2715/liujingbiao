@@ -30,17 +30,22 @@
         </el-tooltip>
       </div>
     </div>
+    
+    <!-- 权限申请弹窗 -->
+    <PermissionPopup v-model:visible="permissionPopupVisible" @submit="handlePermissionSubmit" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, getCurrentInstance, onMounted } from 'vue';
+import type { ComponentInternalInstance } from 'vue';
 import { useRouter } from 'vue-router';
 import { getInfo, thirdPartyLogin } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
 import axios from 'axios';
+import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -144,6 +149,7 @@ const applications = ref([
 const currentPlatform = ref([]);
 
 const tenantType = ref('');
+const permissionPopupVisible = ref(false);
 
 onMounted(async () => {
   getUserInfo();
@@ -166,8 +172,24 @@ const getIcon = (svgName: string) => {
 const handleRedirect = async (path: string) => {
   // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
-    // const res = await thirdPartyLogin({ ...getCacheInfo() });
+    // 显示权限申请弹窗
+    permissionPopupVisible.value = true;
+    return;
+  }
 
+  if (path) {
+    // 不同角色进入到后台管理，定位不同页面
+    router.push(path);
+    setTimeout(() => {
+      initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
+    }, 2000);
+  }
+};
+
+// 处理权限申请提交
+const handlePermissionSubmit = async (data: any) => {
+  // 提交权限申请后，再执行第三方登录
+  try {
     const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
       ...getCacheInfo()
     });
@@ -184,15 +206,8 @@ const handleRedirect = async (path: string) => {
         newWindow.postMessage({ type: 'SET_TOKEN', token }, res.data.redirectUrl);
       }, 300); // 基本 300~500ms 足够
     }
-    return;
-  }
-
-  if (path) {
-    // 不同角色进入到后台管理，定位不同页面
-    router.push(path);
-    setTimeout(() => {
-      initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
-    }, 2000);
+  } catch (error) {
+    console.error('第三方登录失败:', error);
   }
 };
 
