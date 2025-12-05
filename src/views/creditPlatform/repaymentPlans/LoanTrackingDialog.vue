@@ -225,11 +225,42 @@ const formatDateOnly = (dateStr: string | null | undefined): string => {
 };
 
 /**
- * 解析还款日期列表
+ * 解析还款日期列表（新字段：repaymentPeriodAndDates）
+ * 结构示例：[{ planStatusList: 1, repaymentDateList: '2025-12-31 00:00:00' }, ...]
+ * @param periodAndDates - 新字段数组
+ * @returns 还款日期项数组（包含期数和日期）
+ */
+const parseRepaymentPeriodAndDates = (periodAndDates: Array<Record<string, any>> | null | undefined): RepaymentDateItem[] => {
+  if (!periodAndDates || !Array.isArray(periodAndDates)) return [];
+
+  const items: RepaymentDateItem[] = periodAndDates
+    .map((item, index) => {
+      const periodNum = Number(item?.planStatusList ?? index + 1);
+      const dateStr = formatDateOnly(item?.repaymentDateList);
+      if (!dateStr) return null;
+      return {
+        period: `第${periodNum}期`,
+        date: dateStr
+      };
+    })
+    .filter(Boolean) as RepaymentDateItem[];
+
+  // 按期数排序
+  items.sort((a, b) => {
+    const numA = parseInt(a.period.match(/(\d+)/)?.[1] || '0');
+    const numB = parseInt(b.period.match(/(\d+)/)?.[1] || '0');
+    return numA - numB;
+  });
+
+  return items;
+};
+
+/**
+ * 解析旧格式还款日期列表（兼容保留）
  * @param repaymentDateList - 还款日期列表字符串（支持逗号分隔或分号分隔的期数格式）
  * @returns 还款日期项数组（包含期数和日期）
  */
-const parseRepaymentDateList = (repaymentDateList: string | null | undefined): RepaymentDateItem[] => {
+const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefined): RepaymentDateItem[] => {
   if (!repaymentDateList) return [];
 
   const dateStr = String(repaymentDateList).trim();
@@ -331,8 +362,11 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
     status: data.loanDate ? 'finish' : 'wait'
   });
 
-  // 5. 还款中
-  const repaymentDates = parseRepaymentDateList(data.repaymentDateList);
+  // 5. 还款中（优先使用新字段 repaymentPeriodAndDates，兼容旧字段 repaymentDateList）
+  const repaymentDates =
+    parseRepaymentPeriodAndDates(data.repaymentPeriodAndDates) ||
+    parseRepaymentPeriodAndDates(data.repaymentPeriodAndDatesList) || // 兼容可能的命名
+    parseLegacyRepaymentDateList(data.repaymentDateList);
   const hasRepaymentDates = repaymentDates.length > 0;
   steps.push({
     title: '还款',
