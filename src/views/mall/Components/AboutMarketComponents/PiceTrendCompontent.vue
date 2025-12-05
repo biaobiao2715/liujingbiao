@@ -55,7 +55,7 @@
               </p>
             </div>
             <div class="card-chart">
-              <img :src="todayTrendLineIcon" alt="当日趋势" />
+              <div ref="miniChartContainer" class="mini-chart-container"></div>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
@@ -147,12 +147,11 @@ import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import type { ComponentInternalInstance } from 'vue';
+import * as echarts from 'echarts';
+import type { ECharts } from 'echarts';
 import trendDownIcon from '@/assets/images/marketConditions/down.png';
 import trendUpIcon from '@/assets/images/marketConditions/up.png';
 import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
-import todayLineUpIcon from '@/assets/images/todayPriceLine.png';
-import todayLineDownIcon from '@/assets/images/marketConditions/linedown.png';
-import todayLineFlatIcon from '@/assets/images/marketConditions/lineP.png';
 
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -197,6 +196,10 @@ const priceStats = ref({
 // 热门推荐表格数据
 const recommendationTableData = ref<any[]>([]);
 const recommendationLoading = ref(false);
+
+// 小折线图相关
+const miniChartContainer = ref<HTMLElement | null>(null);
+let miniChartInstance: ECharts | null = null;
 
 // 价格专项报告弹窗相关
 const reportDialogVisible = ref(false);
@@ -311,6 +314,10 @@ const fetchPriceData = async () => {
         prices: prices.length > 0 ? prices : []
       };
       updateAxisRange(currentChartData.value.prices);
+      // 更新小折线图
+      nextTick(() => {
+        updateMiniChart();
+      });
     } else {
       ElMessage.error(response?.msg || '获取价格走势数据失败');
       currentChartData.value = { dates: [], prices: [] };
@@ -354,20 +361,118 @@ const refreshAllData = () => {
   fetchHotRecommendation();
 };
 
-// 当日趋势小图标：根据近7日趋势文字显示不同曲线
-const todayTrendLineIcon = computed(() => {
-  const trend = priceStats.value.trend || '';
-  if (trend.includes('上升')) {
-    // 略有上升 / 大幅上升
-    return todayLineUpIcon;
+// 初始化小折线图
+const initMiniChart = () => {
+  if (!miniChartContainer.value) return;
+
+  miniChartInstance = echarts.init(miniChartContainer.value);
+  
+  // 监听容器大小变化
+  if (miniChartContainer.value) {
+    const resizeObserver = new ResizeObserver(() => {
+      miniChartInstance?.resize();
+    });
+    resizeObserver.observe(miniChartContainer.value);
   }
-  if (trend.includes('下降')) {
-    // 略有下降 / 大幅下降
-    return todayLineDownIcon;
+  
+  updateMiniChart();
+  
+  // 延迟调整，确保图表正确渲染
+  setTimeout(() => {
+    miniChartInstance?.resize();
+    updateMiniChart();
+  }, 100);
+};
+
+// 更新小折线图
+const updateMiniChart = () => {
+  if (!miniChartInstance || !currentChartData.value.prices.length) return;
+
+  const prices = currentChartData.value.prices;
+  const dates = currentChartData.value.dates;
+
+  // 只显示最近的数据点（最多显示所有数据）
+  const displayPrices = prices;
+  const displayDates = dates.map((_, index) => index + 1); // 使用索引作为 x 轴
+
+  // 过滤有效价格值
+  const validPrices = displayPrices.filter(p => p !== null && p !== undefined && !isNaN(p) && p >= 0);
+  
+  if (validPrices.length === 0) return;
+
+  const minPrice = Math.min(...validPrices);
+  const maxPrice = Math.max(...validPrices);
+  const priceRange = maxPrice - minPrice;
+  
+  // 如果价格范围很小，使用更大的 padding；如果范围很大，使用较小的 padding
+  let padding: number;
+  if (priceRange === 0) {
+    padding = Math.max(1, maxPrice * 0.2);
+  } else if (priceRange < 1) {
+    padding = priceRange * 0.3;
+  } else {
+    padding = priceRange * 0.12;
   }
-  // 趋于平稳 或 其它情况
-  return todayLineFlatIcon;
-});
+
+  const option = {
+    grid: {
+      left: 3,
+      right: 3,
+      top: 3,
+      bottom: 3,
+      containLabel: false
+    },
+    xAxis: {
+      type: 'category',
+      data: displayDates,
+      show: false,
+      boundaryGap: false
+    },
+    yAxis: {
+      type: 'value',
+      show: false,
+      min: Math.max(0, minPrice - padding),
+      max: maxPrice + padding,
+      scale: false
+    },
+    series: [
+      {
+        type: 'line',
+        data: displayPrices,
+        smooth: 0.4,
+        symbol: 'none',
+        sampling: 'lttb',
+        lineStyle: {
+          width: 2.5,
+          color: '#108C58'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgba(16,140,88,0.25)'
+            },
+            {
+              offset: 1,
+              color: 'rgba(16,140,88,0)'
+            }
+          ])
+        },
+        animation: false,
+        emphasis: {
+          disabled: true
+        }
+      }
+    ]
+  };
+
+  miniChartInstance.setOption(option, true);
+  
+  // 确保图表正确渲染
+  nextTick(() => {
+    miniChartInstance?.resize();
+  });
+};
 
 // 切换时间范围
 const changeTimeRange = (days: number) => {
@@ -720,6 +825,17 @@ const getTrendIcon = (change: number | string) => {
   return trendFlatIcon;
 };
 
+// 监听图表数据变化，更新小折线图
+watch(
+  () => [currentChartData.value.dates, currentChartData.value.prices],
+  () => {
+    nextTick(() => {
+      updateMiniChart();
+    });
+  },
+  { deep: true }
+);
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchCategoryList();
@@ -727,6 +843,11 @@ onMounted(() => {
   fetchPriceExplanation();
   fetchHotRecommendation();
   eventBus.on('priceTrend:applyFilters', applyExternalFilters);
+  
+  // 初始化小折线图
+  nextTick(() => {
+    initMiniChart();
+  });
 });
 
 // 暴露方法供父组件调用
@@ -739,6 +860,12 @@ onBeforeUnmount(() => {
     eventBus.off?.('priceTrend:applyFilters', applyExternalFilters);
   } catch (error) {
     // ignore
+  }
+  
+  // 清理小折线图实例
+  if (miniChartInstance) {
+    miniChartInstance.dispose();
+    miniChartInstance = null;
   }
 });
 </script>
@@ -830,6 +957,7 @@ onBeforeUnmount(() => {
         border: 1px dashed rgba(91, 188, 255, 0.6);
         border-radius: 4px;
         padding: 16px;
+        padding-right: 0;
         background: #fff;
         display: flex;
         flex-direction: column;
@@ -904,16 +1032,20 @@ onBeforeUnmount(() => {
 
         .card-chart {
           position: absolute;
-          top: 14px;
-          right: 8px;
-          width: 120px;
-          height: 64px;
+          top: 4px;
+          right: 12px;
+          width: 140px;
+          height: 70px;
           align-items: center;
           justify-content: center;
           border-radius: 6px;
-          img {
+          overflow: hidden;
+          
+          .mini-chart-container {
             width: 100%;
-            object-fit: contain;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
           }
         }
 
