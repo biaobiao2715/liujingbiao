@@ -1,35 +1,40 @@
 <template>
   <!-- 专家问答 -->
   <div class="qa-container">
-    <el-card>
-      <template #header>
-        <div class="flex-center-between">
-          <div class="qa-title">专家问答</div>
-          <el-button type="text" @click="toggleExpand">
-            <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
-            <el-icon v-else size="32"><ArrowDownBold /></el-icon>
-          </el-button>
-        </div>
-      </template>
+    <div>
+      <div class="flex-center-between">
+        <div class="qa-title">专家问答</div>
+        <!-- <el-button type="text" @click="toggleExpand">
+          <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
+          <el-icon v-else size="32"><ArrowDownBold /></el-icon>
+        </el-button> -->
+      </div>
       <el-row :gutter="20">
-        <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 3">
-          <el-card class="qa-card" shadow="hover">
-            <div class="qa-question">
-              <div class="qa-icon question-icon">问</div>
-              <div class="qa-question-text">{{ item.questionContent }}</div>
+        <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 6">
+          <div class="qa-card">
+            <div class="qa-question gap-8">
+              <img src="@/assets/mall/question-icon.png" width="28" height="28" />
+              <div class="qa-question-text">
+                {{ item.questionContent }}
+              </div>
             </div>
-            <div class="qa-answer">
-              <div class="qa-icon answer-icon">答</div>
-              <div class="qa-answer-text">{{ item.hnAnswerVoList[0]?.answerContent }}</div>
+            <div class="qa-answer gap-8">
+              <img src="@/assets/mall/answer-icon.png" width="28" height="28" />
+              <div class="qa-answer-text">
+                {{ item.hnAnswerVoList[0]?.answerContent }}
+              </div>
             </div>
-            <div class="qa-info">
-              全部{{ item.hnAnswerVoList?.length }}条信息
+            <div class="qa-info flex-center-between">
+              <div class="flex-center gap-4 message-link">
+                <div>查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
+                <img src="@/assets/mall/message-arrow-icon.png" width="12" height="12" />
+              </div>
               <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
             </div>
-          </el-card>
+          </div>
         </el-col>
       </el-row>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -76,18 +81,25 @@ const getQuestionList = async () => {
 }
 
 .qa-title {
+  color: #3d3d3d;
   font-size: 20px;
   font-weight: bold;
+  border-left: 4px solid #108c58;
+  padding-left: 8px;
+  line-height: 16px;
+  margin-bottom: 16px;
 }
 
 .qa-card {
-  cursor: pointer;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .qa-question,
 .qa-answer {
   display: flex;
-  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -112,11 +124,19 @@ const getQuestionList = async () => {
 
 .qa-answer-text,
 .qa-question-text {
-  // 超出一行显示省略号
-  width: calc(100% - 40px);
+  // 超出2行显示省略号
+  height: 46px;
+  font-size: 14px;
+  color: #333333;
+  font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.qa-answer-text {
+  font-weight: 400;
 }
 
 .answer-icon {
@@ -124,16 +144,16 @@ const getQuestionList = async () => {
 }
 
 .qa-info {
-  font-size: 14px;
-  color: #666;
+  font-size: 12px;
+  color: var(--color-main);
+  .message-link {
+    cursor: pointer;
+  }
 }
 
 .qa-update-time {
   float: right;
-  color: #999;
+  font-size: 12px;
+  color: #909090;
 }
-
-// ::v-deep .el-col {
-//   margin-bottom: 12px;
-// }
 </style>
