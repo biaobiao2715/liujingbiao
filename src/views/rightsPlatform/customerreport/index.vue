@@ -30,9 +30,19 @@ div<!--
         <el-input v-model="queryParams.reportGoodsCode" placeholder="请输入举报商品" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 创建时间 -->
-      <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 240px;" />
+             <el-form-item label="创建时间" prop="publishTime" label-width="auto">
+        <el-date-picker
+          v-model="queryParams.publishTime"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
       </el-form-item>
+     
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择所属状态" filterable clearable>
@@ -208,7 +218,7 @@ const queryParams = ref({
   reportTypeId: '', // 举报类型
   reportPersonName: '', // 被举报方
   reportGoodsCode: '', //举报商品
-  createTime: '', //创建时间
+  publishTime: [] as string[] | [],
   status: '' //所属状态
 });
 
@@ -240,10 +250,10 @@ const handleSearch = () => {
   getList();
 };
 // // 处理日期选择事件
-// const handleSelectDate = (val: string[]) => {
-//   queryParams.value.recognizeStartTime = val?.[0] || '';
-//   queryParams.value.recognizeEndTime = val?.[1] || '';
-// };
+ const handleSelectDate = (val: string[]) => {
+  queryParams.value.startTime = val?.[0] || '';
+   queryParams.value.endTime = val?.[1] || '';
+ };
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -261,7 +271,8 @@ const handleReset = () => {
     reportTypeId: '', // 举报类型
     reportPersonName: '', // 被举报方
     reportGoodsCode: '', //举报商品
-    createTime: '', //创建时间
+    publishTime: [] as string[] | [],
+
     status: '' //所属状态
   };
   handleQuery();
@@ -300,7 +311,12 @@ const getList = async () => {
   try {
    console.log('queryParams.value-------', queryParams.value);
     
-    const res = await getreportlist(queryParams.value);
+    const res = await getreportlist(
+    { ...queryParams.value,
+      publishTime: undefined,
+      startTime: queryParams.value.publishTime?.[0],
+      endTime: queryParams.value.publishTime?.[1] }
+    );
     console.log('res-------', res);
     tableData.value = res.rows || [];
     total.value = res.total || 0;

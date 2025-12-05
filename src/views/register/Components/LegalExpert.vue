@@ -271,7 +271,7 @@ const ocrMap = {
   certificateNumber: 'practiceCertificateNumber',
   issuingAuthority: 'issuingAuthority',
   issueDate: 'issueDate',
-  qualificationDate: 'issueDate',
+  //   qualificationDate: 'issueDate',
   specialization: 'technicalQualification'
 };
 // 表单数据
