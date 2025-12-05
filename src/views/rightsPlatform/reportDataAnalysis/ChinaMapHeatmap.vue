@@ -243,7 +243,16 @@ const updateChart = () => {
             return name;
           },
           // 调整标签位置
-          offset: [0, 0],
+          offset: function (params: any) {
+            const name = params.name;
+            // 香港向上偏移，澳门向下偏移
+            if (name === '香港') {
+              return [0, -10];
+            } else if (name === '澳门') {
+              return [0, 10];
+            }
+            return [0, 0];
+          },
           // 标签位置：优先显示在区域内部，如果空间不足则显示在外部
           position: function (params: any) {
             const name = params.name;
