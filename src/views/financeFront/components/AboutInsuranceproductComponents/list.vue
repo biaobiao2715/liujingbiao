@@ -12,10 +12,10 @@
       <!-- 搜索条件 -->
       <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
         <el-form-item label="产品名称" prop="productName" label-width="auto">
-          <el-input v-model="queryParams.productName" placeholder="请输入企业名称" clearable @keyup.enter="handleQuery" />
+          <el-input v-model="queryParams.productName" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="产品类型" prop="productType" label-width="auto">
-          <el-select v-model="queryParams.productType" placeholder="产品类型" filterable clearable>
+          <el-select v-model="queryParams.productType" placeholder="请选择产品类型" filterable clearable>
             <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
@@ -28,9 +28,9 @@
       <!-- 表格展示 -->
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column label="产品名称" align="center" prop="productName" :show-overflow-tooltip="true" />
-        <el-table-column label="适用对象" align="center" prop="applicableObject">
+        <el-table-column label="适用对象" align="center" width="200" :show-overflow-tooltip="true" prop="applicableObject">
           <template #default="scope">
-            <dict-text :options="applicable_object" :value="scope.row.applicableObject" />
+            <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
           </template>
         </el-table-column>
         <el-table-column label="产品类型" align="center" prop="productType">

@@ -563,7 +563,7 @@ const rules: FormRules = {
         const v = raw.replace(/\s+/g, '').trim();
         if (!v) return cb(new Error('请输入银行卡号'));
         if (!/^\d{12,19}$/.test(v)) return cb(new Error('银行卡号长度应为12-19位数字'));
-        if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
+        // if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
         cb();
       },
       trigger: 'blur'
@@ -574,7 +574,7 @@ const rules: FormRules = {
         const v = raw.replace(/\s+/g, '').trim();
         if (!v) return cb();
         if (!/^\d{12,19}$/.test(v)) return cb(new Error('银行卡号长度应为12-19位数字'));
-        if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
+        // if (!luhnCheck(v)) return cb(new Error('银行卡号格式不正确'));
         cb();
       },
       trigger: 'change'

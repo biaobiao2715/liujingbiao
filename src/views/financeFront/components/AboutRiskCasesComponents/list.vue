@@ -15,7 +15,7 @@
           <el-input v-model="queryParams.articleTitle" placeholder="请输入文章名称" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="文章类型" prop="articleTypes" label-width="auto">
-          <el-select v-model="queryParams.articleTypes" placeholder="文章类型" filterable clearable>
+          <el-select v-model="queryParams.articleTypes" placeholder="请选择文章类型" filterable clearable>
             <el-option v-for="dict in art_article_type" :key="dict.value" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
