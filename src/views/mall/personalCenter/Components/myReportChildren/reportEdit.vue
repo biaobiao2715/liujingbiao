@@ -199,9 +199,12 @@ const formData = reactive({
 });
 
 // 格式化文件大小
-const formatFileSize = (bytes: number): string => {
+const formatFileSize = (bytes: number | string): string => {
+  if (!bytes) return '0 B';
   if (typeof bytes === 'string') {
-    return bytes;
+    // 转为数字
+    bytes = parseInt(bytes, 10);
+    // return bytes;
   }
   if (bytes === 0) return '0 B';
   const k = 1024;
