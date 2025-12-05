@@ -78,7 +78,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="还款周期">
-                <el-input :model-value="detail.loan.period" disabled />
+                <el-input :model-value="detail.loan.period ? `${detail.loan.period} 期` : ''" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="12">

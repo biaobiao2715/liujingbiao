@@ -213,6 +213,12 @@ const formatValue = (value: any) => {
   return value;
 };
 
+// 带单位格式化：空值返回 '--'
+const formatWithUnit = (value: any, unit: string) => {
+  if (value === undefined || value === null || value === '') return '--';
+  return `${value}${unit}`;
+};
+
 /**
  * 从字典获取还款方式标签（优先使用字典，否则使用备用映射）
  */
@@ -410,8 +416,8 @@ const loanInfoList = computed<DetailField[]>(() => {
   const bankLabel = getBankLabel(bankCode);
   const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(row.collectionAccountName || row.bankName);
   return [
-    { label: '贷款金额', value: formatValue(row.loanAmount) },
-    { label: '贷款期限', value: formatValue(row.loanTerm) },
+    { label: '贷款金额', value: formatWithUnit(row.loanAmount, ' 万元') },
+    { label: '贷款期限', value: formatWithUnit(row.loanTerm, ' 期') },
     { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(row.bankAccountNumber || row.bankCardNo) },
