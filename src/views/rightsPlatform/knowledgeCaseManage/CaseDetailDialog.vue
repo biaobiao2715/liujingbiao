@@ -123,7 +123,6 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Download, Delete } from '@element-plus/icons-vue';
 import { addKnowledgeCase, updateKnowledgeCase, fetchKnowledgeCaseDetail, fetchKnowledgeCaseList } from '@/api/rightsPlatform/knowledgeCaseManage/index';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
@@ -311,64 +310,49 @@ const handleExceed = () => {
 const handleFileChange = async (file: any) => {
   if (!validateFile(file.raw)) return;
 
-  const MB = 1024 * 1024;
-  const LARGE_FILE_CHUNK_THRESHOLD = 100 * MB; // 文件大于100MB时使用分片上传
-  const useChunkUpload = file.raw.size > LARGE_FILE_CHUNK_THRESHOLD;
   const modal = (proxy as any)?.$modal;
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+  modal?.loading?.('正在上传附件，请稍候...');
 
   try {
-    let response: any;
-    
-    if (useChunkUpload) {
-      const chunkRes = await uploadByChunks(file.raw, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      // 分片上传返回的数据结构可能是 { url, fileName, ossid } 或 { data: { url, fileName, ossId } }
-      // 统一处理，兼容不同的返回格式
-      let chunkData = chunkRes;
-      if (chunkRes && !chunkRes.ossId && !chunkRes.ossid && chunkRes.data) {
-        chunkData = chunkRes.data;
-      }
-      // 兼容 ossId 和 ossid 两种字段名
-      const ossId = chunkData?.ossId || chunkData?.ossid || chunkData?.data?.ossId || chunkData?.data?.ossid;
-      response = {
-        code: 200,
-        data: {
-          ossId: ossId,
-          fileName: chunkData?.fileName || chunkData?.data?.fileName || file.raw.name,
-          url: chunkData?.url || chunkData?.data?.url || ''
-        }
-      };
-    } else {
-      response = await ossUploadImage({ file: file.raw });
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传
+    const res: any = await uploadByChunks(file.raw, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
+
+    // 兼容处理不同的返回格式
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
     }
 
-    if (response.code === 200 && response.data?.ossId) {
-      const fileType = getFileType(file.raw.name);
-      const newAttachment = {
-        ossId: response.data.ossId,
-        fileName: response.data.fileName,
-        originalName: file.raw.name,
-        fileSuffix: file.raw.type,
-        url: response.data.url,
-        fileSize: formatFileSize(file.raw.size),
-        fileType: fileType,
-        foreignType: '1' // 根据接口文档，1表示法律文书模版等
-      };
-      if (attachmentList.value.length > 0) {
-        attachmentList.value = [newAttachment];
-        ElMessage.success('附件已重新上传并覆盖原文件');
-      } else {
-        attachmentList.value = [newAttachment];
-        ElMessage.success('附件上传成功');
-      }
-    } else {
-      ElMessage.error(response?.msg || '上传失败，请重试');
+    // 兼容 ossId 和 ossid 两种字段名
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
     }
-  } catch (error) {
+
+    const fileType = getFileType(file.raw.name);
+    const newAttachment = {
+      ossId: ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || file.raw.name,
+      originalName: file.raw.name,
+      fileSuffix: file.raw.type,
+      url: uploadResult?.url || uploadResult?.data?.url || '',
+      fileSize: formatFileSize(file.raw.size),
+      fileType: fileType,
+      foreignType: '1' // 根据接口文档，1表示法律文书模版等
+    };
+    
+    if (attachmentList.value.length > 0) {
+      attachmentList.value = [newAttachment];
+      ElMessage.success('附件已重新上传并覆盖原文件');
+    } else {
+      attachmentList.value = [newAttachment];
+      ElMessage.success('附件上传成功');
+    }
+  } catch (error: any) {
     console.error('附件上传失败:', error);
-    ElMessage.error('上传失败，请重试');
+    ElMessage.error(error?.msg || error?.message || '上传失败，请重试');
   } finally {
     modal?.closeLoading?.();
   }
