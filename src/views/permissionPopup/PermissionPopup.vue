@@ -9,13 +9,7 @@
     @close="handleClose"
   >
     <div class="permission-popup">
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        label-width="140px"
-        class="permission-form"
-      >
+      <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px" class="permission-form">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="企业名称" prop="companyName">
@@ -23,16 +17,16 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="统一社会信用代码号" prop="creditCode" class="no-wrap-label">
-              <el-input v-model="formData.creditCode" placeholder="请输入统一社会信用代码号" />
+            <el-form-item label="统一社会信用代码号" prop="licenseCode" class="no-wrap-label">
+              <el-input v-model="formData.licenseCode" placeholder="请输入统一社会信用代码号" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="企业性质(类型)" prop="enterpriseType">
-              <el-select v-model="formData.enterpriseType" placeholder="请选择企业性质" style="width: 100%">
+            <el-form-item label="企业性质(类型)" prop="companyType">
+              <el-select v-model="formData.companyType" placeholder="请选择企业性质" style="width: 100%">
                 <el-option label="企业" value="enterprise" />
-                <el-option label="供应商" value="supplier" />
-                <el-option label="其他" value="other" />
+                <el-option label="个体工商户" value="supplier" />
+                <el-option label="合作社" value="other" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -41,108 +35,84 @@
               <el-input v-model="formData.legalPerson" placeholder="请输入法人/联系人" />
             </el-form-item>
           </el-col>
-      <el-col :span="12">
-        <el-form-item label="联系电话" prop="contactPhone">
-          <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
-        </el-form-item>
-      </el-col>
-      <el-col :span="12">
-        <el-form-item label="地址" prop="address">
-          <el-input
-            v-model="formData.address"
-            placeholder="请输入地址"
-            @blur="handleAddressBlur"
-            @keyup.enter="handleAddressBlur"
-          />
-        </el-form-item>
-      </el-col>
-    </el-row>  
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="contactPhone">
+              <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="地址" prop="address">
+              <el-input v-model="formData.address" placeholder="请输入地址" @blur="handleAddressBlur" @keyup.enter="handleAddressBlur" />
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-    <!-- 位置选择 -->
-    <el-form-item label="位置" prop="location">
-      <AMap
-        :model-value="mapData"
-        @update:model-value="handleMapUpdate"
-        map-id="permission-map"
-        :address-sync-signal="addressSyncSignal"
-      />
-    </el-form-item>
-
-    <!-- 经纬度显示，与上方布局对齐 -->
-    <el-row :gutter="20" class="coord-row">
-      <el-col :span="12">
-        <el-form-item label="经度">
-          <el-input v-model="formData.longitude" readonly />
+        <!-- 位置选择 -->
+        <el-form-item label="位置" prop="location">
+          <AMap :model-value="mapData" @update:model-value="handleMapUpdate" map-id="permission-map" :address-sync-signal="addressSyncSignal" />
         </el-form-item>
-      </el-col>
-      <el-col :span="12">
-        <el-form-item label="纬度">
-          <el-input v-model="formData.latitude" readonly />
+
+        <!-- 经纬度显示，与上方布局对齐 -->
+        <el-row :gutter="20" class="coord-row">
+          <el-col :span="12">
+            <el-form-item label="经度">
+              <el-input v-model="formData.longitude" readonly />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="纬度">
+              <el-input v-model="formData.latitude" readonly />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 简介 -->
+        <el-form-item label="简介" prop="companyIntro">
+          <el-input v-model="formData.companyIntro" type="textarea" :rows="4" placeholder="请输入简介" />
         </el-form-item>
-      </el-col>
-    </el-row>
 
-    <!-- 简介 -->
-    <el-form-item label="简介" prop="introduction">
-      <el-input
-        v-model="formData.introduction"
-        type="textarea"
-        :rows="4"
-        placeholder="请输入简介"
-      />
-    </el-form-item>
-
-    <!-- 营业执照附件（上传逻辑与 RepaymentPlanDialog 对齐） -->
-    <el-form-item label="营业执照附件" prop="businessLicense">
-      <div class="upload-row">
-        <div class="upload-inline" :class="{ 'uploading-layout': licenseFiles.length && licenseFiles[0].status === 'uploading' }">
-          <div class="contract-files" v-if="licenseFiles.length">
-            <div class="contract-file-item">
-              <template v-if="licenseFiles[0].status === 'success'">
-                <el-link
-                  :href="licenseFiles[0].serverUrl || licenseFiles[0].url"
-                  target="_blank"
-                  type="primary"
-                  class="contract-link"
-                >
-                  {{ licenseFiles[0].displayName || licenseFiles[0].name }}
-                </el-link>
-                <el-icon
-                  class="file-remove-icon"
-                  @click.stop="handleDeleteFile"
-                  title="删除文件"
-                >
-                  <Close />
-                </el-icon>
-              </template>
-              <template v-else-if="licenseFiles[0].status === 'uploading'">
-                <div class="uploading-status">
-                  <el-icon class="uploading-icon"><Loading /></el-icon>
-                  <span class="uploading-text">上传中...</span>
+        <!-- 营业执照附件（上传逻辑与 RepaymentPlanDialog 对齐） -->
+        <el-form-item label="营业执照附件" prop="licenseFileId">
+          <div class="upload-row">
+            <div class="upload-inline" :class="{ 'uploading-layout': licenseFiles.length && licenseFiles[0].status === 'uploading' }">
+              <div class="contract-files" v-if="licenseFiles.length">
+                <div class="contract-file-item">
+                  <template v-if="licenseFiles[0].status === 'success'">
+                    <el-link :href="licenseFiles[0].serverUrl || licenseFiles[0].url" target="_blank" type="primary" class="contract-link">
+                      {{ licenseFiles[0].displayName || licenseFiles[0].name }}
+                    </el-link>
+                    <el-icon class="file-remove-icon" @click.stop="handleDeleteFile" title="删除文件">
+                      <Close />
+                    </el-icon>
+                  </template>
+                  <template v-else-if="licenseFiles[0].status === 'uploading'">
+                    <div class="uploading-status">
+                      <el-icon class="uploading-icon"><Loading /></el-icon>
+                      <span class="uploading-text">上传中...</span>
+                    </div>
+                  </template>
                 </div>
-              </template>
+              </div>
+              <el-upload
+                v-if="!licenseFiles.length || (licenseFiles.length > 0 && licenseFiles[0].status !== 'success')"
+                ref="uploaderRef"
+                :file-list="licenseFiles"
+                action="#"
+                accept=".jpg,.jpeg,.png"
+                :http-request="handleUpload"
+                :before-upload="beforeUpload"
+                :on-remove="handleLicenseRemove"
+                :limit="1"
+                class="contract-uploader"
+              >
+                <el-button type="primary" icon="Upload">点击上传</el-button>
+                <template #tip>
+                  <div class="upload-tip">仅支持 JPG、PNG 图片，大小不超过10MB</div>
+                </template>
+              </el-upload>
             </div>
           </div>
-          <el-upload
-            v-if="!licenseFiles.length || (licenseFiles.length > 0 && licenseFiles[0].status !== 'success')"
-            ref="uploaderRef"
-            :file-list="licenseFiles"
-            action="#"
-            accept=".jpg,.jpeg,.png"
-            :http-request="handleUpload"
-            :before-upload="beforeUpload"
-            :on-remove="handleLicenseRemove"
-            :limit="1"
-            class="contract-uploader"
-          >
-            <el-button type="primary" icon="Upload">点击上传</el-button>
-            <template #tip>
-              <div class="upload-tip">仅支持 JPG、PNG 图片，大小不超过10MB</div>
-            </template>
-          </el-upload>
-        </div>
-      </div>
-    </el-form-item>
+        </el-form-item>
       </el-form>
     </div>
 
@@ -191,16 +161,16 @@ interface LicenseFile extends UploadUserFile {
 
 const formData = reactive({
   companyName: '',
-  creditCode: '',
-  enterpriseType: '',
+  licenseCode: '',
+  companyType: '',
   legalPerson: '',
   contactPhone: '',
   address: '',
   longitude: '',
   latitude: '',
-  introduction: '',
+  companyIntro: '',
   // 用于校验：上传成功后写入 ossId
-  businessLicense: ''
+  licenseFileId: ''
 });
 
 const licenseFiles = ref<LicenseFile[]>([]);
@@ -210,16 +180,16 @@ const addressSyncSignal = ref(0);
 
 const rules: FormRules = {
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
-  creditCode: [{ required: true, message: '请输入统一社会信用代码号', trigger: 'blur' }],
-  enterpriseType: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
+  licenseCode: [{ required: true, message: '请输入统一社会信用代码号', trigger: 'blur' }],
+  companyType: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
   legalPerson: [{ required: true, message: '请输入法人/联系人', trigger: 'blur' }],
   contactPhone: [
     { required: true, message: '请输入联系电话', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ],
   address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
-  introduction: [{ required: true, message: '请输入简介', trigger: 'blur' }],
-  businessLicense: [
+  companyIntro: [{ required: true, message: '请输入简介', trigger: 'blur' }],
+  licenseFileId: [
     {
       required: true,
       validator: (_: any, __: any, callback: any) => {
@@ -266,13 +236,13 @@ const handleMapUpdate = (val: any) => {
   }
 };
 
-// 上传前校验（按业务要求：JPG/PNG/PDF，<=10MB，单文件）
+// 上传前校验（按业务要求：JPG/PNG，<=10MB，单文件）
 const beforeUpload = (file: any) => {
   const allowedTypes = ['image/jpeg', 'image/png'];
   const isValidType = allowedTypes.includes(file.type);
 
   if (!isValidType) {
-    ElMessage.error('只能上传 JPG、PNG、PDF 格式的文件！');
+    ElMessage.error('只能上传 JPG、PNG 格式的图片！');
     return false;
   }
 
@@ -332,7 +302,7 @@ const handleUpload = (req: any) =>
           percentage: 100
         };
         licenseFiles.value = [uploadedFile];
-        formData.businessLicense = String(res.ossId || '');
+        formData.licenseFileId = String(res.ossId || '');
         ElMessage.success('文件上传成功');
         if (typeof req.onSuccess === 'function') req.onSuccess(res);
         return resolve(uploadedFile);
@@ -355,7 +325,7 @@ const handleUpload = (req: any) =>
         percentage: 100
       };
       licenseFiles.value = [uploadedFile];
-      formData.businessLicense = String(data.ossId || '');
+      formData.licenseFileId = String(data.ossId || '');
       ElMessage.success('文件上传成功');
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(uploadedFile);
@@ -386,7 +356,7 @@ const handleLicenseRemove = async (file: LicenseFile) => {
   }
   const idx = licenseFiles.value.findIndex((f) => f.url === file.url || f.serverUrl === file.serverUrl);
   if (idx > -1) licenseFiles.value.splice(idx, 1);
-  formData.businessLicense = '';
+  formData.licenseFileId = '';
   if (file?.url && file.url.startsWith('blob:')) {
     try {
       URL.revokeObjectURL(file.url);
@@ -413,7 +383,7 @@ const handleClose = () => {
   objectUrls.forEach((url) => URL.revokeObjectURL(url));
   objectUrls.clear();
   licenseFiles.value = [];
-  formData.businessLicense = '';
+  formData.licenseFileId = '';
 };
 
 const handleSubmit = async () => {
@@ -426,22 +396,21 @@ const handleSubmit = async () => {
     // 此处可调用真实提交接口；带上附件 ossId 与下载地址
     const payload = {
       ...formData,
-      businessLicenseOssId: licenseFiles.value[0]?.ossId || '',
-      businessLicenseUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
+      licenseFileId: licenseFiles.value[0]?.ossId || ''
+      // businessLicenseUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
     };
-
+    console.log(payload);
     // 模拟提交
     setTimeout(() => {
       ElMessage.success('提交成功');
       submitting.value = false;
       emit('submit', payload);
-      handleClose();
+      // handleClose();
     }, 1000);
   } catch (error) {
     console.error('表单验证失败:', error);
   }
 };
-
 </script>
 
 <style scoped lang="scss">
@@ -588,5 +557,3 @@ const handleSubmit = async () => {
   gap: 12px;
 }
 </style>
-
-
