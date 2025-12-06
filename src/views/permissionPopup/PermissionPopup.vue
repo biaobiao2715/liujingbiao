@@ -588,7 +588,7 @@ const handleSubmit = async () => {
       submitting.value = false;
       emit('submit', payload);
       // 提交成功后可以关闭弹窗
-      // handleClose();
+      handleClose();
     } catch (error: any) {
       submitting.value = false;
       ElMessage.error(error?.msg || error?.message || '提交失败，请重试');
