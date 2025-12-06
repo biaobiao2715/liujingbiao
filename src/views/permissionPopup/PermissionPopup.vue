@@ -189,6 +189,7 @@ interface LicenseFile extends UploadUserFile {
 }
 
 const formData = reactive({
+  id: '',
   companyName: '',
   licenseCode: '',
   companyType: '',
@@ -454,6 +455,7 @@ const fillFormData = (data: any) => {
   if (!data) return;
   
   // 填充表单数据
+  formData.id = data.id || '';
   formData.companyName = data.companyName || '';
   formData.licenseCode = data.licenseCode || '';
   formData.companyType = data.companyType || '';
@@ -504,6 +506,7 @@ watch(
         licenseFiles.value = [];
         formData.licenseFileId = '';
         // 清空所有表单字段
+        formData.id = '';
         formData.companyName = '';
         formData.licenseCode = '';
         formData.companyType = '';
@@ -532,6 +535,7 @@ watch(
       objectUrls.clear();
       licenseFiles.value = [];
       formData.licenseFileId = '';
+      formData.id = '';
       auditComment.value = '';
     }
   },
@@ -553,6 +557,7 @@ const handleClose = () => {
   objectUrls.clear();
   licenseFiles.value = [];
   formData.licenseFileId = '';
+  formData.id = '';
 };
 
 const handleSubmit = async () => {
@@ -565,8 +570,8 @@ const handleSubmit = async () => {
     // 准备提交数据
     const payload = {
       ...formData,
-      licenseFileId: licenseFiles.value[0]?.ossId || ''
-      // businessLicenseUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
+      licenseFileId: licenseFiles.value[0]?.ossId || '',
+      licenseFileUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
     };
 
     try {
