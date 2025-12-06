@@ -25,7 +25,7 @@
         <el-col :span="12"></el-col>
         <el-col :span="12">
           <el-form-item label="文章摘要" prop="articleSummary">
-            <el-input v-model="form.articleSummary" type="textarea" :rows="5" placeholder="请输入文章摘要" maxlength="300" show-word-limit />
+            <el-input v-model="form.articleSummary" type="textarea" :rows="5" placeholder="请输入文章摘要" maxlength="200" show-word-limit />
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -97,10 +97,8 @@
             :show-file-list="true"
           >
             <el-icon><Plus /></el-icon>
-            <template #tip>
-              <div class="upload-tip">注：支持jpg、png两种格式，大小不超过10MB。</div>
-            </template>
           </el-upload>
+          <div>注：支持jpg、png两种格式，大小不超过10MB。</div>
         </el-form-item>
       </el-col>
       <el-col :span="12"></el-col>
@@ -169,7 +167,7 @@ const rules = {
     { validator: (_: any, v: string, cb: any) => (v && v.length <= 30 ? cb() : cb(new Error('标题最多30个字'))), trigger: 'blur' }
   ],
   articleType: [{ required: true, message: '请选择文章类别', trigger: 'change' }],
-  articleSummary: [{ required: true, message: '请输入文章摘要', trigger: 'change' }],
+  articleSummary: [{ required: true, message: '请输入文章摘要,最多输入200个字', trigger: 'change' }],
   articleContent: [{ required: true, message: '请输入正文内容', trigger: 'blur' }],
   articleCover: [{ required: true, message: '请上传主图', trigger: 'change' }],
   articleStatus: [{ required: true, message: '请选择文章状态', trigger: 'change' }]
@@ -642,6 +640,7 @@ onMounted(async () => {
 
   ::v-deep .el-upload-list--picture-card {
     display: block;
+    height: 114px;
   }
   ::v-deep .el-upload-list--picture-card .el-upload-list__item {
     width: 106px;

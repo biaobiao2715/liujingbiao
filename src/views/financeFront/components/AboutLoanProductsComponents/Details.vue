@@ -51,18 +51,18 @@
 
     <div class="detail-content detail-content--advantages">
       <div class="detail-content_title">产品优势</div>
-      <div v-html="form?.productAdvantages"></div>
+      <div class="content-display" v-html="form?.productAdvantages"></div>
     </div>
 
     <div class="detail-flex">
       <div class="detail-content detail-content--applicable">
         <div class="detail-content_title">适用对象</div>
-        <div v-html="form?.applicableInstructions"></div>
+        <div class="content-display" v-html="form?.applicableInstructions"></div>
       </div>
 
       <div class="detail-content detail-content--conditions">
         <div class="detail-content_title">申请条件</div>
-        <div v-html="form?.applicationInstructions"></div>
+        <div class="content-display" v-html="form?.applicationInstructions"></div>
       </div>
     </div>
 
@@ -77,7 +77,7 @@
 
     <div class="detail-content">
       <div class="detail-content_title">产品备注</div>
-      <div class="remark">{{ form?.productRemark }}</div>
+      <div class="remark">{{ form?.productRemark || '暂无备注' }}</div>
     </div>
 
     <div style="height: 197px"></div>
@@ -539,5 +539,33 @@ const getLoanAmount = async () => {
   color: #108c58;
   cursor: pointer;
   margin-left: 58px;
+}
+
+.content-display {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  line-height: 1.8;
+  min-height: 400px;
+
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :deep(p) {
+    margin-bottom: 1em;
+  }
+
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+  }
 }
 </style>

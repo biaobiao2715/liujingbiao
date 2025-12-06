@@ -26,13 +26,19 @@
       </div>
     </div>
 
-    <div v-if="form.articleCover" class="cover">
-      <el-image :src="form.articleCover" fit="contain" />
+    <div v-if="form.articleCover" class="flex-column-center" style="margin-top: 20px">
+      <div class="section-title">文章摘要</div>
+      <div>{{ form.articleSummary || '-' }}</div>
     </div>
 
     <!-- <div class="content" v-html=""></div> -->
     <!-- 编辑器内容 -->
     <ContentWithToc :content="form.articleContent" ref="contentWithTocRef" />
+
+    <div v-if="form.articleCover" class="flex-column-center" style="margin-top: 20px">
+      <div class="section-title">文章主图</div>
+      <el-image :src="form.articleCover" style="height: 160px" />
+    </div>
 
     <div v-if="imgList.length" class="attachments">
       <div class="section-title">附件</div>
