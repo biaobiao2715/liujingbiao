@@ -122,13 +122,13 @@ const handleDetail = (article: any) => {
 }
 
 .essat-list {
-  height: 600px;
+  height: 640px;
   overflow: auto;
   padding: 0 20px;
 }
 
 .essay {
-  padding: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
   .essay-left {
@@ -144,12 +144,14 @@ const handleDetail = (article: any) => {
     }
     .description {
       height: 60px;
+      width: 420px;
       line-height: 20px;
       font-size: 14px;
       color: #3d3d3d;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      display: -webkit-box; /* 添加多行省略号支持 */
+      -webkit-line-clamp: 3; /* 限制显示的行数 */
+      -webkit-box-orient: vertical; /* 设置盒子方向为垂直 */
     }
     .time {
       font-size: 14px;

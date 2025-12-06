@@ -8,9 +8,16 @@
 
 <template>
   <div class="course-meeting-container">
-    <div class="flex-center-center gap-24 mb-12">
-      <el-button :type="activeTab === 'course' ? 'primary' : 'info'" round @click="activeTab = 'course'">培训课程</el-button>
-      <el-button :type="activeTab === 'meeting' ? 'primary' : 'info'" round @click="activeTab = 'meeting'">培训会议</el-button>
+    <div class="header flex-center mb-12">
+      <div class="flex-center-center gap-24 btns">
+        <el-button :type="activeTab === 'course' ? 'primary' : 'info'" round @click="activeTab = 'course'">培训课程</el-button>
+        <el-button :type="activeTab === 'meeting' ? 'primary' : 'info'" round @click="activeTab = 'meeting'">培训会议</el-button>
+      </div>
+
+      <div class="more flex-center gap-4">
+        <div>查看更多</div>
+        <img src="@/assets/mall/more.png" width="18" />
+      </div>
     </div>
 
     <div v-loading="loading">
@@ -114,6 +121,23 @@ const handleDetail = (type: string, id: string) => {
 <style scoped lang="scss">
 .course-meeting-container {
   margin-bottom: 24px;
+  .header {
+    justify-content: flex-end;
+    .btns {
+      width: calc(100% - 80px);
+      margin: 0 auto;
+      padding-left: 82px;
+    }
+    .more {
+      cursor: pointer;
+      margin-left: auto;
+      color: rgba(51, 51, 51, 0.8);
+      font-size: 14px;
+      &:hover {
+        color: var(--color-main);
+      }
+    }
+  }
 }
 
 .meeting-list {

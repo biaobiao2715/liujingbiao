@@ -7,33 +7,33 @@
 -->
 <template>
   <div class="living-component">
-    <el-card>
-      <template #header>
-        <div class="card-header flex-center gap-24">
-          <span>在线直播</span>
-          <el-segmented v-model="value" :options="options" />
-        </div>
-      </template>
+    <div class="header flex-center-between">
+      <div class="title">在线直播</div>
+      <div class="more flex-center gap-4">
+        <div>查看更多</div>
+        <img src="@/assets/mall/more.png" width="18" />
+      </div>
+    </div>
 
-      <!-- 直播信息卡片 -->
-      <el-row :gutter="20" class="live-cards" v-loading="loading">
-        <el-col :span="6" v-for="item in liveData" :key="item.id" class="mb-24">
-          <el-card shadow="hover">
-            <div class="card-content" @click="handleVideoClick(item)">
-              <div class="video-placeholder">
-                <img v-if="item.coverImageUrl" :src="item.coverImageUrl" alt="封面" class="cover-image" />
-                <span v-else>视频</span>
-              </div>
-              <div class="title">{{ item.title }}</div>
-              <div class="description">简介：{{ item.description || '暂无简介' }}</div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="24" v-if="!loading && liveData.length === 0">
-          <el-empty description="暂无直播数据" />
-        </el-col>
-      </el-row>
-    </el-card>
+    <!-- 内容 -->
+    <div class="content flex" v-loading="loading">
+      <!-- 左侧列表 -->
+      <div class="left-list flex">
+        <div v-for="item in liveData" :key="item.id" class="list-item flex" @click="currentItem = item">
+          <img v-if="item.coverImageUrl" :src="item.coverImageUrl" class="cover-image" />
+          <div class="video-info">
+            <div class="title">{{ item.title }}</div>
+            <div class="description">简介：{{ item.description || '暂无简介' }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- 右侧封面 -->
+      <div class="right-cover">
+        <div class="video-cover flex-center-center" :style="{ backgroundImage: 'url(' + currentItem?.coverImageUrl + ')' }">
+          <img src="@/assets/mall/play-icon.png" width="125px" @click="handleVideoClick()" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -44,7 +44,10 @@ import { VideoList, addViewRecordsApi } from '@/api/mall/living/index';
 const loading = ref(false);
 const liveData = ref<any[]>([]);
 
+const currentItem = ref(null);
+
 const value = ref(0); // 0 默认，1 最新发布时间
+
 const options = ref([
   { label: '默认', value: 0 },
   { label: '最新发布时间', value: 1 },
@@ -64,6 +67,7 @@ const getVideoList = async () => {
     });
     if (res.code === 200) {
       liveData.value = res.rows || res.data || [];
+      currentItem.value = liveData.value[0] || null;
     }
   } catch (error) {
     console.error('获取直播列表失败:', error);
@@ -84,14 +88,14 @@ onMounted(() => {
 });
 
 // 点击视频卡片，跳转到视频链接
-const handleVideoClick = (item: any) => {
-  if (item.videoUrl) {
+const handleVideoClick = () => {
+  if (currentItem.value?.videoUrl) {
     // 调用增加播放量的接口
-    addViewRecordsApi({ id: item.id, viewType: '8' });
+    addViewRecordsApi({ id: currentItem.value.id, viewType: '8' });
     // 在新标签页打开视频链接
-    window.open(item.videoUrl, '_blank');
+    window.open(currentItem.value.videoUrl, '_blank');
   } else {
-    console.warn('视频链接不存在:', item);
+    console.warn('视频链接不存在:', currentItem.value);
   }
 };
 </script>
@@ -99,50 +103,79 @@ const handleVideoClick = (item: any) => {
 <style scoped lang="scss">
 .living-component {
   margin-top: 24px;
-  .card-header {
-    font-size: 20px;
-    font-weight: bold;
+
+  .header {
+    padding: 20px;
+    .title {
+      color: #3d3d3d;
+      font-size: 20px;
+      font-weight: bold;
+      border-left: 4px solid #108c58;
+      padding-left: 8px;
+      line-height: 16px;
+    }
+    .more {
+      cursor: pointer;
+      color: rgba(51, 51, 51, 0.8);
+      font-size: 14px;
+      &:hover {
+        color: var(--color-main);
+      }
+    }
   }
+  .content {
+    gap: 20px;
+    .left-list,
+    .right-cover {
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
 
-  .live-cards {
-    .el-card {
-      .card-content {
-        text-align: center;
+      .list-item {
+        gap: 16px;
         cursor: pointer;
-        .video-placeholder {
-          height: 150px;
-          background-color: #f5f5f5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          color: #999;
-          overflow: hidden;
-          position: relative;
-
-          .cover-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .cover-image {
+          width: 164px;
+          height: 100px;
+          border-radius: 8px;
+        }
+        .video-info {
+          padding: 16px 0;
+          .title {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 12px;
+          }
+          .description {
+            line-height: 18px;
+            font-size: 14px;
+            color: #706f6f;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
           }
         }
-
-        .views {
-          margin-top: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          el-icon {
-            margin-right: 5px;
-          }
-        }
-
-        .title {
-          margin-top: 10px;
-          font-size: 16px;
-          font-weight: bold;
-        }
+      }
+    }
+    .left-list {
+      flex: 1;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .right-cover {
+      flex: 2;
+    }
+    .video-cover {
+      width: 100%;
+      height: 564px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      img {
+        cursor: pointer;
       }
     }
   }

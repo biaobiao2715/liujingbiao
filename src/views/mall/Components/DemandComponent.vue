@@ -90,7 +90,7 @@
       <div class="hot-recommendation">
         <div class="title">热销推荐</div>
         <!-- 种子 -->
-        <div class="content flex mb-12">
+        <div class="content flex mb-12" v-if="seedHotRecommendations.length > 0">
           <div class="bg-img">
             <div>种子系列 ></div>
             <div>热卖品种 产地货源</div>
@@ -102,7 +102,7 @@
           </el-row>
         </div>
         <!-- 农资农具 -->
-        <div class="content flex">
+        <div class="content flex" v-if="agriculturalToolsHotRecommendations.length > 0">
           <div class="bg-img2">
             <div>农资农具系列 ></div>
             <div>种类多样 质量把控</div>
