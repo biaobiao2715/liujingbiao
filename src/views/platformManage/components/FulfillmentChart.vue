@@ -111,14 +111,17 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
       legend: {
         data: ['待履约率', '已履约率'],
         top: 10,
-        right: 20
+        right: 20,
+        textStyle: {
+          color: '#303133'
+        }
       },
       xAxis: {
         type: 'category',
         data: chartData.map((item) => item.label),
         axisLine: { lineStyle: { color: '#8c8c8c' } },
         axisLabel: { 
-          color: '#666',
+          color: '#303133',
           interval: 0,
           fontSize: 10
         }
@@ -128,7 +131,7 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
         axisLine: { show: false },
         splitLine: { lineStyle: { color: '#eee' } },
         axisLabel: { 
-          color: '#666',
+          color: '#303133',
           formatter: '{value}%'
         },
         max: 100
@@ -146,7 +149,7 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
             formatter: (params: any) => {
               return params.value > 0 ? `${params.value}%` : '';
             },
-            color: '#fff'
+            color: '#303133'
           },
           data: chartData.map((item) => item.unComplianceRate)
         },
@@ -161,7 +164,7 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
             formatter: (params: any) => {
               return params.value > 0 ? `${params.value}%` : '';
             },
-            color: '#fff'
+            color: '#303133'
           },
           data: chartData.map((item) => item.complianceRate)
         }

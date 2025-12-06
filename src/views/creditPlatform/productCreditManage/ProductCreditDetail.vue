@@ -125,6 +125,7 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadFile } from 'element-plus';
 import { creditProductDetail } from '@/api/creditPlatform/productCreditManage';
+import { listByIds } from '@/api/system/oss';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -141,25 +142,103 @@ const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = to
 
 const loading = ref(false);
 const productDetail = ref<any>({});
+const detailFileList = ref<UploadFile[]>([]);
 
-const detailFileList = computed<UploadFile[]>(() => {
-  if (productDetail.value.ossFileVo && Array.isArray(productDetail.value.ossFileVo) && productDetail.value.ossFileVo.length > 0) {
-    return productDetail.value.ossFileVo.map((file: any) => ({
-      uid: file.ossId?.toString() || Date.now().toString(),
-      name: file.fileName || file.name || '附件',
-      url: file.url || '',
-      status: 'success'
-    } as UploadFile));
-  } else if (productDetail.value.cooperationAttachment) {
-    return [{
-      uid: productDetail.value.cooperationAttachment.toString() || Date.now().toString(),
-      name: productDetail.value.cooperationAttachmentName || '合作机构附件',
-      url: productDetail.value.cooperationAttachmentUrl || '',
-      status: 'success'
-    } as UploadFile];
+// 重新组装PDF文件名称（参考保险产品管理的实现）
+const formatFileName = (fileName: string | undefined | null): string => {
+  if (!fileName) return '合作机构附件.pdf';
+  if (fileName.toLowerCase().endsWith('.pdf')) {
+    return fileName;
   }
-  return [];
-});
+  return `${fileName}.pdf`;
+};
+
+const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
+  const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
+  const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
+  return {
+    uid,
+    name: payload.name || '合作机构附件.pdf',
+    url: payload.url || '',
+    status: 'success'
+  } as UploadFile;
+};
+
+// 同步详情附件列表（参考保险产品管理的实现）
+const syncDetailAttachmentList = async (data: any) => {
+  if (data?.remoteFile && data.remoteFile.ossId) {
+    const remoteFile = data.remoteFile;
+    const fileName = remoteFile.originalName || remoteFile.name || data.cooperationAttachmentName || '合作机构附件';
+    const displayName = formatFileName(fileName);
+    
+    detailFileList.value = [
+      buildUploadFileItem({
+        ossId: remoteFile.ossId,
+        name: displayName,
+        url: remoteFile.url || data.cooperationAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  
+  const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
+  if (ossList.length > 0) {
+    const firstFile = ossList[0];
+    // 优先使用 originalName，然后是 fileName，最后是 name
+    const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.cooperationAttachmentName || '合作机构附件';
+    const displayName = formatFileName(fileName);
+    
+    detailFileList.value = [
+      buildUploadFileItem({
+        ossId: firstFile.ossId,
+        name: displayName,
+        url: firstFile.url || firstFile.fileUrl || data.cooperationAttachmentUrl || ''
+      })
+    ];
+    return;
+  }
+  
+  if (data?.cooperationAttachment) {
+    try {
+      const ossResponse: any = await listByIds(data.cooperationAttachment);
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      if (Array.isArray(ossData) && ossData.length > 0) {
+        const firstFile = ossData[0];
+        const fileName = firstFile.originalName || firstFile.fileName || data.cooperationAttachmentName || '合作机构附件';
+        const displayName = formatFileName(fileName);
+        
+        detailFileList.value = [
+          buildUploadFileItem({
+            ossId: firstFile.ossId,
+            name: displayName,
+            url: firstFile.url || firstFile.fileUrl || ''
+          })
+        ];
+        return;
+      }
+      const displayName = formatFileName(data.cooperationAttachmentName);
+      detailFileList.value = [
+        buildUploadFileItem({
+          ossId: data.cooperationAttachment,
+          name: displayName,
+          url: data.cooperationAttachmentUrl || ''
+        })
+      ];
+      return;
+    } catch (error) {
+      const displayName = formatFileName(data.cooperationAttachmentName);
+      detailFileList.value = [
+        buildUploadFileItem({
+          ossId: data.cooperationAttachment,
+          name: displayName,
+          url: data.cooperationAttachmentUrl || ''
+        })
+      ];
+      return;
+    }
+  }
+  detailFileList.value = [];
+};
 
 const fetchDetail = async () => {
   if (!props.id) {
@@ -172,6 +251,7 @@ const fetchDetail = async () => {
     const response = await creditProductDetail(props.id);
     if (response && response.code === 200 && response.data) {
       productDetail.value = response.data;
+      await syncDetailAttachmentList(response.data);
     } else {
       ElMessage.error(response?.msg || '获取详情失败');
     }

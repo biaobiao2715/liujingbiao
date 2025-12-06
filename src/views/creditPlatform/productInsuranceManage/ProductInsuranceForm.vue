@@ -139,7 +139,6 @@ import { ElMessage } from 'element-plus';
 import { Document, Close, Plus } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { addInsuranceProduct, editInsuranceProduct, insuranceProductDetail } from '@/api/creditPlatform/productInsuranceManage';
-import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
 import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
@@ -175,7 +174,7 @@ const applicationEditorKey = ref(0);
 const MB = 1024 * 1024;
 const CHUNK_UPLOAD_THRESHOLD = 100 * MB;
 
-// 保险产品解析提示词
+// 保险产品解析提示词（与后端保持一致）
 const INSURANCE_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，可以根据文档内容，提取产品信息并返回JSON格式返回。
 你当前的任务是根据给定的文档内容，严格遵守提取规则，提取产品信息，并根据提取规则映射至对应的英文key，不能有缺失。
 提取规则如下:
@@ -273,32 +272,52 @@ const triggerUpload = async () => {
         throw new Error(`文件解析失败: ${errorMsg}`);
       }
       
-      // 解析返回的JSON（可能包含在字符串中）
+      // 解析返回的JSON（支持新的数据结构：responseData数组）
       let parsedData: any = {};
       try {
         const responseData = analysisRes?.data || analysisRes;
-        // 如果返回的是字符串，尝试解析JSON
-        if (typeof responseData === 'string') {
-          // 尝试提取JSON部分（可能包含在代码块中）
-          const jsonMatch = responseData.match(/```json\s*([\s\S]*?)\s*```/) || responseData.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-          } else {
-            parsedData = JSON.parse(responseData);
-          }
-        } else if (typeof responseData === 'object') {
-          // 如果已经是对象，检查是否有嵌套的data字段
-          parsedData = responseData?.data || responseData;
-          // 如果data是字符串，尝试解析
-          if (typeof parsedData === 'string') {
-            const jsonMatch = parsedData.match(/```json\s*([\s\S]*?)\s*```/) || parsedData.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-            } else {
-              parsedData = JSON.parse(parsedData);
+        
+        // 优先尝试从新的数据结构中提取（responseData数组）
+        if (responseData?.responseData && Array.isArray(responseData.responseData)) {
+          // 遍历 responseData 数组，查找 extractResult.info 或 pluginOutput.info
+          for (const item of responseData.responseData) {
+            if (item?.extractResult?.info) {
+              parsedData = item.extractResult.info;
+              break;
+            } else if (item?.pluginOutput?.info) {
+              parsedData = item.pluginOutput.info;
+              break;
             }
           }
         }
+        
+        // 如果新结构中没有找到，尝试旧的解析方式
+        if (!parsedData || Object.keys(parsedData).length === 0) {
+          // 如果返回的是字符串，尝试解析JSON
+          if (typeof responseData === 'string') {
+            // 尝试提取JSON部分（可能包含在代码块中）
+            const jsonMatch = responseData.match(/```json\s*([\s\S]*?)\s*```/) || responseData.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            } else {
+              parsedData = JSON.parse(responseData);
+            }
+          } else if (typeof responseData === 'object') {
+            // 如果已经是对象，检查是否有嵌套的data字段
+            parsedData = responseData?.data || responseData;
+            // 如果data是字符串，尝试解析
+            if (typeof parsedData === 'string') {
+              const jsonMatch = parsedData.match(/```json\s*([\s\S]*?)\s*```/) || parsedData.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+              } else {
+                parsedData = JSON.parse(parsedData);
+              }
+            }
+          }
+        }
+        
+        console.log('提取的解析数据:', parsedData);
       } catch (parseError) {
         console.error('解析返回数据失败:', parseError);
         ElMessage.warning('文件解析完成，但返回格式异常，请手动填写表单');
@@ -459,6 +478,9 @@ const handleSubmit = () => {
     if (!valid) return;
     saving.value = true;
     try {
+      // 产品备注默认值（未填写时使用）
+      const defaultProductRemark = '具体开办的业务种类及办理程序、办理条件等以线下网点信息为准。';
+      
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
@@ -468,7 +490,7 @@ const handleSubmit = () => {
         productAdvantages: formData.value.productAdvantages,
         guaranteePlan: formData.value.guaranteePlan,
         applicationInstructions: formData.value.applicationInstructions,
-        productRemark: formData.value.productRemark || '',
+        productRemark: formData.value.productRemark?.trim() || defaultProductRemark,
         branchOfficeAttachment: formData.value.branchOfficeAttachment ?? null
       };
       if (props.type === 'edit') {
@@ -513,46 +535,49 @@ const validateFile = (file: File): boolean => {
   return true;
 };
 
+// 格式化文件大小（参考普法内容实现）
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
 const uploadAttachmentFile = async (file: File) => {
-  const useChunkUpload = file.size > CHUNK_UPLOAD_THRESHOLD;
   const modal = (proxy as any)?.$modal;
   uploadLoading.value = true;
-  modal?.loading?.(useChunkUpload ? '正在分片上传，请稍候...' : '正在上传附件，请稍候...');
+  modal?.loading?.('正在上传附件，请稍候...');
 
   try {
-    let payload: { ossId?: number | string; fileName?: string; url?: string } = {};
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传（参考普法内容实现）
+    const res: any = await uploadByChunks(file, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
 
-    if (useChunkUpload) {
-      const chunkRes = await uploadByChunks(file, (percent) => {
-        modal?.setLoadingText?.(`正在分片上传...${percent}%`);
-      });
-      payload = {
-        ossId: chunkRes?.ossId || chunkRes?.data?.ossId,
-        fileName: chunkRes?.fileName || chunkRes?.data?.fileName || file.name,
-        url: chunkRes?.url || chunkRes?.fileUrl || chunkRes?.data?.url || ''
-      };
-    } else {
-      const response = await ossUploadImage({ file });
-      const data = response?.data || {};
-      payload = {
-        ossId: data.ossId,
-        fileName: data.fileName || file.name,
-        url: data.url
-      };
+    // 兼容处理不同的返回格式（参考普法内容实现）
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
     }
 
-    if (!payload?.ossId) {
+    // 兼容 ossId 和 ossid 两种字段名（参考普法内容实现）
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
       throw new Error('上传失败，未获取到文件标识');
     }
 
     return {
-      ossId: payload.ossId,
-      fileName: payload.fileName || file.name,
+      ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || file.name,
       originalName: file.name,
       fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
-      url: payload.url || '',
-      fileSize: Math.round((file.size / 1024 / 1024) * 100) / 100 + ' MB'
+      url: uploadResult?.url || uploadResult?.data?.url || '',
+      fileSize: formatFileSize(file.size)
     };
+  } catch (error: any) {
+    console.error('附件上传失败:', error);
+    throw new Error(error?.msg || error?.message || '上传失败，请重试');
   } finally {
     uploadLoading.value = false;
     modal?.closeLoading?.();

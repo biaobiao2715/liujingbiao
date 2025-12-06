@@ -333,26 +333,33 @@ const updateChart = () => {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#e4e7ed',
+      textStyle: {
+        color: '#303133'
+      },
       axisPointer: {
         type: 'cross',
         label: {
           show: true,
-          backgroundColor: '#6a7985',
+          backgroundColor: '#303133',
+          color: '#fff',
           precision: 'auto'
         },
         crossStyle: {
-          color: '#999'
+          color: '#909399'
         },
         lineStyle: {
           type: 'dashed',
-          width: 1
+          width: 1,
+          color: '#909399'
         }
       }
     },
     legend: {
       data: legendData,
       textStyle: {
-        color: '#fff'
+        color: '#303133'
       },
       top: 10,
       left: 'center',
@@ -372,14 +379,14 @@ const updateChart = () => {
       boundaryGap: false,
       data: xAxisData,
       axisLabel: {
-        color: '#fff',
+        color: '#606266',
         show: true,
         showMinLabel: true,
         showMaxLabel: true
       },
       axisLine: {
         lineStyle: {
-          color: '#fff'
+          color: '#dcdfe6'
         }
       }
     },
@@ -388,21 +395,32 @@ const updateChart = () => {
       min: 0,
       max: yMax,
       splitNumber: 5,
+      show: true,
       axisLabel: {
         formatter: '{value}%',
-        color: '#fff',
+        color: '#606266',
         show: true,
         showMinLabel: true,
         showMaxLabel: true
       },
       axisLine: {
+        show: true,
         lineStyle: {
-          color: '#fff'
+          color: '#dcdfe6',
+          width: 1
+        }
+      },
+      axisTick: {
+        show: true,
+        lineStyle: {
+          color: '#dcdfe6'
         }
       },
       splitLine: {
+        show: true,
         lineStyle: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: '#e4e7ed',
+          type: 'dashed'
         }
       }
     },
@@ -510,7 +528,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .credit-dashboard {
   padding: 24px;
-  background-color: #f0f2f5;
+  background: #f5f7fa;
   min-height: calc(100vh - 84px);
 }
 
@@ -573,26 +591,26 @@ onMounted(() => {
 }
 
 .middle-section {
-  background: #0f1b2d;
+  background: #fff;
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .data-card {
-  background: rgba(19, 30, 49, 0.95);
+  background: #fff;
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #e4e7ed;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   &:hover {
-    background: rgba(19, 30, 49, 1);
+    background: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   &:last-child {
@@ -608,7 +626,7 @@ onMounted(() => {
 
   .data-card-title {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.85);
+    color: #606266;
     font-weight: 500;
   }
 
@@ -616,15 +634,15 @@ onMounted(() => {
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #f5f7fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: #409eff;
     flex-shrink: 0;
 
     &.warning-icon {
-      background: rgba(245, 108, 108, 0.3);
+      background: rgba(245, 108, 108, 0.1);
       color: #f56c6c;
     }
   }
@@ -633,16 +651,16 @@ onMounted(() => {
 .data-card-value {
   font-size: 32px;
   font-weight: 600;
-  color: #fff;
+  color: #303133;
   margin-bottom: 8px;
   word-break: break-word;
 }
 
 .bottom-chart-section {
-  background: #0f1b2d;
+  background: #fff;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .chart-header {
@@ -656,7 +674,7 @@ onMounted(() => {
   .chart-title {
     font-size: 18px;
     font-weight: 600;
-    color: #fff;
+    color: #303133;
   }
 
   .chart-tabs {

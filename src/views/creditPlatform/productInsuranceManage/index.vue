@@ -6,7 +6,7 @@
       ref="queryFormRef"
       :model="queryParams"
       inline
-      :label-width="90"
+      label-width="auto"
       label-position="left"
     >
       <el-form-item label="产品名称" prop="productName">

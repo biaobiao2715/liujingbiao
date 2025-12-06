@@ -196,7 +196,7 @@
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.type === 'add' ? '新增产品' : dialog.type === 'edit' ? '编辑产品' : '产品详情'"
-      width="60%"
+      width="65%"
       destroy-on-close
       :close-on-click-modal="false"
     >
