@@ -584,7 +584,7 @@ const handleSubmit = async () => {
     submitting.value = true;
 
     // 准备提交数据
-    const payload = {
+    const payload: any = {
       ...formData,
       licenseFileId: licenseFiles.value[0]?.ossId || '',
       licenseFileUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || '',
@@ -594,7 +594,8 @@ const handleSubmit = async () => {
     try {
       // 根据审核状态调用不同的接口
       if (isRejected.value) {
-        // 审核驳回，调用更新接口
+        // 审核驳回，调用更新接口，添加 auditStatus = 0 表示重新提交待审核
+        payload.auditStatus = 0;
         const response = await updateTraceableCompany(payload);
         ElMessage.success('修改成功');
       } else {
