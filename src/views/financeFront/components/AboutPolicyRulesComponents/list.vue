@@ -52,7 +52,7 @@
     <div style="height: 91px"></div>
 
     <el-dialog
-      class="dialog-preview"
+      style="background-color: #f6f7fb"
       :title="dlgTitle"
       v-model="dlgPreviewVisible"
       :before-close="cancelDlg"
@@ -129,7 +129,7 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
   selectID.value = row.id;
   selectType.value = type;
   isReadonly.value = type === 'view';
-  dlgTitle.value = type === 'audit' ? '企业审核' : type === 'edit' ? '企业编辑' : '企业详情';
+  dlgTitle.value = '政策法规详情';
   dlgPreviewVisible.value = true;
 };
 

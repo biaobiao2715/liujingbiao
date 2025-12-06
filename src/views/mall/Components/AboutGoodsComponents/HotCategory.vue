@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="hot-category-container flex-column">
-    <div class="title mb-12">热门分类</div>
+    <div class="title flex-center gap-4">热门分类</div>
     <el-row :gutter="24">
       <el-col :span="6" v-for="(item, index) in hotCategoryList" :key="item.name">
         <div :class="`category-item flex-column hotCategory${index + 1}`">
@@ -38,20 +38,16 @@ const hotCategoryList = ref([
 
 <style scoped lang="scss">
 .hot-category-container {
-  margin-top: 32px;
+  padding: 12px;
 }
 .title {
   font-size: 20px;
   font-weight: bold;
-  border-left: 4px solid #108c58;
-  padding-left: 6px;
-  line-height: 18px;
 }
 .category-list {
   flex-wrap: wrap;
 }
 .category-item {
-  height: 188px;
   padding: 12px;
   border-radius: 8px;
   background-color: #f5f5f5;
@@ -62,29 +58,28 @@ const hotCategoryList = ref([
   height: 48px;
 }
 .category-name {
-  color: #fff;
-  font-size: 30px;
+  font-size: 16px;
   font-weight: bold;
 }
 .category-desc {
-  color: #fff;
-  font-size: 20px;
+  font-size: 14px;
+  color: rgba(51, 51, 51, 0.5);
 }
 
 .hotCategory1 {
-  background: url('@/assets/mall/hot-category-1.png') no-repeat center center;
-  background-size: 100% 100%;
+  background: url('@/assets/mall/hot-category-1.png') no-repeat center;
+  background-size: cover;
 }
 .hotCategory2 {
   background: url('@/assets/mall/hot-category-2.png') no-repeat center;
-  background-size: 100% 100%;
+  background-size: cover;
 }
 .hotCategory3 {
   background: url('@/assets/mall/hot-category-3.png') no-repeat center;
-  background-size: 100% 100%;
+  background-size: cover;
 }
 .hotCategory4 {
   background: url('@/assets/mall/hot-category-4.png') no-repeat center;
-  background-size: 100% 100%;
+  background-size: cover;
 }
 </style>
