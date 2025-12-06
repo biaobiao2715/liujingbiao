@@ -55,7 +55,7 @@
                       <el-icon :size="20"><Money /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ formatWan(dashboardData.totalApprovedAmount) }}</div>
+                  <div class="data-card-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
                 </div>
 
                 <div class="data-card">
@@ -92,7 +92,7 @@
                       <el-icon :size="20"><TrendCharts /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ dashboardData.totalDefaultRate }}%</div>
+                  <div class="data-card-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
                 </div>
 
                 <div class="data-card">
@@ -112,9 +112,9 @@
                 <el-button
                   v-for="tab in chartTabs"
                   :key="tab.value"
-                  :type="activeTab === tab.value ? 'primary' : 'default'"
                   size="small"
-                  @click="handleTabChange(tab.value)"
+                  disabled
+                  plain
                 >
                   {{ tab.label }}
                 </el-button>
@@ -164,23 +164,44 @@ const dashboardData = ref<DashboardData>({
   monthlyOverdueAmount: 0
 });
 
-// 从字典获取年度月度选项
+// 从字典获取年度月度选项（仅用于显示按钮文本）
 const chartTabs = ref<Array<{ label: string; value: string }>>([]);
-const activeTab = ref('1'); // 默认月度
 
 const defaultRateChart = ref<HTMLElement>();
 
-// 金额统一展示为“万”单位
+// 金额统一展示为"万"单位（后端返回的是元，需要除以10000转换为万，保留两位小数，四舍五入）
 const formatWan = (amount: number) => {
   if (amount === null || amount === undefined) return '--';
   const num = Number(amount);
   if (isNaN(num)) return '--';
-  const fixed = num.toFixed(2);
-  const trimmed = fixed.replace(/\.?0+$/, '');
-  return `${trimmed}万`;
+  // 将元转换为万（除以10000），保留两位小数，四舍五入
+  const wanAmount = (num / 10000).toFixed(2);
+  return `${wanAmount}万`;
 };
 
-const chartData = ref<any[]>([]);
+// 总贷款金额格式化（后端返回的已经是万，不需要除以10000，保留两位小数，直接加单位万）
+const formatWanInteger = (amount: number) => {
+  if (amount === null || amount === undefined) return '--';
+  const num = Number(amount);
+  if (isNaN(num)) return '--';
+  // 后端返回的已经是万，保留两位小数，四舍五入
+  const wanAmount = num.toFixed(2);
+  return `${wanAmount}万`;
+};
+
+// 违约率格式化（保留两位小数，四舍五入）
+const formatRate = (rate: number) => {
+  if (rate === null || rate === undefined) return '--';
+  const num = Number(rate);
+  if (isNaN(num)) return '--';
+  // 保留两位小数，四舍五入
+  return num.toFixed(2);
+};
+
+const chartData = ref<{ yearData: any; monthData: any }>({
+  yearData: null,
+  monthData: null
+});
 let chartInstance: echarts.ECharts | null = null;
 
 const initDefaultRateChart = () => {
@@ -198,53 +219,60 @@ const initDefaultRateChart = () => {
 };
 
 const updateChart = () => {
-  if (!chartInstance || !chartData.value || chartData.value.length === 0) return;
+  if (!chartInstance) return;
   
-  // 根据数据格式处理，可能是 xAxis/yAxis 格式或数组格式（支持两条线：总违约率、本月违约率）
-  let xAxisData: string[] = [];
-  let totalSeries: number[] = [];
-  let monthSeries: number[] = [];
+  // 处理年度数据（总违约率，红色线）
+  let yearXAxisData: string[] = [];
+  let yearSeries: number[] = [];
   
-  if (chartData.value[0]?.xAxis && chartData.value[0]?.yAxis) {
-    // xAxis/yAxis 格式
-    xAxisData = chartData.value[0].xAxis || [];
-    const yAxisRaw = chartData.value[0].yAxis || [];
-    // 如果返回多维数组，默认第1维为总违约率，第2维为本月违约率
-    if (Array.isArray(yAxisRaw[0])) {
-      totalSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
-      monthSeries = (yAxisRaw[1] || []).map((v: any) => Number(v) || 0);
-    } else {
-      totalSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+  if (chartData.value.yearData) {
+    const yearData = chartData.value.yearData;
+    if (yearData?.xAxis && yearData?.yAxis) {
+      yearXAxisData = yearData.xAxis || [];
+      const yAxisRaw = yearData.yAxis || [];
+      if (Array.isArray(yAxisRaw[0])) {
+        yearSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
+      } else {
+        yearSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+      }
+    } else if (Array.isArray(yearData)) {
+      yearXAxisData = yearData.map((item: any) => item.time || item.month || item.date || '');
+      yearSeries = yearData.map((item: any) => {
+        const rate = item.totalDefaultRate ?? item.totalRate ?? item.defaultRate ?? item.rate ?? item.value ?? 0;
+        return Number(rate) || 0;
+      });
     }
-  } else if (Array.isArray(chartData.value)) {
-    // 数组格式，假设有 time 或 month 字段
-    xAxisData = chartData.value.map((item: any) => item.time || item.month || item.date || '');
-    totalSeries = chartData.value.map((item: any) => {
-      const rate =
-        item.totalDefaultRate ??
-        item.totalRate ??
-        item.defaultRate ??
-        item.rate ??
-        item.value ??
-        0;
-      return Number(rate) || 0;
-    });
-    monthSeries = chartData.value.map((item: any) => {
-      const rate =
-        item.monthDefaultRate ??
-        item.currentDefaultRate ??
-        item.currentRate ??
-        item.monthRate ??
-        item.subRate ??
-        0;
-      return Number(rate) || 0;
-    });
   }
   
-  // 确保两条线都有数据长度，便于显示图例（即使为 0）
-  const len = xAxisData.length || totalSeries.length || monthSeries.length;
-  if (monthSeries.length === 0 && len > 0) {
-    monthSeries = new Array(len).fill(0);
+  // 处理月度数据（本月违约率，蓝色线）
+  let monthXAxisData: string[] = [];
+  let monthSeries: number[] = [];
+  
+  if (chartData.value.monthData) {
+    const monthData = chartData.value.monthData;
+    if (monthData?.xAxis && monthData?.yAxis) {
+      monthXAxisData = monthData.xAxis || [];
+      const yAxisRaw = monthData.yAxis || [];
+      if (Array.isArray(yAxisRaw[0])) {
+        monthSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
+      } else {
+        monthSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+      }
+    } else if (Array.isArray(monthData)) {
+      monthXAxisData = monthData.map((item: any) => item.time || item.month || item.date || '');
+      monthSeries = monthData.map((item: any) => {
+        const rate = item.monthDefaultRate ?? item.currentDefaultRate ?? item.currentRate ?? item.monthRate ?? item.subRate ?? 0;
+        return Number(rate) || 0;
+      });
+    }
+  }
+  
+  // 使用年度数据的 X 轴（如果年度数据为空，使用月度数据的 X 轴）
+  const xAxisData = yearXAxisData.length > 0 ? yearXAxisData : monthXAxisData;
+  
+  // 如果数据为空，不渲染图表
+  if (xAxisData.length === 0 && yearSeries.length === 0 && monthSeries.length === 0) {
+    return;
   }
 
   const legendData = [
@@ -254,7 +282,7 @@ const updateChart = () => {
       itemStyle: { color: 'transparent', borderColor: '#f56c6c', borderWidth: 2 }
     },
     {
-      name: '本月违约率',
+      name: '月度',
       icon: 'rect',
       itemStyle: { color: 'transparent', borderColor: '#409eff', borderWidth: 2 }
     }
@@ -264,7 +292,7 @@ const updateChart = () => {
       name: '总违约率',
       type: 'line',
       smooth: true,
-      data: totalSeries,
+      data: yearSeries,
       symbol: 'circle',
       symbolSize: 8,
       itemStyle: { color: '#f56c6c' },
@@ -277,7 +305,7 @@ const updateChart = () => {
       }
     },
     {
-      name: '本月违约率',
+      name: '月度',
       type: 'line',
       smooth: true,
       data: monthSeries,
@@ -296,7 +324,7 @@ const updateChart = () => {
 
   // 动态 Y 轴上限，默认 1%
   const maxVal = Math.max(
-    ...(totalSeries.length ? totalSeries : [0]),
+    ...(yearSeries.length ? yearSeries : [0]),
     ...(monthSeries.length ? monthSeries : [0])
   );
   const yMax = maxVal > 0 ? Math.ceil(maxVal * 1.2 * 100) / 100 : 1;
@@ -413,51 +441,56 @@ const fetchDashboardData = async () => {
   }
 };
 
-// 获取折线图数据
+// 获取折线图数据（同时获取年度和月度数据）
 const fetchChartData = async () => {
   try {
-    const params: any = {
-      dateType: activeTab.value // '1' 月度, '2' 年度
+    // 同时调用年度和月度接口
+    const [yearRes, monthRes] = await Promise.all([
+      getDashboardLineChart({ dateType: '2' }), // 年度
+      getDashboardLineChart({ dateType: '1' })  // 月度
+    ]);
+    
+    // 处理年度数据
+    let yearData = null;
+    if (yearRes && yearRes.code === 200) {
+      if (yearRes.data?.xAxis && yearRes.data?.yAxis) {
+        yearData = { xAxis: yearRes.data.xAxis, yAxis: yearRes.data.yAxis };
+      } else if (Array.isArray(yearRes.data)) {
+        yearData = yearRes.data;
+      }
+    }
+    
+    // 处理月度数据
+    let monthData = null;
+    if (monthRes && monthRes.code === 200) {
+      if (monthRes.data?.xAxis && monthRes.data?.yAxis) {
+        monthData = { xAxis: monthRes.data.xAxis, yAxis: monthRes.data.yAxis };
+      } else if (Array.isArray(monthRes.data)) {
+        monthData = monthRes.data;
+      }
+    }
+    
+    // 更新图表数据
+    chartData.value = {
+      yearData,
+      monthData
     };
     
-    const res = await getDashboardLineChart(params);
-    
-    if (res && res.code === 200) {
-      // 处理返回的数据格式
-      if (res.data?.xAxis && res.data?.yAxis) {
-        chartData.value = [{ xAxis: res.data.xAxis, yAxis: res.data.yAxis }];
-      } else if (Array.isArray(res.data)) {
-        chartData.value = res.data;
-      } else {
-        chartData.value = [];
-      }
-      
-      nextTick(() => {
-        updateChart();
-      });
-    }
+    nextTick(() => {
+      updateChart();
+    });
   } catch (error) {
     console.error('获取折线图数据失败', error);
   }
 };
 
-// 切换标签
-const handleTabChange = (value: string) => {
-  activeTab.value = value;
-  fetchChartData();
-};
-
 onMounted(() => {
-  // 初始化字典选项
+  // 初始化字典选项（仅用于显示按钮文本）
   if (sys_year_month.value && sys_year_month.value.length > 0) {
     chartTabs.value = sys_year_month.value.map((item: any) => ({
       label: item.label,
       value: item.value
     }));
-    // 默认选中第一个
-    if (chartTabs.value.length > 0) {
-      activeTab.value = chartTabs.value[0].value;
-    }
   } else {
     // 如果字典未加载，使用默认值
     chartTabs.value = [
