@@ -470,16 +470,18 @@ const fillFormData = (data: any) => {
   // 填充审核意见
   auditComment.value = data.auditRemark || '';
   
-  // 如果有文件URL，回显文件（优先使用 licenseFileId，如果没有则从 URL 中提取文件名）
+  // 如果有文件URL，回显文件（优先使用 licenseFileName，如果没有则从 URL 中提取文件名）
   if (data.licenseFileUrl) {
-    // 从 URL 中提取文件名
+    // 优先使用 API 返回的 licenseFileName，如果没有则从 URL 中提取文件名
     let fileName = data.licenseFileName || '营业执照';
     if (!data.licenseFileName && data.licenseFileUrl) {
       try {
         const urlParts = data.licenseFileUrl.split('/');
         const lastPart = urlParts[urlParts.length - 1];
-        if (lastPart && lastPart.includes('.')) {
-          fileName = lastPart;
+        // 去掉 URL 参数（如果有）
+        const fileNamePart = lastPart.split('?')[0];
+        if (fileNamePart && fileNamePart.includes('.')) {
+          fileName = fileNamePart;
         }
       } catch (e) {
         console.warn('从 URL 提取文件名失败:', e);
@@ -585,7 +587,8 @@ const handleSubmit = async () => {
     const payload = {
       ...formData,
       licenseFileId: licenseFiles.value[0]?.ossId || '',
-      licenseFileUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
+      licenseFileUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || '',
+      licenseFileName: licenseFiles.value[0]?.displayName || licenseFiles.value[0]?.fileName || licenseFiles.value[0]?.name || ''
     };
 
     try {
