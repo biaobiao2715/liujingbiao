@@ -110,6 +110,7 @@ const handleCollection = async () => {
     favoriteType: '3',
     favoriteArticleBo: {
       articleId: props.id,
+      articleCover: detail.value.articleCover,
       articleTitle: detail.value.articleTitle,
       articleAuthor: detail.value.authorName
     }

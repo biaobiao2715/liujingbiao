@@ -70,10 +70,6 @@ import AskExpertComponent from './AskExpertComponent.vue';
 import ExpertDetailComponent from './ExpertDetailComponent.vue';
 import { technologyExpertList, legalExpertList } from '@/api/mall/expert';
 
-const options = [
-  { label: '技术专家', value: 'technology' },
-  { label: '法务专家', value: 'legal' }
-];
 const activeTab = ref('technology');
 
 const isExpanded = ref(false);

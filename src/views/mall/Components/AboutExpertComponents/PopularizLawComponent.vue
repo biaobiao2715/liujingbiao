@@ -1,23 +1,37 @@
+<!--
+  标题: PopularizLawComponent.vue
+  功能: 普法专栏组件
+  说明: 显示普法内容、普法活动、普法白皮书
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-06
+-->
 <template>
   <div class="populariz-law">
-    <el-card>
-      <template #header>
-        <div class="flex-center gap-24">
-          <div class="card-header">普法宣传</div>
-          <el-segmented v-model="activeTab" :options="tabsList" @change="handleTabChange" :disabled="loading" />
-        </div>
-      </template>
+    <div class="header flex-center-between">
+      <div class="title">普法专栏</div>
+      <div class="more flex-center gap-4">
+        <div>查看更多</div>
+        <img src="@/assets/mall/more.png" width="18" />
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="flex-center gap-24">
+        <el-tabs v-model="activeTab" @tab-click="handleTabChange">
+          <el-tab-pane v-for="tab in tabsList" :key="tab.value" :label="tab.label" :name="tab.value" />
+        </el-tabs>
+      </div>
 
       <el-scrollbar height="600px" @end-reached="loadMore" v-loading="loading">
         <div class="data-list" v-if="dataList.length > 0">
-          <div class="title flex-center gap-12" v-for="item in dataList" :key="item.type" @click="handleDetail(item.id)">
-            <div class="point"></div>
+          <div class="law-title flex-center gap-12" v-for="(item, index) in dataList" :key="item.type" @click="handleDetail(item.id)">
+            <div :class="[{ 'three': index < 3 }, 'index flex-center-center']">{{ index + 1 }}</div>
             <div>{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
           </div>
         </div>
         <el-empty v-else style="margin-top: 145px"></el-empty>
       </el-scrollbar>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -93,29 +107,58 @@ const handleDetail = (id: string) => {
 <style scoped lang="scss">
 .populariz-law {
   flex: 1.5;
-  .card-header {
-    font-size: 20px;
-    font-weight: bold;
+  background-color: #fff;
+
+  .header {
+    padding: 20px;
+    background: linear-gradient(to bottom, rgba(16, 140, 88, 0.1), #fff);
+    .title {
+      color: #3d3d3d;
+      font-size: 20px;
+      font-weight: bold;
+      border-left: 4px solid #108c58;
+      padding-left: 8px;
+      line-height: 16px;
+    }
+    .more {
+      cursor: pointer;
+      color: rgba(51, 51, 51, 0.8);
+      font-size: 14px;
+      &:hover {
+        color: var(--color-main);
+      }
+    }
+  }
+
+  .content {
+    padding: 0 20px;
   }
   .data-list {
     margin-top: 12px;
-    .title {
+    .law-title {
       margin-bottom: 12px;
       cursor: pointer;
-      .point {
-        width: 8px;
-        height: 8px;
-        background-color: #000;
-        border-radius: 50%;
+      font-size: 14px;
+      color: #333333;
+      .index {
+        width: 12px;
+        height: 12px;
+        color: #fff;
+        font-size: 10px;
+        background-color: #b6b5b5;
+        border-radius: 2px;
+      }
+      .three {
+        background-color: var(--color-main);
+      }
+      &:hover {
+        color: var(--color-main);
       }
     }
-    .title:hover {
-      color: var(--el-color-primary);
-    }
   }
-  .content {
-    font-size: 16px;
-    line-height: 1.5;
-  }
+}
+
+::v-deep .el-tabs__nav-wrap:after {
+  display: none !important;
 }
 </style>
