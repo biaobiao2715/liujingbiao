@@ -187,11 +187,11 @@ const handleRedirect = async (path: string) => {
         auditStatus.value = response.data.auditStatus;
         
         // 根据审核状态决定是否显示弹窗
-        // 0-待审核：显示弹窗，回显数据，隐藏提交按钮
-        // 1-审核通过：显示弹窗，回显数据（只读）
-        // 2-审核驳回：显示弹窗，回显数据，提交按钮改为"提交修改"
-        // 如果没有数据（首次申请）：显示空表单
+        if( auditStatus.value ==1){
+          // 跳转操作
+        }else {
         permissionPopupVisible.value = true;
+        }
       } else {
         // 没有数据，显示空表单
         permissionPopupData.value = null;

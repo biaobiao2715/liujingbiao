@@ -465,8 +465,8 @@ const fillFormData = (data: any) => {
   formData.companyIntro = data.companyIntro || '';
   formData.licenseFileId = data.licenseFileId || '';
   
-  // 填充审核意见（可能是 auditComment、rejectReason、auditOpinion 等字段）
-  auditComment.value = data.auditComment || data.rejectReason || data.auditOpinion || '';
+  // 填充审核意见
+  auditComment.value = data.auditRemark || '';
   
   // 如果有文件ID和URL，回显文件
   if (data.licenseFileId && data.licenseFileUrl) {
@@ -474,8 +474,8 @@ const fillFormData = (data: any) => {
       name: data.licenseFileName || '营业执照',
       fileName: data.licenseFileName || '营业执照',
       displayName: data.licenseFileName || '营业执照',
-      url: data.licenseFileUrl,
-      serverUrl: data.licenseFileUrl,
+      url: data.licenseFileUrl, // 使用 licenseFileUrl 作为显示地址
+      serverUrl: data.licenseFileUrl, // 使用 licenseFileUrl 作为服务器地址
       ossId: data.licenseFileId,
       fileType: 'license',
       status: 'success',
@@ -628,7 +628,6 @@ const handleSubmit = async () => {
     padding: 12px 16px;
     background-color: #fef0f0;
     border-radius: 4px;
-    border-left: 4px solid #f56c6c;
 
     .comment-label {
       font-size: 14px;
