@@ -2,6 +2,13 @@
 <template>
   <div class="product-credit-form-dialog" v-loading="loading">
     <div class="section-title">基础信息</div>
+          <div class="upload-global-hint" @click="triggerUpload">
+      <div class="upload-icon-box">
+        <span class="plus">+</span>
+      </div>
+      <el-icon class="file-icon" :size="24"><Document /></el-icon>
+      <span class="upload-text">注：上传文件自动解析</span>
+    </div>
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
       <el-row :gutter="24">
         <el-col :span="12">
@@ -159,6 +166,7 @@
       <el-form-item label="合作机构" prop="cooperationAttachment">
         <div class="attachment-upload">
           <el-upload
+            ref="uploadRef"
             class="upload-block"
             :file-list="attachmentFileList"
             :http-request="handleAttachmentUpload"
@@ -202,12 +210,14 @@ import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, nextT
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
+import { uploadByChunks } from '@/utils/chunkUpload';
+import { Document } from '@element-plus/icons-vue';
 import {
   addCreditProduct,
   editCreditProduct,
   creditProductDetail
 } from '@/api/creditPlatform/productCreditManage';
-import { uploadFileForParse } from '@/api/common/fileUpload';
+import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
@@ -227,11 +237,14 @@ const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = to
 );
 
 const formRef = ref<FormInstance>();
+const uploadRef = ref();
 const saving = ref(false);
 const loading = ref(false);
 const advantagesEditorKey = ref(0);
 const instructionsEditorKey = ref(0);
 const applicationEditorKey = ref(0);
+const MB = 1024 * 1024;
+const CHUNK_UPLOAD_THRESHOLD = 100 * MB; // 与普法附件上传一致，>100MB 走分片
 
 interface CreditProductForm {
   id?: number | string | null;
@@ -503,25 +516,39 @@ const fetchDetail = async () => {
       applicationEditorKey.value += 1;
       await nextTick();
       
+      // 格式化文件名称，确保有 .pdf 扩展名
+      const formatFileName = (fileName: string | undefined | null): string => {
+        if (!fileName) return '合作机构附件.pdf';
+        if (fileName.toLowerCase().endsWith('.pdf')) {
+          return fileName;
+        }
+        return `${fileName}.pdf`;
+      };
+
       if (data.ossFileVo && Array.isArray(data.ossFileVo) && data.ossFileVo.length > 0) {
         const file = data.ossFileVo[0];
+        // 优先使用 originalName，然后是 fileName，最后是 name
+        const originalFileName = file.originalName || file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件';
+        const displayName = formatFileName(originalFileName);
+        
         formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
-        formData.value.cooperationAttachmentName = file.fileName || file.name || data.cooperationAttachmentName || '';
+        formData.value.cooperationAttachmentName = originalFileName;
         attachmentFileList.value = [
           {
             uid: file.ossId?.toString() || Date.now().toString(),
-            name: file.fileName || file.name || data.cooperationAttachmentName || '附件',
+            name: displayName,
             url: file.url || data.cooperationAttachmentUrl || '',
             status: 'success'
           } as UploadFile
         ];
       } else if (data.cooperationAttachment) {
+        const displayName = formatFileName(data.cooperationAttachmentName);
         formData.value.cooperationAttachment = data.cooperationAttachment;
         formData.value.cooperationAttachmentName = data.cooperationAttachmentName || '合作机构附件';
         attachmentFileList.value = [
           {
             uid: data.cooperationAttachment.toString() || Date.now().toString(),
-            name: data.cooperationAttachmentName || '合作机构附件',
+            name: displayName,
             url: data.cooperationAttachmentUrl || '',
             status: 'success'
           } as UploadFile
@@ -604,44 +631,95 @@ const handleSubmit = () => {
   });
 };
 
-const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
-  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  if (!isPdf) {
-    ElMessage.error('仅支持上传 PDF 文件');
+const validateFile = (file: File): boolean => {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const imageExt = ['jpg', 'jpeg', 'png'];
+  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+  const allExt = [...imageExt, ...docExt];
+
+  if (!allExt.includes(ext)) {
+    ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件`);
     return false;
   }
-  const MB = 1024 * 1024;
-  const limit = 100 * MB;
+
+  const limit = imageExt.includes(ext) ? 10 * MB : 100 * MB;
   if (file.size > limit) {
-    ElMessage.error('文件大小不能超过 100MB');
+    ElMessage.error(imageExt.includes(ext) ? '图片文件最大10MB' : '文档文件最大100MB');
     return false;
   }
+  
   return true;
 };
+
+// 格式化文件大小（参考普法内容实现）
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
+const uploadAttachmentFile = async (file: File) => {
+  const modal = (proxy as any)?.$modal;
+  modal?.loading?.('正在上传附件，请稍候...');
+
+  try {
+    // 统一使用 uploadByChunks，内部会自动判断是否需要分片上传（参考普法内容实现）
+    const res: any = await uploadByChunks(file, (percent: number) => {
+      modal?.setLoadingText?.(`正在上传...${percent}%`);
+    });
+
+    // 兼容处理不同的返回格式（参考普法内容实现）
+    let uploadResult = res;
+    if (res && !res.ossId && !res.ossid && res.data) {
+      uploadResult = res.data;
+    }
+
+    // 兼容 ossId 和 ossid 两种字段名（参考普法内容实现）
+    const ossId = uploadResult?.ossId || uploadResult?.ossid || uploadResult?.data?.ossId || uploadResult?.data?.ossid;
+    if (!ossId) {
+      throw new Error('上传失败，未获取到文件标识');
+    }
+
+    return {
+      ossId,
+      fileName: uploadResult?.fileName || uploadResult?.data?.fileName || file.name,
+      originalName: file.name,
+      fileSuffix: (file.name.split('.').pop() || '').toLowerCase(),
+      url: uploadResult?.url || uploadResult?.data?.url || '',
+      fileSize: formatFileSize(file.size)
+    };
+  } catch (error: any) {
+    console.error('附件上传失败:', error);
+    throw new Error(error?.msg || error?.message || '上传失败，请重试');
+  } finally {
+    modal?.closeLoading?.();
+  }
+};
+
+const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => validateFile(file);
 
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
   const modal = (proxy as any)?.$modal;
-  modal?.loading?.('正在上传附件并解析，请稍候...');
+  modal?.loading?.('正在上传附件，请稍候...');
 
   try {
-    // 使用文件自动解析接口
-    const response = await uploadFileForParse(file as File);
+    const res = await uploadAttachmentFile(file as File);
 
-    // 接口可能返回 { data: {...} } 或直接返回数据
-    const responseData = (response as any)?.data || response;
-
-    // 保存解析结果（后端解析后的完整数据）
-    formData.value.cooperationAttachment = responseData;
-    formData.value.cooperationAttachmentName = (file as File).name;
+    // 保存上传结果（ossId）
+    formData.value.cooperationAttachment = res.ossId;
+    formData.value.cooperationAttachmentName = res.originalName || res.fileName || (file as File).name;
     attachmentFileList.value = [
       {
         name: formData.value.cooperationAttachmentName,
-        status: 'success'
+        status: 'success',
+        url: res.url || ''
       } as UploadFile
     ];
     ElMessage.success('附件上传成功');
-    onSuccess?.(response);
+    onSuccess?.(res as any);
   } catch (error: any) {
     console.error('文件上传失败:', error);
     ElMessage.error(error?.message || error?.response?.data?.message || '上传失败，请重试');
@@ -649,6 +727,269 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   } finally {
     modal?.closeLoading?.();
   }
+};
+
+// 信贷产品解析提示词（与后端保持一致）
+const CREDIT_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，可以根据文档内容，提取产品信息并返回JSON格式返回。
+你当前的任务是根据给定的文档内容，严格遵守提取规则，提取产品信息，并根据提取规则映射至对应的英文key，不能有缺失。
+提取规则如下:
+- productName是对应的英文key，提取产品名称。优先从文档标题、首行或特定标识符（如'产品名称：XXX'）中提取。
+- productType是对应的英文key，提取产品类型。识别关键词如'信贷'、'贷款'等，若匹配则设为'信贷'；否则设为'其他'。
+- applicableObject是对应的英文key，提取适用对象。识别目标客群。关键词匹配：'农户'或'农业'则设为'采购商'；'中小企业'或'有限公司'则设为'企业'；'经销商'或'供应商'则设为'供应商'；未识别则留空。
+- minLoanAmount是对应的英文key，提取可贷金额。识别金额数字及单位（如'万元'、'元'），支持区间（如'10-100万元'）和固定值（如'最高50万'），统一转换为'万元'单位，例如'10-100万元'转换为'10'。
+- maxLoanAmount是对应的英文key，提取可贷金额。识别金额数字及单位（如'万元'、'元'），支持区间（如'10-100万元'）和固定值（如'最高50万'），统一转换为'万元'单位，例如'10-100万元'转换为'100'。
+- baseInterestRate是对应的英文key，提取最小利率。识别数字及'%'符号，支持区间（如'5-10%'）和固定值（如'6%'），保留2位小数，例如'5-10%'转换为'5.00'。
+- floatInterestRate是对应的英文key，提取最大利率。识别数字及'%'符号，支持区间（如'5-10%'）和固定值（如'6%'），保留2位小数，例如'5-10%'转换为'10.00'。
+- loanCycle是对应的英文key，提取贷款周期。识别数字及单位（如'月'、'年'），支持区间（如'3-6月'）和固定值（如'12月'），获得最大值，单位统一为'月'，例如'3-6月'转换为'6'。
+- repaymentMethod是对应的英文key，提取还款方式。关键词匹配：'等额本息'、'等额本金'、'先息后本'、'先本后息'等，未识别则留空。
+- productIntro是对应的英文key，提取产品简介。优先从文档标题、首行或特定标识符（如'产品简介：XXX'）中提取。若无明确标识，则从结合文档内容推断，未识别则留空。
+- productAdvantages是对应的英文key，提取产品优势。优先从文档标题、首行或特定标识符（如'产品优势：XXX'）中提取。若无明确标识，则从结合文档内容推断，未识别则留空。
+- applicableInstructions是对应的英文key，提取适用对象说明。优先从文档标题、首行或特定标识符（如'适用说明：XXX'）中提取。若无明确标识，则从结合文档内容推断，未识别则留空。
+- applicationInstructions是对应的英文key，提取申请条件。优先从文档标题、首行或特定标识符（如'申请条件：XXX'）中提取。若无明确标识，则从结合文档内容推断，未识别则留空。
+
+响应, 请直接返回JSON结果: \`\`\`json`;
+
+const triggerUpload = async () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt';
+  input.onchange = async (e: Event) => {
+    const file = (e.target as HTMLInputElement)?.files?.[0];
+    if (!file) return;
+
+    // 验证文件
+    if (!validateFile(file)) {
+      return;
+    }
+
+    // 调试：验证文件对象
+    console.log('选择的文件对象:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      isFile: file instanceof File,
+      constructor: file.constructor.name
+    });
+
+    const modal = (proxy as any)?.$modal;
+    modal?.loading?.('正在上传文件并解析，请稍候...');
+
+    try {
+      // 1. 上传文件
+      modal?.setLoadingText?.('正在上传文件...');
+      let uploadRes: any;
+      try {
+        // 获取 appId（从环境变量或使用默认值）
+        const env = (import.meta as any)?.env || {};
+        const appId = env.VITE_FILE_PARSE_APPID || '693144b8dd48d8d992951257';
+        uploadRes = await uploadFileToFastGPT(file, appId);
+        console.log('上传响应:', uploadRes);
+      } catch (uploadError: any) {
+        console.error('上传文件失败:', uploadError);
+        console.error('错误响应:', uploadError?.response);
+        console.error('错误数据:', uploadError?.response?.data);
+        console.error('请求配置:', uploadError?.config);
+        console.error('请求数据:', uploadError?.config?.data);
+        
+        // 检查 FormData 是否正确
+        if (uploadError?.config?.data instanceof FormData) {
+          console.log('FormData 内容检查:');
+          for (const [key, value] of uploadError.config.data.entries()) {
+            if (value instanceof File) {
+              console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+            } else {
+              console.log(`  ${key}:`, value);
+            }
+          }
+        }
+        
+        const errorMsg = uploadError?.response?.data?.message || 
+                        uploadError?.response?.data?.msg || 
+                        uploadError?.message || 
+                        '上传失败';
+        throw new Error(`文件上传失败: ${errorMsg}`);
+      }
+      
+      // 尝试多种可能的 previewUrl 路径（严格按照接口文档：上传接口返回 previewUrl）
+      const previewUrl = uploadRes?.data?.previewUrl || 
+                        uploadRes?.data?.data?.previewUrl ||
+                        uploadRes?.data?.url ||
+                        uploadRes?.data?.data?.url ||
+                        uploadRes?.previewUrl || 
+                        uploadRes?.url ||
+                        // 兼容旧格式（如果返回的是 fileId，可能需要拼接 URL）
+                        (uploadRes?.data?.fileId ? `http://8.153.15.72:81/fastgpt/file/${uploadRes.data.fileId}` : null);
+      
+      console.log('提取的 previewUrl:', previewUrl, '完整响应:', uploadRes);
+      
+      if (!previewUrl) {
+        console.error('未找到 previewUrl，完整响应:', uploadRes);
+        throw new Error(`上传失败，未获取到文件预览URL。响应数据: ${JSON.stringify(uploadRes?.data || uploadRes)}`);
+      }
+
+      // 2. 解析文件（使用 previewUrl）
+      modal?.setLoadingText?.('正在解析文件内容...');
+      let analysisRes: any;
+      try {
+        analysisRes = await fileAnalysis(previewUrl, CREDIT_EXTRACT_PROMPT);
+        console.log('解析响应:', analysisRes);
+      } catch (analysisError: any) {
+        console.error('解析文件失败:', analysisError);
+        const errorMsg = analysisError?.response?.data?.message || analysisError?.response?.data?.msg || analysisError?.message || '解析失败';
+        throw new Error(`文件解析失败: ${errorMsg}`);
+      }
+      
+      // 解析返回的JSON（支持新的数据结构：responseData数组）
+      let parsedData: any = {};
+      try {
+        const responseData = analysisRes?.data || analysisRes;
+        
+        // 优先尝试从新的数据结构中提取（responseData数组）
+        if (responseData?.responseData && Array.isArray(responseData.responseData)) {
+          // 遍历 responseData 数组，查找 extractResult.info 或 pluginOutput.info
+          for (const item of responseData.responseData) {
+            if (item?.extractResult?.info) {
+              parsedData = item.extractResult.info;
+              break;
+            } else if (item?.pluginOutput?.info) {
+              parsedData = item.pluginOutput.info;
+              break;
+            }
+          }
+        }
+        
+        // 如果新结构中没有找到，尝试旧的解析方式
+        if (!parsedData || Object.keys(parsedData).length === 0) {
+          // 如果返回的是字符串，尝试解析JSON
+          if (typeof responseData === 'string') {
+            // 尝试提取JSON部分（可能包含在代码块中）
+            const jsonMatch = responseData.match(/```json\s*([\s\S]*?)\s*```/) || responseData.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            } else {
+              parsedData = JSON.parse(responseData);
+            }
+          } else if (typeof responseData === 'object') {
+            // 如果已经是对象，检查是否有嵌套的data字段
+            parsedData = responseData?.data || responseData;
+            // 如果data是字符串，尝试解析
+            if (typeof parsedData === 'string') {
+              const jsonMatch = parsedData.match(/```json\s*([\s\S]*?)\s*```/) || parsedData.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+              } else {
+                parsedData = JSON.parse(parsedData);
+              }
+            }
+          }
+        }
+        
+        console.log('提取的解析数据:', parsedData);
+      } catch (parseError) {
+        console.error('解析返回数据失败:', parseError);
+        ElMessage.warning('文件解析完成，但返回格式异常，请手动填写表单');
+        return;
+      }
+
+      // 3. 填充表单数据
+      if (parsedData && typeof parsedData === 'object') {
+        // 产品名称
+        if (parsedData.productName) {
+          formData.value.productName = String(parsedData.productName);
+        }
+        
+        // 产品类型
+        if (parsedData.productType) {
+          formData.value.productType = String(parsedData.productType);
+        }
+        
+        // 适用对象（可能是字符串或数组）
+        if (parsedData.applicableObject) {
+          if (Array.isArray(parsedData.applicableObject)) {
+            formData.value.applicableObject = parsedData.applicableObject;
+          } else if (typeof parsedData.applicableObject === 'string') {
+            formData.value.applicableObject = parsedData.applicableObject.split(',').filter(Boolean);
+          }
+        }
+        
+        // 可贷金额
+        if (parsedData.minLoanAmount !== undefined && parsedData.minLoanAmount !== null) {
+          formData.value.minLoanAmount = Number(parsedData.minLoanAmount);
+        }
+        if (parsedData.maxLoanAmount !== undefined && parsedData.maxLoanAmount !== null) {
+          formData.value.maxLoanAmount = Number(parsedData.maxLoanAmount);
+        }
+        
+        // 利率
+        if (parsedData.baseInterestRate !== undefined && parsedData.baseInterestRate !== null) {
+          formData.value.baseInterestRate = Number(parsedData.baseInterestRate);
+        }
+        if (parsedData.floatInterestRate !== undefined && parsedData.floatInterestRate !== null) {
+          formData.value.floatInterestRate = Number(parsedData.floatInterestRate);
+        }
+        
+        // 贷款周期（可能是字符串或数组）
+        if (parsedData.loanCycle) {
+          if (Array.isArray(parsedData.loanCycle)) {
+            formData.value.loanCycle = parsedData.loanCycle;
+          } else if (typeof parsedData.loanCycle === 'string') {
+            formData.value.loanCycle = parsedData.loanCycle.split(',').filter(Boolean);
+          }
+        }
+        
+        // 还款方式（可能是字符串或数组）
+        if (parsedData.repaymentMethod) {
+          if (Array.isArray(parsedData.repaymentMethod)) {
+            formData.value.repaymentMethod = parsedData.repaymentMethod;
+          } else if (typeof parsedData.repaymentMethod === 'string') {
+            formData.value.repaymentMethod = parsedData.repaymentMethod.split(',').filter(Boolean);
+          }
+        }
+        
+        // 产品简介
+        if (parsedData.productIntro) {
+          formData.value.productIntro = String(parsedData.productIntro);
+        }
+        
+        // 产品优势
+        if (parsedData.productAdvantages) {
+          formData.value.productAdvantages = String(parsedData.productAdvantages);
+          advantagesEditorKey.value += 1;
+        }
+        
+        // 适用说明
+        if (parsedData.applicableInstructions) {
+          formData.value.applicableInstructions = String(parsedData.applicableInstructions);
+          instructionsEditorKey.value += 1;
+        }
+        
+        // 申请条件
+        if (parsedData.applicationInstructions) {
+          formData.value.applicationInstructions = String(parsedData.applicationInstructions);
+          applicationEditorKey.value += 1;
+        }
+
+        ElMessage.success('文件解析成功，已自动填充表单');
+        
+        // 触发表单验证
+        await nextTick();
+        formRef.value?.validateField('productName').catch(() => {});
+      } else {
+        ElMessage.warning('文件解析完成，但未获取到有效数据');
+      }
+    } catch (error: any) {
+      console.error('文件上传解析失败:', error);
+      const errorMsg = error?.message || 
+                       error?.response?.data?.message || 
+                       error?.response?.data?.msg ||
+                       error?.response?.statusText ||
+                       '文件上传解析失败，请重试';
+      ElMessage.error(errorMsg);
+    } finally {
+      modal?.closeLoading?.();
+    }
+  };
+  input.click();
 };
 
 const handleAttachmentRemove: UploadProps['onRemove'] = () => {
@@ -677,6 +1018,43 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-credit-form-dialog {
   padding: 20px 0;
+}
+
+.upload-global-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #f56c6c;
+  margin: 8px 0 12px;
+  cursor: pointer;
+
+  .upload-icon-box {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #606266;
+    box-sizing: border-box;
+    background: #fff;
+  }
+
+  .upload-icon-box .plus {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .file-icon {
+    color: #303133;
+  }
+
+  .upload-text {
+    color: #f56c6c;
+    font-size: 12px;
+  }
 }
 
 .section-title {

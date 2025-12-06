@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="detail-content" v-html="form?.articleContent"></div>
+    <div class="content-display" v-html="form?.articleContent"></div>
     <div style="height: 78px"></div>
   </div>
 </template>
@@ -114,17 +114,31 @@ const getArticleDetail = async () => {
   text-transform: none;
 }
 
-.detail-content {
-  width: 100%;
-  min-height: 633px;
-  padding: 30px 20px;
-  background: #ffffff;
-  border-radius: 8px 8px 8px 8px;
+.content-display {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  line-height: 1.8;
+  min-height: 400px;
 
-  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-  font-weight: 500;
-  font-size: 14px;
-  color: #3d3d3d;
-  line-height: 28px;
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :deep(p) {
+    margin-bottom: 1em;
+  }
+
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+  }
 }
 </style>

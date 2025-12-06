@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="detail-content" v-html="form?.articleContent"></div>
+    <div class="content-display" v-html="form?.articleContent"></div>
 
     <div style="height: 78px"></div>
   </div>
@@ -119,5 +119,33 @@ const getArticleDetail = async () => {
   text-align: left;
   font-style: normal;
   text-transform: none;
+}
+
+.content-display {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  line-height: 1.8;
+  min-height: 400px;
+
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :deep(p) {
+    margin-bottom: 1em;
+  }
+
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+  }
 }
 </style>

@@ -38,8 +38,16 @@ const props = withDefaults(defineProps<Props>(), {
 const mapContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let zoomCheckTimer: number | null = null; // 缩放检查定时器
+let updateTimer: number | null = null; // 标签更新防抖定时器
 const selectedIsland = ref<string | null>(null);
-const islandRegions = ['海南', '广东', '台湾', '南海诸岛'];
+// 岛屿区域：包括可能的名称变体
+const islandRegions = ['海南', '广东', '台湾', '台湾省', '南海诸岛'];
+// 当前地图缩放级别
+const currentZoom = ref(1.2);
+// 需要隐藏标签的区域（默认隐藏，放大地图时显示）
+// 注意：地图数据中可能使用"香港特别行政区"和"澳门特别行政区"，需要同时匹配
+const hiddenLabelRegions = ['香港', '澳门', '香港特别行政区', '澳门特别行政区'];
 
 // 加载中国地图数据
 const loadChinaMap = () => {
@@ -85,24 +93,187 @@ const initChart = () => {
     // params.selected 结构：{ seriesName: { [name]: boolean } }
     const selectedMap = params?.selected?.['举报数据'] || {};
     const selectedNames = Object.keys(selectedMap).filter((k) => selectedMap[k]);
-    const island = selectedNames.find((n) => islandRegions.includes(n)) || null;
+    
+    // 查找选中的岛屿（支持名称变体）
+    let island: string | null = null;
+    for (const selectedName of selectedNames) {
+      // 检查是否匹配岛屿区域（包括变体）
+      if (selectedName === '台湾' || selectedName === '台湾省') {
+        island = '台湾';
+        break;
+      } else if (islandRegions.includes(selectedName)) {
+        island = selectedName;
+        break;
+      }
+    }
+    
     selectedIsland.value = island;
+    
+    // 更新岛屿小图的显示状态
+    const updateRegions = () => {
+      const regions: any[] = [];
+      
+      // 处理所有岛屿区域（排除"台湾省"，因为它是"台湾"的变体）
+      const baseIslandNames = ['海南', '广东', '台湾', '南海诸岛'];
+      for (const name of baseIslandNames) {
+        const isSelected = island === name || (name === '台湾' && (island === '台湾' || island === '台湾省'));
+        regions.push({
+          name,
+          // 选中时显示，未选中时完全隐藏（opacity: 0）
+          label: { show: isSelected },
+          itemStyle: { opacity: isSelected ? 1 : 0 },
+          emphasis: { 
+            label: { show: isSelected }, 
+            itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+          },
+          select: { 
+            label: { show: isSelected }, 
+            itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+          }
+        });
+      }
+      
+      // 如果地图数据中使用"台湾省"，也需要处理
+      if (island === '台湾') {
+        regions.push({
+          name: '台湾省',
+          label: { show: true },
+          itemStyle: { opacity: 1 },
+          emphasis: { 
+            label: { show: true }, 
+            itemStyle: { opacity: 1 } 
+          },
+          select: { 
+            label: { show: true }, 
+            itemStyle: { opacity: 1 } 
+          }
+        });
+      } else {
+        regions.push({
+          name: '台湾省',
+          label: { show: false },
+          itemStyle: { opacity: 0 },
+          emphasis: { 
+            label: { show: false }, 
+            itemStyle: { opacity: 0 } 
+          },
+          select: { 
+            label: { show: false }, 
+            itemStyle: { opacity: 0 } 
+          }
+        });
+      }
+      
+      return regions;
+    };
+    
     chartInstance?.setOption({
       series: [
         {
-          regions: islandRegions.map((name) => {
-            const isSelected = island === name;
-            return {
-              name,
-              label: { show: isSelected },
-              itemStyle: { opacity: isSelected ? 1 : 0 },
-              emphasis: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } },
-              select: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } }
-            };
-          })
+          regions: updateRegions()
         }
       ]
-    });
+    }, false); // 不合并，直接替换
+  });
+
+  // 更新香港和澳门标签显示状态的函数（添加防抖，避免频繁更新导致晃动）
+  const updateHiddenRegionLabels = (zoom: number, forceUpdate: boolean = false) => {
+    // 清除之前的定时器
+    if (updateTimer !== null) {
+      clearTimeout(updateTimer);
+    }
+    
+    // 防抖：延迟 300ms 执行更新，避免频繁更新导致晃动（放大和缩小都适用）
+    updateTimer = window.setTimeout(() => {
+      // 检查是否需要更新（只有当缩放级别跨越阈值 6 时才更新）
+      const oldShouldShow = currentZoom.value >= 6;
+      const newShouldShow = zoom >= 6;
+      
+      // 如果显示状态没有改变，且缩放级别变化不大，且不是强制更新，则不更新
+      if (!forceUpdate && oldShouldShow === newShouldShow && Math.abs(zoom - currentZoom.value) < 0.8) {
+        currentZoom.value = zoom; // 只更新值，不触发渲染
+        updateTimer = null;
+        return;
+      }
+      
+      currentZoom.value = zoom;
+      
+      // 更新标签显示状态（需要同时处理简写和完整名称）
+      chartInstance?.setOption({
+        series: [
+          {
+            regions: ['香港', '澳门', '香港特别行政区', '澳门特别行政区'].map((name) => ({
+              name,
+              label: { 
+                show: newShouldShow, // 根据缩放级别动态控制
+                fontSize: newShouldShow ? 12 : 0, // 不显示时字体大小为 0
+                fontWeight: 'bold',
+                color: newShouldShow ? '#333' : 'transparent'
+              },
+              emphasis: { 
+                label: { 
+                  show: true, // 悬停时始终显示
+                  fontSize: 14,
+                  fontWeight: 'bold',
+                  color: '#333'
+                } 
+              }
+            }))
+          }
+        ]
+      }, false); // false 表示不合并，直接替换
+      
+      // 调试信息（开发环境）
+      // @ts-ignore - import.meta.env 在 Vite 中可用
+      if (import.meta.env.DEV) {
+        console.log('地图缩放:', { zoom, shouldShowLabels: newShouldShow, currentZoom: currentZoom.value });
+      }
+      
+      updateTimer = null;
+    }, 300); // 300ms 防抖延迟（增加延迟时间，减少放大和缩小时的晃动）
+  };
+
+  // 监听地图缩放事件，根据缩放级别决定是否显示香港和澳门的标签
+  chartInstance.on('georoam', (params: any) => {
+    // 只处理缩放事件，忽略平移事件（平移不会改变缩放级别，不需要更新标签）
+    if (params && params.zoom !== undefined && params.zoom !== null) {
+      const zoom = params.zoom;
+      
+      // 只在缩放级别真正改变时才更新（避免平移事件触发更新）
+      if (Math.abs(zoom - currentZoom.value) > 0.01) {
+        updateHiddenRegionLabels(zoom);
+      }
+    }
+    // 如果是平移事件（只有 dx/dy，没有 zoom），则不处理，避免不必要的更新
+  });
+  
+  // 使用定时器定期检查缩放级别（作为备用方案，降低频率避免晃动）
+  const checkZoomLevel = () => {
+    if (!chartInstance) return;
+    try {
+      const option = chartInstance.getOption() as any;
+      const currentZoomLevel = option?.series?.[0]?.zoom || 1.2;
+      // 只有当缩放级别跨越阈值 6 时才更新，避免频繁更新
+      const oldShouldShow = currentZoom.value >= 6;
+      const newShouldShow = currentZoomLevel >= 6;
+      // 只有当显示状态改变或缩放级别变化较大时才更新
+      if (oldShouldShow !== newShouldShow || Math.abs(currentZoomLevel - currentZoom.value) > 0.8) {
+        updateHiddenRegionLabels(currentZoomLevel, true); // 强制更新
+      } else {
+        // 只更新值，不触发渲染
+        currentZoom.value = currentZoomLevel;
+      }
+    } catch (e) {
+      // 忽略错误
+    }
+  };
+  
+  // 每 1500ms 检查一次缩放级别（进一步降低频率，减少晃动）
+  zoomCheckTimer = window.setInterval(checkZoomLevel, 1500);
+  
+  // 初始化时也检查一次缩放级别
+  nextTick(() => {
+    checkZoomLevel();
   });
 };
 
@@ -228,23 +399,86 @@ const updateChart = () => {
         name: '举报数据',
         type: 'map',
         map: 'china',
-        roam: false,
+        roam: true, // 允许拖拽和缩放
         zoom: 1.2,
+        scaleLimit: {
+          min: 0.8, // 最小缩放级别
+          max: 10 // 最大缩放级别（增加到 10 倍，可以放大更多）
+        },
         selectedMode: 'single',
         // 特殊区域（岛屿/拆分小图）仅在选中时展示
-        regions: ['海南', '广东', '台湾', '南海诸岛'].map((name) => {
-          const isSelected = selectedIsland.value === name;
-          return {
+        regions: [
+          // 岛屿区域：默认全部隐藏，只有选中时才显示
+          // 使用基础名称列表，排除"台湾省"（因为它是"台湾"的变体）
+          ...['海南', '广东', '台湾', '南海诸岛'].map((name) => {
+            const isSelected = selectedIsland.value === name || 
+                              (name === '台湾' && (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省'));
+            return {
+              name,
+              // 默认隐藏（opacity: 0），只有选中时才显示（opacity: 1）
+              label: { show: isSelected },
+              itemStyle: { opacity: isSelected ? 1 : 0 },
+              emphasis: { 
+                label: { show: isSelected }, 
+                itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+              },
+              select: { 
+                label: { show: isSelected }, 
+                itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+              }
+            };
+          }),
+          // 如果地图数据中使用"台湾省"，也需要配置（默认隐藏）
+          {
+            name: '台湾省',
+            label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' },
+            itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0 },
+            emphasis: { 
+              label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' }, 
+              itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0.2 } 
+            },
+            select: { 
+              label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' }, 
+              itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0.2 } 
+            }
+          },
+          // 香港和澳门：默认隐藏标签，放大到 2.0 倍以上时显示，悬停时始终显示
+          // 需要同时配置简写和完整名称
+          ...['香港', '澳门', '香港特别行政区', '澳门特别行政区'].map((name) => ({
             name,
-            label: { show: isSelected },
-            itemStyle: { opacity: isSelected ? 1 : 0 },
-            emphasis: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } },
-            select: { label: { show: isSelected }, itemStyle: { opacity: isSelected ? 1 : 0.2 } }
-          };
-        }),
+            label: { 
+              show: false, // 强制隐藏，默认不显示
+              fontSize: 0, // 设置为 0 确保不显示
+              color: 'transparent' // 颜色设为透明
+            },
+            emphasis: { 
+              label: { 
+                show: true, // 悬停时始终显示
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#333'
+              } 
+            }
+          }))
+        ],
         label: {
-          show: true,
-          fontSize: 10, // 【修改6】标签字体略小，避免放大后重叠
+          show: function (params: any) {
+            const name = params.name;
+            // 香港和澳门：根据当前缩放级别决定是否显示
+            // 检查多种可能的名称格式
+            const isHiddenRegion = hiddenLabelRegions.includes(name) || 
+                                   name === '香港特别行政区' || 
+                                   name === '澳门特别行政区' ||
+                                   name?.includes('香港') || 
+                                   name?.includes('澳门');
+            if (isHiddenRegion) {
+              // 缩放级别 >= 6 时显示，否则隐藏
+              return currentZoom.value >= 6;
+            }
+            // 其他区域正常显示
+            return true;
+          },
+          fontSize: 10,
           color: '#333',
           fontWeight: 'normal',
           // 使用富文本样式，避免重叠
@@ -267,14 +501,23 @@ const updateChart = () => {
           // 根据区域大小调整标签
           formatter: (params: any) => {
             const name = params.name;
-            // 对于特别小的区域，使用更小的字体或隐藏
-            const tinyRegions = ['澳门', '香港'];
+            // 香港和澳门：根据缩放级别决定是否显示
+            // 检查多种可能的名称格式
+            const isHiddenRegion = hiddenLabelRegions.includes(name) || 
+                                   name === '香港特别行政区' || 
+                                   name === '澳门特别行政区' ||
+                                   name?.includes('香港') || 
+                                   name?.includes('澳门');
+            if (isHiddenRegion) {
+              // 缩放级别 >= 6 时显示标签，否则返回空字符串
+              if (currentZoom.value >= 6) {
+                return name;
+              }
+              return '';
+            }
+            // 对于特别小的区域，使用更小的字体
             const smallRegions = ['北京', '天津', '上海', '台湾', '海南'];
-
-            if (tinyRegions.includes(name)) {
-              // 特别小的区域使用极小字体
-              return `{small|${name}}`;
-            } else if (smallRegions.includes(name)) {
+            if (smallRegions.includes(name)) {
               // 小区域使用小字体
               return `{small|${name}}`;
             }
@@ -284,11 +527,11 @@ const updateChart = () => {
           // 调整标签位置
           offset: function (params: any) {
             const name = params.name;
-            // 香港向上偏移，澳门向下偏移
+            // 香港向上偏移，澳门向下偏移（仅在显示时）
             if (name === '香港') {
-              return [50, -14]; // 更大右移并上移，远离广东
+              return [50, -14];
             } else if (name === '澳门') {
-              return [50, 14]; // 更大右移并下移，远离广东
+              return [50, 14];
             }
             return [0, 0];
           },
@@ -313,10 +556,13 @@ const updateChart = () => {
         labelLayout: {
           hideOverlap: true, // 隐藏重叠的标签
           moveOverlap: 'shiftX', // 移动重叠的标签
-          draggable: false // 不允许拖拽标签
+          draggable: false, // 不允许拖拽标签
+          // 自定义隐藏逻辑：强制隐藏香港和澳门的标签（除非缩放足够大）
+          labelLine: false
         },
         emphasis: {
           label: {
+            // 悬停时显示所有标签，包括香港和澳门
             show: true,
             fontSize: 14,
             fontWeight: 'bold'
@@ -377,7 +623,9 @@ const updateChart = () => {
           '甘肃省': '甘肃',
           '青海省': '青海',
           '宁夏回族自治区': '宁夏',
-          '新疆维吾尔自治区': '新疆'
+          '新疆维吾尔自治区': '新疆',
+          '香港特别行政区': '香港',
+          '澳门特别行政区': '澳门'
         }
       }
     ]
@@ -388,6 +636,32 @@ const updateChart = () => {
   // 再次延迟调整，确保图表正确渲染
   setTimeout(() => {
     chartInstance?.resize();
+    // 更新后检查缩放级别，确保标签状态正确
+    try {
+      const option = chartInstance?.getOption() as any;
+      const currentZoomLevel = option?.series?.[0]?.zoom || 1.2;
+      if (currentZoomLevel !== currentZoom.value) {
+        currentZoom.value = currentZoomLevel;
+        const shouldShowLabels = currentZoomLevel >= 6;
+        chartInstance?.setOption({
+          series: [
+            {
+              regions: ['香港', '澳门', '香港特别行政区', '澳门特别行政区'].map((name) => ({
+                name,
+                label: { 
+                  show: shouldShowLabels,
+                  fontSize: shouldShowLabels ? 12 : 0,
+                  fontWeight: 'bold',
+                  color: shouldShowLabels ? '#333' : 'transparent'
+                }
+              }))
+            }
+          ]
+        }, false);
+      }
+    } catch (e) {
+      // 忽略错误
+    }
   }, 100);
 };
 
@@ -435,6 +709,16 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', resizeChart);
+  // 清理缩放检查定时器
+  if (zoomCheckTimer !== null) {
+    clearInterval(zoomCheckTimer);
+    zoomCheckTimer = null;
+  }
+  // 清理标签更新防抖定时器
+  if (updateTimer !== null) {
+    clearTimeout(updateTimer);
+    updateTimer = null;
+  }
   if (resizeObserver) {
     resizeObserver.disconnect();
     resizeObserver = null;

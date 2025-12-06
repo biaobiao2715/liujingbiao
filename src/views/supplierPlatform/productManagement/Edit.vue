@@ -759,21 +759,24 @@ onMounted(async () => {
     white-space: nowrap;
     display: inline-block;
   }
+
+  ::v-deep .el-upload-list--picture-card {
+    display: block;
+    height: 114px;
+  }
+  ::v-deep .el-upload-list--picture-card .el-upload-list__item {
+    width: 106px;
+    height: 106px;
+  }
+  ::v-deep .el-upload--picture-card {
+    width: 106px;
+    height: 106px;
+    line-height: 106px;
+    float: left;
+    margin: 0 8px 8px 0;
+  }
 }
-::v-deep.el-upload-list--picture-card {
-  display: block;
-}
-::v-deep .el-upload-list--picture-card .el-upload-list__item {
-  width: 106px;
-  height: 106px;
-}
-::v-deep .el-upload--picture-card {
-  width: 106px;
-  height: 106px;
-  line-height: 106px;
-  float: left;
-  margin: 0 8px 8px 0;
-}
+
 .form-flex {
   display: flex;
   align-items: center;

@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="top-stats-row">
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
+          <el-card shadow="never" class="top-stat-card pending-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款待审批</div>
               <div class="top-stat-value">{{ dashboardData.pendingApprovals }}件</div>
@@ -55,14 +55,14 @@
                       <el-icon :size="20"><Money /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.totalApprovedAmount) }}</div>
+                  <div class="data-card-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
                 </div>
 
                 <div class="data-card">
                   <div class="data-card-header">
                     <span class="data-card-title">本月应收金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyReceivableAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
                 </div>
               </el-col>
               <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
@@ -73,14 +73,14 @@
                       <el-icon :size="20"><Warning /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.currentOverdueAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
                 </div>
 
                 <div class="data-card">
                   <div class="data-card-header">
                     <span class="data-card-title">本月已收金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyReceivedAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
                 </div>
 
               </el-col>
@@ -92,14 +92,14 @@
                       <el-icon :size="20"><TrendCharts /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ dashboardData.totalDefaultRate }}%</div>
+                  <div class="data-card-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
                 </div>
 
                 <div class="data-card">
                   <div class="data-card-header">
                     <span class="data-card-title">本月逾期金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyOverdueAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
                 </div>
               </el-col>
             </el-row>
@@ -112,9 +112,9 @@
                 <el-button
                   v-for="tab in chartTabs"
                   :key="tab.value"
-                  :type="activeTab === tab.value ? 'primary' : 'default'"
                   size="small"
-                  @click="handleTabChange(tab.value)"
+                  disabled
+                  plain
                 >
                   {{ tab.label }}
                 </el-button>
@@ -164,22 +164,44 @@ const dashboardData = ref<DashboardData>({
   monthlyOverdueAmount: 0
 });
 
-// 从字典获取年度月度选项
+// 从字典获取年度月度选项（仅用于显示按钮文本）
 const chartTabs = ref<Array<{ label: string; value: string }>>([]);
-const activeTab = ref('1'); // 默认月度
 
 const defaultRateChart = ref<HTMLElement>();
 
-const formatAmount = (amount: number) => {
-  if (amount >= 100000000) {
-    return (amount / 100000000).toFixed(2) + '亿';
-  } else if (amount >= 10000) {
-    return (amount / 10000).toLocaleString() + '万';
-  }
-  return amount.toLocaleString();
+// 金额统一展示为"万"单位（后端返回的是元，需要除以10000转换为万，保留两位小数，四舍五入）
+const formatWan = (amount: number) => {
+  if (amount === null || amount === undefined) return '--';
+  const num = Number(amount);
+  if (isNaN(num)) return '--';
+  // 将元转换为万（除以10000），保留两位小数，四舍五入
+  const wanAmount = (num / 10000).toFixed(2);
+  return `${wanAmount}万`;
 };
 
-const chartData = ref<any[]>([]);
+// 总贷款金额格式化（后端返回的已经是万，不需要除以10000，保留两位小数，直接加单位万）
+const formatWanInteger = (amount: number) => {
+  if (amount === null || amount === undefined) return '--';
+  const num = Number(amount);
+  if (isNaN(num)) return '--';
+  // 后端返回的已经是万，保留两位小数，四舍五入
+  const wanAmount = num.toFixed(2);
+  return `${wanAmount}万`;
+};
+
+// 违约率格式化（保留两位小数，四舍五入）
+const formatRate = (rate: number) => {
+  if (rate === null || rate === undefined) return '--';
+  const num = Number(rate);
+  if (isNaN(num)) return '--';
+  // 保留两位小数，四舍五入
+  return num.toFixed(2);
+};
+
+const chartData = ref<{ yearData: any; monthData: any }>({
+  yearData: null,
+  monthData: null
+});
 let chartInstance: echarts.ECharts | null = null;
 
 const initDefaultRateChart = () => {
@@ -197,56 +219,80 @@ const initDefaultRateChart = () => {
 };
 
 const updateChart = () => {
-  if (!chartInstance || !chartData.value || chartData.value.length === 0) return;
+  if (!chartInstance) return;
   
-  // 根据数据格式处理，可能是 xAxis/yAxis 格式或数组格式（支持两条线：总违约率、本月违约率）
-  let xAxisData: string[] = [];
-  let totalSeries: number[] = [];
-  let monthSeries: number[] = [];
+  // 处理年度数据（总违约率，红色线）
+  let yearXAxisData: string[] = [];
+  let yearSeries: number[] = [];
   
-  if (chartData.value[0]?.xAxis && chartData.value[0]?.yAxis) {
-    // xAxis/yAxis 格式
-    xAxisData = chartData.value[0].xAxis || [];
-    const yAxisRaw = chartData.value[0].yAxis || [];
-    // 如果返回多维数组，默认第1维为总违约率，第2维为本月违约率
-    if (Array.isArray(yAxisRaw[0])) {
-      totalSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
-      monthSeries = (yAxisRaw[1] || []).map((v: any) => Number(v) || 0);
-    } else {
-      totalSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+  if (chartData.value.yearData) {
+    const yearData = chartData.value.yearData;
+    if (yearData?.xAxis && yearData?.yAxis) {
+      yearXAxisData = yearData.xAxis || [];
+      const yAxisRaw = yearData.yAxis || [];
+      if (Array.isArray(yAxisRaw[0])) {
+        yearSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
+      } else {
+        yearSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+      }
+    } else if (Array.isArray(yearData)) {
+      yearXAxisData = yearData.map((item: any) => item.time || item.month || item.date || '');
+      yearSeries = yearData.map((item: any) => {
+        const rate = item.totalDefaultRate ?? item.totalRate ?? item.defaultRate ?? item.rate ?? item.value ?? 0;
+        return Number(rate) || 0;
+      });
     }
-  } else if (Array.isArray(chartData.value)) {
-    // 数组格式，假设有 time 或 month 字段
-    xAxisData = chartData.value.map((item: any) => item.time || item.month || item.date || '');
-    totalSeries = chartData.value.map((item: any) => {
-      const rate =
-        item.totalDefaultRate ??
-        item.totalRate ??
-        item.defaultRate ??
-        item.rate ??
-        item.value ??
-        0;
-      return Number(rate) || 0;
-    });
-    monthSeries = chartData.value.map((item: any) => {
-      const rate =
-        item.monthDefaultRate ??
-        item.currentDefaultRate ??
-        item.currentRate ??
-        item.monthRate ??
-        item.subRate ??
-        0;
-      return Number(rate) || 0;
-    });
   }
   
-  const legendData = ['总违约率', '本月违约率'];
+  // 处理月度数据（本月违约率，蓝色线）
+  let monthXAxisData: string[] = [];
+  let monthSeries: number[] = [];
+  
+  if (chartData.value.monthData) {
+    const monthData = chartData.value.monthData;
+    if (monthData?.xAxis && monthData?.yAxis) {
+      monthXAxisData = monthData.xAxis || [];
+      const yAxisRaw = monthData.yAxis || [];
+      if (Array.isArray(yAxisRaw[0])) {
+        monthSeries = (yAxisRaw[0] || []).map((v: any) => Number(v) || 0);
+      } else {
+        monthSeries = yAxisRaw.map((v: any) => Number(v) || 0);
+      }
+    } else if (Array.isArray(monthData)) {
+      monthXAxisData = monthData.map((item: any) => item.time || item.month || item.date || '');
+      monthSeries = monthData.map((item: any) => {
+        const rate = item.monthDefaultRate ?? item.currentDefaultRate ?? item.currentRate ?? item.monthRate ?? item.subRate ?? 0;
+        return Number(rate) || 0;
+      });
+    }
+  }
+  
+  // 使用年度数据的 X 轴（如果年度数据为空，使用月度数据的 X 轴）
+  const xAxisData = yearXAxisData.length > 0 ? yearXAxisData : monthXAxisData;
+  
+  // 如果数据为空，不渲染图表
+  if (xAxisData.length === 0 && yearSeries.length === 0 && monthSeries.length === 0) {
+    return;
+  }
+
+  const legendData = [
+    {
+      name: '总违约率',
+      icon: 'rect',
+      itemStyle: { color: 'transparent', borderColor: '#f56c6c', borderWidth: 2 }
+    },
+    {
+      name: '月度',
+      icon: 'rect',
+      itemStyle: { color: 'transparent', borderColor: '#409eff', borderWidth: 2 }
+    }
+  ];
   const series = [
     {
       name: '总违约率',
       type: 'line',
       smooth: true,
-      data: totalSeries,
+      data: yearSeries,
       symbol: 'circle',
       symbolSize: 8,
       itemStyle: { color: '#f56c6c' },
@@ -257,14 +303,9 @@ const updateChart = () => {
           { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
         ])
       }
-    }
-  ];
-
-  // 仅在有数据时展示第二条
-  const hasMonthSeries = monthSeries.some((v) => v !== 0);
-  if (hasMonthSeries) {
-    series.push({
-      name: '本月违约率',
+    },
+    {
+      name: '月度',
       type: 'line',
       smooth: true,
       data: monthSeries,
@@ -278,15 +319,12 @@ const updateChart = () => {
           { offset: 1, color: 'rgba(64, 158, 255, 0.05)' }
         ])
       }
-    });
-  } else {
-    // 只有一条线时，图例只显示一条
-    legendData.splice(1, 1);
-  }
+    }
+  ];
 
   // 动态 Y 轴上限，默认 1%
   const maxVal = Math.max(
-    ...(totalSeries.length ? totalSeries : [0]),
+    ...(yearSeries.length ? yearSeries : [0]),
     ...(monthSeries.length ? monthSeries : [0])
   );
   const yMax = maxVal > 0 ? Math.ceil(maxVal * 1.2 * 100) / 100 : 1;
@@ -295,18 +333,39 @@ const updateChart = () => {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#e4e7ed',
+      textStyle: {
+        color: '#303133'
+      },
       axisPointer: {
-        type: 'cross'
+        type: 'cross',
+        label: {
+          show: true,
+          backgroundColor: '#303133',
+          color: '#fff',
+          precision: 'auto'
+        },
+        crossStyle: {
+          color: '#909399'
+        },
+        lineStyle: {
+          type: 'dashed',
+          width: 1,
+          color: '#909399'
+        }
       }
     },
     legend: {
       data: legendData,
       textStyle: {
-        color: '#fff'
+        color: '#303133'
       },
       top: 10,
       left: 'center',
-      itemGap: 20
+      itemGap: 20,
+      itemWidth: 24,
+      itemHeight: 14
     },
     grid: {
       left: 40,
@@ -320,11 +379,14 @@ const updateChart = () => {
       boundaryGap: false,
       data: xAxisData,
       axisLabel: {
-        color: '#fff'
+        color: '#606266',
+        show: true,
+        showMinLabel: true,
+        showMaxLabel: true
       },
       axisLine: {
         lineStyle: {
-          color: '#fff'
+          color: '#dcdfe6'
         }
       }
     },
@@ -333,18 +395,32 @@ const updateChart = () => {
       min: 0,
       max: yMax,
       splitNumber: 5,
+      show: true,
       axisLabel: {
         formatter: '{value}%',
-        color: '#fff'
+        color: '#606266',
+        show: true,
+        showMinLabel: true,
+        showMaxLabel: true
       },
       axisLine: {
+        show: true,
         lineStyle: {
-          color: '#fff'
+          color: '#dcdfe6',
+          width: 1
+        }
+      },
+      axisTick: {
+        show: true,
+        lineStyle: {
+          color: '#dcdfe6'
         }
       },
       splitLine: {
+        show: true,
         lineStyle: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: '#e4e7ed',
+          type: 'dashed'
         }
       }
     },
@@ -383,51 +459,56 @@ const fetchDashboardData = async () => {
   }
 };
 
-// 获取折线图数据
+// 获取折线图数据（同时获取年度和月度数据）
 const fetchChartData = async () => {
   try {
-    const params: any = {
-      dateType: activeTab.value // '1' 月度, '2' 年度
+    // 同时调用年度和月度接口
+    const [yearRes, monthRes] = await Promise.all([
+      getDashboardLineChart({ dateType: '2' }), // 年度
+      getDashboardLineChart({ dateType: '1' })  // 月度
+    ]);
+    
+    // 处理年度数据
+    let yearData = null;
+    if (yearRes && yearRes.code === 200) {
+      if (yearRes.data?.xAxis && yearRes.data?.yAxis) {
+        yearData = { xAxis: yearRes.data.xAxis, yAxis: yearRes.data.yAxis };
+      } else if (Array.isArray(yearRes.data)) {
+        yearData = yearRes.data;
+      }
+    }
+    
+    // 处理月度数据
+    let monthData = null;
+    if (monthRes && monthRes.code === 200) {
+      if (monthRes.data?.xAxis && monthRes.data?.yAxis) {
+        monthData = { xAxis: monthRes.data.xAxis, yAxis: monthRes.data.yAxis };
+      } else if (Array.isArray(monthRes.data)) {
+        monthData = monthRes.data;
+      }
+    }
+    
+    // 更新图表数据
+    chartData.value = {
+      yearData,
+      monthData
     };
     
-    const res = await getDashboardLineChart(params);
-    
-    if (res && res.code === 200) {
-      // 处理返回的数据格式
-      if (res.data?.xAxis && res.data?.yAxis) {
-        chartData.value = [{ xAxis: res.data.xAxis, yAxis: res.data.yAxis }];
-      } else if (Array.isArray(res.data)) {
-        chartData.value = res.data;
-      } else {
-        chartData.value = [];
-      }
-      
-      nextTick(() => {
-        updateChart();
-      });
-    }
+    nextTick(() => {
+      updateChart();
+    });
   } catch (error) {
     console.error('获取折线图数据失败', error);
   }
 };
 
-// 切换标签
-const handleTabChange = (value: string) => {
-  activeTab.value = value;
-  fetchChartData();
-};
-
 onMounted(() => {
-  // 初始化字典选项
+  // 初始化字典选项（仅用于显示按钮文本）
   if (sys_year_month.value && sys_year_month.value.length > 0) {
     chartTabs.value = sys_year_month.value.map((item: any) => ({
       label: item.label,
       value: item.value
     }));
-    // 默认选中第一个
-    if (chartTabs.value.length > 0) {
-      activeTab.value = chartTabs.value[0].value;
-    }
   } else {
     // 如果字典未加载，使用默认值
     chartTabs.value = [
@@ -447,7 +528,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .credit-dashboard {
   padding: 24px;
-  background-color: #f0f2f5;
+  background: #f5f7fa;
   min-height: calc(100vh - 84px);
 }
 
@@ -501,31 +582,35 @@ onMounted(() => {
   }
 }
 
+.pending-card .top-stat-value {
+  color: #f56c6c; // 待审批标红
+}
+
 .main-content {
   width: 100%;
 }
 
 .middle-section {
-  background: #0f1b2d;
+  background: #fff;
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .data-card {
-  background: rgba(19, 30, 49, 0.95);
+  background: #fff;
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #e4e7ed;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   &:hover {
-    background: rgba(19, 30, 49, 1);
+    background: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   &:last-child {
@@ -541,7 +626,7 @@ onMounted(() => {
 
   .data-card-title {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.85);
+    color: #606266;
     font-weight: 500;
   }
 
@@ -549,15 +634,15 @@ onMounted(() => {
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #f5f7fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: #409eff;
     flex-shrink: 0;
 
     &.warning-icon {
-      background: rgba(245, 108, 108, 0.3);
+      background: rgba(245, 108, 108, 0.1);
       color: #f56c6c;
     }
   }
@@ -566,16 +651,16 @@ onMounted(() => {
 .data-card-value {
   font-size: 32px;
   font-weight: 600;
-  color: #fff;
+  color: #303133;
   margin-bottom: 8px;
   word-break: break-word;
 }
 
 .bottom-chart-section {
-  background: #0f1b2d;
+  background: #fff;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 12px 30px rgba(8, 12, 28, 0.55);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .chart-header {
@@ -589,7 +674,7 @@ onMounted(() => {
   .chart-title {
     font-size: 18px;
     font-weight: 600;
-    color: #fff;
+    color: #303133;
   }
 
   .chart-tabs {

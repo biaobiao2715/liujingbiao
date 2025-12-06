@@ -547,6 +547,13 @@ onMounted(() => {
   padding: 24px;
   height: calc(100vh - 120px);
   box-sizing: border-box;
+
+  :deep(.el-form--inline) {
+    .el-form-item {
+      margin-bottom: 18px;
+      margin-right: 16px;
+    }
+  }
 }
 
 .operation-bar {

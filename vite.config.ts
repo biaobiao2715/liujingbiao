@@ -43,6 +43,12 @@ export default defineConfig(({ mode, command }) => {
           target: 'http://8.153.15.72:3001',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/file-parse/, '')
+        },
+        // FastGPT 文件上传和解析服务（8.153.15.72:81）
+        '/fastgpt': {
+          target: 'http://8.153.15.72:81',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/fastgpt/, '/fastgpt')
         }
       }
     },
