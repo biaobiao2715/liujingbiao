@@ -37,19 +37,23 @@
 
     <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column label="申请人" prop="realName" align="center" width="120" />
+      <el-table-column label="申请人" prop="realName" align="center" width="120" class-name="nowrap-column" :show-overflow-tooltip="true" />
       <el-table-column label="产品名称" prop="productName" min-width="180" align="center" :show-overflow-tooltip="true" />
-      <el-table-column label="产品类型" prop="productType" align="center" width="120">
+      <el-table-column label="产品类型" prop="productType" align="center" width="120" class-name="tag-column-nowrap" :show-overflow-tooltip="true">
         <template #default="scope">
-          <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
+          <div class="tag-wrapper">
+            <dict-tag :options="prod_credit_type" :value="formatDictValue(scope.row.productType)" />
+          </div>
         </template>
       </el-table-column>
-      <el-table-column label="适用对象" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
+      <el-table-column label="适用对象" prop="applicableObject" min-width="180" class-name="tag-column-nowrap" :show-overflow-tooltip="true">
         <template #default="scope">
-          <dict-tag
-            :options="applicable_object"
-            :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject"
-          />
+          <div class="tag-wrapper">
+            <dict-tag
+              :options="applicable_object"
+              :value="formatDictValue(typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject)"
+            />
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="申请时间" prop="createTime" min-width="180" align="center" />
@@ -159,6 +163,51 @@ const pendingStatusValues = computed(() => {
   // fallback, assume字典值为 '1' 或 '0'
   return ['1', '0'];
 });
+
+/**
+ * 格式化字典值，去除重复项
+ */
+const formatDictValue = (value: unknown) => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  if (Array.isArray(value)) {
+    // 数组去重
+    const uniqueValues = Array.from(new Set(value.map((item) => String(item).trim()).filter((item) => item !== '')));
+    return uniqueValues.length > 0 ? uniqueValues : undefined;
+  }
+  if (typeof value === 'string') {
+    // 字符串分割后去重
+    const arr = value
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item !== '');
+    const uniqueValues = Array.from(new Set(arr));
+    return uniqueValues.length > 0 ? uniqueValues : undefined;
+  }
+  // 单个值直接返回
+  return [String(value)];
+};
+
+/**
+ * 获取字典标签文本（用于 tooltip）
+ */
+const getDictLabels = (options: any[], values: string[] | undefined): string => {
+  if (!values || !Array.isArray(values) || values.length === 0) return '';
+  if (!options || !Array.isArray(options)) return '';
+  
+  const labels: string[] = [];
+  const uniqueValues = Array.from(new Set(values.map((v) => String(v).trim())));
+  
+  uniqueValues.forEach((val) => {
+    const option = options.find((opt: any) => String(opt.value) === val);
+    if (option && option.label) {
+      labels.push(option.label);
+    }
+  });
+  
+  return labels.join('、');
+};
 
 const queryFormRef = ref();
 const queryParams = ref({
@@ -394,6 +443,44 @@ onMounted(() => {
 
 :deep(.nowrap-column .cell) {
   white-space: nowrap;
+}
+
+:deep(.tag-column-nowrap .cell) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  .tag-wrapper {
+    display: inline-block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    cursor: pointer;
+    
+    > div {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 100%;
+      
+      :deep(.el-tag) {
+        flex-shrink: 0;
+        margin: 0;
+        white-space: nowrap;
+      }
+      
+      :deep(.el-tag + .el-tag) {
+        margin-left: 4px;
+      }
+      
+      :deep(span) {
+        white-space: nowrap;
+      }
+    }
+  }
 }
 
 :deep(.el-table) {
