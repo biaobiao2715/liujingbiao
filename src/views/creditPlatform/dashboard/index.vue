@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="top-stats-row">
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
+          <el-card shadow="never" class="top-stat-card pending-card">
             <div class="top-stat-content">
               <div class="top-stat-label">贷款待审批</div>
               <div class="top-stat-value">{{ dashboardData.pendingApprovals }}件</div>
@@ -55,14 +55,14 @@
                       <el-icon :size="20"><Money /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.totalApprovedAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.totalApprovedAmount) }}</div>
                 </div>
 
                 <div class="data-card">
                   <div class="data-card-header">
                     <span class="data-card-title">本月应收金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyReceivableAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
                 </div>
               </el-col>
               <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
@@ -73,14 +73,14 @@
                       <el-icon :size="20"><Warning /></el-icon>
                     </div>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.currentOverdueAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
                 </div>
 
                 <div class="data-card">
                   <div class="data-card-header">
                     <span class="data-card-title">本月已收金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyReceivedAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
                 </div>
 
               </el-col>
@@ -99,7 +99,7 @@
                   <div class="data-card-header">
                     <span class="data-card-title">本月逾期金额</span>
                   </div>
-                  <div class="data-card-value">{{ formatAmount(dashboardData.monthlyOverdueAmount) }}</div>
+                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
                 </div>
               </el-col>
             </el-row>
@@ -170,13 +170,14 @@ const activeTab = ref('1'); // 默认月度
 
 const defaultRateChart = ref<HTMLElement>();
 
-const formatAmount = (amount: number) => {
-  if (amount >= 100000000) {
-    return (amount / 100000000).toFixed(2) + '亿';
-  } else if (amount >= 10000) {
-    return (amount / 10000).toLocaleString() + '万';
-  }
-  return amount.toLocaleString();
+// 金额统一展示为“万”单位
+const formatWan = (amount: number) => {
+  if (amount === null || amount === undefined) return '--';
+  const num = Number(amount);
+  if (isNaN(num)) return '--';
+  const fixed = num.toFixed(2);
+  const trimmed = fixed.replace(/\.?0+$/, '');
+  return `${trimmed}万`;
 };
 
 const chartData = ref<any[]>([]);
@@ -240,7 +241,24 @@ const updateChart = () => {
     });
   }
   
-  const legendData = ['总违约率', '本月违约率'];
+  // 确保两条线都有数据长度，便于显示图例（即使为 0）
+  const len = xAxisData.length || totalSeries.length || monthSeries.length;
+  if (monthSeries.length === 0 && len > 0) {
+    monthSeries = new Array(len).fill(0);
+  }
+
+  const legendData = [
+    {
+      name: '总违约率',
+      icon: 'rect',
+      itemStyle: { color: 'transparent', borderColor: '#f56c6c', borderWidth: 2 }
+    },
+    {
+      name: '本月违约率',
+      icon: 'rect',
+      itemStyle: { color: 'transparent', borderColor: '#409eff', borderWidth: 2 }
+    }
+  ];
   const series = [
     {
       name: '总违约率',
@@ -257,13 +275,8 @@ const updateChart = () => {
           { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
         ])
       }
-    }
-  ];
-
-  // 仅在有数据时展示第二条
-  const hasMonthSeries = monthSeries.some((v) => v !== 0);
-  if (hasMonthSeries) {
-    series.push({
+    },
+    {
       name: '本月违约率',
       type: 'line',
       smooth: true,
@@ -278,11 +291,8 @@ const updateChart = () => {
           { offset: 1, color: 'rgba(64, 158, 255, 0.05)' }
         ])
       }
-    });
-  } else {
-    // 只有一条线时，图例只显示一条
-    legendData.splice(1, 1);
-  }
+    }
+  ];
 
   // 动态 Y 轴上限，默认 1%
   const maxVal = Math.max(
@@ -296,7 +306,19 @@ const updateChart = () => {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-        type: 'cross'
+        type: 'cross',
+        label: {
+          show: true,
+          backgroundColor: '#6a7985',
+          precision: 'auto'
+        },
+        crossStyle: {
+          color: '#999'
+        },
+        lineStyle: {
+          type: 'dashed',
+          width: 1
+        }
       }
     },
     legend: {
@@ -306,7 +328,9 @@ const updateChart = () => {
       },
       top: 10,
       left: 'center',
-      itemGap: 20
+      itemGap: 20,
+      itemWidth: 24,
+      itemHeight: 14
     },
     grid: {
       left: 40,
@@ -320,7 +344,10 @@ const updateChart = () => {
       boundaryGap: false,
       data: xAxisData,
       axisLabel: {
-        color: '#fff'
+        color: '#fff',
+        show: true,
+        showMinLabel: true,
+        showMaxLabel: true
       },
       axisLine: {
         lineStyle: {
@@ -335,7 +362,10 @@ const updateChart = () => {
       splitNumber: 5,
       axisLabel: {
         formatter: '{value}%',
-        color: '#fff'
+        color: '#fff',
+        show: true,
+        showMinLabel: true,
+        showMaxLabel: true
       },
       axisLine: {
         lineStyle: {
@@ -499,6 +529,10 @@ onMounted(() => {
     font-weight: 600;
     color: #303133;
   }
+}
+
+.pending-card .top-stat-value {
+  color: #f56c6c; // 待审批标红
 }
 
 .main-content {
