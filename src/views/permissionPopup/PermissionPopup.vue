@@ -137,7 +137,7 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">{{ isReadOnly ? '关闭' : '取消申请' }}</el-button>
+        <el-button @click="handleClose">{{ isReadOnly ? '关闭' : '关闭' }}</el-button>
         <el-button 
           v-if="!isPendingAudit && !isReadOnly" 
           type="primary" 
@@ -470,15 +470,29 @@ const fillFormData = (data: any) => {
   // 填充审核意见
   auditComment.value = data.auditRemark || '';
   
-  // 如果有文件ID和URL，回显文件
-  if (data.licenseFileId && data.licenseFileUrl) {
+  // 如果有文件URL，回显文件（优先使用 licenseFileId，如果没有则从 URL 中提取文件名）
+  if (data.licenseFileUrl) {
+    // 从 URL 中提取文件名
+    let fileName = data.licenseFileName || '营业执照';
+    if (!data.licenseFileName && data.licenseFileUrl) {
+      try {
+        const urlParts = data.licenseFileUrl.split('/');
+        const lastPart = urlParts[urlParts.length - 1];
+        if (lastPart && lastPart.includes('.')) {
+          fileName = lastPart;
+        }
+      } catch (e) {
+        console.warn('从 URL 提取文件名失败:', e);
+      }
+    }
+    
     licenseFiles.value = [{
-      name: data.licenseFileName || '营业执照',
-      fileName: data.licenseFileName || '营业执照',
-      displayName: data.licenseFileName || '营业执照',
+      name: fileName,
+      fileName: fileName,
+      displayName: fileName,
       url: data.licenseFileUrl, // 使用 licenseFileUrl 作为显示地址
       serverUrl: data.licenseFileUrl, // 使用 licenseFileUrl 作为服务器地址
-      ossId: data.licenseFileId,
+      ossId: data.licenseFileId || '',
       fileType: 'license',
       status: 'success',
       percentage: 100
