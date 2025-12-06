@@ -192,7 +192,7 @@ const handleRedirect = async (path: string) => {
         }else {
         permissionPopupVisible.value = true;
         }
-      } else {
+      } else if(auditStatus.value == 0 || auditStatus.value == null || auditStatus.value == 2 || auditStatus.value == undefined){
         // 没有数据，显示空表单
         permissionPopupData.value = null;
         auditStatus.value = null;
