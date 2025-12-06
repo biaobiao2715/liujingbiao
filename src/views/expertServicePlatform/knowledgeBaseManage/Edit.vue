@@ -23,6 +23,11 @@
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
+        <el-col :span="12">
+          <el-form-item label="文章摘要" prop="articleSummary">
+            <el-input v-model="form.articleSummary" type="textarea" :rows="5" placeholder="请输入文章摘要" maxlength="300" show-word-limit />
+          </el-form-item>
+        </el-col>
         <el-col :span="24">
           <el-form-item label="正文编辑" prop="articleContent">
             <div style="display: flex">
@@ -79,7 +84,7 @@
       <div class="h20"></div>
 
       <el-col :span="12">
-        <el-form-item label="上传主图" prop="articleCover">
+        <el-form-item label="上传主图" prop="articleCover" class="uploadcss">
           <el-upload
             action="#"
             :auto-upload="false"
@@ -88,20 +93,10 @@
             :file-list="coverFileList"
             :on-change="handleCoverChange"
             :on-remove="handleCoverRemove"
+            :on-preview="previewCover"
             :show-file-list="true"
           >
             <el-icon><Plus /></el-icon>
-            <template #file="{ file }">
-              <img :src="file.url" class="el-upload-list__item-thumbnail" alt="主图" />
-              <span class="el-upload-list__item-actions">
-                <span class="el-upload-list__item-preview" @click="previewCover(file)">
-                  <el-icon><ZoomIn /></el-icon>
-                </span>
-                <span class="el-upload-list__item-delete" @click="handleCoverRemove(file)">
-                  <el-icon><Delete /></el-icon>
-                </span>
-              </span>
-            </template>
             <template #tip>
               <div class="upload-tip">注：支持jpg、png两种格式，大小不超过10MB。</div>
             </template>
@@ -125,6 +120,16 @@
         <el-button v-throttle type="primary" @click="submit()">发布</el-button>
       </div>
     </el-form>
+    <!-- 主图预览对话框 -->
+    <el-dialog v-model="previewVisible" title="主图预览" width="600px" :append-to-body="true" :close-on-click-modal="true">
+      <div class="preview-wrap">
+        <el-image v-if="previewUrl" :src="previewUrl" fit="contain" style="width: 100%; height: 420px" :preview-src-list="[previewUrl]" />
+        <div v-else class="preview-empty">暂无预览</div>
+      </div>
+      <template #footer>
+        <el-button @click="previewVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -147,12 +152,16 @@ const form = ref<any>({
   articleTitle: '',
   articleType: '',
   articleContent: '',
+  articleCover: '',
   articleStatus: '2'
 });
 const formRef = ref();
 const fileListtable = ref<Array<any>>([]);
 // 主图文件列表（最多1个）
 const coverFileList = ref<Array<any>>([]);
+// 预览对话框
+const previewVisible = ref(false);
+const previewUrl = ref<string>('');
 const tocList = ref([]); // 目录列表
 const rules = {
   articleTitle: [
@@ -160,7 +169,9 @@ const rules = {
     { validator: (_: any, v: string, cb: any) => (v && v.length <= 30 ? cb() : cb(new Error('标题最多30个字'))), trigger: 'blur' }
   ],
   articleType: [{ required: true, message: '请选择文章类别', trigger: 'change' }],
+  articleSummary: [{ required: true, message: '请输入文章摘要', trigger: 'change' }],
   articleContent: [{ required: true, message: '请输入正文内容', trigger: 'blur' }],
+  articleCover: [{ required: true, message: '请上传主图', trigger: 'change' }],
   articleStatus: [{ required: true, message: '请选择文章状态', trigger: 'change' }]
 };
 
@@ -363,11 +374,16 @@ const handleCoverChange = async (file: any) => {
 const handleCoverRemove = (file?: any) => {
   coverFileList.value = [];
   form.value.articleCover = '';
+  // 移除后触发该字段校验
+  formRef.value?.validateField?.('articleCover');
 };
 
 const previewCover = (file: any) => {
   const url = file?.url || form.value.articleCover;
-  if (url) window.open(url);
+  if (url) {
+    previewUrl.value = url;
+    previewVisible.value = true;
+  }
 };
 
 // 重新上传功能：点击后弹出文件选择并替换该行内容
@@ -422,24 +438,27 @@ onMounted(async () => {
         ...res.data
       };
       // 主图和规格数据不带入
-      fileListtable.value = res.data.commonRelevanceFilesVos.map((f: any) => ({
-        fileName: f.remoteOssVos?.[0]?.originalName || '文章附件',
-        url: f.remoteOssVos?.[0]?.url,
-        ossId: f.remoteOssVos?.[0]?.ossId,
-        path: f.remoteOssVos?.[0]?.url,
-        name: f.remoteOssVos?.[0]?.originalName,
-        originalName: f.remoteOssVos?.[0]?.originalName,
-        fileSuffix: f.remoteOssVos?.[0]?.fileSuffix
-      }));
-      // 根据已有附件确定锁定类别
-      const first = fileListtable.value[0];
-      if (first?.fileName) {
+      if (res.data.ossVoList && Array.isArray(res.data.ossVoList)) {
+        fileListtable.value = res.data.commonRelevanceFilesVos.map((f: any) => ({
+          fileName: f.remoteOssVos?.[0]?.originalName || '文章附件',
+          url: f.remoteOssVos?.[0]?.url,
+          ossId: f.remoteOssVos?.[0]?.ossId,
+          path: f.remoteOssVos?.[0]?.url,
+          name: f.remoteOssVos?.[0]?.originalName,
+          originalName: f.remoteOssVos?.[0]?.originalName,
+          fileSuffix: f.remoteOssVos?.[0]?.fileSuffix
+        }));
+        // 根据已有附件确定锁定类别
+        const first = fileListtable.value[0];
+
         const ext = (String(first.fileName).split('.').pop() || '').toLowerCase();
         lockedCategory.value = getCategoryByExt(ext);
       }
 
       // 带入主图展示
       if (res.data.articleCover) {
+        // 设置表单字段，满足必填校验与提交
+        form.value.articleCover = res.data.articleCover;
         coverFileList.value = [
           {
             uid: Date.now().toString(),
@@ -615,18 +634,25 @@ onMounted(async () => {
   }
 }
 
-::v-deep.el-upload-list--picture-card {
-  display: block;
-}
-::v-deep .el-upload-list--picture-card .el-upload-list__item {
-  width: 106px;
-  height: 106px;
-}
-::v-deep .el-upload--picture-card {
-  width: 106px;
-  height: 106px;
-  line-height: 106px;
-  float: left;
-  margin: 0 8px 8px 0;
+.uploadcss {
+  ::v-deep .el-form-item__content {
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  ::v-deep .el-upload-list--picture-card {
+    display: block;
+  }
+  ::v-deep .el-upload-list--picture-card .el-upload-list__item {
+    width: 106px;
+    height: 106px;
+  }
+  ::v-deep .el-upload--picture-card {
+    width: 106px;
+    height: 106px;
+    line-height: 106px;
+    float: left;
+    margin: 0 8px 8px 0;
+  }
 }
 </style>

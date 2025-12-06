@@ -54,7 +54,7 @@
     <div style="height: 91px"></div>
 
     <el-dialog
-      class="dialog-preview"
+      style="background-color: #f6f7fb"
       :title="dlgTitle"
       v-model="dlgPreviewVisible"
       :before-close="cancelDlg"

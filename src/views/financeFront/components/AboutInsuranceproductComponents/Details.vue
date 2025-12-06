@@ -16,17 +16,17 @@
 
     <div class="detail-content detail-content--advantages">
       <div class="detail-content_title">保险特点</div>
-      <div v-html="form?.productAdvantages"></div>
+      <div class="rich-text" v-html="form?.productAdvantages"></div>
     </div>
 
     <div class="detail-content detail-content--applicable">
       <div class="detail-content_title">保障计划</div>
-      <div v-html="form?.guaranteePlan"></div>
+      <div class="rich-text" v-html="form?.guaranteePlan"></div>
     </div>
 
     <div class="detail-content detail-content--conditions">
       <div class="detail-content_title">申请条件</div>
-      <div v-html="form?.applicationInstructions"></div>
+      <div class="rich-text" v-html="form?.applicationInstructions"></div>
     </div>
 
     <div class="detail-content">
@@ -124,6 +124,7 @@ const getArticleDetail = async () => {
 }
 
 .item_productName {
+  height: 69px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 500;
   font-size: 50px;
@@ -263,5 +264,75 @@ const getArticleDetail = async () => {
   color: #108c58;
   cursor: pointer;
   margin-left: 58px;
+}
+
+/* 通用图片约束（容器内的所有图片） */
+.detail-content :deep(img),
+.detail-content .rich-text :deep(img) {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important; /* 图片居中且不超出容器 */
+}
+
+.detail-content :deep(table) {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.detail-content :deep(video),
+.detail-content :deep(iframe) {
+  max-width: 100%;
+}
+
+.detail-content--advantages :deep(img),
+.detail-content--applicable :deep(img),
+.detail-content--conditions :deep(img) {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+}
+
+/* v-html 富文本通用规范：去除异常间距与换行 */
+.detail-content :deep(p),
+.detail-content :deep(h1),
+.detail-content :deep(h2),
+.detail-content :deep(h3),
+.detail-content :deep(h4),
+.detail-content :deep(h5),
+.detail-content :deep(h6) {
+  margin: 0 0 12px; /* 标题/段落统一下间距 */
+}
+
+.detail-content :deep(ul),
+.detail-content :deep(ol) {
+  padding-left: 20px;
+  margin: 0 0 12px;
+}
+
+.detail-content :deep(blockquote) {
+  margin: 0 0 12px;
+  padding-left: 12px;
+  border-left: 3px solid #e5e5e5;
+  color: #666;
+}
+
+/* 表格横向溢出时可滚动 */
+.detail-content {
+  overflow-x: hidden;
+}
+.detail-content :deep(.table-wrapper) {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* 防止富文本里图片设置了固定宽度导致溢出 */
+.detail-content :deep(img[style*='width']),
+.detail-content :deep(img[style*='height']),
+.detail-content .rich-text :deep(img[style*='width']),
+.detail-content .rich-text :deep(img[style*='height']) {
+  width: auto !important; /* 解除固定宽度 */
+  height: auto !important; /* 解除固定高度 */
+  max-width: 100% !important; /* 约束最大宽度 */
 }
 </style>
