@@ -2,54 +2,72 @@
   <el-dialog
     :model-value="props.visible"
     @update:model-value="(val) => emit('update:visible', val)"
-    title="全链条溯源服务系统权限申请页"
+    :title="dialogTitle"
     width="60%"
     :close-on-click-modal="false"
     append-to-body
     @close="handleClose"
   >
     <div class="permission-popup">
+      <!-- 审核状态显示 -->
+      <div v-if="isPendingAudit || isRejected || props.auditStatus == 1" class="audit-status-bar">
+        <div class="status-label">申请状态：</div>
+        <el-tag :type="getStatusTagType()" size="large">{{ getStatusLabel() }}</el-tag>
+      </div>
+      
+      <!-- 审核意见（仅审核驳回时显示） -->
+      <div v-if="isRejected && auditComment" class="audit-comment-bar">
+        <div class="comment-label">审核意见：</div>
+        <div class="comment-content">{{ auditComment }}</div>
+      </div>
+      
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px" class="permission-form">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="企业名称" prop="companyName">
-              <el-input v-model="formData.companyName" placeholder="请输入企业名称" />
+              <el-input v-model="formData.companyName" placeholder="请输入企业名称" :disabled="isReadOnly" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="统一社会信用代码号" prop="licenseCode" class="no-wrap-label">
-              <el-input v-model="formData.licenseCode" placeholder="请输入统一社会信用代码号" />
+              <el-input v-model="formData.licenseCode" placeholder="请输入统一社会信用代码号" :disabled="isReadOnly" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="企业性质(类型)" prop="companyType">
-              <el-select v-model="formData.companyType" placeholder="请选择企业性质" style="width: 100%">
-                <el-option label="企业" value="enterprise" />
-                <el-option label="个体工商户" value="supplier" />
-                <el-option label="合作社" value="other" />
+              <el-select v-model="formData.companyType" placeholder="请选择企业性质" style="width: 100%" :disabled="isReadOnly">
+                <el-option label="企业" value="1" />
+                <el-option label="个体工商户" value="2" />
+                <el-option label="合作社" value="3" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="法人/联系人" prop="legalPerson">
-              <el-input v-model="formData.legalPerson" placeholder="请输入法人/联系人" />
+              <el-input v-model="formData.legalPerson" placeholder="请输入法人/联系人" :disabled="isReadOnly" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="联系电话" prop="contactPhone">
-              <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
+              <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" :disabled="isReadOnly" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="地址" prop="address">
-              <el-input v-model="formData.address" placeholder="请输入地址" @blur="handleAddressBlur" @keyup.enter="handleAddressBlur" />
+              <el-input v-model="formData.address" placeholder="请输入地址" :disabled="isReadOnly" @blur="handleAddressBlur" @keyup.enter="handleAddressBlur" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <!-- 位置选择 -->
         <el-form-item label="位置" prop="location">
-          <AMap :model-value="mapData" @update:model-value="handleMapUpdate" map-id="permission-map" :address-sync-signal="addressSyncSignal" />
+          <AMap 
+            :model-value="mapData" 
+            @update:model-value="handleMapUpdate" 
+            map-id="permission-map" 
+            :address-sync-signal="addressSyncSignal"
+            :disabled="isReadOnly"
+          />
         </el-form-item>
 
         <!-- 经纬度显示，与上方布局对齐 -->
@@ -68,7 +86,7 @@
 
         <!-- 简介 -->
         <el-form-item label="简介" prop="companyIntro">
-          <el-input v-model="formData.companyIntro" type="textarea" :rows="4" placeholder="请输入简介" />
+          <el-input v-model="formData.companyIntro" type="textarea" :rows="4" placeholder="请输入简介" :disabled="isReadOnly" />
         </el-form-item>
 
         <!-- 营业执照附件（上传逻辑与 RepaymentPlanDialog 对齐） -->
@@ -103,9 +121,10 @@
                 :before-upload="beforeUpload"
                 :on-remove="handleLicenseRemove"
                 :limit="1"
+                :disabled="isReadOnly"
                 class="contract-uploader"
               >
-                <el-button type="primary" icon="Upload">点击上传</el-button>
+                <el-button type="primary" icon="Upload" :disabled="isReadOnly">点击上传</el-button>
                 <template #tip>
                   <div class="upload-tip">仅支持 JPG、PNG 图片，大小不超过10MB</div>
                 </template>
@@ -118,25 +137,35 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">取消申请</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">提交申请</el-button>
+        <el-button @click="handleClose">{{ isReadOnly ? '关闭' : '取消申请' }}</el-button>
+        <el-button 
+          v-if="!isPendingAudit && !isReadOnly" 
+          type="primary" 
+          @click="handleSubmit" 
+          :loading="submitting"
+        >
+          {{ isRejected ? '提交修改' : '提交申请' }}
+        </el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { Close, Loading } from '@element-plus/icons-vue';
 import type { UploadUserFile } from 'element-plus';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
+import { traceableCompany, updateTraceableCompany } from '@/api/permissionPopup';
 import AMap from './AMap.vue';
 
 const props = defineProps<{
   visible: boolean;
+  initialData?: any; // 初始数据，用于回显
+  auditStatus?: number | null; // 审核状态：0-待审核，1-审核通过，2-审核驳回
 }>();
 
 const emit = defineEmits<{
@@ -177,6 +206,57 @@ const licenseFiles = ref<LicenseFile[]>([]);
 const uploaderRef = ref();
 const objectUrls = new Map<string, string>();
 const addressSyncSignal = ref(0);
+const auditComment = ref<string>(''); // 审核意见
+
+// 计算属性：判断是否为只读模式（审核通过或待审核）
+const isReadOnly = computed(() => props.auditStatus == 1 || props.auditStatus == 0);
+// 计算属性：判断是否为待审核状态
+const isPendingAudit = computed(() => props.auditStatus == 0);
+// 计算属性：判断是否为审核驳回状态
+const isRejected = computed(() => props.auditStatus == 2);
+
+// 计算属性：根据审核状态动态显示标题
+const dialogTitle = computed(() => {
+  if (props.auditStatus === null || props.auditStatus === undefined) {
+    // auditStatus 为空，显示申请页
+    return '全链条溯源服务系统权限申请页';
+  } else if (props.auditStatus == 0) {
+    // 待审核
+    return '全链条溯源服务系统权限待审批页';
+  } else if (props.auditStatus == 1) {
+    // 审核通过
+    return '全链条溯源服务系统权限申请页';
+  } else if (props.auditStatus == 2) {
+    // 审核驳回
+    return '全链条溯源服务系统权限审批驳回页';
+  }
+  // 默认
+  return '全链条溯源服务系统权限申请页';
+});
+
+// 获取状态标签文本
+const getStatusLabel = () => {
+  if (props.auditStatus == 0) {
+    return '待审批';
+  } else if (props.auditStatus == 1) {
+    return '审批通过';
+  } else if (props.auditStatus == 2) {
+    return '审批驳回';
+  }
+  return '';
+};
+
+// 获取状态标签类型
+const getStatusTagType = () => {
+  if (props.auditStatus == 0) {
+    return 'warning'; // 待审批 - 橙色
+  } else if (props.auditStatus == 1) {
+    return 'success'; // 审批通过 - 绿色
+  } else if (props.auditStatus == 2) {
+    return 'danger'; // 审批驳回 - 红色
+  }
+  return 'info';
+};
 
 const rules: FormRules = {
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
@@ -369,6 +449,95 @@ const handleDeleteFile = async () => {
   await handleLicenseRemove(licenseFiles.value[0]);
 };
 
+// 回显数据
+const fillFormData = (data: any) => {
+  if (!data) return;
+  
+  // 填充表单数据
+  formData.companyName = data.companyName || '';
+  formData.licenseCode = data.licenseCode || '';
+  formData.companyType = data.companyType || '';
+  formData.legalPerson = data.legalPerson || '';
+  formData.contactPhone = data.contactPhone || '';
+  formData.address = data.address || '';
+  formData.longitude = data.longitude || '';
+  formData.latitude = data.latitude || '';
+  formData.companyIntro = data.companyIntro || '';
+  formData.licenseFileId = data.licenseFileId || '';
+  
+  // 填充审核意见（可能是 auditComment、rejectReason、auditOpinion 等字段）
+  auditComment.value = data.auditComment || data.rejectReason || data.auditOpinion || '';
+  
+  // 如果有文件ID和URL，回显文件
+  if (data.licenseFileId && data.licenseFileUrl) {
+    licenseFiles.value = [{
+      name: data.licenseFileName || '营业执照',
+      fileName: data.licenseFileName || '营业执照',
+      displayName: data.licenseFileName || '营业执照',
+      url: data.licenseFileUrl,
+      serverUrl: data.licenseFileUrl,
+      ossId: data.licenseFileId,
+      fileType: 'license',
+      status: 'success',
+      percentage: 100
+    }];
+  }
+};
+
+// 监听弹窗显示和初始数据变化
+watch(
+  () => [props.visible, props.initialData, props.auditStatus],
+  ([visible, initialData, auditStatus]) => {
+    if (visible) {
+      // auditStatus 为空或没有初始数据时，清空表单
+      if (auditStatus === null || auditStatus === undefined || !initialData) {
+        formRef.value?.resetFields();
+        licenseFiles.value.forEach((file) => {
+          if (file?.url && file.url.startsWith('blob:')) {
+            try {
+              URL.revokeObjectURL(file.url);
+            } catch {}
+          }
+        });
+        objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        objectUrls.clear();
+        licenseFiles.value = [];
+        formData.licenseFileId = '';
+        // 清空所有表单字段
+        formData.companyName = '';
+        formData.licenseCode = '';
+        formData.companyType = '';
+        formData.legalPerson = '';
+        formData.contactPhone = '';
+        formData.address = '';
+        formData.longitude = '';
+        formData.latitude = '';
+        formData.companyIntro = '';
+        auditComment.value = '';
+      } else if (initialData) {
+        // 弹窗打开且有初始数据时，回显数据
+        fillFormData(initialData);
+      }
+    } else if (!visible) {
+      // 弹窗关闭时，清空数据
+      formRef.value?.resetFields();
+      licenseFiles.value.forEach((file) => {
+        if (file?.url && file.url.startsWith('blob:')) {
+          try {
+            URL.revokeObjectURL(file.url);
+          } catch {}
+        }
+      });
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+      objectUrls.clear();
+      licenseFiles.value = [];
+      formData.licenseFileId = '';
+      auditComment.value = '';
+    }
+  },
+  { immediate: true }
+);
+
 const handleClose = () => {
   emit('update:visible', false);
   emit('close');
@@ -393,28 +562,90 @@ const handleSubmit = async () => {
     await formRef.value.validate();
     submitting.value = true;
 
-    // 此处可调用真实提交接口；带上附件 ossId 与下载地址
+    // 准备提交数据
     const payload = {
       ...formData,
       licenseFileId: licenseFiles.value[0]?.ossId || ''
       // businessLicenseUrl: licenseFiles.value[0]?.serverUrl || licenseFiles.value[0]?.url || ''
     };
-    console.log(payload);
-    // 模拟提交
-    setTimeout(() => {
-      ElMessage.success('提交成功');
+
+    try {
+      // 根据审核状态调用不同的接口
+      if (isRejected.value) {
+        // 审核驳回，调用更新接口
+        const response = await updateTraceableCompany(payload);
+        ElMessage.success('修改成功');
+      } else {
+        // 首次申请，调用创建接口
+        const response = await traceableCompany(payload);
+        ElMessage.success('提交成功');
+      }
       submitting.value = false;
       emit('submit', payload);
+      // 提交成功后可以关闭弹窗
       // handleClose();
-    }, 1000);
+    } catch (error: any) {
+      submitting.value = false;
+      ElMessage.error(error?.msg || error?.message || '提交失败，请重试');
+      console.error('提交失败:', error);
+    }
   } catch (error) {
     console.error('表单验证失败:', error);
+    submitting.value = false;
   }
 };
 </script>
 
 <style scoped lang="scss">
 .permission-popup {
+  .audit-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+
+    .status-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #303133;
+    }
+
+    :deep(.el-tag) {
+      font-size: 14px;
+      padding: 4px 12px;
+      font-weight: 500;
+    }
+  }
+
+  .audit-comment-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background-color: #fef0f0;
+    border-radius: 4px;
+    border-left: 4px solid #f56c6c;
+
+    .comment-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #303133;
+      flex-shrink: 0;
+    }
+
+    .comment-content {
+      font-size: 14px;
+      color: #f56c6c;
+      line-height: 1.5;
+      flex: 1;
+      word-break: break-word;
+    }
+  }
+
   .note-text {
     color: #f56c6c;
     font-size: 14px;

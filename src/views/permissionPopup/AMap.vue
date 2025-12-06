@@ -29,12 +29,14 @@ const props = withDefaults(
     showCoords?: boolean;
     mapId?: string;
     addressSyncSignal?: number; // 外部触发地址同步信号（如输入框 blur 后递增）
+    disabled?: boolean; // 是否禁用地图交互
   }>(),
   {
     modelValue: () => ({}),
     showCoords: true,
     mapId: 'amap-container',
-    addressSyncSignal: 0
+    addressSyncSignal: 0,
+    disabled: false
   }
 );
 
@@ -94,7 +96,11 @@ const initMap = async () => {
     // 创建地图实例
     map.value = new AMapObj.Map(props.mapId, {
       zoom: 14,
-      center: [lng, lat]
+      center: [lng, lat],
+      // 如果禁用，关闭拖拽和缩放
+      dragEnable: !props.disabled,
+      zoomEnable: !props.disabled,
+      doubleClickZoom: !props.disabled
     });
 
     // 等待地图加载完成
@@ -109,8 +115,10 @@ const initMap = async () => {
       }
     });
 
-    // 添加点击事件
-    map.value.on('click', onMapClick);
+    // 添加点击事件（仅在未禁用时）
+    if (!props.disabled) {
+      map.value.on('click', onMapClick);
+    }
 
     // 加载插件
     AMapObj.plugin(
@@ -194,6 +202,7 @@ const initMap = async () => {
         searchInput.id = 'amap-search-input';
         searchInput.type = 'text';
         searchInput.placeholder = '搜索位置、公交站、地铁站';
+        searchInput.disabled = props.disabled || false;
         searchInput.style.cssText = `
           flex: 1;
           height: 100%;
@@ -203,6 +212,7 @@ const initMap = async () => {
           color: #333;
           background: transparent;
           padding: 0 8px;
+          ${props.disabled ? 'cursor: not-allowed; opacity: 0.6;' : ''}
         `;
 
         // 创建右侧图标容器
@@ -289,8 +299,13 @@ const initMap = async () => {
           });
         };
 
-        // 放大镜图标点击搜索
-        searchIcon.onclick = handleSearch;
+        // 放大镜图标点击搜索（仅在未禁用时）
+        if (!props.disabled) {
+          searchIcon.onclick = handleSearch;
+        } else {
+          searchIcon.style.cursor = 'not-allowed';
+          searchIcon.style.opacity = '0.6';
+        }
         
         // 定位图标点击（定位到当前位置）
         if (enableLocate && locationIcon) {
@@ -399,7 +414,7 @@ const initMap = async () => {
 
 // 点击地图
 const onMapClick = (e: any) => {
-  if (!geocoder || !AMapObj) return;
+  if (!geocoder || !AMapObj || props.disabled) return;
 
   const { lng, lat } = e.lnglat;
 
@@ -451,6 +466,36 @@ const drawMarker = () => {
   map.value.add(marker);
   map.value.setZoomAndCenter(16, [longitude, latitude]);
 };
+
+// 监听 disabled 变化，更新地图交互
+watch(
+  () => props.disabled,
+  (disabled) => {
+    if (map.value) {
+      map.value.setDraggable(!disabled);
+      map.value.setZoomable(!disabled);
+      // 禁用或启用双击缩放
+      if (disabled) {
+        map.value.off('dblclick');
+      } else {
+        // 重新启用双击缩放（如果需要）
+        map.value.setDoubleClickZoom(!disabled);
+      }
+    }
+    // 更新搜索框状态
+    if (searchInput) {
+      searchInput.disabled = disabled || false;
+      searchInput.style.opacity = disabled ? '0.6' : '1';
+      searchInput.style.cursor = disabled ? 'not-allowed' : 'text';
+    }
+    // 更新搜索图标状态
+    const searchIcon = document.querySelector('#amap-search-container .search-icon');
+    if (searchIcon) {
+      (searchIcon as HTMLElement).style.cursor = disabled ? 'not-allowed' : 'pointer';
+      (searchIcon as HTMLElement).style.opacity = disabled ? '0.6' : '1';
+    }
+  }
+);
 
 // 监听 modelValue 变化，更新地图
 watch(

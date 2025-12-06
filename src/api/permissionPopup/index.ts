@@ -1,13 +1,20 @@
-// 商城首页
+// 企业注册页面
 import request from '@/utils/request';
 
-// 商城首页商品列表
+// 企业申请
 export function traceableCompany(data: any) {
   return request({
-    url: 'grain-sales/traceableCompany',
+    url: 'traceable/traceableCompany',
     method: 'post',
     data: data
   });
 }
 
-
+//企业修改
+export function updateTraceableCompany(data: any) {
+  return request({
+    url: 'traceable/traceableCompany',
+    method: 'put',
+    data: data
+  });
+}
