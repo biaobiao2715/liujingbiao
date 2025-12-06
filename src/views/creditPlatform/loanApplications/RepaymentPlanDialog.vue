@@ -80,7 +80,14 @@
                 <el-input v-model="item.loanPeriod" disabled />
               </el-form-item>
               <el-form-item label="还款日期：">
-                <el-date-picker v-model="item.repaymentDate" type="date" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
+                <el-date-picker
+                  v-model="item.repaymentDate"
+                  type="date"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  :disabled-date="(date: Date) => getDisabledDate(date, item.loanPeriod)"
+                  @change="handleDateChange(item.loanPeriod)"
+                />
               </el-form-item>
               <el-form-item label="还款金额：">
                 <div class="amount-input">
@@ -142,6 +149,138 @@ const uploaderRef = ref();
 const objectUrls = new Map<string, string>();
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+/**
+ * 获取日期所在月份（YYYY-MM格式）
+ */
+const getYearMonth = (dateStr: string): string => {
+  if (!dateStr) return '';
+  return dateStr.substring(0, 7); // YYYY-MM-DD -> YYYY-MM
+};
+
+/**
+ * 判断两个日期是否在同一月份
+ */
+const isSameMonth = (dateStr1: string, dateStr2: string): boolean => {
+  if (!dateStr1 || !dateStr2) return false;
+  return getYearMonth(dateStr1) === getYearMonth(dateStr2);
+};
+
+/**
+ * 获取禁用日期的规则
+ * @param date - 当前日期
+ * @param currentPeriod - 当前期数
+ * @returns 是否禁用该日期
+ */
+const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
+  if (!plans.value || plans.value.length === 0) return false;
+
+  // 按期数排序
+  const sortedPlans = [...plans.value].sort((a, b) => a.loanPeriod - b.loanPeriod);
+  const currentIndex = sortedPlans.findIndex((p) => p.loanPeriod === currentPeriod);
+
+  if (currentIndex === -1) return false;
+
+  // 将日期转换为 YYYY-MM-DD 格式，使用本地时区
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const currentDateStr = `${year}-${month}-${day}`;
+  const currentDate = new Date(year, date.getMonth(), date.getDate());
+  currentDate.setHours(0, 0, 0, 0);
+
+  // 检查上一期
+  if (currentIndex > 0) {
+    const prevPlan = sortedPlans[currentIndex - 1];
+    if (prevPlan.repaymentDate) {
+      const prevDateParts = prevPlan.repaymentDate.split('-');
+      const prevDate = new Date(
+        parseInt(prevDateParts[0]),
+        parseInt(prevDateParts[1]) - 1,
+        parseInt(prevDateParts[2])
+      );
+      prevDate.setHours(0, 0, 0, 0);
+
+      // 必须在上一期之后（至少是上一期的下一天）
+      if (currentDate <= prevDate) {
+        return true;
+      }
+
+      // 不能与上一期同一月份
+      if (isSameMonth(currentDateStr, prevPlan.repaymentDate)) {
+        return true;
+      }
+    }
+  }
+
+  // 检查下一期
+  if (currentIndex < sortedPlans.length - 1) {
+    const nextPlan = sortedPlans[currentIndex + 1];
+    if (nextPlan.repaymentDate) {
+      const nextDateParts = nextPlan.repaymentDate.split('-');
+      const nextDate = new Date(
+        parseInt(nextDateParts[0]),
+        parseInt(nextDateParts[1]) - 1,
+        parseInt(nextDateParts[2])
+      );
+      nextDate.setHours(0, 0, 0, 0);
+
+      // 必须在下一期之前（至少是下一期的前一天）
+      if (currentDate >= nextDate) {
+        return true;
+      }
+
+      // 不能与下一期同一月份
+      if (isSameMonth(currentDateStr, nextPlan.repaymentDate)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+/**
+ * 处理日期变化，实时验证并提示
+ */
+const handleDateChange = (currentPeriod: number) => {
+  if (!plans.value || plans.value.length === 0) return;
+
+  // 按期数排序
+  const sortedPlans = [...plans.value].sort((a, b) => a.loanPeriod - b.loanPeriod);
+  const currentIndex = sortedPlans.findIndex((p) => p.loanPeriod === currentPeriod);
+
+  if (currentIndex === -1) return;
+
+  const currentPlan = sortedPlans[currentIndex];
+  if (!currentPlan.repaymentDate) return;
+
+  // 检查上一期
+  if (currentIndex > 0) {
+    const prevPlan = sortedPlans[currentIndex - 1];
+    if (prevPlan.repaymentDate) {
+      if (isSameMonth(currentPlan.repaymentDate, prevPlan.repaymentDate)) {
+        ElMessage.warning(`第${currentPeriod}期还款日期不能与第${prevPlan.loanPeriod}期在同一月份`);
+        // 清空当前日期，让用户重新选择
+        currentPlan.repaymentDate = '';
+        return;
+      }
+    }
+  }
+
+  // 检查下一期
+  if (currentIndex < sortedPlans.length - 1) {
+    const nextPlan = sortedPlans[currentIndex + 1];
+    if (nextPlan.repaymentDate) {
+      if (isSameMonth(currentPlan.repaymentDate, nextPlan.repaymentDate)) {
+        ElMessage.warning(`第${currentPeriod}期还款日期不能与第${nextPlan.loanPeriod}期在同一月份`);
+        // 清空当前日期，让用户重新选择
+        currentPlan.repaymentDate = '';
+        return;
+      }
+    }
+  }
+};
 
 // 获取还款计划详情
 const fetchRepaymentPlan = async () => {
@@ -342,9 +481,91 @@ const handleContractRemove = async (file: ContractFile) => {
   }
 };
 
+/**
+ * 验证还款日期是否符合规则
+ * @returns 验证是否通过，错误信息
+ */
+const validateRepaymentDates = (): { valid: boolean; message?: string } => {
+  if (!plans.value || plans.value.length === 0) {
+    return { valid: true };
+  }
+
+  // 按期数排序
+  const sortedPlans = [...plans.value].sort((a, b) => a.loanPeriod - b.loanPeriod);
+
+  for (let i = 0; i < sortedPlans.length; i++) {
+    const currentPlan = sortedPlans[i];
+    if (!currentPlan.repaymentDate) {
+      return { valid: false, message: `第${currentPlan.loanPeriod}期还款日期不能为空` };
+    }
+
+    const currentDate = new Date(currentPlan.repaymentDate);
+    currentDate.setHours(0, 0, 0, 0);
+
+    // 检查上一期
+    if (i > 0) {
+      const prevPlan = sortedPlans[i - 1];
+      if (prevPlan.repaymentDate) {
+        const prevDate = new Date(prevPlan.repaymentDate);
+        prevDate.setHours(0, 0, 0, 0);
+
+        // 必须在上一期之后
+        if (currentDate <= prevDate) {
+          return {
+            valid: false,
+            message: `第${currentPlan.loanPeriod}期还款日期必须在第${prevPlan.loanPeriod}期之后`
+          };
+        }
+
+        // 不能与上一期同一月份
+        if (isSameMonth(currentPlan.repaymentDate, prevPlan.repaymentDate)) {
+          return {
+            valid: false,
+            message: `第${currentPlan.loanPeriod}期还款日期不能与第${prevPlan.loanPeriod}期在同一月份`
+          };
+        }
+      }
+    }
+
+    // 检查下一期
+    if (i < sortedPlans.length - 1) {
+      const nextPlan = sortedPlans[i + 1];
+      if (nextPlan.repaymentDate) {
+        const nextDate = new Date(nextPlan.repaymentDate);
+        nextDate.setHours(0, 0, 0, 0);
+
+        // 必须在下一期之前
+        if (currentDate >= nextDate) {
+          return {
+            valid: false,
+            message: `第${currentPlan.loanPeriod}期还款日期必须在第${nextPlan.loanPeriod}期之前`
+          };
+        }
+
+        // 不能与下一期同一月份
+        if (isSameMonth(currentPlan.repaymentDate, nextPlan.repaymentDate)) {
+          return {
+            valid: false,
+            message: `第${currentPlan.loanPeriod}期还款日期不能与第${nextPlan.loanPeriod}期在同一月份`
+          };
+        }
+      }
+    }
+  }
+
+  return { valid: true };
+};
+
 // 提交修改信息
 const handleSubmit = async () => {
   if (!props.data?.id) return;
+
+  // 先验证还款日期
+  const validation = validateRepaymentDates();
+  if (!validation.valid) {
+    ElMessage.warning(validation.message || '还款日期验证失败');
+    return;
+  }
 
   try {
     loading.value = true;
