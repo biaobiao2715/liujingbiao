@@ -8,8 +8,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef, h, render } from 'vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
-import { Promotion, LocationInformation } from '@element-plus/icons-vue';
+import { LocationInformation } from '@element-plus/icons-vue';
 import { ElIcon } from 'element-plus';
+import amapIcon from './amap.png';
 
 // 高德地图安全密钥配置
 (window as any)._AMapSecurityConfig = {
@@ -166,7 +167,7 @@ const initMap = async () => {
           padding: 0 8px;
         `;
 
-        // 创建左侧图标容器（使用 Element Plus Promotion 图标）
+        // 创建左侧图标容器（使用 amap.png 图片）
         const leftIconContainer = document.createElement('div');
         leftIconContainer.style.cssText = `
           width: 28px;
@@ -174,22 +175,19 @@ const initMap = async () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
           border-radius: 4px;
           margin-right: 8px;
           flex-shrink: 0;
         `;
-        // 使用 <el-icon><Promotion /></el-icon>
-        const iconVNode = h(
-          ElIcon,
-          { size: 16, color: '#ffffff' },
-          () => h(Promotion)
-        );
-        const iconMount = document.createElement('div');
-        render(iconVNode, iconMount);
-        if (iconMount.firstElementChild) {
-          leftIconContainer.appendChild(iconMount.firstElementChild);
-        }
+        // 使用 amap.png 图片
+        const iconImg = document.createElement('img');
+        iconImg.src = amapIcon;
+        iconImg.style.cssText = `
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        `;
+        leftIconContainer.appendChild(iconImg);
 
         // 创建搜索输入框
         searchInput = document.createElement('input');
