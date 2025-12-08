@@ -133,7 +133,7 @@
               }"
             ></div>
             <span v-if="scope.row.cultivateStatus == 1" style="color: #108c58"> 启用 </span>
-            <span v-if="scope.row.cultivateStatus == 2" style="color: #f23255"> 已禁用 </span>
+            <span v-if="scope.row.cultivateStatus == 2" style="color: #f23255"> 禁用 </span>
           </div>
           <!-- <dict-tag :options="cultivate_status" :value="scope.row.cultivateStatus" /> -->
         </template>
