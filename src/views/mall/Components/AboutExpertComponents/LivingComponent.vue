@@ -9,7 +9,7 @@
   <div class="living-component">
     <div class="header flex-center-between">
       <div class="title">在线直播</div>
-      <div class="more flex-center gap-4">
+      <div class="more flex-center gap-4" @click="handleMoreClick">
         <div>查看更多</div>
         <img src="@/assets/mall/more.png" width="18" />
       </div>
@@ -40,8 +40,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { VideoList, addViewRecordsApi } from '@/api/mall/living/index';
+const emit = defineEmits(['detailChange']);
 
 const loading = ref(false);
+
 const liveData = ref<any[]>([]);
 
 const currentItem = ref(null);
@@ -86,6 +88,11 @@ watch(value, () => {
 onMounted(() => {
   getVideoList();
 });
+
+// 查看更多
+const handleMoreClick = () => {
+  emit('detailChange', { type: 'livingList' });
+};
 
 // 点击视频卡片，跳转到视频链接
 const handleVideoClick = () => {

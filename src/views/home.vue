@@ -223,9 +223,7 @@ const handleRedirect = async (path: string) => {
 const handlePermissionSubmit = async () => {
   // 提交权限申请后，再执行第三方登录
   try {
-    const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
-      ...getCacheInfo()
-    });
+    const response = await thirdPartyLogin(getCacheInfo());
     console.log(response);
     const res = response.data;
     if (res.code === 200 && res.data?.accessToken) {

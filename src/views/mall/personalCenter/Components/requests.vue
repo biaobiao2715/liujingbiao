@@ -29,8 +29,27 @@
         </el-table-column>
         <el-table-column prop="deliveryDay" label="交付时间/天" align="center" />
         <el-table-column label="发布状态" align="center">
-          <template #default="{ row }">
+          <!-- <template #default="{ row }">
             <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
+          </template> -->
+
+          <template #default="scope">
+            <div class="flex-center-center">
+              <div
+                v-if="scope.row.demandStatus != null"
+                class="normal"
+                :class="{
+                  primaryText: scope.row.demandStatus == 1,
+                  defaultText: scope.row.demandStatus == 4,
+                  prohibit: scope.row.demandStatus == 3,
+                  pendingReview: scope.row.demandStatus == 99
+                }"
+              ></div>
+              <span v-if="scope.row.demandStatus == 1" class="primaryText-color">已发布</span>
+              <span v-if="scope.row.demandStatus == 4" class="defaultText-color">已完成</span>
+              <span v-if="scope.row.demandStatus == 5" class="prohibit-color">已过期</span>
+              <span v-if="scope.row.demandStatus == 99" class="pendingReview-color">已关闭</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="publishTime" label="发布时间" align="center" width="180">
@@ -40,6 +59,8 @@
         </el-table-column>
         <el-table-column label="操作" min-width="240" align="center">
           <template #default="{ row }">
+            <el-button v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" v-throttle link @click="onDetails(row)">查看</el-button>
+
             <el-button
               v-if="row.hasQuote == '0' && row.demandStatus == '1'"
               v-hasPermi="['grain:HnPurchaseDemand:edit']"
@@ -67,7 +88,6 @@
               style="color: #ef4d0b"
               >关闭</el-button
             >
-            <el-button v-hasPermi="['grain:HnPurchaseDemand:query']" type="primary" v-throttle link @click="onDetails(row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>

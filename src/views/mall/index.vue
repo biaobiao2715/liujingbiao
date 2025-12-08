@@ -12,12 +12,6 @@
 
     <!-- Tabs 切换 -->
     <div class="tabs-container">
-      <!-- <el-tabs v-model="activeTab" @tab-click="handleTabClick">
-          <el-tab-pane label="首页" name="goods"></el-tab-pane>
-          <el-tab-pane label="供需大厅" name="demand"></el-tab-pane>
-          <el-tab-pane label="市场行情" name="market"></el-tab-pane>
-          <el-tab-pane label="专家学堂" name="expert"></el-tab-pane>
-        </el-tabs> -->
       <div class="tab-content flex-center gap-24">
         <div v-for="item in tabs" :key="item.name" :class="['tab-item', { 'is-active': activeTab === item.name }]" @click="handleTabClick(item.name)">
           {{ item.label }}
@@ -36,17 +30,11 @@
       <!-- 商品比价详情 -->
       <CompareDetailComponent :compareGoodsList="compareGoodsList" v-else-if="activeTab === 'compareDetail'" />
       <!-- 供需大厅组件 -->
-      <div v-else-if="activeTab === 'demand'">
-        <DemandComponent :id="detailsId" :type="detailsType" />
-      </div>
+      <DemandComponent :id="detailsId" :type="detailsType" v-else-if="activeTab === 'demand'" />
       <!-- 市场行情组件 -->
-      <div v-else-if="activeTab === 'market'">
-        <MarketComponent />
-      </div>
+      <MarketComponent v-else-if="activeTab === 'market'" />
       <!-- 专家学堂组件 -->
-      <div v-else-if="activeTab === 'expert'">
-        <ExpertComponent />
-      </div>
+      <ExpertComponent v-else-if="activeTab === 'expert'" />
       <!-- 个人中心 -->
       <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
     </div>

@@ -22,6 +22,8 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" min-width="160" align="center">
           <template #default="{ row }">
+            <el-button v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle link style="color: #108c58">查看</el-button>
+
             <el-button
               v-if="row.questionStatus !== '99'"
               v-hasPermi="['system:question:stopQuestion']"
@@ -31,7 +33,6 @@
               style="color: #ef4d0b"
               >关闭</el-button
             >
-            <el-button v-hasPermi="['system:question:query']" @click="onDetail(row)" v-throttle link style="color: #108c58">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -46,11 +47,11 @@
       <div v-loading="detailLoading" class="detail-body">
         <!-- 我的问题区块 -->
         <div>
-          <div class="reply-content">{{ currentQuestion?.questionContent }}</div>
+          <div class="reply-question">{{ currentQuestion?.questionContent }}</div>
           <div class="question-images" v-if="imageList.length">
             <el-image v-for="(img, i) in imageList.slice(0, 6)" :key="i" :src="img" :preview-src-list="imageList" fit="cover" class="question-img" />
           </div>
-          <div class="reply-time">{{ proxy.parseTime(currentQuestion?.publishTime) }}</div>
+          <div class="reply-time" style="color: #3d3d3d">{{ proxy.parseTime(currentQuestion?.publishTime) }}</div>
         </div>
         <!-- 专家回复区块 -->
         <div>
@@ -60,7 +61,7 @@
           <el-empty v-if="!replyList.length && !detailLoading" description="暂无回复" />
           <div v-else>
             <div class="reply-item" v-for="item in replyList" :key="item.id">
-              <div class="reply-content">{{ item.answerContent }}</div>
+              <div class="reply-answer">{{ item.answerContent }}</div>
               <div class="reply-time">{{ proxy.parseTime(item.replyTime) }}</div>
             </div>
           </div>
@@ -71,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
+import { ref, reactive, onMounted, getCurrentInstance, type ComponentInternalInstance, computed, nextTick } from 'vue';
 import {
   listStyle,
   questionList,
@@ -135,11 +136,29 @@ const onDetail = (row: any) => {
           });
         }
         detailVisible.value = true;
+        // 渲染后检测文本是否多行，并设置对齐样式类
+        nextTick(() => {
+          updateMultilineAlign();
+        });
       }
     })
     .finally(() => {
       detailLoading.value = false;
     });
+};
+
+// 根据文本是否换行，切换 is-multiline 类，从而控制 align-items
+const updateMultilineAlign = () => {
+  const questionEls = document.querySelectorAll('.reply-question');
+  const answerEls = document.querySelectorAll('.reply-answer');
+  const handle = (el: Element) => {
+    const block = el as HTMLElement;
+    // 单行高度近似等于 line-height；若 scrollHeight 大于 clientHeight，说明出现了换行
+    const isMultiline = block.scrollHeight > block.clientHeight + 1; // +1 防止像素取整误差
+    block.classList.toggle('is-multiline', isMultiline);
+  };
+  questionEls.forEach(handle);
+  answerEls.forEach(handle);
 };
 
 // 关闭问题
@@ -244,7 +263,7 @@ const onDelete = async (row: listStyle) => {
 }
 
 /* 新增：详情弹窗样式 */
-.question-detail-dialog .detail-body {
+/* .question-detail-dialog .detail-body {
   padding: 20px;
   background: linear-gradient(180deg, rgba(16, 140, 88, 0.12) 0%, rgba(16, 140, 88, 0) 100%);
   border-radius: 8px 8px 8px 8px;
@@ -255,11 +274,12 @@ const onDelete = async (row: listStyle) => {
       rgba(16.000000946223736, 140.00000685453415, 88.00000235438347, 0)
     )
     1 1;
-}
+} */
 .question-images {
   display: flex;
   gap: 10px;
-  margin: 15px 0;
+  margin-bottom: 18px;
+  padding-left: 36px;
 }
 .question-img {
   width: 70px;
@@ -269,40 +289,92 @@ const onDelete = async (row: listStyle) => {
 .reply-title {
   font-size: 16px;
   font-weight: 600;
-  color: #108c58;
+  color: #a3a3a3;
   margin-bottom: 12px;
 }
 .reply-item {
   border-bottom: 1px solid #f0f0f0;
   padding: 15px;
-  background: #ffffff;
-  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.12);
+  /* background: #ffffff; */
+  /* box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.12); */
+  background: #f6f7fb;
   border-radius: 4px 4px 4px 4px;
+  margin-bottom: 10px;
 }
 
 .reply-time {
+  height: 14px;
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-  font-size: 14px;
-  color: #3d3d3d;
+  font-weight: 400;
+  font-size: 12px;
+  color: #a8a8a8;
+  line-height: 14px;
   text-align: right;
   font-style: normal;
   text-transform: none;
-  display: flex;
-  align-items: center;
-  position: relative;
 }
-.reply-time::before {
+
+.reply-question {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 16px;
+  color: #3d3d3d;
+  line-height: 18px;
+  font-weight: 500;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  display: flex;
+  align-items: center; /* 默认单行居中 */
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.reply-question.is-multiline {
+  align-items: flex-start; /* 多行时顶部对齐，避免挤压 */
+}
+
+.reply-question::before {
   content: '';
-  display: inline-block;
-  width: 16px;
-  height: 13px;
-  background: #108c58;
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-image: url('@/assets/images/mall/question.png');
+
   border-radius: 4px 4px 4px 4px;
   margin-right: 8px;
+  flex-shrink: 0; /* 防止文字换行时压缩图标宽度 */
+  flex: 0 0 28px; /* 固定 flex 尺寸，确保正常展示 */
 }
-.reply-content {
+
+.reply-answer {
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-  font-size: 14px;
+  font-size: 16px;
   color: #3d3d3d;
+  line-height: 18px;
+  font-weight: 400;
+  text-align: left;
+  font-style: normal;
+  text-transform: none;
+  display: flex;
+  align-items: center; /* 默认单行居中 */
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.reply-answer.is-multiline {
+  align-items: flex-start; /* 多行时顶部对齐，避免挤压 */
+}
+
+.reply-answer::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-image: url('@/assets/images/mall/answer.png');
+
+  border-radius: 4px 4px 4px 4px;
+  margin-right: 8px;
+  flex-shrink: 0; /* 防止文字换行时压缩图标宽度 */
+  flex: 0 0 28px; /* 固定 flex 尺寸，确保正常展示 */
 }
 </style>

@@ -110,7 +110,7 @@
           <span>{{ scope.row.expertName || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="expertNumber" label="专家编码" min-width="130" show-overflow-tooltip>
+      <el-table-column prop="expertNumber" label="专家编号" min-width="130" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ scope.row.expertNumber || '-' }}</span>
         </template>

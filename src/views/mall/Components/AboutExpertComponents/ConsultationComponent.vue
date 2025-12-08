@@ -24,7 +24,7 @@
         <el-row :gutter="24" style="width: 100%">
           <el-col :span="6" v-for="(expert, index) in expertList" :key="expert.id">
             <el-card class="expert-item" v-show="isExpanded || index < 4">
-              <div class="title-info flex-center-center gap-12" @click="handleDetail(expert)">
+              <div class="title-info flex-center-center gap-12">
                 <div class="avatar-container flex-center-center">
                   <el-avatar :src="getAvatarUrl(expert.hnBaseRegisterFolderVoList)" />
                 </div>
@@ -48,7 +48,10 @@
                   <div class="label">回复量</div>
                 </div>
               </div>
-
+              <div class="detail-btn flex-center-center" @click="handleDetail(expert.id)">
+                <img src="@/assets/mall/expert-detail-icon.png" width="18" />
+                <div>详情</div>
+              </div>
               <div @click="handleConsultation(expert)" class="consultation-btn flex-center-center">咨询专家</div>
             </el-card>
           </el-col>
@@ -57,8 +60,6 @@
         <el-empty v-if="expertList.length === 0" description="暂无专家入驻，请耐心等待"></el-empty>
       </div>
     </div>
-    <!-- 专家详情弹窗 -->
-    <ExpertDetailComponent ref="expertDetailRef" @submitSuccess="handleChange"></ExpertDetailComponent>
     <!-- 咨询专家弹窗 -->
     <AskExpertComponent ref="askExpertRef" @submitSuccess="handleChange"></AskExpertComponent>
   </div>
@@ -69,6 +70,8 @@ import { ref } from 'vue';
 import AskExpertComponent from './AskExpertComponent.vue';
 import ExpertDetailComponent from './ExpertDetailComponent.vue';
 import { technologyExpertList, legalExpertList } from '@/api/mall/expert';
+
+const emit = defineEmits(['detailChange']);
 
 const activeTab = ref('technology');
 
@@ -126,8 +129,8 @@ const handleConsultation = (expert) => {
 };
 
 // 处理查看详情按钮点击
-const handleDetail = (expert) => {
-  expertDetailRef.value?.openDialog(expert.id, activeTab.value);
+const handleDetail = (id) => {
+  emit('detailChange', { id, type: 'expertDetail', expertType: activeTab.value });
 };
 </script>
 
@@ -160,6 +163,7 @@ const handleDetail = (expert) => {
       margin-bottom: 10px;
       cursor: pointer;
       border-radius: 8px;
+      position: relative;
       .title-info {
         font-size: 16px;
         margin-bottom: 5px;
@@ -248,6 +252,15 @@ const handleDetail = (expert) => {
         &:hover {
           opacity: 0.8;
         }
+      }
+      .detail-btn {
+        position: absolute;
+        gap: 6px;
+        top: 28px;
+        right: 36px;
+        color: var(--color-main);
+        font-size: 16px;
+        font-weight: bold;
       }
 
       .hot {

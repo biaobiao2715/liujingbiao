@@ -14,7 +14,7 @@
         <el-button :type="activeTab === 'meeting' ? 'primary' : 'info'" round @click="activeTab = 'meeting'">培训会议</el-button>
       </div>
 
-      <div class="more flex-center gap-4">
+      <div class="more flex-center gap-4" @click="handleMoreList()">
         <div>查看更多</div>
         <img src="@/assets/mall/more.png" width="18" />
       </div>
@@ -115,6 +115,11 @@ const getMeetingDescription = (meeting: any) => {
 const handleDetail = (type: string, id: string) => {
   console.log(id);
   emit('detailChange', { type, id });
+};
+
+// 点击查看更多时触发方法
+const handleMoreList = () => {
+  emit('detailChange', { type: 'couMetList' });
 };
 </script>
 

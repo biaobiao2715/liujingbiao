@@ -47,6 +47,14 @@ const menuList = ref([
     value: 'applications'
   }
 ]);
+
+watch(
+  () => props.activeTab,
+  (newVal) => {
+    activeTab.value = newVal;
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped lang="scss">
