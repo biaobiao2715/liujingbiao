@@ -49,7 +49,7 @@
         </el-form-item>
         <!-- 排序 -->
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input v-model="form.orderNum" type="number" placeholder="请输入排序" />
+          <el-input v-model="form.orderNum" type="number" min="0" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <template v-slot:footer>

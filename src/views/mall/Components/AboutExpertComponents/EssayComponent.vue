@@ -2,7 +2,7 @@
   <div class="essay-container">
     <div class="header flex-center-between">
       <div class="title">文章专栏</div>
-      <div class="more flex-center gap-4">
+      <div class="more flex-center gap-4" @click="handleMoreList()">
         <div>查看更多</div>
         <img src="@/assets/mall/more.png" width="18" />
       </div>
@@ -59,31 +59,19 @@ onMounted(() => {
 
 const getArticleList = async () => {
   const res = await listArticles({
+    articleStatus: '2', // 已发布
     pageNum: 1,
     pageSize: 999
   });
   articleList.value = res.rows || [];
 };
 
-// 获取文章类型
-
-// 文章类型：1种子技术类 2农资农具技术类 99其他
-
-const getArticleType = (type: string) => {
-  switch (type) {
-    case '1':
-      return '种子技术类';
-    case '2':
-      return '农资农具技术类';
-    case '99':
-      return '其他';
-    default:
-      return '未知';
-  }
-};
-
 const handleDetail = (article: any) => {
   emit('detailChange', { type: 'essayDetail', id: article.id });
+};
+
+const handleMoreList = () => {
+  emit('detailChange', { type: 'essayList' });
 };
 </script>
 

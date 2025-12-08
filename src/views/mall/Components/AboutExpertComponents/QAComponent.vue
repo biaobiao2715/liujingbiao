@@ -1,40 +1,38 @@
 <template>
   <!-- 专家问答 -->
   <div class="qa-container">
-    <div>
-      <div class="flex-center-between">
-        <div class="qa-title">专家问答</div>
-        <!-- <el-button type="text" @click="toggleExpand">
-          <el-icon v-if="isExpanded" size="32"><ArrowUpBold /></el-icon>
-          <el-icon v-else size="32"><ArrowDownBold /></el-icon>
-        </el-button> -->
+    <div class="flex-center-between">
+      <div class="qa-title">专家问答</div>
+      <div class="more flex-center gap-4" @click="handleMoreList()">
+        <div>查看更多</div>
+        <img src="@/assets/mall/more.png" width="18" />
       </div>
-      <el-row :gutter="20">
-        <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 6">
-          <div class="qa-card">
-            <div class="qa-question gap-8">
-              <img src="@/assets/mall/question-icon.png" width="28" height="28" />
-              <div class="qa-question-text">
-                {{ item.questionContent }}
-              </div>
-            </div>
-            <div class="qa-answer gap-8">
-              <img src="@/assets/mall/answer-icon.png" width="28" height="28" />
-              <div class="qa-answer-text">
-                {{ item.hnAnswerVoList[0]?.answerContent }}
-              </div>
-            </div>
-            <div class="qa-info flex-center-between">
-              <div class="flex-center gap-4 message-link">
-                <div>查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
-                <img src="@/assets/mall/message-arrow-icon.png" width="12" height="12" />
-              </div>
-              <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
+    </div>
+    <el-row :gutter="20">
+      <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)" v-show="isExpanded || index < 6">
+        <div class="qa-card">
+          <div class="qa-question gap-8">
+            <img src="@/assets/mall/question-icon.png" width="28" height="28" />
+            <div class="qa-question-text">
+              {{ item.questionContent }}
             </div>
           </div>
-        </el-col>
-      </el-row>
-    </div>
+          <div class="qa-answer gap-8">
+            <img src="@/assets/mall/answer-icon.png" width="28" height="28" />
+            <div class="qa-answer-text">
+              {{ item.hnAnswerVoList[0]?.answerContent }}
+            </div>
+          </div>
+          <div class="qa-info flex-center-between">
+            <div class="flex-center gap-4 message-link">
+              <div>查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
+              <img src="@/assets/mall/message-arrow-icon.png" width="12" height="12" />
+            </div>
+            <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -58,8 +56,8 @@ const handleDetail = (id: string) => {
   emit('detailChange', { type: 'qaDetail', id });
 };
 
-const toggleExpand = () => {
-  isExpanded.value = !isExpanded.value;
+const handleMoreList = () => {
+  emit('detailChange', { type: 'qaMoreList' });
 };
 
 // 获取问答列表
@@ -88,6 +86,16 @@ const getQuestionList = async () => {
   padding-left: 8px;
   line-height: 16px;
   margin-bottom: 16px;
+}
+
+.more {
+  cursor: pointer;
+  margin-left: auto;
+  color: rgba(51, 51, 51, 0.8);
+  font-size: 14px;
+  &:hover {
+    color: var(--color-main);
+  }
 }
 
 .qa-card {

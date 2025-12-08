@@ -9,7 +9,7 @@
   <div class="populariz-law">
     <div class="header flex-center-between">
       <div class="title">普法专栏</div>
-      <div class="more flex-center gap-4">
+      <div class="more flex-center gap-4" @click="handleMoreList()">
         <div>查看更多</div>
         <img src="@/assets/mall/more.png" width="18" />
       </div>
@@ -101,6 +101,10 @@ const loadMore = () => {
 
 const handleDetail = (id: string) => {
   emit('detailChange', { type: activeTab.value, id });
+};
+
+const handleMoreList = () => {
+  emit('detailChange', { type: 'lawList' });
 };
 </script>
 
