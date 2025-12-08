@@ -36,7 +36,6 @@
       v-model:visible="permissionPopupVisible"
       :initial-data="permissionPopupData"
       :audit-status="auditStatus"
-      @submit="handlePermissionSubmit"
     />
   </div>
 </template>
@@ -49,7 +48,6 @@ import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
-import axios from 'axios';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
