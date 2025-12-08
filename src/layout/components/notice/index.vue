@@ -85,7 +85,7 @@ const titleChange = (item: any) => {
   if (item.event == 'supplyDemand') {
     return base + item.message.categoryName + '类型；' + item.message.supplyDescription;
   }
-  // return base;
+  return base;
 };
 
 onMounted(() => {
