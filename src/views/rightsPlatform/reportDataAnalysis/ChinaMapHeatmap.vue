@@ -407,7 +407,7 @@ const updateChart = () => {
         name: '举报数据',
         type: 'map',
         map: 'china',
-        roam: true, // 允许拖拽和缩放
+        roam: 'scale', // 禁止拖拽，仅允许缩放
         zoom: 1.2,
         scaleLimit: {
           min: 0.8, // 最小缩放级别

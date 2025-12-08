@@ -12,7 +12,7 @@
       <!-- 采购类型选择 -->
       <el-form-item label="采购类型" prop="purchaseType">
         <el-select v-model="form.purchaseType" placeholder="请选择" filterable>
-          <el-option v-for="item in typeOptions" :key="item.dictCode" :label="item.dictLabel" :value="item.dictCode" />
+          <el-option v-for="item in typeOptions" :key="item.dictValue" :label="item.dictLabel" :value="item.dictValue" />
         </el-select>
       </el-form-item>
       <!-- 姓名输入 -->
@@ -74,6 +74,7 @@ import { ElMessage } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
 import { getPurchaserTypeDict, registerPurchaser, checkPhoneUnique } from '@/api/register/purchaser';
 import { sendSmsCode } from '@/api/register/accountRegiser';
+
 const emit = defineEmits(['nextStep']); // 定义事件
 
 let timer: NodeJS.Timeout | null = null; // 验证码倒计时定时器
