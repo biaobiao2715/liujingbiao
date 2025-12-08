@@ -177,6 +177,7 @@ const getIcon = (svgName: string) => {
 
 // 处理点击跳转 用axios原始请求方式
 const handleRedirect = async (path: string) => {
+  handlePermissionSubmit();
   // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
     // 调用溯源用户校验接口
@@ -223,7 +224,7 @@ const handleRedirect = async (path: string) => {
 const handlePermissionSubmit = async () => {
   // 提交权限申请后，再执行第三方登录
   try {
-    const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
+    const response = await axios.post(import.meta.env.VITE_APP_TRACEABLE_API_URL + '/third/thirdPartyLogin', {
       ...getCacheInfo()
     });
     console.log(response);

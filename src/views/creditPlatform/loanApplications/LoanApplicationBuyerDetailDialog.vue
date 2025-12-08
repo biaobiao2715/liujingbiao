@@ -623,7 +623,7 @@ const showApprovalForm = computed(() => {
  * 合同文件
  */
 const normalizeContractFiles = (row: Record<string, any>) => {
-  const baseName = row.contractFileName || '合同文件';
+  const baseName = row.contractName || '合同文件';
   const files = collectUrls(row.contractFiles, row.contractFileUrl, row.contractUrl);
   if (!files.length) return [];
 
