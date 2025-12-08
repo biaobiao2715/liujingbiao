@@ -51,7 +51,7 @@
           <el-input v-model="formData.attributeName" placeholder="请输入品牌名称" maxlength="20" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input v-model="formData.orderNum" type="number"  min="0" placeholder="请输入排序" />
+          <el-input-number v-model="formData.orderNum" :min="0" :max="9999"  placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="flex-center-end">
