@@ -39,8 +39,27 @@
         </el-table-column>
         <!-- 订单状态列 -->
         <el-table-column prop="orderStatus" label="订单状态" align="center">
-          <template v-slot="scope">
+          <!-- <template v-slot="scope">
             <dict-tag :options="order_status" :value="scope.row.orderStatus" />
+          </template> -->
+
+          <template #default="scope">
+            <div class="flex-center-center">
+              <div
+                v-if="scope.row.orderStatus != null"
+                class="normal"
+                :class="{
+                  reviewRejected: scope.row.orderStatus == 1,
+                  green: scope.row.orderStatus == 2,
+                  defaultText: scope.row.orderStatus == 3,
+                  prohibit: scope.row.orderStatus == 99
+                }"
+              ></div>
+              <span v-if="scope.row.orderStatus == 1" class="reviewRejected-color">待发货</span>
+              <span v-if="scope.row.orderStatus == 2" class="green-color">已发货</span>
+              <span v-if="scope.row.orderStatus == 3" class="defaultText-color">已完成</span>
+              <span v-if="scope.row.orderStatus == 99" class="prohibit-color">已取消</span>
+            </div>
           </template>
         </el-table-column>
         <!-- 商家联系电话 -->

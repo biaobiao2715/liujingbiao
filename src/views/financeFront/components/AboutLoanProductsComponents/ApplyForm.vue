@@ -339,12 +339,12 @@
 
       <!-- 操作按钮 -->
       <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px" v-if="DetailsStatus === 'add'">
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitApply">提交申请</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="submitApply" :disabled="applyButtonDisabled">提交申请</el-button></el-col>
         <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowDetails" plain>返回</el-button></el-col>
       </el-row>
 
       <el-row type="flex" justify="center" :gutter="5" style="margin-top: 30px" v-if="formData.applyStatus === '1' && DetailsStatus === 'details'">
-        <el-col :span="3"><el-button v-throttle type="primary" @click="submitPutApply">申请退回</el-button></el-col>
+        <el-col :span="3"><el-button v-throttle type="primary" @click="submitPutApply" :disabled="putBackButtonDisabled">申请退回</el-button></el-col>
         <el-col :span="3"><el-button v-throttle type="primary" @click="handleShowClsoe" plain>返回</el-button></el-col>
       </el-row>
 
@@ -415,6 +415,9 @@ const buyerDetails = ref<any>({});
 const supplierDetails = ref<any>({});
 // 表单引用
 const formRef = ref<FormInstance>();
+// 按钮禁用状态（成功后防重复操作）
+const applyButtonDisabled = ref<boolean>(false);
+const putBackButtonDisabled = ref<boolean>(false);
 // ======================== 表单数据（核心申请字段 + 上传对应的 ossId） ========================
 const formData = ref<any>({
   // 法人信息
@@ -682,8 +685,10 @@ const submitApply = async () => {
     const apiFn = userType.value === '1' ? applyPersonalLoan : applyEnterpriseLoan;
     const res = await apiFn(payload);
     if (res.code === 200) {
+      applyButtonDisabled.value = true;
       ElMessage.success('提交成功');
       setTimeout(() => {
+        applyButtonDisabled.value = false;
         eventBus.emit('showComponentByCommand', {
           type: 'area'
         });
@@ -705,8 +710,10 @@ const submitPutApply = async () => {
   try {
     const res = await putLoanApplications(payload);
     if (res.code === 200) {
+      putBackButtonDisabled.value = true;
       ElMessage.success('申请退回成功');
       setTimeout(() => {
+        putBackButtonDisabled.value = false;
         eventBus.emit('showComponentByCommand', {
           type: 'area'
         });
@@ -958,8 +965,10 @@ async function loadEnterpriseDetails() {
   const res = await getBaseEnterpriseInfo().catch(() => null);
   if (res && res.code === 200) {
     supplierDetails.value = res.data || {};
-    formData.value.legalPersonName = res.data.legalPerson ?? formData.value.legalPersonName;
-    formData.value.legalPersonContactPhone = res.data.phoneNumber ?? formData.value.legalPersonContactPhone;
+    if (!hasExistingApplyId) {
+      formData.value.legalPersonName = res.data.legalPerson ?? formData.value.legalPersonName;
+      formData.value.legalPersonContactPhone = res.data.phoneNumber ?? formData.value.legalPersonContactPhone;
+    }
     formData.value.legalPersonIdCardType = '0';
   }
 }
@@ -1014,11 +1023,12 @@ onMounted(async () => {
     }
   } else {
     await loadProductDetails();
+    // 主体详情加载
+    if (userType.value === '1') {
+      await loadPurchaserDetails();
+    }
   }
-  // 主体详情加载
-  if (userType.value === '1') {
-    await loadPurchaserDetails();
-  } else if (userType.value === '2' || userType.value === '3') {
+  if (userType.value === '2' || userType.value === '3') {
     await loadEnterpriseDetails();
   }
 });

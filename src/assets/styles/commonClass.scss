@@ -163,6 +163,12 @@
   margin-right: 5px;
   border-radius: 4px;
 }
+.defaultText {
+  background: #333333 !important;
+}
+.primaryText {
+  background: #0b79ef !important;
+}
 .green {
   background: #108c58;
 }
@@ -173,7 +179,16 @@
 .pendingReview {
   background: #ff7b00 !important;
 }
+.prohibit {
+  background: #bbbdbf !important;
+}
 
+.defaultText-color {
+  color: #333;
+}
+.primaryText-color {
+  color: #0b79ef;
+}
 .green-color {
   color: #108c58;
 }
@@ -183,4 +198,7 @@
 }
 .pendingReview-color {
   color: #ff7b00 !important;
+}
+.prohibit-color {
+  color: #bbbdbf !important;
 }

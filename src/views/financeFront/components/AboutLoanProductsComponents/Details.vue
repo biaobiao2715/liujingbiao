@@ -39,7 +39,7 @@
           </div>
           <div class="loan-card__field-label">贷款金额（万元）</div>
           <div class="loan-card__amount-box">
-            {{ showAmount ? maxAmount : '*******' }}
+            {{ showAmount ? minAmount + '  ~  ' + maxAmount : '*******' }}
           </div>
           <div class="loan-card__actions">
             <el-button type="primary" class="loan-btn-main" @click="revealAmount">查看可贷金额</el-button>
@@ -119,6 +119,7 @@ const form = ref({
 const addShow = ref(true);
 const showAmount = ref(false);
 const maxAmount = ref('');
+const minAmount = ref('');
 
 const revealAmount = () => {
   showAmount.value = !showAmount.value;
@@ -210,6 +211,7 @@ const getLoanAmount = async () => {
   const res = await getCreditProductMoney(props.id);
   if (res.code === 200) {
     maxAmount.value = res.data.maxAmount || {};
+    minAmount.value = res.data.minAmount || {};
   }
 };
 </script>
