@@ -53,7 +53,7 @@
         <div class="category-wrapper">
           <div class="category-label-box">选择大类</div>
           <el-select v-model="selectedCategory" placeholder="请选择" clearable filterable style="width: 220px">
-            <el-option v-for="item in categories" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in breed_identification" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </div>
         <div style="width: 20px"></div>
@@ -105,7 +105,7 @@ import { ossUploadImage, varietyRecognizeIdentify } from '@/api/mall/personalCen
 
 import type { UploadFile } from 'element-plus';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
+const { breed_identification } = toRefs<any>(proxy?.useDict('breed_identification'));
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'cancel'): void;
@@ -118,14 +118,7 @@ const form = ref({
   skeleton_URL: '',
   identifyTime: [] as string[] | []
 });
-// 大类选择
-const categories = [
-  { label: '大豆', value: 'IR_maize_zili_type' },
-  { label: '小麦', value: 'IR_maize_zili_type' },
-  { label: '油菜', value: 'IR_maize_zili_type' },
-  { label: '玉米', value: 'IR_maize_zili_type' },
-  { label: '水稻', value: 'IR_maize_zili_type' }
-];
+
 const selectedCategory = ref<string>('');
 const formRef = ref();
 const formShow = ref(false);
@@ -167,7 +160,7 @@ const submitForm = () => {
     })
     .catch((error) => {
       console.error('识别过程出错：', error);
-      ElMessage.error('识别失败，请重试');
+      // ElMessage.error('识别失败，请重试');
     })
     .finally(() => {
       proxy?.$modal.closeLoading();
