@@ -187,12 +187,14 @@ const handleRedirect = async (path: string) => {
         auditStatus.value = response.data.auditStatus;
         
         // 根据审核状态决定是否显示弹窗
-        if( auditStatus.value ==1){
-          // 跳转操作
-        }else {
-        permissionPopupVisible.value = true;
+        if (auditStatus.value == 1) {
+          // 审核通过，直接跳转
+          handlePermissionSubmit();
+        } else {
+          // 其他状态，显示弹窗
+          permissionPopupVisible.value = true;
         }
-      } else if(auditStatus.value == 0 || auditStatus.value == null || auditStatus.value == 2 || auditStatus.value == undefined){
+      } else {
         // 没有数据，显示空表单
         permissionPopupData.value = null;
         auditStatus.value = null;
