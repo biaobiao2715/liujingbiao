@@ -77,11 +77,11 @@
           <span>{{ scope.row.goodsQuantity || 0 }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品价格" prop="goodsPrice" width="120">
+      <!-- <el-table-column label="商品价格" prop="goodsPrice" width="120">
         <template #default="scope">
           <span class="amount-text">¥{{ scope.row.goodsPrice || '0.00' }}</span>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="配送方式" prop="deliveryOptions" width="120">
         <template #default="scope">
           <span>{{ getDeliveryMethodText(scope.row.deliveryOptions) }}</span>
