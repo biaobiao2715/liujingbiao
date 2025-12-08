@@ -226,12 +226,10 @@ const handlePermissionSubmit = async () => {
     // const response = await axios.post(import.meta.env.VITE_APP_TRACEABLE_API_URL + '/third/thirdPartyLogin', {
     //   ...getCacheInfo()
     // });
-    const response = await thirdPartyLogin({
+    const res = await thirdPartyLogin({
       ...getCacheInfo()
     });
 
-    console.log(response);
-    const res = response.data;
     if (res.code === 200 && res.data?.accessToken) {
       const token = res.data.accessToken;
       // http://8.153.15.72:82
