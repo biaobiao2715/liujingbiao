@@ -32,11 +32,7 @@
     </div>
 
     <!-- 权限申请弹窗 -->
-    <PermissionPopup
-      v-model:visible="permissionPopupVisible"
-      :initial-data="permissionPopupData"
-      :audit-status="auditStatus"
-    />
+    <PermissionPopup v-model:visible="permissionPopupVisible" :initial-data="permissionPopupData" :audit-status="auditStatus" />
   </div>
 </template>
 
@@ -187,7 +183,7 @@ const handleRedirect = async (path: string) => {
         // 根据审核状态决定是否显示弹窗
         if (auditStatus.value == 1) {
           // 审核通过，直接跳转
-          handlePermissionSubmit();
+          handlePermissionSubmit(response?.data?.tenantId);
         } else {
           // 其他状态，显示弹窗
           permissionPopupVisible.value = true;
@@ -218,13 +214,14 @@ const handleRedirect = async (path: string) => {
 };
 
 // 处理权限申请提交
-const handlePermissionSubmit = async () => {
+const handlePermissionSubmit = async (tenantId: string) => {
   // 提交权限申请后，再执行第三方登录
   try {
     // const response = await axios.post(import.meta.env.VITE_APP_TRACEABLE_API_URL + '/third/thirdPartyLogin', {
     //   ...getCacheInfo()
     // });
     const res = await thirdPartyLogin({
+      tenantId,
       ...getCacheInfo()
     });
 
