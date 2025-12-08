@@ -1408,12 +1408,12 @@ watch(
 }
 
 // 去掉表单的默认样式
-::v-deep .el-input__wrapper {
-  box-shadow: none !important;
-  background-color: transparent !important;
-  cursor: default !important;
-  resize: none !important;
-}
+// ::v-deep .el-input__wrapper {
+//   box-shadow: none !important;
+//   background-color: transparent !important;
+//   cursor: default !important;
+//   resize: none !important;
+// }
 
 ::v-deep .el-input__inner {
   cursor: default !important;
