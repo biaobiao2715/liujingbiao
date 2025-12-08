@@ -175,11 +175,11 @@ div<!--
       v-model="dialog.visible"
       :title="getDialogTitle()"
       width="50%"
-      destroy-on-close
+     :destroy-on-close="false"
       :close-on-click-modal="false"
-      @close="dialog.type = ''"
+  
     >
-      <Suspense>
+      <Suspense >
         <template #default>
           <component
             :is="dialog.type === 'view' ? Detail : Appealmodal"
@@ -187,7 +187,7 @@ div<!--
             :type="dialog.type"
             :status="dialog.status"
             @success="onDialogSuccess"
-            @cancel="dialog.visible = false"
+            @cancel="onDialogClosees"
           />
         </template>
         <template #fallback>
@@ -374,6 +374,11 @@ const getDialogTitle = () => {
 const onDialogSuccess = () => {
   dialog.value.visible = false;
   getList();
+};
+const onDialogClosees = () => {
+ 
+  dialog.value.visible = false;
+ 
 };
 // 页面加载时获取列表数据
 onMounted(() => {

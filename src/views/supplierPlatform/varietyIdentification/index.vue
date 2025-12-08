@@ -216,9 +216,10 @@ const handlePictureCardPreview = (file: any) => {
 onMounted(() => {
   getList();
   // 查询品种识别类别
-  varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.data;
-  });
+  // varietyRecognizeGroupType().then((res) => {
+  //   varietyTypeOptions.value = res.data;
+  // });
+  varietyTypeOptions.value = [];
 });
 </script>
 
