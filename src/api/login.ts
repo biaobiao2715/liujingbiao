@@ -191,7 +191,7 @@ export function mergeChunkUpload(data: any, config: Record<string, any> = {}) {
 // 销售平台的跳转到溯源平台
 export function thirdPartyLogin(data: any) {
   return request({
-    url: '/third/thirdPartyLogin',
+    url: '/thirdParty',
     method: 'post',
     data
   });
