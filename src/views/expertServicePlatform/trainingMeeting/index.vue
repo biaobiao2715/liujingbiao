@@ -73,6 +73,8 @@
           <dict-tag :options="enroll_status" :value="scope.row.enrollStatus" />
         </template>
       </el-table-column>
+      <el-table-column label="浏览量" prop="pageViews" min-width="80" />
+      <el-table-column label="报名人数" prop="enrollCount" min-width="80" />
       <el-table-column label="发布时间" prop="publishTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>

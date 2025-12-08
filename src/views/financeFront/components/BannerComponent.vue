@@ -1,13 +1,11 @@
 <template>
   <div class="banner">
-    <el-carousel :interval="5000" height="200px">
+    <el-carousel :interval="5000" height="600px">
       <el-carousel-item v-for="tab in tabs" :key="tab.name">
-        <div class="banner-text">
-          <h1>{{ tab.data?.productName || '' }}</h1>
-          <p>{{ tab.data?.productRemark || '' }}</p>
-          <el-button round type="success" @click="handleDetail(tab)">{{
-            '查看' + (tab?.type === 'insurance' ? '保险产品' : '信贷产品')
-          }}</el-button>
+        <div class="banner-text flex gap-12">
+          <div class="product-name">{{ tab.data?.productName || '' }}</div>
+          <div class="product-remark">{{ tab.data?.productRemark || '' }}</div>
+          <el-button round type="primary" size="large" @click="handleDetail(tab)">{{ '查看' + (tab?.type === 'insurance' ? '保险产品' : '信贷产品') }}</el-button>
         </div>
       </el-carousel-item>
     </el-carousel>
@@ -42,13 +40,25 @@ const handleDetail = (item) => {
 
 <style scoped lang="scss">
 .banner {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
   background-color: #e8f5e9;
 }
 .banner-text {
-  text-align: left;
-  margin-top: 20px;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 100px;
+
+  .product-name {
+    font-size: 48px;
+    font-weight: bold;
+  }
+  .product-remark {
+    font-size: 32px;
+    // margin-top: 20px;
+    margin-bottom: 48px;
+  }
+  .el-button {
+    width: 120px;
+  }
 }
 </style>

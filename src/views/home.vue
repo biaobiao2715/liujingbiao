@@ -248,7 +248,6 @@ const getCacheInfo = () => {
     username: userStore.userName,
     password: '111111',
     clientId,
-    tenantId: userInfo.value.tenantId,
     'form': true,
     'grantType': 'password'
     // 'username': '18000000000',

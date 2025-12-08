@@ -219,7 +219,7 @@ const historyhandle = () => {
   });
 };
 onMounted(() => {
-  getListType();
+  // getListType();
 });
 /* 历史列表查询 */
 const getList = async () => {
