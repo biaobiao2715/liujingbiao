@@ -542,13 +542,25 @@ const rules: FormRules = {
           return callback(new Error('贷款金额需为正数且最多2位小数'));
         }
         const num = Number(str);
-        if (num <= amountData.value.minAmount) {
-          return callback(new Error(`贷款金额必须大于${amountData.value.minAmount}`));
-        }
+        const minRaw = amountData.value?.minAmount;
+        const min = minRaw !== undefined && minRaw !== null && minRaw !== '' ? Number(minRaw) : undefined;
         const maxRaw = amountData.value?.maxAmount;
         const max = maxRaw !== undefined && maxRaw !== null && maxRaw !== '' ? Number(maxRaw) : undefined;
-        if (max !== undefined && !isNaN(max) && num > max) {
-          return callback(new Error(`贷款金额不能超过最大额度${max}`));
+
+        // 处理特殊情况：minAmount 与 maxAmount 相等时，仅允许等于该值
+        if (min !== undefined && max !== undefined && !isNaN(min) && !isNaN(max) && min === max) {
+          if (num !== max) {
+            return callback(new Error(`本产品固定额度为${max}，请输入该金额`));
+          }
+        } else {
+          // 常规校验：必须不小于最小额度（允许等于最小值）
+          if (min !== undefined && !isNaN(min) && num < min) {
+            return callback(new Error(`贷款金额不能小于最小额度${min}`));
+          }
+          // 不得超过最大额度（允许等于最大值）
+          if (max !== undefined && !isNaN(max) && num > max) {
+            return callback(new Error(`贷款金额不能超过最大额度${max}`));
+          }
         }
         callback();
       },
