@@ -177,7 +177,6 @@ const getIcon = (svgName: string) => {
 
 // 处理点击跳转 用axios原始请求方式
 const handleRedirect = async (path: string) => {
-  handlePermissionSubmit();
   // 跳转到第三方溯源系统
   if (path === 'thirdPartyLogin') {
     // 调用溯源用户校验接口
