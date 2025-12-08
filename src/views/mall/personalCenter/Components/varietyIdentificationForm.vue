@@ -23,7 +23,8 @@
         >
           <div class="upload-content" :class="{ error: uploadError }">
             <template v-if="diplomaUrl.url && !uploadError">
-              <img :src="diplomaUrl.url" :alt="diplomaUrl.name" class="upload-image" />
+              <div v-if="diplomaUrl.type == 'pdf'" class="upload-pdf">{{ diplomaUrl.name }}</div>
+              <img v-else :src="diplomaUrl.url" :alt="diplomaUrl.name" class="upload-image" />
             </template>
             <template v-else>
               <div class="upload-placeholder">
@@ -49,6 +50,13 @@
       <div style="height: 50px"></div>
       <!-- 操作按钮 -->
       <el-row type="flex" justify="center" :gutter="5">
+        <div class="category-wrapper">
+          <div class="category-label-box">选择大类</div>
+          <el-select v-model="selectedCategory" placeholder="请选择" clearable filterable style="width: 220px">
+            <el-option v-for="item in categories" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </div>
+        <div style="width: 20px"></div>
         <el-button v-throttle type="primary" @click="submitForm">开始识别</el-button>
         <div style="width: 20px"></div>
         <el-button v-throttle @click="handcancel">历史记录</el-button>
@@ -78,7 +86,7 @@
           {{ form.varietyType }}
         </el-form-item>
         <el-form-item label="识别状态：" prop="varietyType">
-          {{ form.varietyType }}
+          <img :src="form.skeleton_URL" alt="" style="width: 100px; height: 100px" />
         </el-form-item>
 
         <div class="flex-center-end">
@@ -92,7 +100,9 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
-import { uploadImage } from '@/api/register'; // 图片上传接口
+import {} from '@/api/register'; // 图片上传接口
+import { ossUploadImage, varietyRecognizeIdentify } from '@/api/mall/personalCenter/varietyIdentification';
+
 import type { UploadFile } from 'element-plus';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
@@ -105,8 +115,18 @@ const form = ref({
   pageNum: 1,
   pageSize: 10,
   varietyType: '',
+  skeleton_URL: '',
   identifyTime: [] as string[] | []
 });
+// 大类选择
+const categories = [
+  { label: '大豆', value: 'IR_maize_zili_type' },
+  { label: '小麦', value: 'IR_maize_zili_type' },
+  { label: '油菜', value: 'IR_maize_zili_type' },
+  { label: '玉米', value: 'IR_maize_zili_type' },
+  { label: '水稻', value: 'IR_maize_zili_type' }
+];
+const selectedCategory = ref<string>('');
 const formRef = ref();
 const formShow = ref(false);
 // 上传文件信息
@@ -129,22 +149,29 @@ const handcancel = () => {
 };
 
 const submitForm = () => {
-  if (!diplomaUrl.value.ossId) {
-    ElMessage.error('请上传图片后再进行识别');
+  if (!selectedCategory.value) {
+    ElMessage.warning('请先选择大类');
     return;
   }
-  // proxy?.$modal.loading('正在识别中，请稍候...');
-  // ocrUploadImage({ ossId: diplomaUrl.value.ossId })
-  //   .then((res) => {
-  //     ElMessage.success('识别成功');
-  //   })
-  //   .catch((error) => {
-  //     console.error('识别过程出错：', error);
-  //     ElMessage.error('识别失败，请重试');
-  //   })
-  //   .finally(() => {
-  //     proxy?.$modal.closeLoading();
-  //   });
+  if (!diplomaUrl.value.ossId) {
+    ElMessage.warning('请上传图片后再进行识别');
+    return;
+  }
+  proxy?.$modal.loading('正在识别中，请稍候...');
+  varietyRecognizeIdentify({ imageUrl: diplomaUrl.value.url, modelName: selectedCategory.value })
+    .then((res) => {
+      ElMessage.success('识别成功');
+      console.log('识别结果：', res);
+      formShow.value = true;
+      form.value = res.data || {};
+    })
+    .catch((error) => {
+      console.error('识别过程出错：', error);
+      ElMessage.error('识别失败，请重试');
+    })
+    .finally(() => {
+      proxy?.$modal.closeLoading();
+    });
 };
 /** 文件上传成功处理 */
 const handleDiplomaChange = (file: UploadFile) => {
@@ -165,14 +192,15 @@ const handleDiplomaChange = (file: UploadFile) => {
 
   uploading.value = true;
   proxy?.$modal.loading('正在上传，请稍候...');
-  uploadImage({ file: file.raw })
+  ossUploadImage({ file: file.raw })
     .then((res) => {
       if (res.data?.ossId) {
         diplomaUrl.value = {
-          name: res.data.fileName || file.name || '附件',
-          remark: '营业执照',
+          name: res.data.fileName || file.name || '品种识别图片',
+          remark: '品种识别图片',
           url: res.data.url,
           fileType: '1',
+          type: ext,
           ossId: res.data.ossId,
           ossInfo: {}
         };
@@ -259,7 +287,14 @@ const closable = () => {
 
     .upload-image {
       width: 100%;
+      height: 276px;
+    }
+    .upload-pdf {
+      width: 100%;
       height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .step-icon {
@@ -297,6 +332,30 @@ const closable = () => {
     width: 100%;
     height: 150px;
   }
+}
+
+/* 大类选择样式 */
+.category-wrapper {
+  display: flex;
+  align-items: center;
+}
+.category-label {
+  margin-right: 8px;
+  color: #333333;
+  font-size: 14px;
+}
+/* 绿色按钮风格的标签块 */
+.category-label-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #108c58;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-right: 12px;
+  white-space: nowrap;
 }
 
 /* 使用深度选择器确保样式能够穿透到Element UI组件内部 */

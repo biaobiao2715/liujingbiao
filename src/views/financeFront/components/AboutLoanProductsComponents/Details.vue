@@ -39,7 +39,7 @@
           </div>
           <div class="loan-card__field-label">贷款金额（万元）</div>
           <div class="loan-card__amount-box">
-            {{ showAmount ? minAmount + '  ~  ' + maxAmount : '*******' }}
+            {{ showAmount ? amountDisplay : '*******' }}
           </div>
           <div class="loan-card__actions">
             <el-button type="primary" class="loan-btn-main" @click="revealAmount">查看可贷金额</el-button>
@@ -120,6 +120,17 @@ const addShow = ref(true);
 const showAmount = ref(false);
 const maxAmount = ref('');
 const minAmount = ref('');
+
+// 额度展示：若最小值与最大值相同，仅展示一个值，否则展示区间
+const amountDisplay = computed(() => {
+  const min = String(minAmount.value ?? '').trim();
+  const max = String(maxAmount.value ?? '').trim();
+  if (!min && !max) return '';
+  if (min && max && min === max) return `${max}`;
+  if (min && max) return `${min}  ~  ${max}`;
+  // 兜底：若只有其中一个
+  return `${min || max}`;
+});
 
 const revealAmount = () => {
   showAmount.value = !showAmount.value;
@@ -210,8 +221,9 @@ const getArticleDetail = async () => {
 const getLoanAmount = async () => {
   const res = await getCreditProductMoney(props.id);
   if (res.code === 200) {
-    maxAmount.value = res.data.maxAmount || {};
-    minAmount.value = res.data.minAmount || {};
+    // 保持字符串，避免模板拼接出现 [object Object]
+    maxAmount.value = String(res.data.maxAmount ?? '');
+    minAmount.value = String(res.data.minAmount ?? '');
   }
 };
 </script>
