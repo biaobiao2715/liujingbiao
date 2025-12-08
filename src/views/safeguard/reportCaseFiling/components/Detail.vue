@@ -391,7 +391,12 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="扣分：">
-                <el-input v-model="formData.caseScore" disabled />
+                <el-input
+                  :model-value="
+                    formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
+                  "
+                  disabled
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -401,7 +406,10 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="剩余信用积分：">
-                <el-input v-model="formData.sore" disabled />
+                <el-input
+                  :model-value="formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore"
+                  disabled
+                />
               </el-form-item>
             </el-col>
             <el-col :span="24">
