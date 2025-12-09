@@ -425,7 +425,8 @@ const cancelAudit = async (type: number) => {
       emit('refresh');
     });
   } catch (error) {
-    ElMessage.error('审核失败');
+    console.error('审核失败', error);
+    // ElMessage.error('审核失败');
   } finally {
     proxy?.$modal.closeLoading();
   }
