@@ -400,11 +400,11 @@ const getRegistrationInfo = async (id) => {
       registrantsNumber.value = res.rows.length || 0;
       console.log('报名信息获取成功:', registration.value);
     } else {
-      ElMessage.error(res.msg || '获取报名信息失败');
+      // ElMessage.error(res.msg || '获取报名信息失败');
     }
   } catch (error) {
     console.error('获取报名信息失败:', error);
-    ElMessage.error('获取报名信息失败，请稍后重试');
+    // ElMessage.error('获取报名信息失败，请稍后重试');
   } finally {
     registrationloading.value = false;
   }
@@ -649,11 +649,11 @@ const getexpert = async () => {
         });
       });
     } else {
-      ElMessage.error(res.msg || '获取专家列表数据失败');
+      // ElMessage.error(res.msg || '获取专家列表数据失败');
     }
   } catch (error) {
     console.error('获取专家列表数据失败:', error);
-    ElMessage.error('获取专家列表数据失败，请稍后重试');
+    // ElMessage.error('获取专家列表数据失败，请稍后重试');
   } finally {
     loading.value = false;
   }

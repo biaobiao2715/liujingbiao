@@ -424,11 +424,11 @@ const getTableData = async () => {
       total.value = res.total || 0;
       console.log('会议列表数据:', tableData.value);
     } else {
-      ElMessage.error(res.msg || '获取培训会议列表数据失败');
+      // ElMessage.error(res.msg || '获取培训会议列表数据失败');
     }
   } catch (error) {
     console.error('查询培训会议列表数据失败:', error);
-    ElMessage.error('查询培训会议列表数据失败，请稍后重试');
+    // ElMessage.error('查询培训会议列表数据失败，请稍后重试');
   } finally {
     loading.value = false;
   }
@@ -448,7 +448,7 @@ const handleView = async (row: any) => {
     meetingData.value = res;
     visible.value = true;
   } catch (error) {
-    ElMessage.error(error);
+    // ElMessage.error(error);
   } finally {
     // 清除 loading 状态
     detailLoading.value = false;
@@ -469,7 +469,7 @@ const handleEdit = async (row: any) => {
     meetingData.value = res;
     visible.value = true;
   } catch (error) {
-    ElMessage.error(error);
+    // ElMessage.error(error);
   } finally {
     // 清除 loading 状态
     editLoading.value = false;
@@ -508,7 +508,7 @@ const Confirmcancel = async () => {
     getTableData(); // 刷新列表
   } catch (error) {
     console.error('取消会议失败', error);
-    ElMessage.error(error || '取消会议失败，请稍后重试');
+    // ElMessage.error(error || '取消会议失败，请稍后重试');
   } finally {
     cancelloading.value = false;
   }
