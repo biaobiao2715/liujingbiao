@@ -34,12 +34,8 @@
                 productDetail.maxLoanAmount !== undefined
               "
             >
-              <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
-                {{ productDetail.minLoanAmount }} 万元
-              </template>
-              <template v-else>
-                {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
-              </template>
+              <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount"> {{ productDetail.minLoanAmount }} 万元 </template>
+              <template v-else> {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元 </template>
             </template>
             <template v-else>--</template>
           </span>
@@ -92,12 +88,7 @@
       <div class="info-block" v-if="cooperationFileList.length > 0">
         <span class="label">合作机构：</span>
         <div class="attachment-content">
-          <el-upload
-            class="upload-display"
-            :file-list="cooperationFileList"
-            :disabled="true"
-            list-type="text"
-          />
+          <el-upload class="upload-display" :file-list="cooperationFileList" :disabled="true" list-type="text" />
         </div>
       </div>
 
@@ -212,12 +203,10 @@ const fetchProductDetail = async () => {
     if (res && res.code === 200 && res.data) {
       productDetail.value = res.data;
     } else {
-      ElMessage.error(res?.msg || '获取产品详情失败');
       productDetail.value = {};
     }
   } catch (error) {
     console.error('获取产品详情失败:', error);
-    ElMessage.error('获取产品详情失败，请稍后重试');
     productDetail.value = {};
   } finally {
     loading.value = false;

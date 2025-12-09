@@ -50,7 +50,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import { todayTrendList } from '@/api/mall/marketComponent';
 import { eventBus } from '@/utils/eventBus';
@@ -171,13 +170,11 @@ const getList = async () => {
       });
       total.value = response.total || 0;
     } else {
-      ElMessage.error(response?.msg || '获取今日行情数据失败');
       tableData.value = [];
       total.value = 0;
     }
   } catch (error) {
     console.error('获取今日行情数据失败:', error);
-    ElMessage.error('获取今日行情数据失败，请稍后重试');
     tableData.value = [];
     total.value = 0;
   } finally {
@@ -199,7 +196,6 @@ const getTrendIcon = (change: number | string) => {
 // 点击走势图图标，切换到价格走势页面
 const handleTrendClick = (row: any) => {
   if (!row || !row.goodsCategoryId) {
-    ElMessage.warning('数据异常，无法查看价格走势');
     return;
   }
 
@@ -248,25 +244,25 @@ defineExpose({
 }
 
 :deep(.el-table) {
-    .el-table__header {
-      th {
-        background-color: #108c58 !important;
-        color: #fff;
-        font-weight: 600;
-        border-color: #108c58 !important;
-      }
+  .el-table__header {
+    th {
+      background-color: #108c58 !important;
+      color: #fff;
+      font-weight: 600;
+      border-color: #108c58 !important;
     }
+  }
 
-    .el-table__body {
-      tr {
-        &:hover {
-          background-color: #f5f7fa;
-        }
-        td {
-          border-color: #ffffff   !important;
-        }
+  .el-table__body {
+    tr {
+      &:hover {
+        background-color: #f5f7fa;
+      }
+      td {
+        border-color: #ffffff !important;
       }
     }
+  }
 }
 
 .trend-icon {

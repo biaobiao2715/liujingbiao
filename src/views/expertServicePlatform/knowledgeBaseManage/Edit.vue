@@ -259,8 +259,6 @@ const submit = async () => {
   if ((res?.code ?? 200) === 200) {
     ElMessage.success(props.id ? '保存成功' : '新增成功');
     emit('success');
-  } else {
-    ElMessage.error(res?.msg ?? '操作失败');
   }
 };
 
@@ -328,7 +326,7 @@ const handleChange = async (file: any) => {
     }
   } catch (error) {
     console.error('上传失败:', error);
-    ElMessage.error('上传失败，请重试');
+    // ElMessage.error('上传失败，请重试');
   } finally {
     proxy?.$modal.closeLoading();
   }
@@ -363,7 +361,7 @@ const handleCoverChange = async (file: any) => {
     ];
   } catch (error) {
     console.error('主图上传失败:', error);
-    ElMessage.error('主图上传失败，请重试');
+    // ElMessage.error('主图上传失败，请重试');
   } finally {
     proxy?.$modal.closeLoading();
   }
@@ -413,7 +411,7 @@ const handleReuploadChange = async (e: Event) => {
     ElMessage.success('重新上传成功');
   } catch (err) {
     console.error('重新上传失败:', err);
-    ElMessage.error('重新上传失败，请重试');
+    // ElMessage.error('重新上传失败，请重试');
   } finally {
     proxy?.$modal.closeLoading();
     reuploadIndex.value = null;
@@ -467,7 +465,7 @@ onMounted(async () => {
         ];
       }
     } else {
-      ElMessage.error(res?.msg ?? '获取文章信息失败');
+      // ElMessage.error(res?.msg ?? '获取文章信息失败');
     }
   }
 });

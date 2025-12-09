@@ -170,7 +170,6 @@ const fetchRepaymentPlan = async () => {
     }));
   } catch (error) {
     console.error('获取还款计划失败:', error);
-    ElMessage.error('获取还款计划失败');
   } finally {
     loading.value = false;
   }
@@ -337,7 +336,6 @@ const handleSubmit = async () => {
   }
 
   if (!props.data?.id) {
-    ElMessage.error('缺少贷款申请ID');
     return;
   }
 
@@ -363,11 +361,9 @@ const handleSubmit = async () => {
       emit('refresh');
       emit('update:visible', false);
     } else {
-      ElMessage.error(response.msg || '提交失败');
     }
   } catch (error) {
     console.error('提交还款信息失败:', error);
-    ElMessage.error('提交失败，请稍后重试');
   } finally {
     loading.value = false;
   }

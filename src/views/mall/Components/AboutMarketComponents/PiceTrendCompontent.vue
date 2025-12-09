@@ -50,7 +50,7 @@
               <p class="price-change" :class="priceStats.priceChange >= 0 ? 'text-red' : 'text-green'">
                 <span style="font-size: 12px; color: #7a7a7a; font-weight: 400"> 相较昨日价格：</span>
                 <span>{{ priceStats.priceChange >= 0 ? '+' : '' }}{{ priceStats.priceChange.toFixed(2) }}%</span>
-             
+
                 <img class="trend-img" :src="getTrendIcon(priceStats.priceChange)" alt="走势图" />
               </p>
             </div>
@@ -113,7 +113,7 @@
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
           <template #default="{ row }">
-            <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图"  />
+            <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图" />
           </template>
         </el-table-column>
         <el-table-column label="专项报告" align="center">
@@ -137,7 +137,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PriceTrendChart from './PriceTrendChart.vue';
@@ -319,13 +318,11 @@ const fetchPriceData = async () => {
         updateMiniChart();
       });
     } else {
-      ElMessage.error(response?.msg || '获取价格走势数据失败');
       currentChartData.value = { dates: [], prices: [] };
       updateAxisRange([]);
     }
   } catch (error) {
     console.error('获取价格走势数据失败:', error);
-    ElMessage.error('获取价格走势数据失败，请稍后重试');
     currentChartData.value = { dates: [], prices: [] };
     updateAxisRange([]);
   } finally {
@@ -366,7 +363,7 @@ const initMiniChart = () => {
   if (!miniChartContainer.value) return;
 
   miniChartInstance = echarts.init(miniChartContainer.value);
-  
+
   // 监听容器大小变化
   if (miniChartContainer.value) {
     const resizeObserver = new ResizeObserver(() => {
@@ -374,9 +371,9 @@ const initMiniChart = () => {
     });
     resizeObserver.observe(miniChartContainer.value);
   }
-  
+
   updateMiniChart();
-  
+
   // 延迟调整，确保图表正确渲染
   setTimeout(() => {
     miniChartInstance?.resize();
@@ -396,14 +393,14 @@ const updateMiniChart = () => {
   const displayDates = dates.map((_, index) => index + 1); // 使用索引作为 x 轴
 
   // 过滤有效价格值
-  const validPrices = displayPrices.filter(p => p !== null && p !== undefined && !isNaN(p) && p >= 0);
-  
+  const validPrices = displayPrices.filter((p) => p !== null && p !== undefined && !isNaN(p) && p >= 0);
+
   if (validPrices.length === 0) return;
 
   const minPrice = Math.min(...validPrices);
   const maxPrice = Math.max(...validPrices);
   const priceRange = maxPrice - minPrice;
-  
+
   // 如果价格范围很小，使用更大的 padding；如果范围很大，使用较小的 padding
   let padding: number;
   if (priceRange === 0) {
@@ -467,7 +464,7 @@ const updateMiniChart = () => {
   };
 
   miniChartInstance.setOption(option, true);
-  
+
   // 确保图表正确渲染
   nextTick(() => {
     miniChartInstance?.resize();
@@ -566,7 +563,6 @@ const fetchPriceExplanation = async () => {
         trend: trendText // 近7日价格走势
       };
     } else {
-      ElMessage.error(response?.msg || '获取价格说明数据失败');
       // 重置为默认值
       priceStats.value = {
         todayPrice: 0,
@@ -580,7 +576,6 @@ const fetchPriceExplanation = async () => {
     }
   } catch (error) {
     console.error('获取价格说明数据失败:', error);
-    ElMessage.error('获取价格说明数据失败，请稍后重试');
     // 重置为默认值
     priceStats.value = {
       todayPrice: 0,
@@ -657,12 +652,10 @@ const fetchHotRecommendation = async () => {
         };
       });
     } else {
-      ElMessage.error(response?.msg || '获取热门推荐数据失败');
       recommendationTableData.value = [];
     }
   } catch (error) {
     console.error('获取热门推荐数据失败:', error);
-    ElMessage.error('获取热门推荐数据失败，请稍后重试');
     recommendationTableData.value = [];
   } finally {
     recommendationLoading.value = false;
@@ -739,12 +732,8 @@ const viewHeatmap = async () => {
       });
       window.open(routeData.href, '_blank');
     } else {
-      ElMessage.error(response?.msg || '获取热力图数据失败');
     }
-  } catch (error) {
-    console.error('获取热力图数据失败:', error);
-    ElMessage.error('获取热力图数据失败，请稍后重试');
-  }
+  } catch (error) {}
 };
 
 // 点击走势图图标，切换到价格走势页面
@@ -843,7 +832,7 @@ onMounted(() => {
   fetchPriceExplanation();
   fetchHotRecommendation();
   eventBus.on('priceTrend:applyFilters', applyExternalFilters);
-  
+
   // 初始化小折线图
   nextTick(() => {
     initMiniChart();
@@ -861,7 +850,7 @@ onBeforeUnmount(() => {
   } catch (error) {
     // ignore
   }
-  
+
   // 清理小折线图实例
   if (miniChartInstance) {
     miniChartInstance.dispose();
@@ -1040,7 +1029,7 @@ onBeforeUnmount(() => {
           justify-content: center;
           border-radius: 6px;
           overflow: hidden;
-          
+
           .mini-chart-container {
             width: 100%;
             height: 100%;

@@ -135,16 +135,11 @@
               <el-option label="不同意" value="reject" />
             </el-select>
           </el-form-item>
-          <el-form-item 
-            label="放款日期" 
-            prop="loanDate" 
-            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
-            class="date-picker-field"
-          >
+          <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
             <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item 
-            label="第一期还款日期" 
+          <el-form-item
+            label="第一期还款日期"
             prop="firstRepaymentDate"
             :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
             class="date-picker-field"
@@ -157,11 +152,7 @@
               :disabled="isApprovalReadonly"
             />
           </el-form-item>
-          <el-form-item 
-            label="贷款合同" 
-            prop="contractId" 
-            :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]"
-          >
+          <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
                 <div class="contract-files" v-if="approvalForm.contractFiles.length">
@@ -183,7 +174,10 @@
                   </div>
                 </div>
                 <el-upload
-                  v-if="!approvalForm.contractFiles.length || (approvalForm.contractFiles.length > 0 && approvalForm.contractFiles[0].status === 'success')"
+                  v-if="
+                    !approvalForm.contractFiles.length ||
+                    (approvalForm.contractFiles.length > 0 && approvalForm.contractFiles[0].status === 'success')
+                  "
                   class="contract-uploader inline-uploader"
                   :disabled="submittingApproval"
                   accept=".pdf,.doc,.docx"
@@ -251,17 +245,25 @@ import type { FormInstance, FormRules } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Close, Document, Loading } from '@element-plus/icons-vue';
-import { getRemainingDetail, auditLoanApplication, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
+import {
+  getRemainingDetail,
+  auditLoanApplication,
+  uploadFile as uploadContractFile,
+  deleteFile as deleteContractFile
+} from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import ProductDetailDialog from './ProductDetailDialog.vue';
 
-const props = withDefaults(defineProps<{
-  visible: boolean;
-  data: Record<string, any> | null;
-  mode?: 'detail' | 'approval';
-}>(), {
-  mode: 'detail'
-});
+const props = withDefaults(
+  defineProps<{
+    visible: boolean;
+    data: Record<string, any> | null;
+    mode?: 'detail' | 'approval';
+  }>(),
+  {
+    mode: 'detail'
+  }
+);
 
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
@@ -324,25 +326,25 @@ const APPLY_STATUS_MAP: Record<string, string> = {
 const approvalRules: FormRules = {
   opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
   loanDate: [
-    { 
+    {
       required: true,
-      message: '请选择放款日期', 
+      message: '请选择放款日期',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请选择放款日期')
     }
   ],
   firstRepaymentDate: [
-    { 
+    {
       required: true,
-      message: '请选择第一期还款日期', 
+      message: '请选择第一期还款日期',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请选择第一期还款日期')
     }
   ],
   contractId: [
-    { 
+    {
       required: true,
-      message: '请上传贷款合同', 
+      message: '请上传贷款合同',
       trigger: 'change',
       validator: createConditionalRequiredValidator('请上传贷款合同')
     }
@@ -537,8 +539,7 @@ const mapLoanInfo = (row: Record<string, any>) => {
   const bankDisplay = bankLabel !== '--' ? bankLabel : formatValue(getFieldValue(row, ['collectionBankCode', 'bankName']));
 
   const amount = row.loanAmount;
-  const amountText =
-    amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
+  const amountText = amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
 
   return {
     applyDate: formatValue(getFieldValue(row, ['createTime', 'applyTime'])),
@@ -704,26 +705,22 @@ const beforeUpload = (file: any) => {
   );
 
   if (!isValidType) {
-    ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
 
   // 重复文件拦截（按名称简单判断）
   if (approvalForm.contractFiles.some((f) => (f.fileName || f.name) === file.name)) {
-    ElMessage.error('已选择相同文件，请勿重复上传');
     return false;
   }
 
   // 文件大小限制（200MB）
   const sizeMB = file.size / 1024 / 1024;
   if (sizeMB > 200) {
-    ElMessage.error('上传文件大小不能超过200MB!');
     return false;
   }
 
   // 限制只能上传一个文件
   if (approvalForm.contractFiles.length >= 1) {
-    ElMessage.error('只能上传一个合同文件');
     return false;
   }
 
@@ -792,7 +789,6 @@ const handleContractUpload = (req: any) =>
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(tempItem);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '文件上传失败，请重试');
       const idx = approvalForm.contractFiles.indexOf(tempItem);
       if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
       approvalForm.contractId = '';
@@ -806,7 +802,7 @@ const handleContractUpload = (req: any) =>
 
 const handleRemoveFile = async (file?: any) => {
   if (isApprovalReadonly.value) return;
-  
+
   const fileToRemove = file || approvalForm.contractFiles[0];
   if (!fileToRemove) return;
 
@@ -814,22 +810,21 @@ const handleRemoveFile = async (file?: any) => {
     try {
       await deleteContractFile([fileToRemove.ossId]);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '删除文件失败，请重试');
       return;
     }
   }
-  
+
   const idx = approvalForm.contractFiles.findIndex((f) => f.url === fileToRemove.url || f.serverUrl === fileToRemove.serverUrl);
   if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
   approvalForm.contractId = '';
-  
+
   // 清理本地 blob URL
   if (fileToRemove?.url && fileToRemove.url.startsWith('blob:')) {
     try {
       URL.revokeObjectURL(fileToRemove.url);
     } catch {}
   }
-  
+
   approvalFormRef.value?.validateField?.('contractId');
 };
 
@@ -844,7 +839,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     return;
   }
   if (!detailData.value?.id && !props.data?.id) {
-    ElMessage.error('缺少申请ID，无法提交审批');
     currentApprovalAction.value = null;
     return;
   }
@@ -872,7 +866,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     const backendMessage = responseData?.msg || error?.msg || error?.message || responseData?.message;
     const isCancelledError = backendMessage?.includes('该贷款申请已取消，不能进行审核');
     if (!isCancelledError) {
-      ElMessage.error(backendMessage || '审批提交失败');
     }
   } finally {
     submittingApproval.value = false;
@@ -1193,14 +1186,14 @@ const handleViewProductDetail = () => {
     .el-input__suffix {
       right: 8px;
     }
-    
+
     .el-input__suffix-inner {
       .el-input__clear {
         margin-right: 4px;
       }
     }
   }
-  
+
   // 详情模式下，所有字段置灰
   :deep(.el-select.is-disabled),
   :deep(.el-date-editor.is-disabled),
@@ -1210,13 +1203,13 @@ const handleViewProductDetail = () => {
       background-color: #f5f7fa !important;
       cursor: not-allowed;
     }
-    
+
     .el-input__inner {
       color: #c0c4cc !important;
       cursor: not-allowed;
     }
   }
-  
+
   // 确保 disabled 状态下的样式
   :deep(.el-select.is-disabled .el-input__wrapper),
   :deep(.el-date-editor.is-disabled .el-input__wrapper) {

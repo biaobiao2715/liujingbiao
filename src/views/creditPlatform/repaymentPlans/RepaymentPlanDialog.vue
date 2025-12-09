@@ -137,7 +137,6 @@ const fetchRepaymentPlan = async () => {
     }
   } catch (error) {
     console.error('获取还款计划失败:', error);
-    ElMessage.error('获取还款计划失败');
     repaymentPlans.value = [];
   } finally {
     loading.value = false;

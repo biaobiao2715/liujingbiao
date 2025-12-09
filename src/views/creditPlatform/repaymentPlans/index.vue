@@ -115,11 +115,7 @@
     <RepaymentDetailDialog v-model:visible="detailDialogVisible" :data="detailData" />
     <RepaymentBuyerDetailDialog v-model:visible="buyerDetailDialogVisible" :data="detailData" />
     <LoanTrackingDialog v-model:visible="trackingDialogVisible" :data="detailData" />
-    <RepaymentStatusDialog
-      v-model:visible="repaymentStatusDialogVisible"
-      :data="detailData"
-      @refresh="handleRefresh"
-    />
+    <RepaymentStatusDialog v-model:visible="repaymentStatusDialogVisible" :data="detailData" @refresh="handleRefresh" />
   </div>
 </template>
 
@@ -226,13 +222,11 @@ const getList = async () => {
       tableData.value = res.rows || [];
       total.value = res.total || 0;
     } else {
-      ElMessage.error(res.msg || '获取列表失败');
       tableData.value = [];
       total.value = 0;
     }
   } catch (error) {
     console.error('获取列表失败:', error);
-    ElMessage.error('获取列表失败');
     tableData.value = [];
     total.value = 0;
   } finally {
@@ -380,7 +374,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
         } else {
         }
       } else {
-        ElMessage.error(detailResponse?.msg || '获取详情失败');
       }
     } catch (error) {
       console.error('发送通知失败:', error);
@@ -404,11 +397,8 @@ const handleDelete = (row: RepaymentPlan) => {
           ElMessage.success('删除成功');
           getList();
         } else {
-          ElMessage.error(response?.msg || '删除失败');
         }
-      } catch (error) {
-        ElMessage.error('删除失败，请稍后重试');
-      }
+      } catch (error) {}
     })
     .catch(() => {});
 };

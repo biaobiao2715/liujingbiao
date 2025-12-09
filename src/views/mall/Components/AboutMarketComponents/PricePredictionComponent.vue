@@ -88,7 +88,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
-import { ElMessage } from 'element-plus';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PricePredictionChart from './PricePredictionChart.vue';
@@ -485,13 +484,11 @@ const fetchPricePrediction = async () => {
         marketAnalysis.value.suggestion = data.suggestion || data.predictionSuggestion;
       }
     } else {
-      ElMessage.error(response?.msg || '获取价格预测数据失败');
       // 重置数据
       resetChartData();
     }
   } catch (error) {
     console.error('获取价格预测数据失败:', error);
-    ElMessage.error('获取价格预测数据失败，请稍后重试');
     resetChartData();
   } finally {
     loading.value = false;

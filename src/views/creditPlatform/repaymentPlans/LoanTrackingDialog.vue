@@ -176,11 +176,9 @@ const fetchTrackingData = async () => {
       // 将原始数据转换为追踪步骤格式
       trackingData.value = convertToTrackingSteps(res);
     } else {
-      ElMessage.error(res.msg || '获取追踪信息失败');
     }
   } catch (error) {
     console.error('获取追踪数据失败:', error);
-    ElMessage.error('获取追踪信息失败');
   } finally {
     loading.value = false;
   }
