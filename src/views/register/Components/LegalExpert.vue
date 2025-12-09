@@ -608,6 +608,7 @@ const handleDiplomaChange = (file: any) => {
           ossId: res.data.ossId
         });
       }
+      formRef.value?.clearValidate('diploma');
       try {
         const res_1 = await ocrUploadImage({ image_url_list: [res.data.url] });
         const data = res_1.data?.[0];
@@ -668,6 +669,7 @@ const handlePhotoChange = (file: any) => {
           ossId: res.data.ossId
         });
       }
+      formRef.value?.clearValidate('photo');
     }
   });
 };

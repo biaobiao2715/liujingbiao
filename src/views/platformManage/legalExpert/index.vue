@@ -223,7 +223,9 @@ const queryParams = ref<LegalExpertListRequest>({
   expertNumber: '',
   reviewStartTime: '',
   reviewEndTime: '',
-  reviewStatus: ''
+  reviewStatus: '',
+  orderByColumn: 'createTime',
+  isAsc: 'desc'
 });
 
 const validateExpertName = (_rule: any, value: string, callback: any) => {

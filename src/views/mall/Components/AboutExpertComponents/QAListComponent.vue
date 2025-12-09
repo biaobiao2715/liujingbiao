@@ -14,9 +14,9 @@
       </el-tabs>
     </div>
     <el-row :gutter="20">
-      <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" @click="handleDetail(item.id)">
+      <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index">
         <div class="qa-card">
-          <div class="qa-question gap-8">
+          <div class="qa-question gap-8 flex-center-centersflex-center-center">
             <img src="@/assets/mall/question-icon.png" width="28" height="28" />
             <div class="qa-question-text">
               {{ item.questionContent }}
@@ -30,7 +30,7 @@
           </div>
           <div class="qa-info flex-center-between">
             <div class="flex-center gap-4 message-link">
-              <div>查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
+              <div @click="handleDetail(item.id)">查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
               <img src="@/assets/mall/message-arrow-icon.png" width="12" height="12" />
             </div>
             <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
@@ -151,7 +151,6 @@ const handleDetail = (id: string) => {
 .qa-answer-text,
 .qa-question-text {
   // 超出2行显示省略号
-  height: 46px;
   font-size: 14px;
   color: #333333;
   font-weight: bold;
