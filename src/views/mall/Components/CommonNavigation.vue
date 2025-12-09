@@ -31,6 +31,7 @@ type DetailView =
   | 'demand'
   | 'market'
   | 'expert'
+  | 'personal'
   // 商城相关
   | 'goodsDetail'
   | 'demandDetail'
@@ -50,7 +51,17 @@ type DetailView =
   | 'lawContentDetail'
   | 'lawActivityDetail'
   | 'whitepaperDetail'
-  | 'livingList';
+  | 'livingList'
+
+  // 个人中心相关
+  | 'order'
+  | 'collection'
+  | 'question'
+  | 'address'
+  | 'myDemand'
+  | 'participated'
+  | 'myReport'
+  | 'varietyIdentification';
 
 interface DetailPayload {
   uniqueId: number;
@@ -63,6 +74,7 @@ const TITLE_MAP: Record<Exclude<DetailView, never>, string> = {
   demand: '供需大厅',
   market: '市场行情',
   expert: '专家学堂',
+  personal: '个人中心',
   // 商城相关
   goodsDetail: '商品详情',
   demandDetail: '供需详情',
@@ -82,13 +94,24 @@ const TITLE_MAP: Record<Exclude<DetailView, never>, string> = {
   lawContentDetail: '普法内容详情',
   lawActivityDetail: '普法活动详情',
   whitepaperDetail: '普法白皮书详情',
-  livingList: '直播列表'
+  livingList: '直播列表',
+  // 个人中心相关
+  order: '我的订单',
+  collection: '我的收藏',
+  question: '我的提问',
+  address: '地址管理',
+  myDemand: '我发布的需求',
+  participated: '我参与的',
+  myReport: '我的举报',
+  varietyIdentification: '品种识别记录'
 };
 
 const naviteList = ref([]);
 
 onMounted(() => {
   eventBus.on('navigationChange', (command: string) => {
+    console.log('commandcommandcommand', command);
+
     const uniqueId = new Date().getTime();
     // 如果是大类，那么就清空导航列表，重新添加
     if (command === 'goods' || command === 'demand' || command === 'market' || command === 'expert') {
@@ -100,6 +123,27 @@ onMounted(() => {
       ];
       return;
     }
+
+    // 如果是个人中心
+    if (command.includes(',')) {
+      const commandArray = command.split(',');
+      naviteList.value = [
+        {
+          uniqueId: uniqueId - 1,
+          type: 'goods'
+        },
+        {
+          uniqueId,
+          type: commandArray[0]
+        },
+        {
+          uniqueId: uniqueId + 1,
+          type: commandArray[1]
+        }
+      ];
+      return;
+    }
+
     naviteList.value.push({
       uniqueId,
       type: command
@@ -112,8 +156,17 @@ onMounted(() => {
 const switchComponent = (item: DetailPayload, isHome: boolean) => {
   //   点击tabs的路径
   //   if (isHome) {
-  //     eventBus.emit('activeTabChange', { command: item.type });
+  //
   //   }
+
+  // 个人中心无需点击
+  if (naviteList.value.some((e) => e.type === 'personal') && item.type !== 'goods') {
+    return;
+  }
+
+  if (naviteList.value.some((e) => e.type === 'personal') && item.type === 'goods') {
+    eventBus.emit('activeTabChange', { command: item.type });
+  }
 
   // 向其他模块发送导航切换事件
   eventBus.emit('navigateToEach', { command: item.type });

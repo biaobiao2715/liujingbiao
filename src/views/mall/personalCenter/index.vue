@@ -13,15 +13,6 @@
 <template>
   <div class="personal-center-page">
     <div class="container_width">
-      <!-- 顶部可点击返回条 -->
-      <div class="pc-breadcrumb" @click="goBack" :title="`返回上一页`">
-        <span class="crumb">首页</span>
-        <span class="crumb-sep">&gt;</span>
-        <span class="crumb">个人中心</span>
-        <span class="crumb-sep">&gt;</span>
-        <span class="crumb">{{ currentTitle }}</span>
-      </div>
-
       <div class="main-row">
         <!-- 侧边栏菜单 -->
         <div class="menu-col">
@@ -87,7 +78,7 @@ const emit = defineEmits<{
 }>();
 
 // 菜单与选择类型
-type SelectedKey = 'order' | 'collection' | 'question' | 'address' | 'demand' | 'participated' | 'myReport' | 'varietyIdentification';
+type SelectedKey = 'order' | 'collection' | 'question' | 'address' | 'myDemand' | 'participated' | 'myReport' | 'varietyIdentification';
 
 // 详情类型
 type DetailType = 'goods' | 'essay' | 'course' | 'meeting' | 'lawContent' | 'lawActivity' | '';
@@ -102,7 +93,7 @@ const menuItems = ref<{ id: number; title: string; component: SelectedKey }[]>([
   { id: 2, title: '我的收藏', component: 'collection' },
   { id: 3, title: '我的提问', component: 'question' },
   { id: 4, title: '地址管理', component: 'address' },
-  { id: 5, title: '我发布的需求', component: 'demand' },
+  { id: 5, title: '我发布的需求', component: 'myDemand' },
   { id: 6, title: '我参与的', component: 'participated' },
   { id: 7, title: '我的举报', component: 'myReport' },
   { id: 8, title: '品种识别记录', component: 'varietyIdentification' }
@@ -130,7 +121,7 @@ const mainComponentMap: Record<SelectedKey, Component> = {
   collection: defineAsyncComponent(() => import('./Components/favorites.vue')),
   question: defineAsyncComponent(() => import('./Components/questions.vue')),
   address: defineAsyncComponent(() => import('./Components/addressManagement.vue')),
-  demand: defineAsyncComponent(() => import('./Components/requests.vue')),
+  myDemand: defineAsyncComponent(() => import('./Components/requests.vue')),
   participated: defineAsyncComponent(() => import('./Components/participatedRequests.vue')),
   myReport: defineAsyncComponent(() => import('./Components/myReport.vue')),
   varietyIdentification: defineAsyncComponent(() => import('./Components/varietyIdentification.vue'))
@@ -216,7 +207,16 @@ onBeforeUnmount(() => {
 });
 
 // 外部传入的 command 变化时切换菜单（仅接受合法键）
-const validKeys = new Set<SelectedKey>(['order', 'collection', 'question', 'address', 'demand', 'participated', 'myReport', 'varietyIdentification']);
+const validKeys = new Set<SelectedKey>([
+  'order',
+  'collection',
+  'question',
+  'address',
+  'myDemand',
+  'participated',
+  'myReport',
+  'varietyIdentification'
+]);
 watch(
   () => props.command,
   (newCommand) => {

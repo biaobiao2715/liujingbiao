@@ -81,18 +81,21 @@ const tabs = [
 ];
 
 onMounted(() => {
-  //  监听个人中心导航事件
-  eventBus.on('navigateToPersonalCenter', (command: string) => {
-    personalCommand.value = command;
-    activeTab.value = 'personal';
-  });
-
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (data: any) => {
     activeTab.value = data.command;
+
     if (data.command === 'compareDetail') {
       compareGoodsList.value = data.compareGoodsList;
     }
+
+    if (data.command === 'personal') {
+      personalCommand.value = data.personalTab;
+      const psersonalCommand = data.command + ',' + data.personalTab;
+      eventBus.emit('navigationChange', psersonalCommand);
+      return;
+    }
+
     goods.value = data.goods;
     // 给导航栏添加对应的名称
     eventBus.emit('navigationChange', data.command);

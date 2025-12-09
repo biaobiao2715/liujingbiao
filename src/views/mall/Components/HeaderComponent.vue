@@ -27,7 +27,7 @@
             <el-dropdown-item command="collection">我的收藏</el-dropdown-item>
             <el-dropdown-item command="question">我的提问</el-dropdown-item>
             <el-dropdown-item command="address">地址管理</el-dropdown-item>
-            <el-dropdown-item command="demand">我发布的需求</el-dropdown-item>
+            <el-dropdown-item command="myDemand">我发布的需求</el-dropdown-item>
             <el-dropdown-item command="participated">我参与的</el-dropdown-item>
             <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
             <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
@@ -55,7 +55,7 @@ const handleCommand = (command: string) => {
     handleLogout();
     return;
   }
-  eventBus.emit('navigateToPersonalCenter', command);
+  eventBus.emit('activeTabChange', { command: 'personal', personalTab: command });
 };
 
 // 退出登录
