@@ -606,26 +606,27 @@ const uploadReplacementFile = async (file: File) => {
   (proxy as any)?.$modal?.loading('正在重新上传附件，请稍候...');
 
   try {
-    const response = await ossUploadImage({ file });
+    const response: any = await uploadByChunks(file, (p) => {
+      console.log(`上传进度: ${p}%`);
+    });
+    // 替换指定索引的附件
+    if (currentReuploadIndex.value >= 0) {
+      attachmentList.value[currentReuploadIndex.value] = {
+        ossId: response.ossId,
+        fileName: response.fileName,
+        originalName: file.name,
+        fileSuffix: file.type,
+        url: response.url,
+        fileSize: formatFileSize(file.size),
+        uid: Date.now().toString() // 生成新的uid
+      };
 
-    if (response.code === 200 && response.data?.ossId) {
-      // 替换指定索引的附件
-      if (currentReuploadIndex.value >= 0) {
-        attachmentList.value[currentReuploadIndex.value] = {
-          ossId: response.data.ossId,
-          fileName: response.data.fileName,
-          originalName: file.name,
-          fileSuffix: file.type,
-          url: response.data.url,
-          fileSize: formatFileSize(file.size),
-          uid: Date.now().toString() // 生成新的uid
-        };
-
-        ElMessage.success('附件重新上传成功');
-      }
-    } else {
-      // ElMessage.error(response?.msg || '重新上传失败，请重试');
+      ElMessage.success('附件重新上传成功');
     }
+    // if (response.code === 200 && response.data?.ossId) {
+    // } else {
+    //   // ElMessage.error(response?.msg || '重新上传失败，请重试');
+    // }
   } catch (error) {
     console.error('附件重新上传失败:', error);
     // ElMessage.error('重新上传失败，请重试');
