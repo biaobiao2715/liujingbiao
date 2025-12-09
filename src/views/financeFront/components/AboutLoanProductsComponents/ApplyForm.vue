@@ -113,7 +113,7 @@
               <el-form-item label="法人证件正面" class="uploadcss" prop="idCardPhotoFront2">
                 <SingleImageUpload
                   :uploader="uploaderLegalFront"
-                  :placeholder-src="idCardFrontPlaceholder"
+                  :placeholder-src="idCardFrontPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传人像面"
                 />
@@ -123,7 +123,7 @@
               <el-form-item label="法人证件反面" class="uploadcss" prop="idCardPhotoBack2">
                 <SingleImageUpload
                   :uploader="uploaderLegalBack"
-                  :placeholder-src="idCardBackPlaceholder"
+                  :placeholder-src="idCardBackPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传国徽面"
                 />
@@ -151,7 +151,7 @@
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
                 <SingleImageUpload
                   :uploader="uploaderIdFront"
-                  :placeholder-src="idCardFrontPlaceholder"
+                  :placeholder-src="idCardFrontPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传人像面"
                 />
@@ -198,7 +198,7 @@
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
                 <SingleImageUpload
                   :uploader="uploaderIdBack"
-                  :placeholder-src="idCardBackPlaceholder"
+                  :placeholder-src="idCardBackPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传国徽面"
                 />
@@ -253,7 +253,7 @@
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
                 <SingleImageUpload
                   :uploader="uploaderIdFront"
-                  :placeholder-src="idCardFrontPlaceholder"
+                  :placeholder-src="idCardFrontPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传人像面"
                 />
@@ -263,7 +263,7 @@
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
                 <SingleImageUpload
                   :uploader="uploaderIdBack"
-                  :placeholder-src="idCardBackPlaceholder"
+                  :placeholder-src="idCardBackPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
                   caption="上传国徽面"
                 />
@@ -318,7 +318,7 @@
             <el-form-item label="银行卡正面" class="uploadcss" prop="bankCardPhotoFront">
               <SingleImageUpload
                 :uploader="uploaderBankFront"
-                :placeholder-src="bankCardFrontPlaceholder"
+                :placeholder-src="bankCardFrontPlaceholderUrl"
                 :disabled="DetailsStatus === 'details'"
                 caption="上传银行卡正面"
               />
@@ -328,7 +328,7 @@
             <el-form-item label="银行卡反面" class="uploadcss" prop="bankCardPhotoBack">
               <SingleImageUpload
                 :uploader="uploaderBankBack"
-                :placeholder-src="bankCardBackPlaceholder"
+                :placeholder-src="bankCardBackPlaceholderUrl"
                 :disabled="DetailsStatus === 'details'"
                 caption="上传银行卡反面"
               />
@@ -355,7 +355,7 @@
 
 <script setup lang="ts">
 // ======================== 引入与初始化 ========================
-import { ref, getCurrentInstance, toRefs, onMounted, computed, watch, defineComponent, h, type ComponentInternalInstance } from 'vue';
+import { ref, getCurrentInstance, toRefs, onMounted, computed, watch, defineComponent, h, type ComponentInternalInstance, type PropType } from 'vue';
 import { ElUpload } from 'element-plus';
 import { ElMessage, type UploadFile, type UploadRawFile, type UploadRequestOptions, type FormInstance, type FormRules } from 'element-plus';
 import {
@@ -376,6 +376,15 @@ import idCardBackPlaceholder from '@/assets/images/finance/id-card-back-placehol
 import bankCardFrontPlaceholder from '@/assets/images/finance/bank-card-front-placeholder.png';
 import bankCardBackPlaceholder from '@/assets/images/finance/bank-card-back-placeholder.png';
 import { uploadByChunks } from '@/utils/chunkUpload';
+
+// 暴露占位图到模板上下文，修复 Volar/TS 对模板可见性的类型报错
+defineExpose({ idCardFrontPlaceholder, idCardBackPlaceholder, bankCardFrontPlaceholder, bankCardBackPlaceholder });
+
+// 为模板提供明确的占位图变量，便于类型推断
+const idCardFrontPlaceholderUrl = idCardFrontPlaceholder as string;
+const idCardBackPlaceholderUrl = idCardBackPlaceholder as string;
+const bankCardFrontPlaceholderUrl = bankCardFrontPlaceholder as string;
+const bankCardBackPlaceholderUrl = bankCardBackPlaceholder as string;
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 统一加载需要的字典（审核状态/资质等级/信用等级/证件类型/贷款周期/还款方式/银行代码）
@@ -859,12 +868,12 @@ const uploaderBankBack = createSingleUploader('bankCardPhotoBack', '银行卡反
 const SingleImageUpload = defineComponent({
   name: 'SingleImageUpload',
   props: {
-    uploader: { type: Object, required: true },
+    uploader: { type: Object as PropType<SingleUploader>, required: true },
     placeholderSrc: { type: String, required: true },
     disabled: { type: Boolean, default: false },
     caption: { type: String, default: '' }
   },
-  setup(props: any) {
+  setup(props) {
     return () =>
       h(
         ElUpload,
@@ -954,6 +963,7 @@ const repaymentMethodOptions = computed(() => {
   const allowed = repayStr.split(',');
   return (repayment_method.value || []).filter((item: any) => allowed.includes(item.value));
 });
+
 // ========== 初始化加载逻辑 ==========
 async function loadProductDetails() {
   const pid = props.productId || formData.value.productId;

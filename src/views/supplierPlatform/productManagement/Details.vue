@@ -209,7 +209,7 @@ const submitForm = async () => {
     return;
   }
 
-  console.log('修改的数据行:', modifiedRows);
+  // console.log('修改的数据行:', modifiedRows);
 
   const saveData = {
     id: formData.value.id,
@@ -220,14 +220,15 @@ const submitForm = async () => {
     }))
   };
 
-  console.log('提交的数据:', saveData);
+  // console.log('提交的数据:', saveData);
 
   const response = await updateGoodsPrice(saveData);
   if (response && response.code === 200) {
     ElMessage.success(`成功修改 ${modifiedRows.length} 条价格数据`);
     emit('success');
   } else {
-    ElMessage.error(response?.msg || '价格修改失败');
+    console.error('价格修改失败:', response);
+    // ElMessage.error(response?.msg || '价格修改失败');
   }
 };
 
@@ -241,7 +242,7 @@ onMounted(async () => {
     tableList.value = res.data.hnGoodsSpecificationDataList || [];
     // 深拷贝原始数据用于对比
     originalTableList.value = JSON.parse(JSON.stringify(res.data.hnGoodsSpecificationDataList || []));
-    console.log('加载的原始数据:', originalTableList.value);
+    // console.log('加载的原始数据:', originalTableList.value);
   }
   const data = await goodsAttributesAllList();
   const { brandList = [], guaranteeList = [] } = (data ?? {}) as Partial<GoodsAttributesResponse>;

@@ -107,8 +107,6 @@ const getList = async () => {
     const res = await getCreditRatingPointsList(queryParams.value);
     tableList.value = res.rows;
     total.value = res.total;
-  } catch (e) {
-    ElMessage.error('列表加载失败');
   } finally {
     loading.value = false;
   }
@@ -166,7 +164,8 @@ async function handleSubmit() {
       handleQuery();
       dialog.visible = false;
     } catch {
-      ElMessage.error('设置失败');
+      console.error('设置失败');
+      // ElMessage.error('设置失败');
     } finally {
       dialog.loading = false;
     }

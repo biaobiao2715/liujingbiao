@@ -540,7 +540,7 @@ const onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
 const handleDelete = (file: any) => {
   const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
   if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
-  console.log('删除图片', file, hnGoodsFilesList.value);
+  // console.log('删除图片', file, hnGoodsFilesList.value);
   // 图片删除后，主动刷新“商品主图”校验（titleFileList）
   refForm.value?.validateField?.('titleFileList');
 };

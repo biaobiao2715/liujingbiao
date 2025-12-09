@@ -521,7 +521,7 @@ const handlePreview = async (row: any) => {
     histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
     histAppealVideoList.value = s.videos;
   } catch (e) {
-    console.error('获取申诉详情失败:', e);
+    // console.error('获取申诉详情失败:', e);
     histAppealImageList.value = [];
     histAppealImagePreviewUrls.value = [];
     histAppealVideoList.value = [];
