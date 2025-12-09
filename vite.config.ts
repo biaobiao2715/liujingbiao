@@ -31,7 +31,7 @@ export default defineConfig(({ mode, command }) => {
           //   target: 'http://192.168.2.111:8080', // 爽
           // target: 'http://192.168.2.132:8080', // shun
           // target: 'http://8.153.15.72:8080', // 开发
-          // target: 'http://192.168.2.202:8080', // 孙建
+          // target: 'http://192.168.2.149:8080', // falu
           //  target: 'http://192.168.2.9:8080/', // 赵
 
           changeOrigin: true,

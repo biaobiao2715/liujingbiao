@@ -193,9 +193,6 @@ export function thirdPartyLogin(data: any) {
   return request({
     url: '/thirdParty',
     method: 'post',
-    headers: {
-      Authorization: ''
-    },
     data
   });
 }

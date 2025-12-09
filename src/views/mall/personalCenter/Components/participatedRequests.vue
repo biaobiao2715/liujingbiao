@@ -140,7 +140,7 @@ function reload() {
 
 function onUnfav(item: any) {
   if (!item?.id) return;
-  ElMessageBox.confirm(`确定要取消收藏“${item.meetingCultivateVo?.meetingName || item.lawActivityVo?.activityTitle || ''}”吗？`, '取消收藏确认', {
+  ElMessageBox.confirm(`确定要取消报名“${item.meetingCultivateVo?.meetingName || item.lawActivityVo?.activityTitle || ''}”吗？`, '取消报名确认', {
     type: 'warning',
     confirmButtonText: '确定',
     cancelButtonText: '再想想'
@@ -154,7 +154,7 @@ function onUnfav(item: any) {
         activityEnrollBo: item
       });
       reload();
-      ElMessage.success('已取消收藏');
+      ElMessage.success('已取消报名');
     })
     .finally(() => (state.opLoadingId = 0));
 }

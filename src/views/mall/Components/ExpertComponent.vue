@@ -1,6 +1,6 @@
 <template>
   <div class="expert-container">
-    <div class="show-area" v-if="showArea === 'area'">
+    <div class="show-area" v-if="showArea === 'expert'">
       <!-- 轮播图组件 -->
       <BannerComponent />
       <!-- 专家咨询 -->
@@ -18,16 +18,11 @@
       <!-- 直播 -->
       <LivingComponent @detailChange="showDetail" />
     </div>
-    <div v-if="showArea !== 'area'">
-      <!-- 面包屑导航 -->
-      <el-breadcrumb :separator-icon="ArrowRight" class="mb-24">
-        <el-breadcrumb-item @click="showArea = 'area'" style="cursor: pointer">专家专区</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ secondTitle }}</el-breadcrumb-item>
-      </el-breadcrumb>
+    <div v-else>
       <!-- 专家详情 -->
-      <ExpertDetailComponent v-if="showArea === 'expertDetail'" :id="id" :type="expertType" />
+      <ExpertDetailComponent v-if="showArea === 'expertDetail'" :id="id" :type="expertType" @detailChange="showDetail" />
       <!-- 问答列表 -->
-      <QAListComponent v-if="showArea === 'qaMoreList'" />
+      <QAListComponent v-if="showArea === 'qaMoreList'" @detailChange="showDetail" />
       <!-- 问答详情 -->
       <QADetailComponent v-if="showArea === 'qaDetail'" :id="id" />
       <!-- 文章专栏列表 -->
@@ -56,8 +51,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ArrowRight } from '@element-plus/icons-vue';
-
 import ConsultationComponent from './AboutExpertComponents/ConsultationComponent.vue'; // 咨询组件
 import QAComponent from './AboutExpertComponents/QAComponent.vue'; // 问答组件
 import EssayComponent from './AboutExpertComponents/EssayComponent.vue'; // 文章组件
@@ -78,8 +71,10 @@ import CouMetListComponent from './AboutExpertComponents/CouMetListComponent.vue
 import EssayListComponent from './AboutExpertComponents/EssayListComponent.vue'; // 文章专栏列表组件
 import LawListComponent from './AboutExpertComponents/LawListComponent.vue'; // 普法专栏列表组件
 import LivingListComponent from './AboutExpertComponents/LivingListComponent.vue'; // 直播列表组件
+
+import { eventBus } from '@/utils/eventBus';
 type showAreaType =
-  | 'area'
+  | 'expert'
   | 'expertDetail'
   | 'qaMoreList'
   | 'qaDetail'
@@ -97,51 +92,24 @@ type showAreaType =
 
 const id = ref(null); // 详情ID
 
-const showArea = ref('area');
+const showArea = ref('expert');
 
 const expertType = ref(''); // 专家类型
 
-const secondTitle = computed(() => {
-  switch (showArea.value) {
-    case 'expertDetail':
-      return '专家详情';
-    case 'qaMoreList':
-      return '问答列表';
-    case 'qaDetail':
-      return '问答详情';
-    case 'essayList':
-      return '文章专栏';
-    case 'essayDetail':
-      return '文章详情';
-    case 'couMetList':
-      return '培训课堂';
-    case 'courseDetail':
-      return '课程详情';
-    case 'meetingDetail':
-      return '会议详情';
-    case 'livingDetail':
-      return '直播详情';
-    case 'lawList':
-      return '普法专栏';
-    case 'lawContentDetail':
-      return '普法内容详情';
-    case 'lawActivityDetail':
-      return '普法活动详情';
-    case 'whitepaperDetail':
-      return '普法白皮书详情';
-    case 'livingList':
-      return '直播列表';
-    default:
-      return '';
-  }
+onMounted(() => {
+  // 监听导航变化事件
+  eventBus.on('navigateToEach', (incomeData: { command: showAreaType }) => {
+    console.log(incomeData);
+    showDetail({ type: incomeData.command });
+  });
 });
 
 // 展示对应的详情组件
-const showDetail = (incomeData: { type: showAreaType; id: string; expertType?: string }) => {
-  console.log(incomeData, '-=-=-=-=-=-=-=');
-  id.value = incomeData.id;
-  expertType.value = incomeData.expertType || '';
+const showDetail = (incomeData: { type: showAreaType; id?: string; expertType?: string }) => {
+  id.value = incomeData.id || id.value;
+  expertType.value = incomeData.expertType || expertType.value; // 专家类型
   showArea.value = incomeData.type;
+  eventBus.emit('navigationChange', incomeData.type);
 };
 </script>
 

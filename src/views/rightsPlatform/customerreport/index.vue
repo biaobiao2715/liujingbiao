@@ -1,7 +1,7 @@
-div<!-- 
+div<!--
 标题：		index.vue
 功能：		供应商/企业信客户举报页面
-说明：		
+说明：
 当前版本：	1.0
 开发信息：	Created by 李政达 2025-11-18
 修改人信息：	李政达 2025-11-18
@@ -10,7 +10,7 @@ div<!--
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form ref="queryFormRef" :model="queryParams" inline  >
+    <el-form ref="queryFormRef" :model="queryParams" inline>
       <!-- 举报编号 -->
       <el-form-item label="举报编号" prop="reportCode">
         <el-input v-model="queryParams.reportCode" placeholder="请输入举报编号" clearable @keyup.enter="handleQuery" />
@@ -30,7 +30,7 @@ div<!--
         <el-input v-model="queryParams.reportGoodsCode" placeholder="请输入举报商品" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <!-- 创建时间 -->
-             <el-form-item label="创建时间" prop="publishTime" label-width="auto">
+      <el-form-item label="创建时间" prop="publishTime" label-width="auto">
         <el-date-picker
           v-model="queryParams.publishTime"
           type="datetimerange"
@@ -42,7 +42,7 @@ div<!--
           end-placeholder="结束时间"
         />
       </el-form-item>
-     
+
       <!-- 所属状态下拉框 -->
       <el-form-item label="所属状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择所属状态" filterable clearable>
@@ -57,9 +57,8 @@ div<!--
     </el-form>
 
     <!-- 表格展示 -->
-    <el-table :data="tableData"  v-loading="loading" >
-       
-      <el-table-column type="index" width="100" label="序号" align="center"  :show-overflow-tooltip="true"  />
+    <el-table :data="tableData" v-loading="loading">
+      <el-table-column type="index" width="100" label="序号" align="center" :show-overflow-tooltip="true" />
       <!-- 举报编号 -->
       <el-table-column label="举报编号" align="center" prop="reportCode" width="300" :show-overflow-tooltip="true">
         <template #default="scope">
@@ -67,21 +66,19 @@ div<!--
         </template>
       </el-table-column>
       <!-- 举报类别 -->
-      <el-table-column label="举报类别" align="center" prop="reportTypeId" :show-overflow-tooltip="true" >
+      <el-table-column label="举报类别" align="center" prop="reportTypeId" :show-overflow-tooltip="true">
         <template #default="scope">
-         
           <dict-text :options="report_type_id" :value="scope.row.reportTypeId" />
-        
         </template>
       </el-table-column>
       <!-- 被举报方 -->
-      <el-table-column label="被举报方" align="center" prop="reportPersonName" :show-overflow-tooltip="true" >
+      <el-table-column label="被举报方" align="center" prop="reportPersonName" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.reportPersonName || '-' }}</span>
         </template>
       </el-table-column>
       <!-- 举报商品 -->
-      <el-table-column label="举报商品" align="center" prop="reportGoodsName" :show-overflow-tooltip="true"  >
+      <el-table-column label="举报商品" align="center" prop="reportGoodsName" :show-overflow-tooltip="true">
         <template #default="scope">
           <span>{{ scope.row.reportGoodsName || '-' }}</span>
         </template>
@@ -94,11 +91,9 @@ div<!--
       </el-table-column>
       <!-- 所属状态 -->
       <el-table-column label="所属状态" align="center" prop="status" width="120" :show-overflow-tooltip="true">
-        
         <template #default="scope">
           <div class="status-cell-wrapper">
             <span :class="['status-text', getStatusClass(scope.row.status)]">{{ getStatusName(scope.row.status) }}</span>
-             
           </div>
         </template>
       </el-table-column>
@@ -128,7 +123,11 @@ div<!--
               type="success"
               size="small"
               link
-              :disabled="scope.row.rejectTimes == '3' || (scope.row.appealTime != null && scope.row.status === '1') || (scope.row.caseCode == null && scope.row.status === '2')"
+              :disabled="
+                scope.row.rejectTimes == '3' ||
+                (scope.row.appealTime != null && scope.row.status === '1') ||
+                (scope.row.caseCode == null && scope.row.status === '2')
+              "
               @click="handleAppeal(scope.row)"
             >
               申诉
@@ -171,14 +170,7 @@ div<!--
       </template>
     </el-dialog>
     <!-- 弹窗：申述/查看 -->
-    <el-dialog
-      v-model="dialog.visible"
-      :title="getDialogTitle()"
-      width="50%"
-      destroy-on-close
-      :close-on-click-modal="false"
-      @close="dialog.type = ''"
-    >
+    <el-dialog v-if="dialog.visible" v-model="dialog.visible" :title="getDialogTitle()" width="50%" :destroy-on-close="false" :close-on-click-modal="false">
       <Suspense>
         <template #default>
           <component
@@ -187,7 +179,7 @@ div<!--
             :type="dialog.type"
             :status="dialog.status"
             @success="onDialogSuccess"
-            @cancel="dialog.visible = false"
+            @cancel="onDialogClosees"
           />
         </template>
         <template #fallback>
@@ -250,10 +242,10 @@ const handleSearch = () => {
   getList();
 };
 // // 处理日期选择事件
- const handleSelectDate = (val: string[]) => {
+const handleSelectDate = (val: string[]) => {
   queryParams.value.startTime = val?.[0] || '';
-   queryParams.value.endTime = val?.[1] || '';
- };
+  queryParams.value.endTime = val?.[1] || '';
+};
 /** 搜索按钮操作 */
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
@@ -309,14 +301,14 @@ const revokeconfirm = async () => {
 const getList = async () => {
   loading.value = true;
   try {
-   console.log('queryParams.value-------', queryParams.value);
-    
-    const res = await getreportlist(
-    { ...queryParams.value,
+    console.log('queryParams.value-------', queryParams.value);
+
+    const res = await getreportlist({
+      ...queryParams.value,
       publishTime: undefined,
       startTime: queryParams.value.publishTime?.[0],
-      endTime: queryParams.value.publishTime?.[1] }
-    );
+      endTime: queryParams.value.publishTime?.[1]
+    });
     console.log('res-------', res);
     tableData.value = res.rows || [];
     total.value = res.total || 0;
@@ -374,6 +366,9 @@ const getDialogTitle = () => {
 const onDialogSuccess = () => {
   dialog.value.visible = false;
   getList();
+};
+const onDialogClosees = () => {
+  dialog.value.visible = false;
 };
 // 页面加载时获取列表数据
 onMounted(() => {
@@ -507,83 +502,83 @@ onMounted(() => {
     padding: 8px 12px;
   }
 }
- .status-cell-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-  }
-  
-    /* 所属状态样式 */
-  .status-text {
-    position: relative;
-    padding-left: 16px;
+.status-cell-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-  }
-    .status-pending {
-    color: #909399;
+/* 所属状态样式 */
+.status-text {
+  position: relative;
+  padding-left: 16px;
 
-    &::before {
-      background-color: #909399;
-    }
-  }
-    .status-processing {
-    color: #e6a23c;
-
-    &::before {
-      background-color: #e6a23c;
-    }
-  }
-    .status-rejected {
-    color: #f56c6c;
-
-    &::before {
-      background-color: #f56c6c;
-    }
-  }
-    .status-closed {
-    color: #108c58;
-
-    &::before {
-      background-color: #108c58;
-    }
-  }
-    .status-withdrawn {
-    color: #909399;
-
-    &::before {
-      background-color: #909399;
-    }
-  }
-    .status-default {
-    color: #909399;
-
-    &::before {
-      background-color: #909399;
-    }
-  }
-
-  .status-icon {
+  &::before {
+    content: '';
     position: absolute;
-    top: 0;
-    right: -10px;
-    font-size: 24px;
-    color: #409eff;
-    z-index: 10;
-    background: #fff;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    padding: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
+}
+.status-pending {
+  color: #909399;
+
+  &::before {
+    background-color: #909399;
+  }
+}
+.status-processing {
+  color: #e6a23c;
+
+  &::before {
+    background-color: #e6a23c;
+  }
+}
+.status-rejected {
+  color: #f56c6c;
+
+  &::before {
+    background-color: #f56c6c;
+  }
+}
+.status-closed {
+  color: #108c58;
+
+  &::before {
+    background-color: #108c58;
+  }
+}
+.status-withdrawn {
+  color: #909399;
+
+  &::before {
+    background-color: #909399;
+  }
+}
+.status-default {
+  color: #909399;
+
+  &::before {
+    background-color: #909399;
+  }
+}
+
+.status-icon {
+  position: absolute;
+  top: 0;
+  right: -10px;
+  font-size: 24px;
+  color: #409eff;
+  z-index: 10;
+  background: #fff;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 // 操作按钮组样式
 .operation-buttons {
   display: flex;

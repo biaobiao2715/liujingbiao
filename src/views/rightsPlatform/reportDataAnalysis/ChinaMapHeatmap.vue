@@ -43,6 +43,14 @@ let updateTimer: number | null = null; // 标签更新防抖定时器
 const selectedIsland = ref<string | null>(null);
 // 岛屿区域：包括可能的名称变体
 const islandRegions = ['海南', '广东', '台湾', '台湾省', '南海诸岛'];
+// 岛屿基础样式：常显轮廓（黑色）
+const islandItemStyle = {
+  areaColor: '#000',
+  borderColor: '#000',
+  color: '#000',
+  opacity: 1
+};
+
 // 当前地图缩放级别
 const currentZoom = ref(1.2);
 // 需要隐藏标签的区域（默认隐藏，放大地图时显示）
@@ -119,16 +127,16 @@ const initChart = () => {
         const isSelected = island === name || (name === '台湾' && (island === '台湾' || island === '台湾省'));
         regions.push({
           name,
-          // 选中时显示，未选中时完全隐藏（opacity: 0）
+          // 岛屿轮廓始终展示，只有选中时显示标签并加重
           label: { show: isSelected },
-          itemStyle: { opacity: isSelected ? 1 : 0 },
-          emphasis: { 
-            label: { show: isSelected }, 
-            itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+          itemStyle: { ...islandItemStyle },
+          emphasis: {
+            label: { show: isSelected },
+            itemStyle: { ...islandItemStyle }
           },
-          select: { 
-            label: { show: isSelected }, 
-            itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+          select: {
+            label: { show: isSelected },
+            itemStyle: { ...islandItemStyle }
           }
         });
       }
@@ -138,28 +146,28 @@ const initChart = () => {
         regions.push({
           name: '台湾省',
           label: { show: true },
-          itemStyle: { opacity: 1 },
+          itemStyle: { ...islandItemStyle },
           emphasis: { 
             label: { show: true }, 
-            itemStyle: { opacity: 1 } 
+            itemStyle: { ...islandItemStyle } 
           },
           select: { 
             label: { show: true }, 
-            itemStyle: { opacity: 1 } 
+            itemStyle: { ...islandItemStyle } 
           }
         });
       } else {
         regions.push({
           name: '台湾省',
           label: { show: false },
-          itemStyle: { opacity: 0 },
+          itemStyle: { ...islandItemStyle },
           emphasis: { 
-            label: { show: false }, 
-            itemStyle: { opacity: 0 } 
+            label: { show: false },
+            itemStyle: { ...islandItemStyle }
           },
           select: { 
-            label: { show: false }, 
-            itemStyle: { opacity: 0 } 
+            label: { show: false },
+            itemStyle: { ...islandItemStyle }
           }
         });
       }
@@ -399,32 +407,32 @@ const updateChart = () => {
         name: '举报数据',
         type: 'map',
         map: 'china',
-        roam: true, // 允许拖拽和缩放
+        roam: 'scale', // 禁止拖拽，仅允许缩放
         zoom: 1.2,
         scaleLimit: {
           min: 0.8, // 最小缩放级别
           max: 10 // 最大缩放级别（增加到 10 倍，可以放大更多）
         },
         selectedMode: 'single',
-        // 特殊区域（岛屿/拆分小图）仅在选中时展示
+        // 特殊区域（岛屿/拆分小图）：轮廓始终展示，选中时显示标签
         regions: [
-          // 岛屿区域：默认全部隐藏，只有选中时才显示
+          // 岛屿区域：轮廓始终展示，选中时显示标签
           // 使用基础名称列表，排除"台湾省"（因为它是"台湾"的变体）
           ...['海南', '广东', '台湾', '南海诸岛'].map((name) => {
             const isSelected = selectedIsland.value === name || 
                               (name === '台湾' && (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省'));
             return {
               name,
-              // 默认隐藏（opacity: 0），只有选中时才显示（opacity: 1）
+              // 岛屿轮廓始终展示，选中时显示标签
               label: { show: isSelected },
-              itemStyle: { opacity: isSelected ? 1 : 0 },
+              itemStyle: { ...islandItemStyle },
               emphasis: { 
                 label: { show: isSelected }, 
-                itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+                itemStyle: { ...islandItemStyle } 
               },
               select: { 
                 label: { show: isSelected }, 
-                itemStyle: { opacity: isSelected ? 1 : 0.2 } 
+                itemStyle: { ...islandItemStyle } 
               }
             };
           }),
@@ -432,14 +440,14 @@ const updateChart = () => {
           {
             name: '台湾省',
             label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' },
-            itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0 },
+            itemStyle: { ...islandItemStyle },
             emphasis: { 
               label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' }, 
-              itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0.2 } 
+              itemStyle: { ...islandItemStyle } 
             },
             select: { 
               label: { show: selectedIsland.value === '台湾' || selectedIsland.value === '台湾省' }, 
-              itemStyle: { opacity: (selectedIsland.value === '台湾' || selectedIsland.value === '台湾省') ? 1 : 0.2 } 
+              itemStyle: { ...islandItemStyle } 
             }
           },
           // 香港和澳门：默认隐藏标签，放大到 2.0 倍以上时显示，悬停时始终显示

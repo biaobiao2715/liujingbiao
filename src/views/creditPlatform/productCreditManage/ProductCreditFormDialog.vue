@@ -50,7 +50,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="可贷金额" required>
+          <el-form-item label="可贷金额" required class="loan-amount-item">
             <div class="range-inputs">
               <el-form-item prop="minLoanAmount" label-width="0" class="inline-form-item">
                 <el-input-number
@@ -218,6 +218,8 @@ import {
   creditProductDetail
 } from '@/api/creditPlatform/productCreditManage';
 import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
+import { getDicts } from '@/api/system/dict/data';
+import { useDictStore } from '@/store/modules/dict';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
 
@@ -232,6 +234,7 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
+const dictStore = useDictStore();
 const { prod_credit_type, applicable_object, repayment_method, loan_cycle } = toRefs<any>(
   proxy?.useDict('prod_credit_type', 'applicable_object', 'repayment_method', 'loan_cycle')
 );
@@ -245,6 +248,7 @@ const instructionsEditorKey = ref(0);
 const applicationEditorKey = ref(0);
 const MB = 1024 * 1024;
 const CHUNK_UPLOAD_THRESHOLD = 100 * MB; // 与普法附件上传一致，>100MB 走分片
+const loanCycleLoading = ref(false);
 
 interface CreditProductForm {
   id?: number | string | null;
@@ -998,11 +1002,36 @@ const handleAttachmentRemove: UploadProps['onRemove'] = () => {
   formData.value.cooperationAttachmentName = '';
 };
 
+// 强制刷新可贷周期字典，确保系统新增的周期选项立即可用
+const refreshLoanCycleDict = async () => {
+  try {
+    loanCycleLoading.value = true;
+    const resp = await getDicts('loan_cycle');
+    const options =
+      resp?.data?.map((p: any) => ({
+        label: p.dictLabel,
+        value: p.dictValue,
+        elTagType: p.listClass,
+        elTagClass: p.cssClass
+      })) ?? [];
+    dictStore.setDict('loan_cycle', options);
+    if (loan_cycle && 'value' in loan_cycle) {
+      (loan_cycle as any).value = options;
+    }
+  } catch (error) {
+    console.error('刷新可贷周期字典失败:', error);
+  } finally {
+    loanCycleLoading.value = false;
+  }
+};
+
 const emitCancel = () => {
   emit('cancel');
 };
 
 onMounted(() => {
+  // 每次打开弹窗时强制刷新可贷周期字典，避免旧缓存缺少新选项
+  refreshLoanCycleDict();
   if (props.type === 'edit' && props.id) {
     fetchDetail();
   } else {
@@ -1070,6 +1099,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   .range-split {
     color: #909399;
@@ -1088,6 +1119,12 @@ onMounted(() => {
   .inline-form-item {
     margin-bottom: 0;
   }
+}
+
+.loan-amount-item :deep(.el-form-item__content) {
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .attachment-upload {

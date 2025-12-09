@@ -224,6 +224,7 @@ import {
 import { ossUploadImage } from '@/api/supplier/productManagement/product';
 import LegalDocumentAdd from './commponents/legalDocumentAdd.vue';
 import LegalDocumentEdit from './commponents/legalDocumentEdit.vue';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 // 搜索表单引用
 const queryFormRef = ref();
@@ -569,8 +570,8 @@ const handleUpdateFileChange = async (file: any) => {
   }
   uploadLoading.value = true;
   try {
-    const response = await ossUploadImage({ file: rawFile });
-    const data = response?.data || {};
+    const response = await uploadByChunks(rawFile, (percent: number) => {});
+    const data = response || {};
     const fileName = data.originalName || data.fileName || rawFile.name;
     updateForm.file = {
       ossId: data.ossId,

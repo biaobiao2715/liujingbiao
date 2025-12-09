@@ -7,39 +7,84 @@
 -->
 
 <template>
-  <div class="metting-detail-container">
-    <div class="title">{{ detail?.meetingName }}</div>
-    <!-- 课程描述 -->
-    <div class="description flex-center gap-24 mt-24 mb-24">
-      <!-- 头像 -->
-      <img :src="detail?.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail?.publishUser }}</div>
-      <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
-
-      <!-- <el-tag type="primary">{{ detail?.meetingType === '0' ? '技术知识' : '法务知识' }}</el-tag> -->
-      <div class="status">
-        会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
+  <div class="meeting-detail-container" v-loading="loading">
+    <div class="meeting-detail">
+      <div class="meeting-header">
+        <div class="meeting-title">{{ detail?.meetingName }}</div>
+        <!--  会议状态（0：草稿 1：待开始 2：进行中 3：已结束 99：已取消）-->
+        <div>
+          <el-tag type="danger" v-if="detail?.meetingStatus == 0">
+            {{ getMeetingStatus(detail?.meetingStatus) }}
+          </el-tag>
+          <el-tag type="primary" v-if="detail?.meetingStatus == 1">
+            {{ getMeetingStatus(detail?.meetingStatus) }}
+          </el-tag>
+          <el-tag type="success" v-if="detail?.meetingStatus == 2">
+            {{ getMeetingStatus(detail?.meetingStatus) }}
+          </el-tag>
+          <el-tag type="warning" v-if="detail?.meetingStatus == 3">
+            {{ getMeetingStatus(detail?.meetingStatus) }}
+          </el-tag>
+          <el-tag type="info" v-if="detail?.meetingStatus == 99">
+            {{ getMeetingStatus(detail?.meetingStatus) }}
+          </el-tag>
+        </div>
       </div>
-      <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button v-if="detail?.meetingStatus === '1'" :type="detail?.enrollStatus === '0' ? 'info' : 'primary'" @click="handleApply">{{
-        detail?.enrollStatus === '0' ? '取消报名' : '立即报名'
-      }}</el-button>
+      <div class="meeting-user">
+        <img :src="detail?.avatar" />
+        <div class="meeting-user-name">
+          {{ '发布人：  ' + detail?.publishUser }}
+        </div>
+        <div class="meeting-user-time">
+          {{ '发布时间：  ' + detail?.publishTime }}
+        </div>
+        <div class="meeting-user-num">报名人数：{{ detail?.enrollCount }}</div>
+      </div>
+      <!-- 报名按钮 -->
+      <div class="registration-btn-box">
+        <div class="registration-btn" @click="handleApply" v-if="detail?.meetingStatus === '1'">
+          <img src="@/assets/images/bmtx.png" />
+          <span>{{ detail?.enrollStatus === '0' ? '取消报名' : '我要报名' }} </span>
+        </div>
+      </div>
     </div>
-
-    <!-- 分割线 -->
-    <el-divider></el-divider>
-    <!-- 详细信息 -->
-    <div class="detail">
-      <div class="item">会议主题：{{ detail?.meetingName }}</div>
-      <div class="item">会议联系人：{{ detail?.meetingContact }}</div>
-      <div class="item flex-center gap-12">
-        <div>会议类别：</div>
-        <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+    <!-- 会议内容 -->
+    <div class="meeting-content-box">
+      <div class="content-title">会议内容</div>
+      <div class="meeting-content">
+        <!-- 会议主题 -->
+        <div class="meeting-item">
+          <div class="m-title">会议主题</div>
+          <div class="m-content">{{ detail?.meetingName }}</div>
+        </div>
+        <!-- 会议联系人 -->
+        <div class="meeting-item">
+          <div class="m-title">会议联系人</div>
+          <div class="m-content">{{ detail?.meetingContact }}</div>
+        </div>
+        <!-- 会议类别 -->
+        <div class="meeting-item">
+          <div class="m-title">会议类别</div>
+          <div class="m-content">
+            <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+          </div>
+        </div>
+        <!-- 会议时间 -->
+        <div class="meeting-item">
+          <div class="m-title">会议时间</div>
+          <div class="m-content">{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
+        </div>
+        <!-- 会议地址 -->
+        <div class="meeting-item">
+          <div class="m-title">会议地址</div>
+          <div class="m-content">{{ detail?.meetingAddress }}</div>
+        </div>
+        <!-- 取消原因 -->
+        <div class="meeting-item" v-if="detail?.meetingStatus === '99'">
+          <div class="m-title">取消原因</div>
+          <div class="m-content">{{ detail?.cancelReason }}</div>
+        </div>
       </div>
-      <div class="item">会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
-      <div class="item">会议地点：{{ detail?.meetingAddress }}</div>
-      <div v-if="detail?.meetingStatus === '99'" class="item">取消原因：{{ detail?.cancelReason }}</div>
     </div>
   </div>
 </template>
@@ -61,14 +106,18 @@ const props = defineProps({
 
 const detail = ref();
 
+const loading = ref(false);
+
 onMounted(() => {
   getMeetingDetail();
 });
 
 const getMeetingDetail = async () => {
   // 根据传入的ID获取课程详情
+  loading.value = true;
   meetingDetail({ id: props.id, isView: true }).then((res) => {
     detail.value = res.data || {};
+    loading.value = false;
   });
 };
 
@@ -98,6 +147,7 @@ const handleApply = async () => {
     type: 'warning'
   })
     .then(async () => {
+      loading.value = true;
       const res = await activityApply({
         id: props.id,
         categoryType: '1',
@@ -110,27 +160,152 @@ const handleApply = async () => {
       } else {
         ElMessage.error(res.msg || `${detail.value.enrollStatus === '0' ? '取消报名' : '报名'}失败`);
       }
+      loading.value = false;
     })
     .catch(() => {});
 };
 </script>
 
 <style scoped lang="scss">
-.metting-detail-container {
-  padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .collection {
-      cursor: pointer;
+.meeting-detail {
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+  padding: 20px 40px 20px 20px;
+  box-sizing: border-box;
+  position: relative;
+  margin-bottom: 16px;
+  .meeting-header {
+    margin-bottom: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    .meeting-title {
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 28px;
+      color: #3d3d3d;
+      line-height: 21px;
+      margin-right: 34px;
     }
   }
-  .detail {
-    .item {
-      margin-top: 24px;
+  .meeting-user {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-size: 14px;
+    color: #3d3d3d;
+    font-weight: 500;
+    img {
+      width: 30px;
+      height: 30px;
+      background-color: aquamarine;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+    .meeting-user-name {
+      margin-right: 40px;
+      line-height: 20px;
+    }
+    .meeting-user-time {
+      margin-right: 40px;
+      line-height: 20px;
+    }
+    .meeting-user-num {
+      line-height: 20px;
+    }
+  }
+  .registration-btn-box {
+    position: absolute;
+    top: 0;
+    right: 40px;
+    background-image: url('@/assets/images/wybm.png');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    width: 139px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    .registration-btn {
+      width: 134px;
+      height: 40px;
+      background: rgba(16, 140, 88, 0.1);
+      border-radius: 179px 179px 179px 179px;
+      border: 1px solid #108c58;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img {
+        width: 14px;
+        height: 14px;
+        margin-right: 2px;
+      }
+      span {
+        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+        font-weight: 500;
+        font-size: 14px;
+        color: #108c58;
+        line-height: 16px;
+        text-align: left;
+        font-style: normal;
+        text-transform: none;
+      }
+    }
+  }
+}
+.meeting-content-box {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 8px 8px 8px 8px;
+  padding: 20px 20px 1px 20px;
+  box-sizing: border-box;
+  .content-title {
+    width: 100%;
+    height: auto;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 500;
+    font-size: 20px;
+    color: #000000;
+    line-height: 14px;
+    padding-left: 9px;
+    box-sizing: border-box;
+    position: relative;
+    margin-bottom: 20px;
+    &::after {
+      position: absolute;
+      content: '';
+      display: block;
+      width: 3px;
+      height: 20px;
+      background: #108c58;
+      border-radius: 4px 4px 4px 4px;
+      top: -2px;
+      left: 0;
+    }
+  }
+  .meeting-content {
+    .meeting-item {
+      margin-bottom: 30px;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 400;
+      font-size: 14px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      .m-title {
+        color: rgba(61, 61, 61, 0.5);
+        line-height: 21px;
+        min-width: 84px;
+        text-align: right;
+        margin-right: 20px;
+      }
+      .m-content {
+        color: #3d3d3d;
+        line-height: 21px;
+      }
     }
   }
 }

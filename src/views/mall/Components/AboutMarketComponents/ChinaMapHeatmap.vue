@@ -175,8 +175,8 @@ const updateChart = () => {
         name: '价格',
         type: 'map',
         map: 'china',
-        roam: true, // 开启缩放和平移
-        zoom: 1.15, // 适度缩小以保留四周留白
+        roam: false, // 禁止缩放和拖动
+        zoom: 1.15, // 初始缩放比例
         layoutCenter: ['50%', '65%'], // 控制垂直位置稍向下
         layoutSize: '100%', // 适中尺寸
         left: '5%',

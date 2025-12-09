@@ -249,70 +249,80 @@
             </template>
           </el-table-column>
         </el-table>
+      </template>
 
-        <!-- 非已驳回状态：显示申诉材料 -->
-        <template v-if="!hideProcessingViewSection && !isWithdrawnPending">
-          <FormHeader title="申诉材料" />
-          <el-row :gutter="20" class="detail-form">
-            <el-col :span="24">
-              <el-form-item label="申诉理由：">
-                <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
-              </el-form-item>
-            </el-col>
+      <!-- 申诉材料：在 非处理中视图 && 非撤回待处理 时显示，
+           同时兼容 已驳回 且 已生成 caseCode 的场景（status === '2' 且有 caseCode） -->
+      <template v-if="!hideProcessingViewSection && !isWithdrawnPending && (!isRejected || (isRejected && formData.caseCode))">
+        <FormHeader title="申诉材料" />
+        <el-row :gutter="20" class="detail-form">
+          <el-col :span="24">
+            <el-form-item label="申诉理由：">
+              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
 
-            <el-col :span="24">
-              <el-form-item label="申诉时间：">
-                <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
-              </el-form-item>
-            </el-col>
+          <el-col :span="24">
+            <el-form-item label="申诉时间：">
+              <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
 
-            <el-col :span="24">
-              <el-form-item label="申诉图片：">
-                <div class="evidence">
-                  <template v-if="appealImageList.length">
-                    <el-image
-                      v-for="(img, idx) in appealImageList"
-                      :key="img.url + idx"
-                      :src="img.url"
-                      :preview-src-list="appealImagePreviewUrls"
-                      :initial-index="idx"
-                      fit="cover"
-                      class="evidence-image-item"
-                    />
-                  </template>
-                  <span v-else class="evidence-empty">暂无图片</span>
-                </div>
-              </el-form-item>
-            </el-col>
+          <el-col :span="24">
+            <el-form-item label="申诉图片：">
+              <div class="evidence">
+                <template v-if="appealImageList.length">
+                  <el-image
+                    v-for="(img, idx) in appealImageList"
+                    :key="img.url + idx"
+                    :src="img.url"
+                    :preview-src-list="appealImagePreviewUrls"
+                    :initial-index="idx"
+                    fit="cover"
+                    class="evidence-image-item"
+                  />
+                </template>
+                <span v-else class="evidence-empty">暂无图片</span>
+              </div>
+            </el-form-item>
+          </el-col>
 
-            <el-col :span="24">
-              <el-form-item label="申诉视频：">
-                <div class="evidence">
-                  <template v-if="appealVideoList.length">
-                    <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
-                      <div class="size">{{ v.sizeText }}</div>
-                      <div class="icon">视频</div>
-                      <div class="ops">
-                        <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
-                      </div>
+          <el-col :span="24">
+            <el-form-item label="申诉视频：">
+              <div class="evidence">
+                <template v-if="appealVideoList.length">
+                  <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
+                    <div class="size">{{ v.sizeText }}</div>
+                    <div class="icon">视频</div>
+                    <div class="ops">
+                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
                     </div>
-                  </template>
-                  <span v-else class="evidence-empty">暂无视频</span>
-                </div>
-              </el-form-item>
-            </el-col>
+                  </div>
+                </template>
+                <span v-else class="evidence-empty">暂无视频</span>
+              </div>
+            </el-form-item>
+          </el-col>
 
-            <el-col :span="24">
-              <el-form-item label="平台驳回申诉理由：">
-                <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </template>
+          <el-col :span="24">
+            <el-form-item label="平台驳回申诉理由：">
+              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </template>
 
       <!--历史申诉材料  -->
-      <div v-if="!hideProcessingViewSection && !isWithdrawnPending && (isProcessing || (!isRejected && !isPending))">
+      <!-- 仅在非处理视图、非撤回待处理 且 存在历史申诉数据 时显示；同时兼容 processing 场景 -->
+      <div
+        v-if="
+          !hideProcessingViewSection &&
+          !isWithdrawnPending &&
+          (isProcessing || (!isRejected && !isPending)) &&
+          formData.historyAppealList &&
+          formData.historyAppealList.length > 0
+        "
+      >
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
           <el-table-column type="index" min-width="55" label="序号" align="center" />

@@ -1,6 +1,6 @@
 <!--
 标题: technicalExpertIndex.vue
-功能: 技术专家审核
+功能: 技术专家管理
 说明: 用于展示技术专家的列表和查询功能。
 开发信息: Create by 李刘超 2025-10-17 16:59:29
 当前版本: 1.0
@@ -265,7 +265,9 @@ const getList = () => {
   loading.value = true;
   getTechnicalExpertList({
     ...queryParams,
-    registrationTime: undefined
+    registrationTime: undefined,
+    orderByColumn: 'createTime',
+    isAsc: 'desc'
   })
     .then((res) => {
       if (res.code === 200) {

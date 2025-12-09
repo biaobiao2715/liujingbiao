@@ -59,27 +59,31 @@ export const ossUploadImage = (data: { file: File }) => {
   });
 };
 
-// 推送未回答问题提示信息
-// skill-server/question/pushNoAnswerQuestionMessage
-export function pushNoAnswerQuestionMessage() {
-  return request({
-    url: 'skill-server/question/pushNoAnswerQuestionMessage',
-    method: 'get'
-  });
-}
+// 品种识别商品识别
+export async function varietyRecognizeIdentify(data: any) {
+  const maxRetries = 2;
+  const timeout = 60000; // 60s 超时
+  let attempt = 0;
+  let lastError: any = null;
 
-// -------------------- 类型定义 --------------------
-/** 订单条目类型 */
-interface OrderItem {
-  goodsPic: string;
-  goodsName: string;
-  goodsPrice: number | string;
-}
-/** 订单类型 */
-export interface Order {
-  id: number;
-  orderItems: OrderItem[];
-  orderStatus: string;
-  enterprisePhone: string;
-  orderSn: string;
+  while (attempt <= maxRetries) {
+    try {
+      return await request({
+        url: '/resource/varietyRecognize/identify',
+        method: 'post',
+        data,
+        timeout
+      });
+    } catch (err) {
+      lastError = err;
+      // 仅对超时或网络错误进行重试
+      const isTimeout = (err as any)?.code === 'ECONNABORTED';
+      const isNetworkError = (err as any)?.message?.includes('Network Error');
+      if (!(isTimeout || isNetworkError) || attempt === maxRetries) {
+        throw err;
+      }
+      attempt++;
+    }
+  }
+  throw lastError;
 }

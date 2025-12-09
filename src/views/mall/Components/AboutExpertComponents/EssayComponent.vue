@@ -84,6 +84,7 @@ const handleMoreList = () => {
   background-color: #fff;
   .header {
     padding: 20px;
+    border-radius: 8px 8px 0 0;
     background: linear-gradient(to bottom, rgba(16, 140, 88, 0.1), #fff);
     .title {
       color: #3d3d3d;

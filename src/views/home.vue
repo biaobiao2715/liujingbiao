@@ -32,12 +32,7 @@
     </div>
 
     <!-- 权限申请弹窗 -->
-    <PermissionPopup
-      v-model:visible="permissionPopupVisible"
-      :initial-data="permissionPopupData"
-      :audit-status="auditStatus"
-      @submit="handlePermissionSubmit"
-    />
+    <PermissionPopup v-model:visible="permissionPopupVisible" :initial-data="permissionPopupData" :audit-status="auditStatus" />
   </div>
 </template>
 
@@ -49,7 +44,6 @@ import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
-import axios from 'axios';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -189,7 +183,7 @@ const handleRedirect = async (path: string) => {
         // 根据审核状态决定是否显示弹窗
         if (auditStatus.value == 1) {
           // 审核通过，直接跳转
-          handlePermissionSubmit();
+          handlePermissionSubmit(response?.data?.tenantId);
         } else {
           // 其他状态，显示弹窗
           permissionPopupVisible.value = true;
@@ -220,14 +214,17 @@ const handleRedirect = async (path: string) => {
 };
 
 // 处理权限申请提交
-const handlePermissionSubmit = async () => {
+const handlePermissionSubmit = async (tenantId: string) => {
   // 提交权限申请后，再执行第三方登录
   try {
-    const response = await axios.post('http://8.153.15.72:8887/third/thirdPartyLogin', {
+    // const response = await axios.post(import.meta.env.VITE_APP_TRACEABLE_API_URL + '/third/thirdPartyLogin', {
+    //   ...getCacheInfo()
+    // });
+    const res = await thirdPartyLogin({
+      tenantId,
       ...getCacheInfo()
     });
-    console.log(response);
-    const res = response.data;
+
     if (res.code === 200 && res.data?.accessToken) {
       const token = res.data.accessToken;
       // http://8.153.15.72:82
@@ -251,7 +248,6 @@ const getCacheInfo = () => {
     username: userStore.userName,
     password: '111111',
     clientId,
-    tenantId: userInfo.value.tenantId,
     'form': true,
     'grantType': 'password'
     // 'username': '18000000000',

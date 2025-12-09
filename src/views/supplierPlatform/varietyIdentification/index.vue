@@ -175,6 +175,10 @@ const handleAdd = () => {
 
 // 导出
 const handleExport = () => {
+  if (tableData.value.length === 0) {
+    ElMessage.warning('请先查询数据');
+    return;
+  }
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -216,9 +220,10 @@ const handlePictureCardPreview = (file: any) => {
 onMounted(() => {
   getList();
   // 查询品种识别类别
-  varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.data;
-  });
+  // varietyRecognizeGroupType().then((res) => {
+  //   varietyTypeOptions.value = res.data;
+  // });
+  varietyTypeOptions.value = [];
 });
 </script>
 
