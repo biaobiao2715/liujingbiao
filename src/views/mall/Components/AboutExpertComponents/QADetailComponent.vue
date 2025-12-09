@@ -90,19 +90,6 @@
         </div>
       </template>
     </div>
-    <!-- 回答部分 -->
-    <!-- <div class="qa-answer">
-      <el-scrollbar class="answer-scroll">
-        <div class="answer-item flex-center-between" v-for="(answer, index) in answers?.hnAnswerVoList" :key="index">
-          <div class="answer-content">
-            {{ answer.answerContent }}
-          </div>
-          <div class="reply-time">
-            {{ answer.replyTime }}
-          </div>
-        </div>
-      </el-scrollbar>
-    </div> -->
   </div>
 </template>
 
@@ -116,7 +103,6 @@ const props = defineProps({
     required: true
   }
 });
-const questionImages = ['/path/to/image1.jpg', '/path/to/image2.jpg', '/path/to/image3.jpg', '/path/to/image4.jpg'];
 
 const answers = ref();
 

@@ -141,7 +141,7 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
           name: '待履约率',
           type: 'bar',
           stack: 'total',
-          barWidth: '40%',
+          barWidth: '60%',
           itemStyle: { color: '#5470c6' },
           label: {
             show: true,
@@ -149,7 +149,9 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
             formatter: (params: any) => {
               return params.value > 0 ? `${params.value}%` : '';
             },
-            color: '#303133'
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 'bold'
           },
           data: chartData.map((item) => item.unComplianceRate)
         },
@@ -164,7 +166,9 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
             formatter: (params: any) => {
               return params.value > 0 ? `${params.value}%` : '';
             },
-            color: '#303133'
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 'bold'
           },
           data: chartData.map((item) => item.complianceRate)
         }

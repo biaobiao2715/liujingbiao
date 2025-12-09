@@ -18,7 +18,6 @@
         <div class="expert-card-name">
           <span>{{ expertDetail?.expertName || '' }}</span>
           <span> {{ expertDetail?.technicalQualification || '' }}</span>
-          <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '' }}</div>
         </div>
         <!-- 专家简介 -->
         <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '暂无简介' }}</div>
@@ -52,24 +51,20 @@
         </div>
       </div>
       <div class="QA-list-box">
-        <template v-for="item in qaList" :key="item.id">
+        <template v-for="item in qaList" :key="index">
           <div class="QA-list-item">
             <div class="QA-list-item-title">
               <div class="QA-list-item-title-text">
                 <img src="@/assets/images/wt@2x.png" style="width: 28px; height: 28px" />
-                <div class="wd-text">
-                  {{ item.questionContent }}
+                <div class="wd-text">{{ item.questionContent }}</div>
+              </div>
+              <div class="QA-list-item-title-text">
+                <img src="@/assets/images/hdicon@2x.png" style="width: 28px; height: 28px" />
+                <div class="other-style">
+                  {{ item.hnAnswerVoList[0]?.answerContent }}
                 </div>
               </div>
-              <template class="QA-list-item-title-text" v-for="(answer, i) in item.hnAnswerVoList" :key="answer.id">
-                <div class="flex-center gap-12 mb-12 answer-container" v-show="!item.isExpanded ? i === 0 : true">
-                  <img src="@/assets/images/hdicon@2x.png" style="width: 28px; height: 28px" />
-                  <div :class="['other-style', { 'show-all': item.isExpanded }]">
-                    {{ answer.answerContent }}
-                  </div>
-                </div>
-              </template>
-              <div class="QA-total mt-12" @click="item.isExpanded = !item.isExpanded">全部{{ item.hnAnswerVoList?.length || 0 }}条信息</div>
+              <div class="QA-total" @click="handleDetail(item.id)">全部{{ item.hnAnswerVoList?.length || 0 }}条信息</div>
             </div>
             <div class="QA-image">
               <img src="@/assets/images/login-bg.png" />
@@ -78,26 +73,14 @@
         </template>
       </div>
     </div>
-    <!-- <div class="">
-      <span>专家简介：</span>
-      <span>{{ expertDetail?.expertInfo }}</span>
-    </div> -->
   </div>
-
-  <!-- 专家问答 -->
-  <!-- <div class="expert-qa">
-    <h4>专家问答</h4>
-    <el-collapse>
-      <el-collapse-item v-for="(qa, index) in qaList" :key="index" :title="qa.questionContent">
-        <div v-for="value in qa.hnAnswerVoList" :key="value.answerId">{{ value.answerContent }}</div>
-      </el-collapse-item>
-    </el-collapse>
-  </div> -->
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { technologyExpertDetail, legalExpertDetail, questionList } from '@/api/mall/expert';
+
+const emit = defineEmits(['detailChange']);
 
 const props = defineProps<{
   id: string;
@@ -111,7 +94,8 @@ const expertDetail = ref();
 const qaList = ref([]);
 
 onMounted(async () => {
-  console.log(props.type, '-=-=-=-=-=-=-=');
+  console.log(props);
+
   expertId.value = props.id;
   props.type === 'technology' ? await getTechnologyExpertDetail() : await getLegalExpertDetail();
   await getQuestionList();
@@ -142,9 +126,6 @@ const getQuestionList = async () => {
   });
   if (res.code === 200) {
     qaList.value = res.rows || [];
-    qaList.value.forEach((item) => {
-      item.isExpanded = false;
-    });
   }
 };
 
@@ -153,12 +134,8 @@ const getAvatarUrl = (imgList) => {
   return imgList?.filter((img) => img.fileType === '0')[0]?.ossInfo?.url || '';
 };
 
-// 显示全部回答
-const showAllAnswers = (index: number) => {
-  // 在这里可以添加显示全部回答的逻辑
-  const item = qaList.value[index];
-  console.log(item);
-  item.isExpanded = !item.isExpanded;
+const handleDetail = (id: string) => {
+  emit('detailChange', { type: 'qaDetail', id });
 };
 </script>
 
@@ -180,13 +157,10 @@ const showAllAnswers = (index: number) => {
   .expert-card-detail {
     position: relative;
     z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
     .expert-card-name {
       margin-bottom: 20px;
       span {
+        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 20px;
         color: #ffffff;
@@ -195,6 +169,7 @@ const showAllAnswers = (index: number) => {
       }
     }
     .expert-card-info {
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 14px;
       color: rgba(#ffffff, 0.8);
@@ -205,7 +180,6 @@ const showAllAnswers = (index: number) => {
       // 自动换行
       white-space: normal;
       margin-bottom: 20px;
-      margin-top: 25px;
     }
     .expert-card-number {
       display: flex;
@@ -219,6 +193,7 @@ const showAllAnswers = (index: number) => {
       }
       .card-number {
         .card-number-title {
+          font-family: YouSheBiaoTiYuan, YouSheBiaoTiYuan;
           font-weight: 400;
           font-size: 24px;
           color: #ffffff;
@@ -228,6 +203,7 @@ const showAllAnswers = (index: number) => {
           text-align: center;
         }
         .card-number-text {
+          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 500;
           font-size: 14px;
           color: rgba(255, 255, 255, 0.6);
@@ -268,6 +244,7 @@ const showAllAnswers = (index: number) => {
         height: 14px;
       }
       .question-title-text {
+        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 14px;
         color: #ffffff;
@@ -289,6 +266,7 @@ const showAllAnswers = (index: number) => {
     align-items: center;
     justify-content: space-between;
     .QA-title {
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 20px;
       color: #000000;
@@ -303,6 +281,7 @@ const showAllAnswers = (index: number) => {
       align-items: center;
       justify-content: flex-end;
       span {
+        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 400;
         font-size: 14px;
         color: rgba(51, 51, 51, 0.8);
@@ -314,7 +293,7 @@ const showAllAnswers = (index: number) => {
     margin-top: 16px;
     .QA-list-item {
       width: 100%;
-      // min-height: 150px;
+      height: 150px;
       background: #ffffff;
       border-radius: 8px 8px 8px 8px;
       padding: 20px 20px;
@@ -324,7 +303,6 @@ const showAllAnswers = (index: number) => {
       justify-content: space-between;
       margin-bottom: 16px;
       .QA-list-item-title {
-        width: calc(100% - 130px);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -332,19 +310,14 @@ const showAllAnswers = (index: number) => {
         justify-content: space-between;
         margin-right: 20px;
         .QA-list-item-title-text {
-          width: 100%;
           display: flex;
           align-items: center;
           justify-content: flex-start;
-          margin-bottom: 18px;
           img {
             margin-right: 10px;
           }
           .wd-text {
-            width: calc(100% - 38px);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
             font-weight: 500;
             font-size: 14px;
             color: #333333;
@@ -352,25 +325,22 @@ const showAllAnswers = (index: number) => {
             text-align: left;
           }
         }
-        .answer-container {
-          width: 100%;
-        }
         .other-style {
-          width: calc(100% - 38px);
+          max-width: 1260px;
+          // 一行省略,省略号向向下对齐
+          vertical-align: bottom;
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
+          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 14px;
           color: #333333;
           line-height: 20px;
-        }
-        .show-all {
-          // 展示全部 不换行
-          overflow-wrap: break-word;
-          white-space: normal !important;
+          text-align: left;
         }
         .QA-total {
+          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 12px;
           color: #108c58;

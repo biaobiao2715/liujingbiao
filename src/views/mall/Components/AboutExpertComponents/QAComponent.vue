@@ -25,7 +25,7 @@
           </div>
           <div class="qa-info flex-center-between">
             <div class="flex-center gap-4 message-link">
-              <div  @click="handleDetail(item.id)">查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
+              <div @click="handleDetail(item.id)">查看全部{{ item.hnAnswerVoList?.length }}条信息</div>
               <img src="@/assets/mall/message-arrow-icon.png" width="12" height="12" />
             </div>
             <span class="qa-update-time">更新于{{ item.latestAnswerTime }}</span>
@@ -52,7 +52,6 @@ onMounted(() => {
 });
 
 const handleDetail = (id: string) => {
-  console.log(id);
   emit('detailChange', { type: 'qaDetail', id });
 };
 
