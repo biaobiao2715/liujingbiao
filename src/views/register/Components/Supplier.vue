@@ -51,7 +51,7 @@
 
           <el-col :span="12">
             <el-form-item label="统一社会信用代码" prop="licenseNumber">
-              <el-input v-model="form.licenseNumber" :disabled="true" placeholder="OCR识别" />
+              <el-input v-model="form.licenseNumber" :disabled="false" placeholder="OCR识别" />
             </el-form-item>
           </el-col>
 
@@ -403,25 +403,25 @@ const FormRulesarr: FormRules = {
     }
   ],
   licenseNumber: [
-    { required: true, message: '统一社会信用代码不能为空', trigger: 'blur' }
-    // {
-    //   validator: (rule: any, value: any, callback: any) => {
-    //     if (!value || value.trim() === '') {
-    //       callback(new Error('统一社会信用代码不能为空'));
-    //       return;
-    //     }
-    //     // 使用统一社会信用代码严格校验正则（排除 I/O 等字母）
-    //     const usccRegex = /^[123456789A-HJ-NP-RT-UW-Y][0-9A-HJ-NP-RT-UW-Y]\d{6}[0-9A-HJ-NP-RT-UW-Y]{9}[0-9A-HJ-NP-RT-UW-Y]$/;
-    //     const upperVal = value.toUpperCase();
-    //     if (!usccRegex.test(upperVal)) {
-    //       callback(new Error('统一社会信用代码格式不正确'));
-    //       return;
-    //     }
+    { required: true, message: '统一社会信用代码不能为空', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value || value.trim() === '') {
+          callback(new Error('统一社会信用代码不能为空'));
+          return;
+        }
+        // 使用统一社会信用代码严格校验正则（排除 I/O 等字母）
+        const usccRegex = /^[123456789A-HJ-NP-RT-UW-Y][0-9A-HJ-NP-RT-UW-Y]\d{6}[0-9A-HJ-NP-RT-UW-Y]{9}[0-9A-HJ-NP-RT-UW-Y]$/;
+        const upperVal = value.toUpperCase();
+        if (!usccRegex.test(upperVal)) {
+          callback(new Error('统一社会信用代码格式不正确'));
+          return;
+        }
 
-    //     callback();
-    //   },
-    //   trigger: 'blur'
-    // }
+        callback();
+      },
+      trigger: 'blur'
+    }
   ],
   signUpAddress: [
     { required: true, message: '详情地址不能为空', trigger: 'blur' },
