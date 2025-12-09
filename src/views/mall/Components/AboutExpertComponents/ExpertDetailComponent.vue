@@ -21,7 +21,7 @@
           <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '' }}</div>
         </div>
         <!-- 专家简介 -->
-        <!-- <div class="expert-card-info">专家简介：{{ expertDetail.expertInfo || '' }}</div> -->
+        <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '暂无简介' }}</div>
         <div class="expert-card-number">
           <div class="card-number">
             <div class="card-number-title">{{ expertDetail?.questionCount || 0 }}</div>
@@ -37,7 +37,7 @@
       <!-- 我要提问 -->
       <div class="question-box">
         <div class="question-title">
-          <img src="@/assets/images/twtb@2x.png" alt="" />
+          <img src="@/assets/images/twtb@2x.png" />
           <div class="question-title-text">我要提问</div>
         </div>
       </div>
@@ -48,48 +48,31 @@
         <div class="QA-title">专家问答</div>
         <!-- 查看更多 -->
         <div class="QA-more">
-          <span>查看更多</span>
-          <svg
-            t="1765180140107"
-            class="icon"
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            p-id="1613"
-            width="14"
-            height="14"
-          >
-            <path
-              d="M531.424 485.216L223.072 176.864a31.968 31.968 0 1 0-45.248 45.248l285.728 285.728-294.144 294.144a31.968 31.968 0 1 0 45.248 45.248l316.8-316.768a32.064 32.064 0 0 0-0.032-45.248z"
-              p-id="1614"
-              fill="#333333"
-            ></path>
-            <path
-              d="M787.424 485.216l-308.352-308.352a31.968 31.968 0 1 0-45.248 45.248l285.728 285.728-294.144 294.144a31.968 31.968 0 1 0 45.248 45.248l316.8-316.768a32.064 32.064 0 0 0-0.032-45.248z"
-              p-id="1615"
-              fill="#333333"
-            ></path>
-          </svg>
+          <span>查看更多》〉</span>
         </div>
       </div>
       <div class="QA-list-box">
-        <template v-for="(item, index) in qaList.splice(0, 4)" :key="index">
+        <template v-for="item in qaList" :key="item.id">
           <div class="QA-list-item">
             <div class="QA-list-item-title">
               <div class="QA-list-item-title-text">
-                <img src="@/assets/images/wt@2x.png" alt="" style="width: 28px; height: 28px" />
-                <div class="wd-text">{{ item.questionContent }}</div>
-              </div>
-              <div class="QA-list-item-title-text">
-                <img src="@/assets/images/hdicon@2x.png" alt="" style="width: 28px; height: 28px" />
-                <div class="other-style">
-                  {{ item.hnAnswerVoList[0]?.answerContent || '暂无回答' }}
+                <img src="@/assets/images/wt@2x.png" style="width: 28px; height: 28px" />
+                <div class="wd-text">
+                  {{ item.questionContent }}
                 </div>
               </div>
-              <div class="QA-total">全部{{ item.hnAnswerVoList.length }}条信息</div>
+              <template class="QA-list-item-title-text" v-for="(answer, i) in item.hnAnswerVoList" :key="answer.id">
+                <div class="flex-center gap-12 mb-12 answer-container" v-show="!item.isExpanded ? i === 0 : true">
+                  <img src="@/assets/images/hdicon@2x.png" style="width: 28px; height: 28px" />
+                  <div :class="['other-style', { 'show-all': item.isExpanded }]">
+                    {{ answer.answerContent }}
+                  </div>
+                </div>
+              </template>
+              <div class="QA-total mt-12" @click="item.isExpanded = !item.isExpanded">全部{{ item.hnAnswerVoList?.length || 0 }}条信息</div>
             </div>
             <div class="QA-image">
-              <img src="@/assets/images/login-bg.png" alt="" />
+              <img src="@/assets/images/login-bg.png" />
             </div>
           </div>
         </template>
@@ -159,12 +142,23 @@ const getQuestionList = async () => {
   });
   if (res.code === 200) {
     qaList.value = res.rows || [];
+    qaList.value.forEach((item) => {
+      item.isExpanded = false;
+    });
   }
 };
 
 // 获取头像url
 const getAvatarUrl = (imgList) => {
   return imgList?.filter((img) => img.fileType === '0')[0]?.ossInfo?.url || '';
+};
+
+// 显示全部回答
+const showAllAnswers = (index: number) => {
+  // 在这里可以添加显示全部回答的逻辑
+  const item = qaList.value[index];
+  console.log(item);
+  item.isExpanded = !item.isExpanded;
 };
 </script>
 
@@ -193,7 +187,6 @@ const getAvatarUrl = (imgList) => {
     .expert-card-name {
       margin-bottom: 20px;
       span {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 20px;
         color: #ffffff;
@@ -202,7 +195,6 @@ const getAvatarUrl = (imgList) => {
       }
     }
     .expert-card-info {
-      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 14px;
       color: rgba(#ffffff, 0.8);
@@ -227,7 +219,6 @@ const getAvatarUrl = (imgList) => {
       }
       .card-number {
         .card-number-title {
-          font-family: YouSheBiaoTiYuan, YouSheBiaoTiYuan;
           font-weight: 400;
           font-size: 24px;
           color: #ffffff;
@@ -237,7 +228,6 @@ const getAvatarUrl = (imgList) => {
           text-align: center;
         }
         .card-number-text {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 500;
           font-size: 14px;
           color: rgba(255, 255, 255, 0.6);
@@ -278,7 +268,6 @@ const getAvatarUrl = (imgList) => {
         height: 14px;
       }
       .question-title-text {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 14px;
         color: #ffffff;
@@ -300,7 +289,6 @@ const getAvatarUrl = (imgList) => {
     align-items: center;
     justify-content: space-between;
     .QA-title {
-      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 20px;
       color: #000000;
@@ -315,7 +303,6 @@ const getAvatarUrl = (imgList) => {
       align-items: center;
       justify-content: flex-end;
       span {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 400;
         font-size: 14px;
         color: rgba(51, 51, 51, 0.8);
@@ -327,7 +314,7 @@ const getAvatarUrl = (imgList) => {
     margin-top: 16px;
     .QA-list-item {
       width: 100%;
-      height: 150px;
+      // min-height: 150px;
       background: #ffffff;
       border-radius: 8px 8px 8px 8px;
       padding: 20px 20px;
@@ -337,6 +324,7 @@ const getAvatarUrl = (imgList) => {
       justify-content: space-between;
       margin-bottom: 16px;
       .QA-list-item-title {
+        width: calc(100% - 130px);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -344,14 +332,19 @@ const getAvatarUrl = (imgList) => {
         justify-content: space-between;
         margin-right: 20px;
         .QA-list-item-title-text {
+          width: 100%;
           display: flex;
           align-items: center;
           justify-content: flex-start;
+          margin-bottom: 18px;
           img {
             margin-right: 10px;
           }
           .wd-text {
-            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            width: calc(100% - 38px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             font-weight: 500;
             font-size: 14px;
             color: #333333;
@@ -359,22 +352,25 @@ const getAvatarUrl = (imgList) => {
             text-align: left;
           }
         }
+        .answer-container {
+          width: 100%;
+        }
         .other-style {
-          max-width: 1260px;
-          // 一行省略,省略号向向下对齐
-          vertical-align: bottom;
+          width: calc(100% - 38px);
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 14px;
           color: #333333;
           line-height: 20px;
-          text-align: left;
+        }
+        .show-all {
+          // 展示全部 不换行
+          overflow-wrap: break-word;
+          white-space: normal !important;
         }
         .QA-total {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 12px;
           color: #108c58;
