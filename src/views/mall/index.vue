@@ -25,12 +25,6 @@
     <div class="content-area">
       <!-- 商城首页 -->
       <GoodsComponent v-if="activeTab === 'goods'" />
-      <!-- 商品详情 -->
-      <GoodsDetailComponent v-else-if="activeTab === 'goodsDetail'" :id="goods.id" />
-      <!-- 商品比价 -->
-      <CompareGoodsComponent :goods="goods" v-else-if="activeTab === 'compareGoods'" />
-      <!-- 商品比价详情 -->
-      <CompareDetailComponent :compareGoodsList="compareGoodsList" v-else-if="activeTab === 'compareDetail'" />
       <!-- 供需大厅组件 -->
       <DemandComponent :id="detailsId" :type="detailsType" v-else-if="activeTab === 'demand'" />
       <!-- 市场行情组件 -->
@@ -48,9 +42,6 @@ import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
 import CommonNavigation from './Components/CommonNavigation.vue'; // 导航组件
 import GoodsComponent from './Components/GoodsComponent.vue'; // 商城首页组件
-import GoodsDetailComponent from './Components/GoodsDetailComponent.vue'; // 商品详情组件
-import CompareGoodsComponent from './Components/AboutCompareComponents/CompareGoodsComponent.vue'; // 商品比价组件
-import CompareDetailComponent from './Components/AboutCompareComponents/CompareDetailComponent.vue'; // 商品比价详情组件
 import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件
 import ExpertComponent from './Components/ExpertComponent.vue'; // 专家组件
@@ -98,12 +89,13 @@ onMounted(() => {
 
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (data: any) => {
-    console.log(data);
     activeTab.value = data.command;
     if (data.command === 'compareDetail') {
       compareGoodsList.value = data.compareGoodsList;
     }
     goods.value = data.goods;
+    // 给导航栏添加对应的名称
+    eventBus.emit('navigationChange', data.command);
   });
 
   // 监听消息事件
@@ -112,8 +104,12 @@ onMounted(() => {
     detailsId.value = command.id;
     detailsType.value = 'supplyDemand';
   });
+
+  // 首次加载默认首页的导航
+  eventBus.emit('navigationChange', tabs[0].name);
 });
 
+// 点击Tabs切换事件
 function handleTabClick(tab: any) {
   eventBus.emit('navigationChange', tab);
   activeTab.value = tab;

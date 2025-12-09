@@ -38,11 +38,14 @@ const hotCategoryList = ref([
 
 <style scoped lang="scss">
 .hot-category-container {
-  padding: 12px;
 }
 .title {
   font-size: 20px;
   font-weight: bold;
+  border-left: 4px solid #108c58;
+  padding-left: 6px;
+  line-height: 18px;
+  margin-bottom: 16px;
 }
 .category-list {
   flex-wrap: wrap;

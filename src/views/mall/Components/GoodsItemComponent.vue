@@ -54,7 +54,9 @@ const props = defineProps({
 
 // 点击商品时触发方法
 const handleClick = () => {
-  eventBus.emit('activeTabChange', { command: 'goodsDetail', goods: props.goods });
+  // eventBus.emit('navigationChange', 'goodsDetail'); // 通知导航组件
+  // eventBus.emit('activeTabChange', { command: 'goodsDetail', goods: props.goods });
+  emit('clickGoods', props.goods);
 };
 </script>
 

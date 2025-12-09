@@ -14,13 +14,14 @@
         <el-button :type="activeTab === 'meeting' ? 'primary' : 'info'" round @click="fetchData('meeting')">培训会议</el-button>
       </div>
 
-      <el-tabs v-model="queryParams.orderByColumn" class="demo-tabs" @tab-change="fetchCourseList">
+      <el-tabs v-model="queryParams.orderByColumn" class="demo-tabs" @tab-change="fetchCourseList" v-if="activeTab === 'course'">
         <el-tab-pane v-for="tab in tabs" :label="tab.label" :name="tab.value" />
       </el-tabs>
     </div>
 
     <div v-loading="loading">
       <!-- 课程 -->
+      <!-- <el-scrollbar height="600px" @end-reached="loadMore" v-loading="loading"> -->
       <el-row :gutter="12" v-if="activeTab === 'course'">
         <el-col :span="6" v-for="(course, index) in courseList" :key="index">
           <div class="course-item" @click="handleDetail('courseDetail', course.id)">
@@ -50,6 +51,7 @@
         </el-col>
         <el-empty description="暂无培训课程信息" v-if="courseList.length === 0" class="margin-center" />
       </el-row>
+      <!-- </el-scrollbar> -->
       <!-- 会议 -->
       <div class="meeting-list" v-else>
         <el-row :gutter="48">
@@ -79,7 +81,7 @@ const loading = ref(false);
 const activeTab = ref('course');
 const courseList = ref([]);
 const meetingList = ref([]);
-const queryParams = ref({ pageNum: 1, pageSize: 15, orderBy: 'desc', orderByColumn: 'default' });
+const queryParams = ref({ pageNum: 1, pageSize: 999, orderBy: 'desc', orderByColumn: 'default' });
 
 const tabs = ref([
   {
@@ -105,8 +107,14 @@ onMounted(() => {
 // 根据tab切换调用不同接口
 const fetchData = (type: string) => {
   queryParams.value.pageNum = 1;
+  activeTab.value = type;
   type === 'course' ? fetchCourseList() : fetchMeetingList();
 };
+
+// const loadMore = () => {
+//   queryParams.value.pageNum += 1;
+//   activeTab.value === 'course' ? fetchCourseList() : fetchMeetingList();
+// };
 
 // 获取培训课程列表
 const fetchCourseList = async () => {
