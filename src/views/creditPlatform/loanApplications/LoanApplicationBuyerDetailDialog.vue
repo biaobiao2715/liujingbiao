@@ -764,7 +764,14 @@ const handleContractUpload = (req: any) =>
         tempItem.status = 'success';
         tempItem.percentage = 100;
         approvalForm.contractId = String(res.ossId || '');
-        approvalFormRef.value?.validateField?.('contractId');
+        // 强制触发响应更新，避免状态仍显示“上传中”
+        approvalForm.contractFiles = [{ ...tempItem }];
+        // 清除并重新校验合同字段，移除“请上传合同”提示
+        nextTick(() => {
+          approvalFormRef.value?.clearValidate?.('contractId');
+          approvalFormRef.value?.validateField?.('contractId');
+        });
+        ElMessage.success('合同上传成功');
         if (typeof req.onSuccess === 'function') req.onSuccess(res);
         return resolve(tempItem);
       }
@@ -785,7 +792,14 @@ const handleContractUpload = (req: any) =>
       tempItem.status = 'success';
       tempItem.percentage = 100;
       approvalForm.contractId = String(data.ossId || '');
-      approvalFormRef.value?.validateField?.('contractId');
+      // 强制触发响应更新，避免状态仍显示“上传中”
+      approvalForm.contractFiles = [{ ...tempItem }];
+      // 清除并重新校验合同字段，移除“请上传合同”提示
+      nextTick(() => {
+        approvalFormRef.value?.clearValidate?.('contractId');
+        approvalFormRef.value?.validateField?.('contractId');
+      });
+      ElMessage.success('合同上传成功');
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(tempItem);
     } catch (error: any) {
@@ -815,7 +829,11 @@ const handleRemoveFile = async (file?: any) => {
   }
 
   const idx = approvalForm.contractFiles.findIndex((f) => f.url === fileToRemove.url || f.serverUrl === fileToRemove.serverUrl);
-  if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
+  if (idx > -1) {
+    approvalForm.contractFiles.splice(idx, 1);
+  }
+  // 确保完全清空，避免残留导致校验仍不通过
+  approvalForm.contractFiles = [];
   approvalForm.contractId = '';
 
   // 清理本地 blob URL
@@ -825,7 +843,11 @@ const handleRemoveFile = async (file?: any) => {
     } catch {}
   }
 
-  approvalFormRef.value?.validateField?.('contractId');
+  // 清理校验提示
+  nextTick(() => {
+    approvalFormRef.value?.clearValidate?.('contractId');
+    approvalFormRef.value?.validateField?.('contractId');
+  });
 };
 
 const handleSubmitApproval = async (action: 'agree' | 'reject') => {
