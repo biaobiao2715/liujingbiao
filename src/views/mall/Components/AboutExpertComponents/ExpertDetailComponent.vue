@@ -18,13 +18,10 @@
         <div class="expert-card-name">
           <span>{{ expertDetail?.expertName || '' }}</span>
           <span> {{ expertDetail?.technicalQualification || '' }}</span>
+          <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '' }}</div>
         </div>
         <!-- 专家简介 -->
-        <div class="expert-card-info">
-          专家简介：{{
-            '专家简介：XXX，男，出生于XXXX年，湖北省高级农艺师，毕业于XXXXXX，XX学历，XXXX年参加工作，从业年限XXXX年，目前就职于XXXXXX。主要从事全县XXXXX推广工作。XXX年参加工作，从业年限XXXX年，目前就职于XXXXXX。主要从事全县XXXXX推广工作。'
-          }}
-        </div>
+        <!-- <div class="expert-card-info">专家简介：{{ expertDetail.expertInfo || '' }}</div> -->
         <div class="expert-card-number">
           <div class="card-number">
             <div class="card-number-title">{{ expertDetail?.questionCount || 0 }}</div>
@@ -76,22 +73,20 @@
         </div>
       </div>
       <div class="QA-list-box">
-        <template  v-for="(item, index) in qaList.splice(0, 4)" :key="index">
+        <template v-for="(item, index) in qaList.splice(0, 4)" :key="index">
           <div class="QA-list-item">
             <div class="QA-list-item-title">
               <div class="QA-list-item-title-text">
                 <img src="@/assets/images/wt@2x.png" alt="" style="width: 28px; height: 28px" />
-                <div class="wd-text">{{ '豆角，10月19日昨天晚上用联苯虫螨腈杀联苯虫螨腈杀杀虫螨腈杀螨腈杀联苯虫螨腈杀杀虫螨腈杀' }}</div>
+                <div class="wd-text">{{ item.questionContent }}</div>
               </div>
               <div class="QA-list-item-title-text">
                 <img src="@/assets/images/hdicon@2x.png" alt="" style="width: 28px; height: 28px" />
                 <div class="other-style">
-                  {{
-                    '建议：1.立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即补喷立即'
-                  }}
+                  {{ item.hnAnswerVoList[0]?.answerContent || '暂无回答' }}
                 </div>
               </div>
-              <div class="QA-total">全部{{ 1 }}条信息</div>
+              <div class="QA-total">全部{{ item.hnAnswerVoList.length }}条信息</div>
             </div>
             <div class="QA-image">
               <img src="@/assets/images/login-bg.png" alt="" />
@@ -191,6 +186,10 @@ const getAvatarUrl = (imgList) => {
   .expert-card-detail {
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
     .expert-card-name {
       margin-bottom: 20px;
       span {
@@ -214,6 +213,7 @@ const getAvatarUrl = (imgList) => {
       // 自动换行
       white-space: normal;
       margin-bottom: 20px;
+      margin-top: 25px;
     }
     .expert-card-number {
       display: flex;

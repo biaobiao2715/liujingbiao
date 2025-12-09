@@ -8,11 +8,106 @@
 
 <template>
   <div class="metting-detail-container">
-    <div class="title">{{ detail?.meetingName }}</div>
+    <div style="background: #ffffff; border-radius: 8px 8px 8px 8px; padding: 20px 40px 20px 20px; box-sizing: border-box">
+      <div style="margin-bottom: 31px">
+        <div
+          style="
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            font-weight: 500;
+            font-size: 28px;
+            color: #3d3d3d;
+            line-height: 21px;
+            text-align: left;
+            font-style: normal;
+            text-transform: none;
+          "
+        >
+          {{ detail?.meetingName }}2024年秋培训会议
+        </div>
+        <!-- 会议状态 -->
+        <div></div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: flex-start; position: relative">
+        <img :src="detail?.avatar" style="width: 30px; height: 30px; background-color: aquamarine" />
+        <div
+          style="
+            margin-right: 40px;
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            font-weight: 500;
+            font-size: 14px;
+            color: #3d3d3d;
+            line-height: 20px;
+            text-align: left;
+            font-style: normal;
+            text-transform: none;
+          "
+        >
+          {{ '发布人：  ' + detail?.publishUser }}
+        </div>
+        <div
+          style="
+            margin-right: 40px;
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            font-weight: 500;
+            font-size: 14px;
+            color: #3d3d3d;
+            line-height: 20px;
+            text-align: left;
+            font-style: normal;
+            text-transform: none;
+          "
+        >
+          {{ '发布时间：  ' + detail?.publishTime }}
+        </div>
+        <div
+          style="
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            font-weight: 500;
+            font-size: 14px;
+            color: #3d3d3d;
+            line-height: 20px;
+            text-align: left;
+            font-style: normal;
+            text-transform: none;
+          "
+        >
+          报名人数：{{ detail?.enrollCount }}
+        </div>
+        <div style="position: absolute; top: 0; right: 40px; background-image: url('@/assets/images/wybm.png'); width: 139px; height: 100%">
+          <div
+            style="
+              width: 134px;
+              height: 40px;
+              background: rgba(16, 140, 88, 0.1);
+              border-radius: 179px 179px 179px 179px;
+              border: 1px solid #108c58;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <img src="@/assets/images/bmtx.png" alt="" style="width: 14px; height: 14px; margin-right: 2px" />
+            <span
+              style="
+                font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+                font-weight: 500;
+                font-size: 14px;
+                color: #108c58;
+                line-height: 16px;
+                text-align: left;
+                font-style: normal;
+                text-transform: none;
+              "
+              >我要报名</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- 课程描述 -->
     <div class="description flex-center gap-24 mt-24 mb-24">
       <!-- 头像 -->
-      <img :src="detail?.avatar" width="40" />
+      <img :src="detail?.avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 14px" />
       <div>{{ '发布人：  ' + detail?.publishUser }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
       <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
@@ -115,23 +210,4 @@ const handleApply = async () => {
 };
 </script>
 
-<style scoped lang="scss">
-.metting-detail-container {
-  padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .collection {
-      cursor: pointer;
-    }
-  }
-  .detail {
-    .item {
-      margin-top: 24px;
-    }
-  }
-}
-</style>
+<style scoped lang="scss"></style>
