@@ -51,7 +51,9 @@
           <div class="tag-wrapper">
             <dict-tag
               :options="applicable_object"
-              :value="formatDictValue(typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject)"
+              :value="
+                formatDictValue(typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject)
+              "
             />
           </div>
         </template>
@@ -195,17 +197,17 @@ const formatDictValue = (value: unknown) => {
 const getDictLabels = (options: any[], values: string[] | undefined): string => {
   if (!values || !Array.isArray(values) || values.length === 0) return '';
   if (!options || !Array.isArray(options)) return '';
-  
+
   const labels: string[] = [];
   const uniqueValues = Array.from(new Set(values.map((v) => String(v).trim())));
-  
+
   uniqueValues.forEach((val) => {
     const option = options.find((opt: any) => String(opt.value) === val);
     if (option && option.label) {
       labels.push(option.label);
     }
   });
-  
+
   return labels.join('、');
 };
 
@@ -242,7 +244,6 @@ const getList = async () => {
     } else {
       tableData.value = [];
       total.value = 0;
-      ElMessage.error(res.msg || '获取贷款申请列表失败');
     }
   } catch (error) {
     console.error('获取贷款申请列表失败:', error);
@@ -361,11 +362,9 @@ const handleDelete = (row: LoanApplication) => {
           ElMessage.success('删除成功');
           getList();
         } else {
-          ElMessage.error(res.msg || '删除失败');
         }
       } catch (error) {
         console.error('删除失败:', error);
-        ElMessage.error('删除失败');
       } finally {
         loading.value = false;
       }
@@ -449,14 +448,14 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  
+
   .tag-wrapper {
     display: inline-block;
     width: 100%;
     max-width: 100%;
     overflow: hidden;
     cursor: pointer;
-    
+
     > div {
       display: inline-flex;
       flex-wrap: nowrap;
@@ -465,17 +464,17 @@ onMounted(() => {
       white-space: nowrap;
       overflow: hidden;
       max-width: 100%;
-      
+
       :deep(.el-tag) {
         flex-shrink: 0;
         margin: 0;
         white-space: nowrap;
       }
-      
+
       :deep(.el-tag + .el-tag) {
         margin-left: 4px;
       }
-      
+
       :deep(span) {
         white-space: nowrap;
       }

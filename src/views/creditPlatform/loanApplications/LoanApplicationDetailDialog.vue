@@ -170,7 +170,10 @@
                   </div>
                 </div>
                 <el-upload
-                  v-if="!approvalForm.contractFiles.length || (approvalForm.contractFiles.length > 0 && approvalForm.contractFiles[0].status === 'success')"
+                  v-if="
+                    !approvalForm.contractFiles.length ||
+                    (approvalForm.contractFiles.length > 0 && approvalForm.contractFiles[0].status === 'success')
+                  "
                   class="contract-uploader inline-uploader"
                   :disabled="submittingApproval"
                   accept=".pdf,.doc,.docx"
@@ -687,7 +690,7 @@ const applicantAuthFiles = computed(() => {
   const row = detailData.value || {};
   const urls = collectUrls(row.authorizationUrl);
   const fileName = row.authorizationFileName;
-  
+
   // 如果有文件名，返回包含文件名和URL的对象数组
   if (fileName && urls.length > 0) {
     return urls.map((url, idx) => ({
@@ -695,7 +698,7 @@ const applicantAuthFiles = computed(() => {
       name: urls.length === 1 ? fileName : `${fileName}${idx + 1}`
     }));
   }
-  
+
   // 如果没有文件名，返回URL数组（保持向后兼容）
   return urls;
 });
@@ -857,26 +860,22 @@ const beforeUpload = (file: any) => {
   );
 
   if (!isValidType) {
-    ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
 
   // 重复文件拦截（按名称简单判断）
   if (approvalForm.contractFiles.some((f) => (f.fileName || f.name) === file.name)) {
-    ElMessage.error('已选择相同文件，请勿重复上传');
     return false;
   }
 
   // 文件大小限制（200MB）
   const sizeMB = file.size / 1024 / 1024;
   if (sizeMB > 200) {
-    ElMessage.error('上传文件大小不能超过200MB!');
     return false;
   }
 
   // 限制只能上传一个文件
   if (approvalForm.contractFiles.length >= 1) {
-    ElMessage.error('只能上传一个合同文件');
     return false;
   }
 
@@ -945,7 +944,6 @@ const handleContractUpload = (req: any) =>
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(tempItem);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '文件上传失败，请重试');
       const idx = approvalForm.contractFiles.indexOf(tempItem);
       if (idx > -1) approvalForm.contractFiles.splice(idx, 1);
       approvalForm.contractId = '';
@@ -967,7 +965,6 @@ const handleRemoveFile = async (file?: any) => {
     try {
       await deleteContractFile([fileToRemove.ossId]);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '删除文件失败，请重试');
       return;
     }
   }
@@ -997,7 +994,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     return;
   }
   if (!detailData.value?.id && !props.data?.id) {
-    ElMessage.error('缺少申请ID，无法提交审批');
     currentApprovalAction.value = null;
     return;
   }
@@ -1025,7 +1021,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     const backendMessage = responseData?.msg || error?.msg || error?.message || responseData?.message;
     const isCancelledError = backendMessage?.includes('该贷款申请已取消，不能进行审核');
     if (!isCancelledError) {
-      ElMessage.error(backendMessage || '审批提交失败');
     }
   } finally {
     submittingApproval.value = false;

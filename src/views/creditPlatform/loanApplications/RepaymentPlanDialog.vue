@@ -25,19 +25,10 @@
               <div class="contract-files" v-if="contractFiles.length">
                 <div class="contract-file-item">
                   <template v-if="contractFiles[0].status === 'success'">
-                    <el-link 
-                      :href="contractFiles[0].serverUrl || contractFiles[0].url" 
-                      target="_blank" 
-                      type="primary" 
-                      class="contract-link"
-                    >
+                    <el-link :href="contractFiles[0].serverUrl || contractFiles[0].url" target="_blank" type="primary" class="contract-link">
                       {{ contractFiles[0].displayName || contractFiles[0].name }}
                     </el-link>
-                    <el-icon 
-                      class="file-remove-icon" 
-                      @click.stop="handleDeleteFile" 
-                      title="删除文件"
-                    >
+                    <el-icon class="file-remove-icon" @click.stop="handleDeleteFile" title="删除文件">
                       <Close />
                     </el-icon>
                   </template>
@@ -115,7 +106,13 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { UploadUserFile } from 'element-plus';
 import { Close, Loading } from '@element-plus/icons-vue';
-import { getRepaymentPlan, updateRepaymentPlan, getRemainingDetail, uploadFile as uploadContractFile, deleteFile as deleteContractFile } from '@/api/creditPlatform/loanApplications';
+import {
+  getRepaymentPlan,
+  updateRepaymentPlan,
+  getRemainingDetail,
+  uploadFile as uploadContractFile,
+  deleteFile as deleteContractFile
+} from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 
 interface ContractFile extends UploadUserFile {
@@ -194,11 +191,7 @@ const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
     const prevPlan = sortedPlans[currentIndex - 1];
     if (prevPlan.repaymentDate) {
       const prevDateParts = prevPlan.repaymentDate.split('-');
-      const prevDate = new Date(
-        parseInt(prevDateParts[0]),
-        parseInt(prevDateParts[1]) - 1,
-        parseInt(prevDateParts[2])
-      );
+      const prevDate = new Date(parseInt(prevDateParts[0]), parseInt(prevDateParts[1]) - 1, parseInt(prevDateParts[2]));
       prevDate.setHours(0, 0, 0, 0);
 
       // 必须在上一期之后（至少是上一期的下一天）
@@ -218,11 +211,7 @@ const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
     const nextPlan = sortedPlans[currentIndex + 1];
     if (nextPlan.repaymentDate) {
       const nextDateParts = nextPlan.repaymentDate.split('-');
-      const nextDate = new Date(
-        parseInt(nextDateParts[0]),
-        parseInt(nextDateParts[1]) - 1,
-        parseInt(nextDateParts[2])
-      );
+      const nextDate = new Date(parseInt(nextDateParts[0]), parseInt(nextDateParts[1]) - 1, parseInt(nextDateParts[2]));
       nextDate.setHours(0, 0, 0, 0);
 
       // 必须在下一期之前（至少是下一期的前一天）
@@ -342,26 +331,25 @@ const beforeUpload = (file: any) => {
   );
 
   if (!isValidType) {
-    ElMessage.error('只能上传 Word/PDF 格式的文件！');
+    // ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
 
   // 重复文件拦截（按名称简单判断）
   if (contractFiles.value.some((f) => (f.fileName || f.name) === file.name)) {
-    ElMessage.error('已选择相同文件，请勿重复上传');
+    // ElMessage.error('已选择相同文件，请勿重复上传');
     return false;
   }
 
   // 文件大小限制（200MB，与视频文件相同）
   const sizeMB = file.size / 1024 / 1024;
   if (sizeMB > 200) {
-    ElMessage.error('上传文件大小不能超过200MB!');
+    // ElMessage.error('上传文件大小不能超过200MB!');
     return false;
   }
 
   // 限制只能上传一个文件
   if (contractFiles.value.length >= 1) {
-    ElMessage.error('只能上传一个合同文件');
     return false;
   }
 
@@ -432,7 +420,6 @@ const handleUpload = (req: any) =>
       if (typeof req.onSuccess === 'function') req.onSuccess(data);
       return resolve(uploadedFile);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '文件上传失败，请重试');
       const idx = contractFiles.value.indexOf(tempItem);
       if (idx > -1) contractFiles.value.splice(idx, 1);
       try {
@@ -467,7 +454,6 @@ const handleContractRemove = async (file: ContractFile) => {
     try {
       await deleteContractFile([file.ossId]);
     } catch (error: any) {
-      ElMessage.error(error?.msg || '删除文件失败，请重试');
       return;
     }
   }
@@ -571,9 +557,7 @@ const handleSubmit = async () => {
     loading.value = true;
 
     // 获取当前上传文件的 ossId
-    const currentOssId = contractFiles.value.length > 0 && contractFiles.value[0]?.ossId 
-      ? String(contractFiles.value[0].ossId) 
-      : undefined;
+    const currentOssId = contractFiles.value.length > 0 && contractFiles.value[0]?.ossId ? String(contractFiles.value[0].ossId) : undefined;
 
     // 直接传递还款计划数组
     const response = await updateRepaymentPlan(props.data.id, currentOssId, plans.value);
@@ -582,11 +566,9 @@ const handleSubmit = async () => {
       ElMessage.success('提交成功');
       emit('update:visible', false);
     } else {
-      ElMessage.error(response.msg || '提交失败');
     }
   } catch (error) {
     console.error('提交失败:', error);
-    ElMessage.error('提交失败');
   } finally {
     loading.value = false;
   }

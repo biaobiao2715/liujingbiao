@@ -26,13 +26,7 @@
       </el-table-column>
       <el-table-column label="商品图片" align="center" width="120">
         <template #default="{ row }">
-          <el-image
-            v-if="row.goodsImage"
-            :src="row.goodsImage"
-            :preview-src-list="[row.goodsImage]"
-            style="width: 60px; height: 60px"
-            fit="cover"
-          />
+          <el-image v-if="row.goodsImage" :src="row.goodsImage" :preview-src-list="[row.goodsImage]" style="width: 60px; height: 60px" fit="cover" />
           <span v-else class="text-gray">暂无图片</span>
         </template>
       </el-table-column>
@@ -72,7 +66,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
-import { ElMessage } from 'element-plus';
 import { priceSpecialReportList } from '@/api/mall/marketComponent';
 import Pagination from '@/components/Pagination/index.vue';
 
@@ -189,13 +182,11 @@ const fetchReportList = async () => {
       });
       reportTotal.value = response.total || 0;
     } else {
-      ElMessage.error(response?.msg || '获取价格专项报告数据失败');
       reportTableData.value = [];
       reportTotal.value = 0;
     }
   } catch (error) {
     console.error('获取价格专项报告数据失败:', error);
-    ElMessage.error('获取价格专项报告数据失败，请稍后重试');
     reportTableData.value = [];
     reportTotal.value = 0;
   } finally {
@@ -239,7 +230,7 @@ const getCreditLevelClass = (level: string) => {
 
 .special-report-dialog {
   :deep(.el-dialog__header) {
-  padding: 10px 16px 8px 16px !important; 
+    padding: 10px 16px 8px 16px !important;
     text-align: center;
     border-bottom: 1px solid #f2f3f5;
     margin-bottom: 0;
@@ -349,4 +340,3 @@ const getCreditLevelClass = (level: string) => {
   color: #ff4d4f;
 }
 </style>
-
