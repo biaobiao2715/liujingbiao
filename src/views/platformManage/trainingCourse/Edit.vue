@@ -274,7 +274,7 @@ const fetchContentDetail = async () => {
       const data = response.data;
 
       if (!data) {
-        ElMessage.error('获取内容详情失败：数据为空');
+        // ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
 
@@ -330,11 +330,11 @@ const fetchContentDetail = async () => {
         attachmentList.value = [];
       }
     } else {
-      ElMessage.error(response?.msg || '获取内容详情失败');
+      // ElMessage.error(response?.msg || '获取内容详情失败');
     }
   } catch (error) {
     console.error('获取内容详情失败:', error);
-    ElMessage.error('获取内容详情失败，请稍后重试');
+    // ElMessage.error('获取内容详情失败，请稍后重试');
   } finally {
     loading.value = false;
   }
@@ -382,13 +382,13 @@ const handleSubmit = (): Promise<boolean> => {
         emit('success');
         resolve(true);
       } else {
-        ElMessage.error(response?.msg || '操作失败，请稍后重试');
+        // ElMessage.error(response?.msg || '操作失败，请稍后重试');
         reject(false);
       }
     } catch (error) {
       if (error !== 'cancel') {
         console.error('操作失败:', error);
-        ElMessage.error('操作失败，请稍后重试');
+        // ElMessage.error('操作失败，请稍后重试');
         reject(false);
       }
     } finally {
@@ -511,7 +511,7 @@ const handleFileChange = async ({ file }: any) => {
     ElMessage.success('附件上传成功');
   } catch (error) {
     console.error('附件上传失败:', error);
-    ElMessage.error('上传失败，请重试');
+    // ElMessage.error('上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
     uploadRef.value?.clearFiles();
@@ -553,7 +553,7 @@ const handleImgFileChange = async (file: any) => {
     ];
   } catch (error) {
     console.error('附件上传失败:', error);
-    ElMessage.error('上传失败，请重试');
+    // ElMessage.error('上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
   }
@@ -624,11 +624,11 @@ const uploadReplacementFile = async (file: File) => {
         ElMessage.success('附件重新上传成功');
       }
     } else {
-      ElMessage.error(response?.msg || '重新上传失败，请重试');
+      // ElMessage.error(response?.msg || '重新上传失败，请重试');
     }
   } catch (error) {
     console.error('附件重新上传失败:', error);
-    ElMessage.error('重新上传失败，请重试');
+    // ElMessage.error('重新上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
     // 重置索引
