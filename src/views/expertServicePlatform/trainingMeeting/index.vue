@@ -20,11 +20,11 @@
       <el-form-item label="会议标题" prop="meetingName" label-width="auto">
         <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
       </el-form-item>
-      <el-form-item label="报名状态" prop="applicationStatus" label-width="auto">
+      <!-- <el-form-item label="报名状态" prop="applicationStatus" label-width="auto">
         <el-select v-model="queryParams.applicationStatus" placeholder="请选择" clearable>
           <el-option v-for="item in enroll_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="所属状态" prop="meetingStatus" label-width="auto">
         <el-select v-model="queryParams.meetingStatus" placeholder="请选择" clearable>
           <el-option v-for="item in meeting_status" :key="item.value" :label="item.label" :value="item.value" />
@@ -68,11 +68,11 @@
         </template>
       </el-table-column>
       <el-table-column label="联系方式" prop="meetingPhone" min-width="120" />
-      <el-table-column label="报名状态" align="center" prop="enrollStatus" min-width="80">
+      <!-- <el-table-column label="报名状态" align="center" prop="enrollStatus" min-width="80">
         <template #default="scope">
           <dict-tag :options="enroll_status" :value="scope.row.enrollStatus" />
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="浏览量" prop="pageViews" min-width="80" />
       <el-table-column label="报名人数" prop="enrollCount" min-width="80" />
       <el-table-column label="发布时间" prop="publishTime" min-width="160">
@@ -145,7 +145,7 @@ const queryParams = ref({
   publishTime: [],
   publisher: '',
   meetingName: '',
-  applicationStatus: '',
+  // applicationStatus: '',
   meetingStatus: ''
 });
 
