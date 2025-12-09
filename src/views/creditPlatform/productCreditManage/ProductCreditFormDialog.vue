@@ -50,7 +50,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="可贷金额" required>
+          <el-form-item label="可贷金额" required class="loan-amount-item">
             <div class="range-inputs">
               <el-form-item prop="minLoanAmount" label-width="0" class="inline-form-item">
                 <el-input-number
@@ -1099,6 +1099,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   .range-split {
     color: #909399;
@@ -1117,6 +1119,12 @@ onMounted(() => {
   .inline-form-item {
     margin-bottom: 0;
   }
+}
+
+.loan-amount-item :deep(.el-form-item__content) {
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .attachment-upload {

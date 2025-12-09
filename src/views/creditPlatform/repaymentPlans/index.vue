@@ -364,10 +364,11 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
         console.log(detailData);
         console.log(messageType);
 
-        // 2. 直接将 messageType 添加到对象中
+        // 2. 直接将 messageType 和 productName 添加到对象中
         const dataWithMessageType = {
           ...detailData,
-          messageType: messageType
+          messageType: messageType,
+          productName: row.productName
         };
         console.log(dataWithMessageType);
 

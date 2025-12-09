@@ -30,7 +30,13 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="统一社会信用代码号" prop="licenseCode" class="no-wrap-label">
-              <el-input v-model="formData.licenseCode" placeholder="请输入统一社会信用代码号" :disabled="isReadOnly" />
+              <el-input 
+                v-model="formData.licenseCode" 
+                placeholder="请输入统一社会信用代码号" 
+                :disabled="isReadOnly"
+                @input="handleLicenseCodeInput"
+                maxlength="18"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -261,7 +267,30 @@ const getStatusTagType = () => {
 
 const rules: FormRules = {
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
-  licenseCode: [{ required: true, message: '请输入统一社会信用代码号', trigger: 'blur' }],
+  licenseCode: [
+    { required: true, message: '请输入统一社会信用代码号', trigger: 'blur' },
+    {
+      validator: (_: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+          return;
+        }
+        // 长度校验：必须是18位
+        if (value.length !== 18) {
+          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          return;
+        }
+        // 格式校验：仅支持数字(0-9)和大写字母(A-Z)
+        const pattern = /^[0-9A-Z]{18}$/;
+        if (!pattern.test(value)) {
+          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'blur'
+    }
+  ],
   companyType: [{ required: true, message: '请选择企业性质', trigger: 'change' }],
   legalPerson: [{ required: true, message: '请输入法人/联系人', trigger: 'blur' }],
   contactPhone: [
@@ -302,6 +331,13 @@ const mapData = computed({
     }
   }
 });
+
+// 统一社会信用代码输入处理：自动转换为大写，只允许数字和大写字母
+const handleLicenseCodeInput = (value: string) => {
+  // 过滤掉非数字和非字母的字符，并将字母转换为大写
+  const filtered = value.replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+  formData.licenseCode = filtered;
+};
 
 // 地址输入框失焦后，同步地图位置
 const handleAddressBlur = () => {
@@ -680,6 +716,13 @@ const handleSubmit = async () => {
       .el-form-item__label {
         white-space: nowrap;
       }
+    }
+
+    .form-item-tip {
+      font-size: 12px;
+      color: #909399;
+      margin-top: 4px;
+      line-height: 1.5;
     }
 
     .license-uploader {
