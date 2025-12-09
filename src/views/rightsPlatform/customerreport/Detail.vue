@@ -375,6 +375,10 @@ const attachmentList = ref<
     uid?: string;
   }>
 >([]);
+const closeAppealDialog = (done) => {
+  done();
+  emit('cancel');
+};
 // 工具方法：字节大小转可读文本
 const formatByteSize = (bytes?: number) => {
   const n = Number(bytes);
