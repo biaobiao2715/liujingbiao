@@ -19,6 +19,8 @@
       </div>
     </div>
 
+    <!-- 导航组件 -->
+    <CommonNavigation />
     <!-- 内容区域 -->
     <div class="content-area">
       <!-- 商城首页 -->
@@ -44,6 +46,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
+import CommonNavigation from './Components/CommonNavigation.vue'; // 导航组件
 import GoodsComponent from './Components/GoodsComponent.vue'; // 商城首页组件
 import GoodsDetailComponent from './Components/GoodsDetailComponent.vue'; // 商品详情组件
 import CompareGoodsComponent from './Components/AboutCompareComponents/CompareGoodsComponent.vue'; // 商品比价组件
@@ -52,41 +55,13 @@ import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件
 import ExpertComponent from './Components/ExpertComponent.vue'; // 专家组件
 import PersonalCenterComponent from './personalCenter/index.vue'; // 个人中心组件
+
 import { eventBus } from '@/utils/eventBus';
 
-// 类型定义
-type DetailView =
-  | 'area'
-  | 'GoodsComponent'
-  | 'LoanProductsComponentDetails'
-  | 'LoanProductsComponentApplyForm'
-  | 'InsuranceproductComponentList'
-  | 'InsuranceproductComponentDetails'
-  | 'RiskCasesComponentList'
-  | 'RiskCasesComponentDetails'
-  | 'PolicyRulesComponentList'
-  | 'PolicyRulesComponentDetails'
-  | 'PersonalCenter';
-
-const TITLE_MAP: Record<Exclude<DetailView, 'area'>, string> = {
-  GoodsComponent: '商城首页',
-  LoanProductsComponentDetails: '信贷产品详情',
-  LoanProductsComponentApplyForm: '申请信贷产品',
-  InsuranceproductComponentList: '保险产品列表',
-  InsuranceproductComponentDetails: '保险产品详情',
-  RiskCasesComponentList: '风险案例列表',
-  RiskCasesComponentDetails: '风险案例详情',
-  PolicyRulesComponentList: '政策法规列表',
-  PolicyRulesComponentDetails: '政策法规详情',
-  PersonalCenter: '个人中心'
-
-  // // 以下内容只用来展示，不参与交互，无实际意义
-  // MyCollections: '我的收藏',
-  // CreditApplication: '信贷申请管理'
-};
-
 const activeTab = ref('goods');
+
 const personalCommand = ref('');
+
 const detailsId = ref<string | number>('');
 
 const detailsType = ref('');
@@ -140,8 +115,7 @@ onMounted(() => {
 });
 
 function handleTabClick(tab: any) {
-  console.log(tab);
-
+  eventBus.emit('navigationChange', tab);
   activeTab.value = tab;
 }
 </script>

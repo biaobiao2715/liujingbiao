@@ -7,25 +7,25 @@
 -->
 
 <template>
-  <div class="">
+  <div class="meeting-detail-container" v-loading="loading">
     <div class="meeting-detail">
       <div class="meeting-header">
         <div class="meeting-title">{{ detail?.meetingName }}</div>
         <!--  会议状态（0：草稿 1：待开始 2：进行中 3：已结束 99：已取消）-->
         <div>
-          <el-tag type="danger" v-if="detail.meetingStatus == 0">
+          <el-tag type="danger" v-if="detail?.meetingStatus == 0">
             {{ getMeetingStatus(detail?.meetingStatus) }}
           </el-tag>
-          <el-tag type="primary" v-if="detail.meetingStatus == 1">
+          <el-tag type="primary" v-if="detail?.meetingStatus == 1">
             {{ getMeetingStatus(detail?.meetingStatus) }}
           </el-tag>
-          <el-tag type="success" v-if="detail.meetingStatus == 2">
+          <el-tag type="success" v-if="detail?.meetingStatus == 2">
             {{ getMeetingStatus(detail?.meetingStatus) }}
           </el-tag>
-          <el-tag type="warning" v-if="detail.meetingStatus == 3">
+          <el-tag type="warning" v-if="detail?.meetingStatus == 3">
             {{ getMeetingStatus(detail?.meetingStatus) }}
           </el-tag>
-          <el-tag type="info" v-if="detail.meetingStatus == 99">
+          <el-tag type="info" v-if="detail?.meetingStatus == 99">
             {{ getMeetingStatus(detail?.meetingStatus) }}
           </el-tag>
         </div>
@@ -42,9 +42,9 @@
       </div>
       <!-- 报名按钮 -->
       <div class="registration-btn-box">
-        <div class="registration-btn">
-          <img src="@/assets/images/bmtx.png" alt="" />
-          <span> {{ '我要报名' }} </span>
+        <div class="registration-btn" @click="handleApply" v-if="detail?.meetingStatus === '1'">
+          <img src="@/assets/images/bmtx.png" />
+          <span>{{ detail?.enrollStatus === '0' ? '取消报名' : '我要报名' }} </span>
         </div>
       </div>
     </div>
@@ -55,63 +55,37 @@
         <!-- 会议主题 -->
         <div class="meeting-item">
           <div class="m-title">会议主题</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">{{ detail?.meetingName }}</div>
         </div>
         <!-- 会议联系人 -->
         <div class="meeting-item">
           <div class="m-title">会议联系人</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">{{ detail?.meetingContact }}</div>
         </div>
         <!-- 会议类别 -->
         <div class="meeting-item">
           <div class="m-title">会议类别</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">
+            <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+          </div>
         </div>
         <!-- 会议时间 -->
         <div class="meeting-item">
           <div class="m-title">会议时间</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
         </div>
         <!-- 会议地址 -->
         <div class="meeting-item">
           <div class="m-title">会议地址</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">{{ detail?.meetingAddress }}</div>
         </div>
         <!-- 取消原因 -->
-        <div class="meeting-item">
+        <div class="meeting-item" v-if="detail?.meetingStatus === '99'">
           <div class="m-title">取消原因</div>
-          <div class="m-content">{{ '121234545611' }}</div>
+          <div class="m-content">{{ detail?.cancelReason }}</div>
         </div>
       </div>
     </div>
-    <!-- <div class="description flex-center gap-24 mt-24 mb-24">
-      <img :src="detail?.avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 14px" />
-      <div>{{ '发布人：  ' + detail?.publishUser }}</div>
-      <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
-      <div class="status">
-        会议状态：<el-tag>{{ getMeetingStatus(detail?.meetingStatus) }}</el-tag>
-      </div>
-      <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button v-if="detail?.meetingStatus === '1'" :type="detail?.enrollStatus === '0' ? 'info' : 'primary'" @click="handleApply">{{
-        detail?.enrollStatus === '0' ? '取消报名' : '立即报名'
-      }}</el-button>
-    </div> -->
-
-    <!-- 分割线 -->
-    <!-- <el-divider></el-divider> -->
-    <!-- 详细信息 -->
-    <!-- <div class="detail">
-      <div class="item">会议主题：{{ detail?.meetingName }}</div>
-      <div class="item">会议联系人：{{ detail?.meetingContact }}</div>
-      <div class="item flex-center gap-12">
-        <div>会议类别：</div>
-        <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
-      </div>
-      <div class="item">会议时间：{{ detail?.meetingStartTime + ' - ' + detail?.meetingEndTime }}</div>
-      <div class="item">会议地点：{{ detail?.meetingAddress }}</div>
-      <div v-if="detail?.meetingStatus === '99'" class="item">取消原因：{{ detail?.cancelReason }}</div>
-    </div> -->
   </div>
 </template>
 
@@ -132,14 +106,18 @@ const props = defineProps({
 
 const detail = ref();
 
+const loading = ref(false);
+
 onMounted(() => {
   getMeetingDetail();
 });
 
 const getMeetingDetail = async () => {
   // 根据传入的ID获取课程详情
+  loading.value = true;
   meetingDetail({ id: props.id, isView: true }).then((res) => {
     detail.value = res.data || {};
+    loading.value = false;
   });
 };
 
@@ -169,6 +147,7 @@ const handleApply = async () => {
     type: 'warning'
   })
     .then(async () => {
+      loading.value = true;
       const res = await activityApply({
         id: props.id,
         categoryType: '1',
@@ -181,6 +160,7 @@ const handleApply = async () => {
       } else {
         ElMessage.error(res.msg || `${detail.value.enrollStatus === '0' ? '取消报名' : '报名'}失败`);
       }
+      loading.value = false;
     })
     .catch(() => {});
 };
