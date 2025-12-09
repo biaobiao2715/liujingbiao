@@ -68,7 +68,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AskExpertComponent from './AskExpertComponent.vue';
-import ExpertDetailComponent from './ExpertDetailComponent.vue';
 import { technologyExpertList, legalExpertList } from '@/api/mall/expert';
 
 const emit = defineEmits(['detailChange']);
@@ -78,8 +77,6 @@ const activeTab = ref('technology');
 const isExpanded = ref(false);
 
 const askExpertRef = ref(null);
-
-const expertDetailRef = ref(null);
 
 const expertList = ref([]);
 

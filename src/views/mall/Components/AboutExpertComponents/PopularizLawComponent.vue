@@ -54,7 +54,7 @@ const activeTab = ref('lawContentDetail');
 
 const dataList = ref([]);
 const pageNum = ref(1);
-const pageSize = 15;
+const pageSize = 4;
 const hasMore = ref(true);
 
 onMounted(() => {

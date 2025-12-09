@@ -93,6 +93,8 @@ const props = defineProps<{
   goods: any;
 }>();
 
+const emit = defineEmits(['detailChange']);
+
 const regionValue = ref<string[]>([]);
 
 const loading = ref<boolean>(false);
@@ -183,35 +185,6 @@ const handleSearch = () => {
 const fetchGoodsList = async () => {
   loading.value = true;
   try {
-    // const params: any = {
-    //   pageNum: queryParams.pageNum,
-    //   pageSize: queryParams.pageSize
-    // };
-
-    // if (goodsIdFromRoute.value) {
-    //   params.id = goodsIdFromRoute.value;
-    // }
-
-    // if (filterState.region === '选择地区' && queryParams.provinceCode) {
-    //   params.provinceCode = queryParams.provinceCode;
-    //   if (queryParams.cityCode) {
-    //     params.cityCode = queryParams.cityCode;
-    //   }
-    //   if (queryParams.districtCode) {
-    //     params.districtCode = queryParams.districtCode;
-    //   }
-    // }
-
-    // params.sortManner = queryParams.sortManner || '0';
-
-    // // 价格区间：undefined/null 不传递，0 值保持为 0
-    // if (queryParams.minPrice !== undefined && queryParams.minPrice !== null) {
-    //   params.minPrice = queryParams.minPrice;
-    // }
-    // if (queryParams.maxPrice !== undefined && queryParams.maxPrice !== null) {
-    //   params.maxPrice = queryParams.maxPrice;
-    // }
-
     const response = await goodsCompareList({ ...queryParams, goodsCategoryId: props.goods.goodsCategoryId });
     if (response.code === 200) {
       const records = response.rows || [];
@@ -262,8 +235,8 @@ const startCompare = async () => {
     return;
   }
 
-  eventBus.emit('activeTabChange', {
-    command: 'compareDetail',
+  emit('detailChange', {
+    type: 'compareDetail',
     compareGoodsList: compareGoodsList.value
   });
 };

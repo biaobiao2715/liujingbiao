@@ -26,10 +26,17 @@ import { eventBus } from '@/utils/eventBus';
 
 // 类型定义
 type DetailView =
+  // 首页相关
   | 'goods'
   | 'demand'
   | 'market'
   | 'expert'
+  // 商城相关
+  | 'goodsDetail'
+  | 'demandDetail'
+  | 'marketDetail'
+  | 'compareGoods'
+  //   专家学堂相关
   | 'expertDetail'
   | 'qaMoreList'
   | 'qaDetail'
@@ -56,7 +63,12 @@ const TITLE_MAP: Record<Exclude<DetailView, never>, string> = {
   demand: '供需大厅',
   market: '市场行情',
   expert: '专家学堂',
-  //   专家学堂相关
+  // 商城相关
+  goodsDetail: '商品详情',
+  demandDetail: '供需详情',
+  marketDetail: '行情详情',
+  compareGoods: '对比商品',
+  // 专家学堂相关
   expertDetail: '专家详情',
   qaMoreList: '问答列表',
   qaDetail: '问答详情',
@@ -78,10 +90,21 @@ const naviteList = ref([]);
 onMounted(() => {
   eventBus.on('navigationChange', (command: string) => {
     const uniqueId = new Date().getTime();
+    // 如果是大类，那么就清空导航列表，重新添加
+    if (command === 'goods' || command === 'demand' || command === 'market' || command === 'expert') {
+      naviteList.value = [
+        {
+          uniqueId,
+          type: command
+        }
+      ];
+      return;
+    }
     naviteList.value.push({
       uniqueId,
       type: command
     });
+    console.log(naviteList.value);
   });
 });
 
