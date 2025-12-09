@@ -8,7 +8,7 @@
         <img src="@/assets/mall/more.png" width="18" />
       </div>
     </div>
-    <el-row :gutter="20">
+    <el-row :gutter="20" v-if="qaList && qaList.length > 0">
       <el-col :span="8" class="mb-12" v-for="(item, index) in qaList" :key="index" v-show="isExpanded || index < 6">
         <div class="qa-card">
           <div class="qa-question gap-8">
@@ -33,6 +33,7 @@
         </div>
       </el-col>
     </el-row>
+    <el-empty v-else description="暂无问答"> </el-empty>
   </div>
 </template>
 
