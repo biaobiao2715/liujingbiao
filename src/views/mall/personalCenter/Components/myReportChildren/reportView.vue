@@ -251,9 +251,10 @@ const isWithdrawPending = computed(() => isWithdrawStatus.value && !props.report
 const isWithdrawProcessing = computed(() => isWithdrawStatus.value && !isWithdrawPending.value);
 
 // 举报材料展示：处理中、处理中撤回隐藏，其余展示
+// 2025-12-09修改：处理中也正常展示
 const shouldShowMaterials = computed(() => {
   const status = props.reportData?.status;
-  if (status === '1') return false;
+  // if (status === '1') return false;
   if (isWithdrawProcessing.value) return false;
   return true;
 });
@@ -275,7 +276,7 @@ const loadCaseTypeOptions = async () => {
     caseTypeOptions = Object.assign(caseTypeOptions, (res as any) || []);
   } catch (error) {
     console.error('获取案件类型列表失败:', error);
-    ElMessage.error('获取案件类型列表失败');
+    // ElMessage.error('获取案件类型列表失败');
   }
 };
 loadCaseTypeOptions();
@@ -302,7 +303,7 @@ const handleDownloadCaseFile = async (file: any) => {
     ElMessage.success('文件下载完成');
   } catch (error) {
     console.error('文件下载失败:', error);
-    ElMessage.error('文件下载失败');
+    // ElMessage.error('文件下载失败');
   }
 };
 
@@ -318,13 +319,19 @@ const caseTypeData = computed(() => {
 // 驳回/结案/撤回原因展示
 const reasonSection = computed(() => {
   const status = props.reportData?.status;
+  // 采购商租户不展示平台反馈数据，采购商类型 = 1
+  const tenantType = props.reportData?.tenantType;
   const result = {
     show: false,
     title: '',
     content: ''
   };
 
-  if (status === '2') {
+  if (status === '1') {
+    result.show = tenantType == '1' ? false : true;
+    result.title = tenantType == '1' ? '' : '平台反馈处理结果';
+    result.content = tenantType == '1' ? '' : props.reportData?.dealResult || '--';
+  } else if (status === '2') {
     result.show = true;
     result.title = '驳回原因';
     result.content = props.reportData?.rejectReason || '--';
@@ -566,7 +573,7 @@ const handleDownloadVideo = async (video: any) => {
     ElMessage.success('视频下载完成');
   } catch (error) {
     console.error('视频下载失败:', error);
-    ElMessage.error('视频下载失败');
+    // ElMessage.error('视频下载失败');
   }
 };
 
