@@ -321,7 +321,7 @@ const getstaticData = async () => {
     let res = await getexpertTotalStaticData();
     staticdata.value = res.data || {};
   } catch (error) {
-    ElMessage.error(error || '查询失败');
+    // ElMessage.error(error || '查询失败');
   }
 };
 /** 监听日期选择器变化，同步按钮状态 */

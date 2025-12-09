@@ -134,6 +134,7 @@ import { Search, RefreshLeft } from '@element-plus/icons-vue';
 // 引入编辑举报弹窗组件
 import ReportEdit from './myReportChildren/reportEdit.vue';
 import ReportView from './myReportChildren/reportView.vue';
+import { getInfo } from '@/api/login';
 
 // Vue 上下文
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -333,7 +334,7 @@ const handleWithdrawConfirm = () => {
       currentWithdrawRow.value = null;
       getList();
     } catch (error: any) {
-      ElMessage.error(error.msg || error.message || '撤回失败');
+      // ElMessage.error(error.msg || error.message || '撤回失败');
     } finally {
       withdrawLoading.value = false;
     }
@@ -381,19 +382,26 @@ const handleView = async (row: Report) => {
   try {
     // 调用接口获取详细信息
     const res = await resubmitReportList(row.id);
+    // 调用获取用户信息接口，拿到租户类型
+    const {
+      data: { tenantType }
+    } = await getInfo();
+    console.log(tenantType, '用户信息');
+
     // 设置接口返回的数据
     if (res && res.data) {
       currentReportData.value = {
         ...row,
-        ...res.data
+        ...res.data,
+        tenantType
       };
     } else {
       // 如果接口返回数据为空，使用列表数据
-      currentReportData.value = row;
+      currentReportData.value = { ...row, tenantType };
     }
   } catch (error: any) {
     console.error('获取举报详情失败:', error);
-    ElMessage.error(error.msg || error.message || '获取详情失败');
+    // ElMessage.error(error.msg || error.message || '获取详情失败');
     // 接口失败时使用列表数据
     currentReportData.value = row;
   } finally {

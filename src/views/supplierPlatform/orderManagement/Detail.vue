@@ -515,7 +515,7 @@ const saveReceiverInfo = async () => {
     ElMessage.success('收货人信息已更新');
     editVisible.value = false;
   } catch (error) {
-    if (error) ElMessage.error(error);
+    // if (error) ElMessage.error(error);
   } finally {
     editloading.value = false;
   }
@@ -549,7 +549,7 @@ const shipmentInfo = async () => {
     getdetail();
     ElMessage.success('发货成功');
   } catch (error) {
-    ElMessage.error(error);
+    // ElMessage.error(error);
   } finally {
     shipmentloading.value = false;
   }

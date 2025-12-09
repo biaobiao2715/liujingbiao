@@ -212,7 +212,7 @@ const handleImgFileChange = async (file: any) => {
     formData.value.coverImageId = response.data.ossId;
   } catch (error) {
     console.error('附件上传失败:', error);
-    ElMessage.error('上传失败，请重试');
+    // ElMessage.error('上传失败，请重试');
   } finally {
     (proxy as any)?.$modal?.closeLoading();
   }
@@ -243,7 +243,7 @@ const handleSubmit = async () => {
     emit('success');
   } catch (error) {
     console.error('提交失败:', error);
-    ElMessage.error('操作失败，请重试');
+    // ElMessage.error('操作失败，请重试');
   } finally {
     saving.value = false;
     (proxy as any)?.$modal?.closeLoading();
@@ -279,7 +279,7 @@ const loadDetail = async () => {
     }
   } catch (error) {
     console.error('加载详情失败:', error);
-    ElMessage.error('加载详情失败');
+    // ElMessage.error('加载详情失败');
   } finally {
     loading.value = false;
   }

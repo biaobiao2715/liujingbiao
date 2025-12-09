@@ -236,13 +236,13 @@ const getList = () => {
         tableData.value = res.rows || [];
         total.value = res.total || 0;
       } else {
-        ElMessage.error(res?.msg || '获取直播信息内容列表失败');
+        // // ElMessage.error(res?.msg || '获取直播信息内容列表失败');
       }
       loading.value = false;
     })
     .catch((error) => {
       console.error('获取直播信息内容列表失败:', error);
-      ElMessage.error('获取直播信息内容列表失败，请稍后重试');
+      // // ElMessage.error('获取直播信息内容列表失败，请稍后重试');
       loading.value = false;
     });
 };
@@ -339,12 +339,12 @@ const handleEnable = () => {
             selectedIds.value = [];
             selectedRows.value = [];
           } else {
-            ElMessage.error(response.msg || '启用操作失败');
+            // ElMessage.error(response.msg || '启用操作失败');
           }
         })
         .catch((error) => {
           console.error('启用操作失败:', error);
-          ElMessage.error('启用操作失败，请稍后重试');
+          // ElMessage.error('启用操作失败，请稍后重试');
         });
     })
     .catch(() => {
@@ -394,12 +394,12 @@ const handleDisable = () => {
             selectedIds.value = [];
             selectedRows.value = [];
           } else {
-            ElMessage.error(response.msg || '停用操作失败');
+            // ElMessage.error(response.msg || '停用操作失败');
           }
         })
         .catch((error) => {
           console.error('停用操作失败:', error);
-          ElMessage.error('停用操作失败，请稍后重试');
+          // ElMessage.error('停用操作失败，请稍后重试');
         });
     })
     .catch(() => {
@@ -437,7 +437,7 @@ const handleDelete = async () => {
     selectedRows.value = [];
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败，请稍后重试');
+      // ElMessage.error('删除失败，请稍后重试');
     }
   }
 };
@@ -484,7 +484,7 @@ const handleStatusChange = async (row: any, newStatus: string) => {
     getList();
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(`${statusText}失败，请稍后重试`);
+      // ElMessage.error(`${statusText}失败，请稍后重试`);
     }
   }
 };
@@ -507,7 +507,7 @@ const handleDeleteSingle = async (row: any) => {
     getList();
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败，请稍后重试');
+      // ElMessage.error('删除失败，请稍后重试');
     }
   }
 };

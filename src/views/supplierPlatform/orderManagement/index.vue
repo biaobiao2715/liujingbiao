@@ -511,11 +511,11 @@ const getTableData = async () => {
       total.value = res.total || 0;
       console.log('订单列表数据:', tableData.value);
     } else {
-      ElMessage.error(res.msg || '获取订单列表失败');
+      // ElMessage.error(res.msg || '获取订单列表失败');
     }
   } catch (error) {
     console.error('查询订单列表失败:', error);
-    ElMessage.error('查询订单列表失败，请稍后重试');
+    // ElMessage.error('查询订单列表失败，请稍后重试');
   } finally {
     loading.value = false;
   }
@@ -575,7 +575,7 @@ const cancelorder = async () => {
     getTableData();
     ElMessage.success('取消成功');
   } catch (error) {
-    ElMessage.error(error);
+    // ElMessage.error(error);
   } finally {
     cancelloading.value = false;
     dialogVisible.value = false;
@@ -614,7 +614,7 @@ const shipmentInfo = async () => {
   } catch (error) {
     console.log(error);
     for (const key in error as any) {
-      ElMessage.error(error[key][0]);
+      // ElMessage.error(error[key][0]);
     }
     // ElMessage.error(error);
   } finally {
