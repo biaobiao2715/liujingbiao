@@ -213,18 +213,12 @@
           </el-table-column>
           <el-table-column label="操作" width="250" align="center">
             <template #default="scope">
-              <el-button v-throttle link @click="previewFile(scope.row)" style="color: #108c58; border-width: 0px; margin-right: 10px">
+              <el-button v-throttle link @click="previewFile(scope.row)" style="color: #108c58; margin-right: 10px">
                 <img src="@/assets/images/register1.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">下载</span>
               </el-button>
 
-              <el-button
-                v-throttle
-                link
-                v-if="scope.row.fileType !== '1'"
-                @click="removeFile(scope.row)"
-                style="color: #ff3131; border-color: #ff3131"
-              >
+              <el-button v-throttle link v-if="scope.row.fileType !== '1'" @click="removeFile(scope.row)" style="color: #ff3131">
                 <img src="@/assets/images/register4.svg" class="el-icon-view" />
                 <span style="height: 16px; line-height: 16px">删除</span>
               </el-button>
@@ -649,6 +643,17 @@ const setUnifiedName = (name: string) => {
   }
 };
 
+// 手机号联动：account `phoneNumber` 与首个联系人 `contactPhone` 保持一致
+const setUnifiedPhone = (phone: string) => {
+  const newPhone = phone ?? '';
+  // 更新账号手机号
+  if (form.value.phoneNumber !== newPhone) form.value.phoneNumber = newPhone;
+  // 更新联系人首行手机号
+  if (tableList.value.length > 0 && tableList.value[0].contactPhone !== newPhone) {
+    tableList.value[0].contactPhone = newPhone;
+  }
+};
+
 // 监听任意一个字段的变化，统一到同一个值，避免循环：使用比对后再写入
 watch(
   () => form.value.legalPerson,
@@ -668,6 +673,22 @@ watch(
   () => (tableList.value.length > 0 ? tableList.value[0].contactUserName : ''),
   (val) => {
     if (val !== undefined) setUnifiedName(val as string);
+  }
+);
+
+// 监听账号手机号变化，联动到首个联系人手机号
+watch(
+  () => form.value.phoneNumber,
+  (val) => {
+    if (val !== undefined) setUnifiedPhone(val as string);
+  }
+);
+
+// 监听首个联系人手机号变化，联动到账号手机号
+watch(
+  () => (tableList.value.length > 0 ? tableList.value[0].contactPhone : ''),
+  (val) => {
+    if (val !== undefined) setUnifiedPhone(val as string);
   }
 );
 
@@ -923,6 +944,8 @@ const handleDiplomaChange = (file: UploadFile) => {
             // tableList.value[0].contactUserName = brr.legalRepresentative;
             // OCR 回填后保持三个字段联动一致
             setUnifiedName(brr.legalRepresentative || '');
+            // 同步手机号（若 OCR 返回了可用的电话信息，可按需回填，这里仅保持已有值一致）
+            setUnifiedPhone(form.value.phoneNumber || (tableList.value[0]?.contactPhone ?? ''));
           })
           .catch((error) => {
             // OCR 失败回滚
@@ -1018,9 +1041,19 @@ const previewFile = async (file: any) => {
 
 // 删除文件
 const removeFile = (file: any) => {
-  const index = fileListtable.value.findIndex((f) => f.uid === file.uid);
+  // 优先使用稳定唯一的 ossId 进行匹配，避免 uid 为 undefined 时总命中第一个项
+  const index = fileListtable.value.findIndex((f) => {
+    if (file.ossId && f.ossId) return f.ossId === file.ossId;
+    // 兜底：如果无 ossId，则按 url 或 name 匹配
+    if (file.url && f.url) return f.url === file.url;
+    if (file.name && f.name) return f.name === file.name;
+    return false;
+  });
   if (index !== -1) {
+    // 修正删除位置，直接删除命中的索引
     fileListtable.value.splice(index, 1);
+  } else {
+    console.warn('未找到要删除的文件：', file);
   }
 };
 

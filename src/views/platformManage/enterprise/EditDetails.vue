@@ -421,7 +421,11 @@ const cancelAudit = async (type: number) => {
       contacts: formData.value.contacts,
       folder: formData.value.folders
     }).then(() => {
-      ElMessage.success('审核成功');
+      if (type == 1) {
+        ElMessage.success('审核成功');
+      } else {
+        ElMessage.success('退回成功');
+      }
       emit('refresh');
     });
   } catch (error) {

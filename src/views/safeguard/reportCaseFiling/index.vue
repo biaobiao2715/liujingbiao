@@ -263,7 +263,7 @@ const getList = async () => {
     }
   } catch (error: any) {
     console.error('获取举报立案列表失败:', error);
-    ElMessage.error(error?.msg || error?.message || '获取列表失败');
+    // ElMessage.error(error?.msg || error?.message || '获取列表失败');
     tableData.value = [];
     total.value = 0;
   } finally {

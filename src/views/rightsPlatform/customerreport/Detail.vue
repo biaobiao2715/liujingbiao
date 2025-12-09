@@ -234,7 +234,7 @@
     </div>
   </div>
   <!-- 历史申诉材料弹窗 -->
-  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body @close="closeAppealDialog">
+  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body >
     <div v-loading="appealDialogLoading">
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
@@ -375,10 +375,6 @@ const attachmentList = ref<
     uid?: string;
   }>
 >([]);
-const closeAppealDialog = (done) => {
-  done();
-  emit('cancel');
-};
 // 工具方法：字节大小转可读文本
 const formatByteSize = (bytes?: number) => {
   const n = Number(bytes);

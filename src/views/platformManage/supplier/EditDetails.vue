@@ -508,7 +508,11 @@ const handleAudit = async (status: number) => {
       folder: formData.value.folders
     });
     if (res.code === 200) {
-      ElMessage.success('审核成功');
+      if (status == 1) {
+        ElMessage.success('审核成功');
+      } else {
+        ElMessage.success('退回成功');
+      }
       operateMode.value = 'view';
       emit('saveSuccess');
       dialogVisible.value = false;
