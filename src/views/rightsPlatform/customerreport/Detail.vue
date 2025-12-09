@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：		appealmodal.vue
 功能：		举报申述
-说明：		
+说明：
 当前版本：	1.0
 开发信息：	Created by 李政达 2025-11-18
 修改人信息：	李政达 2025-11-18
@@ -20,71 +20,73 @@
         <el-col :span="12">
           <el-form-item label="举报编号" prop="reportCode">
             <!-- <el-input v-model="formData.reportCode" clearable /> -->
-             {{ formData.reportCode }}
+            {{ formData.reportCode }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="举报时间" prop="createTime">
             <!-- <el-input v-model="formData.createTime" clearable /> -->
-             {{ formData.createTime }}
+            {{ formData.createTime }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="案件编号" prop="caseCode">
             <!-- <el-input v-model="formData.caseCode" clearable /> -->
-             {{ formData.caseCode }}
+            {{ formData.caseCode }}
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="举报描述" prop="reportDescription">
             <!-- <el-input v-model="formData.reportDescription" clearable /> -->
-             {{ formData.reportDescription }}
+            {{ formData.reportDescription }}
           </el-form-item>
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-    <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
+      <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
         <el-step title="待处理">
           <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '0')">
-            {{ hnReportHistoryList.find(item => item.status === '0').time }}
-          </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) >= 1 && Number(formData.status) <= 3 || (Number(formData.status) === 4 && formData.caseCode)" 
-          title="处理中">
-          <template #description>
-            <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '1')">
-          {{ hnReportHistoryList.find(item => item.status === '1').time }}
-          </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) === 2" title="已驳回">
-          <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '2')">
-          {{ hnReportHistoryList.find(item => item.status === '2').time }}
-        </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) === 3" title="已结案">
-          <template #description>
-        <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '3')">
-              {{ hnReportHistoryList.find(item => item.status === '3').time }}
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '0')">
+              {{ hnReportHistoryList.find((item) => item.status === '0').time }}
             </div>
           </template>
         </el-step>
-  
-      <el-step v-if="Number(formData.status) === 4" title="已撤回">
-        <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '4')">
-        {{ hnReportHistoryList.find(item => item.status === '4').time }}
-       </div>
-        </template>
-      </el-step>
-    </el-steps>
+
+        <el-step
+          v-if="(Number(formData.status) >= 1 && Number(formData.status) <= 3) || (Number(formData.status) === 4 && formData.caseCode)"
+          title="处理中"
+        >
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '1')">
+              {{ hnReportHistoryList.find((item) => item.status === '1').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 2" title="已驳回">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '2')">
+              {{ hnReportHistoryList.find((item) => item.status === '2').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 3" title="已结案">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '3')">
+              {{ hnReportHistoryList.find((item) => item.status === '3').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 4" title="已撤回">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '4')">
+              {{ hnReportHistoryList.find((item) => item.status === '4').time }}
+            </div>
+          </template>
+        </el-step>
+      </el-steps>
     </el-form>
     <div class="section-title">案件类型</div>
     <el-table :data="casetableData" border v-loading="loading" style="table-layout: fixed">
@@ -95,26 +97,24 @@
         </template>
       </el-table-column>
       <!-- 案件类型名称 -->
-        <el-table-column label="案件类型名称" align="center" prop="caseTypeId">
+      <el-table-column label="案件类型名称" align="center" prop="caseTypeId">
         <template v-slot="scope">
           <dict-text :options="case_type" :value="scope.row.caseTypeId || ''" />
         </template>
       </el-table-column>
 
-      
-
-       <!-- 执法依据 -->
+      <!-- 执法依据 -->
       <el-table-column label="执法依据" align="center">
         <template #default="scope">
-           <el-link 
+          <el-link
             v-if="scope.row.newBasisFile && scope.row.newBasisFile.ossInfo && scope.row.newBasisFile.ossInfo.url"
-            :href="scope.row.newBasisFile.ossInfo.url" 
+            :href="scope.row.newBasisFile.ossInfo.url"
             target="_blank"
             type="primary"
             :underline="true"
             @click.stop
-           > 
-          <span>{{ scope.row.newBasisFile.ossInfo.originalName}}</span>
+          >
+            <span>{{ scope.row.newBasisFile.ossInfo.originalName }}</span>
           </el-link>
         </template>
       </el-table-column>
@@ -122,120 +122,177 @@
       <!-- 执法文书模板 -->
       <el-table-column label="执法文书模板" align="center" prop="collectCount">
         <template #default="scope">
-          <el-link 
+          <el-link
             v-if="scope.row.newDocumentFile && scope.row.newDocumentFile.ossInfo && scope.row.newDocumentFile.ossInfo.url"
-            :href="scope.row.newDocumentFile.ossInfo.url" 
+            :href="scope.row.newDocumentFile.ossInfo.url"
             target="_blank"
             type="primary"
             :underline="true"
             @click.stop
-           >  
-          <span>{{ scope.row.newDocumentFile.ossInfo.originalName }}</span>
+          >
+            <span>{{ scope.row.newDocumentFile.ossInfo.originalName }}</span>
           </el-link>
         </template>
       </el-table-column>
     </el-table>
     <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
-       <el-row :gutter="20" class="detail-form">
-        <el-col :span="12"> 
-        <div v-if="formData.enterpriseType=='0'" class="detail-form-title">供应商申诉:</div>
+    <el-row :gutter="20" class="detail-form">
+      <el-col :span="12">
+        <div v-if="formData.enterpriseType == '0'" class="detail-form-title">供应商申诉:</div>
         <div v-else class="detail-form-title">企业申诉:</div>
- 
-        </el-col>
-         <el-col :span="24">
-            <el-form-item label="申诉描述：">
-              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
- 
-          <el-col :span="24">
-            <el-form-item label="申诉图片：">
-              <div class="evidence">
-                <template v-if="histAppealImageList.length">
-                  <el-image
-                    v-for="(img, idx) in histAppealImageList"
-                    :key="img.url + idx"
-                    :src="img.url"
-                    :preview-src-list="histAppealImagePreviewUrls"
-                    :initial-index="idx"
-                    fit="cover"
-                    class="evidence-image-item"
-                  />
-                </template>
-                <span v-else class="evidence-empty">暂无图片</span>
-              </div>
-            </el-form-item>
-          </el-col>
+      </el-col>
+      <el-col :span="24">
+        <el-form-item label="申诉描述：">
+          <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+        </el-form-item>
+      </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉视频：">
-              <div class="evidence">
-                <template v-if="histAppealVideoList.length">
-                  <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
-                    <div class="size">{{ v.sizeText }}</div>
-                    <div class="icon">视频</div>
-                    <div class="ops">
-                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
-                    </div>
-                  </div>
-                </template>
-                <span v-else class="evidence-empty">暂无视频</span>
-              </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24"  v-if="Number(formData.status) === 2">
-            <el-form-item label="申诉驳回原因："  >
-              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
-      </el-row>
-  
-    <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3" >
-        <FormHeader title="历史申诉材料" />
-        <el-table :data="formData.historyAppealList || []" border>
-          <el-table-column type="index" min-width="55" label="序号" align="center" />
-          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
-          <el-table-column label="操作" align="center">
-            <template #default="scope">
-              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+      <el-col :span="24">
+        <el-form-item label="申诉图片：">
+          <div class="evidence">
+            <template v-if="histAppealImageList.length">
+              <el-image
+                v-for="(img, idx) in histAppealImageList"
+                :key="img.url + idx"
+                :src="img.url"
+                :preview-src-list="histAppealImagePreviewUrls"
+                :initial-index="idx"
+                fit="cover"
+                class="evidence-image-item"
+              />
             </template>
-          </el-table-column>
-        </el-table>
-      </div>
-      
-    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
-    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3">
-        <el-col :span="24">
-            <el-form-item label="信用等级：">
-              <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
-            <dict-text :options="plat_credit_rating" :value="formData.creditLevel" />
+            <span v-else class="evidence-empty">暂无图片</span>
+          </div>
+        </el-form-item>
+      </el-col>
 
-            </el-form-item>
-          </el-col>
-             <el-col :span="24">
-            <el-form-item label="扣分：">
-              <!-- <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize /> -->
-               <div style="color: red;">{{ - formData.caseScore }}</div>  
-            </el-form-item>
-          </el-col>
-             <el-col :span="24">
-            <el-form-item label="评分：">
-              <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
-               {{ formData.sore }}分
-            </el-form-item>
-          </el-col>
+      <el-col :span="24">
+        <el-form-item label="申诉视频：">
+          <div class="evidence">
+            <template v-if="histAppealVideoList.length">
+              <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
+                <div class="size">{{ v.sizeText }}</div>
+                <div class="icon">视频</div>
+                <div class="ops">
+                  <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                </div>
+              </div>
+            </template>
+            <span v-else class="evidence-empty">暂无视频</span>
+          </div>
+        </el-form-item>
+      </el-col>
+      <el-col :span="24" v-if="Number(formData.status) === 2">
+        <el-form-item label="申诉驳回原因：">
+          <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+        </el-form-item>
+      </el-col>
     </el-row>
 
-    <div class="section-title"  v-if="Number(formData.status) === 4">举报人撤回原因</div>
-    <div class="section-title-che" style="font-size: 18px;margin-left: 15px;"  v-if="Number(formData.status) === 4">{{ formData.reportDescription }}</div>  
+    <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3">
+      <FormHeader title="历史申诉材料" />
+      <el-table :data="formData.historyAppealList || []" border>
+        <el-table-column type="index" min-width="55" label="序号" align="center" />
+        <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+        <el-table-column label="操作" align="center">
+          <template #default="scope">
+            <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
 
-       
+    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
+    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3">
+      <el-col :span="24">
+        <el-form-item label="信用等级：">
+          <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
+          <dict-text :options="plat_credit_rating" :value="formData.creditLevel" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="24">
+        <el-form-item label="扣分：">
+          <!-- <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize /> -->
+          <div style="color: red">{{ -formData.caseScore }}</div>
+        </el-form-item>
+      </el-col>
+      <el-col :span="24">
+        <el-form-item label="评分：">
+          <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
+          {{ formData.sore }}分
+        </el-form-item>
+      </el-col>
+    </el-row>
 
-   
+    <div class="section-title" v-if="Number(formData.status) === 4">举报人撤回原因</div>
+    <div class="section-title-che" style="font-size: 18px; margin-left: 15px" v-if="Number(formData.status) === 4">
+      {{ formData.reportDescription }}
+    </div>
+
     <div class="form-actions">
       <el-button @click="emitCancel">返回</el-button>
     </div>
   </div>
+  <!-- 历史申诉材料弹窗 -->
+  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body @close="closeAppealDialog">
+    <div v-loading="appealDialogLoading">
+      <el-row :gutter="20" class="detail-form">
+        <el-col :span="24">
+          <el-form-item label="申诉理由：">
+            <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉时间：">
+            <el-input v-model="appealDetail.appealTime" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉图片：">
+            <div class="evidence">
+              <template v-if="histAppealImageList2.length">
+                <el-image
+                  v-for="(img, idx) in histAppealImageList2"
+                  :key="img.url + idx"
+                  :src="img.url"
+                  :preview-src-list="histAppealImagePreviewUrls2"
+                  :initial-index="idx"
+                  fit="cover"
+                  class="evidence-image-item"
+                />
+              </template>
+              <span v-else class="evidence-empty">暂无图片</span>
+            </div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉视频：">
+            <div class="evidence">
+              <template v-if="histAppealVideoList2.length">
+                <div v-for="(v, idx) in histAppealVideoList2" :key="v.url + idx" class="video-card">
+                  <div class="size">{{ v.sizeText }}</div>
+                  <div class="icon">视频</div>
+                  <div class="ops">
+                    <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                  </div>
+                </div>
+              </template>
+              <span v-else class="evidence-empty">暂无视频</span>
+            </div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="平台驳回申诉理由：">
+            <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -262,13 +319,15 @@ const tocSidebarRef = ref();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const casetableData = ref([]); //案件类型list
 const hnReportHistoryList = ref([]); //案件类型list
-const withdrawCause= ref(""); //原因
+const withdrawCause = ref(''); //原因
 const count = ref(0);
 const histAppealImagePreviewUrls = ref<string[]>([]); // 历史申诉图片预览 URL 列表
 const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 
 // 使用字典数据
-const { report_status, report_type_id,case_type, plat_credit_rating } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type','plat_credit_rating'));
+const { report_status, report_type_id, case_type, plat_credit_rating } = toRefs<any>(
+  (proxy as any)?.useDict('report_status', 'report_type_id', 'case_type', 'plat_credit_rating')
+);
 /* 申述理由 */
 const presentarguments = ref();
 // 表单引用
@@ -290,17 +349,16 @@ const formData = ref({
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
   withdrawCause,
-  status: '' ,//订单状态
-  appealTime:'',//申诉时间
-  enterpriseType:'',//0供应商 1企业
-  appealReason:"",//申诉描述
-  NewAppealFile:"",//申诉材料
-  backAppealReason:"",//申诉驳回原因
-  historyAppealList: [],//历史申诉材料
-  caseScore: undefined,//扣分
-  sore: undefined,//信用分
-  creditLevel: '',//信用等级
-
+  status: '', //订单状态
+  appealTime: '', //申诉时间
+  enterpriseType: '', //0供应商 1企业
+  appealReason: '', //申诉描述
+  NewAppealFile: '', //申诉材料
+  backAppealReason: '', //申诉驳回原因
+  historyAppealList: [], //历史申诉材料
+  caseScore: undefined, //扣分
+  sore: undefined, //信用分
+  creditLevel: '' //信用等级
 });
 const reuploadIndex = ref(-1); // 记录当前重新上传的索引
 /* 主图图片 */
@@ -437,18 +495,17 @@ const fetchContentDetail = async () => {
         ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
-       const files =
-      safeArray(data.appealFiles) ||
-      safeArray(data?.newAppealFile?.appealFiles) ||
-      safeArray(data.files) ||
-      safeArray(data?.appealFiles) ||
-      safeArray(data?.files);
-      
-      const s = splitFiles(files);
-    histAppealImageList.value = s.images;
-    histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
-    histAppealVideoList.value = s.videos;
+      const files =
+        safeArray(data.appealFiles) ||
+        safeArray(data?.newAppealFile?.appealFiles) ||
+        safeArray(data.files) ||
+        safeArray(data?.appealFiles) ||
+        safeArray(data?.files);
 
+      const s = splitFiles(files);
+      histAppealImageList.value = s.images;
+      histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
+      histAppealVideoList.value = s.videos;
 
       // 将接口返回的数据赋值给表单
       formData.value = {
@@ -458,17 +515,17 @@ const fetchContentDetail = async () => {
         createTime: data.createTime || '',
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
-        withdrawCause:data.withdrawCause || '',
+        withdrawCause: data.withdrawCause || '',
         status: data.status || '',
-         appealTime:data.appealTime || '',
-        enterpriseType:data.enterpriseType || '',//0供应商 1企业
-        appealReason:data.appealReason || '',//申诉描述
-        NewAppealFile:data.NewAppealFile || '',//申诉材料
-        backAppealReason:data.backAppealReason || '',//申诉驳回原因
-        historyAppealList: data.historyAppealList || [],//历史申诉材料
-        caseScore: data.caseScore || undefined,//扣分
-        sore: data.sore || undefined,//信用分
-        creditLevel: data.creditLevel || '',//信用等级
+        appealTime: data.appealTime || '',
+        enterpriseType: data.enterpriseType || '', //0供应商 1企业
+        appealReason: data.appealReason || '', //申诉描述
+        NewAppealFile: data.NewAppealFile || '', //申诉材料
+        backAppealReason: data.backAppealReason || '', //申诉驳回原因
+        historyAppealList: data.historyAppealList || [], //历史申诉材料
+        caseScore: data.caseScore || undefined, //扣分
+        sore: data.sore || undefined, //信用分
+        creditLevel: data.creditLevel || '' //信用等级
       };
       withdrawCause.value = data.withdrawCause;
       hnReportHistoryList.value = data.statusAndDate || [];
@@ -530,7 +587,7 @@ const handleSubmit = async () => {
       caseCode: formData.value.caseCode,
       reportDescription: formData.value.reportDescription,
       status: formData.value.status,
-      withdrawCause:formData.value.withdrawCause,
+      withdrawCause: formData.value.withdrawCause
     };
     console.log('submitData提交的数据', submitData);
     return;
@@ -557,7 +614,54 @@ const handleSubmit = async () => {
 const emitCancel = () => {
   emit('cancel');
 };
+let appealDialogVisible = ref(false);
+let appealDialogLoading = ref(false);
+let appealDetail = reactive<any>({});
+const histAppealImageList2 = ref();
+const histAppealImagePreviewUrls2 = ref();
+const histAppealVideoList2 = ref();
+// 获取历史申诉详情  打开弹窗
+const handlePreview = async (row: any) => {
+  // 避免重复打开导致多个实例/遮罩叠加
+  if (appealDialogVisible.value) return;
+  const id = row?.id;
+  appealDialogLoading.value = true;
+  try {
+    // 等接口切换后，获取违规记录详情
+    const res = await getlookDetail(String(id)); //获取违规记录详情
+    const data: any = res?.data ?? {};
+    console.log('历史申诉详情数据:', data);
 
+    // 文本信息
+    appealDetail.appealReason = data.appealReason ?? '';
+    appealDetail.appealTime = data.appealTime ?? '';
+    appealDetail.backReason = data.backReason ?? '';
+
+    // 附件信息（兼容多种字段命名）
+    const files =
+      safeArray(data.appealFiles) ||
+      safeArray(data?.newAppealFile?.appealFiles) ||
+      safeArray(data.files) ||
+      safeArray(row?.appealFiles) ||
+      safeArray(row?.files);
+
+    const s = splitFiles(files);
+    histAppealImageList2.value = s.images;
+    histAppealImagePreviewUrls2.value = buildPreviewUrls(s.images);
+    histAppealVideoList2.value = s.videos;
+  } catch (e) {
+    console.error('获取申诉详情失败:', e);
+    histAppealImageList2.value = [];
+    histAppealImagePreviewUrls2.value = [];
+    histAppealVideoList2.value = [];
+    appealDetail.value.appealReason = '';
+    appealDetail.value.appealTime = '';
+    appealDetail.value.backReason = '';
+  } finally {
+    appealDialogLoading.value = false;
+  }
+  appealDialogVisible.value = true;
+};
 /** 文件大小格式化 */
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -804,13 +908,12 @@ const handlePictureCardPreview = (file) => {
 
 // 页面加载时的处理
 onMounted(() => {
+  console.log('4515545451');
   fetchContentDetail();
 });
 </script>
 
 <style scoped lang="scss">
- 
-
 .section-title {
   position: relative;
   font-size: 18px;
@@ -845,13 +948,13 @@ onMounted(() => {
     min-width: 100px;
   }
 }
-  .evidence {
+.evidence {
   display: flex;
   flex-wrap: nowrap;
   gap: 16px;
   width: 100%;
 }
-  .evidence-image-item {
+.evidence-image-item {
   flex: 0 0 calc((100% - 80px) / 6);
   aspect-ratio: 4 / 3;
   border: 2px solid #d7d7d7;
@@ -863,7 +966,7 @@ onMounted(() => {
   color: #909399;
   font-size: 13px;
 }
-.detail-form-title{
+.detail-form-title {
   font-size: 17px;
   font-weight: 600;
   padding-bottom: 10px;
@@ -896,7 +999,6 @@ onMounted(() => {
       border-radius: 2px;
     }
   }
- 
 
   .upload-tip {
     font-size: 12px;

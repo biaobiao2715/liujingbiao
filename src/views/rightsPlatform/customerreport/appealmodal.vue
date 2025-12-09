@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题：		appealmodal.vue
 功能：		举报申述
-说明：		
+说明：
 当前版本：	1.0
 开发信息：	Created by 李政达 2025-11-18
 修改人信息：	李政达 2025-11-18
@@ -20,71 +20,73 @@
         <el-col :span="12">
           <el-form-item label="举报编号:" prop="reportCode">
             <!-- <el-input v-model="formData.reportCode" clearable /> -->
-             {{ formData.reportCode }}
+            {{ formData.reportCode }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="举报时间:" prop="createTime">
             <!-- <el-input v-model="formData.createTime" clearable /> -->
-             {{ formData.createTime }}
+            {{ formData.createTime }}
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="案件编号:" prop="caseCode">
             <!-- <el-input v-model="formData.caseCode" clearable /> -->
-             {{ formData.caseCode }}
+            {{ formData.caseCode }}
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item label="举报描述" prop="reportDescription">
             <!-- <el-input v-model="formData.reportDescription" clearable /> -->
-             {{ formData.reportDescription }}
+            {{ formData.reportDescription }}
           </el-form-item>
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-    <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
+      <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
         <el-step title="待处理">
           <template #description>
-              <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '0')">
-            {{ hnReportHistoryList.find(item => item.status === '0').time }}
-          </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) >= 1 && Number(formData.status) <= 3 || (Number(formData.status) === 4 && formData.caseCode)" 
-          title="处理中">
-          <template #description>
-            <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '1')">
-          {{ hnReportHistoryList.find(item => item.status === '1').time }}
-          </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) === 2" title="已驳回">
-          <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '2')">
-          {{ hnReportHistoryList.find(item => item.status === '2').time }}
-        </div>
-          </template>
-        </el-step>
-        
-        <el-step v-if="Number(formData.status) === 3" title="已结案">
-          <template #description>
-        <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '3')">
-              {{ hnReportHistoryList.find(item => item.status === '3').time }}
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '0')">
+              {{ hnReportHistoryList.find((item) => item.status === '0').time }}
             </div>
           </template>
         </el-step>
-  
-      <el-step v-if="Number(formData.status) === 4" title="已撤回">
-        <template #description>
-          <div v-if="hnReportHistoryList && hnReportHistoryList.find(item => item.status === '4')">
-        {{ hnReportHistoryList.find(item => item.status === '4').time }}
-       </div>
-        </template>
-      </el-step>
-    </el-steps>
+
+        <el-step
+          v-if="(Number(formData.status) >= 1 && Number(formData.status) <= 3) || (Number(formData.status) === 4 && formData.caseCode)"
+          title="处理中"
+        >
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '1')">
+              {{ hnReportHistoryList.find((item) => item.status === '1').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 2" title="已驳回">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '2')">
+              {{ hnReportHistoryList.find((item) => item.status === '2').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 3" title="已结案">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '3')">
+              {{ hnReportHistoryList.find((item) => item.status === '3').time }}
+            </div>
+          </template>
+        </el-step>
+
+        <el-step v-if="Number(formData.status) === 4" title="已撤回">
+          <template #description>
+            <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '4')">
+              {{ hnReportHistoryList.find((item) => item.status === '4').time }}
+            </div>
+          </template>
+        </el-step>
+      </el-steps>
     </el-form>
     <div class="section-title">案件类型</div>
     <el-table :data="casetableData" border v-loading="loading" style="table-layout: fixed">
@@ -101,20 +103,18 @@
         </template>
       </el-table-column>
 
-      
-
       <!-- 执法依据 -->
       <el-table-column label="执法依据" align="center">
         <template #default="scope">
-           <el-link 
+          <el-link
             v-if="scope.row.newBasisFile && scope.row.newBasisFile.ossInfo && scope.row.newBasisFile.ossInfo.url"
-            :href="scope.row.newBasisFile.ossInfo.url" 
+            :href="scope.row.newBasisFile.ossInfo.url"
             target="_blank"
             type="primary"
             :underline="true"
             @click.stop
-           > 
-          <span>{{ scope.row.newBasisFile.ossInfo.originalName}}</span>
+          >
+            <span>{{ scope.row.newBasisFile.ossInfo.originalName }}</span>
           </el-link>
         </template>
       </el-table-column>
@@ -122,48 +122,46 @@
       <!-- 执法文书模板 -->
       <el-table-column label="执法文书模板" align="center" prop="collectCount">
         <template #default="scope">
-          <el-link 
+          <el-link
             v-if="scope.row.newDocumentFile && scope.row.newDocumentFile.ossInfo && scope.row.newDocumentFile.ossInfo.url"
-            :href="scope.row.newDocumentFile.ossInfo.url" 
+            :href="scope.row.newDocumentFile.ossInfo.url"
             target="_blank"
             type="primary"
             :underline="true"
             @click.stop
-           >  
-          <span>{{ scope.row.newDocumentFile.ossInfo.originalName }}</span>
+          >
+            <span>{{ scope.row.newDocumentFile.ossInfo.originalName }}</span>
           </el-link>
         </template>
       </el-table-column>
     </el-table>
-     
-       <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
-       <el-row :gutter="20" class="detail-form">
-       
-          <el-col :span="24" v-if="Number(formData.status) === 2">
-       
-            <el-form-item label="申诉驳回原因："  >
-              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
-            </el-form-item>
-          </el-col>
-        </el-row>
-   <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3" >
-        <FormHeader title="历史申诉材料" />
-        <el-table :data="formData.historyAppealList || []" border>
-          <el-table-column type="index" min-width="55" label="序号" align="center" />
-          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
-          <el-table-column label="操作" align="center">
-            <template #default="scope">
-              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
 
-        <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 1 || Number(formData.status) === 3">申诉材料</div>
+    <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
+    <el-row :gutter="20" class="detail-form">
+      <el-col :span="24" v-if="Number(formData.status) === 2">
+        <el-form-item label="申诉驳回原因：">
+          <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <div v-if="Number(formData.status) === 2 || Number(formData.status) === 3">
+      <FormHeader title="历史申诉材料" />
+      <el-table :data="formData.historyAppealList || []" border>
+        <el-table-column type="index" min-width="55" label="序号" align="center" />
+        <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+        <el-table-column label="操作" align="center">
+          <template #default="scope">
+            <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 1 || Number(formData.status) === 3">申诉材料</div>
     <!-- 附件上传区域 -->
     <div class="attachment-section" v-if="Number(formData.status) === 2 || Number(formData.status) === 1 || Number(formData.status) === 3">
       <el-upload
-       v-if="props.type === 'appeal'"
+        v-if="props.type === 'appeal'"
         action="#"
         :auto-upload="false"
         accept=".png,.jpg,.MP4,.jpeg,.mov,.avi"
@@ -226,9 +224,10 @@ import { ref, onMounted, getCurrentInstance, toRefs, watch, computed } from 'vue
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, View, Delete, Document, Plus } from '@element-plus/icons-vue';
-import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate,courseAppeal } from '@/api/system/courseCultivate';
+import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdate, courseAppeal } from '@/api/system/courseCultivate';
 import { getreportdetail, reportback, reportappeal } from '@/api/rightsPlatform/customerreport';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
+import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -267,9 +266,9 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
-  backAppealReason:'',
+  backAppealReason: '',
   historyAppealList: [],
-  appealTime:'',
+  appealTime: '',
   status: '' //订单状态
 });
 const reuploadIndex = ref(-1); // 记录当前重新上传的索引
@@ -312,31 +311,29 @@ const statusText = computed(() => {
 });
 // 添加这两个计算属性用于附件计数显示
 const currentImageCount = computed(() => {
-  return attachmentList.value.filter(item => {
+  return attachmentList.value.filter((item) => {
     // 同时检查文件后缀和MIME类型
     const suffix = (item.fileSuffix || '').toLowerCase();
     const isImageSuffix = ['.jpg', '.jpeg', '.png'].includes(suffix);
-    
+
     // 检查MIME类型
     const mimeType = (item.fileSuffix || '').toLowerCase();
-    const isImageMime = mimeType.startsWith('image/') && 
-                       ['image/jpeg', 'image/png', 'image/jpg'].includes(mimeType);
-    
+    const isImageMime = mimeType.startsWith('image/') && ['image/jpeg', 'image/png', 'image/jpg'].includes(mimeType);
+
     return isImageSuffix || isImageMime;
   }).length;
 });
 
 const currentVideoCount = computed(() => {
-  return attachmentList.value.filter(item => {
+  return attachmentList.value.filter((item) => {
     // 同时检查文件后缀和MIME类型
     const suffix = (item.fileSuffix || '').toLowerCase();
     const isVideoSuffix = ['.mp4', '.mov', '.avi'].includes(suffix);
-    
+
     // 检查MIME类型
     const mimeType = (item.fileSuffix || '').toLowerCase();
-    const isVideoMime = mimeType.startsWith('video/') &&
-                       ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(mimeType);
-    
+    const isVideoMime = mimeType.startsWith('video/') && ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(mimeType);
+
     return isVideoSuffix || isVideoMime;
   }).length;
 });
@@ -372,7 +369,7 @@ const fetchContentDetail = async () => {
       };
       casetableData.value = data.reportCaseFiling || [];
       hnReportHistoryList.value = data.statusAndDate || [];
-      presentarguments.value= data.appealReason  
+      presentarguments.value = data.appealReason;
       // 加载附件数据
       if (data.ossVoList && Array.isArray(data.ossVoList) && data.ossVoList.length > 0) {
         attachmentList.value = data.ossVoList.map((item: any) => {
@@ -413,13 +410,132 @@ const fetchContentDetail = async () => {
     loading.value = false;
   }
 };
+let appealDialogVisible = ref(false);
+let appealDialogLoading = ref(false);
+let appealDetail = reactive<any>({});
+const histAppealImageList = ref();
+const histAppealImagePreviewUrls = ref();
+const histAppealVideoList = ref();
+// 工具方法：安全数组
+const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
+// 工具方法：判断是否为视频文件
+const isVideoFile = (item: any): boolean => {
+  // 优先使用 fileType 字段判断
+  const fileType = String(item?.fileType || item?.ossInfo?.fileType || '');
+  if (fileType === '1') {
+    return true;
+  }
+  // 如果 fileType 不存在或不是 '1'，则根据文件扩展名判断
+  const url = item?.ossInfo?.url || item?.url || '';
+  const originalName = item?.ossInfo?.originalName || item?.originalName || '';
+  const fileName = originalName || url;
+  if (!fileName) return false;
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  const videoExts = ['mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'm4v'];
+  return videoExts.includes(ext);
+};
+// 工具方法：字节大小转可读文本
+const formatByteSize = (bytes?: number) => {
+  const n = Number(bytes);
+  if (!isFinite(n) || n <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0,
+    v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  const fixed = v < 10 && i > 0 ? 1 : 0;
+  return `${v.toFixed(fixed)}${units[i]}`;
+};
+// 工具方法：按 url 去重
+const uniqueByUrl = <T extends { url?: string }>(list: T[]): T[] => {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const it of list) {
+    const u = it?.url;
+    if (!u || seen.has(u)) continue;
+    seen.add(u);
+    out.push(it);
+  }
+  return out;
+};
+
+// 工具方法：拆分图片/视频并格式化
+const splitFiles = (files: any[]) => {
+  const images: FileViewItem[] = [];
+  const videos: FileViewItem[] = [];
+  safeArray(files).forEach((item: any) => {
+    const info = item?.ossInfo ?? {};
+    const base = {
+      url: info?.url,
+      ossId: info?.ossId,
+      originalName: info?.originalName,
+      name: info?.originalName
+    } as FileViewItem;
+    if (!base.url) return;
+    if (isVideoFile(item)) {
+      const size = Number(info?.fileSize || item?.fileSize || 0);
+      videos.push({ ...base, sizeText: formatByteSize(size) });
+    } else {
+      images.push(base);
+    }
+  });
+  return {
+    images: uniqueByUrl(images),
+    videos: uniqueByUrl(videos)
+  };
+};
+const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
+// 获取历史申诉详情  打开弹窗
+const handlePreview = async (row: any) => {
+  // 避免重复打开导致多个实例/遮罩叠加
+  if (appealDialogVisible.value) return;
+  const id = row?.id;
+  appealDialogLoading.value = true;
+  try {
+    // 等接口切换后，获取违规记录详情
+    const res = await getlookDetail(String(id)); //获取违规记录详情
+    const data: any = res?.data ?? {};
+    console.log('历史申诉详情数据:', data);
+
+    // 文本信息
+    appealDetail.appealReason = data.appealReason ?? '';
+    appealDetail.appealTime = data.appealTime ?? '';
+    appealDetail.backReason = data.backReason ?? '';
+
+    // 附件信息（兼容多种字段命名）
+    const files =
+      safeArray(data.appealFiles) ||
+      safeArray(data?.newAppealFile?.appealFiles) ||
+      safeArray(data.files) ||
+      safeArray(row?.appealFiles) ||
+      safeArray(row?.files);
+
+    const s = splitFiles(files);
+    histAppealImageList.value = s.images;
+    histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
+    histAppealVideoList.value = s.videos;
+  } catch (e) {
+    console.error('获取申诉详情失败:', e);
+    histAppealImageList.value = [];
+    histAppealImagePreviewUrls.value = [];
+    histAppealVideoList.value = [];
+    appealDetail.value.appealReason = '';
+    appealDetail.value.appealTime = '';
+    appealDetail.value.backReason = '';
+  } finally {
+    appealDialogLoading.value = false;
+  }
+  appealDialogVisible.value = true;
+};
 const load = () => {
   count.value += 2;
 };
 /** 提交表单 */
 const handleSubmit = async () => {
   if (!formRef.value) return;
-    // 添加校验逻辑
+  // 添加校验逻辑
   if (!presentarguments.value || presentarguments.value.trim() === '') {
     ElMessage.warning('请输入申述理由');
     return;
@@ -433,9 +549,9 @@ const handleSubmit = async () => {
   try {
     saving.value = true;
     const submitData = {
-       id: formData.value.id,
+      id: formData.value.id,
       appealReason: presentarguments.value,
-      ossList: attachmentList.value.map(item => ({
+      ossList: attachmentList.value.map((item) => ({
         ossId: item.ossId,
         fileName: item.fileName,
         originalName: item.originalName,
@@ -444,7 +560,7 @@ const handleSubmit = async () => {
       }))
     };
     console.log('submitData提交的数据', submitData);
-    
+
     // 调用对应的接口
     const api = props.type === 'appeal' ? courseAppeal : courseCultivateupdate;
     const response: any = await api(submitData);
@@ -538,14 +654,12 @@ const valiImgFile = (file: File): boolean => {
 };
 /** 上传前检查文件数量限制 */
 const beforeUpload = (file: File): boolean => {
-    const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
+  const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
   const fileMimeType = (file.type || '').toLowerCase();
-  
-  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) ||
-                  ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
-                  
-  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) ||
-                  ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
+
+  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) || ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
+
+  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) || ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
 
   if (isImage && currentImageCount.value >= 6) {
     ElMessage.warning('最多只能上传6张图片');
@@ -560,20 +674,17 @@ const beforeUpload = (file: File): boolean => {
   return true;
 };
 
-
 /** 处理文件上传 */
 const handleFileChange = async (file: any) => {
   console.log('正常上传的文件', file);
 
-    // 先验证文件数量限制
+  // 先验证文件数量限制
   const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
   const fileMimeType = (file.raw.type || '').toLowerCase();
-  
-  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) ||
-                  ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
-                  
-  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) ||
-                  ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
+
+  const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) || ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
+
+  const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) || ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
 
   if (isImage && currentImageCount.value >= 6) {
     ElMessage.warning('最多只能上传6张图片');
@@ -688,19 +799,19 @@ const handleReuploadChange = (event: Event) => {
     const oldFile = attachmentList.value[currentReuploadIndex.value];
     const oldFileSuffix = (oldFile.fileSuffix || '').toLowerCase();
     const newFileExtension = (file.name.split('.').pop() || '').toLowerCase();
-    
+
     const oldIsImage = ['.jpg', '.jpeg', '.png'].includes(oldFileSuffix);
     const oldIsVideo = ['.mp4', '.mov', '.avi'].includes(oldFileSuffix);
     const newIsImage = ['jpg', 'jpeg', 'png'].includes(newFileExtension);
     const newIsVideo = ['mp4', 'mov', 'avi'].includes(newFileExtension);
-    
+
     // 如果原来是图片，现在要替换成视频，需要检查视频数量限制
     if (oldIsImage && newIsVideo && currentVideoCount.value >= 3) {
       ElMessage.warning('最多只能上传3个视频');
       target.value = '';
       return;
     }
-    
+
     // 如果原来是视频，现在要替换成图片，需要检查图片数量限制
     if (oldIsVideo && newIsImage && currentImageCount.value >= 6) {
       ElMessage.warning('最多只能上传6张图片');
@@ -808,8 +919,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
- 
-
 .section-title {
   position: relative;
   font-size: 18px;
@@ -839,7 +948,6 @@ onMounted(() => {
   margin-top: 20px;
   justify-content: end;
   align-items: end;
-  
 
   .el-button {
     min-width: 100px;
