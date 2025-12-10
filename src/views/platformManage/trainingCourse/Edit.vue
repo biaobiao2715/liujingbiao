@@ -127,6 +127,7 @@
         <div class="attachment-title">上传主图</div>
         <el-upload
           action="#"
+          :class="{ disabled: fileList.length > 0 }"
           :auto-upload="false"
           list-type="picture-card"
           :on-preview="handlePictureCardPreview"
@@ -946,6 +947,15 @@ defineExpose({
 
   .editor-container {
     gap: 16px;
+  }
+}
+
+:deep(.disabled) {
+  .el-upload.el-upload--picture-card {
+    display: none !important;
+  }
+  .el-button--success.is-plain {
+    display: none !important;
   }
 }
 </style>
