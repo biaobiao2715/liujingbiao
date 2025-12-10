@@ -36,6 +36,7 @@
         <el-upload
           action="#"
           :auto-upload="false"
+          :class="{ disabled: fileList.length > 0 }"
           list-type="picture-card"
           :on-preview="handlePictureCardPreview"
           accept=".jpg,.gif,.png"
@@ -568,6 +569,15 @@ const emitCancel = () => {
 
   .editor-container {
     gap: 16px;
+  }
+}
+
+:deep(.disabled) {
+  .el-upload.el-upload--picture-card {
+    display: none !important;
+  }
+  .el-button--success.is-plain {
+    display: none !important;
   }
 }
 </style>
