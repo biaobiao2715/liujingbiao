@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题: TecnnicalExpert.vue
 功能: 技术专家注册
-说明: 
+说明:
 开发信息: Create by 李刘超 2025-10-13 14:21:42
 当前版本: 1.0
 -->
@@ -38,7 +38,7 @@
                         </div>
                       </div>
                       <div v-if="diplomaUrl" class="image-with-delete">
-                        <img :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                        <img :src="diplomaUrl" alt="加载中" class="upload-image" />
                         <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removeDiploma">
                           <el-icon><Close /></el-icon>
                         </el-button>
@@ -71,7 +71,7 @@
                         </div>
                       </div>
                       <div v-if="photoUrl" class="image-with-delete">
-                        <img :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                        <img :src="photoUrl" alt="加载中" class="upload-image" />
                         <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removePhoto">
                           <el-icon><Close /></el-icon>
                         </el-button>
@@ -199,7 +199,7 @@
         </div>
         <div class="qualification-list">
           <div class="qualification-header">
-            <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
+            <el-upload :on-change="addQualification" :before-upload="beforeUpload" action="#" :auto-upload="false" :show-file-list="false">
               <div class="upload-btn">
                 <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
                   <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
@@ -425,6 +425,21 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback(new Error('请输入毕业证书编号'));
         } else if (value.length > 20) {
           callback(new Error('毕业证书编号最多20个字符'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 长度不超过50字
+  technicalQualification: [
+    // { required: false, message: '请输入技术资格名称', trigger: ['change', 'blur'] },
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+        } else if (value.length > 50) {
+          callback(new Error('技术资格名称最多50个字'));
         } else {
           callback();
         }
@@ -750,11 +765,11 @@ const addQualification = (file: any) => {
 
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  //   const maxSize = 5 * 1024 * 1024; // 5MB
-  //   if (file.size > maxSize) {
-  //     ElMessage.error('文件大小不能超过5MB');
-  //     return false;
-  //   }
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过10MB');
+    return false;
+  }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
     ElMessage.error('不支持的文件类型');

@@ -38,6 +38,7 @@ interface TechUpdateOrSaveDataRequest {
     major?: string;
     startStopStatus?: '0' | '1';
     id?: number;
+    reviewRemark?: string;
     reviewStatus?: '99' | '1' | '2' | '3' | '4';
     folder?: {
       folderName?: string;

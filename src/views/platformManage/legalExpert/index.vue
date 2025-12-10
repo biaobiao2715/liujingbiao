@@ -105,7 +105,13 @@
       <el-table-column label="操作" fixed="right" width="200" class-name="flex-center">
         <template #default="scope">
           <div style="display: flex; justify-content: center; align-items: center">
-            <el-button v-throttle type="text" style="font-size: 14px; color: #108c58" @click="openToggleDialog(scope.row)">
+            <el-button
+              v-if="scope.row.reviewStatus == 1"
+              v-throttle
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="openToggleDialog(scope.row)"
+            >
               {{ scope.row.startStopStatus === '1' ? '停用' : '启用' }}
             </el-button>
             <el-button

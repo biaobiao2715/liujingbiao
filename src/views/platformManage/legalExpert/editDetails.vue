@@ -152,9 +152,9 @@
           <el-button v-throttle type="danger" @click="handleAudit('99')">审核退回</el-button>
           <el-button v-throttle style="background: #108c58; color: #fff" @click="handleAudit('1')">审核通过</el-button>
         </div>
-        <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+        <!-- <div style="margin-top: 20px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
           <el-button v-throttle style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
-        </div>
+        </div> -->
       </div>
     </div></el-dialog
   >
@@ -209,31 +209,31 @@ const getDetail = async (id: string) => {
 };
 
 // 保存按钮事件 和详情接口返回的的数据结构略有区别
-const handleSave = async () => {
-  try {
-    loading.value = true;
-    const response = await legalUpdateOrSaveData({
-      // @ts-ignore
-      hnBaseLegalExpertInfoBo: {
-        ...formData.value,
-        folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
-          ...item,
-          ...(item.ossInfo || {})
-        }))
-      },
-      optType: '2'
-    });
-    if (response.code === 200) {
-      ElMessage.success('保存成功');
-      emit('refresh');
-      dialogVisible.value = false;
-    }
-  } catch (error) {
-    console.error('保存失败', error);
-  } finally {
-    loading.value = false;
-  }
-};
+// const handleSave = async () => {
+//   try {
+//     loading.value = true;
+//     const response = await legalUpdateOrSaveData({
+//       // @ts-ignore
+//       hnBaseLegalExpertInfoBo: {
+//         ...formData.value,
+//         folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
+//           ...item,
+//           ...(item.ossInfo || {})
+//         }))
+//       },
+//       optType: '2'
+//     });
+//     if (response.code === 200) {
+//       ElMessage.success('保存成功');
+//       emit('refresh');
+//       dialogVisible.value = false;
+//     }
+//   } catch (error) {
+//     console.error('保存失败', error);
+//   } finally {
+//     loading.value = false;
+//   }
+// };
 
 const handleAudit = async (status: '99' | '1') => {
   if (!formData.value.reviewRemark) {
@@ -243,16 +243,10 @@ const handleAudit = async (status: '99' | '1') => {
   try {
     loading.value = true;
     const res = await legalUpdateOrSaveData({
-      // @ts-ignore
       hnBaseLegalExpertInfoBo: {
-        ...formData.value,
-        reviewStatus: status,
-        folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
-          ...item,
-          ...(item.ossInfo || {})
-        }))
+        id: formData.value.id,
+        reviewRemark: formData.value.reviewRemark
       },
-      folder: formData.value.hnBaseRegisterFolderVoList,
       optType: '3'
     });
 
