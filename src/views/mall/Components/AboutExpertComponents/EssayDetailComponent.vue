@@ -7,21 +7,23 @@
 -->
 
 <template>
-  <div class="course-detail-container">
-    <div class="title">{{ detail?.articleTitle }}</div>
-    <!-- 课程描述 -->
-    <div class="description flex-center-between gap-24 mt-24 mb-24">
-      <div class="flex-center gap-24">
-        <div>{{ '发布人：  ' + detail?.authorName }}</div>
-        <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
+  <div class="container-box">
+    <div class="title-box">
+      <div class="title">
+        <div class="title-text">{{ detail?.articleTitle }}</div>
         <dict-tag :options="article_type" :value="detail?.contentType"></dict-tag>
       </div>
-      <div class="flex-center gap-12">
-        <div class="views flex-center gap-2">
+      <div class="user-detail">
+        <img src="@/assets/images/tx.png" alt="" />
+        <div class="user-detail-peo">{{ '发布人：  ' + detail?.authorName }}</div>
+        <div class="">{{ '发布时间：  ' + detail?.publishTime }}</div>
+      </div>
+    </div>
+    <div>
+      <div>
+        <div @click="handleCollection">
           <el-icon size="20"><View /></el-icon>
           <span>{{ detail?.viewCount }}</span>
-        </div>
-        <div class="collection flex-center gap-2" @click="handleCollection">
           <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
           <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
           <span>{{ detail?.favoriteCount }}</span>
@@ -139,16 +141,44 @@ const addDownloadCount = async (item: any) => {
 </script>
 
 <style scoped lang="scss">
-.course-detail-container {
-  padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .collection {
-      cursor: pointer;
+.container-box {
+  .title-box {
+    background: #ffffff;
+    border-radius: 8px 8px 8px 8px;
+    padding: 26px 0 23px 20px;
+    box-sizing: border-box;
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 28px;
+      color: #3d3d3d;
+      line-height: 21px;
+      margin-bottom: 28px;
+      .title-text {
+        margin-right: 14px;
+      }
+    }
+    .user-detail {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 14px;
+      color: #3d3d3d;
+      line-height: 20px;
+      img {
+        width: 30px;
+        height: 30px;
+        margin-right: 14px;
+      }
+      .user-detail-peo{
+
+      }
     }
   }
 }
