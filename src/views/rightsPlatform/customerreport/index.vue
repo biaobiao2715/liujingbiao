@@ -124,7 +124,7 @@ div<!--
               size="small"
               link
               :disabled="
-                scope.row.rejectTimes > '3' ||
+                Number(scope.row.rejectTimes) >= 3 ||
                 (scope.row.appealTime != null && scope.row.status === '1') ||
                 (scope.row.caseCode == null && scope.row.status === '2')
               "
