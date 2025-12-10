@@ -86,9 +86,46 @@ const options = ref<any>({
               if (value) {
                 // 调用element图片上传
                 uploadRef.value.click();
-              } else {
-                Quill.format('image', true);
               }
+            },
+            header: (value: number | string | boolean) => {
+              const quill = toRaw(quillEditorRef.value).getQuill();
+              const range = quill.getSelection(true);
+              
+              if (!range || range.length === 0) {
+                // 如果没有选中文字，不执行任何操作
+                return;
+              }
+              
+              // 获取选中的文本
+              const selectedText = quill.getText(range.index, range.length);
+              if (!selectedText || selectedText.trim() === '') {
+                return;
+              }
+              
+              // 使用 size 来模拟标题效果，而不是使用 header（header 会作用于整段）
+              let fontSize = false;
+              let fontWeight = false;
+              
+              if (value !== false) {
+                // 根据标题级别设置字体大小
+                const sizeMap: any = {
+                  1: 'huge',   // h1 最大
+                  2: 'large',  // h2
+                  3: 'large',  // h3
+                  4: false,    // h4 正常大小
+                  5: 'small',  // h5
+                  6: 'small'   // h6
+                };
+                fontSize = sizeMap[value] || false;
+                fontWeight = true; // 标题加粗
+              }
+              
+              // 应用格式
+              quill.formatText(range.index, range.length, {
+                size: fontSize,
+                bold: fontWeight
+              });
             }
           }
         }
