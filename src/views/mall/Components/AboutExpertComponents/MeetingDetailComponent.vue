@@ -31,7 +31,8 @@
         </div>
       </div>
       <div class="meeting-user">
-        <img :src="detail?.avatar" />
+        <img v-if="detail?.avatar" :src="detail?.avatar" />
+        <el-avatar v-else :size="30" class="mr-[10px]" style="background-color: aquamarine" />
         <div class="meeting-user-name">
           {{ '发布人：  ' + detail?.publishUser }}
         </div>
@@ -67,6 +68,13 @@
           <div class="m-title">会议类别</div>
           <div class="m-content">
             <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
+          </div>
+        </div>
+        <!-- 联系人电话 -->
+        <div class="meeting-item">
+          <div class="m-title">联系人电话</div>
+          <div class="m-content">
+            {{ detail?.meetingPhone }}
           </div>
         </div>
         <!-- 会议时间 -->

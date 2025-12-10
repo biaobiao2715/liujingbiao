@@ -430,6 +430,19 @@ const validateFile = (file: File): boolean => {
   const videoExt = ['mp4', 'mov', 'avi'];
   const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
   const allExt = [...docExt, ...imageExt, ...videoExt];
+  // 判断是否存在上传，存在的话只能上传和第一个同类型的文件
+  console.log(attachmentList.value, file, ext, '存在吗');
+  if (attachmentList.value.length) {
+    const extList = attachmentList.value[0]?.originalName.split('.');
+    const lastExt = extList[extList.length - 1];
+    const firstFileType = imageExt.includes(lastExt) ? imageExt : videoExt.includes(lastExt) ? videoExt : docExt.includes(lastExt) ? docExt : [];
+    if (firstFileType.includes(ext)) {
+      return true;
+    } else {
+      ElMessage.error(`不支持不同格式的文件`);
+      return false;
+    }
+  }
 
   if (!allExt.includes(ext)) {
     ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件`);

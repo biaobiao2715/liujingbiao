@@ -106,7 +106,7 @@
         <template #default="scope">
           <div style="display: flex; justify-content: center; align-items: center">
             <el-button
-              v-if="scope.row.reviewStatus == 1"
+              v-if="scope.row.reviewStatus === '1'"
               v-throttle
               type="text"
               style="font-size: 14px; color: #108c58"

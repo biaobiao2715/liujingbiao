@@ -543,7 +543,7 @@ const updateBarChart = (data: any[] = []) => {
     yAxis: {
       type: 'value',
       min: 0,
-      name: '举报数量',
+      // name: '举报数量',
       nameLocation: 'middle',
       nameGap: 50
     },

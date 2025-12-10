@@ -115,8 +115,8 @@
                   :uploader="uploaderLegalFront"
                   :placeholder-src="idCardFrontPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
-                  caption="上传人像面"
                 />
+                <div class="Upload-bottom-text">上传人像面</div>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -125,8 +125,8 @@
                   :uploader="uploaderLegalBack"
                   :placeholder-src="idCardBackPlaceholderUrl"
                   :disabled="DetailsStatus === 'details'"
-                  caption="上传国徽面"
                 />
+                <div class="Upload-bottom-text">上传国徽面</div>
               </el-form-item>
             </el-col>
           </el-row>
@@ -149,12 +149,8 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <SingleImageUpload
-                  :uploader="uploaderIdFront"
-                  :placeholder-src="idCardFrontPlaceholderUrl"
-                  :disabled="DetailsStatus === 'details'"
-                  caption="上传人像面"
-                />
+                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholderUrl" :disabled="DetailsStatus === 'details'" />
+                <div class="Upload-bottom-text">上传人像面</div>
               </el-form-item>
             </el-col>
 
@@ -196,12 +192,8 @@
 
             <el-col :span="12">
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <SingleImageUpload
-                  :uploader="uploaderIdBack"
-                  :placeholder-src="idCardBackPlaceholderUrl"
-                  :disabled="DetailsStatus === 'details'"
-                  caption="上传国徽面"
-                />
+                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholderUrl" :disabled="DetailsStatus === 'details'" />
+                <div class="Upload-bottom-text">上传国徽面</div>
               </el-form-item>
             </el-col>
           </el-row>
@@ -251,22 +243,14 @@
             <el-col :span="12"></el-col>
             <el-col :span="12">
               <el-form-item label="身份证正面" class="uploadcss" prop="idCardPhotoFront">
-                <SingleImageUpload
-                  :uploader="uploaderIdFront"
-                  :placeholder-src="idCardFrontPlaceholderUrl"
-                  :disabled="DetailsStatus === 'details'"
-                  caption="上传人像面"
-                />
+                <SingleImageUpload :uploader="uploaderIdFront" :placeholder-src="idCardFrontPlaceholderUrl" :disabled="DetailsStatus === 'details'" />
+                <div class="Upload-bottom-text">上传人像面</div>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="身份证反面" class="uploadcss" prop="idCardPhotoBack">
-                <SingleImageUpload
-                  :uploader="uploaderIdBack"
-                  :placeholder-src="idCardBackPlaceholderUrl"
-                  :disabled="DetailsStatus === 'details'"
-                  caption="上传国徽面"
-                />
+                <SingleImageUpload :uploader="uploaderIdBack" :placeholder-src="idCardBackPlaceholderUrl" :disabled="DetailsStatus === 'details'" />
+                <div class="Upload-bottom-text">上传国徽面</div>
               </el-form-item>
             </el-col>
           </el-row>
@@ -320,18 +304,14 @@
                 :uploader="uploaderBankFront"
                 :placeholder-src="bankCardFrontPlaceholderUrl"
                 :disabled="DetailsStatus === 'details'"
-                caption="上传银行卡正面"
               />
+              <div class="Upload-bottom-text">上传银行卡正面</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="银行卡反面" class="uploadcss" prop="bankCardPhotoBack">
-              <SingleImageUpload
-                :uploader="uploaderBankBack"
-                :placeholder-src="bankCardBackPlaceholderUrl"
-                :disabled="DetailsStatus === 'details'"
-                caption="上传银行卡反面"
-              />
+              <SingleImageUpload :uploader="uploaderBankBack" :placeholder-src="bankCardBackPlaceholderUrl" :disabled="DetailsStatus === 'details'" />
+              <div class="Upload-bottom-text">上传银行卡反面</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -350,6 +330,19 @@
 
       <div style="height: 213px"></div>
     </el-form>
+
+    <!-- 图片预览 -->
+    <el-dialog
+      title="预览"
+      v-model="picOpen"
+      :before-close="picPreBeforeClose"
+      class="pic-dialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      append-to-body
+    >
+      <img width="100%" :src="dialogImageUrl" alt="" />
+    </el-dialog>
   </div>
 </template>
 
@@ -458,6 +451,10 @@ const formData = ref<any>({
   bankCardPhotoFront: '',
   bankCardPhotoBack: ''
 });
+
+// 图片预览
+const picOpen = ref(false); // 图片预览弹窗
+const dialogImageUrl = ref('');
 
 // 出生年月不可选择未来时间
 const disableFutureDate = (time: Date) => {
@@ -797,15 +794,21 @@ function createSingleUploader(targetField: keyof typeof formData.value, exceedMs
       files.value = [f];
       // 写入 ossId
       formData.value[targetField] = res.ossId || '';
+      // 上传成功后立即触发该字段校验
+      formRef.value?.validateField(String(targetField));
     } catch (e: any) {
       ElMessage.error(e?.message || '上传失败');
       files.value = [];
       formData.value[targetField] = '';
+      // 上传失败也触发一次校验以更新错误提示
+      formRef.value?.validateField(String(targetField));
     }
   };
   const handleRemove = (file: UploadFile) => {
     files.value = [];
     formData.value[targetField] = '';
+    // 删除后立即触发该字段校验
+    formRef.value?.validateField(String(targetField));
   };
   const handleExceed = () => ElMessage.warning(exceedMsg);
   return { files, beforeUpload, uploadRequest, handleRemove, handleExceed };
@@ -870,10 +873,17 @@ const SingleImageUpload = defineComponent({
   props: {
     uploader: { type: Object as PropType<SingleUploader>, required: true },
     placeholderSrc: { type: String, required: true },
-    disabled: { type: Boolean, default: false },
-    caption: { type: String, default: '' }
+    disabled: { type: Boolean, default: false }
   },
   setup(props) {
+    const onPreview = (file: any) => {
+      dialogImageUrl.value = file?.url || '';
+      if (dialogImageUrl.value) picOpen.value = true;
+    };
+    const onRemove = (file: any) => {
+      props.uploader.handleRemove(file);
+    };
+    const hasFile = computed(() => props.uploader.files.value.length >= 1);
     return () =>
       h(
         ElUpload,
@@ -882,46 +892,32 @@ const SingleImageUpload = defineComponent({
           listType: 'picture-card',
           action: '#',
           accept: 'image/*',
-          showFileList: false,
+          showFileList: true,
+          limit: 1,
           beforeUpload: props.uploader.beforeUpload,
           httpRequest: props.uploader.uploadRequest,
           onExceed: props.uploader.handleExceed,
-          disabled: props.disabled
+          onPreview,
+          onRemove,
+          disabled: props.disabled,
+          class: ['single-image-upload', hasFile.value ? 'has-file' : '']
         },
         {
           default: () => [
             props.uploader.files.value.length < 1
-              ? h('div', [
-                  h('img', { src: props.placeholderSrc, class: 'avatar' }),
-                  props.caption ? h('div', { class: 'avatar-uploader-text' }, props.caption) : null
-                ])
-              : h('div', [
-                  h('img', { src: props.uploader.files.value[0].url, alt: '', class: 'avatar' }),
-                  props.caption ? h('div', { class: 'avatar-uploader-text' }, props.caption) : null
-                ])
+              ? h('div', { class: 'avatar-uploader' }, [h('img', { src: props.placeholderSrc, class: 'uploader-img' })])
+              : null
           ]
         }
       );
   }
 });
 
-// ========== 上传区域与表单字段联动，便于触发布局校验 ==========
-// 不再需要旧的数组联动逻辑；保留校验可选：根据 ossId 字段触发
-watch(
-  [
-    () => formData.value.idCardPhotoFront2,
-    () => formData.value.idCardPhotoBack2,
-    () => formData.value.idCardPhotoFront,
-    () => formData.value.idCardPhotoBack,
-    () => formData.value.bankCardPhotoFront,
-    () => formData.value.bankCardPhotoBack,
-    () => formData.value.authorizationFile
-  ],
-  () => {
-    // 可在此执行局部校验
-    // formRef.value?.validateField('idCardPhotoFront'); 等
-  }
-);
+// 预览关闭
+const picPreBeforeClose = () => {
+  dialogImageUrl.value = '';
+  picOpen.value = false;
+};
 
 const downloadAttachment = async (url, name) => {
   try {
@@ -1012,7 +1008,7 @@ onMounted(async () => {
     const applyRes = await getLoanApplicationsId(props.id as any).catch(() => null);
     if (applyRes && applyRes.code === 200) {
       formData.value = { ...formData.value, ...(applyRes.data || {}) };
-      // 根据详情返回的直链回显图片（可选）
+      // 根据详情返回的直链回显图片（可选），并同步写入表单字段以通过必填校验
       const setFromUrl = (uploader: ReturnType<typeof createSingleUploader>, url?: string, name?: string) => {
         const u = String(url || '').trim();
         if (!u) {
@@ -1029,16 +1025,18 @@ onMounted(async () => {
         ];
       };
       // 身份证（申请人/个人）
-      setFromUrl(uploaderIdFront, formData.value.idFrontUrl);
-      setFromUrl(uploaderIdBack, formData.value.idBackUrl);
+      setFromUrl(uploaderIdFront, formData.value.idFrontUrl, undefined);
+      setFromUrl(uploaderIdBack, formData.value.idBackUrl, undefined);
       // 银行卡
-      setFromUrl(uploaderBankFront, formData.value.bankFrontUrl);
-      setFromUrl(uploaderBankBack, formData.value.bankBackUrl);
+      setFromUrl(uploaderBankFront, formData.value.bankFrontUrl, undefined);
+      setFromUrl(uploaderBankBack, formData.value.bankBackUrl, undefined);
 
       // 法人身份证
-      setFromUrl(uploaderLegalFront, formData.value.frontCardUrl);
-      setFromUrl(uploaderLegalBack, formData.value.bankCardUrl);
+      setFromUrl(uploaderLegalFront, formData.value.frontCardUrl, undefined);
+      // 反面字段应使用后端返回的“backCardUrl”，此前误用了“bankCardUrl”导致有值仍校验报错
+      setFromUrl(uploaderLegalBack, formData.value.backCardUrl, undefined);
       setFromUrl(uploaderAuthorization, formData.value.authorizationUrl, formData.value.authorizationFileName);
+
       await populateBirthdayIfNeeded(applyRes.data);
       // 编辑模式下也尝试加载产品详情（可能限制显示）
       await loadProductDetails();
@@ -1114,50 +1112,71 @@ onMounted(async () => {
   ::v-deep .el-upload-list--picture-card {
     display: block;
   }
-  .avatar-uploader {
-    width: 64px;
-    height: 64px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
   .avatar-uploader-icon {
     width: 16px;
     height: 16px;
     margin-right: 4px;
   }
-  .avatar-uploader-text {
-    height: 16px;
-    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-    font-weight: 400;
-    font-size: 12px;
-    color: #c2c2c2;
-    line-height: 16px;
-    text-align: left;
-    font-style: normal;
-    text-transform: none;
-    margin-top: 5px;
-  }
 }
-// ::v-deep .el-upload-list--picture-card .el-upload-list__item {
-//   width: 180px;
-//   height: 108px;
-//   border-width: 0px;
-//   margin-right: 10px;
-// }
 ::v-deep .el-upload--picture-card {
   width: 180px;
   border-width: 0px;
   background-color: #ffffff;
-  .avatar {
+  height: 106px; // 统一触发器卡片高度
+  margin-bottom: 11px;
+  .uploader-img {
     width: 180px;
-    height: 108px;
+    height: 106px;
     object-fit: cover;
     display: block;
   }
-  .avatar-uploader-text {
-    text-align: center;
+}
+// 当存在文件时仅隐藏触发器，保留文件项的预览/删除操作
+.has-file ::v-deep .el-upload--picture-card {
+  display: none;
+}
+
+::v-deep .el-upload-list--picture-card .el-upload-list__item {
+  width: 180px;
+  height: 106px;
+  border-width: 0px;
+  margin: 0px 10px 0px 0px;
+}
+
+// 触发器隐藏的过渡动画（轻微缩放 + 淡出）
+@keyframes shrinkFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
   }
+  100% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+
+// 当组件禁用（已有文件或详情态）时隐藏触发器（display:none）
+::v-deep .el-upload--picture-card .is-disabled {
+  display: none;
+}
+
+.animate-hide ::v-deep .el-upload--picture-card {
+  animation: shrinkFadeOut 0.18s ease-out forwards;
+}
+
+// 图片上传成功的对勾图标
+::v-deep .el-upload-list__item.is-success .el-upload-list__item-status-label {
+  display: none;
+}
+
+.Upload-bottom-text {
+  width: 180px;
+  height: 21px;
+  text-align: center;
+  line-height: 21px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 400;
+  font-size: 14px;
+  color: #333333;
 }
 </style>
