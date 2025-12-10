@@ -70,6 +70,13 @@
             <dict-tag :options="meeting_type" :value="detail?.meetingType"></dict-tag>
           </div>
         </div>
+        <!-- 联系人电话 -->
+        <div class="meeting-item">
+          <div class="m-title">联系人电话</div>
+          <div class="m-content">
+            {{ detail?.meetingPhone }}
+          </div>
+        </div>
         <!-- 会议时间 -->
         <div class="meeting-item">
           <div class="m-title">会议时间</div>
