@@ -22,7 +22,7 @@
         </el-tabs>
       </div>
 
-      <el-scrollbar height="600px" @end-reached="loadMore" v-loading="loading">
+      <el-scrollbar height="600px" v-loading="loading">
         <div class="data-list" v-if="dataList.length > 0">
           <div class="law-title flex-center gap-12" v-for="(item, index) in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div :class="[{ 'three': index < 3 }, 'index flex-center-center']">{{ index + 1 }}</div>
@@ -54,7 +54,7 @@ const activeTab = ref('lawContentDetail');
 
 const dataList = ref([]);
 const pageNum = ref(1);
-const pageSize = 4;
+const pageSize = 999;
 const hasMore = ref(true);
 
 onMounted(() => {
@@ -62,6 +62,7 @@ onMounted(() => {
 });
 
 const handleTabChange = (tab: any) => {
+  activeTab.value = tab.props.name;
   pageNum.value = 1;
   resetData();
   getDataList();
@@ -83,9 +84,9 @@ const getDataList = async () => {
         ? getActivityList({ pageNum: pageNum.value, pageSize, activityStatus: '1' })
         : getWhitePaperList({ pageNum: pageNum.value, pageSize, paperStatus: '1' }));
     if (res.code === 200) {
-      const rows = res.rows || [];
-      dataList.value = [...dataList.value, ...rows];
-      hasMore.value = rows.length === pageSize;
+      dataList.value = res.rows || [];
+      // dataList.value = [...dataList.value, ...rows];
+      // hasMore.value = rows.length === pageSize;
     }
   } catch {
   } finally {
