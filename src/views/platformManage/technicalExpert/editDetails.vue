@@ -151,9 +151,9 @@
           <el-button v-throttle type="danger" @click="handleAudit('99')">审核退回</el-button>
           <el-button v-throttle style="background: #108c58; color: #fff" @click="handleAudit('1')">审核通过</el-button>
         </div>
-        <div style="margin-top: 30px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
+        <!-- <div style="margin-top: 30px; display: flex; justify-content: end; align-items: end" v-if="operateMode === 'edit'">
           <el-button v-throttle style="background: #108c58; color: #fff" @click="handleSave">保存</el-button>
-        </div>
+        </div> -->
       </div>
     </div></el-dialog
   >
@@ -235,16 +235,10 @@ const handleAudit = async (status: '99' | '1') => {
   }
   try {
     loading.value = true;
-    const folder = formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
-      ...item,
-      ...(item.ossInfo || {})
-    }));
     const res = await techUpdateOrSaveData({
-      // @ts-ignore
       hnBaseTechExpertInfoBo: {
-        ...formData.value,
-        reviewStatus: status,
-        folder
+        id: formData.value?.id,
+        reviewRemark: formData.value.reviewRemark
       },
       optType: '3'
     });

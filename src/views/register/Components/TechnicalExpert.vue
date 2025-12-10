@@ -38,7 +38,7 @@
                         </div>
                       </div>
                       <div v-if="diplomaUrl" class="image-with-delete">
-                        <img :src="diplomaUrl" :alt="diplomaUrl" class="upload-image" />
+                        <img :src="diplomaUrl" alt="加载中" class="upload-image" />
                         <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removeDiploma">
                           <el-icon><Close /></el-icon>
                         </el-button>
@@ -71,7 +71,7 @@
                         </div>
                       </div>
                       <div v-if="photoUrl" class="image-with-delete">
-                        <img :src="photoUrl" :alt="photoUrl" class="upload-image" />
+                        <img :src="photoUrl" alt="加载中" class="upload-image" />
                         <el-button class="delete-btn" circle size="small" type="danger" @click.stop="removePhoto">
                           <el-icon><Close /></el-icon>
                         </el-button>
@@ -199,7 +199,7 @@
         </div>
         <div class="qualification-list">
           <div class="qualification-header">
-            <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
+            <el-upload :on-change="addQualification" :before-upload="beforeUpload" action="#" :auto-upload="false" :show-file-list="false">
               <div class="upload-btn">
                 <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
                   <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
@@ -765,11 +765,11 @@ const addQualification = (file: any) => {
 
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  //   const maxSize = 5 * 1024 * 1024; // 5MB
-  //   if (file.size > maxSize) {
-  //     ElMessage.error('文件大小不能超过5MB');
-  //     return false;
-  //   }
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过10MB');
+    return false;
+  }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
     ElMessage.error('不支持的文件类型');

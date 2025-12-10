@@ -84,7 +84,7 @@ export interface IPublicRequest {
   /**
    * 是否升序
    */
-  isAsc?: boolean;
+  isAsc?: boolean | string;
   /**
    * 排序字段
    */

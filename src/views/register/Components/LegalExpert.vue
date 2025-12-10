@@ -514,20 +514,13 @@ const qualificationList = ref<
 >([]);
 // 文件上传前校验
 const beforeUpload = (file: any) => {
-  //   const maxSize = 5 * 1024 * 1024; // 5MB
-  //   if (file.size > maxSize) {
-  //     ElMessage.error('文件大小不能超过5MB');
-  //     return false;
-  //   }
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过10MB');
+    return false;
+  }
 
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
     ElMessage.error('不支持的文件类型');
     return false;
