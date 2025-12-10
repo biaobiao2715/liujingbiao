@@ -13,7 +13,7 @@
     <div class="description flex-center gap-24 mt-24 mb-24">
       <!-- 头像 -->
       <img :src="detail?.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail?.createBy }}</div>
+      <div>{{ '发布人：  ' + detail?.createName }}</div>
       <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
       <dict-tag :options="cultivate_type" :value="detail?.cultivateType" />
       <div class="flex-center gap-12">
