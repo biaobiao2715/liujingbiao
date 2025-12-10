@@ -118,7 +118,7 @@ const fetchData = (type: string) => {
 
 // 获取培训课程列表
 const fetchCourseList = async () => {
-  const response = await courseCultivateList({ pageNum: queryParams.value.pageNum, pageSize: 10 });
+  const response = await courseCultivateList({ pageNum: queryParams.value.pageNum, pageSize: 10, cultivateStatus: '1' });
   courseList.value = response.rows || [];
 };
 
