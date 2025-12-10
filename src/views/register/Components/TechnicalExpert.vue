@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题: TecnnicalExpert.vue
 功能: 技术专家注册
-说明: 
+说明:
 开发信息: Create by 李刘超 2025-10-13 14:21:42
 当前版本: 1.0
 -->
@@ -425,6 +425,21 @@ const FormRulesarr: FormRules<TechnicalExpert & { diploma: string; photo: string
           callback(new Error('请输入毕业证书编号'));
         } else if (value.length > 20) {
           callback(new Error('毕业证书编号最多20个字符'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
+  // 长度不超过50字
+  technicalQualification: [
+    // { required: false, message: '请输入技术资格名称', trigger: ['change', 'blur'] },
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+        } else if (value.length > 50) {
+          callback(new Error('技术资格名称最多50个字'));
         } else {
           callback();
         }

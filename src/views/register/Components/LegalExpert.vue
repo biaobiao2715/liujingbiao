@@ -1,7 +1,7 @@
-<!-- 
+<!--
 标题: LegalExpert.vue
 功能: 法务专家注册
-说明: 
+说明:
 开发信息: Create by 李刘超 2025-10-14 09:21:00
 当前版本: 1.0
 -->
@@ -372,7 +372,20 @@ const FormRulesarr: FormRules<LegalExpert & { photo: string; diploma: string }> 
   // 发证日期
   issueDate: [{ required: true, message: '请选择发证日期', trigger: ['change', 'blur'] }],
   // 技术资格证号
-  technicalQualification: [{ required: true, message: '请输专业技术资格名称', trigger: 'blur' }],
+  technicalQualification: [
+    // { required: false, message: '请输专业技术资格名称', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (!value) {
+          callback();
+        } else if (value.length > 50) {
+          callback(new Error('技术资格名称最多50个字'));
+        } else {
+          callback();
+        }
+      }
+    }
+  ],
   // 联系电话
   contactPhone: [
     {
@@ -780,6 +793,8 @@ onMounted(async () => {
   background-color: #f7f8fb;
   .content {
     background-color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
     .title {
       border-bottom: 1px solid #e5e6eb;
       height: 54px;
