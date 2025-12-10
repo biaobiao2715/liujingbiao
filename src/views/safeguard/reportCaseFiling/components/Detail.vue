@@ -131,7 +131,7 @@
         <el-row :gutter="20" class="detail-form" v-if="!!formData.caseCode">
           <el-col :span="24">
             <el-form-item label="驳回原因：">
-              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -826,6 +826,11 @@ const getStatusScenarios = (): Record<string, any> => ({
       { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '已驳回', time: '', active: true, show: true }
     ],
+    stagesOther: [
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: '', active: true, show: true },
+      { id: 3, name: '已驳回', time: '', active: true, show: true }
+    ],
     currentStageId: 2
   },
   // 已结案状态 '3'
@@ -867,6 +872,10 @@ const currentScenario = computed(() => {
     baseStages = appealTime ? template.stages : template.stagesOther;
   } else if (status === '4' && template.stagesOther) {
     baseStages = caseCode ? template.stages : template.stagesOther;
+  }
+  // 有caseCode，但是已驳回
+  if (status === '2' && template.stagesOther) {
+    baseStages = caseCode ? template.stagesOther : template.stages;
   }
   const scenario = {
     title: template.title,
