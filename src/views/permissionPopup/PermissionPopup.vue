@@ -14,13 +14,13 @@
         <div class="status-label">申请状态：</div>
         <el-tag :type="getStatusTagType()" size="large">{{ getStatusLabel() }}</el-tag>
       </div>
-      
+
       <!-- 审核意见（仅审核驳回时显示） -->
       <div v-if="isRejected && auditComment" class="audit-comment-bar">
         <div class="comment-label">审核意见：</div>
         <div class="comment-content">{{ auditComment }}</div>
       </div>
-      
+
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px" class="permission-form">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -30,9 +30,9 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="统一社会信用代码号" prop="licenseCode" class="no-wrap-label">
-              <el-input 
-                v-model="formData.licenseCode" 
-                placeholder="请输入统一社会信用代码号" 
+              <el-input
+                v-model="formData.licenseCode"
+                placeholder="请输入统一社会信用代码号"
                 :disabled="isReadOnly"
                 @input="handleLicenseCodeInput"
                 maxlength="18"
@@ -60,17 +60,23 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="地址" prop="address">
-              <el-input v-model="formData.address" placeholder="请输入地址" :disabled="isReadOnly" @blur="handleAddressBlur" @keyup.enter="handleAddressBlur" />
+              <el-input
+                v-model="formData.address"
+                placeholder="请输入地址"
+                :disabled="isReadOnly"
+                @blur="handleAddressBlur"
+                @keyup.enter="handleAddressBlur"
+              />
             </el-form-item>
           </el-col>
         </el-row>
 
         <!-- 位置选择 -->
         <el-form-item label="位置" prop="location">
-          <AMap 
-            :model-value="mapData" 
-            @update:model-value="handleMapUpdate" 
-            map-id="permission-map" 
+          <AMap
+            :model-value="mapData"
+            @update:model-value="handleMapUpdate"
+            map-id="permission-map"
             :address-sync-signal="addressSyncSignal"
             :disabled="isReadOnly"
           />
@@ -144,12 +150,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="handleClose">{{ isReadOnly ? '关闭' : '关闭' }}</el-button>
-        <el-button 
-          v-if="!isPendingAudit && !isReadOnly" 
-          type="primary" 
-          @click="handleSubmit" 
-          :loading="submitting"
-        >
+        <el-button v-if="!isPendingAudit && !isReadOnly" type="primary" @click="handleSubmit" :loading="submitting">
           {{ isRejected ? '提交修改' : '提交申请' }}
         </el-button>
       </div>
@@ -194,7 +195,7 @@ interface LicenseFile extends UploadUserFile {
   displayName?: string;
 }
 
-const formData = reactive({
+let formData = reactive({
   id: '',
   companyName: '',
   licenseCode: '',
@@ -489,7 +490,7 @@ const handleDeleteFile = async () => {
 // 回显数据
 const fillFormData = (data: any) => {
   if (!data) return;
-  
+
   // 填充表单数据
   formData.id = data.id || '';
   formData.companyName = data.companyName || '';
@@ -502,10 +503,10 @@ const fillFormData = (data: any) => {
   formData.latitude = data.latitude || '';
   formData.companyIntro = data.companyIntro || '';
   formData.licenseFileId = data.licenseFileId || '';
-  
+
   // 填充审核意见
   auditComment.value = data.auditRemark || '';
-  
+
   // 如果有文件URL，回显文件（优先使用 licenseFileName，如果没有则从 URL 中提取文件名）
   if (data.licenseFileUrl) {
     // 优先使用 API 返回的 licenseFileName，如果没有则从 URL 中提取文件名
@@ -523,56 +524,29 @@ const fillFormData = (data: any) => {
         console.warn('从 URL 提取文件名失败:', e);
       }
     }
-    
-    licenseFiles.value = [{
-      name: fileName,
-      fileName: fileName,
-      displayName: fileName,
-      url: data.licenseFileUrl, // 使用 licenseFileUrl 作为显示地址
-      serverUrl: data.licenseFileUrl, // 使用 licenseFileUrl 作为服务器地址
-      ossId: data.licenseFileId || '',
-      fileType: 'license',
-      status: 'success',
-      percentage: 100
-    }];
+
+    licenseFiles.value = [
+      {
+        name: fileName,
+        fileName: fileName,
+        displayName: fileName,
+        url: data.licenseFileUrl, // 使用 licenseFileUrl 作为显示地址
+        serverUrl: data.licenseFileUrl, // 使用 licenseFileUrl 作为服务器地址
+        ossId: data.licenseFileId || '',
+        fileType: 'license',
+        status: 'success',
+        percentage: 100
+      }
+    ];
   }
 };
 
 // 监听弹窗显示和初始数据变化
 watch(
   () => [props.visible, props.initialData, props.auditStatus],
-  ([visible, initialData, auditStatus]) => {
+  ([visible, initialData]) => {
     if (visible) {
-      // auditStatus 为空或没有初始数据时，清空表单
-      if (auditStatus === null || auditStatus === undefined || !initialData) {
-        formRef.value?.resetFields();
-        licenseFiles.value.forEach((file) => {
-          if (file?.url && file.url.startsWith('blob:')) {
-            try {
-              URL.revokeObjectURL(file.url);
-            } catch {}
-          }
-        });
-        objectUrls.forEach((url) => URL.revokeObjectURL(url));
-        objectUrls.clear();
-        licenseFiles.value = [];
-        formData.licenseFileId = '';
-        // 清空所有表单字段
-        formData.id = '';
-        formData.companyName = '';
-        formData.licenseCode = '';
-        formData.companyType = '';
-        formData.legalPerson = '';
-        formData.contactPhone = '';
-        formData.address = '';
-        formData.longitude = '';
-        formData.latitude = '';
-        formData.companyIntro = '';
-        auditComment.value = '';
-      } else if (initialData) {
-        // 弹窗打开且有初始数据时，回显数据
-        fillFormData(initialData);
-      }
+      fillFormData(initialData);
     } else if (!visible) {
       // 弹窗关闭时，清空数据
       formRef.value?.resetFields();

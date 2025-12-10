@@ -124,7 +124,7 @@ div<!--
               size="small"
               link
               :disabled="
-                scope.row.rejectTimes == '3' ||
+                scope.row.rejectTimes > '3' ||
                 (scope.row.appealTime != null && scope.row.status === '1') ||
                 (scope.row.caseCode == null && scope.row.status === '2')
               "
@@ -170,7 +170,14 @@ div<!--
       </template>
     </el-dialog>
     <!-- 弹窗：申述/查看 -->
-    <el-dialog v-if="dialog.visible" v-model="dialog.visible" :title="getDialogTitle()" width="50%" :destroy-on-close="false" :close-on-click-modal="false">
+    <el-dialog
+      v-if="dialog.visible"
+      v-model="dialog.visible"
+      :title="getDialogTitle()"
+      width="50%"
+      :destroy-on-close="false"
+      :close-on-click-modal="false"
+    >
       <Suspense>
         <template #default>
           <component

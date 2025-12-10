@@ -359,7 +359,8 @@ const canPublish = (row: any) => {
 
 const canOffline = (row: any) => {
   const status = row.articleStatus;
-  return status === '2' || status === 'enabled' || status === '1';
+  // 只有已上架状态才能下架，待上架（'1'）不应显示下架按钮
+  return status === '2' || status === 'enabled';
 };
 
 const canEdit = (row: any) => {

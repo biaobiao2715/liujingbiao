@@ -739,7 +739,7 @@ const feedbackCascaderOptions = [
   {
     value: '0',
     label: '举报驳回',
-    leaf: true
+    leaf: false
   },
   {
     value: '1',
@@ -764,7 +764,8 @@ const processingFeedbackCascaderOptions = [
   {
     value: '0',
     label: '驳回申诉',
-    leaf: true
+    leaf: true,
+    disabled: formData.value.historyAppealList.length >= 3
   },
   {
     value: '1',
@@ -773,12 +774,14 @@ const processingFeedbackCascaderOptions = [
       {
         value: '1',
         label: '平台结案',
-        leaf: true
+        leaf: true,
+        disabled: false
       },
       {
         value: '2',
         label: '申诉成功',
-        leaf: true
+        leaf: true,
+        disabled: false
       }
     ]
   }

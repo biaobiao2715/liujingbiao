@@ -428,9 +428,19 @@ const rules: FormRules = {
     { required: true, message: '请输入产品优势', trigger: 'change' },
     {
       validator: (_rule, value, callback) => {
-        const text = (value || '').replace(/<[^>]+>/g, '').trim();
-        if (!text) {
-          callback(new Error('请输入产品优势'));
+        // 检查内容是否为空：去除HTML标签后的文本 + 检查是否有图片
+        const htmlContent = (value || '').trim();
+        if (!htmlContent || htmlContent === '<p></p>' || htmlContent === '<p><br></p>') {
+          callback(new Error('请输入产品优势，文字或图片均可'));
+          return;
+        }
+        // 去除HTML标签后的纯文本
+        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        // 检查是否有图片标签
+        const hasImage = /<img[^>]+>/i.test(htmlContent);
+        // 只要有文本或图片就认为不为空
+        if (!text && !hasImage) {
+          callback(new Error('请输入产品优势，文字或图片均可'));
         } else {
           callback();
         }
@@ -442,9 +452,19 @@ const rules: FormRules = {
     { required: true, message: '请输入适用说明', trigger: 'change' },
     {
       validator: (_rule, value, callback) => {
-        const text = (value || '').replace(/<[^>]+>/g, '').trim();
-        if (!text) {
-          callback(new Error('请输入适用说明'));
+        // 检查内容是否为空：去除HTML标签后的文本 + 检查是否有图片
+        const htmlContent = (value || '').trim();
+        if (!htmlContent || htmlContent === '<p></p>' || htmlContent === '<p><br></p>') {
+          callback(new Error('请输入适用说明，文字或图片均可'));
+          return;
+        }
+        // 去除HTML标签后的纯文本
+        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        // 检查是否有图片标签
+        const hasImage = /<img[^>]+>/i.test(htmlContent);
+        // 只要有文本或图片就认为不为空
+        if (!text && !hasImage) {
+          callback(new Error('请输入适用说明，文字或图片均可'));
         } else {
           callback();
         }
@@ -456,9 +476,19 @@ const rules: FormRules = {
     { required: true, message: '请输入申请条件', trigger: 'change' },
     {
       validator: (_rule, value, callback) => {
-        const text = (value || '').replace(/<[^>]+>/g, '').trim();
-        if (!text) {
-          callback(new Error('请输入申请条件'));
+        // 检查内容是否为空：去除HTML标签后的文本 + 检查是否有图片
+        const htmlContent = (value || '').trim();
+        if (!htmlContent || htmlContent === '<p></p>' || htmlContent === '<p><br></p>') {
+          callback(new Error('请输入申请条件，文字或图片均可'));
+          return;
+        }
+        // 去除HTML标签后的纯文本
+        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        // 检查是否有图片标签
+        const hasImage = /<img[^>]+>/i.test(htmlContent);
+        // 只要有文本或图片就认为不为空
+        if (!text && !hasImage) {
+          callback(new Error('请输入申请条件，文字或图片均可'));
         } else {
           callback();
         }
