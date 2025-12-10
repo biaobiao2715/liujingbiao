@@ -30,8 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import { eventBus } from '@/utils/eventBus';
-
 const emit = defineEmits(['clickGoods']);
 // 接收外部传入的商品信息
 const props = defineProps({

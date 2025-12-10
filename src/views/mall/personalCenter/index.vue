@@ -113,6 +113,7 @@ function goBack() {
 function selectMenu(val: unknown) {
   const match = menuItems.value.find((item) => item.component === val);
   if (match) selectedComponent.value = match.component;
+  eventBus.emit('navigationChange', 'personal,' + selectedComponent.value);
 }
 
 // 主内容组件：按需加载，降低首屏体积

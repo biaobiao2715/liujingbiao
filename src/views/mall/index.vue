@@ -83,6 +83,8 @@ const tabs = [
 onMounted(() => {
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (data: any) => {
+    console.log(data);
+    
     activeTab.value = data.command;
 
     if (data.command === 'compareDetail') {

@@ -110,8 +110,6 @@ const naviteList = ref([]);
 
 onMounted(() => {
   eventBus.on('navigationChange', (command: string) => {
-    console.log('commandcommandcommand', command);
-
     const uniqueId = new Date().getTime();
     // 如果是大类，那么就清空导航列表，重新添加
     if (command === 'goods' || command === 'demand' || command === 'market' || command === 'expert') {
@@ -148,17 +146,11 @@ onMounted(() => {
       uniqueId,
       type: command
     });
-    console.log(naviteList.value);
   });
 });
 
 // 点击面包屑导航切换显示区域
 const switchComponent = (item: DetailPayload, isHome: boolean) => {
-  //   点击tabs的路径
-  //   if (isHome) {
-  //
-  //   }
-
   // 个人中心无需点击
   if (naviteList.value.some((e) => e.type === 'personal') && item.type !== 'goods') {
     return;
@@ -177,8 +169,6 @@ const switchComponent = (item: DetailPayload, isHome: boolean) => {
     naviteList.value = naviteList.value.slice(0, targetIndex + 1);
     return;
   }
-
-  //   selectNavigateByType(item.type);
 };
 </script>
 
@@ -187,5 +177,8 @@ const switchComponent = (item: DetailPayload, isHome: boolean) => {
   width: 1500px;
   margin: 0 auto;
   padding: 12px;
+}
+.braed-navigate {
+  cursor: pointer;
 }
 </style>
