@@ -783,7 +783,10 @@ const beforeUpload = (file: any) => {
 const handleNextStep = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      const list = qualificationList.value.map((item) => ({
+      const list = qualificationList.value.map((item, index) => ({
+        index: index,
+        name: item.name,
+        url: item.url,
         fileType: item.fileType,
         ossId: item.ossId,
         remark: item.remark
