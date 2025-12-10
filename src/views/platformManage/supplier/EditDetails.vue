@@ -52,28 +52,27 @@
             <el-form-item label="注册地址">
               <el-input :value="formattedSignAddress" disabled></el-input>
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
+
             <el-form-item label="办公地址">
               <el-input v-model="formData.officeAddress"></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="经营范围">
-              <el-input v-model="formData.businessScope" type="textarea"></el-input>
-            </el-form-item>
-          </el-col>
+
           <!-- 营业执照 -->
           <el-col :span="12">
             <el-form-item label="营业执照">
               <el-image
                 v-if="formData.licenseImage"
-                style="width: 100px; height: 100px"
+                style="width: 126px; height: 80px"
                 :src="formData.licenseImage"
                 :preview-src-list="[formData.licenseImage]"
                 show-progress
-                fit="cover"
               />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="经营范围">
+              <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -85,11 +84,15 @@
               <el-input v-model="contactF.contactUserName"></el-input>
             </el-form-item>
           </el-col>
+
           <el-col :span="12">
             <el-form-item label="证件类型">
-              <el-input v-model="idType"></el-input>
+              <el-select v-model="contactF.contactUserType" placeholder="证件类型" filterable clearable disabled>
+                <el-option v-for="dict in contact_user_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
             </el-form-item>
           </el-col>
+
           <el-col :span="12">
             <el-form-item label="证件号码">
               <el-input v-model="contactF.contactIdCard"></el-input>
@@ -102,19 +105,35 @@
           </el-col>
         </el-row>
         <!-- 联系人信息 -->
-        <FormHeader title="联系人信息" />
-        <el-row :gutter="20" v-for="(contact, index) in contactZ || []" :key="index">
-          <el-col :span="12">
-            <el-form-item :label="'联系人' + (index + 1)">
-              <el-input v-model="contact.contactUserName"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="联系电话">
-              <el-input v-model="contact.contactPhone"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <div v-if="contactZ.length > 0">
+          <FormHeader title="联系人信息" />
+          <el-row :gutter="20" v-for="(contact, index) in contactZ || []" :key="index">
+            <el-col :span="12">
+              <el-form-item :label="'联系人' + (index + 1)">
+                <el-input v-model="contact.contactUserName"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="证件类型">
+                <el-select v-model="contact.contactUserType" placeholder="证件类型" filterable clearable disabled>
+                  <el-option v-for="dict in contact_user_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="证件号码">
+                <el-input v-model="contact.contactIdCard" disabled></el-input>
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+              <el-form-item label="联系电话">
+                <el-input v-model="contact.contactPhone"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+
         <!-- 账户信息 -->
         <FormHeader title="账户信息" />
         <el-row :gutter="20">
@@ -248,9 +267,11 @@ import {
   updateCreditLevel
 } from '@/api/platform/enterprise';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+
+const { review_status, plat_qualification_grade, plat_credit_rating, contact_user_type } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'contact_user_type')
 );
+
 const emit = defineEmits(['saveSuccess']);
 // 定义接口返回数据的类型
 interface SupplierDetails {

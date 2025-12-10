@@ -39,7 +39,7 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="社会统一信用代码">
+          <el-form-item label="统一社会信用代码">
             <el-input v-model="formData.licenseNumber" disabled></el-input>
           </el-form-item>
 
@@ -54,7 +54,7 @@
         </el-col>
 
         <el-col :span="24">
-          <el-form-item label="企业经营范围">
+          <el-form-item label="经营范围">
             <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
           </el-form-item>
         </el-col>
@@ -69,15 +69,15 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="证件号码">
-            <el-input v-model="contactF.contactIdCard" disabled></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
           <el-form-item label="证件类型">
             <el-select v-model="contactF.contactUserType" placeholder="证件类型" filterable clearable disabled>
               <el-option v-for="dict in contact_user_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="证件号码">
+            <el-input v-model="contactF.contactIdCard" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -94,6 +94,18 @@
           <el-col :span="12">
             <el-form-item :label="'联系人' + (index + 1)">
               <el-input v-model="contact.contactUserName" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="证件类型">
+              <el-select v-model="contact.contactUserType" placeholder="证件类型" filterable clearable disabled>
+                <el-option v-for="dict in contact_user_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="证件号码">
+              <el-input v-model="contact.contactIdCard" disabled></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">

@@ -8,7 +8,7 @@
   <el-dialog v-model="dialogVisible" title="价格调整明细" width="800px">
     <el-table :data="props.data || []" v-loading="props.loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="80" :index="getIndex" />
-      <el-table-column label="商品规格">
+      <el-table-column label="商品规格值">
         <template #default="scope">
           {{ formatSpecification(scope.row) }}
         </template>

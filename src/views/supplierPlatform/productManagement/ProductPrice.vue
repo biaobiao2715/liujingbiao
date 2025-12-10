@@ -44,7 +44,8 @@
       <el-table-column label="调整人" prop="createBy" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="价格调整日期" prop="changeTime" width="160">
         <template #default="scope">
-          {{ formatDate(scope.row.changeTime) }}
+          {{ scope.row.changeTime }}
+          <!-- {{ formatDate(scope.row.changeTime) }} -->
         </template>
       </el-table-column>
       <el-table-column fixed="right" label="操作">

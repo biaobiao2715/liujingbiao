@@ -91,7 +91,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsSpecificationValue" label="商品规格">
+        <el-table-column prop="goodsSpecificationValue" label="商品规格值">
           <template #default="scope">
             <span>{{ scope.row.goodsSpecificationValue }}{{ formData.goodsSpecificationName }}</span>
           </template>

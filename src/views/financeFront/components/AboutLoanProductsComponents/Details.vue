@@ -503,6 +503,8 @@ const getLoanAmount = async () => {
 .kpi-list-li-num--small {
   font-size: 20px;
   line-height: 41px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
 }
 .kpi-list-li-text {
   font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;

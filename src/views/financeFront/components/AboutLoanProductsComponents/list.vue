@@ -32,27 +32,27 @@
 
       <!-- 表格展示 -->
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="产品名称" align="center" prop="productName" min-width="100" :show-overflow-tooltip="true" />
-        <el-table-column label="适用对象" align="center" prop="applicableObject" width="200" :show-overflow-tooltip="true">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column label="产品名称" prop="productName" min-width="100" :show-overflow-tooltip="true" />
+        <el-table-column label="适用对象" prop="applicableObject" width="200" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
           </template>
         </el-table-column>
-        <el-table-column label="产品类型" align="center" prop="productType">
+        <el-table-column label="产品类型" prop="productType">
           <template v-slot="scope">
             <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
           </template>
         </el-table-column>
-        <el-table-column label="额度（万元）" align="center" prop="maxLoanAmount"></el-table-column>
+        <el-table-column label="额度（万元）" prop="maxLoanAmount"></el-table-column>
 
-        <el-table-column label="周期(月)" align="center" prop="loanCycle" width="260" :show-overflow-tooltip="true">
+        <el-table-column label="周期(月)" prop="loanCycle" width="260" :show-overflow-tooltip="true">
           <template v-slot="scope">
             <dict-tag :options="loan_cycle" :value="scope.row.loanCycle" />
           </template>
         </el-table-column>
-        <el-table-column label="产品简介" align="center" prop="productIntro" min-width="160" :show-overflow-tooltip="true"></el-table-column>
-        <el-table-column label="操作" fixed="right" align="center" width="160" class-name="small-padding fixed-width">
+        <el-table-column label="产品简介" prop="productIntro" min-width="160" :show-overflow-tooltip="true"></el-table-column>
+        <el-table-column label="操作" fixed="right" width="160" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button v-throttle type="primary" link @click="handleEdit(scope.row, 'view')">详情</el-button>
           </template>

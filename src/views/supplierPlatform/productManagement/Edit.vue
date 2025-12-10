@@ -165,7 +165,8 @@
             <el-table-column prop="goodsSpecificationValue" label="单位">
               <template #header>
                 <span class="required">
-                  {{ selectedSpecification(formData.goodsSpecification) }}
+                  商品规格值
+                  <!-- {{ selectedSpecification(formData.goodsSpecification) }} -->
                 </span>
               </template>
               <template #default="scope">

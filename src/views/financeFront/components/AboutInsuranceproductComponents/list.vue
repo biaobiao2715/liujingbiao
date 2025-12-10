@@ -27,19 +27,20 @@
 
       <!-- 表格展示 -->
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column label="产品名称" align="center" prop="productName" :show-overflow-tooltip="true" />
-        <el-table-column label="适用对象" align="center" width="200" :show-overflow-tooltip="true" prop="applicableObject">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column label="产品名称" prop="productName" :show-overflow-tooltip="true" />
+        <el-table-column label="适用对象" width="200" :show-overflow-tooltip="true" prop="applicableObject">
           <template #default="scope">
             <dict-tag :options="applicable_object" :value="scope.row.applicableObject" />
           </template>
         </el-table-column>
-        <el-table-column label="产品类型" align="center" prop="productType">
+        <el-table-column label="产品类型" prop="productType">
           <template v-slot="scope">
             <dict-tag :options="product_insurance_type" :value="scope.row.productType" />
           </template>
         </el-table-column>
-        <el-table-column label="产品简介" align="center" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="操作" fixed="right" align="center" width="160" class-name="small-padding fixed-width">
+        <el-table-column label="产品简介" prop="productIntro" width="210" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="操作" fixed="right" width="160" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button v-throttle type="primary" link @click="handleEdit(scope.row)">详情</el-button>
           </template>

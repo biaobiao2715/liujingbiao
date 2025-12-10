@@ -27,16 +27,16 @@
 
       <!-- 表格展示 -->
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="文章名称" align="center" prop="articleTitle" :show-overflow-tooltip="true" />
-        <el-table-column label="文章类型" align="center" prop="articleType">
+        <el-table-column type="index" label="序号" width="55" />
+        <el-table-column label="文章名称" prop="articleTitle" :show-overflow-tooltip="true" />
+        <el-table-column label="文章类型" prop="articleType">
           <template v-slot="scope">
             <dict-tag :options="art_article_type" :value="scope.row.articleType" />
           </template>
         </el-table-column>
-        <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160"></el-table-column>
-        <el-table-column label="产品简介" align="center" prop="articleSummary" min-width="160" :show-overflow-tooltip="true"></el-table-column>
-        <el-table-column label="操作" fixed="right" align="center" width="160" class-name="small-padding fixed-width">
+        <el-table-column label="发布时间" prop="publishTime" min-width="160"></el-table-column>
+        <el-table-column label="产品简介" prop="articleSummary" min-width="160" :show-overflow-tooltip="true"></el-table-column>
+        <el-table-column label="操作" fixed="right" width="160" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-button v-throttle type="primary" link @click="handleEdit(scope.row, 'view')">详情</el-button>
           </template>
