@@ -43,7 +43,7 @@
           {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize || 0) }}
         </template>
       </el-table-column>
-      <el-table-column prop="downloadUrl" label="下载">
+      <el-table-column prop="downloadUrl" label="操作">
         <template #default="scope">
           <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
         </template>
