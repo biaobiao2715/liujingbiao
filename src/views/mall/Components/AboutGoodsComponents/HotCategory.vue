@@ -38,51 +38,50 @@ const hotCategoryList = ref([
 
 <style scoped lang="scss">
 .hot-category-container {
-}
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  border-left: 4px solid #108c58;
-  padding-left: 6px;
-  line-height: 18px;
-  margin-bottom: 16px;
-}
-.category-list {
-  flex-wrap: wrap;
-}
-.category-item {
-  padding: 12px;
-  border-radius: 8px;
-  background-color: #f5f5f5;
-  cursor: pointer;
-}
-.category-img {
-  width: 100%;
-  height: 48px;
-}
-.category-name {
-  font-size: 16px;
-  font-weight: bold;
-}
-.category-desc {
-  font-size: 14px;
-  color: rgba(51, 51, 51, 0.5);
-}
+  .title {
+    font-size: 20px;
+    font-weight: bold;
+    border-left: 4px solid #108c58;
+    padding-left: 6px;
+    line-height: 18px;
+    margin-bottom: 16px;
+  }
+  .category-list {
+    flex-wrap: wrap;
+  }
+  .category-item {
+    height: 180px;
+    padding: 28px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    cursor: pointer;
+  }
+  .category-name {
+    color: #fff;
+    font-size: 30px;
+    font-weight: bold;
+  }
+  .category-desc {
+    font-weight: 400;
+    font-size: 20px;
+    color: #ffffff;
+  }
 
-.hotCategory1 {
-  background: url('@/assets/mall/hot-category-1.png') no-repeat center;
-  background-size: cover;
-}
-.hotCategory2 {
-  background: url('@/assets/mall/hot-category-2.png') no-repeat center;
-  background-size: cover;
-}
-.hotCategory3 {
-  background: url('@/assets/mall/hot-category-3.png') no-repeat center;
-  background-size: cover;
-}
-.hotCategory4 {
-  background: url('@/assets/mall/hot-category-4.png') no-repeat center;
-  background-size: cover;
+  .hotCategory1 {
+    background: url('@/assets/mall/hot-category-1.png') no-repeat center;
+    background-size: cover;
+  }
+  .hotCategory2 {
+    background: url('@/assets/mall/hot-category-2.png') no-repeat center;
+    background-size: cover;
+  }
+  .hotCategory3 {
+    background: url('@/assets/mall/hot-category-3.png') no-repeat center;
+    background-size: cover;
+  }
+  .hotCategory4 {
+    background: url('@/assets/mall/hot-category-4.png') no-repeat center;
+    background-size: cover;
+  }
 }
 </style>

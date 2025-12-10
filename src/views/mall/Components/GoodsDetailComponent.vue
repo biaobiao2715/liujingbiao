@@ -234,7 +234,6 @@ const props = defineProps<{
   id?: number;
 }>();
 
-const router = useRouter();
 const route = useRoute();
 
 // 从路由或props获取商品id
@@ -383,8 +382,8 @@ const selectSpec = (specId: number) => {
   updateTotalPrice();
 };
 
-const getGoodsDetail = async () => {
-  const id = goodsIdFromRoute.value;
+const getGoodsDetail = async (nowHomeHotId?: number | string) => {
+  const id = nowHomeHotId || goodsIdFromRoute.value;
   baseInfo.currentSpec = null;
   baseInfo.totalPrice = '';
   baseInfo.quantity = 1;
@@ -558,17 +557,9 @@ const handleOrderSubmit = (orderData: any) => {
   // 调用提交订单API
 };
 
-// 处理同类商品点击
+// 热销、同类商品点击
 const handleSimilarGoodsClick = (goodsId: string | number) => {
-  if (!goodsId) {
-    ElMessage.warning('商品ID不存在');
-    return;
-  }
-  // 跳转到商品详情页面
-  router.push({
-    path: '/mall/goods-detail',
-    query: { id: String(goodsId) }
-  });
+  getGoodsDetail(goodsId);
 };
 
 // 获取商品列表（同类商品或热门商品）
