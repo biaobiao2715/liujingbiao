@@ -87,6 +87,7 @@
         <el-form-item label="上传主图" prop="articleCover" class="uploadcss">
           <el-upload
             action="#"
+            :class="coverFileList.length >= 1 ? 'hidden-upload' : ''"
             :auto-upload="false"
             :accept="'.jpg,.jpeg,.png'"
             list-type="picture-card"
@@ -364,6 +365,7 @@ const handleCoverChange = async (file: any) => {
     // ElMessage.error('主图上传失败，请重试');
   } finally {
     proxy?.$modal.closeLoading();
+    formRef.value?.validateField?.('articleCover');
   }
 };
 
@@ -651,5 +653,9 @@ onMounted(async () => {
     float: left;
     margin: 0 8px 8px 0;
   }
+}
+
+.hidden-upload ::v-deep .el-upload--picture-card {
+  display: none;
 }
 </style>
