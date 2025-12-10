@@ -455,7 +455,6 @@ const onReplyBatchNext = () => {
   let idx = replyDialog.value.batchIndex || 0;
   idx += 1;
   if (idx >= ids.length) {
-    ElMessage.success('批量回复已完成');
     replyDialog.value.visible = false;
     getList();
     return;
