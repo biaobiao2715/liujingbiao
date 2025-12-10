@@ -15,23 +15,31 @@
       </div>
       <div class="user-detail">
         <img src="@/assets/images/tx.png" alt="" />
-        <div class="user-detail-peo">{{ '发布人：  ' + detail?.authorName }}</div>
-        <div class="">{{ '发布时间：  ' + detail?.publishTime }}</div>
-      </div>
-    </div>
-    <div>
-      <div>
-        <div @click="handleCollection">
+        <div class="user-detail-peo">
+          {{ '发布人：  ' + detail?.authorName }}
+        </div>
+        <div class="user-detail-time">
+          {{ '发布时间：  ' + detail?.publishTime }}
+        </div>
+        <div class="detail-views">
           <el-icon size="20"><View /></el-icon>
-          <span>{{ detail?.viewCount }}</span>
+          <span> {{ detail?.viewCount }}</span>
+        </div>
+        <!-- 收藏 -->
+        <div class="detail-collection" @click="handleCollection">
           <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
           <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
           <span>{{ detail?.favoriteCount }}</span>
         </div>
       </div>
     </div>
+    <div>
+      <div class="description">
+        {{ detail?.articleDescription }}
+      </div>
+    </div>
     <!-- 编辑器内容 -->
-    <ContentWithToc :content="detail?.articleContent" ref="contentWithTocRef" />
+    <!-- <ContentWithToc :content="detail?.articleContent" ref="contentWithTocRef" /> -->
     <!-- 附件部分 -->
     <el-table :data="fileList" class="mt-24">
       <el-table-column prop="fileSuffix" label="附件类型" width="180" />
@@ -176,8 +184,22 @@ const addDownloadCount = async (item: any) => {
         height: 30px;
         margin-right: 14px;
       }
-      .user-detail-peo{
-
+      .user-detail-peo {
+        margin-right: 40px;
+      }
+      .user-detail-time {
+        margin-right: 39px;
+      }
+      .detail-views,
+      .detail-collection {
+        display: flex;
+        align-items: center;
+        span{
+          margin-left: 8px;
+        }
+      }
+      .detail-views {
+        margin-right: 44px;
       }
     }
   }
