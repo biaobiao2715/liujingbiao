@@ -426,7 +426,7 @@ const handleEnable = () => {
 const handleDisable = () => {
   // 如果没有选择内容，则提示用户选择
   if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要停用的内容');
+    ElMessage.warning('请先选择要禁用的内容');
     return;
   }
 
@@ -438,7 +438,7 @@ const handleDisable = () => {
   });
 
   if (invalidRows.length > 0) {
-    ElMessage.warning('所选内容中包含已停用的内容，无法重复停用');
+    ElMessage.warning('所选内容中包含已禁用的内容，无法重复禁用');
     return;
   }
 
@@ -459,7 +459,7 @@ const handleDisable = () => {
       updateStatus(disableData)
         .then((response: any) => {
           if (response.code === 200) {
-            ElMessage.success(`成功停用 ${selectedIds.value.length} 条内容`);
+            ElMessage.success(`成功禁用 ${selectedIds.value.length} 条内容`);
             getList();
             // 清空选中状态
             selectedIds.value = [];
@@ -469,7 +469,7 @@ const handleDisable = () => {
           }
         })
         .catch((error) => {
-          console.error('停用操作失败:', error);
+          console.error('禁用操作失败:', error);
           // ElMessage.error('停用操作失败，请稍后重试');
         });
     })
@@ -488,7 +488,7 @@ const handleDelete = async () => {
   // 检查是否有启用状态的内容
   const hasEnabledItems = selectedRows.value.some((row) => row.cultivateStatus == '1');
   if (hasEnabledItems) {
-    ElMessage.warning('只能删除已停用的内容，请先停用后再删除');
+    ElMessage.warning('只能删除已禁用的内容，请先禁用后再删除');
     return;
   }
 
