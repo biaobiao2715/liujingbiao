@@ -353,7 +353,7 @@
             <el-form-item label="处理反馈：" required>
               <el-cascader
                 v-model="processingFeedback.feedbackCascader"
-                :options="processingFeedbackCascaderOptions"
+                :options="processingFeedbackCascaderOptions || []"
                 placeholder="请选择"
                 filterable
                 clearable
@@ -760,12 +760,12 @@ const feedbackCascaderOptions = [
 ];
 
 // 处理中状态的处理反馈级联菜单选项
-const processingFeedbackCascaderOptions = [
+let processingFeedbackCascaderOptions = reactive<any[]>([
   {
     value: '0',
     label: '驳回申诉',
     leaf: true,
-    disabled: formData.value.historyAppealList.length >= 3
+    disabled: false
   },
   {
     value: '1',
@@ -785,7 +785,7 @@ const processingFeedbackCascaderOptions = [
       }
     ]
   }
-];
+]);
 
 // 案件类型选项列表
 const caseTypeOptions = ref<{ value: string | number; label: string }[]>([]);
@@ -1354,6 +1354,9 @@ const fetchDetail = async () => {
     loading.value = false;
     if (res && res.code === 200) {
       formData.value = res.data || {};
+      if (res.data.historyAppealList.length >= 2) {
+        processingFeedbackCascaderOptions[0].disabled = true;
+      }
     } else {
       console.error('获取详情失败:', res?.msg);
       return;
