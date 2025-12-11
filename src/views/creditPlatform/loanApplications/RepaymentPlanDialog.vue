@@ -76,7 +76,7 @@
                   type="date"
                   format="YYYY-MM-DD"
                   value-format="YYYY-MM-DD"
-                  :disabled-date="(date: Date) => getDisabledDate(date, item.loanPeriod)"
+                  :disabled-date="(date) => getDisabledDate(date, item.loanPeriod)"
                   @change="handleDateChange(item.loanPeriod)"
                 />
               </el-form-item>
@@ -132,6 +132,8 @@ const props = defineProps<{
     id?: string | number;
     plans?: Array<{ period: number; repayDate: string; amount: number }>;
     contractFiles?: string[];
+    loanDate?: string;
+    firstRepaymentDate?: string;
   } | null;
 }>();
 
@@ -144,6 +146,11 @@ const plans = ref<any[]>([]);
 const contractFiles = ref<ContractFile[]>([]);
 const uploaderRef = ref();
 const objectUrls = new Map<string, string>();
+// 审批信息中的放款日期与第一期还款日期，用于限制日期选择范围
+const loanDate = ref<string | undefined>(props.data?.loanDate);
+const firstRepaymentDate = ref<string | undefined>(props.data?.firstRepaymentDate);
+// 接口返回的第一期计划原始日期，作为兜底最小值
+const initialFirstPlanDate = ref<string | undefined>();
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -153,6 +160,31 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const getYearMonth = (dateStr: string): string => {
   if (!dateStr) return '';
   return dateStr.substring(0, 7); // YYYY-MM-DD -> YYYY-MM
+};
+
+/**
+ * 将字符串日期转为当天 00:00:00 的 Date
+ */
+const toDateAtMidnight = (dateStr?: string | null): Date | null => {
+  if (!dateStr) return null;
+  // 兼容 "YYYY-MM-DD HH:mm:ss" 只取日期部分
+  const pureDate = dateStr.split(' ')[0];
+  const parts = pureDate.split('-').map((p) => Number(p));
+  if (parts.length < 3 || parts.some((p) => Number.isNaN(p))) return null;
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+/**
+ * 获取明天的 00:00:00
+ */
+const getTomorrow = (): Date => {
+  const tomorrow = new Date();
+  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
 };
 
 /**
@@ -186,23 +218,40 @@ const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
   const currentDate = new Date(year, date.getMonth(), date.getDate());
   currentDate.setHours(0, 0, 0, 0);
 
-  // // 第一期特殊限制：只能选择当前时间到本月月底
-  // if (currentIndex === 0) {
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-  //   const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  //   currentMonthEnd.setHours(0, 0, 0, 0);
-    
-  //   // 禁止选择今天之前的日期
-  //   if (currentDate < today) {
-  //     return true;
-  //   }
-    
-  //   // 禁止选择本月月底之后的日期
-  //   if (currentDate > currentMonthEnd) {
-  //     return true;
-  //   }
-  // }
+  // 第一期（期数为1）：可以选择第一期还款日期及之后到月底的时间
+  if (currentIndex === 0 || Number(currentPeriod) === 1) {
+    const firstDateStr = firstRepaymentDate.value || props.data?.firstRepaymentDate || initialFirstPlanDate.value || '';
+    const baseFirstDate = toDateAtMidnight(firstDateStr);
+    const loanDateMin = toDateAtMidnight(loanDate.value || props.data?.loanDate);
+    const tomorrow = getTomorrow();
+
+    // 与审批范围一致：首期不得早于审批首期日期，且必须晚于放款日，并至少从明天开始
+    const minDateCandidates: Date[] = [];
+    if (baseFirstDate) minDateCandidates.push(baseFirstDate);
+    if (loanDateMin) {
+      const afterLoan = new Date(loanDateMin);
+      afterLoan.setDate(afterLoan.getDate() + 1);
+      minDateCandidates.push(afterLoan);
+    }
+    minDateCandidates.push(tomorrow);
+    const minAllowedDate = minDateCandidates.reduce((max, d) => (!max || d > max ? d : max), minDateCandidates[0]);
+
+    if (minAllowedDate && currentDate < minAllowedDate) {
+      return true;
+    }
+  } else {
+    // 其他期数：必须在放款日期之后
+    const loanDateStr = loanDate.value || props.data?.loanDate;
+    if (loanDateStr) {
+      const loanDateParts = loanDateStr.split('-');
+      const loanDateDate = new Date(parseInt(loanDateParts[0]), parseInt(loanDateParts[1]) - 1, parseInt(loanDateParts[2]));
+      loanDateDate.setHours(0, 0, 0, 0);
+
+      if (currentDate <= loanDateDate) {
+        return true;
+      }
+    }
+  }
 
   // 检查上一期
   if (currentIndex > 0) {
@@ -262,6 +311,44 @@ const handleDateChange = (currentPeriod: number) => {
   const currentPlan = sortedPlans[currentIndex];
   if (!currentPlan.repaymentDate) return;
 
+  // 第一期（期数为1）特殊验证
+  if (currentIndex === 0 || Number(currentPeriod) === 1) {
+    const firstDateStr = firstRepaymentDate.value || props.data?.firstRepaymentDate || initialFirstPlanDate.value || '';
+    const currentDate = toDateAtMidnight(currentPlan.repaymentDate);
+    const baseFirstDate = toDateAtMidnight(firstDateStr);
+    const loanDateMin = toDateAtMidnight(loanDate.value || props.data?.loanDate);
+    const tomorrow = getTomorrow();
+
+    const minDateCandidates: Date[] = [];
+    if (baseFirstDate) minDateCandidates.push(baseFirstDate);
+    if (loanDateMin) {
+      const afterLoan = new Date(loanDateMin);
+      afterLoan.setDate(afterLoan.getDate() + 1);
+      minDateCandidates.push(afterLoan);
+    }
+    minDateCandidates.push(tomorrow);
+    const minAllowedDate = minDateCandidates.reduce((max, d) => (!max || d > max ? d : max), minDateCandidates[0]);
+
+    if (currentDate && minAllowedDate && currentDate < minAllowedDate) {
+      ElMessage.warning(firstDateStr ? '第一期还款日期不能早于审批信息中的第一期还款日期/放款日期' : '第一期还款日期不能早于放款日期次日');
+      currentPlan.repaymentDate = '';
+      return;
+    }
+  } else{
+    // 其他期数验证
+    const loanDateStr = loanDate.value || props.data?.loanDate;
+    if (loanDateStr) {
+      const currentDate = toDateAtMidnight(currentPlan.repaymentDate);
+      const loanDateDate = toDateAtMidnight(loanDateStr);
+
+      if (currentDate && loanDateDate && currentDate <= loanDateDate) {
+        ElMessage.warning(`第${currentPeriod}期还款日期必须在放款日期之后`);
+        currentPlan.repaymentDate = '';
+        return;
+      }
+    }
+  }
+
   // 检查上一期
   if (currentIndex > 0) {
     const prevPlan = sortedPlans[currentIndex - 1];
@@ -296,6 +383,12 @@ const fetchRepaymentPlan = async () => {
   loading.value = true;
   try {
     const response: any = await getRepaymentPlan(props.data.id);
+    if (Array.isArray(response) && response.length > 0) {
+      const firstPlan = response.find((p: any) => Number(p.loanPeriod) === 1) || response[0];
+      if (firstPlan?.repaymentDate) {
+        initialFirstPlanDate.value = firstPlan.repaymentDate;
+      }
+    }
     plans.value = response;
   } catch (error) {
     console.error('获取还款计划失败:', error);
@@ -310,6 +403,10 @@ const fetchContractUrl = async () => {
   try {
     const response: any = await getRemainingDetail(props.data.id);
     if (response.code === 200 && response.data) {
+      // 记录审批信息中的关键日期，用于限制还款日期选择
+      loanDate.value = response.data.loanDate || loanDate.value;
+      firstRepaymentDate.value = response.data.firstRepaymentDate || firstRepaymentDate.value;
+
       const contractUrl = response.data.contractUrl || '';
       const contractName = response.data.contractName || '';
       if (contractUrl) {
@@ -505,6 +602,34 @@ const validateRepaymentDates = (): { valid: boolean; message?: string } => {
 
     const currentDate = new Date(currentPlan.repaymentDate);
     currentDate.setHours(0, 0, 0, 0);
+
+    // 第一期（期数为1）特殊验证
+    if (i === 0 || Number(currentPlan.loanPeriod) === 1) {
+      if (props.data?.firstRepaymentDate) {
+        const firstRepaymentDate = new Date(props.data.firstRepaymentDate);
+        firstRepaymentDate.setHours(0, 0, 0, 0);
+        
+        if (currentDate < firstRepaymentDate) {
+          return {
+            valid: false,
+            message: '第一期还款日期不能早于审批信息中的第一期还款日期'
+          };
+        }
+        
+        const firstDateParts = props.data.firstRepaymentDate.split('-');
+        const firstRepaymentYear = parseInt(firstDateParts[0]);
+        const firstRepaymentMonth = parseInt(firstDateParts[1]);
+        const monthEnd = new Date(firstRepaymentYear, firstRepaymentMonth, 0);
+        monthEnd.setHours(0, 0, 0, 0);
+        
+        if (currentDate > monthEnd) {
+          return {
+            valid: false,
+            message: '第一期还款日期必须在当月内'
+          };
+        }
+      }
+    }
 
     // 检查上一期
     if (i > 0) {

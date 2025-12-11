@@ -2,6 +2,7 @@
   标题: creditPlatform/contentManage/index.vue
   功能: 金融内容管理
   说明: 用于金融文章的管理，包括查询、新增、编辑、删除、上架下架等操作
+  负责人： 门世超
   当前版本: 1.0
 -->
 <template>

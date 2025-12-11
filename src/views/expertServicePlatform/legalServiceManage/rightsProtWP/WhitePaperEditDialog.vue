@@ -379,14 +379,14 @@ const historyVersions = computed(() => {
 
 const rules = {
   paperTitle: [
-    { required: true, message: '请输入标题内容，最多支持30个汉字', trigger: 'blur' },
+    { required: true, message: '请上传标题', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
   ],
   attachment: [
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (attachmentList.value.length === 0) {
-          callback(new Error('请上传附件'));
+          callback(new Error('请添加附件'));
         } else {
           callback();
         }
@@ -901,12 +901,29 @@ const handleSubmit = async () => {
   titleTouched.value = true;
   
   try {
+    const titleEmpty = !formData.value.paperTitle || !formData.value.paperTitle.trim();
+    const noAttachment = attachmentList.value.length === 0;
+
+    // 自定义优先级提示
+    if (titleEmpty && noAttachment) {
+      ElMessage.error('操作失败，请稍后重试');
+      return;
+    }
+    if (titleEmpty) {
+      ElMessage.warning('请上传标题');
+      return;
+    }
+    if (noAttachment) {
+      ElMessage.error('操作失败，请添加附件');
+      return;
+    }
+
     const valid = await formRef.value.validate();
     if (!valid) return;
     
     // 新增和编辑模式下必须上传附件
     if (attachmentList.value.length === 0) {
-      ElMessage.warning('请上传附件');
+      ElMessage.error('操作失败，请添加附件');
       return;
     }
     
