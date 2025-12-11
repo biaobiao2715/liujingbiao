@@ -126,7 +126,8 @@
       </div>
 
       <!-- 已驳回状态：显示驳回原因 -->
-      <template v-if="isRejected">
+      <!-- <template v-if="isRejected"> -->
+      <template v-if="formData.status === '2'">
         <FormHeader title="驳回供应商/企业原因" v-if="!!formData.caseCode" />
         <el-row :gutter="20" class="detail-form" v-if="!!formData.caseCode">
           <el-col :span="24">
@@ -146,88 +147,92 @@
       </template>
 
       <!-- 待处理状态：显示处理反馈 -->
-      <div v-show="isPending">
-        <FormHeader title="处理反馈" />
-        <el-row :gutter="20">
-          <el-col :span="24">
-            <el-form-item label="处理反馈：" required>
-              <el-radio-group v-model="processFeedback.handleBack">
-                <el-radio value="0">举报驳回</el-radio>
-                <el-radio value="1">平台受理</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-
-          <!-- 选择举报驳回：显示驳回原因输入框 -->
-          <el-col v-if="processFeedback.handleBack === '0'" :span="24">
-            <el-form-item label="驳回原因：" required>
-              <el-input
-                v-model="processFeedback.rejectReason"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入驳回原因,最多输入200个汉字"
-                maxlength="200"
-                show-word-limit
-              />
-              <!-- <div v-if="!processFeedback.rejectReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回原因</div> -->
-            </el-form-item>
-          </el-col>
-
-          <!-- 选择平台受理：显示案件类型下拉框 -->
-          <template v-if="processFeedback.handleBack === '1'">
+      <template v-if="formData.status === '0'">
+        <!-- <div v-show="isPending"> -->
+        <div>
+          <FormHeader title="处理反馈" />
+          <el-row :gutter="20">
             <el-col :span="24">
-              <el-form-item label="案件类型：" required>
-                <el-select
-                  v-model="processFeedback.id"
-                  placeholder="请选择"
-                  filterable
-                  clearable
-                  style="width: 100%"
-                  @change="handleCaseTypeChange(processFeedback.id)"
-                >
-                  <el-option v-for="item in caseTypeOptions" :key="item.id" :label="item.label" :value="item.id" />
-                </el-select>
-                <div v-if="!processFeedback.id" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请选择案件类型</div>
+              <el-form-item label="处理反馈：" required>
+                <el-radio-group v-model="processFeedback.handleBack">
+                  <el-radio value="0">举报驳回</el-radio>
+                  <el-radio value="1">平台受理</el-radio>
+                </el-radio-group>
               </el-form-item>
             </el-col>
 
-            <!-- 案件类型详情列表 -->
-            <el-col v-if="caseTypeDetail" :span="24">
-              <el-table :data="caseTypeDetail ? [caseTypeDetail] : []" border>
-                <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
-                <el-table-column prop="caseTypeId" label="案件类型名称" align="center">
-                  <template v-slot="scope">
-                    <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
-                  </template>
-                </el-table-column>
-                <el-table-column label="执法依据" align="center">
-                  <template v-slot="scope">
-                    <span
-                      style="color: #108c58; cursor: pointer"
-                      @click="downloadAttachment(scope.row.newBasisFile?.originalName || '', scope.row.newBasisFile?.ossInfo?.url || '')"
-                    >
-                      {{ scope.row.newBasisFile?.originalName || '' }}
-                    </span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="执法文书模版" align="center">
-                  <template v-slot="scope">
-                    <span
-                      style="color: #108c58; cursor: pointer"
-                      @click="downloadAttachment(scope.row.newDocumentFile?.originalName || '', scope.row.newDocumentFile?.ossInfo?.url || '')"
-                    >
-                      {{ scope.row.newDocumentFile?.originalName || '' }}
-                    </span>
-                  </template>
-                </el-table-column>
-              </el-table>
+            <!-- 选择举报驳回：显示驳回原因输入框 -->
+            <el-col v-if="processFeedback.handleBack === '0'" :span="24">
+              <el-form-item label="驳回原因：" required>
+                <el-input
+                  v-model="processFeedback.rejectReason"
+                  type="textarea"
+                  :rows="4"
+                  placeholder="请输入驳回原因,最多输入200个汉字"
+                  maxlength="200"
+                  show-word-limit
+                />
+                <!-- <div v-if="!processFeedback.rejectReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回原因</div> -->
+              </el-form-item>
             </el-col>
-          </template>
-        </el-row>
-      </div>
+
+            <!-- 选择平台受理：显示案件类型下拉框 -->
+            <template v-if="processFeedback.handleBack === '1'">
+              <el-col :span="24">
+                <el-form-item label="案件类型：" required>
+                  <el-select
+                    v-model="processFeedback.id"
+                    placeholder="请选择"
+                    filterable
+                    clearable
+                    style="width: 100%"
+                    @change="handleCaseTypeChange(processFeedback.id)"
+                  >
+                    <el-option v-for="item in caseTypeOptions" :key="item.id" :label="item.label" :value="item.id" />
+                  </el-select>
+                  <div v-if="!processFeedback.id" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请选择案件类型</div>
+                </el-form-item>
+              </el-col>
+
+              <!-- 案件类型详情列表 -->
+              <el-col v-if="caseTypeDetail" :span="24">
+                <el-table :data="caseTypeDetail ? [caseTypeDetail] : []" border>
+                  <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
+                  <el-table-column prop="caseTypeId" label="案件类型名称" align="center">
+                    <template v-slot="scope">
+                      <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="执法依据" align="center">
+                    <template v-slot="scope">
+                      <span
+                        style="color: #108c58; cursor: pointer"
+                        @click="downloadAttachment(scope.row.newBasisFile?.originalName || '', scope.row.newBasisFile?.ossInfo?.url || '')"
+                      >
+                        {{ scope.row.newBasisFile?.originalName || '' }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="执法文书模版" align="center">
+                    <template v-slot="scope">
+                      <span
+                        style="color: #108c58; cursor: pointer"
+                        @click="downloadAttachment(scope.row.newDocumentFile?.originalName || '', scope.row.newDocumentFile?.ossInfo?.url || '')"
+                      >
+                        {{ scope.row.newDocumentFile?.originalName || '' }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-col>
+            </template>
+          </el-row>
+        </div>
+      </template>
 
       <!-- 非已驳回状态：显示案件类型 -->
-      <template v-if="!isRejected && !isPending && !isWithdrawnPending">
+      <!-- <template v-if="!isRejected && !isPending && !isWithdrawnPending"> -->
+      <template v-if="formData.status != '2'">
         <FormHeader title="案件类型" />
         <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
           <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
@@ -321,7 +326,8 @@
       </template>
 
       <!--历史申诉材料  -->
-      <div v-if="!hideProcessingViewSection && !isWithdrawnPending && (isProcessing || (!isRejected && !isPending))">
+      <!-- <div v-if="!hideProcessingViewSection && !isWithdrawnPending && (isProcessing || (!isRejected && !isPending))"> -->
+      <div v-if="formData.historyAppealList">
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
           <el-table-column type="index" min-width="55" label="序号" align="center" />
@@ -912,6 +918,7 @@ const currentScenario = computed(() => {
           return stageStatus === '1';
         }
         if (stage.id === 3) {
+          if (status === '2') return stageStatus === '2';
           if (status === '3') return stageStatus === '3';
           if (status === '4') return stageStatus === '4';
         }
@@ -921,6 +928,7 @@ const currentScenario = computed(() => {
         stage.time = statusItem.time || statusItem.date || '';
         stage.active = true;
       }
+      console.log(stage);
       return stage;
     });
   } else {
@@ -936,6 +944,7 @@ const currentScenario = computed(() => {
       return stage;
     });
   }
+  // console.log(scenario.stages);
 
   return scenario;
 });
@@ -1349,7 +1358,8 @@ const fetchDetail = async () => {
     // 根据状态调用不同的 API
     // 待处理/已撤回/已驳回状态调用 getPendingReportCaseFilingDetail，其它状态调用正式详情
     // const shouldUsePendingApi = props.status === '0' || props.status === '2' || props.status === '4';
-    const shouldUsePendingApi = !props.caseCode; //只要有caseCode，就调用getSafeguardReportCaseFilingDetail
+    const shouldUsePendingApi = !props.caseCode || props.status === '0';
+    console.log(props.caseCode);
     console.log(shouldUsePendingApi);
     const res = shouldUsePendingApi
       ? await getPendingReportCaseFilingDetail(String(props.id))
