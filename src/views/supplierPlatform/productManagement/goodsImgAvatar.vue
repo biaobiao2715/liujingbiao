@@ -35,7 +35,7 @@
         <el-button v-throttle icon="RefreshRight" @click="rotateRight()"></el-button>
       </el-col>
       <el-col :lg="{ span: 2, offset: 6 }" :md="2">
-        <el-button v-throttle type="primary" @click="uploadImg()">提 交</el-button>
+        <el-button v-throttle type="primary" :disabled="disabledSubmit" @click="uploadImg()">提 交</el-button>
       </el-col>
     </el-row>
   </div>
@@ -64,6 +64,7 @@ const props = defineProps<{ urlData?: UploadRawFile | string | null }>();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const emit = defineEmits<{ (e: 'success', payload: { blob: Blob; fileName: string }): void }>();
 
+const disabledSubmit = ref(false);
 const cropper = ref<any>({});
 // 图片裁剪数据
 const options = reactive<Options>({
@@ -93,6 +94,7 @@ const changeScale = (num: number) => {
 };
 /** 提交裁剪：返回裁剪后的 Blob 和文件名，由父组件上传 */
 const uploadImg = async () => {
+  disabledSubmit.value = true;
   cropper.value.getCropBlob(async (data: any) => {
     try {
       const resizedBlob = await resizeTo800(data);
@@ -101,6 +103,7 @@ const uploadImg = async () => {
       emit('success', response.data);
       options.visible = false;
     } catch (e: any) {
+      disabledSubmit.value = false;
       proxy?.$modal.msgError(e?.message || '裁剪失败');
     }
   });
@@ -137,6 +140,7 @@ watch(
       options.img = val;
       options.fileName = 'crop.png';
       options.visible = true;
+      disabledSubmit.value = false;
       return;
     }
     // console.log('00000000', val);
@@ -156,6 +160,7 @@ watch(
         const chosen = extFromMime || extFromName || 'png';
         options.outputType = allowed.includes(chosen) ? chosen : 'png';
         options.visible = true;
+        disabledSubmit.value = false;
       };
       reader.readAsDataURL(file);
     } else {
