@@ -1419,7 +1419,7 @@ const fetchDetail = async () => {
     // 根据状态调用不同的 API
     // 待处理/已撤回/已驳回状态调用 getPendingReportCaseFilingDetail，其它状态调用正式详情
     // const shouldUsePendingApi = props.status === '0' || props.status === '2' || props.status === '4';
-    const shouldUsePendingApi = props.caseCode;//有案件号一律使用 /reportCaseFiling/
+    const shouldUsePendingApi = !!props.caseCode; //有案件号一律使用 /reportCaseFiling/
     const res = shouldUsePendingApi
       ? await getSafeguardReportCaseFilingDetail(String(props.id))
       : await getPendingReportCaseFilingDetail(String(props.id));

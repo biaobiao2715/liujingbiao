@@ -307,6 +307,8 @@ const handleView = (row: any) => {
   selectStatus.value = row.status || '';
   selectAppealTime.value = row.appealTime || '';
   caseCode.value = row.caseCode;
+  console.log(row);
+  
   dlgTitle.value = '查看举报立案详情';
   dlgPreviewVisible.value = true;
 };
@@ -318,6 +320,7 @@ const handleProcess = (row: any) => {
   selectStatus.value = row.status || '';
   selectAppealTime.value = row.appealTime || '';
   dlgTitle.value = '处理举报立案';
+  caseCode.value = row.caseCode;
   dlgPreviewVisible.value = true;
 };
 
