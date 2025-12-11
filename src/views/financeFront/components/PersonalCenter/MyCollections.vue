@@ -70,7 +70,7 @@
       <!-- 保险 -->
       <el-row :gutter="20" v-show="activeTab === 'insurance' && insuranceProducts.length > 0">
         <el-col :span="8" v-for="item in insuranceProducts" :key="item.id">
-          <el-card>
+          <div class="item">
             <div class="product-header flex-center-between">
               <div class="left-title flex-center gap-12">
                 <img src="../../../../assets/images/finance/insurance-icon.png" width="22" />
@@ -92,7 +92,7 @@
             <div class="product-actions flex-center-center">
               <el-button type="primary" round @click="handleDetail(item, 'InsuranceproductComponentDetails')">查看详情 →</el-button>
             </div>
-          </el-card>
+          </div>
         </el-col>
       </el-row>
       <el-empty description="暂无收藏保险产品" v-if="activeTab === 'insurance' && insuranceProducts.length === 0" class="mt-24"> </el-empty>
@@ -237,7 +237,7 @@ const handleDetail = (row: any, type: string) => {
 }
 .content {
   padding: 20px;
-  height: 700px;
+  height: 720px;
   overflow: auto;
   .item {
     border: 1px solid #e4e4e4;
@@ -397,6 +397,14 @@ const handleDetail = (row: any, type: string) => {
   }
 
   .product-info {
+    .name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
     .introduction {
       font-size: 14px;
       color: #757474;

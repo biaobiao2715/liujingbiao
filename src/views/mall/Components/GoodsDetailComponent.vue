@@ -170,10 +170,10 @@
             <div class="goods-detail-content" v-html="goods?.goodsDetail || ''"></div>
           </div>
 
-          <!-- 热门推荐 -->
+          <!-- 热销推荐 -->
           <div class="hot-recommendations">
-            <h2 class="section-title">热门推荐</h2>
-            <div class="recommendation-list">
+            <h2 class="section-title">热销推荐</h2>
+            <div class="recommendation-list" v-if="hotGoods.length > 0">
               <GoodsItemComponent
                 v-for="(item, index) in hotGoods"
                 :key="index"
@@ -182,6 +182,7 @@
                 @clickGoods="handleSimilarGoodsClick(item.id)"
               />
             </div>
+            <el-empty v-else description="暂无热销商品"></el-empty>
           </div>
         </div>
       </div>
@@ -606,7 +607,7 @@ const getHotGoods = async () => {
     excludeId: goods.value?.id
   });
   if (rows) {
-    hotGoods.value = rows;
+    hotGoods.value = rows.filter((item) => item.goodsSales > 0);
   }
 };
 

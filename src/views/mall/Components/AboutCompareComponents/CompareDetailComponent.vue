@@ -11,7 +11,7 @@
     <div class="compare-goods-list flex">
       <div class="label flex-center-center">对比商品</div>
       <div class="row-container flex">
-        <GoodsItemComponent :goods="item" v-for="(item, index) in compareGoodsList" :key="item.id" class="compare-item" />
+        <GoodsItemComponent :goods="item" v-for="(item, index) in compareGoodsList" :key="item.id" :is-compare="true" class="compare-item" />
       </div>
     </div>
     <div class="title">商品信息</div>
@@ -81,7 +81,7 @@
           <template #default="{ row }">
             <!-- 根据 row.title 决定显示对应字段 -->
 
-            <div v-if="row.title === '卖家名称'">
+            <div v-if="row.title === '商家名称'">
               {{ item.hnBaseEnterpriseInfo.companyName }}
             </div>
             <div v-else-if="row.title === '资质等级'">
@@ -145,26 +145,42 @@ const fetchData = async () => {
   }
   .label {
     height: 100%;
+    width: 120px;
     font-size: 14px;
     color: #108c58;
-    padding: 0 32px;
     background: rgba(16, 140, 88, 0.1);
     border-radius: 8px 0px 0px 8px;
   }
   .row-container {
-    width: calc(100% - 380px);
+    width: calc(100% - 120px);
     gap: 16px;
     background-color: #fff;
     border-radius: 4px;
     padding: 20px 10px;
 
     .compare-item {
-      // flex: 1;
       width: calc((100% - 16px * 4) / 5);
       border-radius: 8px;
       box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.2);
       ::v-deep img {
         border-radius: 8px;
+        height: 254px;
+      }
+      ::v-deep .goods-price {
+        div:last-child {
+          font-size: 14px;
+          color: #ef4d0b;
+        }
+      }
+      ::v-deep .goods-volume {
+        font-weight: 400;
+        font-size: 14px;
+        color: #7a7a7a;
+      }
+      ::v-deep .goods-location {
+        font-weight: 400;
+        font-size: 14px;
+        color: #7a7a7a;
       }
     }
   }

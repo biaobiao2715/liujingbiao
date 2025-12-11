@@ -342,7 +342,7 @@ const initOrderItems = () => {
     return;
   }
 
-  const specText = `${spec.goodsSpecificationValue || ''}${spec.goodsSpecification || ''}`;
+  const specText = `${spec.goodsPrice || 0}元 / ${spec.goodsSpecificationValue || ''}${props.goods.goodsSpecificationName || ''}`;
   const unitPrice = parseFloat(String(spec.goodsPrice || 0));
 
   orderItems.value = [
