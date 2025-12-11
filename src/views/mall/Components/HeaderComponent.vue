@@ -31,6 +31,7 @@
             <el-dropdown-item command="participated">我参与的</el-dropdown-item>
             <el-dropdown-item command="myReport">我的举报</el-dropdown-item>
             <el-dropdown-item command="varietyIdentification">品种识别记录</el-dropdown-item>
+            <el-dropdown-item command="returnPortal">返回门户</el-dropdown-item>
             <el-dropdown-item command="loginout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -53,6 +54,10 @@ const noticeStore = storeToRefs(useNoticeStore());
 const handleCommand = (command: string) => {
   if (command === 'loginout') {
     handleLogout();
+    return;
+  }
+  if (command === 'returnPortal') {
+    router.push({ path: '/' });
     return;
   }
   eventBus.emit('activeTabChange', { command: 'personal', personalTab: command });
