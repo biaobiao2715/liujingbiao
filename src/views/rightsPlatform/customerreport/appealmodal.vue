@@ -450,7 +450,16 @@ const fetchContentDetail = async () => {
         ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
-
+      const files =
+        safeArray(data.appealFiles) ||
+        safeArray(data?.newAppealFile?.appealFiles) ||
+        safeArray(data.files) ||
+        safeArray(data?.appealFiles) ||
+        safeArray(data?.files);
+      const s = splitFiles(files);
+      histAppealImageList.value = s.images;
+      histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
+      histAppealVideoList.value = s.videos;
       // 将接口返回的数据赋值给表单
       formData.value = {
         id: data.id,
@@ -1173,5 +1182,51 @@ onMounted(() => {
   .editor-container {
     gap: 16px;
   }
+}
+.evidence {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  width: 100%;
+}
+.evidence-image-item {
+  flex: 0 0 calc((100% - 80px) / 6);
+  aspect-ratio: 4 / 3;
+  border: 2px solid #d7d7d7;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f6f6f6;
+}
+.evidence-empty {
+  color: #909399;
+  font-size: 13px;
+}
+.video-card {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.video-card .size {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+.video-card .icon {
+  font-size: 18px;
+  color: #1989fa;
+  margin-bottom: 8px;
+}
+.video-card .ops {
+  position: absolute;
+  bottom: 6px;
 }
 </style>

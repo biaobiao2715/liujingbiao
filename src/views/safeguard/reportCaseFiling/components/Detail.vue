@@ -387,7 +387,9 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="供应商名称/企业名称：">
-                <el-input v-model="formData.reporterName" disabled />
+                <span>
+                  {{ formData.reporterName }}
+                </span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -397,12 +399,9 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="扣分：">
-                <el-input
-                  :model-value="
-                    formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
-                  "
-                  disabled
-                />
+                <span>{{
+                  formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
+                }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -412,10 +411,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="剩余信用积分：">
-                <el-input
-                  :model-value="formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore"
-                  disabled
-                />
+                <span>{{ formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="24">
