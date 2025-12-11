@@ -380,7 +380,17 @@ const urlData = ref('');
 const hnGoodsSpecificationDataList = ref<any[]>([
   { goodsSpecification: '', goodsSpecificationValue: '', goodsPrice: '', goodsStock: '', goodsWeight: '', status: 1 }
 ]);
-
+// 当前时间
+const getCurrentDateTime = (): string => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，补0
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 // 表单数据
 const formData = ref<HnGoodsVo>({
   goodsName: '',
@@ -391,7 +401,7 @@ const formData = ref<HnGoodsVo>({
   goodsDetail: '',
   goodsAlert: '',
   status: '1',
-  launchTime: '',
+  launchTime: getCurrentDateTime(),
   goodsEnsureIds: [] as Array<string | number>,
   goodsAbilityIds: [] as Array<string | number>,
   goodsSpecification: '',
