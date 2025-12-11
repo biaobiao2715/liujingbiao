@@ -286,13 +286,13 @@ const rules: FormRules = {
         }
         // 长度校验：必须是18位
         if (value.length !== 18) {
-          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          callback(new Error('统一社会信用代码必须是18位的大写字母和数字组合。'));
           return;
         }
         // 格式校验：仅支持数字(0-9)和大写字母(A-Z)
         const pattern = /^[0-9A-Z]{18}$/;
         if (!pattern.test(value)) {
-          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          callback(new Error('统一社会信用代码必须是18位的大写字母和数字组合。'));
           return;
         }
         callback();
