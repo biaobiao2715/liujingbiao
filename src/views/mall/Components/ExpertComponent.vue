@@ -22,15 +22,11 @@
       <!-- 专家详情 -->
       <ExpertDetailComponent v-if="showArea === 'expertDetail'" :id="id" :type="expertType" @detailChange="showDetail" />
       <!-- 问答列表 -->
-<<<<<<< Updated upstream
       <QAListComponent v-if="showArea === 'qaMoreList'" @detailChange="showDetail" />
-=======
-      <QAListComponent v-if="showArea === 'qaMoreList'"  @detailChange="showDetail"/>
->>>>>>> Stashed changes
       <!-- 问答详情 -->
       <QADetailComponent v-if="showArea === 'qaDetail'" :id="id" />
       <!-- 文章专栏列表 -->
-      <EssayListComponent v-if="showArea === 'essayList'" />
+      <EssayListComponent v-if="showArea === 'essayList'" @detailChange="showDetail" />
       <!-- 文章详情 -->
       <EssayDetailComponent v-if="showArea === 'essayDetail'" :id="id" />
       <!-- 培训课程+会议的列表 -->

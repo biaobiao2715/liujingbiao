@@ -79,8 +79,10 @@
               ref="refShop"
               list-type="picture-card"
               action="#"
+              :auto-upload="false"
               :on-preview="handlePictureCardPreview"
               :before-upload="handleBeforeUpload"
+              :on-change="handleUploadChange"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
             >
@@ -298,7 +300,7 @@
 // ==========================
 // 导入（分组、补全缺失 API）
 // ==========================
-import { ref, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, nextTick, type ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, type FormRules } from 'element-plus';
 import { Category, GoodsAttributesResponse, HnGoodsVo } from '@/api/supplier/productManagement/types';
 import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
@@ -344,6 +346,27 @@ const fileSize = ref(5);
 const fileType = ref(['png', 'jpg', 'jpeg', 'bmp']);
 const hnGoodsFilesList = ref<any[]>([]);
 const timer: NodeJS.Timeout | null = null;
+// 防抖/节流相关状态
+const uploadBusy = ref(false);
+
+// 简易防抖/节流工具
+const debounce = (fn: (...args: any[]) => any, delay = 300) => {
+  let t: any;
+  return (...args: any[]) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), delay);
+  };
+};
+const throttle = (fn: (...args: any[]) => any, gap = 800) => {
+  let last = 0;
+  return (...args: any[]) => {
+    const now = Date.now();
+    if (now - last >= gap) {
+      last = now;
+      return fn(...args);
+    }
+  };
+};
 
 // 图片预览
 const picOpen = ref(false); // 图片预览弹窗
@@ -485,7 +508,7 @@ const handlePictureCardPreview = (file: any) => {
   picOpen.value = true;
 };
 // 上传前校验
-const handleBeforeUpload = (file: any) => {
+const _handleBeforeUpload = (file: any) => {
   let isImg = false;
   if (fileType.value.length) {
     let fileExtension = '';
@@ -505,17 +528,35 @@ const handleBeforeUpload = (file: any) => {
       return false;
     }
   }
+  // 防并发：忙碌锁避免快速重复打开裁剪弹窗
+  if (uploadBusy.value) return false;
+  uploadBusy.value = true;
   // 打开裁剪弹窗，走裁剪->提交->上传流程
   urlData.value = file;
   cropOpen.value = true;
   // 阻止 el-upload 默认上传
   return false;
 };
+// 对 beforeUpload 做轻量防抖，并且同步阻止默认上传
+const debouncedBeforeUpload = debounce(_handleBeforeUpload, 300);
+const handleBeforeUpload = (file: any) => {
+  debouncedBeforeUpload(file);
+  // 必须同步返回 false 才能阻止 el-upload 默认发请求
+  return false;
+};
 // 超出数量限制
 const handleExceed = () => ElMessage.error(`上传文件数量不能超过 5 个!`);
 
+// 选择文件后，清空 el-upload 内部列表，避免其生成 blob 预览
+const handleUploadChange = async () => {
+  await nextTick();
+  try {
+    refShop.value?.clearFiles?.();
+  } catch (e) {}
+};
+
 // 裁剪完成后上传（裁剪组件返回 Blob 与文件名）
-const onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
+const _onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
   try {
     const file = new File([payload.blob], payload.fileName || '商品主图.png', { type: 'image/png' });
     const response = await ossUploadImage({ file });
@@ -534,8 +575,11 @@ const onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
     ElMessage.error(error?.msg || '裁剪图片上传失败，请重试');
   } finally {
     cropOpen.value = false;
+    uploadBusy.value = false;
   }
 };
+// 对裁剪成功后的上传做节流，避免重复触发
+const onCropSuccess = throttle(_onCropSuccess, 800);
 
 // 删除图片
 const handleDelete = (file: any) => {
