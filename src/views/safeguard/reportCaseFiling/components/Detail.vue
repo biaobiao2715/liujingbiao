@@ -124,8 +124,8 @@
           </template>
         </div>
       </div>
-      <template v-if="formData.status == '2' && formData.newAppealFile.appealFiles.length">
-        <FormHeader title="申诉材料appealFiles" />
+      <template v-if="formData.status == '2' && formData.newAppealFile?.appealFiles.length && caseCode">
+        <FormHeader title="申诉材料" />
         <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
             <el-form-item label="申诉理由：">
