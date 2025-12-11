@@ -107,7 +107,8 @@ import { ref, reactive, defineExpose, watch, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 import { resubmitReportList, resubmitReportAll } from '@/api/mall/personalCenter/myReport';
-import { ossUploadImage } from '@/api/supplier/productManagement/product';
+// import { ossUploadImage } from '@/api/supplier/productManagement/product';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 // 定义props和emits
 const props = defineProps<{
@@ -229,7 +230,7 @@ const initData = async (data: { reportCode: string; status: string; reportData: 
     await loadReportMaterials(currentReportId.value);
   } catch (error) {
     console.error('初始化数据失败:', error);
-    ElMessage.error('数据加载失败');
+    // ElMessage.error('数据加载失败');
   }
 };
 
@@ -270,7 +271,7 @@ const loadReportMaterials = async (reportId: string | number | null) => {
     }
   } catch (error) {
     console.error('举报材料加载失败:', error);
-    ElMessage.error('举报材料加载失败');
+    // ElMessage.error('举报材料加载失败');
   }
 };
 
@@ -284,7 +285,7 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
     const maxVideoSize = 200 * 1024 * 1024; // 200MB
 
     if (file.type?.startsWith('image/') && fileSize > maxImageSize) {
-      ElMessage.error('图片大小不能超过10MB');
+      // ElMessage.error('图片大小不能超过10MB');
       // 从列表中移除超出限制的文件
       const index = elFileList.findIndex((f: any) => f.uid === file.uid);
       if (index > -1) {
@@ -294,7 +295,7 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
     }
 
     if (file.type?.startsWith('video/') && fileSize > maxVideoSize) {
-      ElMessage.error('视频大小不能超过200MB');
+      // ElMessage.error('视频大小不能超过200MB');
       // 从列表中移除超出限制的文件
       const index = elFileList.findIndex((f: any) => f.uid === file.uid);
       if (index > -1) {
@@ -354,7 +355,7 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
     // 调用上传接口
     try {
       const rawFile = file.raw || file.file;
-      const response = await ossUploadImage({ file: rawFile });
+      const response = await uploadByChunks(rawFile);
       const data = response.data || {};
       const isVideo = rawFile?.type?.startsWith('video/') || isVideoFile(data.fileType, data.originalName || data.fileName || file.name);
       const uploaded = {
@@ -381,7 +382,7 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
       ElMessage.success('文件上传成功');
     } catch (error) {
       console.error('文件上传失败:', error);
-      ElMessage.error('文件上传失败');
+      // ElMessage.error('文件上传失败');
       // 从列表中移除上传失败的文件
       const index = elFileList.findIndex((f: any) => f.uid === file.uid);
       if (index > -1) {
@@ -393,24 +394,26 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
 
 // 上传前检查
 const beforeFileUpload = (file: any) => {
+  console.log(file);
+
   // 检查文件类型
   const isImage = file.type?.startsWith('image/');
   const isVideo = file.type?.startsWith('video/');
   if (!isImage && !isVideo) {
-    ElMessage.error('只能上传图片或视频文件！');
+    // ElMessage.error('只能上传图片或视频文件！');
     return false;
   }
   // 根据文件类型设置不同的大小限制
   if (isImage) {
     const maxImageSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxImageSize) {
-      ElMessage.error('图片大小不能超过10MB！');
+      // ElMessage.error('图片大小不能超过10MB！');
       return false;
     }
   } else if (isVideo) {
     const maxVideoSize = 200 * 1024 * 1024; // 200MB
     if (file.size > maxVideoSize) {
-      ElMessage.error('视频大小不能超过200MB！');
+      // ElMessage.error('视频大小不能超过200MB！');
       return false;
     }
   }
@@ -443,7 +446,7 @@ const handleFileRemove = (file: any, list?: any[]) => {
 const handleSubmit = async () => {
   // 表单验证
   if (!formRef.value) {
-    ElMessage.error('表单未初始化');
+    // ElMessage.error('表单未初始化');
     return;
   }
   try {
@@ -468,7 +471,7 @@ const handleSubmit = async () => {
     emit('submit-success');
   } catch (error) {
     console.error('表单验证失败或提交失败:', error);
-    ElMessage.error('提交失败，请检查表单信息');
+    // ElMessage.error('提交失败，请检查表单信息');
   }
 };
 
