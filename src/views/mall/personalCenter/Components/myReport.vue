@@ -63,7 +63,7 @@
       <el-table-column prop="index" label="序号" width="80" type="index" />
       <el-table-column prop="reportCode" label="举报编号" min-width="180" :show-overflow-tooltip="true" />
       <el-table-column prop="caseCode" label="案件编号" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column prop="reportTypeId" label="举报类别" min-width="120" :show-overflow-tooltip="true">
+      <el-table-column prop="reportTypeId" label="举报类型" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-text :options="report_type_id" :value="scope.row.reportTypeId || ''" />
         </template>
