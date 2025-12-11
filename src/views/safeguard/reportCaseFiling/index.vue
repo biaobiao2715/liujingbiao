@@ -308,7 +308,7 @@ const handleView = (row: any) => {
   selectAppealTime.value = row.appealTime || '';
   caseCode.value = row.caseCode;
   console.log(row);
-  
+
   dlgTitle.value = '查看举报立案详情';
   dlgPreviewVisible.value = true;
 };
@@ -439,10 +439,10 @@ onMounted(() => {
   }
 
   .status-closed {
-    color: #108c58;
+    color: #3583de;
 
     &::before {
-      background-color: #108c58;
+      background-color: #3583de;
     }
   }
 
