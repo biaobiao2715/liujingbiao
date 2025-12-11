@@ -36,7 +36,7 @@
       <!-- 会议详情 -->
       <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
       <!-- 普法专栏列表 -->
-      <LawListComponent v-if="showArea === 'lawList'" />
+      <LawListComponent v-show="showArea === 'lawList'"  @detailChange="showDetail" />
       <!-- 普法内容详情 -->
       <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
       <!-- 普法活动详情 -->

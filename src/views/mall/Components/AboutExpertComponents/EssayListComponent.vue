@@ -7,10 +7,10 @@
 -->
 <template>
   <div class="essay-list">
-    <div v-for="item in essayList" :key="item.id || item.articleNo" class="essay-item" @click="handleDetail(item)">
+    <div v-for="item in essayList" :key="item.id || item.articleNo" class="essay-item">
       <div class="essay-left">
         <div class="flex-center-between" style="margin-bottom: 10px">
-          <div class="essay-title">
+          <div class="essay-title" @click="handleDetail(item)">
             {{ item.articleTitle || '-' }}
           </div>
           <div class="essay-meta">
@@ -164,6 +164,10 @@ onBeforeUnmount(() => {
   font-weight: 500;
   font-size: 16px;
   color: #333333;
+  cursor: pointer;
+  &:hover {
+    color: #108c58;
+  }
 }
 .essay-title::before {
   content: '';

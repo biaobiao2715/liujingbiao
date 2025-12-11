@@ -37,7 +37,7 @@
       <div class="question-box">
         <div class="question-title">
           <img src="@/assets/images/twtb@2x.png" />
-          <div class="question-title-text">我要提问</div>
+          <div class="question-title-text" @click="handleConsultation()">我要提问</div>
         </div>
       </div>
     </div>
@@ -73,12 +73,15 @@
         </template>
       </div>
     </div>
+    <!-- 咨询专家弹窗 -->
+    <AskExpertComponent ref="askExpertRef" @submitSuccess="handleChange"></AskExpertComponent>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { technologyExpertDetail, legalExpertDetail, questionList } from '@/api/mall/expert';
+import AskExpertComponent from './AskExpertComponent.vue';
 
 const emit = defineEmits(['detailChange']);
 
@@ -92,6 +95,8 @@ const expertId = ref<string | null>(null);
 const expertDetail = ref();
 
 const qaList = ref([]);
+
+const askExpertRef = ref(null);
 
 onMounted(async () => {
   console.log(props);
@@ -135,6 +140,16 @@ const getQuestionList = async () => {
 // 获取头像url
 const getAvatarUrl = (imgList) => {
   return imgList?.filter((img) => img.fileType === '0')[0]?.ossInfo?.url || '';
+};
+
+// 处理立即咨询按钮点击
+const handleConsultation = () => {
+  // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
+  askExpertRef.value?.openDialog(expertDetail.value?.id, props.type === 'technology' ? '1' : '2');
+};
+
+const handleChange = async (tab) => {
+  await getQuestionList();
 };
 
 const handleDetail = (id: string) => {
@@ -249,6 +264,7 @@ const handleDetail = (id: string) => {
         line-height: 16px;
         font-style: normal;
         margin-left: 6px;
+        cursor: pointer;
       }
     }
   }

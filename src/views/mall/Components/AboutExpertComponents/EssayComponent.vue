@@ -9,12 +9,12 @@
     </div>
 
     <div class="essat-list" v-if="articleList?.length > 0">
-      <div class="essay flex-between" v-for="(article, index) in articleList" :key="index" @click="handleDetail(article)">
+      <div class="essay flex-between" v-for="(article, index) in articleList" :key="index">
         <div class="essay-left flex-between gap-12">
           <div class="base-info flex-between">
             <div class="icon-name flex-center gap-8">
               <img src="@/assets/mall/essay-icon.png" width="20" />
-              <div class="essay-title">{{ article.articleTitle }}</div>
+              <div class="essay-title" @click="handleDetail(article)">{{ article.articleTitle }}</div>
             </div>
             <div class="collect-view flex-center gap-12">
               <div class="collection flex-center gap-2">
@@ -130,6 +130,10 @@ const handleMoreList = () => {
       font-size: 16px;
       color: #333333;
       font-weight: bold;
+      cursor: pointer;
+      &:hover {
+        color: var(--color-main);
+      }
     }
     .description {
       height: 60px;
