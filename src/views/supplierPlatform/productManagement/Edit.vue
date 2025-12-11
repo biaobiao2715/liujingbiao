@@ -14,7 +14,7 @@
       <el-row>
         <el-col :span="12">
           <el-form-item label="商品名称" prop="goodsName">
-            <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="60" show-word-limit />
+            <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="30" show-word-limit />
           </el-form-item>
         </el-col>
         <el-col :span="12"></el-col>
@@ -78,11 +78,10 @@
               :limit="5"
               ref="refShop"
               list-type="picture-card"
+              accept="image/png,image/jpeg,image/jpg,image/bmp"
               action="#"
-              :auto-upload="false"
               :on-preview="handlePictureCardPreview"
               :before-upload="handleBeforeUpload"
-              :on-change="handleUploadChange"
               :on-remove="handleDelete"
               :on-exceed="handleExceed"
             >
@@ -300,14 +299,13 @@
 // ==========================
 // 导入（分组、补全缺失 API）
 // ==========================
-import { ref, onMounted, getCurrentInstance, toRefs, nextTick, type ComponentInternalInstance } from 'vue';
+import { ref, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, type FormRules } from 'element-plus';
 import { Category, GoodsAttributesResponse, HnGoodsVo } from '@/api/supplier/productManagement/types';
 import { ossUploadImage, goodsAdd, goodsUpdate, goodsId } from '@/api/supplier/productManagement/product';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import { goodsAttributesAllList } from '@/api/platform/mallConfiguration/productAttributeLabel';
 import goodsImgAvatar from './goodsImgAvatar.vue';
-import { de } from 'element-plus/es/locale';
 // ==========================
 // Props/Emits
 // ==========================
@@ -413,14 +411,12 @@ const formData = ref<HnGoodsVo>({
 // ==========================
 const FormRulesarr: FormRules = {
   goodsName: [
-    { required: true, message: '请输入商品名称，最多支持60个字符，30个汉字。', trigger: 'blur' },
+    { required: true, message: '请输入商品名称，30个汉字。', trigger: 'blur' },
     {
       validator: (rule: any, value: any, callback: any) => {
-        if (!value || value.trim() === '') return callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
-        if (new Blob([value]).size > 100) return callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
-        if (value.length > 60) return callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
+        if (!value || value.trim() === '') return callback(new Error('请输入商品名称，30个汉字。'));
         const zh = value.match(/[\u4e00-\u9fa5]/g) || [];
-        if (zh.length > 30) return callback(new Error('请输入商品名称，最多支持60个字符，30个汉字。'));
+        if (zh.length > 30) return callback(new Error('请输入商品名称，30个汉字。'));
         callback();
       },
       trigger: 'blur'
@@ -457,7 +453,9 @@ const FormRulesarr: FormRules = {
         if (!hnGoodsFilesList.value || hnGoodsFilesList.value.length === 0) callback(new Error('请上传至少一张商品主图'));
         else callback();
       },
-      trigger: 'change'
+      // 注意：不要使用 change 触发，否则选择文件时（尚未完成裁剪/真正入列）会立刻报错。
+      // 使用 blur 以避免 el-upload 的 change 事件带来早触发；提交时 validate() 仍会校验到。
+      trigger: 'blur'
     }
   ],
   goodsSpecificationValue: [{ required: true, message: '请输入单位规格', trigger: 'blur' }]
@@ -518,7 +516,7 @@ const handlePictureCardPreview = (file: any) => {
   picOpen.value = true;
 };
 // 上传前校验
-const _handleBeforeUpload = (file: any) => {
+const _handleBefore = (file: any) => {
   let isImg = false;
   if (fileType.value.length) {
     let fileExtension = '';
@@ -548,7 +546,7 @@ const _handleBeforeUpload = (file: any) => {
   return false;
 };
 // 对 beforeUpload 做轻量防抖，并且同步阻止默认上传
-const debouncedBeforeUpload = debounce(_handleBeforeUpload, 300);
+const debouncedBeforeUpload = debounce(_handleBefore, 300);
 const handleBeforeUpload = (file: any) => {
   debouncedBeforeUpload(file);
   // 必须同步返回 false 才能阻止 el-upload 默认发请求
@@ -557,25 +555,25 @@ const handleBeforeUpload = (file: any) => {
 // 超出数量限制
 const handleExceed = () => ElMessage.error(`上传文件数量不能超过 5 个!`);
 
-// 选择文件后，清空 el-upload 内部列表，避免其生成 blob 预览
-const handleUploadChange = async () => {
-  await nextTick();
-  try {
-    refShop.value?.clearFiles?.();
-  } catch (e) {}
+// 删除图片
+const handleDelete = (file: any) => {
+  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
+  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
+  // 图片删除后，主动刷新“商品主图”校验（titleFileList）
+  refForm.value?.validateField?.('titleFileList');
 };
 
-// 裁剪完成后上传（裁剪组件返回 Blob 与文件名）
-const _onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
+// 裁剪完成后上传
+const onCropSuccess = (response: any) => {
   try {
-    const file = new File([payload.blob], payload.fileName || '商品主图.png', { type: 'image/png' });
-    const response = await ossUploadImage({ file });
+    // const file = new File([payload.blob], payload.fileName || '商品主图.png', { type: 'image/png' });
+    // const response = await ossUploadImage({ file });
     const newFile = {
-      name: response.data.fileName || payload.fileName || '商品主图',
-      url: response.data.url,
-      path: response.data.url,
+      name: response.fileName || '商品主图',
+      url: response.url,
+      path: response.url,
       fileType: '0',
-      ossId: response.data.ossId
+      ossId: response.ossId
     } as any;
     hnGoodsFilesList.value = [...hnGoodsFilesList.value, newFile];
     // 刷新“商品主图”校验
@@ -588,19 +586,8 @@ const _onCropSuccess = async (payload: { blob: Blob; fileName: string }) => {
     uploadBusy.value = false;
   }
 };
-// 对裁剪成功后的上传做节流，避免重复触发
-const onCropSuccess = throttle(_onCropSuccess, 800);
 
-// 删除图片
-const handleDelete = (file: any) => {
-  const findex = hnGoodsFilesList.value.map((f: any) => f.path).indexOf(file.path);
-  if (findex > -1) hnGoodsFilesList.value.splice(findex, 1);
-  // console.log('删除图片', file, hnGoodsFilesList.value);
-  // 图片删除后，主动刷新“商品主图”校验（titleFileList）
-  refForm.value?.validateField?.('titleFileList');
-};
-
-// 新增/删除
+// 新增
 const addTableCell = () => {
   hnGoodsSpecificationDataList.value.push({
     goodsSpecification: formData.value.goodsSpecification,
@@ -611,6 +598,7 @@ const addTableCell = () => {
     status: 1
   });
 };
+// 删除
 const removeTableCell = (index: number) => {
   ElMessageBox.confirm('您确定要删除该数据?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
     .then(() => hnGoodsSpecificationDataList.value.splice(index, 1))
@@ -629,6 +617,8 @@ const validateContact = (contact: any) => {
   else if (!Number.isInteger(Number(contact.goodsStock)) || parseInt(contact.goodsStock, 10) < 0) errorsValue.goodsStock = '可用库存必须为非负整数';
   return errorsValue;
 };
+
+// 校验并提交
 const validateAndSubmit = () => {
   let isValid = true;
   hnGoodsSpecificationDataList.value.forEach((c) => {
@@ -649,13 +639,16 @@ const selectedSpecification = (value: string) => {
   const dict = goods_specification.value.find((item: any) => item.value === value);
   return dict ? dict.label : '';
 };
+// 更新表格中的规格字段
 const updateTableGoodsSpecification = (selected: string) => {
   hnGoodsSpecificationDataList.value.forEach((item) => (item.goodsSpecification = selected));
 };
+
+// 启用禁用规格
 const toggleStatus = (row: any) => {
   row.status = row.status === 1 ? 0 : 1;
 };
-
+// 输入价格过滤
 const onInputPrice = (val: string, row: any, type: string) => {
   // 只允许数字和小数点，且最多两位小数
   let s = val
@@ -771,6 +764,14 @@ onMounted(async () => {
         path: file.url
       }));
     }
+  } else {
+    // 新增
+    // 新增时：两个时间均设为当前时间字符串（YYYY-MM-DD HH:mm:ss）
+    const now = new Date();
+    const pad = (n: number) => (n < 10 ? '0' + n : n);
+    const nowStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    formData.value.launchTime = nowStr;
+    formData.value.takeDownTime = nowStr;
   }
 });
 </script>

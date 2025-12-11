@@ -45,6 +45,7 @@
 import 'vue-cropper/dist/index.css';
 import { VueCropper } from 'vue-cropper';
 import { UploadRawFile } from 'element-plus';
+import { ossUploadImage } from '@/api/supplier/productManagement/product';
 
 interface Options {
   img: string | any; // 裁剪图片的地址
@@ -95,7 +96,9 @@ const uploadImg = async () => {
   cropper.value.getCropBlob(async (data: any) => {
     try {
       const resizedBlob = await resizeTo800(data);
-      emit('success', { blob: resizedBlob, fileName: options.fileName || 'crop.png' });
+      const file = new File([resizedBlob], options.fileName || '商品主图.' + options.outputType, { type: 'image/' + options.outputType });
+      const response = await ossUploadImage({ file });
+      emit('success', response.data);
       options.visible = false;
     } catch (e: any) {
       proxy?.$modal.msgError(e?.message || '裁剪失败');
@@ -136,12 +139,22 @@ watch(
       options.visible = true;
       return;
     }
+    // console.log('00000000', val);
     const file = val as UploadRawFile;
     if (file && file.type.indexOf('image/') > -1) {
       const reader = new FileReader();
       reader.onload = () => {
         options.img = reader.result as string;
         options.fileName = file.name;
+        // 优化输出类型推断：优先使用 MIME，其次文件扩展名，最后兜底为 png
+        const mime = (file.type || '').toLowerCase();
+        const extFromMime =
+          mime === 'image/png' ? 'png' : mime === 'image/jpeg' ? 'jpeg' : mime === 'image/jpg' ? 'jpg' : mime === 'image/bmp' ? 'bmp' : '';
+        const matchExt = (file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+        const extFromName = matchExt ? matchExt[1] : '';
+        const allowed = ['png', 'jpeg', 'jpg', 'bmp'];
+        const chosen = extFromMime || extFromName || 'png';
+        options.outputType = allowed.includes(chosen) ? chosen : 'png';
         options.visible = true;
       };
       reader.readAsDataURL(file);
