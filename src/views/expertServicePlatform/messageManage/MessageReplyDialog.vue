@@ -119,7 +119,7 @@
 
     <div class="footer-buttons">
       <el-button @click="emitCancel">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="saving">
+      <el-button v-throttle type="primary" @click="handleSubmit" :loading="saving">
         回复
       </el-button>
     </div>

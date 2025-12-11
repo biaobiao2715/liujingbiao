@@ -18,7 +18,7 @@
         <div v-if="titleTouched && !formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
-      <el-form-item label="上传附件">
+      <el-form-item label="上传附件" prop="attachment" :required="props.type === 'add'">
         <div class="attachment-section">
           <el-upload
             action="#"
@@ -381,6 +381,18 @@ const rules = {
   paperTitle: [
     { required: true, message: '请输入标题内容，最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
+  ],
+  attachment: [
+    {
+      validator: (_rule: any, _value: any, callback: any) => {
+        if (props.type === 'add' && attachmentList.value.length === 0) {
+          callback(new Error('请上传附件'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
   ]
 };
 
@@ -884,6 +896,12 @@ const handleSubmit = async () => {
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
+    
+    // 新增模式下必须上传附件
+    if (props.type === 'add' && attachmentList.value.length === 0) {
+      ElMessage.warning('请上传附件');
+      return;
+    }
     
     // 编辑模式下如果没有上传新附件，跳过版本号验证
     if (props.type === 'add' && attachmentList.value.length > 0) {
