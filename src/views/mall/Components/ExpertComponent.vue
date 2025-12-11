@@ -20,7 +20,7 @@
     </div>
     <div v-else>
       <!-- 专家详情 -->
-      <ExpertDetailComponent v-if="showArea === 'expertDetail'" :id="id" :type="expertType" @detailChange="showDetail" />
+      <ExpertDetailComponent v-if="showArea === 'expertDetail'" :id="expertId" :type="expertType" @detailChange="showDetail" />
       <!-- 问答列表 -->
       <QAListComponent v-if="showArea === 'qaMoreList'" @detailChange="showDetail" />
       <!-- 问答详情 -->
@@ -92,6 +92,8 @@ type showAreaType =
 
 const id = ref(null); // 详情ID
 
+const expertId = ref(null); // 专家ID
+
 const showArea = ref('expert');
 
 const expertType = ref(''); // 专家类型
@@ -105,9 +107,10 @@ onMounted(() => {
 });
 
 // 展示对应的详情组件
-const showDetail = (incomeData: { type: showAreaType; id?: string; expertType?: string }) => {
+const showDetail = (incomeData: { type: showAreaType; id?: string; expertType?: string; expertId?: string }) => {
   id.value = incomeData.id || id.value;
   expertType.value = incomeData.expertType || expertType.value; // 专家类型
+  expertId.value = incomeData.expertId || expertId.value; // 专家ID
   showArea.value = incomeData.type;
   eventBus.emit('navigationChange', incomeData.type);
 };

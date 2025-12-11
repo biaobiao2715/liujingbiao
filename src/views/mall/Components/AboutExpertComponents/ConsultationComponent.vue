@@ -126,8 +126,8 @@ const handleConsultation = (expert) => {
 };
 
 // 处理查看详情按钮点击
-const handleDetail = (id) => {
-  emit('detailChange', { id, type: 'expertDetail', expertType: activeTab.value });
+const handleDetail = (id: string) => {
+  emit('detailChange', { id, type: 'expertDetail', expertType: activeTab.value, expertId: id });
 };
 </script>
 

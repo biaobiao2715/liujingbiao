@@ -97,7 +97,6 @@ const getQuestionList = async () => {
 };
 
 const handleDetail = (id: string) => {
-  console.log(id);
   emit('detailChange', { type: 'qaDetail', id });
 };
 </script>
