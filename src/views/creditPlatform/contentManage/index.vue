@@ -353,7 +353,7 @@ const canEdit = (row: any) => {
 
 const canDelete = (row: any) => {
   const status = row.articleStatus;
-  return status !== '2' && status !== 'enabled' && status !== '1';
+  return status !== '2' && status !== 'enabled';
 };
 
 const getStatusLabel = (status: string | number) => {

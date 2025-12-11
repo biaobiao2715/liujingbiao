@@ -622,6 +622,7 @@ const props = defineProps<{
   status?: string; // 当前行的状态，用于判断调用哪个 API
   type?: 'view' | 'process';
   appealTime?: string;
+  caseCode?: string;
 }>();
 // 子组件对外事件
 const emit = defineEmits<{
@@ -1347,7 +1348,9 @@ const fetchDetail = async () => {
     loading.value = true;
     // 根据状态调用不同的 API
     // 待处理/已撤回/已驳回状态调用 getPendingReportCaseFilingDetail，其它状态调用正式详情
-    const shouldUsePendingApi = props.status === '0' || props.status === '2' || props.status === '4';
+    // const shouldUsePendingApi = props.status === '0' || props.status === '2' || props.status === '4';
+    const shouldUsePendingApi = !props.caseCode; //只要有caseCode，就调用getSafeguardReportCaseFilingDetail
+    console.log(shouldUsePendingApi);
     const res = shouldUsePendingApi
       ? await getPendingReportCaseFilingDetail(String(props.id))
       : await getSafeguardReportCaseFilingDetail(String(props.id));
@@ -1356,6 +1359,8 @@ const fetchDetail = async () => {
       formData.value = res.data || {};
       if (res.data.historyAppealList && res.data.historyAppealList.length >= 2) {
         processingFeedbackCascaderOptions[0].disabled = true;
+      } else {
+        processingFeedbackCascaderOptions[0].disabled = false;
       }
     } else {
       console.error('获取详情失败:', res?.msg);

@@ -163,6 +163,7 @@
         :id="selectID"
         :status="selectStatus"
         :type="selectType"
+        :caseCode="caseCode"
         :appeal-time="selectAppealTime"
         @cancel="cancelDlg"
         @success="refreshData"
@@ -298,13 +299,14 @@ const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'process'>('view');
 const selectStatus = ref<string>(''); // 当前选中行的状态
 const selectAppealTime = ref<string>('');
-
+const caseCode = ref<string>('');
 // 打开对话框：查看/处理
 const handleView = (row: any) => {
   selectID.value = row.id;
   selectType.value = 'view';
   selectStatus.value = row.status || '';
   selectAppealTime.value = row.appealTime || '';
+  caseCode.value = row.caseCode;
   dlgTitle.value = '查看举报立案详情';
   dlgPreviewVisible.value = true;
 };

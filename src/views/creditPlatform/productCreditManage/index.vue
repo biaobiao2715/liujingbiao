@@ -145,7 +145,7 @@
 
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增产品' : dialog.type === 'edit' ? '编辑产品' : '产品详情'"
+      :title="dialog.type === 'add' ? '新增信贷产品' : dialog.type === 'edit' ? '编辑信贷产品' : '信贷产品详情'"
       width="75%"
       destroy-on-close
       :close-on-click-modal="false"
