@@ -226,7 +226,7 @@
 
     <div class="section-title" v-if="Number(formData.status) === 4">举报人撤回原因</div>
     <div class="section-title-che" style="font-size: 18px; margin-left: 15px" v-if="Number(formData.status) === 4">
-      {{ formData.reportDescription }}
+      {{ formData.withdrawCause }}
     </div>
 
     <div class="form-actions">

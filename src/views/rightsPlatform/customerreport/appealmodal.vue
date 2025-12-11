@@ -43,7 +43,7 @@
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-      <el-steps :space="200" :active="Number(formData.status)" finish-status="success">
+      <el-steps :space="200" :active="Number(formData.status)+1" finish-status="success">
         <el-step title="待处理">
           <template #description>
             <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '0')">
@@ -137,6 +137,42 @@
     </el-table>
 
     <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
+      <el-row :gutter="20" class="detail-form"> 
+    <el-col :span="24">
+        <el-form-item label="申诉图片：">
+          <div class="evidence">
+            <template v-if="histAppealImageList.length">
+              <el-image
+                v-for="(img, idx) in histAppealImageList"
+                :key="img.url + idx"
+                :src="img.url"
+                :preview-src-list="histAppealImagePreviewUrls"
+                :initial-index="idx"
+                fit="cover"
+                class="evidence-image-item"
+              />
+            </template>
+            <span v-else class="evidence-empty">暂无图片</span>
+          </div>
+        </el-form-item>
+      </el-col>
+           <el-col :span="24">
+        <el-form-item label="申诉视频：">
+          <div class="evidence">
+            <template v-if="histAppealVideoList.length">
+              <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
+                <div class="size">{{ v.sizeText }}</div>
+                <div class="icon">视频</div>
+                <div class="ops">
+                  <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                </div>
+              </div>
+            </template>
+            <span v-else class="evidence-empty">暂无视频</span>
+          </div>
+        </el-form-item>
+      </el-col>
+      </el-row>
     <el-row :gutter="20" class="detail-form">
       <el-col :span="24" v-if="Number(formData.status) === 2">
         <el-form-item label="申诉驳回原因：">
@@ -228,6 +264,7 @@ import { getcourseCultivatequeryDetail, courseCultivateadd, courseCultivateupdat
 import { getreportdetail, reportback, reportappeal } from '@/api/rightsPlatform/customerreport';
 import { ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
+import { uploadByChunks } from '@/utils/chunkUpload';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -413,9 +450,10 @@ const fetchContentDetail = async () => {
 let appealDialogVisible = ref(false);
 let appealDialogLoading = ref(false);
 let appealDetail = reactive<any>({});
-const histAppealImageList = ref();
+const histAppealImageList = ref<FileViewItem[]>([]); // 历史申诉图片列表
 const histAppealImagePreviewUrls = ref();
-const histAppealVideoList = ref();
+const histAppealVideoList = ref<FileViewItem[]>([]); // 历史申诉视频列表
+
 // 工具方法：安全数组
 const safeArray = (arr: any) => (Array.isArray(arr) ? arr : []);
 // 工具方法：判断是否为视频文件
@@ -593,6 +631,31 @@ const formatFileSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
+/**
+ * 附件下载
+ * @param fileName 保存文件名
+ * @param url 对象存储直链
+ */
+const downloadAttachment = async (fileName: string, url?: string) => {
+  try {
+    if (!url) {
+      console.warn('下载地址为空');
+      return;
+    }
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`下载失败: ${response.status}`);
+    const blob = await response.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('下载失败', error);
+  }
+};
 
 /** 文件验证 */
 const validateFile = (file: File): boolean => {
@@ -701,23 +764,26 @@ const handleFileChange = async (file: any) => {
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
-    const response = await ossUploadImage({ file: file.raw });
+     const response: any = await uploadByChunks(file.raw, (percent: number) => {
+        // tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+        // if (typeof req.onProgress === 'function') req.onProgress({ percent });
+      });
+    // const response = await ossUploadImage({ file: file.raw });
+    console.log('上传结果', response);
 
-    if (response.code === 200 && response.data?.ossId) {
+    
       attachmentList.value.push({
-        ossId: response.data.ossId,
-        fileName: response.data.fileName,
+        ossId: response.ossId,
+        fileName: response.fileName,
         originalName: file.raw.name,
         fileSuffix: file.raw.type,
-        url: response.data.url,
+        url: response.url,
         fileSize: formatFileSize(file.raw.size),
         uid: file.uid
       });
       ElMessage.success('附件上传成功');
-    } else {
-      ElMessage.error(response?.msg || '上传失败，请重试');
-    }
-  } catch (error) {
+    } 
+   catch (error) {
     console.error('附件上传失败:', error);
     ElMessage.error('上传失败，请重试');
   } finally {
