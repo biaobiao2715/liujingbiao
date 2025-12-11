@@ -95,7 +95,7 @@
 
           <el-col :span="12">
             <el-form-item label="库存：" prop="stock">
-              <el-input v-model="quoteForm.stock" placeholder="请输入" :disabled="dialogMode === 'detail'" />
+              <el-input v-model="quoteForm.stock" placeholder="请输入库存" maxlength="4" :disabled="dialogMode === 'detail'" />
             </el-form-item>
           </el-col>
 
@@ -188,6 +188,8 @@ const quoteFormRules = {
           callback(new Error('请输入有效的库存'));
         } else if (!Number.isInteger(Number(value)) || Number(value) <= 0) {
           callback(new Error('库存需为大于0的整数'));
+        } else if (!Number.isInteger(Number(value)) || Number(value) > 9999) {
+          callback(new Error('库存最大为9999的整数'));
         } else {
           callback();
         }
