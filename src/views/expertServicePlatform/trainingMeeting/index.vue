@@ -14,8 +14,8 @@
           <el-option v-for="item in meeting_type" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="发布人" prop="publisher" label-width="auto">
-        <el-input v-model="queryParams.publisher" placeholder="请输入发布人姓名" clearable />
+      <el-form-item label="发布人" prop="publishUser" label-width="auto">
+        <el-input v-model="queryParams.publishUser" placeholder="请输入发布人姓名" clearable />
       </el-form-item>
       <el-form-item label="会议标题" prop="meetingName" label-width="auto">
         <el-input v-model="queryParams.meetingName" placeholder="请输入会议标题" clearable />
@@ -68,13 +68,14 @@
         </template>
       </el-table-column>
       <el-table-column label="联系方式" prop="meetingPhone" min-width="120" />
+      <el-table-column label="发布人" prop="publishUser" min-width="120" />
       <!-- <el-table-column label="报名状态" align="center" prop="enrollStatus" min-width="80">
         <template #default="scope">
           <dict-tag :options="enroll_status" :value="scope.row.enrollStatus" />
         </template>
       </el-table-column> -->
-      <el-table-column label="浏览量" prop="pageViews" min-width="80" />
-      <el-table-column label="报名人数" prop="enrollCount" min-width="80" />
+      <!-- <el-table-column label="浏览量" prop="pageViews" min-width="80" />
+      <el-table-column label="报名人数" prop="enrollCount" min-width="80" /> -->
       <el-table-column label="发布时间" prop="publishTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
@@ -143,7 +144,7 @@ const queryParams = ref({
   pageSize: 10,
   meetingType: '',
   publishTime: [],
-  publisher: '',
+  publishUser: '',
   meetingName: '',
   // applicationStatus: '',
   meetingStatus: ''
@@ -244,7 +245,7 @@ const handleView = (row: any) => {
 
 <style scoped lang="scss">
 .meeting-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 }
 .pagination {

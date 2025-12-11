@@ -124,7 +124,7 @@ div<!--
               size="small"
               link
               :disabled="
-                Number(scope.row.rejectTimes) >= 3 ||
+                Number(scope.row.rejectTimes) > 3 ||
                 (scope.row.appealTime != null && scope.row.status === '1') ||
                 (scope.row.caseCode == null && scope.row.status === '2')
               "
@@ -387,7 +387,7 @@ onMounted(() => {
 .content-management {
   padding: 24px;
   //   background-color: #f5f5f5;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 
 // 主要内容区域 - 大盒子

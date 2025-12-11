@@ -613,7 +613,7 @@ onMounted(() => {
   padding: 24px;
   //   background-color: #f5f5f5;
   // min-height: 100vh;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 // 主要内容区域 - 大盒子
 .main-content-box {

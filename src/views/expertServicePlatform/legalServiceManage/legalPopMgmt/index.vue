@@ -8,13 +8,7 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form
-      v-show="showSearch"
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      label-position="left"
-    >
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="普法标题" prop="title" label-width="auto">
         <el-input v-model="queryParams.title" placeholder="请输入普法标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -32,22 +26,12 @@
       </el-form-item>
       <el-form-item label="普法类型" prop="contentType" label-width="auto">
         <el-select v-model="queryParams.contentType" placeholder="请选择" filterable clearable>
-          <el-option 
-            v-for="dict in legal_popularize_type" 
-            :key="dict.value" 
-            :label="dict.label" 
-            :value="dict.value" 
-          />
+          <el-option v-for="dict in legal_popularize_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="contentStatus" label-width="auto">
         <el-select v-model="queryParams.contentStatus" placeholder="请选择" filterable clearable>
-          <el-option 
-            v-for="dict in legal_popularize_status" 
-            :key="dict.value" 
-            :label="dict.label" 
-            :value="dict.value" 
-          />
+          <el-option v-for="dict in legal_popularize_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -59,28 +43,15 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          v-hasPermi="['skill:lawContent:add']"
-          type="primary"
-          icon="Plus"
-          class="add-btn"
-          @click="handleAdd"
-        >
-          新增
-        </el-button>
+        <el-button v-throttle v-hasPermi="['skill:lawContent:add']" type="primary" icon="Plus" class="add-btn" @click="handleAdd"> 新增 </el-button>
       </el-col>
     </el-row>
 
     <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="index" label="序号" width="55" align="center" />
 
-       <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
+      <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
         </template>
@@ -91,48 +62,55 @@
           <dict-tag :options="legal_popularize_type" :value="scope.row.contentType" />
         </template>
       </el-table-column>
-      
+
       <el-table-column label="普法标题" align="center" prop="contentTitle" :show-overflow-tooltip="true" min-width="200">
         <template #default="scope">
           <span>{{ scope.row.contentTitle }}</span>
         </template>
       </el-table-column>
-      
-      
+
       <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
         <template #default="scope">
           <span>{{ scope.row.viewCount != null ? scope.row.viewCount : 0 }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
         <template #default="scope">
           <span>{{ scope.row.downloadCount != null ? scope.row.downloadCount : 0 }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="状态" align="center" prop="status" width="100">
         <template #default="scope">
           <div class="status-with-dot">
-            <span 
-              class="status-dot" 
-              :class="`status-dot-${getStatusType(scope.row.status)}`"
-            ></span>
-            <span 
-              class="status-text"
-              :class="`status-text-${getStatusType(scope.row.status)}`"
-            >
+            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.status)}`"></span>
+            <span class="status-text" :class="`status-text-${getStatusType(scope.row.status)}`">
               {{ scope.row.status }}
             </span>
           </div>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
-            <el-button v-throttle v-hasPermi="['skill:lawContent:query']" type="text" style="font-size: 14px; color: #108c58" @click="handleView(scope.row)">详情</el-button>
-            <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" type="text" style="font-size: 14px; color: #108c58" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:lawContent:query']"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleView(scope.row)"
+              >详情</el-button
+            >
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:lawContent:edit']"
+              type="text"
+              style="font-size: 14px; color: #108c58"
+              @click="handleEdit(scope.row)"
+              >编辑</el-button
+            >
             <el-button
               v-throttle
               v-hasPermi="['skill:lawContent:edit']"
@@ -211,19 +189,13 @@
 <script setup lang="ts">
 import { ref, onMounted, getCurrentInstance, toRefs, defineAsyncComponent, Suspense } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { 
-  getContentList, 
-  editContent,
-  deleteContent
-} from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { getContentList, editContent, deleteContent } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 
 const ContentEditDialog = defineAsyncComponent(() => import('./ContentEditDialog.vue'));
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
 
 const { proxy } = getCurrentInstance() as any;
-const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
-  proxy?.useDict('legal_popularize_type', 'legal_popularize_status')
-);
+const { legal_popularize_type, legal_popularize_status } = toRefs<any>(proxy?.useDict('legal_popularize_type', 'legal_popularize_status'));
 
 const queryParams = ref({
   pageNum: 1,
@@ -255,9 +227,9 @@ const dialog = ref({
 
 const getList = () => {
   loading.value = true;
-  
+
   const [startTime, endTime] = dateRange.value || [];
-  
+
   const params: any = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
@@ -268,39 +240,41 @@ const getList = () => {
     ...(queryParams.value.orderByColumn ? { orderByColumn: queryParams.value.orderByColumn } : {}),
     ...(queryParams.value.isAsc ? { isAsc: queryParams.value.isAsc } : {})
   };
-  
-  getContentList(params).then((res: any) => {
-    if (res && res.code === 200) {
-      const processedData = (res.rows || []).map((item: any) => {
-        let statusText = '未知';
-        if (item.contentStatus === '2' || item.contentStatus === 2) {
-          statusText = '启用';
-        } else if (item.contentStatus === '3' || item.contentStatus === 3) {
-          statusText = '禁用';
-        }
-        
-        const viewCount = item.viewCount ?? item.view_count ?? 0;
-        const downloadCount = item.downloadCount ?? item.download_count ?? 0;
-        
-        return {
-          ...item,
-          status: statusText,
-          publishTime: item.publishTime || item.createTime || '-',
-          viewCount: viewCount != null && viewCount !== '' ? Number(viewCount) : 0,
-          downloadCount: downloadCount != null && downloadCount !== '' ? Number(downloadCount) : 0
-        };
-      });
-      
-      tableData.value = processedData;
-      total.value = res.total || 0;
-    } else {
-      ElMessage.error(res?.msg || '获取普法内容列表失败');
-    }
-    loading.value = false;
-  }).catch(() => {
-    ElMessage.error('获取普法内容列表失败，请稍后重试');
-    loading.value = false;
-  });
+
+  getContentList(params)
+    .then((res: any) => {
+      if (res && res.code === 200) {
+        const processedData = (res.rows || []).map((item: any) => {
+          let statusText = '未知';
+          if (item.contentStatus === '2' || item.contentStatus === 2) {
+            statusText = '启用';
+          } else if (item.contentStatus === '3' || item.contentStatus === 3) {
+            statusText = '禁用';
+          }
+
+          const viewCount = item.viewCount ?? item.view_count ?? 0;
+          const downloadCount = item.downloadCount ?? item.download_count ?? 0;
+
+          return {
+            ...item,
+            status: statusText,
+            publishTime: item.publishTime || item.createTime || '-',
+            viewCount: viewCount != null && viewCount !== '' ? Number(viewCount) : 0,
+            downloadCount: downloadCount != null && downloadCount !== '' ? Number(downloadCount) : 0
+          };
+        });
+
+        tableData.value = processedData;
+        total.value = res.total || 0;
+      } else {
+        ElMessage.error(res?.msg || '获取普法内容列表失败');
+      }
+      loading.value = false;
+    })
+    .catch(() => {
+      ElMessage.error('获取普法内容列表失败，请稍后重试');
+      loading.value = false;
+    });
 };
 
 const handleSearch = () => {
@@ -370,23 +344,19 @@ const handleEnable = () => {
     const status = row.contentStatus || row.status;
     return status === '2' || status === '启用' || status === 2;
   });
-  
+
   if (invalidRows.length > 0) {
     ElMessage.warning('所选内容中包含已启用的内容，无法重复启用');
     return;
   }
 
-  ElMessageBox.confirm(
-    '是否确认启用？', 
-    '操作确认', 
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  )
+  ElMessageBox.confirm('是否确认启用？', '操作确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
     .then(() => {
-      const idsToEnable = selectedIds.value.map(id => Number(id));
+      const idsToEnable = selectedIds.value.map((id) => Number(id));
       const enableData = {
         contentTitle: 'batch_enable',
         contentType: 'batch',
@@ -423,23 +393,19 @@ const handleDisable = () => {
     const status = row.contentStatus || row.status;
     return status === '3' || status === '禁用' || status === 3;
   });
-  
+
   if (invalidRows.length > 0) {
     ElMessage.warning('所选内容中包含已禁用的内容，无法重复禁用');
     return;
   }
 
-  ElMessageBox.confirm(
-    '是否确认禁用？', 
-    '操作确认', 
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  )
+  ElMessageBox.confirm('是否确认禁用？', '操作确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
     .then(() => {
-      const idsToDisable = selectedIds.value.map(id => Number(id));
+      const idsToDisable = selectedIds.value.map((id) => Number(id));
       const disableData = {
         contentTitle: 'batch_disable',
         contentType: 'batch',
@@ -471,27 +437,23 @@ const handleDelete = async () => {
     ElMessage.warning('请先选择要删除的内容');
     return;
   }
-  
-  const hasEnabledItems = selectedRows.value.some(row => row.status === '启用');
+
+  const hasEnabledItems = selectedRows.value.some((row) => row.status === '启用');
   if (hasEnabledItems) {
     ElMessage.warning('只能删除已禁用的内容，请先禁用后再删除');
     return;
   }
-  
+
   try {
-    await ElMessageBox.confirm(
-      '是否确认删除？删除后将无法恢复！',
-      '操作确认',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    );
-    
-    const idsToDelete = selectedIds.value.map(id => Number(id));
+    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '操作确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    const idsToDelete = selectedIds.value.map((id) => Number(id));
     await deleteContent(idsToDelete);
-    
+
     ElMessage.success(`成功删除 ${selectedIds.value.length} 条内容`);
     getList();
     selectedIds.value = [];
@@ -522,26 +484,22 @@ const onDialogSuccess = () => {
 
 const handleStatusChange = async (row: any, newStatus: string) => {
   const statusText = newStatus === '2' ? '启用' : '禁用';
-  
+
   try {
-    await ElMessageBox.confirm(
-      `是否确认${statusText}？`,
-      '提示',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    );
-    
-    await editContent({ 
+    await ElMessageBox.confirm(`是否确认${statusText}？`, '提示', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
+    await editContent({
       contentTitle: 'single_operation',
       contentType: 'single',
       contentSummary: 'single_operation',
       ids: [Number(row.id)],
-      contentStatus: newStatus 
+      contentStatus: newStatus
     });
-    
+
     ElMessage.success(`${statusText}成功`);
     getList();
   } catch (error: any) {
@@ -553,18 +511,14 @@ const handleStatusChange = async (row: any, newStatus: string) => {
 
 const handleDeleteSingle = async (row: any) => {
   try {
-    await ElMessageBox.confirm(
-      '是否确认删除？删除后将无法恢复！',
-      '操作确认',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    );
-    
+    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '操作确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     await deleteContent([Number(row.id)]);
-    
+
     ElMessage.success('删除成功');
     getList();
   } catch (error: any) {
@@ -588,7 +542,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 }
 
@@ -619,14 +573,14 @@ onMounted(() => {
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -649,7 +603,7 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
-  
+
   :deep(.el-button) {
     font-size: 14px;
   }

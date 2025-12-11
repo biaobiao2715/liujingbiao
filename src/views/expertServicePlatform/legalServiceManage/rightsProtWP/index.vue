@@ -7,28 +7,17 @@
 <template>
   <div class="white-paper-management">
     <!-- 搜索条件 -->
-    <el-form
-      v-show="showSearch"
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      label-position="left"
-    >
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="维权白皮书标题" prop="paperTitle" label-width="auto">
         <el-input v-model="queryParams.paperTitle" placeholder="请输入标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      
+
       <el-form-item label="所属状态" prop="paperStatus" label-width="auto">
         <el-select v-model="queryParams.paperStatus" placeholder="请选择" filterable clearable>
-          <el-option 
-            v-for="item in whitepaper_status" 
-            :key="item.value" 
-            :label="item.label" 
-            :value="item.value" 
-          />
+          <el-option v-for="item in whitepaper_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      
+
       <el-form-item label="发布时间" label-width="auto">
         <el-date-picker
           v-model="dateRange"
@@ -41,7 +30,7 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      
+
       <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
@@ -51,25 +40,13 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          v-hasPermi="['skill:whitePaper:add']"
-          type="primary"
-          icon="Plus"
-          class="add-btn"
-          @click="handleAdd"
-        >
-          新增
-        </el-button>
+        <el-button v-throttle v-hasPermi="['skill:whitePaper:add']" type="primary" icon="Plus" class="add-btn" @click="handleAdd"> 新增 </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
           v-throttle
           v-hasPermi="['skill:whitePaper:edit']"
-          :class="[
-            'white-paper-btn',
-            { 'is-active': selectedRows.length > 0 }
-          ]"
+          :class="['white-paper-btn', { 'is-active': selectedRows.length > 0 }]"
           :disabled="selectedRows.length === 0"
           @click="handleEnable"
         >
@@ -80,10 +57,7 @@
         <el-button
           v-throttle
           v-hasPermi="['skill:whitePaper:edit']"
-          :class="[
-            'white-paper-btn',
-            { 'is-active': selectedRows.length > 0 }
-          ]"
+          :class="['white-paper-btn', { 'is-active': selectedRows.length > 0 }]"
           :disabled="selectedRows.length === 0"
           @click="handleDisable"
         >
@@ -94,11 +68,7 @@
         <el-button
           v-throttle
           v-hasPermi="['skill:whitePaper:remove']"
-          :class="[
-            'white-paper-btn',
-            'white-paper-btn--danger',
-            { 'is-active': selectedRows.length > 0 }
-          ]"
+          :class="['white-paper-btn', 'white-paper-btn--danger', { 'is-active': selectedRows.length > 0 }]"
           :disabled="selectedRows.length === 0"
           @click="handleDelete"
         >
@@ -107,124 +77,114 @@
       </el-col>
     </el-row>
 
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" align="center" />
-      
+
       <el-table-column label="发布时间" align="center" prop="updateTime" min-width="160">
         <template #default="scope">
           <span>{{ scope.row.updateTime || scope.row.createTime }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="白皮书标题" align="center" prop="paperTitle" :show-overflow-tooltip="true" min-width="200">
         <template #default="scope">
           <span>{{ scope.row.paperTitle }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="浏览量" align="center" prop="viewCount" width="100">
         <template #default="scope">
           <span>{{ scope.row.viewCount || 0 }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="下载量" align="center" prop="downloadCount" width="100">
         <template #default="scope">
           <span>{{ scope.row.downloadCount || 0 }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="所属状态" align="center" prop="paperStatus" width="100">
         <template #default="scope">
           <div class="status-with-dot">
-            <span 
-              class="status-dot" 
-              :class="`status-dot-${getStatusType(scope.row.paperStatus)}`"
-            ></span>
-            <span 
-              class="status-text"
-              :class="`status-text-${getStatusType(scope.row.paperStatus)}`"
-            >
+            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.paperStatus)}`"></span>
+            <span class="status-text" :class="`status-text-${getStatusType(scope.row.paperStatus)}`">
               {{ getStatusLabel(scope.row.paperStatus) }}
             </span>
           </div>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="最新版本号" align="center" prop="currentVersion" width="120">
         <template #default="scope">
           <span>{{ scope.row.currentVersion }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="操作" align="left" width="450" class-name="small-padding fixed-width">
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
-            <el-button 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:edit']" 
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:whitePaper:edit']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
               编辑
             </el-button>
-            <el-button 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:query']" 
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:whitePaper:query']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
             >
               查看
             </el-button>
-            <el-button 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:edit']" 
+            <el-button
+              v-throttle
+              v-hasPermi="['skill:whitePaper:edit']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleUpdateVersion(scope.row)"
             >
               更新版本
             </el-button>
-            <el-button 
-              v-if="isEnabled(scope.row.paperStatus)" 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:edit']" 
+            <el-button
+              v-if="isEnabled(scope.row.paperStatus)"
+              v-throttle
+              v-hasPermi="['skill:whitePaper:edit']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '禁用')"
             >
               禁用
             </el-button>
-            <el-button 
-              v-if="isDisabled(scope.row.paperStatus)" 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:edit']" 
+            <el-button
+              v-if="isDisabled(scope.row.paperStatus)"
+              v-throttle
+              v-hasPermi="['skill:whitePaper:edit']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '启用')"
             >
               启用
             </el-button>
-            <el-button 
-              v-if="isDisabled(scope.row.paperStatus)" 
-              v-throttle 
-              v-hasPermi="['skill:whitePaper:remove']" 
+            <el-button
+              v-if="isDisabled(scope.row.paperStatus)"
+              v-throttle
+              v-hasPermi="['skill:whitePaper:remove']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
               删除
             </el-button>
-            <el-button 
-              v-throttle 
-              v-hasPermi="['system:oss:download']" 
+            <el-button
+              v-throttle
+              v-hasPermi="['system:oss:download']"
               type="text"
               style="font-size: 14px; color: #108c58"
               @click="handleDownload(scope.row)"
@@ -282,21 +242,15 @@
       :close-on-click-modal="false"
       @close="handleVersionDialogClose"
     >
-      <el-form
-        ref="versionFormRef"
-        :model="versionFormData"
-        :rules="versionFormRules"
-        label-width="140px"
-        class="version-form"
-      >
+      <el-form ref="versionFormRef" :model="versionFormData" :rules="versionFormRules" label-width="140px" class="version-form">
         <el-form-item label="白皮书标题:">
           <span>{{ versionDialog.paperTitle || '--' }}</span>
         </el-form-item>
-        
+
         <el-form-item label="最近上传文件版本号:">
           <span>{{ versionDialog.currentVersion || '--' }}</span>
         </el-form-item>
-        
+
         <el-form-item label="上传文件:" prop="file" required>
           <el-upload
             ref="uploadRef"
@@ -317,7 +271,7 @@
             </template>
           </el-upload>
         </el-form-item>
-        
+
         <el-form-item label="备注:">
           <el-input
             v-model="versionFormData.remark"
@@ -329,12 +283,10 @@
           />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <el-button @click="handleVersionDialogClose">取消</el-button>
-        <el-button type="primary" @click="handleVersionConfirm" :loading="versionDialog.uploading">
-          确认
-        </el-button>
+        <el-button type="primary" @click="handleVersionConfirm" :loading="versionDialog.uploading"> 确认 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -346,14 +298,14 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
 import { uploadByChunks } from '@/utils/chunkUpload';
-import { 
-  getWhitePaperList, 
-  deleteWhitePaper, 
+import {
+  getWhitePaperList,
+  deleteWhitePaper,
   enableWhitePaper,
   disableWhitePaper,
   editWhitePaper,
   getWhitePaperDetail,
-  type WhitePaperListQuery 
+  type WhitePaperListQuery
 } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 
 const WhitePaperEditDialog = defineAsyncComponent(() => import('./WhitePaperEditDialog.vue'));
@@ -361,9 +313,7 @@ const WhitePaperDetailDialog = defineAsyncComponent(() => import('./WhitePaperDe
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { whitepaper_status } = toRefs<any>(
-  (proxy as any)?.useDict('whitepaper_status')
-);
+const { whitepaper_status } = toRefs<any>((proxy as any)?.useDict('whitepaper_status'));
 
 const queryParams = ref({
   pageNum: 1,
@@ -406,9 +356,7 @@ const versionFormData = ref({
 });
 
 const versionFormRules = {
-  file: [
-    { required: true, message: '请上传文件', trigger: 'change' }
-  ]
+  file: [{ required: true, message: '请上传文件', trigger: 'change' }]
 };
 
 const getStatusType = (status: string | number) => {
@@ -457,9 +405,9 @@ const parseVersionNumber = (version: string | number | null | undefined) => {
 
 const getList = () => {
   loading.value = true;
-  
+
   const [beginTime, endTime] = dateRange.value || [];
-  
+
   const params: WhitePaperListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
@@ -467,40 +415,43 @@ const getList = () => {
     ...(queryParams.value.paperStatus ? { paperStatus: queryParams.value.paperStatus } : {}),
     ...(beginTime && endTime ? { beginTime, endTime } : {})
   };
-  
-  getWhitePaperList(params).then((res: any) => {
-    if (res && res.code === 200) {
-      const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
 
-      // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
-      rows.sort((a: any, b: any) => {
-        const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
-        const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
-        const timeDiff = timeB - timeA;
-        if (timeDiff !== 0) {
-          return timeDiff;
-        }
-        // 如果发布时间相同，再按版本号倒序排列
-        return parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
-      });
+  getWhitePaperList(params)
+    .then((res: any) => {
+      if (res && res.code === 200) {
+        const rows = Array.isArray(res.rows) ? res.rows.slice() : [];
 
-      tableData.value = rows.map((item: any) => ({
-        ...item,
-        updateTime: item.updateTime || item.publishTime || item.createTime || ''
-      }));
-      total.value = res.total || 0;
-    } else {
+        // 按最新发布时间进行排列（updateTime > publishTime > createTime），最新的在前
+        rows.sort((a: any, b: any) => {
+          const timeB = new Date(b?.updateTime || b?.publishTime || b?.createTime || 0).getTime();
+          const timeA = new Date(a?.updateTime || a?.publishTime || a?.createTime || 0).getTime();
+          const timeDiff = timeB - timeA;
+          if (timeDiff !== 0) {
+            return timeDiff;
+          }
+          // 如果发布时间相同，再按版本号倒序排列
+          return parseVersionNumber(b?.currentVersion) - parseVersionNumber(a?.currentVersion);
+        });
+
+        tableData.value = rows.map((item: any) => ({
+          ...item,
+          updateTime: item.updateTime || item.publishTime || item.createTime || ''
+        }));
+        total.value = res.total || 0;
+      } else {
+        tableData.value = [];
+        total.value = 0;
+        ElMessage.error(res?.msg || '获取数据失败');
+      }
+    })
+    .catch(() => {
+      ElMessage.error('获取维权白皮书列表失败，请稍后重试');
       tableData.value = [];
       total.value = 0;
-      ElMessage.error(res?.msg || '获取数据失败');
-    }
-  }).catch(() => {
-    ElMessage.error('获取维权白皮书列表失败，请稍后重试');
-    tableData.value = [];
-    total.value = 0;
-  }).finally(() => {
-    loading.value = false;
-  });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 const handleSearch = () => {
@@ -556,7 +507,7 @@ const handleAdd = () => {
 
 const handleEnable = async () => {
   const ids = selectedIds.value.slice();
-  
+
   if (ids.length === 0) {
     ElMessage.warning('请先选择要启用的白皮书');
     return;
@@ -568,22 +519,18 @@ const handleEnable = async () => {
     ElMessage.warning('所选白皮书中包含已启用的白皮书，无法重复启用');
     return;
   }
-  
+
   try {
-    await ElMessageBox.confirm(
-      `确定要启用选中的${ids.length}个白皮书吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    
+    await ElMessageBox.confirm(`确定要启用选中的${ids.length}个白皮书吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     loading.value = true;
-    
+
     const response: any = await enableWhitePaper(ids);
-    
+
     if (response && response.code === 200) {
       ElMessage.success(`成功启用${ids.length}个白皮书`);
       await getList();
@@ -603,7 +550,7 @@ const handleEnable = async () => {
 
 const handleDisable = async () => {
   const ids = selectedIds.value.slice();
-  
+
   if (ids.length === 0) {
     ElMessage.warning('请先选择要禁用的白皮书');
     return;
@@ -615,22 +562,18 @@ const handleDisable = async () => {
     ElMessage.warning('所选白皮书中包含已禁用的白皮书，无法重复禁用');
     return;
   }
-  
+
   try {
-    await ElMessageBox.confirm(
-      `确定要禁用选中的${ids.length}个白皮书吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    
+    await ElMessageBox.confirm(`确定要禁用选中的${ids.length}个白皮书吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     loading.value = true;
-    
+
     const response: any = await disableWhitePaper(ids);
-    
+
     if (response && response.code === 200) {
       ElMessage.success(`成功禁用${ids.length}个白皮书`);
       await getList();
@@ -650,7 +593,7 @@ const handleDisable = async () => {
 
 const handleDelete = async () => {
   const ids = selectedIds.value.slice();
-  
+
   if (ids.length === 0) {
     ElMessage.warning('请先选择要删除的白皮书');
     return;
@@ -662,20 +605,20 @@ const handleDelete = async () => {
     ElMessage.warning('只能删除已禁用的白皮书，请先禁用后再删除');
     return;
   }
-  
+
   const tip = `确定要删除选中的 ${ids.length} 个白皮书吗？删除后将无法恢复。`;
-  
+
   try {
     await ElMessageBox.confirm(tip, '删除确认', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning',
+      type: 'warning'
     });
-    
+
     loading.value = true;
-    
+
     const response: any = await deleteWhitePaper(ids);
-    
+
     if (response && response.code === 200) {
       ElMessage.success(`成功删除 ${ids.length} 个白皮书`);
       await getList();
@@ -710,25 +653,25 @@ const getNextVersion = (currentVersion?: string | null): string => {
   if (!currentVersion || !currentVersion.trim()) {
     return '1.0';
   }
-  
+
   const versionStr = currentVersion.trim();
   const versionPattern = /^(\d+)\.(\d+)$/;
   const match = versionStr.match(versionPattern);
-  
+
   if (!match) {
     return '1.0';
   }
-  
+
   let left = parseInt(match[1], 10);
   let right = parseInt(match[2], 10);
-  
+
   right += 1;
-  
+
   if (right > 9) {
     left += 1;
     right = 0;
   }
-  
+
   return `${left}.${right}`;
 };
 
@@ -739,12 +682,12 @@ const handleUpdateVersion = (row: any) => {
   versionDialog.value.paperTitle = row.paperTitle || '';
   versionDialog.value.rowId = row.id;
   versionDialog.value.uploading = false;
-  
+
   versionFormData.value = {
     file: null,
     remark: ''
   };
-  
+
   nextTick(() => {
     if (versionFormRef.value) {
       versionFormRef.value.clearValidate();
@@ -774,7 +717,7 @@ const handleVersionFileSelect = (file: any) => {
   if (!rawFile) {
     return;
   }
-  
+
   if (!validateVersionFile(rawFile)) {
     if (uploadRef.value) {
       uploadRef.value.clearFiles();
@@ -782,7 +725,7 @@ const handleVersionFileSelect = (file: any) => {
     versionFormData.value.file = null;
     return;
   }
-  
+
   versionFormData.value.file = file;
   if (versionFormRef.value) {
     versionFormRef.value.validateField('file');
@@ -811,7 +754,7 @@ const validateVersionFile = (file: File): boolean => {
     ElMessage.error('文档文件最大100MB');
     return false;
   }
-  
+
   return true;
 };
 
@@ -855,54 +798,56 @@ const handleVersionConfirm = async () => {
   if (!versionFormRef.value) {
     return;
   }
-  
+
   await versionFormRef.value.validate(async (valid: boolean) => {
     if (!valid) {
       return;
     }
-    
+
     if (!versionFormData.value.file) {
       ElMessage.error('请上传文件');
       return;
     }
-    
+
     if (!versionDialog.value.rowId) {
       ElMessage.error('缺少白皮书ID');
       return;
     }
-    
+
     const rawFile = versionFormData.value.file.raw || versionFormData.value.file;
     if (!rawFile) {
       ElMessage.error('文件对象不存在');
       return;
     }
-    
+
     versionDialog.value.uploading = true;
-    
+
     try {
       const uploadResult = await uploadWhitePaperVersionFile(rawFile);
-      
+
       if (uploadResult?.ossId) {
         const ossData = uploadResult;
         const fileSuffix = (rawFile.name.split('.').pop() || '').toLowerCase();
-        
+
         const currentVersion = versionDialog.value.currentVersion || '1.0';
         const newVersion = getNextVersion(currentVersion);
-        
-        const ossVoList = [{
-          ossId: ossData.ossId || 0,
-          // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
-          fileName: ossData.originalName || rawFile.name,
-          originalName: rawFile.name,
-          fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
-          url: ossData.url || '',
-          version: newVersion,
-          ext1: '',
-          createTime: '',
-          createBy: 0,
-          service: ''
-        }];
-        
+
+        const ossVoList = [
+          {
+            ossId: ossData.ossId || 0,
+            // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
+            fileName: ossData.originalName || rawFile.name,
+            originalName: rawFile.name,
+            fileSuffix: fileSuffix.startsWith('.') ? fileSuffix : `.${fileSuffix}`,
+            url: ossData.url || '',
+            version: newVersion,
+            ext1: '',
+            createTime: '',
+            createBy: 0,
+            service: ''
+          }
+        ];
+
         const submitData: any = {
           id: versionDialog.value.rowId,
           currentVersion: newVersion,
@@ -910,9 +855,9 @@ const handleVersionConfirm = async () => {
           isUpdate: true,
           remark: versionFormData.value.remark || ''
         };
-        
+
         const response: any = await editWhitePaper(submitData);
-        
+
         if (response && response.code === 200) {
           ElMessage.success('版本更新成功');
           versionDialog.value.visible = false;
@@ -926,11 +871,7 @@ const handleVersionConfirm = async () => {
         ElMessage.error(errorMsg);
       }
     } catch (error: any) {
-      const errorMsg = error?.message 
-        || error?.msg 
-        || error?.response?.data?.msg 
-        || error?.response?.data?.message
-        || '上传失败，请重试';
+      const errorMsg = error?.message || error?.msg || error?.response?.data?.msg || error?.response?.data?.message || '上传失败，请重试';
       ElMessage.error(errorMsg);
     } finally {
       versionDialog.value.uploading = false;
@@ -940,19 +881,15 @@ const handleVersionConfirm = async () => {
 
 const handleStatusChange = async (row: any, status: string) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要${status}白皮书"${row.paperTitle}"吗？`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    
+    await ElMessageBox.confirm(`确定要${status}白皮书"${row.paperTitle}"吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     const api = status === '启用' ? enableWhitePaper : disableWhitePaper;
     const response: any = await api([row.id]);
-    
+
     if (response && response.code === 200) {
       ElMessage.success(`${status}成功`);
       row.paperStatus = status === '启用' ? '1' : '0';
@@ -968,18 +905,14 @@ const handleStatusChange = async (row: any, status: string) => {
 
 const handleDeleteSingle = async (row: any) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除白皮书"${row.paperTitle}"吗？删除后将无法恢复。`,
-      '删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    
+    await ElMessageBox.confirm(`确定要删除白皮书"${row.paperTitle}"吗？删除后将无法恢复。`, '删除确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+
     const response: any = await deleteWhitePaper([row.id]);
-    
+
     if (response && response.code === 200) {
       ElMessage.success('删除成功');
       await getList();
@@ -1010,9 +943,8 @@ const handleDownload = async (row: any) => {
     }
     const res: any = await getWhitePaperDetail(paperId);
     const data = res?.data || {};
-    const attachments = Array.isArray(data.latestFiles) && data.latestFiles.length
-      ? data.latestFiles
-      : (Array.isArray(data.ossVoList) ? data.ossVoList : []);
+    const attachments =
+      Array.isArray(data.latestFiles) && data.latestFiles.length ? data.latestFiles : Array.isArray(data.ossVoList) ? data.ossVoList : [];
 
     const latest = Array.isArray(data.latestFiles) && data.latestFiles.length ? data.latestFiles[0] : null;
     if (latest) {
@@ -1057,7 +989,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .white-paper-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 }
 
@@ -1150,14 +1082,14 @@ onMounted(() => {
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -1175,7 +1107,7 @@ onMounted(() => {
 .el-button {
   border-radius: 4px;
   font-weight: 500;
-  
+
   &.el-button--small {
     padding: 5px 12px;
     font-size: 12px;
@@ -1185,13 +1117,13 @@ onMounted(() => {
 .el-tag {
   border-radius: 4px;
   font-weight: 500;
-  
+
   &.el-tag--success {
     background-color: #f0f9ff;
     border-color: #67c23a;
     color: #67c23a;
   }
-  
+
   &.el-tag--danger {
     background-color: #fef0f0;
     border-color: #f56c6c;
@@ -1203,7 +1135,7 @@ onMounted(() => {
   .white-paper-management {
     padding: 16px;
   }
-  
+
   .main-content-box {
     padding: 16px;
   }
@@ -1216,7 +1148,7 @@ onMounted(() => {
   gap: 6px;
   flex-wrap: nowrap;
   white-space: nowrap;
-  
+
   .el-button {
     margin: 0;
     padding: 5px 10px;

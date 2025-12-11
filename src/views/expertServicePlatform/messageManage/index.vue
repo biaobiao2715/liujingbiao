@@ -7,13 +7,7 @@
 <template>
   <div class="message-management">
     <!-- 搜索条件 -->
-    <el-form
-      v-show="showSearch"
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      label-position="left"
-    >
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="留言时间" label-width="auto">
         <el-date-picker
           v-model="messageDateRange"
@@ -24,11 +18,16 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      
+
       <el-form-item label="留言内容" prop="messageContent" label-width="auto">
-        <el-input v-model="queryParams.messageContent" :placeholder="queryParams.messageContent ? '' : '请输入内容'" clearable @keyup.enter="handleQuery" />
+        <el-input
+          v-model="queryParams.messageContent"
+          :placeholder="queryParams.messageContent ? '' : '请输入内容'"
+          clearable
+          @keyup.enter="handleQuery"
+        />
       </el-form-item>
-      
+
       <el-form-item label="回复时间" label-width="auto">
         <el-date-picker
           v-model="replyDateRange"
@@ -39,18 +38,13 @@
           end-placeholder="结束时间"
         />
       </el-form-item>
-      
+
       <el-form-item label="回复状态" prop="questionStatus" label-width="auto">
         <el-select v-model="queryParams.questionStatus" :placeholder="queryParams.questionStatus ? '' : '请选择'" filterable clearable>
-          <el-option 
-            v-for="item in reply_status" 
-            :key="item.value" 
-            :label="item.label" 
-            :value="item.value" 
-          />
+          <el-option v-for="item in reply_status" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      
+
       <el-form-item>
         <el-button v-throttle type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
@@ -58,22 +52,19 @@
     </el-form>
 
     <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-    >
+    <el-table :data="tableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="55" align="center" />
-    
+
       <el-table-column label="留言时间" align="center" prop="messageTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.messageTime }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="留言内容" align="center" prop="messageContent" :show-overflow-tooltip="true" min-width="300">
         <template #default="scope">
-          <span 
-            :class="isQuestionClosed(scope.row) ? '' : 'link-type'" 
+          <span
+            :class="isQuestionClosed(scope.row) ? '' : 'link-type'"
             :style="isQuestionClosed(scope.row) ? 'cursor: default;' : ''"
             @click="!isQuestionClosed(scope.row) && handleReply(scope.row)"
           >
@@ -81,30 +72,24 @@
           </span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="回复时间" align="center" prop="replyTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.replyTime || '----' }}</span>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="回复状态" align="center" prop="questionStatus" width="120">
         <template #default="scope">
           <div class="status-with-dot">
-            <span 
-              class="status-dot" 
-              :class="`status-dot-${getReplyStatusType(scope.row.questionStatus)}`"
-            ></span>
-            <span 
-              class="status-text"
-              :class="`status-text-${getReplyStatusType(scope.row.questionStatus)}`"
-            >
+            <span class="status-dot" :class="`status-dot-${getReplyStatusType(scope.row.questionStatus)}`"></span>
+            <span class="status-text" :class="`status-text-${getReplyStatusType(scope.row.questionStatus)}`">
               {{ getReplyStatusLabel(scope.row.questionStatus) }}
             </span>
           </div>
         </template>
       </el-table-column>
-      
+
       <el-table-column label="操作" align="left" fixed="right" width="180">
         <template #default="scope">
           <div class="flex-center operation-btns">
@@ -147,19 +132,10 @@
       />
     </div>
 
-    <el-dialog
-      v-model="detailDialog.visible"
-      title="留言详情"
-      width="50%"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
+    <el-dialog v-model="detailDialog.visible" title="留言详情" width="50%" destroy-on-close :close-on-click-modal="false">
       <Suspense>
         <template #default>
-          <MessageDetailDialog
-            :id="detailDialog.id"
-            @close="detailDialog.visible = false"
-          />
+          <MessageDetailDialog :id="detailDialog.id" @close="detailDialog.visible = false" />
         </template>
         <template #fallback>
           <el-skeleton :rows="6" animated />
@@ -167,13 +143,7 @@
       </Suspense>
     </el-dialog>
 
-    <el-dialog
-      v-model="replyDialog.visible"
-      title="回复留言"
-      width="50%"
-      destroy-on-close
-      :close-on-click-modal="false"
-    >
+    <el-dialog v-model="replyDialog.visible" title="回复留言" width="50%" destroy-on-close :close-on-click-modal="false">
       <Suspense>
         <template #default>
           <MessageReplyDialog
@@ -202,19 +172,14 @@
 import { ref, onMounted, defineAsyncComponent, Suspense, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
-import { 
-  getMessageList,
-  type MessageListQuery 
-} from '@/api/expertServicePlatform/messageManage/index';
+import { getMessageList, type MessageListQuery } from '@/api/expertServicePlatform/messageManage/index';
 
 const MessageDetailDialog = defineAsyncComponent(() => import('./MessageDetailDialog.vue'));
 const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDialog.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { reply_status } = toRefs<any>(
-  (proxy as any)?.useDict('reply_status')
-);
+const { reply_status } = toRefs<any>((proxy as any)?.useDict('reply_status'));
 
 const queryParams = ref<MessageListQuery>({
   pageNum: 1,
@@ -249,14 +214,14 @@ const replyDialog = ref({
 
 const getList = () => {
   loading.value = true;
-  
+
   const messageDate = messageDateRange.value;
   const replyDate = replyDateRange.value;
   const messageStartTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[0] : null;
   const messageEndTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[1] : null;
   const replyStartTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[0] : null;
   const replyEndTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[1] : null;
-  
+
   const params: MessageListQuery = {
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
@@ -265,29 +230,32 @@ const getList = () => {
     ...(messageStartTime && messageEndTime ? { messageStartTime, messageEndTime } : {}),
     ...(replyStartTime && replyEndTime ? { replyStartTime, replyEndTime } : {})
   };
-  
-  getMessageList(params).then((res: any) => {
-    if (res && res.code === 200) {
-      const rows = (res.rows || []).map((item: any) => ({
-        ...item,
-        messageContent: item.questionContent || item.messageContent || '',
-        messageTime: item.publishTime || item.messageTime || '',
-        replyTime: item.latestAnswerTime || item.replyTime || ''
-      }));
-      tableData.value = applyPinSort(rows);
-      total.value = res.total || 0;
-    } else {
+
+  getMessageList(params)
+    .then((res: any) => {
+      if (res && res.code === 200) {
+        const rows = (res.rows || []).map((item: any) => ({
+          ...item,
+          messageContent: item.questionContent || item.messageContent || '',
+          messageTime: item.publishTime || item.messageTime || '',
+          replyTime: item.latestAnswerTime || item.replyTime || ''
+        }));
+        tableData.value = applyPinSort(rows);
+        total.value = res.total || 0;
+      } else {
+        tableData.value = [];
+        total.value = 0;
+        ElMessage.error(res?.msg || '获取数据失败');
+      }
+    })
+    .catch(() => {
+      ElMessage.error('获取留言列表失败，请稍后重试');
       tableData.value = [];
       total.value = 0;
-      ElMessage.error(res?.msg || '获取数据失败');
-    }
-  }).catch(() => {
-    ElMessage.error('获取留言列表失败，请稍后重试');
-    tableData.value = [];
-    total.value = 0;
-  }).finally(() => {
-    loading.value = false;
-  });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 const applyPinSort = (rows: any[]) => {
@@ -295,8 +263,8 @@ const applyPinSort = (rows: any[]) => {
   const indexMap = new Map<string, number>();
   pinnedIds.value.forEach((id, idx) => indexMap.set(String(id), idx));
   return [...rows].sort((a: any, b: any) => {
-    const ai = indexMap.has(String(a.id)) ? indexMap.get(String(a.id)) as number : Number.POSITIVE_INFINITY;
-    const bi = indexMap.has(String(b.id)) ? indexMap.get(String(b.id)) as number : Number.POSITIVE_INFINITY;
+    const ai = indexMap.has(String(a.id)) ? (indexMap.get(String(a.id)) as number) : Number.POSITIVE_INFINITY;
+    const bi = indexMap.has(String(b.id)) ? (indexMap.get(String(b.id)) as number) : Number.POSITIVE_INFINITY;
     if (ai === bi) return 0;
     return ai - bi;
   });
@@ -432,7 +400,7 @@ const handleReply = (row: any) => {
     ElMessage.warning('该留言已关闭，无法回复');
     return;
   }
-  
+
   const batchIds = getUnrepliedSequence();
   const index = batchIds.findIndex((id: any) => String(id) === String(row.id));
   replyDialog.value.visible = true;
@@ -455,7 +423,6 @@ const onReplyBatchNext = () => {
   let idx = replyDialog.value.batchIndex || 0;
   idx += 1;
   if (idx >= ids.length) {
-    ElMessage.success('批量回复已完成');
     replyDialog.value.visible = false;
     getList();
     return;
@@ -476,21 +443,21 @@ onMounted(() => {
 <style scoped lang="scss">
 .message-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 }
 
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -509,7 +476,7 @@ onMounted(() => {
   color: #409eff;
   cursor: pointer;
   font-weight: 500;
-  
+
   &:hover {
     text-decoration: underline;
     color: #66b1ff;
@@ -524,7 +491,7 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
-  
+
   :deep(.el-button) {
     font-size: 14px;
   }

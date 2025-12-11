@@ -432,7 +432,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .procurement-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 
   .pagination-wrapper {

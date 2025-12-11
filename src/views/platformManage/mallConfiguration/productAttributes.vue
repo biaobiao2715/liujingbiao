@@ -55,7 +55,7 @@
           <el-input v-model="formData.attributeName" placeholder="请输入产品保障" maxlength="20" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input-number v-model="formData.orderNum" :min="0" :max="9999"  placeholder="请输入排序" />
+          <el-input-number v-model="formData.orderNum" :min="0" :max="9999" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="flex-center-end">
@@ -199,7 +199,7 @@ const handleDelete = async (id: number) => {
 
 <style scoped lang="scss">
 .brand-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 
   .search-bar {

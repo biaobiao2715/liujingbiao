@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题：    index.vue
 功能：    举报数据分析页面
 说明：    统计各种举报类别的举报数量和趋势，生成举报热点地图和分布图
@@ -13,19 +13,8 @@
     <div class="filter-section">
       <div class="filter-left">
         <span class="filter-label">举报类别:</span>
-        <el-select
-          v-model="queryParams.reportTypeId"
-          placeholder="请选择"
-          clearable
-          style="width: 200px"
-          @change="handleReportTypeChange"
-        >
-          <el-option
-            v-for="item in reportTypeOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
+        <el-select v-model="queryParams.reportTypeId" placeholder="请选择" clearable style="width: 200px" @change="handleReportTypeChange">
+          <el-option v-for="item in reportTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </div>
       <div class="filter-right">
@@ -68,15 +57,9 @@
         </div>
         <div class="header-right">
           <el-button-group>
-            <el-button :type="timeFilter === 'yesterday' ? 'primary' : ''" @click="handleTimeFilter('yesterday')">
-              昨日
-            </el-button>
-            <el-button :type="timeFilter === 'today' ? 'primary' : ''" @click="handleTimeFilter('today')">
-              今日
-            </el-button>
-            <el-button :type="timeFilter === 'week' ? 'primary' : ''" @click="handleTimeFilter('week')">
-              本周
-            </el-button>
+            <el-button :type="timeFilter === 'yesterday' ? 'primary' : ''" @click="handleTimeFilter('yesterday')"> 昨日 </el-button>
+            <el-button :type="timeFilter === 'today' ? 'primary' : ''" @click="handleTimeFilter('today')"> 今日 </el-button>
+            <el-button :type="timeFilter === 'week' ? 'primary' : ''" @click="handleTimeFilter('week')"> 本周 </el-button>
           </el-button-group>
           <el-date-picker
             v-model="chartTimeRange"
@@ -237,18 +220,20 @@ const chartData = ref<any[]>([]);
 const selectedDateData = ref<any>(null);
 
 // 地图数据
-const mapData = ref<Array<{ 
-  name: string; 
-  value: number;
-  status0Count?: number;
-  status1Count?: number;
-  status2Count?: number;
-  status3Count?: number;
-  status4Count?: number;
-  statusCount?: number;
-}>>([]);
+const mapData = ref<
+  Array<{
+    name: string;
+    value: number;
+    status0Count?: number;
+    status1Count?: number;
+    status2Count?: number;
+    status3Count?: number;
+    status4Count?: number;
+    statusCount?: number;
+  }>
+>([]);
 const mapTitle = computed(() => {
-  const selectedType = reportTypeOptions.value.find(item => item.value === queryParams.reportTypeId);
+  const selectedType = reportTypeOptions.value.find((item) => item.value === queryParams.reportTypeId);
   return selectedType ? `${selectedType.label}举报分布图` : '举报数据分布图';
 });
 const mapMin = ref(0);
@@ -270,7 +255,7 @@ onUnmounted(() => {
 // 省份名称映射：将完整省份名称转换为地图使用的短名称
 const normalizeProvinceName = (provinceName: string): string => {
   if (!provinceName) return '';
-  
+
   // 省份名称映射表
   const provinceMap: Record<string, string> = {
     '北京市': '北京',
@@ -308,17 +293,17 @@ const normalizeProvinceName = (provinceName: string): string => {
     '香港特别行政区': '香港',
     '澳门特别行政区': '澳门'
   };
-  
+
   // 如果已经在映射表中，直接返回
   if (provinceMap[provinceName]) {
     return provinceMap[provinceName];
   }
-  
+
   // 如果已经是短名称，直接返回
   if (Object.values(provinceMap).includes(provinceName)) {
     return provinceName;
   }
-  
+
   // 尝试去除常见后缀
   let normalized = provinceName
     .replace(/省$/, '')
@@ -328,7 +313,7 @@ const normalizeProvinceName = (provinceName: string): string => {
     .replace(/壮族自治区$/, '')
     .replace(/回族自治区$/, '')
     .replace(/维吾尔自治区$/, '');
-  
+
   return normalized || provinceName;
 };
 
@@ -364,12 +349,12 @@ const fetchMapData = async () => {
     if (response && response.code === 200 && response.data) {
       const data = response.data || [];
       console.log('API返回的原始数据:', data);
-      
+
       // 处理数据映射，确保省份名称正确，状态数据正确转换
       mapData.value = data.map((item: any) => {
         const provinceName = item.province || item.provinceName || item.name || '';
         const normalizedName = normalizeProvinceName(provinceName);
-        
+
         return {
           name: normalizedName,
           value: Number(item.statusCount || 0), // 地图颜色根据总数量显示
@@ -381,7 +366,7 @@ const fetchMapData = async () => {
           statusCount: Number(item.statusCount || 0) // 总数量
         };
       });
-      
+
       // 计算地图颜色范围
       if (data.length > 0) {
         const values = data.map((item: any) => Number(item.statusCount || 0)).filter((v: number) => !isNaN(v) && v >= 0);
@@ -400,7 +385,7 @@ const fetchMapData = async () => {
         mapMin.value = 0;
         mapMax.value = 100;
       }
-      
+
       console.log('处理后的地图数据:', mapData.value);
       console.log('地图颜色范围:', { min: mapMin.value, max: mapMax.value });
     } else {
@@ -423,14 +408,14 @@ const fetchMapData = async () => {
 // 初始化柱状图
 const initBarChart = () => {
   if (!chartContainer.value) return;
-  
+
   barChartInstance = echarts.init(chartContainer.value);
-  
+
   nextTick(() => {
     barChartInstance?.resize();
     updateBarChart();
   });
-  
+
   window.addEventListener('resize', () => {
     barChartInstance?.resize();
   });
@@ -439,18 +424,8 @@ const initBarChart = () => {
 // 构造 X 轴标签：优先使用周次或日期范围，其次使用具体日期
 const buildXAxisLabel = (item: any, index: number): string => {
   // 1）如果后端返回了时间范围字段，优先使用
-  const start =
-    item.startTime ||
-    item.beginTime ||
-    item.startDate ||
-    item.weekStartTime ||
-    item.weekStartDate;
-  const end =
-    item.endTime ||
-    item.finishTime ||
-    item.endDate ||
-    item.weekEndTime ||
-    item.weekEndDate;
+  const start = item.startTime || item.beginTime || item.startDate || item.weekStartTime || item.weekStartDate;
+  const end = item.endTime || item.finishTime || item.endDate || item.weekEndTime || item.weekEndDate;
 
   if (start && end) {
     // 只保留日期部分，格式：YYYY-MM-DD至YYYY-MM-DD
@@ -483,22 +458,22 @@ const buildXAxisLabel = (item: any, index: number): string => {
 // 更新柱状图
 const updateBarChart = (data: any[] = []) => {
   if (!barChartInstance) return;
-  
+
   if (data.length === 0) {
     chartData.value = [];
     barChartInstance.setOption({}, true);
     return;
   }
-  
+
   // 处理数据 - X轴标签
   const labels = data.map((item: any, index: number) => buildXAxisLabel(item, index));
-  
+
   const status0Data = data.map((item: any) => Number(item.status0Count || 0));
   const status1Data = data.map((item: any) => Number(item.status1Count || 0));
   const status2Data = data.map((item: any) => Number(item.status2Count || 0));
   const status4Data = data.map((item: any) => Number(item.status4Count || 0));
   const status3Data = data.map((item: any) => Number(item.status3Count || 0));
-  
+
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -595,9 +570,9 @@ const updateBarChart = (data: any[] = []) => {
       }
     ]
   };
-  
+
   barChartInstance.setOption(option, true);
-  
+
   // 添加点击事件
   barChartInstance.off('click');
   barChartInstance.on('click', (params: any) => {
@@ -611,11 +586,12 @@ const updateBarChart = (data: any[] = []) => {
         status2Count: Number(item.status2Count || 0),
         status3Count: Number(item.status3Count || 0),
         status4Count: Number(item.status4Count || 0),
-        total: Number(item.status0Count || 0) + 
-               Number(item.status1Count || 0) + 
-               Number(item.status2Count || 0) + 
-               Number(item.status3Count || 0) + 
-               Number(item.status4Count || 0)
+        total:
+          Number(item.status0Count || 0) +
+          Number(item.status1Count || 0) +
+          Number(item.status2Count || 0) +
+          Number(item.status3Count || 0) +
+          Number(item.status4Count || 0)
       };
     }
   });
@@ -752,18 +728,18 @@ const handleChartReset = () => {
   padding: 16px 20px;
   border-radius: 8px;
   margin-bottom: 16px;
-  
+
   .filter-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    
+
     .filter-label {
       font-size: 14px;
       color: #606266;
     }
   }
-  
+
   .filter-right {
     display: flex;
     align-items: center;
@@ -782,63 +758,63 @@ const handleChartReset = () => {
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  
+
   .analysis-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    
+
     .header-left {
       display: flex;
       align-items: center;
       gap: 20px;
-      
+
       .section-title {
         margin: 0;
         font-size: 18px;
         font-weight: 600;
         color: #303133;
       }
-      
+
       .category-buttons {
         display: flex;
         gap: 8px;
       }
     }
-    
+
     .header-right {
       display: flex;
       align-items: center;
     }
   }
-  
+
   .analysis-content {
     display: flex;
     gap: 20px;
-    
+
     .chart-section {
       flex: 1;
-      
+
       .chart-title {
         font-size: 16px;
         font-weight: 600;
         color: #303133;
         margin-bottom: 12px;
       }
-      
+
       .chart-legend {
         display: flex;
         gap: 20px;
         margin-bottom: 16px;
-        
+
         .legend-item {
           display: flex;
           align-items: center;
           gap: 8px;
           font-size: 14px;
           color: #606266;
-          
+
           .legend-color {
             width: 16px;
             height: 16px;
@@ -846,19 +822,19 @@ const handleChartReset = () => {
           }
         }
       }
-      
+
       .chart-container {
         width: 100%;
         height: 400px;
       }
     }
-    
+
     .detail-panel {
       width: 300px;
       background: #f5f7fa;
       border-radius: 8px;
       padding: 20px;
-      
+
       .panel-date {
         font-size: 18px;
         font-weight: 600;
@@ -866,38 +842,38 @@ const handleChartReset = () => {
         margin-bottom: 20px;
         text-align: center;
       }
-      
+
       .panel-content {
         .detail-item {
           display: flex;
           justify-content: space-between;
           margin-bottom: 16px;
-          
+
           .detail-label {
             font-size: 14px;
             color: #606266;
           }
-          
+
           .detail-value {
             font-size: 14px;
             font-weight: 600;
             color: #303133;
           }
         }
-        
+
         .detail-total {
           display: flex;
           justify-content: space-between;
           margin-top: 20px;
           padding-top: 20px;
           border-top: 1px solid #dcdfe6;
-          
+
           .total-label {
             font-size: 16px;
             font-weight: 600;
             color: #303133;
           }
-          
+
           .total-value {
             font-size: 18px;
             font-weight: 600;
@@ -909,4 +885,3 @@ const handleChartReset = () => {
   }
 }
 </style>
-

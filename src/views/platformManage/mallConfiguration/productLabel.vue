@@ -195,7 +195,7 @@ const handleDelete = async (id: number) => {
 
 <style scoped lang="scss">
 .brand-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 
   .search-bar {

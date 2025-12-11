@@ -31,8 +31,8 @@
         </div>
       </div>
       <div class="meeting-user">
-        <!-- <img :src="detail?.avatar" /> -->
-        <el-avatar :size="30" :src="detail?.avatar" class="mr-[10px]" />
+        <img v-if="detail?.avatar" :src="detail?.avatar" />
+        <el-avatar v-else :size="30" class="mr-[10px]" style="background-color: aquamarine" />
         <div class="meeting-user-name">
           {{ '发布人：  ' + detail?.publishUser }}
         </div>

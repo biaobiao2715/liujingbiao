@@ -552,7 +552,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .case-type-container {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 20px;
 
   .search-actions {

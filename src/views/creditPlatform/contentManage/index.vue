@@ -50,14 +50,7 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          v-hasPermi="['credit:creditArticle:add']"
-          type="primary"
-          icon="Plus"
-          class="add-btn"
-          @click="handleAdd"
-        >
+        <el-button v-throttle v-hasPermi="['credit:creditArticle:add']" type="primary" icon="Plus" class="add-btn" @click="handleAdd">
           新增
         </el-button>
       </el-col>
@@ -71,14 +64,8 @@
       <el-table-column label="状态" prop="articleStatus" width="100">
         <template #default="scope">
           <div class="status-with-dot">
-            <span 
-              class="status-dot" 
-              :class="`status-dot-${getStatusType(scope.row.articleStatus)}`"
-            ></span>
-            <span 
-              class="status-text"
-              :class="`status-text-${getStatusType(scope.row.articleStatus)}`"
-            >
+            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.articleStatus)}`"></span>
+            <span class="status-text" :class="`status-text-${getStatusType(scope.row.articleStatus)}`">
               {{ getStatusLabel(scope.row.articleStatus) }}
             </span>
           </div>
@@ -217,11 +204,7 @@ const isAdmin = computed(() => {
 });
 const isFinancialInstitution = computed(() => {
   const roles = userStore.roles || [];
-  return roles.some(role => 
-    role === 'financial_institution' || 
-    role === 'financial' || 
-    role?.toLowerCase().includes('financial')
-  );
+  return roles.some((role) => role === 'financial_institution' || role === 'financial' || role?.toLowerCase().includes('financial'));
 });
 
 // 搜索表单数据
@@ -487,16 +470,18 @@ const handlePublish = async (row: any) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const success = await confirmStatusChange(row, '2');
-      if (success) {
-        getList();
+  })
+    .then(async () => {
+      try {
+        const success = await confirmStatusChange(row, '2');
+        if (success) {
+          getList();
+        }
+      } catch (error) {
+        ElMessage.error('上架失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('上架失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleOffline = async (row: any) => {
@@ -504,16 +489,18 @@ const handleOffline = async (row: any) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const success = await confirmStatusChange(row, '3');
-      if (success) {
-        getList();
+  })
+    .then(async () => {
+      try {
+        const success = await confirmStatusChange(row, '3');
+        if (success) {
+          getList();
+        }
+      } catch (error) {
+        ElMessage.error('下架失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('下架失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 /** 删除按钮 */
@@ -522,19 +509,21 @@ const handleDelete = (row: any) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const response = await deleteCreditArticle({ ids: [row.id] });
-      if (response && response.code === 200) {
-        ElMessage.success('删除成功');
-        getList();
-      } else {
-        ElMessage.error(response?.msg || '删除失败');
+  })
+    .then(async () => {
+      try {
+        const response = await deleteCreditArticle({ ids: [row.id] });
+        if (response && response.code === 200) {
+          ElMessage.success('删除成功');
+          getList();
+        } else {
+          ElMessage.error(response?.msg || '删除失败');
+        }
+      } catch (error) {
+        ElMessage.error('删除失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('删除失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 // 页面加载时获取列表数据
@@ -546,7 +535,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .content-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 
   :deep(.el-form--inline) {
@@ -584,14 +573,14 @@ onMounted(() => {
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -614,7 +603,7 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
-  
+
   :deep(.el-button) {
     font-size: 14px;
   }

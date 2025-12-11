@@ -18,7 +18,7 @@
         <div v-if="titleTouched && !formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
-      <el-form-item label="上传附件">
+      <el-form-item label="上传附件" prop="attachment" required>
         <div class="attachment-section">
           <el-upload
             action="#"
@@ -90,7 +90,7 @@
       </el-form-item>
 
       <div class="form-actions">
-        <el-button type="primary" @click="handleSubmit" :loading="saving">
+        <el-button v-throttle type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '发布' : '提交' }}
         </el-button>
       </div>
@@ -381,6 +381,18 @@ const rules = {
   paperTitle: [
     { required: true, message: '请输入标题内容，最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '标题长度在 1 到 30 个字符', trigger: 'blur' }
+  ],
+  attachment: [
+    {
+      validator: (_rule: any, _value: any, callback: any) => {
+        if (attachmentList.value.length === 0) {
+          callback(new Error('请上传附件'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'change'
+    }
   ]
 };
 
@@ -598,6 +610,9 @@ const handleFileChange = async (file: any) => {
       
       attachmentList.value.push(newAttachment);
       
+      // 更新表单数据中的附件字段，避免验证报错
+      formData.value.attachment = 'has_attachment';
+      
       // 编辑模式下，记录上传的版本到历史
       if (props.type === 'edit' && attachmentList.value.length > 0) {
         uploadedVersions.value.push({
@@ -714,6 +729,10 @@ const handleRemoveFile = (file: any) => {
       );
       if (index !== -1) {
         attachmentList.value.splice(index, 1);
+        // 如果删除后没有附件了，清空表单字段
+        if (attachmentList.value.length === 0) {
+          formData.value.attachment = '';
+        }
         ElMessage.success('附件删除成功');
       }
     })
@@ -884,6 +903,12 @@ const handleSubmit = async () => {
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
+    
+    // 新增和编辑模式下必须上传附件
+    if (attachmentList.value.length === 0) {
+      ElMessage.warning('请上传附件');
+      return;
+    }
     
     // 编辑模式下如果没有上传新附件，跳过版本号验证
     if (props.type === 'add' && attachmentList.value.length > 0) {

@@ -22,7 +22,7 @@
     >
 
     <!-- 表格 -->
-    <el-table :data="tableData" border v-loading="loading">
+    <el-table :data="tableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="80" />
       <el-table-column prop="attributeName" label="品牌名称" />
       <el-table-column prop="orderNum" label="排序" />
@@ -51,7 +51,7 @@
           <el-input v-model="formData.attributeName" placeholder="请输入品牌名称" maxlength="20" />
         </el-form-item>
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input-number v-model="formData.orderNum" :min="0" :max="9999"  placeholder="请输入排序" />
+          <el-input-number v-model="formData.orderNum" :min="0" :max="9999" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="flex-center-end">
@@ -196,7 +196,7 @@ const handleDelete = async (id: number) => {
 
 <style scoped lang="scss">
 .brand-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 
   .search-bar {

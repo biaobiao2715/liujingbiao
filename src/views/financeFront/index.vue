@@ -185,9 +185,14 @@ const switchShowArea = (item: DetailPayload, isLastItem?: boolean) => {
   selectNavigateByType(item.type);
 };
 
-const selectNavigateByType = (type: Exclude<DetailView, 'area'>) => {
-  const uniqueId = new Date().getTime();
+const selectNavigateByType = (type: DetailView) => {
   console.log(type);
+  if (type === 'area') {
+    // 保留数组引用的就地清空，确保响应性
+    naviteList.value.splice(0, naviteList.value.length);
+    return;
+  }
+  const uniqueId = new Date().getTime();
 
   switch (type) {
     case 'PersonalCenter':

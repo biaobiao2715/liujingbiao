@@ -1,13 +1,7 @@
 <!-- 产品管理-信贷列表页 -->
 <template>
   <div class="product-credit-manage">
-    <el-form
-      v-show="showSearch"
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      label-position="left"
-    >
+    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="产品名称" prop="productName" label-width="auto">
         <el-input
           v-model="queryParams.productName"
@@ -19,47 +13,18 @@
         />
       </el-form-item>
       <el-form-item label="产品类型" prop="productType" label-width="auto">
-        <el-select
-          v-model="queryParams.productType"
-          placeholder="请选择"
-          clearable
-        >
-          <el-option
-            v-for="dict in prod_credit_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.productType" placeholder="请选择" clearable>
+          <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="productStatus" label-width="auto">
-        <el-select
-          v-model="queryParams.productStatus"
-          placeholder="请选择"
-          clearable
-        >
-          <el-option
-            v-for="dict in product_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.productStatus" placeholder="请选择" clearable>
+          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="适用对象" prop="applicableObject" label-width="auto">
-        <el-select
-          v-model="queryParams.applicableObject"
-          placeholder="请选择"
-          clearable
-          multiple
-          :collapse-tags="false"
-        >
-          <el-option
-            v-for="dict in applicable_object"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.applicableObject" placeholder="请选择" clearable multiple :collapse-tags="false">
+          <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -70,31 +35,22 @@
 
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          v-hasPermi="['system:creditProductsVersion:add']"
-          type="primary"
-          icon="Plus"
-          class="add-btn"
-          @click="handleAdd"
-        >
+        <el-button v-throttle v-hasPermi="['system:creditProductsVersion:add']" type="primary" icon="Plus" class="add-btn" @click="handleAdd">
           新增
         </el-button>
       </el-col>
     </el-row>
 
-    <el-table
-      :data="tableData"
-      v-loading="loading"
-      style="width: 100%"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" prop="productName" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品简介" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="适用对象" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
-          <dict-tag :options="applicable_object" :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject" />
+          <dict-tag
+            :options="applicable_object"
+            :value="typeof scope.row.applicableObject === 'string' ? scope.row.applicableObject.split(',') : scope.row.applicableObject"
+          />
         </template>
       </el-table-column>
       <el-table-column label="产品类型" prop="productType" width="120">
@@ -105,14 +61,8 @@
       <el-table-column label="状态" prop="productStatus" width="100">
         <template #default="scope">
           <div class="status-with-dot">
-            <span 
-              class="status-dot" 
-              :class="`status-dot-${getStatusType(scope.row.productStatus)}`"
-            ></span>
-            <span 
-              class="status-text"
-              :class="`status-text-${getStatusType(scope.row.productStatus)}`"
-            >
+            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.productStatus)}`"></span>
+            <span class="status-text" :class="`status-text-${getStatusType(scope.row.productStatus)}`">
               {{ getStatusLabel(scope.row.productStatus) }}
             </span>
           </div>
@@ -233,18 +183,16 @@ const isAdmin = computed(() => {
 });
 const isFinancialInstitution = computed(() => {
   const roles = userStore.roles || [];
-  return roles.some(role => 
-    role === 'financial_institution' || 
-    role === 'financial' || 
-    role?.toLowerCase().includes('financial')
-  );
+  return roles.some((role) => role === 'financial_institution' || role === 'financial' || role?.toLowerCase().includes('financial'));
 });
 
 const ProductCreditFormDialog = defineAsyncComponent(() => import('./ProductCreditFormDialog.vue'));
 const ProductCreditDetail = defineAsyncComponent(() => import('./ProductCreditDetail.vue'));
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { prod_credit_type, applicable_object, product_status } = toRefs<any>(proxy?.useDict('prod_credit_type', 'applicable_object', 'product_status'));
+const { prod_credit_type, applicable_object, product_status } = toRefs<any>(
+  proxy?.useDict('prod_credit_type', 'applicable_object', 'product_status')
+);
 
 interface CreditProduct {
   id?: number;
@@ -287,17 +235,20 @@ const getList = () => {
   const params = {
     ...queryParams,
     productName: queryParams.productName ? queryParams.productName.trim() : '',
-    applicableObject: Array.isArray(queryParams.applicableObject) && queryParams.applicableObject.length > 0 
-      ? queryParams.applicableObject.join(',') 
-      : queryParams.applicableObject
+    applicableObject:
+      Array.isArray(queryParams.applicableObject) && queryParams.applicableObject.length > 0
+        ? queryParams.applicableObject.join(',')
+        : queryParams.applicableObject
   };
-  creditProductList(params).then((res) => {
-    tableData.value = res.rows || [];
-    total.value = res.total || 0;
-    loading.value = false;
-  }).catch(() => {
-    loading.value = false;
-  });
+  creditProductList(params)
+    .then((res) => {
+      tableData.value = res.rows || [];
+      total.value = res.total || 0;
+      loading.value = false;
+    })
+    .catch(() => {
+      loading.value = false;
+    });
 };
 
 const handleQuery = () => {
@@ -393,20 +344,22 @@ const handlePublish = (row: CreditProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const data = { ...row, productStatus: '2', optType: '2' };
-      const response = await editCreditProduct(data);
-      if (response && response.code === 200) {
-        ElMessage.success('上架成功');
-        getList();
-      } else {
-        ElMessage.error(response?.msg || '上架失败');
+  })
+    .then(async () => {
+      try {
+        const data = { ...row, productStatus: '2', optType: '2' };
+        const response = await editCreditProduct(data);
+        if (response && response.code === 200) {
+          ElMessage.success('上架成功');
+          getList();
+        } else {
+          ElMessage.error(response?.msg || '上架失败');
+        }
+      } catch (error) {
+        ElMessage.error('上架失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('上架失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleOffline = (row: CreditProduct) => {
@@ -414,20 +367,22 @@ const handleOffline = (row: CreditProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const data = { ...row, productStatus: '3', optType: '2' };
-      const response = await editCreditProduct(data);
-      if (response && response.code === 200) {
-        ElMessage.success('下架成功');
-        getList();
-      } else {
-        ElMessage.error(response?.msg || '下架失败');
+  })
+    .then(async () => {
+      try {
+        const data = { ...row, productStatus: '3', optType: '2' };
+        const response = await editCreditProduct(data);
+        if (response && response.code === 200) {
+          ElMessage.success('下架成功');
+          getList();
+        } else {
+          ElMessage.error(response?.msg || '下架失败');
+        }
+      } catch (error) {
+        ElMessage.error('下架失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('下架失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handleDelete = (row: CreditProduct) => {
@@ -435,19 +390,21 @@ const handleDelete = (row: CreditProduct) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(async () => {
-    try {
-      const response = await deleteCreditProduct(row.id as number | string);
-      if (response && response.code === 200) {
-        ElMessage.success('删除成功');
-        getList();
-      } else {
-        ElMessage.error(response?.msg || '删除失败');
+  })
+    .then(async () => {
+      try {
+        const response = await deleteCreditProduct(row.id as number | string);
+        if (response && response.code === 200) {
+          ElMessage.success('删除成功');
+          getList();
+        } else {
+          ElMessage.error(response?.msg || '删除失败');
+        }
+      } catch (error) {
+        ElMessage.error('删除失败，请稍后重试');
       }
-    } catch (error) {
-      ElMessage.error('删除失败，请稍后重试');
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 };
 
 const handlePageChange = (page: number) => {
@@ -469,7 +426,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-credit-manage {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 }
 
@@ -500,14 +457,14 @@ onMounted(() => {
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -530,7 +487,7 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
-  
+
   :deep(.el-button) {
     font-size: 14px;
   }

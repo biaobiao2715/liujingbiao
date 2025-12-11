@@ -144,7 +144,15 @@
             @click="handleDisable(scope.row)"
             >禁用</el-button
           >
-          <el-button v-throttle v-hasPermi="['system:article:remove']" type="primary" link @click="handleDeleteOne(scope.row)">删除</el-button>
+          <el-button
+            v-if="scope.row.articleStatus == '3'"
+            v-throttle
+            v-hasPermi="['system:article:remove']"
+            type="primary"
+            link
+            @click="handleDeleteOne(scope.row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -352,7 +360,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .kb-management {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 
   .mb8 {
