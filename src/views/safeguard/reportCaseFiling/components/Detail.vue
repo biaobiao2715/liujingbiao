@@ -232,7 +232,7 @@
 
       <!-- 非已驳回状态：显示案件类型 -->
       <!-- <template v-if="!isRejected && !isPending && !isWithdrawnPending"> -->
-      <template v-if="formData.status != '2'">
+      <template v-if="formData.status != '2' && formData.status != '0'">
         <FormHeader title="案件类型" />
         <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
           <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
@@ -327,6 +327,7 @@
 
       <!--历史申诉材料  -->
       <!-- <div v-if="!hideProcessingViewSection && !isWithdrawnPending && (isProcessing || (!isRejected && !isPending))"> -->
+      <!-- {{ formData.newAppealFile }} -->
       <div v-if="formData.historyAppealList">
         <FormHeader title="历史申诉材料" />
         <el-table :data="formData.historyAppealList || []" border>
@@ -339,7 +340,18 @@
           </el-table-column>
         </el-table>
       </div>
-
+      <div v-if="formData.newAppealFile?.appealFiles.length">
+        <FormHeader title="历史申诉材料" />
+        <el-table :data="formData.newAppealFile?.appealFiles || []" border>
+          <el-table-column type="index" min-width="55" label="序号" align="center" />
+          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
+          <el-table-column label="操作" align="center">
+            <template #default="scope">
+              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
       <template v-if="isWithdrawn">
         <FormHeader title="举报人撤回原因" />
         <el-row :gutter="20" class="detail-form">
