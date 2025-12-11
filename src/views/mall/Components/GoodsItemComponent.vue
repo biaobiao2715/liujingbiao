@@ -100,6 +100,10 @@ const handleClick = () => {
   font-size: 18px;
   margin-top: 12px;
   color: #333;
+  // 超出部分显示省略号
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .goods-tags {

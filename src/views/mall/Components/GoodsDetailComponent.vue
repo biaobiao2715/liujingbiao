@@ -59,11 +59,11 @@
           <!-- 标题和操作按钮 -->
           <div class="title-row">
             <div class="title-left">
-              <div class="goods-title">{{ goods?.goodsName }}</div>
+              <div class="goods-title">
+                {{ goods?.goodsName }}
+              </div>
               <div class="goods-description">
-                {{
-                  ' goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo goods?.goodsInfo'
-                }}
+                {{ goods?.goodsInfo }}
               </div>
 
               <!-- 商品属性标签 -->
@@ -838,6 +838,10 @@ defineExpose({
           font-weight: bold;
           color: #3d3d3d;
           margin-bottom: 8px;
+          // 超出部分显示省略号
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .goods-description {
@@ -927,7 +931,7 @@ defineExpose({
     .price-section {
       background: url('@/assets/mall/price-bg.png') no-repeat;
       background-size: cover;
-      padding: 12px 20px;
+      padding: 32px;
       .price {
         font-size: 20px;
         font-weight: 700;
