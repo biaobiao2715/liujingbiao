@@ -28,33 +28,43 @@
         <!-- 收藏 -->
         <div class="detail-collection" @click="handleCollection">
           <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
-          <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
+          <el-icon size="20" color="#ff9800" v-else> <StarFilled /></el-icon>
           <span>{{ detail?.favoriteCount }}</span>
         </div>
       </div>
+      <div class="wzzs-icon">
+        <img src="@/assets/images/wzzsicon@2x.png" alt="" />
+      </div>
     </div>
-    <div>
+    <!-- 文章内容部分 -->
+    <div class="article-content">
+      <div v-html="detail?.articleContent"></div>
+    </div>
+    <!-- <div>
       <div class="description">
         {{ detail?.articleDescription }}
       </div>
-    </div>
+    </div> -->
     <!-- 编辑器内容 -->
     <!-- <ContentWithToc :content="detail?.articleContent" ref="contentWithTocRef" /> -->
     <!-- 附件部分 -->
-    <el-table :data="fileList" class="mt-24">
-      <el-table-column prop="fileSuffix" label="附件类型" width="180" />
-      <el-table-column prop="originalName" label="文件名" />
-      <el-table-column prop="size" label="文件大小" width="180">
-        <template #default="scope">
-          {{ formatFileSize(scope.row.ext1?.fileSize || 0) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="downloadUrl" label="操作">
-        <template #default="scope">
-          <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="attachment">
+      <div class="attachment-title">附件</div>
+      <el-table :data="fileList">
+        <el-table-column prop="fileSuffix" label="附件类型" />
+        <el-table-column prop="originalName" label="附件名称" />
+        <el-table-column prop="size" label="附件大小">
+          <template #default="scope">
+            {{ formatFileSize(scope.row.ext1?.fileSize || 0) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="downloadUrl" label="操作">
+          <template #default="scope">
+            <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
@@ -155,7 +165,7 @@ const addDownloadCount = async (item: any) => {
     border-radius: 8px 8px 8px 8px;
     padding: 26px 0 23px 20px;
     box-sizing: border-box;
-
+    position: relative;
     .title {
       display: flex;
       align-items: center;
@@ -194,12 +204,52 @@ const addDownloadCount = async (item: any) => {
       .detail-collection {
         display: flex;
         align-items: center;
-        span{
+        span {
           margin-left: 8px;
         }
       }
       .detail-views {
         margin-right: 44px;
+      }
+    }
+    .wzzs-icon {
+      position: absolute;
+      top: 0;
+      right: 40px;
+      img {
+        width: 180px;
+        height: 100%;
+      }
+    }
+  }
+  .article-content {
+    padding: 30px 20px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    margin-top: 16px;
+  }
+  .attachment {
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 500;
+    margin-top: 16px;
+    .attachment-title {
+      font-size: 20px;
+      padding-left: 9px;
+      box-sizing: border-box;
+      position: relative;
+      &::after {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 14px;
+        background-color: #108c58;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
       }
     }
   }
