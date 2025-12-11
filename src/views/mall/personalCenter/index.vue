@@ -353,7 +353,7 @@ watch(
 .content-col {
   display: flex;
   flex-direction: column;
-
+  background-color: #fff;
   border-radius: 0;
   margin-left: 20px !important;
   width: 1264px;
