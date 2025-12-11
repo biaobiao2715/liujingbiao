@@ -43,7 +43,7 @@
         </el-col>
       </el-row>
       <div class="section-title">所属状态:{{ statusText }}</div>
-      <el-steps :space="200" :active="Number(formData.status)+1" finish-status="success">
+      <el-steps :space="200" :active="Number(formData.status) + 1" finish-status="success">
         <el-step title="待处理">
           <template #description>
             <div v-if="hnReportHistoryList && hnReportHistoryList.find((item) => item.status === '0')">
@@ -137,8 +137,8 @@
     </el-table>
 
     <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
-      <el-row :gutter="20" class="detail-form"> 
-    <el-col :span="24">
+    <el-row :gutter="20" class="detail-form">
+      <el-col :span="24">
         <el-form-item label="申诉图片：">
           <div class="evidence">
             <template v-if="histAppealImageList.length">
@@ -156,7 +156,7 @@
           </div>
         </el-form-item>
       </el-col>
-           <el-col :span="24">
+      <el-col :span="24">
         <el-form-item label="申诉视频：">
           <div class="evidence">
             <template v-if="histAppealVideoList.length">
@@ -172,7 +172,7 @@
           </div>
         </el-form-item>
       </el-col>
-      </el-row>
+    </el-row>
     <el-row :gutter="20" class="detail-form">
       <el-col :span="24" v-if="Number(formData.status) === 2">
         <el-form-item label="申诉驳回原因：">
@@ -253,6 +253,66 @@
       <el-button @click="emitCancel">取消</el-button>
     </div>
   </div>
+  <!-- 历史申诉材料弹窗 -->
+  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body>
+    <div v-loading="appealDialogLoading">
+      <el-row :gutter="20" class="detail-form">
+        <el-col :span="24">
+          <el-form-item label="申诉理由：">
+            <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉时间：">
+            <el-input v-model="appealDetail.appealTime" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉图片：">
+            <div class="evidence">
+              <template v-if="histAppealImageList2.length">
+                <el-image
+                  v-for="(img, idx) in histAppealImageList2"
+                  :key="img.url + idx"
+                  :src="img.url"
+                  :preview-src-list="histAppealImagePreviewUrls2"
+                  :initial-index="idx"
+                  fit="cover"
+                  class="evidence-image-item"
+                />
+              </template>
+              <span v-else class="evidence-empty">暂无图片</span>
+            </div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="申诉视频：">
+            <div class="evidence">
+              <template v-if="histAppealVideoList2.length">
+                <div v-for="(v, idx) in histAppealVideoList2" :key="v.url + idx" class="video-card">
+                  <div class="size">{{ v.sizeText }}</div>
+                  <div class="icon">视频</div>
+                  <div class="ops">
+                    <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                  </div>
+                </div>
+              </template>
+              <span v-else class="evidence-empty">暂无视频</span>
+            </div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="平台驳回申诉理由：">
+            <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" disabled autosize />
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </div>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -524,6 +584,9 @@ const splitFiles = (files: any[]) => {
     videos: uniqueByUrl(videos)
   };
 };
+const histAppealImageList2 = ref();
+const histAppealImagePreviewUrls2 = ref();
+const histAppealVideoList2 = ref();
 const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 // 获取历史申诉详情  打开弹窗
 const handlePreview = async (row: any) => {
@@ -533,8 +596,9 @@ const handlePreview = async (row: any) => {
   appealDialogLoading.value = true;
   try {
     // 等接口切换后，获取违规记录详情
-    const res = await getlookDetail(String(id)); //获取违规记录详情
-    const data: any = res?.data ?? {};
+    // const res = await getlookDetail(String(id)); //获取违规记录详情
+    // const data: any = res?.data ?? {};
+    const data = row;
     console.log('历史申诉详情数据:', data);
 
     // 文本信息
@@ -551,14 +615,14 @@ const handlePreview = async (row: any) => {
       safeArray(row?.files);
 
     const s = splitFiles(files);
-    histAppealImageList.value = s.images;
-    histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
-    histAppealVideoList.value = s.videos;
+    histAppealImageList2.value = s.images;
+    histAppealImagePreviewUrls2.value = buildPreviewUrls(s.images);
+    histAppealVideoList2.value = s.videos;
   } catch (e) {
     console.error('获取申诉详情失败:', e);
-    histAppealImageList.value = [];
-    histAppealImagePreviewUrls.value = [];
-    histAppealVideoList.value = [];
+    histAppealImageList2.value = [];
+    histAppealImagePreviewUrls2.value = [];
+    histAppealVideoList2.value = [];
     appealDetail.value.appealReason = '';
     appealDetail.value.appealTime = '';
     appealDetail.value.backReason = '';
@@ -764,26 +828,24 @@ const handleFileChange = async (file: any) => {
   (proxy as any)?.$modal?.loading('正在上传附件，请稍候...');
 
   try {
-     const response: any = await uploadByChunks(file.raw, (percent: number) => {
-        // tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
-        // if (typeof req.onProgress === 'function') req.onProgress({ percent });
-      });
+    const response: any = await uploadByChunks(file.raw, (percent: number) => {
+      // tempItem.percentage = Math.min(99, Math.max(0, Math.floor(percent)));
+      // if (typeof req.onProgress === 'function') req.onProgress({ percent });
+    });
     // const response = await ossUploadImage({ file: file.raw });
     console.log('上传结果', response);
 
-    
-      attachmentList.value.push({
-        ossId: response.ossId,
-        fileName: response.fileName,
-        originalName: file.raw.name,
-        fileSuffix: file.raw.type,
-        url: response.url,
-        fileSize: formatFileSize(file.raw.size),
-        uid: file.uid
-      });
-      ElMessage.success('附件上传成功');
-    } 
-   catch (error) {
+    attachmentList.value.push({
+      ossId: response.ossId,
+      fileName: response.fileName,
+      originalName: file.raw.name,
+      fileSuffix: file.raw.type,
+      url: response.url,
+      fileSize: formatFileSize(file.raw.size),
+      uid: file.uid
+    });
+    ElMessage.success('附件上传成功');
+  } catch (error) {
     console.error('附件上传失败:', error);
     ElMessage.error('上传失败，请重试');
   } finally {
