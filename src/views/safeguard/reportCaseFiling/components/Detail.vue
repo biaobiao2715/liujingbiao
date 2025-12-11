@@ -267,10 +267,8 @@
           </el-row>
         </div>
       </template>
-
-      <!-- 非已驳回状态：显示案件类型 -->
-      <!-- <template v-if="!isRejected && !isPending && !isWithdrawnPending"> -->
-      <template v-if="formData.status != '2' && formData.status != '0' && caseCode">
+      <!-- 案件类型详情，只要有案件号，一律显示 -->
+      <template v-if="!!caseCode">
         <FormHeader title="案件类型" />
         <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
           <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
@@ -300,6 +298,39 @@
             </template>
           </el-table-column>
         </el-table>
+      </template>
+      <!-- 非已驳回状态：显示案件类型 -->
+      <!-- <template v-if="!isRejected && !isPending && !isWithdrawnPending"> -->
+      <template v-if="formData.status != '2' && formData.status != '0' && caseCode">
+        <!-- <FormHeader title="案件类型" />
+        <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
+          <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
+          <el-table-column prop="caseTypeId" label="案件类型名称" align="center">
+            <template v-slot="scope">
+              <dict-text :options="case_type" :value="scope.row.caseTypeId ?? ''" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="basisName" label="执法依据" align="center">
+            <template v-slot="scope">
+              <span
+                style="color: #108c58"
+                @click="downloadAttachment(scope.row.newBasisFile?.originalName || '', scope.row.newBasisFile?.ossInfo?.url || '')"
+              >
+                {{ scope.row.newBasisFile?.originalName || '' }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="documentName" label="执法文书模板" align="center">
+            <template v-slot="scope">
+              <span
+                style="color: #108c58"
+                @click="downloadAttachment(scope.row.newDocumentFile?.originalName || '', scope.row.newDocumentFile?.ossInfo?.url || '')"
+              >
+                {{ scope.row.newDocumentFile?.originalName || '' }}
+              </span>
+            </template>
+          </el-table-column>
+        </el-table> -->
 
         <!-- 非已驳回状态：显示申诉材料 -->
         <template v-if="!hideProcessingViewSection && !isWithdrawnPending">
