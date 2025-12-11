@@ -20,8 +20,7 @@
                     <Location />
                   </el-icon>
                   <span v-if="selectedAddress?.isDefault === '1'" class="default-tag">默认地址</span>
-                  <el-link type="primary" :underline="false" class="modify-link"
-                    @click="handleModifyAddress">修改地址</el-link>
+                  <el-link type="primary" :underline="false" class="modify-link" @click="handleModifyAddress">修改地址</el-link>
                 </div>
                 <div class="address-actions">
                   <el-button type="primary" plain @click="handleSwitchAddress">切换地址</el-button>
@@ -83,9 +82,7 @@
               <div class="total-amount">
                 商品总金额: <span class="total-price">¥{{ totalAmount.toFixed(2) }}</span>
               </div>
-              <el-button type="primary" size="large" class="submit-btn" @click="handleSubmitOrder">
-                提交订单
-              </el-button>
+              <el-button type="primary" size="large" class="submit-btn" @click="handleSubmitOrder"> 提交订单 </el-button>
             </div>
           </div>
         </div>
@@ -135,7 +132,7 @@
         <RegionSelect v-model="addressForm.regionPath" @regionChange="handleRegionChange" />
       </el-form-item>
       <el-form-item label="详细地址：" prop="detailAddress">
-        <el-input v-model="addressForm.detailAddress" type="textarea" :rows="3" placeholder="请输入详细地址" />
+        <el-input v-model="addressForm.detailAddress" type="textarea" :rows="3" maxlength="200" placeholder="请输入详细地址" />
       </el-form-item>
       <el-form-item label="设为默认地址：">
         <el-switch v-model="isDefaultSwitch" />
@@ -250,18 +247,10 @@ const validateDetailAddress = (rule: any, value: string, callback: Function) => 
 
 // 表单验证规则
 const addressFormRules = {
-  receiverName: [
-    { required: true, validator: validateName, trigger: ['blur', 'change'] }
-  ],
-  receiverPhone: [
-    { required: true, validator: validatePhone, trigger: ['blur', 'change'] }
-  ],
-  regionPath: [
-    { required: true, validator: validateRegion, trigger: ['change', 'blur'] }
-  ],
-  detailAddress: [
-    { required: true, validator: validateDetailAddress, trigger: ['blur', 'change'] }
-  ]
+  receiverName: [{ required: true, validator: validateName, trigger: ['blur', 'change'] }],
+  receiverPhone: [{ required: true, validator: validatePhone, trigger: ['blur', 'change'] }],
+  regionPath: [{ required: true, validator: validateRegion, trigger: ['change', 'blur'] }],
+  detailAddress: [{ required: true, validator: validateDetailAddress, trigger: ['blur', 'change'] }]
 };
 
 // 默认地址开关（用于 el-switch）
@@ -273,14 +262,16 @@ const isDefaultSwitch = computed({
 });
 
 // 订单商品列表
-const orderItems = ref<Array<{
-  id: number;
-  name: string;
-  spec: string;
-  image: string;
-  unitPrice: number;
-  quantity: number;
-}>>([]);
+const orderItems = ref<
+  Array<{
+    id: number;
+    name: string;
+    spec: string;
+    image: string;
+    unitPrice: number;
+    quantity: number;
+  }>
+>([]);
 
 // 计算总金额
 const totalAmount = computed(() => {
@@ -324,12 +315,12 @@ const fetchAddressList = async () => {
       addressList.value = res.rows;
       // 优先使用传入的地址ID，否则使用默认地址
       if (props.selectedAddressId) {
-        const address = addressList.value.find(addr => addr.id === props.selectedAddressId);
+        const address = addressList.value.find((addr) => addr.id === props.selectedAddressId);
         selectedAddress.value = address || null;
       }
       // 如果没有传入地址ID或找不到对应地址，使用默认地址
       if (!selectedAddress.value) {
-        const defaultAddress = addressList.value.find(addr => addr.isDefault === '1');
+        const defaultAddress = addressList.value.find((addr) => addr.isDefault === '1');
         selectedAddress.value = defaultAddress || addressList.value[0] || null;
       }
     }
@@ -345,7 +336,7 @@ const initOrderItems = () => {
     return;
   }
 
-  const spec = props.goods.hnGoodsSpecificationDataList?.find(s => s.id === props.selectedSpecId);
+  const spec = props.goods.hnGoodsSpecificationDataList?.find((s) => s.id === props.selectedSpecId);
   if (!spec) {
     orderItems.value = [];
     return;
@@ -354,14 +345,16 @@ const initOrderItems = () => {
   const specText = `${spec.goodsSpecificationValue || ''}${spec.goodsSpecification || ''}`;
   const unitPrice = parseFloat(String(spec.goodsPrice || 0));
 
-  orderItems.value = [{
-    id: props.goods.id || 0,
-    name: props.goods.goodsName || '',
-    spec: specText,
-    image: props.goods.sysOssLists?.[0]?.url || '',
-    unitPrice: unitPrice,
-    quantity: props.quantity || 1
-  }];
+  orderItems.value = [
+    {
+      id: props.goods.id || 0,
+      name: props.goods.goodsName || '',
+      spec: specText,
+      image: props.goods.sysOssLists?.[0]?.url || '',
+      unitPrice: unitPrice,
+      quantity: props.quantity || 1
+    }
+  ];
 };
 
 // 切换地址
@@ -373,7 +366,7 @@ const handleSwitchAddress = () => {
 // 确认切换地址
 const handleConfirmSwitchAddress = () => {
   if (tempSelectedAddressId.value) {
-    selectedAddress.value = addressList.value.find(addr => addr.id === tempSelectedAddressId.value) || null;
+    selectedAddress.value = addressList.value.find((addr) => addr.id === tempSelectedAddressId.value) || null;
   }
   switchAddressDialogVisible.value = false;
 };
@@ -400,23 +393,15 @@ const handleModifyAddress = () => {
   }
   addressFormTitle.value = '修改地址';
   editingAddressId.value = selectedAddress.value.id || null;
-  
+
   // 构建地区路径，优先使用 regionPath，如果没有则根据省市区编码构建
   let regionPath: [string?, string?, string?] = [undefined, undefined, undefined];
   if (selectedAddress.value.regionPath && Array.isArray(selectedAddress.value.regionPath) && selectedAddress.value.regionPath.length > 0) {
-    regionPath = [
-      selectedAddress.value.regionPath[0],
-      selectedAddress.value.regionPath[1],
-      selectedAddress.value.regionPath[2]
-    ];
+    regionPath = [selectedAddress.value.regionPath[0], selectedAddress.value.regionPath[1], selectedAddress.value.regionPath[2]];
   } else if (selectedAddress.value.provinceCode && selectedAddress.value.cityCode && selectedAddress.value.regionCode) {
-    regionPath = [
-      selectedAddress.value.provinceCode,
-      selectedAddress.value.cityCode,
-      selectedAddress.value.regionCode
-    ];
+    regionPath = [selectedAddress.value.provinceCode, selectedAddress.value.cityCode, selectedAddress.value.regionCode];
   }
-  
+
   addressForm.value = {
     receiverName: selectedAddress.value.receiverName,
     receiverPhone: selectedAddress.value.receiverPhone,
@@ -573,7 +558,7 @@ const handleSaveAddress = async () => {
     }
   } catch (error) {
     console.error('保存地址失败:', error);
-    ElMessage.error('保存地址失败');
+    // ElMessage.error('保存地址失败');
   }
 };
 
@@ -594,7 +579,7 @@ const handleSubmitOrder = async () => {
     return;
   }
 
-  const spec = props.goods.hnGoodsSpecificationDataList?.find(s => s.id === props.selectedSpecId);
+  const spec = props.goods.hnGoodsSpecificationDataList?.find((s) => s.id === props.selectedSpecId);
   if (!spec) {
     ElMessage.warning('商品规格信息不存在');
     return;
@@ -641,19 +626,26 @@ const handleClose = () => {
 };
 
 // 监听弹窗显示状态
-watch(() => props.modelValue, (visible) => {
-  if (visible) {
-    fetchAddressList();
-    initOrderItems();
+watch(
+  () => props.modelValue,
+  (visible) => {
+    if (visible) {
+      fetchAddressList();
+      initOrderItems();
+    }
   }
-});
+);
 
 // 监听商品和规格变化
-watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () => {
-  if (dialogVisible.value) {
-    initOrderItems();
-  }
-}, { deep: true });
+watch(
+  [() => props.goods, () => props.selectedSpecId, () => props.quantity],
+  () => {
+    if (dialogVisible.value) {
+      initOrderItems();
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped lang="scss">
@@ -761,13 +753,13 @@ watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () 
       gap: 8px;
 
       .location-icon {
-        color: #108C58;
+        color: #108c58;
         font-size: 16px;
       }
 
       .default-tag {
         padding: 2px 8px;
-        background: #108C58;
+        background: #108c58;
         color: #fff;
         border-radius: 2px;
         font-size: 12px;
@@ -871,8 +863,8 @@ watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () 
   .submit-btn {
     width: 160px;
     height: 50px;
-    background: #108C58;
-    border-color: #108C58;
+    background: #108c58;
+    border-color: #108c58;
     font-size: 16px;
   }
 }
@@ -927,7 +919,7 @@ watch([() => props.goods, () => props.selectedSpecId, () => props.quantity], () 
       top: 12px;
       right: 12px;
       padding: 4px 8px;
-      background: #108C58;
+      background: #108c58;
       color: #fff;
       font-size: 12px;
       border-radius: 4px;
