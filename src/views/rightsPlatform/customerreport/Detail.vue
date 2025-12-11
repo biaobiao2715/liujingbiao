@@ -196,14 +196,14 @@
         <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
-            <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            <el-button v-throttle text type="primary" v-hasPermi="['safeguard:report:query']" @click="handlePreview(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
 
-    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
-    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3">
+    <div class="section-title" v-if="Number(formData.status) === 3 ">平台处理结果:</div>
+    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3 && Number(formData.rejectBack) === 1">
       <el-col :span="24">
         <el-form-item label="信用等级：">
           <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
@@ -223,6 +223,8 @@
         </el-form-item>
       </el-col>
     </el-row>
+
+    <div v-if="Number(formData.rejectBack) === 2"> 平台处理/申诉成功</div>
 
     <div class="section-title" v-if="Number(formData.status) === 4">举报人撤回原因</div>
     <div class="section-title-che" style="font-size: 18px; margin-left: 15px" v-if="Number(formData.status) === 4">
@@ -348,7 +350,8 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
-  withdrawCause,
+  withdrawCause:'',
+  rejectBack:'',
   status: '', //订单状态
   appealTime: '', //申诉时间
   enterpriseType: '', //0供应商 1企业
@@ -516,6 +519,7 @@ const fetchContentDetail = async () => {
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
         withdrawCause: data.withdrawCause || '',
+        rejectBack: data.rejectBack || '',
         status: data.status || '',
         appealTime: data.appealTime || '',
         enterpriseType: data.enterpriseType || '', //0供应商 1企业
@@ -586,8 +590,10 @@ const handleSubmit = async () => {
       createTime: formData.value.createTime,
       caseCode: formData.value.caseCode,
       reportDescription: formData.value.reportDescription,
+ 
       status: formData.value.status,
-      withdrawCause: formData.value.withdrawCause
+      withdrawCause: formData.value.withdrawCause,
+      rejectBack: formData.value.rejectBack
     };
     console.log('submitData提交的数据', submitData);
     return;
