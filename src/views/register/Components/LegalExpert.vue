@@ -21,7 +21,7 @@
                 <el-upload
                   class="upload-box"
                   action="#"
-                  :before-upload="beforeUpload"
+                  :before-upload="beforeUploadImage"
                   drag
                   :auto-upload="false"
                   :show-file-list="false"
@@ -59,7 +59,7 @@
                   :show-file-list="false"
                   :on-change="handlePhotoChange"
                   accept=".jpg,.jpeg,.png"
-                  :before-upload="beforeUpload"
+                  :before-upload="beforeUploadImage"
                   drag
                 >
                   <div class="upload-content">
@@ -157,7 +157,7 @@
         </div>
         <div class="qualification-list">
           <div class="qualification-header">
-            <el-upload :on-change="addQualification" action="#" :auto-upload="false" :show-file-list="false">
+            <el-upload :on-change="addQualification" :before-upload="beforeUploadAttachment" action="#" :auto-upload="false" :show-file-list="false">
               <div class="upload-btn">
                 <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
                   <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
@@ -512,20 +512,49 @@ const qualificationList = ref<
     ossId: string;
   }[]
 >([]);
-// 文件上传前校验
-const beforeUpload = (file: any) => {
-  const maxSize = 10 * 1024 * 1024; // 10MB
+const beforeUploadImage = (file: any) => {
+  const maxSize = 10 * 1024 * 1024;
   if (file.size > maxSize) {
     ElMessage.error('文件大小不能超过10MB');
     return false;
   }
-
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
-    ElMessage.error('不支持的文件类型');
+    ElMessage.error('仅支持上传图片：jpg、jpeg、png');
     return false;
   }
+  return true;
+};
 
+const beforeUploadAttachment = (file: any) => {
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过10MB');
+    return false;
+  }
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'application/zip',
+    'application/x-rar-compressed'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    const ext = (file.name || '').split('.').pop()?.toLowerCase();
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
+    if (!ext || !allowedExts.includes(ext)) {
+      ElMessage.error('不支持的文件类型');
+      return false;
+    }
+  }
   return true;
 };
 
@@ -593,6 +622,7 @@ const removePhoto = () => {
 
 // 上传律师证
 const handleDiplomaChange = (file: any) => {
+  if (!beforeUploadImage(file.raw)) return;
   proxy?.$modal.loading('正在上传律师证，请稍候...');
   uploadImage({
     file: file.raw
@@ -657,6 +687,7 @@ const handleDiplomaChange = (file: any) => {
 
 // 上传照片
 const handlePhotoChange = (file: any) => {
+  if (!beforeUploadImage(file.raw)) return;
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       photoUrl.value = res.data.url;
@@ -681,6 +712,7 @@ const handlePhotoChange = (file: any) => {
 };
 // 上传其他附件
 const addQualification = (file: any) => {
+  if (!beforeUploadAttachment(file.raw)) return;
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       qualificationList.value.push({
@@ -718,8 +750,6 @@ const previewQualification = async (file: any) => {
 
 // 下一步按钮处理函数
 const handleNextStep = () => {
-  console.log(formData.value);
-
   formRef.value?.validate((valid: boolean) => {
     if (valid) {
       const list = qualificationList.value.map((item, index) => ({
@@ -734,6 +764,8 @@ const handleNextStep = () => {
         ...formData.value,
         folder: list
       };
+      // @ts-ignore
+      if (temp.hnBaseRegisterFolderVoList) delete temp.hnBaseRegisterFolderVoList;
       legalExpertInfoRegister(temp).then((res) => {
         if (res.code === 200) {
           proxy?.$modal.msgSuccess('操作成功');
