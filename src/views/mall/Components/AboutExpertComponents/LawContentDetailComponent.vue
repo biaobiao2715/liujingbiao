@@ -11,7 +11,6 @@
     <div class="title">{{ detail?.contentTitle }}</div>
     <!-- 课程描述 -->
     <div class="description flex-center-between gap-24 mt-24 mb-24">
-      <div class="content-title-box">{{ detail?.contentTitle }}</div>
       <div class="flex-center gap-24">
         <div>{{ '发布人：  ' + detail?.authorName }}</div>
         <div>{{ '发布时间：  ' + detail?.createTime }}</div>

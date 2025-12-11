@@ -59,7 +59,8 @@ watch(
 
 <style scoped lang="scss">
 .personal-center {
-  height: calc(100vh - 200px);
+  height: 860px;
+  // height: calc(100vh - 200px);
 }
 
 .left-menu {

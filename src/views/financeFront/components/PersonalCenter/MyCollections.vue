@@ -24,12 +24,12 @@
           <div class="item">
             <span class="tag" v-if="product.creditProductsVersionVo.isTopThreeByViews">热门</span>
             <div class="header">
-              <div class="flex-center favorite gap-8" @click="handleFavorite(product, 'credit')">
+              <div class="flex-center favorite gap-8">
                 <span class="name">{{ product.creditProductsVersionVo.productName }}</span>
-                <el-icon size="20" color="#108c58"> <StarFilled /></el-icon>
+                <el-icon size="20" color="#108c58" @click="handleFavorite(product, 'credit')"> <StarFilled /></el-icon>
               </div>
             </div>
-            <div class="content">
+            <div class="content-info">
               <div class="limit">
                 <div class="flex-center-center money-amount">
                   <div>{{ product.creditProductsVersionVo.maxLoanAmount }}</div>
@@ -214,7 +214,7 @@ const handleDetail = (row: any, type: string) => {
 }
 
 .title {
-  padding: 20px;
+  padding: 16px;
   font-weight: 500;
   font-size: 20px;
   color: #333333;
@@ -236,7 +236,9 @@ const handleDetail = (row: any, type: string) => {
   }
 }
 .content {
-  padding: 0 20px;
+  padding: 20px;
+  height: 700px;
+  overflow: auto;
   .item {
     border: 1px solid #e4e4e4;
     border-radius: 8px;
@@ -276,15 +278,21 @@ const handleDetail = (row: any, type: string) => {
       margin-bottom: 12px;
       .favorite {
         cursor: pointer;
-      }
-      .name {
-        font-size: 16px;
-        font-weight: bold;
-        color: #333;
+        min-width: 0;
+        .name {
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
       }
     }
 
-    .content {
+    .content-info {
       margin-bottom: 12px;
       .limit {
         background: url('@/assets/images/finance/limit-bg.png') no-repeat center center;
@@ -340,11 +348,11 @@ const handleDetail = (row: any, type: string) => {
       .description {
         font-size: 14px;
         color: #676767;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        height: 42px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     }
 
@@ -389,10 +397,14 @@ const handleDetail = (row: any, type: string) => {
   }
 
   .product-info {
-    width: calc(100% - 120px);
     .introduction {
       font-size: 14px;
       color: #757474;
+      height: 42px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   }
 

@@ -34,8 +34,11 @@
             <!-- 贷款利率和周期 -->
             <div class="flex-center-center mt-12 mb-12">
               <div class="rate">
-                <div class="number">
+                <div class="number" v-if="product.baseInterestRate !== product.floatInterestRate">
                   {{ product.baseInterestRate + '%' + ' ~ ' + product.floatInterestRate + '%' }}
+                </div>
+                <div class="number" v-else>
+                  {{ product.baseInterestRate + '%' }}
                 </div>
                 <div class="label">贷款利率</div>
               </div>
@@ -239,11 +242,11 @@ const handleFavorite = async (item: any) => {
       .description {
         font-size: 14px;
         color: #676767;
-        line-height: 21px;
-        height: 42px; // 限制最多两行高度
-        overflow: hidden; // 超出裁剪隐藏
-        display: block; // 让高度随内容自适应到1或2行
-        word-break: break-word; // 处理长单词/连续字符换行
+        height: 42px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     }
 

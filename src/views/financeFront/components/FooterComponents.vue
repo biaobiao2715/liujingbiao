@@ -23,5 +23,6 @@ import { ref } from 'vue';
   background: #222020;
   color: #fff;
   padding: 40px 0;
+  margin-top: 20px;
 }
 </style>

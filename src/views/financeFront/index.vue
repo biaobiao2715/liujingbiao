@@ -15,7 +15,7 @@
     <!-- banner -->
     <BannerComponent v-if="showArea === 'area'" />
 
-    <div v-show="showArea === 'area'" class="detail-content">
+    <div v-if="showArea === 'area'" class="detail-content">
       <!-- 贷款产品 -->
       <LoanProductsComponent />
       <el-row>
@@ -70,7 +70,7 @@
       <!-- 政策法规详情 -->
       <AboutPolicyRulesComponentDetails v-if="showArea === 'PolicyRulesComponentDetails'" :id="id" />
       <!-- 个人中心 -->
-      <PersonalCenterComponent v-if="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
+      <PersonalCenterComponent v-show="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
     </div>
     <!-- 底部 -->
     <FooterComponents />
@@ -156,7 +156,7 @@ onMounted(() => {
     showArea.value = data.type;
     id.value = data?.id;
     productId.value = data?.productId || '';
-    personalActivityTab.value = data.command;
+    personalActivityTab.value = data.command || personalActivityTab.value;
     selectNavigateByType(data.type);
   });
 });
@@ -175,14 +175,14 @@ const switchShowArea = (item: DetailPayload, isLastItem?: boolean) => {
   }
   showArea.value = item.type;
   id.value = item.id;
+  selectNavigateByType(item.type);
+
   //  如果点击的是已经存在的路径，那么就把该路径后面的路径都移除
   const targetIndex = naviteList.value.findIndex((e) => e.type === item.type);
   if (targetIndex !== -1) {
     naviteList.value = naviteList.value.slice(0, targetIndex + 1);
     return;
   }
-
-  selectNavigateByType(item.type);
 };
 
 const selectNavigateByType = (type: DetailView) => {

@@ -51,7 +51,7 @@
         </div>
       </div>
       <div class="QA-list-box">
-        <template v-for="item in qaList" :key="index">
+        <template v-for="item in qaList" :key="item.id">
           <div class="QA-list-item">
             <div class="QA-list-item-title">
               <div class="QA-list-item-title-text">
@@ -126,6 +126,9 @@ const getQuestionList = async () => {
   });
   if (res.code === 200) {
     qaList.value = res.rows || [];
+    qaList.value.forEach((item) => {
+      item.isExpanded = false;
+    });
   }
 };
 
@@ -160,7 +163,6 @@ const handleDetail = (id: string) => {
     .expert-card-name {
       margin-bottom: 20px;
       span {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 20px;
         color: #ffffff;
@@ -169,7 +171,6 @@ const handleDetail = (id: string) => {
       }
     }
     .expert-card-info {
-      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 14px;
       color: rgba(#ffffff, 0.8);
@@ -193,7 +194,6 @@ const handleDetail = (id: string) => {
       }
       .card-number {
         .card-number-title {
-          font-family: YouSheBiaoTiYuan, YouSheBiaoTiYuan;
           font-weight: 400;
           font-size: 24px;
           color: #ffffff;
@@ -203,7 +203,6 @@ const handleDetail = (id: string) => {
           text-align: center;
         }
         .card-number-text {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 500;
           font-size: 14px;
           color: rgba(255, 255, 255, 0.6);
@@ -244,7 +243,6 @@ const handleDetail = (id: string) => {
         height: 14px;
       }
       .question-title-text {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 500;
         font-size: 14px;
         color: #ffffff;
@@ -266,7 +264,6 @@ const handleDetail = (id: string) => {
     align-items: center;
     justify-content: space-between;
     .QA-title {
-      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
       font-size: 20px;
       color: #000000;
@@ -281,7 +278,6 @@ const handleDetail = (id: string) => {
       align-items: center;
       justify-content: flex-end;
       span {
-        font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
         font-weight: 400;
         font-size: 14px;
         color: rgba(51, 51, 51, 0.8);
@@ -293,7 +289,7 @@ const handleDetail = (id: string) => {
     margin-top: 16px;
     .QA-list-item {
       width: 100%;
-      height: 150px;
+      // min-height: 150px;
       background: #ffffff;
       border-radius: 8px 8px 8px 8px;
       padding: 20px 20px;
@@ -303,6 +299,7 @@ const handleDetail = (id: string) => {
       justify-content: space-between;
       margin-bottom: 16px;
       .QA-list-item-title {
+        width: calc(100% - 130px);
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -310,14 +307,19 @@ const handleDetail = (id: string) => {
         justify-content: space-between;
         margin-right: 20px;
         .QA-list-item-title-text {
+          width: 100%;
           display: flex;
           align-items: center;
           justify-content: flex-start;
+          margin-bottom: 18px;
           img {
             margin-right: 10px;
           }
           .wd-text {
-            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+            width: calc(100% - 38px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             font-weight: 500;
             font-size: 14px;
             color: #333333;
@@ -325,22 +327,25 @@ const handleDetail = (id: string) => {
             text-align: left;
           }
         }
+        .answer-container {
+          width: 100%;
+        }
         .other-style {
-          max-width: 1260px;
-          // 一行省略,省略号向向下对齐
-          vertical-align: bottom;
+          width: calc(100% - 38px);
           white-space: nowrap;
           text-overflow: ellipsis;
           overflow: hidden;
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 14px;
           color: #333333;
           line-height: 20px;
-          text-align: left;
+        }
+        .show-all {
+          // 展示全部 不换行
+          overflow-wrap: break-word;
+          white-space: normal !important;
         }
         .QA-total {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 12px;
           color: #108c58;
