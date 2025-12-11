@@ -340,18 +340,6 @@
           </el-table-column>
         </el-table>
       </div>
-      <div v-if="formData.newAppealFile?.appealFiles.length">
-        <FormHeader title="历史申诉材料" />
-        <el-table :data="formData.newAppealFile?.appealFiles || []" border>
-          <el-table-column type="index" min-width="55" label="序号" align="center" />
-          <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
-          <el-table-column label="操作" align="center">
-            <template #default="scope">
-              <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
       <template v-if="isWithdrawn">
         <FormHeader title="举报人撤回原因" />
         <el-row :gutter="20" class="detail-form">
@@ -922,7 +910,10 @@ const currentScenario = computed(() => {
         const stageStatus = String(item.status || item.key || '');
         if (stage.id === 1) return stageStatus === '0';
         if (stage.id === 2) {
-          if (status === '2') return stageStatus === '2';
+          if (status === '2') {
+            if (statusAndDate.length <= 2) return stageStatus === '2';
+            return stageStatus === '1';
+          }
           if (status === '4') {
             if (isWithdrawnProcessing.value) return stageStatus === '1';
             return stageStatus === '4';
