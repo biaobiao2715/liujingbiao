@@ -49,7 +49,7 @@
         </el-form-item>
         <!-- 排序 -->
         <el-form-item label="排序" prop="orderNum" required>
-          <el-input-number v-model="form.orderNum" :min="0" :max="9999"  placeholder="请输入排序" />
+          <el-input-number v-model="form.orderNum" :min="0" :max="9999" placeholder="请输入排序" />
         </el-form-item>
       </el-form>
       <template v-slot:footer>
@@ -208,7 +208,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .product-category {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 }
 /* 弹窗样式 */

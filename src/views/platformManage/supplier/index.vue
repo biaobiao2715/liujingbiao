@@ -248,7 +248,7 @@ const handleEdit = (row: any, type: 'view' | 'edit' | 'audit') => {
 <style scoped lang="scss">
 .supplier-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 .pagination {
   margin-top: 24px;

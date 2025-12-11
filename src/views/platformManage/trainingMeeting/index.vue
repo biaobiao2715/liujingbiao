@@ -574,7 +574,7 @@ const handleSave = (data: any) => {
 <style scoped lang="scss">
 .supplier-management {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 
 .pagination {

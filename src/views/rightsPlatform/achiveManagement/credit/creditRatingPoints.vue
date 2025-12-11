@@ -186,7 +186,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .p-2 {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   padding: 24px;
 }
 .range-wrapper {

@@ -236,7 +236,7 @@ onMounted(() => {
 }
 
 .container {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 // 禁用新增和删除按钮的hover变色效果
 .no-hover-effect {

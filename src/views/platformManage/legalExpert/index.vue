@@ -326,7 +326,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .legal-expert-page {
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   .table-header {
     display: flex;
     align-items: center;

@@ -1,4 +1,4 @@
-<!-- 
+<!--
 标题：    index.vue
 功能：    知识库案件管理列表
 说明：    与举报通道管理同级的案件管理入口
@@ -10,38 +10,17 @@
 <template>
   <div class="knowledge-case-page" v-loading="loading">
     <!-- 搜索条件 -->
-    <el-form
-      ref="queryFormRef"
-      :model="queryParams"
-      inline
-      label-position="left"
-    >
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="知识库案件名称" prop="knowledgeCaseName" label-width="auto" v-hasPermi="['safeguard:knowledgeCaseContent:groupName']">
-        <el-select
-          v-model="queryParams.knowledgeCaseName"
-          placeholder="请选择"
-          clearable
-          filterable
-        >
+        <el-select v-model="queryParams.knowledgeCaseName" placeholder="请选择" clearable filterable>
           <el-option v-for="item in caseNameOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="createTime" label-width="auto">
-        <el-date-picker
-          v-model="queryParams.createTime"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="选择日期"
-          clearable
-        />
+        <el-date-picker v-model="queryParams.createTime" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" clearable />
       </el-form-item>
       <el-form-item label="创建人" prop="createByName" label-width="auto">
-        <el-input
-          v-model="queryParams.createByName"
-          placeholder="请输入创建人姓名"
-          clearable
-          @keyup.enter="handleSearch"
-        />
+        <el-input v-model="queryParams.createByName" placeholder="请输入创建人姓名" clearable @keyup.enter="handleSearch" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch" v-hasPermi="['safeguard:knowledgeCaseContent:query']">查询</el-button>
@@ -52,23 +31,12 @@
     <!-- 操作栏 -->
     <el-row :gutter="12" class="operation-bar">
       <el-col :span="1.5">
-        <el-button
-          v-throttle
-          type="primary"
-          icon="Plus"
-          class="add-btn"
-          @click="handleCreate"
-          v-hasPermi="['safeguard:knowledgeCaseContent:add']"
-        >
+        <el-button v-throttle type="primary" icon="Plus" class="add-btn" @click="handleCreate" v-hasPermi="['safeguard:knowledgeCaseContent:add']">
           新增
         </el-button>
         <el-button
           v-throttle
-          :class="[
-            'kc-action-btn',
-            'kc-action-btn--danger',
-            { 'is-active': selectionRows.length > 0 }
-          ]"
+          :class="['kc-action-btn', 'kc-action-btn--danger', { 'is-active': selectionRows.length > 0 }]"
           :disabled="!selectionRows.length"
           @click="handleBatchDelete"
           v-hasPermi="['safeguard:knowledgeCaseContent:remove']"
@@ -79,11 +47,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      style="width: 100%"
-      @selection-change="handleSelectionChange"
-    >
+    <el-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="50" align="center" />
       <el-table-column label="序号" width="80" align="center">
         <template #default="scope">
@@ -150,12 +114,7 @@
     />
 
     <!-- 案件查看弹窗 -->
-    <CaseViewDialog
-      :visible="viewDialogVisible"
-      :detail="currentRow"
-      @update:visible="viewDialogVisible = $event"
-      @close="handleViewDialogClose"
-    />
+    <CaseViewDialog :visible="viewDialogVisible" :detail="currentRow" @update:visible="viewDialogVisible = $event" @close="handleViewDialogClose" />
   </div>
 </template>
 
@@ -382,7 +341,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .knowledge-case-page {
   padding: 24px;
-  height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
   box-sizing: border-box;
 }
 
@@ -455,14 +414,14 @@ onMounted(() => {
 :deep(.el-table) {
   .el-table__header {
     background-color: #fafafa;
-    
+
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
+
   .el-table__body {
     tr {
       &:hover {
@@ -486,10 +445,9 @@ onMounted(() => {
 
 .operation-btns {
   gap: 8px;
-  
+
   :deep(.el-button) {
     font-size: 14px;
   }
 }
 </style>
-
