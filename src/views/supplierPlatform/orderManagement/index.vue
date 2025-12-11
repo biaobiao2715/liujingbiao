@@ -62,7 +62,7 @@
     <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <!-- <el-table-column type="selection" width="55" align="center" /> -->
       <el-table-column type="index" label="序号" width="55" />
-      <el-table-column label="销售订单号" prop="orderSn" width="180" :show-overflow-tooltip="true">
+      <el-table-column label="销售订单号" prop="orderSn" width="240" :show-overflow-tooltip="true">
         <template #default="scope">
           <el-link type="primary" @click="handleView(scope.row)">{{ scope.row.orderSn }}</el-link>
         </template>
