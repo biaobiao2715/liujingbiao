@@ -136,7 +136,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
-            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
+            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" :disabledDate="disablePastDates" />
           </el-form-item>
           <el-form-item
             label="第一期还款日期"
@@ -150,6 +150,7 @@
               placeholder="选择日期"
               style="width: 100%"
               :disabled="isApprovalReadonly"
+              :disabledDate="disablePastDates"
             />
           </el-form-item>
           <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
@@ -274,6 +275,13 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { repayment_method, review_status, bank_code } = toRefs<any>(proxy?.useDict('repayment_method', 'review_status', 'bank_code'));
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+// 禁止选择当天及之前的日期，只能选择明天及以后
+const disablePastDates = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return time.getTime() <= today.getTime();
+};
 
 const loading = ref(false);
 const detailData = ref<Record<string, any>>({});

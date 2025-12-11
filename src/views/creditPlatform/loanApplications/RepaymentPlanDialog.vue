@@ -186,6 +186,24 @@ const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
   const currentDate = new Date(year, date.getMonth(), date.getDate());
   currentDate.setHours(0, 0, 0, 0);
 
+  // // 第一期特殊限制：只能选择当前时间到本月月底
+  // if (currentIndex === 0) {
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+  //   const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  //   currentMonthEnd.setHours(0, 0, 0, 0);
+    
+  //   // 禁止选择今天之前的日期
+  //   if (currentDate < today) {
+  //     return true;
+  //   }
+    
+  //   // 禁止选择本月月底之后的日期
+  //   if (currentDate > currentMonthEnd) {
+  //     return true;
+  //   }
+  // }
+
   // 检查上一期
   if (currentIndex > 0) {
     const prevPlan = sortedPlans[currentIndex - 1];
