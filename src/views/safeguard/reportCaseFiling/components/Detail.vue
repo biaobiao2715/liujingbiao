@@ -124,23 +124,61 @@
           </template>
         </div>
       </div>
-
-      <!-- 已驳回状态：显示驳回原因 -->
-      <!-- <template v-if="isRejected"> -->
-      <template v-if="formData.status === '2'">
-        <FormHeader title="驳回供应商/企业原因" v-if="!!formData.caseCode" />
-        <el-row :gutter="20" class="detail-form" v-if="!!formData.caseCode">
+      <template v-if="formData.status == '2' && formData.newAppealFile.appealFiles.length">
+        <FormHeader title="申诉材料appealFiles" />
+        <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
-            <el-form-item label="驳回原因：">
-              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            <el-form-item label="申诉理由：">
+              <el-input v-model="formData.appealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
-        </el-row>
-        <FormHeader title="驳回举报人原因" v-if="!formData.caseCode" />
-        <el-row :gutter="20" class="detail-form" v-if="!formData.caseCode">
+
           <el-col :span="24">
-            <el-form-item label="驳回原因：">
-              <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+            <el-form-item label="申诉时间：">
+              <el-input v-model="formData.updateTime" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉图片：">
+              <div class="evidence">
+                <template v-if="appealImageList.length">
+                  <el-image
+                    v-for="(img, idx) in appealImageList"
+                    :key="img.url + idx"
+                    :src="img.url"
+                    :preview-src-list="appealImagePreviewUrls"
+                    :initial-index="idx"
+                    fit="cover"
+                    class="evidence-image-item"
+                  />
+                </template>
+                <span v-else class="evidence-empty">暂无图片</span>
+              </div>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="申诉视频：">
+              <div class="evidence">
+                <template v-if="appealVideoList.length">
+                  <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
+                    <div class="size">{{ v.sizeText }}</div>
+                    <div class="icon">视频</div>
+                    <div class="ops">
+                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
+                    </div>
+                  </div>
+                </template>
+                <span v-else class="evidence-empty">暂无视频</span>
+              </div>
+            </el-form-item>
+          </el-col>
+          <!-- 平台驳回申诉理由 -->
+          <!-- <el-col :span="24" v-if="isRejected"> -->
+          <el-col :span="24">
+            <el-form-item label="平台驳回申诉理由：">
+              <el-input v-model="formData.newAppealFile.appealReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -232,7 +270,7 @@
 
       <!-- 非已驳回状态：显示案件类型 -->
       <!-- <template v-if="!isRejected && !isPending && !isWithdrawnPending"> -->
-      <template v-if="formData.status != '2' && formData.status != '0'">
+      <template v-if="formData.status != '2' && formData.status != '0' && caseCode">
         <FormHeader title="案件类型" />
         <el-table :data="formData.hnCase ? [formData.hnCase] : []" border>
           <el-table-column prop="caseTypeCode" label="案件类型编号" align="center" />
@@ -340,6 +378,26 @@
           </el-table-column>
         </el-table>
       </div>
+      <!-- 已驳回状态：显示驳回原因 -->
+      <!-- <template v-if="isRejected"> -->
+      <template v-if="formData.status === '2'">
+        <FormHeader title="驳回供应商/企业原因" v-if="!!formData.caseCode" />
+        <el-row :gutter="20" class="detail-form" v-if="!!formData.caseCode">
+          <el-col :span="24">
+            <el-form-item label="驳回原因：">
+              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <FormHeader title="驳回举报人原因" v-if="!formData.caseCode" />
+        <el-row :gutter="20" class="detail-form" v-if="!formData.caseCode">
+          <el-col :span="24">
+            <el-form-item label="驳回原因：">
+              <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </template>
       <template v-if="isWithdrawn">
         <FormHeader title="举报人撤回原因" />
         <el-row :gutter="20" class="detail-form">
@@ -916,7 +974,7 @@ const currentScenario = computed(() => {
           }
           if (status === '4') {
             if (isWithdrawnProcessing.value) return stageStatus === '1';
-            return stageStatus === '4';
+            // return stageStatus === '4';
           }
           return stageStatus === '1';
         }
