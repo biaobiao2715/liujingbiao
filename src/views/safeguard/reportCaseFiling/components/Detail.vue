@@ -1354,7 +1354,7 @@ const fetchDetail = async () => {
     loading.value = false;
     if (res && res.code === 200) {
       formData.value = res.data || {};
-      if (res.data.historyAppealList.length >= 2) {
+      if (res.data.historyAppealList && res.data.historyAppealList.length >= 2) {
         processingFeedbackCascaderOptions[0].disabled = true;
       }
     } else {
