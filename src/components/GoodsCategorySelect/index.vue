@@ -82,7 +82,6 @@ const selectedCategory = ref<string[]>([]); // 当前选择的分类
 watch(
   () => props.modelValue,
   (newValue) => {
-    console.log('props.modelValue:', newValue);
     selectedCategory.value = newValue;
   },
   { immediate: true } // 初始化时立即同步
@@ -99,12 +98,31 @@ const fetchCategories = async () => {
     console.error('获取商品分类数据失败:', error);
   }
 };
+// 递归查找分类名称路径
+const findCategoryLabels = (tree: Category[], valuePath: string[], labelPath: string[] = []): string[] => {
+  if (!valuePath.length || !tree.length) return labelPath;
 
+  const currentValue = valuePath[0];
+  const currentNode = tree.find((node) => node.id === currentValue);
+
+  if (currentNode) {
+    labelPath.push(currentNode.categoryName);
+    // 递归查找子节点（如果有下一级 value）
+    if (valuePath.length > 1 && currentNode.children) {
+      return findCategoryLabels(currentNode.children, valuePath.slice(1), labelPath);
+    }
+  }
+
+  return labelPath;
+};
 // 通知父组件分类变化
 const handleCategoryChange = (value: string[]) => {
   // console.log('选择的分类:', value);
+
+  // 获取对应的名称路径
+  const labels = findCategoryLabels(categorieList.value, value);
   // 触发自定义事件通知父组件
-  emit('categoryChange', value);
+  emit('categoryChange', value, labels);
 };
 
 onMounted(() => {

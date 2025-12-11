@@ -23,7 +23,7 @@
         <!-- 查询表单 -->
 
         <PriceTrendChart
-          :title="`小麦种子价格（近${activeTimeRange}日）`"
+          :title="`${seedName}价格（近${activeTimeRange}日）`"
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
@@ -476,11 +476,12 @@ const changeTimeRange = (days: number) => {
   activeTimeRange.value = days;
   fetchPriceData();
 };
-
+// 种子变量
+const seedName = ref('小麦种子');
 // 品种分类变化处理
-const handleCategoryChange = (value: string[]) => {
+const handleCategoryChange = (value: string[], label: any) => {
+  seedName.value = label[label.length - 1];
   queryParams.variety = value;
-  console.log('选择的品种分类:', value);
   refreshAllData();
 };
 

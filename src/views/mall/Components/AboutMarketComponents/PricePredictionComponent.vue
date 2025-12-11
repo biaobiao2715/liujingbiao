@@ -252,7 +252,8 @@ const legendIcons = {
   predictedMin: predictedMinIcon,
   predictedMax: predictedMaxIcon
 };
-
+// 种子变量
+const seedName = ref('小麦种子');
 // 图表标题
 const chartTitle = computed(() => {
   const timeRangeMap: Record<string, string> = {
@@ -261,13 +262,13 @@ const chartTitle = computed(() => {
     '6': '6个月',
     '12': '12个月'
   };
-  return `小麦种子未来${timeRangeMap[queryParams.timeRange] || '12个月'}价格预测走势图`;
+  return `${seedName.value}未来${timeRangeMap[queryParams.timeRange] || '12个月'}价格预测走势图`;
 });
 
 // 品种分类变化处理
-const handleCategoryChange = (value: string[]) => {
+const handleCategoryChange = (value: string[], label: any) => {
   queryParams.variety = value;
-  console.log('选择的品种分类:', value);
+  seedName.value = label[label.length - 1];
   fetchPricePrediction();
 };
 
