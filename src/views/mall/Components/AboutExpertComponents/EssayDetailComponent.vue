@@ -74,6 +74,8 @@ import ContentWithToc from '@/components/ContentWithToc/index.vue';
 import { getArticle, addViewRecords } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { addToFavorites, checkFavorite } from '@/api/mall/index';
 import { formatFileSize } from '@/utils/fileUtils';
+// 引入防抖
+import { debounce } from 'lodash-es';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
@@ -104,7 +106,7 @@ const getArticleDetail = async () => {
   if (res.code === 200) {
     detail.value = res.data || {};
     fileList.value =
-      detail.value.commonRelevanceFilesVos.map((item) => {
+      detail.value.commonRelevanceFilesVos?.map((item) => {
         return {
           ...item.remoteOssVos[0],
           ext1: JSON.parse(item?.remoteOssVos[0]?.ext1 || '{}')
@@ -123,9 +125,11 @@ const getIsCollect = async () => {
     isCollected.value = res.data;
   }
 };
-
-// 收藏文章
-const handleCollection = async () => {
+const collectProgress = ref(false);
+// 收藏文章 添加防抖
+const handleCollection = debounce(async () => {
+  if (collectProgress.value) return;
+  collectProgress.value = true;
   const res = await addToFavorites({
     favoriteType: '3',
     favoriteArticleBo: {
@@ -135,6 +139,7 @@ const handleCollection = async () => {
       articleAuthor: detail.value.authorName
     }
   });
+  collectProgress.value = false;
   if (res.code === 200) {
     ElMessage.success(res.msg);
     // 刷新文章详情
@@ -142,7 +147,7 @@ const handleCollection = async () => {
     // 刷新收藏状态
     await getIsCollect();
   }
-};
+}, 500);
 
 // 增加下载量
 const addDownloadCount = async (item: any) => {
@@ -210,6 +215,9 @@ const addDownloadCount = async (item: any) => {
       }
       .detail-views {
         margin-right: 44px;
+      }
+      .detail-collection {
+        cursor: pointer;
       }
     }
     .wzzs-icon {
