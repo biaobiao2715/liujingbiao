@@ -8,42 +8,83 @@
 
 <template>
   <div class="metting-detail-container">
-    <div class="title">{{ detail?.activityTitle }}</div>
-    <!-- 课程描述 -->
-    <div class="description flex-center gap-24 mt-24 mb-24">
-      <!-- 头像 -->
-      <img :src="detail?.avatar" width="40" />
-      <div>{{ '发布人：  ' + detail?.publishUser }}</div>
-      <div>{{ '发布时间：  ' + detail?.publishTime }}</div>
-      <el-tag type="primary">{{ detail?.activityType === '1' ? '专家讲座' : '普法培训' }}</el-tag>
-      <div class="status">
-        会议状态：<el-tag>{{ getActivityStatus(detail?.activityStatus) }}</el-tag>
+    <div class="title-box">
+      <div class="title">
+        <div class="title-text">{{ detail?.activityTitle }}</div>
       </div>
-      <div>报名人数：{{ detail?.enrollCount }}</div>
-      <el-button :type="detail?.isEnrolled === '1' ? 'info' : 'primary'" @click="handleApply" v-if="detail?.activityStatus === '1'">{{
-        detail?.isEnrolled === '1' ? '取消报名' : '立即报名'
-      }}</el-button>
+      <div class="user-detail">
+        <img :src="avatarSrc" alt="" />
+        <div class="user-detail-peo">
+          {{ '发布人：  ' + detail?.publishUser }}
+        </div>
+        <div class="user-detail-time">
+          {{ '发布时间：  ' + detail?.publishTime }}
+        </div>
+        <el-tag type="primary" class="activity-type-tag">{{ detail?.activityType === '1' ? '专家讲座' : '普法培训' }}</el-tag>
+        <div class="status">
+          会议状态：<el-tag>{{ getActivityStatus(detail?.activityStatus) }}</el-tag>
+        </div>
+        <div class="enroll-count">报名人数：{{ detail?.enrollCount }}</div>
+        <el-button 
+          :type="detail?.isEnrolled === '1' ? 'info' : 'primary'" 
+          @click="handleApply" 
+          v-if="detail?.activityStatus === '1'"
+          class="enroll-button"
+        >
+          {{ detail?.isEnrolled === '1' ? '取消报名' : '立即报名' }}
+        </el-button>
+      </div>
+      <div class="wzzs-icon">
+        <img src="@/assets/images/wzzsicon@2x.png" alt="" />
+      </div>
     </div>
 
-    <!-- 分割线 -->
-    <el-divider></el-divider>
     <!-- 详细信息 -->
-    <div class="detail">
-      <div>活动主题：{{ detail?.activityTitle }}</div>
-      <div>活动简介：{{ detail?.activitySummary }}</div>
-      <div>活动联系人：{{ detail?.activityContact }}</div>
-      <div>活动联系人电话：{{ detail?.activityContactPhone }}</div>
-      <div>活动时间：{{ detail?.startTime + ' - ' + detail?.endTime }}</div>
-      <div>活动地址：{{ detail?.activityAddress }}</div>
-      <div v-if="detail?.activityStatus === '99'">取消原因：{{ detail?.cancelReason }}</div>
+    <div class="activity-details-box">
+      <div class="detail-row">
+        <span class="detail-label">活动主题:</span>
+        <span class="detail-value">{{ detail?.activityType === '1' ? '专家讲座' : '普法培训' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">活动简介:</span>
+        <span class="detail-value">{{ detail?.activitySummary || '-' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">活动联系人:</span>
+        <span class="detail-value">{{ detail?.activityContact || '-' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">活动联系人电话:</span>
+        <span class="detail-value">{{ detail?.activityContactPhone || '-' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">活动时间:</span>
+        <span class="detail-value">{{ detail?.startTime || '-' }} 至 {{ detail?.endTime || '-' }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">活动地址:</span>
+        <span class="detail-value">{{ detail?.activityAddress || '-' }}</span>
+      </div>
+      
+      <div class="detail-row" v-if="detail?.activityStatus === '99'">
+        <span class="detail-label">取消原因:</span>
+        <span class="detail-value cancel-reason">{{ detail?.cancelReason }}</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { getActivityDetail } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 import { activityApply } from '@/api/mall/expert';
+import defaultAvatar from '@/assets/images/tx.png';
 
 const props = defineProps({
   id: {
@@ -53,6 +94,7 @@ const props = defineProps({
 });
 
 const detail = ref();
+const avatarSrc = computed(() => detail.value?.avatar || defaultAvatar);
 
 onMounted(() => {
   // 根据传入的ID获取课程详情
@@ -107,20 +149,115 @@ const handleApply = async () => {
 <style scoped lang="scss">
 .metting-detail-container {
   padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .collection {
-      cursor: pointer;
+  
+  .title-box {
+    background: #ffffff;
+    border-radius: 8px 8px 8px 8px;
+    padding: 26px 0 23px 20px;
+    box-sizing: border-box;
+    position: relative;
+    
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 28px;
+      color: #3d3d3d;
+      line-height: 21px;
+      margin-bottom: 28px;
+      
+      .title-text {
+        margin-right: 14px;
+      }
+    }
+    
+    .user-detail {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 14px;
+      color: #3d3d3d;
+      line-height: 20px;
+      flex-wrap: wrap;
+      gap: 0;
+      
+      img {
+        width: 30px;
+        height: 30px;
+        margin-right: 14px;
+      }
+      
+      .user-detail-peo {
+        margin-right: 40px;
+      }
+      
+      .user-detail-time {
+        margin-right: 39px;
+      }
+      
+      .activity-type-tag {
+        margin-right: 16px;
+      }
+      
+      .status {
+        margin-right: 16px;
+      }
+      
+      .enroll-count {
+        margin-right: 16px;
+      }
+      
+      
+    }
+    
+    .wzzs-icon {
+      position: absolute;
+      top: 0;
+      right: 40px;
+      
+      img {
+        width: 180px;
+        height: 100%;
+      }
     }
   }
 
-  .detail {
-    div {
-      margin-bottom: 12px;
+  .activity-details-box {
+    border-radius: 4px;
+    padding: 16px;
+    margin-top: 16px;
+    background-color: #fff;
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 16px;
+      line-height: 1.8;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .detail-label {
+        min-width: 140px;
+        font-weight: 500;
+        color: #606266;
+        flex-shrink: 0;
+      }
+      
+      .detail-value {
+        flex: 1;
+        color: #303133;
+        word-break: break-all;
+        
+        &.cancel-reason {
+          color: #f56c6c;
+          font-weight: 500;
+        }
+      }
     }
   }
 }
