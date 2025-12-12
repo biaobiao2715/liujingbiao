@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="supplier-edit-details">
-    <el-form :model="formData" v-loading="loading">
+    <el-form :model="formData" v-loading="loading" :rules="rules">
       <FormHeader title="案件信息" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
@@ -38,7 +38,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="被举报人：">
-            <span style="color: #108c58" @click="openSupplierDialog">
+            <span class="reported-person" @click="openSupplierDialog">
               {{ formData.reporterName }}
             </span>
           </el-form-item>
@@ -356,12 +356,7 @@
                 style="width: 100%"
                 @change="handleProcessingFeedbackChange"
               />
-              <div
-                v-if="!processingFeedback.feedbackCascader || processingFeedback.feedbackCascader.length === 0"
-                style="color: #f56c6c; font-size: 12px; margin-top: 4px"
-              >
-                请选择处理反馈
-              </div>
+              <div v-if="feedBackValueStatus" class="rules-class">请选择处理反馈</div>
             </el-form-item>
           </el-col>
           <!-- 选择驳回申诉：显示驳回申诉原因 -->
@@ -375,7 +370,7 @@
                 maxlength="200"
                 show-word-limit
               />
-              <div v-if="!processingFeedback.appealReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回申诉原因</div>
+              <div v-if="!processingFeedback.appealReason" class="rules-class">请填写驳回申诉原因</div>
             </el-form-item>
           </el-col>
 
@@ -666,7 +661,10 @@ const formData = ref<FormData>({
   reportFiles: [],
   statusAndDate: []
 });
-
+// 校验规则
+const rules = {
+  feedbackCascader: [{ required: true, message: '请选择处理反馈', trigger: 'change' }]
+};
 // 判断是否是已驳回状态
 const isRejected = computed(() => {
   return formData.value?.status === '2';
@@ -982,9 +980,14 @@ const loadCaseTypeOptions = async () => {
     ElMessage.error('获取案件类型列表失败');
   }
 };
-
+const feedBackValueStatus = ref(false);
 // 处理中状态处理反馈选择变化处理
 const handleProcessingFeedbackChange = (value: string[]) => {
+  if (value) {
+    feedBackValueStatus.value = false;
+  } else {
+    feedBackValueStatus.value = true;
+  }
   // 清空处理结果
   processingFeedback.appealReason = '';
   processingFeedback.dealResult = '';
@@ -1051,6 +1054,7 @@ const handleConfirm = async () => {
     if (status === '0') {
       if (processFeedback.handleBack === '' || processFeedback.handleBack === undefined || processFeedback.handleBack === null) {
         ElMessage.error('请选择处理反馈类型');
+        feedBackValueStatus.value = true;
         submitLoading.value = false;
         return;
       }
@@ -1076,6 +1080,7 @@ const handleConfirm = async () => {
     if (status === '1') {
       if (!processingFeedback.feedbackCascader || processingFeedback.feedbackCascader.length === 0) {
         ElMessage.error('请选择处理反馈');
+        feedBackValueStatus.value = true;
         submitLoading.value = false;
         return;
       }
@@ -1617,5 +1622,14 @@ watch(
 .timeline-item.active-connection .stage-name,
 .timeline-item.active-connection .stage-time {
   color: #409eff;
+}
+.reported-person {
+  color: #108c58;
+  cursor: pointer;
+}
+.rules-class {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>
