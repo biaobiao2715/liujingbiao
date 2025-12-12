@@ -132,7 +132,14 @@
             </el-select>
           </el-form-item>
           <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
-            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" :disabledDate="disablePastDates" />
+            <el-date-picker
+              v-model="approvalForm.loanDate"
+              type="date"
+              placeholder="选择日期"
+              style="width: 100%"
+              :disabled="isApprovalReadonly"
+              :disabledDate="disablePastDates"
+            />
           </el-form-item>
           <el-form-item
             label="第一期还款日期"
@@ -251,7 +258,6 @@ import {
 } from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import ProductDetailDialog from './ProductDetailDialog.vue';
-import { log } from 'console';
 
 const props = withDefaults(
   defineProps<{
@@ -314,7 +320,6 @@ const createConditionalRequiredValidator = (message: string) => {
 const submittingApproval = ref(false);
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
 
-// ==================== 常量定义 ====================
 const REVIEW_STATUS_MAP: Record<string, string> = {
   '0': '待审核',
   '1': '审核通过',
@@ -388,7 +393,6 @@ const approvalRules: FormRules = {
   ]
 };
 
-// ==================== 工具函数 ====================
 /**
  * 格式化值，空值返回 '--'
  */
@@ -523,7 +527,6 @@ const getApplyStatusLabel = (value: string | number | undefined | null): string 
   return APPLY_STATUS_MAP[String(value)] || '--';
 };
 
-// ==================== 数据获取 ====================
 /**
  * 获取详情数据
  */
@@ -537,7 +540,6 @@ const fetchDetail = async () => {
   try {
     // 获取申请详情
     const res = await getRemainingDetail(props.data.id);
-    console.log('申请详情接口返回的createTime:', res.data.createTime);
 
     let merged: Record<string, any> = props.data ? { ...props.data } : {};
 
@@ -545,7 +547,6 @@ const fetchDetail = async () => {
       merged = {
         ...merged,
         ...res.data,
-        // 明确优先使用申请详情接口的createTime
         createTime: res.data.createTime
       };
     }
@@ -555,10 +556,8 @@ const fetchDetail = async () => {
     if (lenderId) {
       try {
         const extra = await getEnterprise(lenderId);
-        console.log('企业信息接口返回的createTime:', extra.data.createTime);
 
         if (extra?.code === 200 && extra.data) {
-          // 合并企业信息但不覆盖申请时间，企业创建时间单独存储
           merged = {
             ...extra.data,
             ...merged,
@@ -660,7 +659,6 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
     { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])) },
-    // 优先使用申请详情接口返回的createTime作为申请时间
     { label: '申请时间', value: formatValue(row.createTime) }
   ];
 };
@@ -707,7 +705,7 @@ const applicantAuthFiles = computed(() => {
     }));
   }
 
-  // 如果没有文件名，返回URL数组（保持向后兼容）
+  // 如果没有文件名，返回URL数组
   return urls;
 });
 

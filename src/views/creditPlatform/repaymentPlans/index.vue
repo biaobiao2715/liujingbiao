@@ -100,16 +100,15 @@
     </el-table>
 
     <div class="pagination">
-      <el-pagination
+      <pagination
         v-show="total > 0"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 20, 30, 50]"
+        :page="queryParams.pageNum"
+        :limit="queryParams.pageSize"
         :total="total"
-        :current-page="queryParams.pageNum"
-        :page-size="queryParams.pageSize"
-        @size-change="handlePageSizeChange"
-        @current-change="handlePageChange"
+        layout="total, sizes, prev, pager, next, jumper"
+        @update:page="handlePageChange"
+        @update:limit="handlePageSizeChange"
+        @pagination="getList"
       />
     </div>
     <RepaymentDetailDialog v-model:visible="detailDialogVisible" :data="detailData" />
