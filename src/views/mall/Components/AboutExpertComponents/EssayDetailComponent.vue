@@ -40,14 +40,6 @@
     <div class="article-content">
       <div v-html="detail?.articleContent"></div>
     </div>
-    <!-- <div>
-      <div class="description">
-        {{ detail?.articleDescription }}
-      </div>
-    </div> -->
-    <!-- 编辑器内容 -->
-    <!-- <ContentWithToc :content="detail?.articleContent" ref="contentWithTocRef" /> -->
-    <!-- 附件部分 -->
     <div class="attachment">
       <div class="attachment-title">附件</div>
       <el-table :data="fileList">
