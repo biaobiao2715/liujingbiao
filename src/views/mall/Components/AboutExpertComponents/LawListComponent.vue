@@ -25,7 +25,7 @@
           <div class="title">普法活动</div>
           <div class="list">
             <el-row :gutter="24">
-              <el-col :span="12" v-for="item in activeList" :key="item">
+              <el-col :span="24" v-for="item in activeList" :key="item">
                 <div class="item flex-center gap-12" @click="handleDetail(item.id, 'lawActivityDetail')">
                   <div class="point"></div>
                   <div class="name">{{ item.activityTitle }}</div>
@@ -40,7 +40,7 @@
           <div class="title">普法白皮书</div>
           <div class="list">
             <el-row :gutter="24">
-              <el-col :span="12" v-for="item in paperList" :key="item">
+              <el-col :span="24" v-for="item in paperList" :key="item">
                 <div class="item flex-center gap-12" @click="handleDetail(item.id, 'whitepaperDetail')">
                   <div class="point"></div>
                   <div class="name">{{ item.paperTitle }}</div>
