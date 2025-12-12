@@ -259,7 +259,7 @@
     </div>
 
     <!-- 订单详情 -->
-    <Detail ref="detailRef" />
+    <Detail ref="detailRef" @update_table="getTableData" />
   </div>
 </template>
 

@@ -243,6 +243,7 @@ import RegionSelect from '@/components/RegionSelect/index.vue';
 const { proxy } = getCurrentInstance() as any;
 const { order_status } = toRefs<any>(proxy?.useDict('order_status'));
 
+const emit = defineEmits(['update_table']);
 const detailId = ref();
 
 const editVisible = ref(false); //修改收货人信息
@@ -512,6 +513,8 @@ const saveReceiverInfo = async () => {
 
     await modifypersonnel(params);
     getdetail(); //更新页面
+    // 更新外部页面
+    emit('update_table');
     ElMessage.success('收货人信息已更新');
     editVisible.value = false;
   } catch (error) {

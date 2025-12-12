@@ -62,17 +62,35 @@
               <div class="goods-title">
                 {{ goods?.goodsName }}
               </div>
-              <div class="goods-description">
-                {{ goods?.goodsInfo }}
-              </div>
+              <el-tooltip :content="goods?.goodsInfo" placement="top">
+                <div class="goods-description">
+                  {{ goods?.goodsInfo }}
+                </div>
+              </el-tooltip>
 
               <!-- 商品属性标签 -->
-              <div class="goods-tags">
-                <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" class="attribute-tag ensure-tag">
-                  {{ tag }}
+              <div class="goods-tags flex-center">
+                <el-tag
+                  v-for="tag in combinedTags.slice(0, 5)"
+                  :key="tag.text"
+                  class="attribute-tag"
+                  :class="tag.type === 'ensure' ? 'ensure-tag' : 'ability-tag'"
+                >
+                  {{ tag.text }}
                 </el-tag>
-                <el-tag v-for="tag in goods?.goodsAbilityName" :key="tag" class="attribute-tag ability-tag">
-                  {{ tag }}
+                <span v-if="combinedTags.length > 5" @click="moreTag = !moreTag" class="flex">
+                  <el-icon v-if="!moreTag"><ArrowRightBold /></el-icon>
+                  <el-icon v-else><ArrowDownBold /></el-icon>
+                </span>
+              </div>
+              <div class="goods-tags flex-center mt-12" v-if="moreTag">
+                <el-tag
+                  v-for="tag in combinedTags.slice(5)"
+                  :key="tag.text"
+                  class="attribute-tag"
+                  :class="tag.type === 'ensure' ? 'ensure-tag' : 'ability-tag'"
+                >
+                  {{ tag.text }}
                 </el-tag>
               </div>
             </div>
@@ -150,7 +168,7 @@
       <!-- 同类商品 -->
       <div class="similar-goods-section">
         <div class="section-title">同类商品</div>
-        <div class="similar-goods-list">
+        <div class="similar-goods-list" v-if="groupedRelatedGoods.length > 0">
           <GoodsItemComponent
             v-for="(item, index) in groupedRelatedGoods.flat()"
             :key="index"
@@ -159,6 +177,7 @@
             @clickGoods="handleSimilarGoodsClick(item.id)"
           />
         </div>
+        <el-empty v-else description="暂无同类商品"></el-empty>
       </div>
 
       <!-- 详情部分 -->
@@ -226,7 +245,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { addToFavorites } from '@/api/mall/index';
 import { goodsList, goodsDetail, checkFavorite } from '@/api/mall/goods/index';
 import type { Goods } from '../mall';
@@ -234,6 +253,7 @@ import PlaceOrderComponent from './AboutCompareComponents/PlaceOrderComponent.vu
 import GoodsItemComponent from './GoodsItemComponent.vue';
 import { Check } from '@element-plus/icons-vue';
 import ReportDialog from './AboutCompareComponents/ReportDialog.vue';
+import { ArrowRightBold, ArrowDownBold } from '@element-plus/icons-vue';
 
 const emit = defineEmits(['detailChange']);
 
@@ -261,8 +281,9 @@ const carouselRef = ref();
 
 const showOrder = ref(false);
 
-// 当前图片索引
-const currentImageIndex = ref(0);
+const moreTag = ref(false); // 更多标签
+
+const currentImageIndex = ref(0); // 当前图片索引
 
 // 需要经过处理得到的数据
 const baseInfo = reactive<{
@@ -279,17 +300,6 @@ const groupedRelatedGoods = ref([]); // 同类商品
 
 const hotGoods = ref([]); // 最热商品
 
-const enterpriseShippingAddress = computed(() => {
-  const info = goods.value?.hnBaseEnterpriseInfo;
-  if (!info) return '';
-  return [info.province, info.city, info.district, info.signUpAddress]
-    .map((part) => (typeof part === 'string' ? part.trim() : part))
-    .filter((part) => part && String(part).toLowerCase() !== 'null' && String(part).toLowerCase() !== 'undefined')
-    .join('');
-});
-
-// 发货地址直接根据企业信息拼接展示，无需用户地址下拉
-
 // 商家电话
 const enterprisePhoneNumber = computed(() => {
   return goods.value?.hnBaseEnterpriseInfo?.phoneNumber || '';
@@ -302,7 +312,25 @@ const isFavorite = ref(false);
 // 举报弹窗
 const showReportDialog = ref(false);
 
+const enterpriseShippingAddress = computed(() => {
+  const info = goods.value?.hnBaseEnterpriseInfo;
+  if (!info) return '';
+  return [info.province, info.city, info.district, info.signUpAddress]
+    .map((part) => (typeof part === 'string' ? part.trim() : part))
+    .filter((part) => part && String(part).toLowerCase() !== 'null' && String(part).toLowerCase() !== 'undefined')
+    .join('');
+});
+
+const combinedTags = computed(() => {
+  const ensure = (goods.value?.goodssEnsureName || []).map((t) => ({ text: t, type: 'ensure' }));
+  const ability = (goods.value?.goodsAbilityName || []).map((t) => ({ text: t, type: 'ability' }));
+  return [...ensure, ...ability];
+});
+
 onMounted(async () => {
+  // 控制滚动条回到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // 确保商品ID存在后再加载数据
   if (goodsIdFromRoute.value) {
     await getGoodsDetail();
@@ -856,7 +884,6 @@ defineExpose({
         }
 
         .goods-tags {
-          display: flex;
           flex-wrap: wrap;
           gap: 10px;
           margin-bottom: 0;
