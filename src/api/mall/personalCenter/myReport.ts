@@ -111,6 +111,9 @@ export interface ReportQueryParams {
   reportGoods?: string;
   createTime?: string | null;
   status?: string;
+  reportTypeId?: any;
+  reportGoodsCode?: any;
+  reportGoodsName?: any;
 }
 
 /**

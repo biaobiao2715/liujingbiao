@@ -18,12 +18,12 @@
             <el-input v-model="queryParams.reportCode" placeholder="请输入举报编号" />
           </el-form-item>
           <el-form-item label="举报类型：">
-            <el-select v-model="queryParams.reportTypeId" placeholder="请选择">
+            <el-select v-model="queryParams.reportTypeId" placeholder="请选择举报类型">
               <el-option v-for="dict in report_type_id" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="案件编号：">
-            <el-input v-model="queryParams.caseCode" placeholder="" />
+            <el-input v-model="queryParams.caseCode" placeholder="请输入案件编号" />
           </el-form-item>
           <el-form-item label="举报商品：">
             <el-input v-model="queryParams.reportGoodsCode" placeholder="请输入举报商品" />
@@ -47,23 +47,25 @@
               <el-option v-for="status in statusOptions" :key="status.value" :label="status.label" :value="status.value" />
             </el-select>
           </el-form-item>
-        </div>
-        <div class="toggle-expand-text" :class="isExpanded ? 'toggle-top' : 'toggle-bottom'" @click="toggleExpand">
-          {{ isExpanded ? '收起' : '展开' }}
-        </div>
-        <div class="button-group">
           <el-button type="primary" :icon="Search" @click="handleQuery">查询</el-button>
           <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
         </div>
+        <!-- <div class="toggle-expand-text" :class="isExpanded ? 'toggle-top' : 'toggle-bottom'" @click="toggleExpand">
+          {{ isExpanded ? '收起' : '展开' }}
+        </div> -->
+        <!-- <div class="button-group"> -->
+        <!-- <el-button type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button> -->
+        <!-- </div> -->
       </el-form>
     </div>
 
     <!-- 列表展示区域 -->
-    <el-table v-loading="loading" :data="reportListArr" style="width: 100%" border>
+    <el-table v-loading="loading" :data="reportListArr" style="width: 100%">
       <el-table-column prop="index" label="序号" width="80" type="index" />
       <el-table-column prop="reportCode" label="举报编号" min-width="180" :show-overflow-tooltip="true" />
-      <el-table-column prop="caseCode" label="案件编号" min-width="150" :show-overflow-tooltip="true" />
-      <el-table-column prop="reportTypeId" label="举报类别" min-width="120" :show-overflow-tooltip="true">
+      <el-table-column prop="caseCode" label="案件编号" min-width="200" :show-overflow-tooltip="true" />
+      <el-table-column prop="reportTypeId" label="举报类型" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-text :options="report_type_id" :value="scope.row.reportTypeId || ''" />
         </template>
@@ -164,6 +166,7 @@ const queryParams = ref<ReportQueryParams & { createTime?: string | string[] | n
   pageSize: 10,
   reportCode: '', //举报编号
   reportTypeId: '',
+  reportGoodsCode: '',
   caseCode: '', //案件编号
   reportGoodsName: '',
   createTime: null,
@@ -444,6 +447,10 @@ const getReportTypeText = (reportTypeId: string): string => {
 
 <style scoped>
 /* 页面布局样式 */
+.orders {
+  background-color: #fff;
+  padding: 20px;
+}
 
 .title {
   font-size: 24px;

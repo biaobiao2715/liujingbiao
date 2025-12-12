@@ -18,13 +18,23 @@
           <FormHeader title="技术专家基础信息" />
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="专家姓名">
-                <el-input v-model="formData.expertName" disabled></el-input>
+              <el-form-item label="专家编号">
+                <el-input v-model="formData.expertNumber" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="性别">
                 <el-input :value="sexMap[formData.sex]" disabled></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="专家姓名">
+                <el-input v-model="formData.expertName" disabled></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="毕业院校">
+                <el-input v-model="formData.graduationSchool" disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="12">

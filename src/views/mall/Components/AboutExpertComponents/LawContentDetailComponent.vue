@@ -7,51 +7,56 @@
 -->
 
 <template>
-  <div class="law-content-detail-container">
-    <div class="title">{{ detail?.contentTitle }}</div>
-    <!-- 课程描述 -->
-    <div class="description flex-center-between gap-24 mt-24 mb-24">
-      <div class="content-title-box">{{ detail?.contentTitle }}</div>
-      <div class="flex-center gap-24">
-        <div>{{ '发布人：  ' + detail?.authorName }}</div>
-        <div>{{ '发布时间：  ' + detail?.createTime }}</div>
-        <div>{{ '普法类型：  ' + getContentType(detail?.contentType) }}</div>
+  <div class="container-box">
+    <div class="title-box">
+      <div class="title">
+        <div class="title-text">{{ detail?.contentTitle }}</div>
+        <!-- <dict-tag :options="article_type" :value="detail?.contentType"></dict-tag> -->
       </div>
-      <div class="flex-center gap-12">
-        <div class="views flex-center gap-2">
-          <el-icon size="20"><View /></el-icon>
-          <span>{{ detail?.viewCount }}</span>
+      <div class="user-detail">
+        <img src="@/assets/images/tx.png" alt="" />
+        <div class="user-detail-peo">
+          {{ '发布人：  ' + detail?.authorName }}
         </div>
-        <div class="collection flex-center gap-2" @click="handleCollection">
+        <div class="user-detail-time">
+          {{ '发布时间：  ' + detail?.createTime }}
+        </div>
+        <div class="detail-views">
+          <el-icon size="20"><View /></el-icon>
+          <span> {{ detail?.viewCount }}</span>
+        </div>
+        <!-- 收藏 -->
+        <div class="detail-collection" @click="handleCollection">
           <el-icon size="20" v-if="!isCollected"><Star /></el-icon>
-          <el-icon size="24" color="#ff9800" v-else> <StarFilled /></el-icon>
+          <el-icon size="20" color="#ff9800" v-else> <StarFilled /></el-icon>
           <span>{{ detail?.favoriteCount }}</span>
         </div>
       </div>
+      <div class="wzzs-icon">
+        <img src="@/assets/images/wzzsicon@2x.png" alt="" />
+      </div>
     </div>
-    <!-- 编辑器内容 -->
-    <div class="content-display" v-html="detail?.contentContent"></div>
-    <!-- 附件部分 -->
-    <el-table :data="detail?.sysOssLists" class="mt-24">
-      <el-table-column prop="fileSuffix" label="附件类型" width="180" />
-      <el-table-column prop="originalName" label="文件名" show-overflow-tooltip />
-      <!-- 下载量 -->
-      <!-- <el-table-column prop="downloadCount" label="下载量" width="180">
-        <template #default="scope">
-          {{ detail.downloadCount }}
-        </template>
-      </el-table-column> -->
-      <el-table-column prop="size" label="文件大小" width="180">
-        <template #default="scope">
-          {{ formatFileSize(JSON.parse(scope.row.ext1).fileSize) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="180">
-        <template #default="scope">
-          <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <!-- 文章内容部分 -->
+    <div class="article-content">
+      <div v-html="detail?.contentContent"></div>
+    </div>
+    <div class="attachment">
+      <div class="attachment-title">附件</div>
+      <el-table :data="detail?.sysOssLists">
+        <el-table-column prop="fileSuffix" label="附件类型" />
+        <el-table-column prop="originalName" label="附件名称" />
+        <el-table-column prop="size" label="附件大小">
+          <template #default="scope">
+            {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize || 0) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="downloadUrl" label="操作">
+          <template #default="scope">
+            <el-button type="text" @click="addDownloadCount(scope.row)">下载</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
@@ -162,49 +167,101 @@ const handleCollection = async () => {
 </script>
 
 <style scoped lang="scss">
-.law-content-detail-container {
-  padding: 12px;
-  .title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .description {
-    .content-title-box {
-      font-size: 16px;
+.container-box {
+  .title-box {
+    background: #ffffff;
+    border-radius: 8px 8px 8px 8px;
+    padding: 26px 0 23px 20px;
+    box-sizing: border-box;
+    position: relative;
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 500;
-      color: #333;
+      font-size: 28px;
+      color: #3d3d3d;
+      line-height: 21px;
+      margin-bottom: 28px;
+      .title-text {
+        margin-right: 14px;
+      }
     }
-    .collection {
-      cursor: pointer;
+    .user-detail {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+      font-weight: 500;
+      font-size: 14px;
+      color: #3d3d3d;
+      line-height: 20px;
+      img {
+        width: 30px;
+        height: 30px;
+        margin-right: 14px;
+      }
+      .user-detail-peo {
+        margin-right: 40px;
+      }
+      .user-detail-time {
+        margin-right: 39px;
+      }
+      .detail-views,
+      .detail-collection {
+        display: flex;
+        align-items: center;
+        span {
+          margin-left: 8px;
+        }
+      }
+      .detail-views {
+        margin-right: 44px;
+      }
+      .detail-collection {
+        cursor: pointer;
+      }
+    }
+    .wzzs-icon {
+      position: absolute;
+      top: 0;
+      right: 40px;
+      img {
+        width: 180px;
+        height: 100%;
+      }
     }
   }
-
-  .content-display {
+  .article-content {
+    padding: 30px 20px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    margin-top: 16px;
+  }
+  .attachment {
     padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-    line-height: 1.8;
-    min-height: 400px;
-
-    :deep(img) {
-      max-width: 100%;
-      height: auto;
-    }
-
-    :deep(p) {
-      margin-bottom: 1em;
-    }
-
-    :deep(h1),
-    :deep(h2),
-    :deep(h3),
-    :deep(h4),
-    :deep(h5),
-    :deep(h6) {
-      margin-top: 1.5em;
-      margin-bottom: 0.8em;
-      font-weight: 600;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 500;
+    margin-top: 16px;
+    .attachment-title {
+      font-size: 20px;
+      padding-left: 9px;
+      box-sizing: border-box;
+      position: relative;
+      &::after {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 14px;
+        background-color: #108c58;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
     }
   }
 }

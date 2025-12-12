@@ -44,6 +44,7 @@
       v-model:total="total"
       v-model:page="queryParams.pageNum"
       v-model:limit="queryParams.pageSize"
+      :pageSizes="[15, 30, 50]"
       @pagination="getQuestionList"
     />
   </div>
@@ -96,7 +97,6 @@ const getQuestionList = async () => {
 };
 
 const handleDetail = (id: string) => {
-  console.log(id);
   emit('detailChange', { type: 'qaDetail', id });
 };
 </script>

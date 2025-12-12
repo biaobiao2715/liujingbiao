@@ -304,7 +304,7 @@ const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目�
 enum idTypeEnum {
   sysUserId = null,
   supplier = 'qyId',
-  // enterprise = 'qyId',
+  enterprise = 'qyId',
   expert = 'jszjId',
   legal = 'fwzjId'
 }

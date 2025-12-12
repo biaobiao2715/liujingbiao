@@ -196,14 +196,14 @@
         <el-table-column prop="createTime" label="申诉时间" align="center"></el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
-            <el-button v-throttle text type="primary" @click="handlePreview(scope.row)">查看</el-button>
+            <el-button v-throttle text type="primary" v-hasPermi="['safeguard:report:query']" @click="handlePreview(scope.row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
 
-    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
-    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3">
+    <div class="section-title" v-if="Number(formData.status) === 3 ">平台处理结果:</div>
+    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3 && Number(formData.rejectBack) === 1">
       <el-col :span="24">
         <el-form-item label="信用等级：">
           <!-- <el-input v-model="formData.creditLevel" type="textarea" :rows="4" disabled autosize /> -->
@@ -224,9 +224,11 @@
       </el-col>
     </el-row>
 
+    <div v-if="Number(formData.rejectBack) === 2"> 平台处理/申诉成功</div>
+
     <div class="section-title" v-if="Number(formData.status) === 4">举报人撤回原因</div>
     <div class="section-title-che" style="font-size: 18px; margin-left: 15px" v-if="Number(formData.status) === 4">
-      {{ formData.reportDescription }}
+      {{ formData.withdrawCause }}
     </div>
 
     <div class="form-actions">
@@ -234,7 +236,7 @@
     </div>
   </div>
   <!-- 历史申诉材料弹窗 -->
-  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body >
+  <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body>
     <div v-loading="appealDialogLoading">
       <el-row :gutter="20" class="detail-form">
         <el-col :span="24">
@@ -348,7 +350,8 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
-  withdrawCause,
+  withdrawCause:'',
+  rejectBack:'',
   status: '', //订单状态
   appealTime: '', //申诉时间
   enterpriseType: '', //0供应商 1企业
@@ -516,6 +519,7 @@ const fetchContentDetail = async () => {
         caseCode: data.caseCode || '',
         reportDescription: data.reportDescription || '',
         withdrawCause: data.withdrawCause || '',
+        rejectBack: data.rejectBack || '',
         status: data.status || '',
         appealTime: data.appealTime || '',
         enterpriseType: data.enterpriseType || '', //0供应商 1企业
@@ -586,8 +590,10 @@ const handleSubmit = async () => {
       createTime: formData.value.createTime,
       caseCode: formData.value.caseCode,
       reportDescription: formData.value.reportDescription,
+ 
       status: formData.value.status,
-      withdrawCause: formData.value.withdrawCause
+      withdrawCause: formData.value.withdrawCause,
+      rejectBack: formData.value.rejectBack
     };
     console.log('submitData提交的数据', submitData);
     return;
@@ -628,8 +634,9 @@ const handlePreview = async (row: any) => {
   appealDialogLoading.value = true;
   try {
     // 等接口切换后，获取违规记录详情
-    const res = await getlookDetail(String(id)); //获取违规记录详情
-    const data: any = res?.data ?? {};
+    // const res = await getlookDetail(String(id)); //获取违规记录详情
+    // const data: any = res?.data ?? {};
+    const data = row;
     console.log('历史申诉详情数据:', data);
 
     // 文本信息
@@ -1062,5 +1069,33 @@ onMounted(() => {
   .editor-container {
     gap: 16px;
   }
+}
+.video-card {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.video-card .size {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+.video-card .icon {
+  font-size: 18px;
+  color: #1989fa;
+  margin-bottom: 8px;
+}
+.video-card .ops {
+  position: absolute;
+  bottom: 6px;
 }
 </style>

@@ -126,7 +126,7 @@ const getArticleDetail = async () => {
   background: #fff;
   border-radius: 4px;
   line-height: 1.8;
-  min-height: 400px;
+  min-height: 633px;
 
   :deep(img) {
     max-width: 100%;

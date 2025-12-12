@@ -17,12 +17,17 @@
         </div>
         <div class="goods-volume">{{ goods?.goodsSales }}件已售</div>
       </div>
-      <div class="goods-title">{{ goods?.goodsName }}</div>
-      <div class="flex-between mt-12">
+      <div class="goods-title" v-if="!isCompare">{{ goods?.goodsName }}</div>
+      <div class="flex-between mt-12" v-if="!isCompare">
         <div class="goods-tags">
           <!-- 最多三个标签 -->
           <el-tag v-for="tag in goods?.goodssEnsureName?.slice(0, 3)" :key="tag" type="primary" class="goods-tag">{{ tag }}</el-tag>
         </div>
+        <div class="goods-location">{{ goods?.hnBaseEnterpriseInfo?.province }}</div>
+      </div>
+
+      <div class="flex-between mt-12" v-if="isCompare">
+        <div class="goods-name">{{ goods?.goodsName }}</div>
         <div class="goods-location">{{ goods?.hnBaseEnterpriseInfo?.province }}</div>
       </div>
     </div>
@@ -43,6 +48,10 @@ const props = defineProps({
       tags: [],
       location: ''
     })
+  },
+  isCompare: {
+    type: Boolean,
+    default: false
   },
   style: {
     type: Object,
@@ -100,6 +109,10 @@ const handleClick = () => {
   font-size: 18px;
   margin-top: 12px;
   color: #333;
+  // 超出部分显示省略号
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .goods-tags {
@@ -120,5 +133,14 @@ const handleClick = () => {
 .goods-location {
   color: #7a7a7a;
   font-size: 18px;
+}
+.goods-name {
+  width: calc(100% - 55px);
+  font-weight: 400;
+  font-size: 14px;
+  color: #333333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

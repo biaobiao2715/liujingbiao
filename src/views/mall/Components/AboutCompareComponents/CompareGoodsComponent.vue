@@ -185,7 +185,7 @@ const handleSearch = () => {
 const fetchGoodsList = async () => {
   loading.value = true;
   try {
-    const response = await goodsCompareList({ ...queryParams, goodsCategoryId: props.goods.goodsCategoryId });
+    const response = await goodsCompareList({ ...queryParams,id: props.goods.id,goodsCategoryId: props.goods.goodsCategoryId });
     if (response.code === 200) {
       const records = response.rows || [];
       goodsData.value = records;

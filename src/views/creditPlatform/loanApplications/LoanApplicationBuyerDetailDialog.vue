@@ -136,7 +136,14 @@
             </el-select>
           </el-form-item>
           <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
-            <el-date-picker v-model="approvalForm.loanDate" type="date" placeholder="选择日期" style="width: 100%" :disabled="isApprovalReadonly" />
+            <el-date-picker
+              v-model="approvalForm.loanDate"
+              type="date"
+              placeholder="选择日期"
+              style="width: 100%"
+              :disabled="isApprovalReadonly"
+              :disabledDate="disablePastDates"
+            />
           </el-form-item>
           <el-form-item
             label="第一期还款日期"
@@ -150,6 +157,7 @@
               placeholder="选择日期"
               style="width: 100%"
               :disabled="isApprovalReadonly"
+              :disabledDate="disableFirstRepaymentDates"
             />
           </el-form-item>
           <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
@@ -275,6 +283,33 @@ const { repayment_method, review_status, bank_code } = toRefs<any>(proxy?.useDic
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
+// 禁止选择当天及之前的日期，只能选择明天及以后
+const disablePastDates = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return time.getTime() <= today.getTime();
+};
+
+// 第一期还款日期禁用规则：必须在放款日期之后
+const disableFirstRepaymentDates = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 禁止选择今天及之前
+  if (time.getTime() <= today.getTime()) {
+    return true;
+  }
+
+  // 如果已选择放款日期，禁止选择放款日期及之前的日期
+  if (approvalForm.loanDate) {
+    const loanDate = new Date(approvalForm.loanDate);
+    loanDate.setHours(0, 0, 0, 0);
+    return time.getTime() <= loanDate.getTime();
+  }
+
+  return false;
+};
+
 const loading = ref(false);
 const detailData = ref<Record<string, any>>({});
 const productDetailVisible = ref(false);
@@ -302,6 +337,34 @@ const createConditionalRequiredValidator = (message: string) => {
       callback();
     }
   };
+};
+
+// 第一期还款日期验证器
+const validateFirstRepaymentDate = (rule: any, value: any, callback: (error?: Error) => void) => {
+  if (approvalForm.opinion === 'reject') {
+    callback();
+    return;
+  }
+
+  if (!value) {
+    callback(new Error('请选择第一期还款日期'));
+    return;
+  }
+
+  // 验证第一期还款日期必须在放款日期之后
+  if (approvalForm.loanDate) {
+    const loanDate = new Date(approvalForm.loanDate);
+    loanDate.setHours(0, 0, 0, 0);
+    const firstRepaymentDate = new Date(value);
+    firstRepaymentDate.setHours(0, 0, 0, 0);
+
+    if (firstRepaymentDate.getTime() <= loanDate.getTime()) {
+      callback(new Error('第一期还款日期必须在放款日期之后'));
+      return;
+    }
+  }
+
+  callback();
 };
 const submittingApproval = ref(false);
 const currentApprovalAction = ref<'agree' | 'reject' | null>(null);
@@ -338,7 +401,7 @@ const approvalRules: FormRules = {
       required: true,
       message: '请选择第一期还款日期',
       trigger: 'change',
-      validator: createConditionalRequiredValidator('请选择第一期还款日期')
+      validator: validateFirstRepaymentDate
     }
   ],
   contractId: [
@@ -448,7 +511,7 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
 };
 
 /**
- * 从字典获取申请状态标签（优先使用字典，否则使用备用映射）
+ * 从字典获取申请状态标签
  */
 /**
  * 获取银行名称
@@ -693,6 +756,18 @@ watch(
     } else {
       nextTick(() => {
         approvalFormRef.value?.validateField?.(['loanDate', 'firstRepaymentDate', 'contractId']);
+      });
+    }
+  }
+);
+
+// 监听放款日期变化，重新验证第一期还款日期
+watch(
+  () => approvalForm.loanDate,
+  () => {
+    if (approvalForm.firstRepaymentDate && approvalFormRef.value) {
+      nextTick(() => {
+        approvalFormRef.value?.validateField?.('firstRepaymentDate');
       });
     }
   }

@@ -51,10 +51,7 @@ const normalizeMonthLabel = (value: any) => {
   return str;
 };
 
-const normalizeMonths = (months?: string[]) =>
-  (months || [])
-    .map((m) => normalizeMonthLabel(m))
-    .filter((label) => !!label);
+const normalizeMonths = (months?: string[]) => (months || []).map((m) => normalizeMonthLabel(m)).filter((label) => !!label);
 
 const buildAxis = (history: string[], predicted: string[]) => {
   const uniqueHistory = history || [];
@@ -92,7 +89,6 @@ const buildScatterData = (axis: string[], months: string[], values: number[], ty
   const comparator = type === 'max' ? Math.max : Math.min;
   const extreme = comparator(...Array.from(map.values()));
 
-  // 确定需要高亮的索引：
   // - 最低点：如果有多个，取最前面一个
   // - 最高点：如果有多个，取最后面一个
   let targetIndex = -1;
@@ -154,37 +150,16 @@ const updateChart = () => {
   // 检查是否有有效数据 - 检查构建后的数据中是否有非null值
   const hasValidHistorical = hasValidData(props.historicalPrices) && historicalData.some((v) => v !== null && v !== undefined);
   // 预测数据：只要数组存在且有长度，且构建后的数据中有非null值就显示
-  const hasValidPredicted = 
+  const hasValidPredicted =
     props.predictedPrices?.length > 0 &&
     predictedMonths.length > 0 &&
     predictedData.some((v) => v !== null && v !== undefined && typeof v === 'number' && !Number.isNaN(v));
-  
-  console.log('[PricePredictionChart] 历史数据：', {
-    axis: allAxis,
-    historicalMonths,
-    historicalPrices: props.historicalPrices,
-    historicalData
-  });
-  console.log('[PricePredictionChart] 预测数据：', {
-    predictedMonths,
-    predictedPrices: props.predictedPrices,
-    predictedData
-  });
-
 
   // 只有在有有效数据时才显示最高最低点
-  const historicalMaxData = hasValidHistorical
-    ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'max')
-    : allAxis.map(() => null);
-  const historicalMinData = hasValidHistorical
-    ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'min')
-    : allAxis.map(() => null);
-  const predictedMaxData = hasValidPredicted
-    ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'max')
-    : allAxis.map(() => null);
-  const predictedMinData = hasValidPredicted
-    ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'min')
-    : allAxis.map(() => null);
+  const historicalMaxData = hasValidHistorical ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'max') : allAxis.map(() => null);
+  const historicalMinData = hasValidHistorical ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'min') : allAxis.map(() => null);
+  const predictedMaxData = hasValidPredicted ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'max') : allAxis.map(() => null);
+  const predictedMinData = hasValidPredicted ? buildScatterData(allAxis, predictedMonths, props.predictedPrices, 'min') : allAxis.map(() => null);
 
   const valueList = [...historicalData, ...predictedData].filter((v) => typeof v === 'number' && v > 0) as number[];
   const rawMax = valueList.length ? Math.max(...valueList) : 0;

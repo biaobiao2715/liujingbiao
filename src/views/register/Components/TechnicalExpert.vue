@@ -27,7 +27,7 @@
                     :auto-upload="false"
                     :show-file-list="false"
                     :on-change="handleDiplomaChange"
-                    :before-upload="beforeUpload"
+                    :before-upload="beforeUploadImage"
                   >
                     <div class="upload-content">
                       <div v-if="!diplomaUrl">
@@ -61,7 +61,7 @@
                     :on-change="handlePhotoChange"
                     accept=".jpg,.jpeg,.png"
                     drag
-                    :before-upload="beforeUpload"
+                    :before-upload="beforeUploadImage"
                   >
                     <div class="upload-content">
                       <div v-if="!photoUrl">
@@ -199,7 +199,7 @@
         </div>
         <div class="qualification-list">
           <div class="qualification-header">
-            <el-upload :on-change="addQualification" :before-upload="beforeUpload" action="#" :auto-upload="false" :show-file-list="false">
+            <el-upload :on-change="addQualification" :before-upload="beforeUploadAttachment" action="#" :auto-upload="false" :show-file-list="false">
               <div class="upload-btn">
                 <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
                   <img src="@/assets/images/register5.svg" class="el-icon-view" />附件上传</el-button
@@ -650,53 +650,59 @@ const disabledGraduationDate = (date) => {
 };
 // 上传毕业证
 const handleDiplomaChange = (file: any) => {
+  if (!beforeUploadImage(file.raw)) return;
   proxy?.$modal.loading('正在上传毕业证，请稍候...');
-  uploadImage({ file: file.raw })
-    .then((res) => {
-      if (res.code === 200 && res.data?.ossId) {
-        diplomaUrl.value = res.data.url;
-        const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
-        if (findDiploma) {
-          findDiploma.name = res?.data?.fileName;
-          findDiploma.url = res.data.url;
-          findDiploma.ossId = res.data.ossId;
-        } else {
-          qualificationList.value.push({
-            index: qualificationList.value.length + 1,
-            name: res?.data?.fileName,
-            remark: '毕业证',
-            url: res.data.url,
-            fileType: '2',
-            ossId: res.data.ossId
-          });
-        }
-        formRef.value?.clearValidate('diploma');
-        return ocrUploadImage({ image_url_list: [res.data.url] })
-          .then((res) => {
-            const data = res?.data?.[0] || {};
-            Object.keys(data).forEach((key) => {
-              const mappedKey = ocrMap[key] || key;
-              if (data[key] && mappedKey !== 'sex' && mappedKey !== 'enrollmentDate') {
-                formData.value[mappedKey] = data[key];
-              } else if (mappedKey === 'sex' && data[key]) {
-                formData.value[mappedKey] = data[key] === '男' ? '0' : '1';
-              } else if (key === 'enrollmentDate' && data[key]) {
-                formData.value[mappedKey] = dayjs(data[key]).format('YYYY-MM-DD');
-              }
+  try {
+    uploadImage({ file: file.raw })
+      .then((res) => {
+        if (res.code === 200 && res.data?.ossId) {
+          diplomaUrl.value = res.data.url;
+          const findDiploma = qualificationList.value.find((item) => item.fileType === '2');
+          if (findDiploma) {
+            findDiploma.name = res?.data?.fileName;
+            findDiploma.url = res.data.url;
+            findDiploma.ossId = res.data.ossId;
+          } else {
+            qualificationList.value.push({
+              index: qualificationList.value.length + 1,
+              name: res?.data?.fileName,
+              remark: '毕业证',
+              url: res.data.url,
+              fileType: '2',
+              ossId: res.data.ossId
             });
-          })
-          .catch((error) => {
-            // 如果OCR识别失败，则移除之前添加的文件
-            qualificationList.value.pop();
-            ElMessage.error('OCR识别失败，请重试');
-            console.error('上传失败：', error);
-            throw error; // 继续抛出错误以便在最后统一处理
-          });
-      }
-    })
-    .finally(() => {
-      proxy?.$modal.closeLoading();
-    });
+          }
+          formRef.value?.clearValidate('diploma');
+          return ocrUploadImage({ image_url_list: [res.data.url] })
+            .then((res) => {
+              const data = res?.data?.[0] || {};
+              Object.keys(data).forEach((key) => {
+                const mappedKey = ocrMap[key] || key;
+                if (data[key] && mappedKey !== 'sex' && mappedKey !== 'enrollmentDate') {
+                  formData.value[mappedKey] = data[key];
+                } else if (mappedKey === 'sex' && data[key]) {
+                  formData.value[mappedKey] = data[key] === '男' ? '0' : '1';
+                } else if (key === 'enrollmentDate' && data[key]) {
+                  formData.value[mappedKey] = dayjs(data[key]).format('YYYY-MM-DD');
+                }
+              });
+            })
+            .catch((error) => {
+              // 如果OCR识别失败，则移除之前添加的文件
+              qualificationList.value.pop();
+              ElMessage.error('OCR识别失败，请重试');
+              console.error('上传失败：', error);
+              throw error; // 继续抛出错误以便在最后统一处理
+            });
+        }
+      })
+      .finally(() => {
+        proxy?.$modal.closeLoading();
+      });
+  } catch (error) {
+    ElMessage.error('上传失败，请重试');
+    console.error('上传失败：', error);
+  }
 };
 // 删除文件
 const deleteQualification = (index: number) => {
@@ -725,6 +731,7 @@ const removePhoto = () => {
 };
 // 上传照片
 const handlePhotoChange = (file: any) => {
+  if (!beforeUploadImage(file.raw)) return;
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       photoUrl.value = res.data.url;
@@ -749,6 +756,7 @@ const handlePhotoChange = (file: any) => {
 };
 // 上传其他附件
 const addQualification = (file: any) => {
+  if (!beforeUploadAttachment(file.raw)) return;
   uploadImage({ file: file.raw }).then((res) => {
     if (res.code === 200 && res.data?.ossId) {
       qualificationList.value.push({
@@ -763,8 +771,8 @@ const addQualification = (file: any) => {
   });
 };
 
-// 文件上传前校验
-const beforeUpload = (file: any) => {
+// 文件上传前校验（图片）
+const beforeUploadImage = (file: any) => {
   const maxSize = 10 * 1024 * 1024; // 10MB
   if (file.size > maxSize) {
     ElMessage.error('文件大小不能超过10MB');
@@ -772,10 +780,42 @@ const beforeUpload = (file: any) => {
   }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (!allowedTypes.includes(file.type)) {
-    ElMessage.error('不支持的文件类型');
+    ElMessage.error('仅支持上传图片：jpg、jpeg、png');
     return false;
   }
+  return true;
+};
 
+// 文件上传前校验（附件）
+const beforeUploadAttachment = (file: any) => {
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    ElMessage.error('文件大小不能超过10MB');
+    return false;
+  }
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'application/zip',
+    'application/x-rar-compressed'
+  ];
+  if (!allowedTypes.includes(file.type)) {
+    const ext = (file.name || '').split('.').pop()?.toLowerCase();
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar'];
+    if (!ext || !allowedExts.includes(ext)) {
+      ElMessage.error('不支持的文件类型');
+      return false;
+    }
+  }
   return true;
 };
 
@@ -783,7 +823,10 @@ const beforeUpload = (file: any) => {
 const handleNextStep = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
-      const list = qualificationList.value.map((item) => ({
+      const list = qualificationList.value.map((item, index) => ({
+        index: index,
+        name: item.name,
+        url: item.url,
         fileType: item.fileType,
         ossId: item.ossId,
         remark: item.remark
@@ -792,6 +835,8 @@ const handleNextStep = () => {
         ...formData.value,
         folder: list
       };
+      // @ts-ignore
+      if (temp.hnBaseRegisterFolderVoList) delete temp.hnBaseRegisterFolderVoList;
       technicalExpertInfoRegister(temp).then((res) => {
         if (res.code === 200) {
           proxy?.$modal.msgSuccess('操作成功');

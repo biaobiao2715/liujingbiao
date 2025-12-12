@@ -34,8 +34,11 @@
             <!-- 贷款利率和周期 -->
             <div class="flex-center-center mt-12 mb-12">
               <div class="rate">
-                <div class="number">
+                <div class="number" v-if="product.baseInterestRate !== product.floatInterestRate">
                   {{ product.baseInterestRate + '%' + ' ~ ' + product.floatInterestRate + '%' }}
+                </div>
+                <div class="number" v-else>
+                  {{ product.baseInterestRate + '%' }}
                 </div>
                 <div class="label">贷款利率</div>
               </div>
@@ -46,11 +49,11 @@
               </div>
             </div>
             <!-- 描述 -->
-            <div class="description">
-              <el-tooltip :content="product.productIntro" placement="top">
+            <el-tooltip :content="product.productIntro" placement="top">
+              <div class="description">
                 {{ product.productIntro }}
-              </el-tooltip>
-            </div>
+              </div>
+            </el-tooltip>
           </div>
           <div class="footer flex-center-center">
             <el-button type="primary" round @click="handleDetail(product)">查看详情 →</el-button>
@@ -237,13 +240,14 @@ const handleFavorite = async (item: any) => {
       }
       // 最多两行，单行时高度约20px，两行约40px
       .description {
+        height: 48px;
         font-size: 14px;
         color: #676767;
-        line-height: 21px;
-        height: 42px; // 限制最多两行高度
-        overflow: hidden; // 超出裁剪隐藏
-        display: block; // 让高度随内容自适应到1或2行
-        word-break: break-word; // 处理长单词/连续字符换行
+        line-height: 24px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     }
 

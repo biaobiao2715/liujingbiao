@@ -16,10 +16,10 @@
       <div :class="['supplier-edit-details', 'detail-form']">
         <!-- 基础信息 -->
         <el-form :model="formData" label-width="180px" :disabled="true">
-          <FormHeader title="法律专家基础信息" />
+          <FormHeader title="法务专家基础信息" />
           <el-row :gutter="20">
             <el-col :span="24">
-              <el-form-item label="专家编码">
+              <el-form-item label="专家编号">
                 <el-input v-model="formData.expertNumber" disabled></el-input>
               </el-form-item>
             </el-col>

@@ -14,7 +14,7 @@
             indicator-position="none"
             arrow="hover"
             :interval="3000"
-            :autoplay="(goods?.sysOssLists?.length ?? 0) > 1"
+            :autoplay="(goods?.sysOssLists?.length ?? 0) > 4"
             class="main-carousel"
           >
             <el-carousel-item v-for="(img, index) in goods?.sysOssLists" :key="index">
@@ -59,7 +59,13 @@
           <!-- 标题和操作按钮 -->
           <div class="title-row">
             <div class="title-left">
-              <h1 class="goods-title">{{ goods?.goodsName }}</h1>
+              <div class="goods-title">
+                {{ goods?.goodsName }}
+              </div>
+              <div class="goods-description">
+                {{ goods?.goodsInfo }}
+              </div>
+
               <!-- 商品属性标签 -->
               <div class="goods-tags">
                 <el-tag v-for="tag in goods?.goodssEnsureName" :key="tag" class="attribute-tag ensure-tag">
@@ -132,7 +138,7 @@
               <img src="@/assets/mall/compare-icon.png" width="20" />
               <div>加入比价</div>
             </button>
-            <button class="btn btn-favorite flex-center-center gap-4" :class="{ 'btn-favorite-active': isFavorite }" @click="operateOrder(2)">
+            <button class="btn btn-favorite flex-center-center gap-4" @click="operateOrder(2)">
               <img src="@/assets/mall/cart-icon.png" width="20" />
               <div>{{ isFavorite ? '取消收藏' : '加入收藏夹' }}</div>
             </button>
@@ -164,10 +170,10 @@
             <div class="goods-detail-content" v-html="goods?.goodsDetail || ''"></div>
           </div>
 
-          <!-- 热门推荐 -->
+          <!-- 热销推荐 -->
           <div class="hot-recommendations">
-            <h2 class="section-title">热门推荐</h2>
-            <div class="recommendation-list">
+            <h2 class="section-title">热销推荐</h2>
+            <div class="recommendation-list" v-if="hotGoods.length > 0">
               <GoodsItemComponent
                 v-for="(item, index) in hotGoods"
                 :key="index"
@@ -176,6 +182,7 @@
                 @clickGoods="handleSimilarGoodsClick(item.id)"
               />
             </div>
+            <el-empty v-else description="暂无热销商品"></el-empty>
           </div>
         </div>
       </div>
@@ -600,7 +607,7 @@ const getHotGoods = async () => {
     excludeId: goods.value?.id
   });
   if (rows) {
-    hotGoods.value = rows;
+    hotGoods.value = rows.filter((item) => item.goodsSales > 0);
   }
 };
 
@@ -828,11 +835,24 @@ defineExpose({
         flex: 1;
 
         .goods-title {
-          font-size: 26px;
+          font-size: 20px;
           font-weight: bold;
           color: #3d3d3d;
-          margin: 0 0 15px 0;
-          line-height: 1.4;
+          margin-bottom: 8px;
+          // 超出部分显示省略号
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .goods-description {
+          max-width: 600px;
+          font-size: 16px;
+          color: #3d3d3d;
+          margin-bottom: 8px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .goods-tags {
@@ -912,10 +932,10 @@ defineExpose({
     .price-section {
       background: url('@/assets/mall/price-bg.png') no-repeat;
       background-size: cover;
-      padding: 12px 20px;
+      padding: 32px;
       .price {
-        font-size: 30px;
-        font-weight: bold;
+        font-size: 20px;
+        font-weight: 700;
         color: #ef4d0b;
       }
     }
@@ -928,6 +948,7 @@ defineExpose({
       margin-bottom: 20px;
 
       .label {
+        font-size: 16px;
         color: #3d3d3d;
         width: 100px;
       }
@@ -945,8 +966,9 @@ defineExpose({
 
       .address-text {
         flex: 1;
-        min-width: 200px;
-        color: #555;
+        font-weight: 400;
+        font-size: 16px;
+        color: #3d3d3d;
       }
     }
 
@@ -956,7 +978,7 @@ defineExpose({
       margin-bottom: 20px;
 
       .spec-title {
-        font-size: 20px;
+        font-size: 16px;
         color: #3d3d3d;
         width: 100px;
         margin-bottom: 0;
@@ -1038,7 +1060,7 @@ defineExpose({
       margin-bottom: 20px;
 
       .quantity-title {
-        font-size: 20px;
+        font-size: 16px;
         color: #3d3d3d;
         flex-shrink: 0;
         width: 100px;

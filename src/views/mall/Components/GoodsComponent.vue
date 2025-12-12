@@ -9,14 +9,12 @@
       <GoodsListComponent @detailChange="showDetail" />
     </div>
 
-    <div v-else>
-      <!-- 商品详情 -->
-      <GoodsDetailComponent v-if="showArea === 'goodsDetail'" :id="id" @detailChange="showDetail" />
-      <!-- 商品比价 -->
-      <CompareGoodsComponent :goods="goods" v-else-if="showArea === 'compareGoods'" @detailChange="showDetail" />
-      <!-- 商品比价详情 -->
-      <CompareDetailComponent :compareGoodsList="compareGoodsList" v-else-if="showArea === 'compareDetail'" />
-    </div>
+    <!-- 商品详情 -->
+    <GoodsDetailComponent v-else-if="showArea === 'goodsDetail'" :id="id" @detailChange="showDetail" />
+    <!-- 商品比价 -->
+    <CompareGoodsComponent :goods="goods" v-else-if="showArea === 'compareGoods'" @detailChange="showDetail" />
+    <!-- 商品比价详情 -->
+    <CompareDetailComponent :compareGoodsList="compareGoodsList" v-else-if="showArea === 'compareDetail'" />
   </div>
 </template>
 

@@ -131,7 +131,9 @@ const updateChart = () => {
       trigger: 'item',
       formatter: (params: any) => {
         if (params.data && params.data.value !== undefined) {
-          let tooltipContent = `${params.name}<br/>价格: ${params.data.value} 元/kg`;
+          // 将价格格式化为两位小数
+          const formattedPrice = Number(params.data.value).toFixed(2);
+          let tooltipContent = `${params.name}<br/>价格: ${formattedPrice} 元/kg`;
           // 如果有销量数据，添加销量信息
           if (params.data.yesterdaySales !== undefined && params.data.yesterdaySales !== null) {
             tooltipContent += `<br/>销量: ${params.data.yesterdaySales}`;

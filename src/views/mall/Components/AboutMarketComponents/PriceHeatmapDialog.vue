@@ -16,32 +16,26 @@
       </div>
     </template>
     <div class="dialog-content">
-      <ChinaMapHeatmap
-        ref="heatmapRef"
-        :data="heatmapData"
-        :title="title"
-        :min="minValue"
-        :max="maxValue"
-      />
+      <ChinaMapHeatmap ref="heatmapRef" :data="heatmapData" :title="title" :min="minValue" :max="maxValue" />
     </div>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import ChinaMapHeatmap from './ChinaMapHeatmap.vue'
+import { ref, watch, computed } from 'vue';
+import ChinaMapHeatmap from './ChinaMapHeatmap.vue';
 
 interface MapDataItem {
-  name: string
-  value: number
+  name: string;
+  value: number;
 }
 
 interface Props {
-  modelValue: boolean
-  data?: MapDataItem[]
-  title?: string
-  min?: number
-  max?: number
+  modelValue: boolean;
+  data?: MapDataItem[];
+  title?: string;
+  min?: number;
+  max?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -50,43 +44,42 @@ const props = withDefaults(defineProps<Props>(), {
   title: '区域价格差异热力图',
   min: 0,
   max: 100
-})
+});
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue', 'close']);
 
-const visible = ref(props.modelValue)
-const heatmapRef = ref<InstanceType<typeof ChinaMapHeatmap> | null>(null)
+const visible = ref(props.modelValue);
+const heatmapRef = ref<InstanceType<typeof ChinaMapHeatmap> | null>(null);
 
 // 监听 modelValue 变化
 watch(
   () => props.modelValue,
   (newVal) => {
-    visible.value = newVal
+    visible.value = newVal;
     if (newVal) {
       // 弹窗打开后，延迟更新图表以确保容器已渲染
       setTimeout(() => {
-        heatmapRef.value?.updateChart()
-      }, 300)
+        heatmapRef.value?.updateChart();
+      }, 300);
     }
   }
-)
+);
 
-// 监听 visible 变化，同步到父组件
 watch(visible, (newVal) => {
-  emit('update:modelValue', newVal)
-})
+  emit('update:modelValue', newVal);
+});
 
 // 计算属性
-const heatmapData = computed(() => props.data)
-const title = computed(() => props.title)
-const minValue = computed(() => props.min)
-const maxValue = computed(() => props.max)
+const heatmapData = computed(() => props.data);
+const title = computed(() => props.title);
+const minValue = computed(() => props.min);
+const maxValue = computed(() => props.max);
 
 // 关闭弹窗
 const handleClose = () => {
-  visible.value = false
-  emit('close')
-}
+  visible.value = false;
+  emit('close');
+};
 </script>
 
 <style scoped lang="scss">
@@ -132,4 +125,3 @@ const handleClose = () => {
   min-height: 0;
 }
 </style>
-

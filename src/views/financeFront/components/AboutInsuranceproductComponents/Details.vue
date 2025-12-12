@@ -267,11 +267,11 @@ const getArticleDetail = async () => {
 }
 
 .content-display {
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
+  // padding: 20px;
+  // background: #fff;
+  // border-radius: 4px;
   line-height: 1.8;
-  min-height: 400px;
+  // min-height: 400px;
 
   :deep(img) {
     max-width: 100%;

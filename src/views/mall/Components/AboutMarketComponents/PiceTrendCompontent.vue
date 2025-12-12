@@ -23,7 +23,7 @@
         <!-- 查询表单 -->
 
         <PriceTrendChart
-          :title="`小麦种子价格（近${activeTimeRange}日）`"
+          :title="`${seedName}价格（近${activeTimeRange}日）`"
           unit="单位: 元/kg"
           :dates="currentChartData.dates"
           :prices="currentChartData.prices"
@@ -142,7 +142,6 @@ import RegionSelect from '@/components/RegionSelect/index.vue';
 import PriceTrendChart from './PriceTrendChart.vue';
 import PriceSpecialReportDialog from './PriceSpecialReportDialog.vue';
 import { priceActionList, hotRecommendationList, priceExplanationList, heatmapList } from '@/api/mall/marketComponent';
-import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import type { ComponentInternalInstance } from 'vue';
@@ -242,7 +241,7 @@ const applyExternalFilters = async (payload: any) => {
     const categoryPath = findCategoryPath(goodsCategoryId, categoryList.value);
     queryParams.variety = categoryPath;
   } else {
-    // 如果没有分类列表数据，先设置为数组，组件可能会自动处理
+    // 如果没有分类列表数据，先设置为数组
     queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
   }
 
@@ -250,7 +249,7 @@ const applyExternalFilters = async (payload: any) => {
   regionCodes.cityCode = payload.cityCode || '';
   regionCodes.regionCode = payload.regionCode || '';
 
-  // RegionSelect 需要代码数组 [provinceCode, cityCode, regionCode]
+  // RegionSelect 需要代码数组
   const originPath: string[] = [];
   if (payload.provinceCode) originPath.push(payload.provinceCode);
   if (payload.cityCode) originPath.push(payload.cityCode);
@@ -277,7 +276,7 @@ const fetchPriceData = async () => {
       priceActionDays = 3;
     }
 
-    // 获取品种ID（取数组最后一个元素）
+    // 获取品种ID
     const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
 
     const params: any = {
@@ -289,7 +288,7 @@ const fetchPriceData = async () => {
     const response = await priceActionList(params);
     if (response && response.code === 200) {
       const data = response.data || {};
-      // 处理返回数据，转换为图表需要的格式
+      // 处理返回数据
       const dates: string[] = [];
       const prices: number[] = [];
 
@@ -374,7 +373,7 @@ const initMiniChart = () => {
 
   updateMiniChart();
 
-  // 延迟调整，确保图表正确渲染
+  // 延迟调整
   setTimeout(() => {
     miniChartInstance?.resize();
     updateMiniChart();
@@ -476,11 +475,12 @@ const changeTimeRange = (days: number) => {
   activeTimeRange.value = days;
   fetchPriceData();
 };
-
+// 种子变量
+const seedName = ref('小麦种子');
 // 品种分类变化处理
-const handleCategoryChange = (value: string[]) => {
+const handleCategoryChange = (value: string[], label: any) => {
+  seedName.value = label[label.length - 1];
   queryParams.variety = value;
-  console.log('选择的品种分类:', value);
   refreshAllData();
 };
 
@@ -514,7 +514,7 @@ const getYesterdayDate = () => {
 // 获取价格说明数据
 const fetchPriceExplanation = async () => {
   try {
-    // 获取品种ID（取数组最后一个元素）
+    // 获取品种ID
     const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
 
     const params: any = {
@@ -526,7 +526,6 @@ const fetchPriceExplanation = async () => {
     if (response && response.code === 200) {
       const data = response.data || {};
 
-      // 处理价格走势：将数字转换为文字描述
       // 1:趋于平稳、2:略有上升、3:大幅上升、4:略有下降、5:大幅下降
       let trendText = '';
       if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
@@ -552,7 +551,7 @@ const fetchPriceExplanation = async () => {
         }
       }
 
-      // 映射接口返回的数据到价格统计
+      // 接口返回的数据到价格统计
       priceStats.value = {
         todayPrice: Number(data.yesterdayPrice || 0), // 当日均价
         yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
@@ -605,7 +604,7 @@ const fetchHotRecommendation = async () => {
     const response = await hotRecommendationList(params);
     if (response && response.code === 200) {
       const data = response.data || response.rows || [];
-      // 映射接口返回的数据到表格需要的格式，保留原始字段用于弹窗
+      // 接口返回的数据到表格需要的格式
       recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
         // 格式化日期：从 "2025-11-15 00:00:00" 提取日期部分
         let time = '--';
@@ -662,28 +661,6 @@ const fetchHotRecommendation = async () => {
   }
 };
 
-// 查询
-const handleQuery = () => {
-  console.log('查询参数:', queryParams);
-  fetchPriceData();
-  fetchPriceExplanation();
-  fetchHotRecommendation();
-};
-
-// 重置
-const resetQuery = () => {
-  queryFormRef.value?.resetFields();
-  queryParams.variety = [];
-  queryParams.origin = [];
-  regionCodes.provinceCode = '';
-  regionCodes.cityCode = '';
-  regionCodes.regionCode = '';
-  activeTimeRange.value = 7;
-  fetchPriceData();
-  fetchPriceExplanation();
-  fetchHotRecommendation();
-};
-
 // 查看热力图
 const viewHeatmap = async () => {
   try {
@@ -735,33 +712,6 @@ const viewHeatmap = async () => {
     }
   } catch (error) {}
 };
-
-// 点击走势图图标，切换到价格走势页面
-// const handleTrendClick = (row: any) => {
-//   if (!row || !row.goodsCategoryId) {
-//     ElMessage.warning('数据异常，无法查看价格走势');
-//     return;
-//   }
-
-//   // 切换到价格走势标签页
-//   eventBus.emit('market:switchTab', 'second');
-
-//   // 传递筛选条件给价格走势组件
-//   const filterPayload = {
-//     goodsCategoryId: row.goodsCategoryId,
-//     provinceCode: row.provinceCode || '',
-//     cityCode: row.cityCode || '',
-//     regionCode: row.regionCode || '',
-//     provinceName: row.provinceName || '',
-//     cityName: row.cityName || '',
-//     regionName: row.regionName || ''
-//   };
-
-//   // 延迟一下确保组件已切换完成
-//   setTimeout(() => {
-//     eventBus.emit('priceTrend:applyFilters', filterPayload);
-//   }, 100);
-// };
 
 // 查看报告
 const viewReport = (row: any) => {

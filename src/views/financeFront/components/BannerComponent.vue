@@ -5,7 +5,9 @@
         <div class="banner-text flex gap-12">
           <div class="product-name">{{ tab.data?.productName || '' }}</div>
           <div class="product-remark">{{ tab.data?.productRemark || '' }}</div>
-          <el-button round type="primary" size="large" @click="handleDetail(tab)">{{ '查看' + (tab?.type === 'insurance' ? '保险产品' : '信贷产品') }}</el-button>
+          <el-button round type="primary" size="large" @click="handleDetail(tab)">{{
+            '查看' + (tab?.type === 'insurance' ? '保险产品' : '信贷产品')
+          }}</el-button>
         </div>
       </el-carousel-item>
     </el-carousel>

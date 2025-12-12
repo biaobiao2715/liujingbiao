@@ -42,9 +42,10 @@
           <el-col :span="12">
             <el-form-item label="企业性质(类型)" prop="companyType">
               <el-select v-model="formData.companyType" placeholder="请选择企业性质" style="width: 100%" :disabled="isReadOnly">
-                <el-option label="企业" value="1" />
+                <!-- <el-option label="企业" value="1" />
                 <el-option label="个体工商户" value="2" />
-                <el-option label="合作社" value="3" />
+                <el-option label="合作社" value="3" /> -->
+                <el-option v-for="item in companyTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -174,6 +175,13 @@ const props = defineProps<{
   initialData?: any; // 初始数据，用于回显
   auditStatus?: number | null; // 审核状态：0-待审核，1-审核通过，2-审核驳回
 }>();
+let companyTypeOptions = reactive([
+  { label: '企业', value: '1' },
+  { label: '个体工商户', value: '2' },
+  { label: '合作社', value: '3' }
+  // { label: '超管', value: '99' }
+]);
+const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 const emit = defineEmits<{
   (event: 'update:visible', value: boolean): void;
@@ -278,13 +286,13 @@ const rules: FormRules = {
         }
         // 长度校验：必须是18位
         if (value.length !== 18) {
-          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          callback(new Error('统一社会信用代码必须是18位的大写字母和数字组合。'));
           return;
         }
         // 格式校验：仅支持数字(0-9)和大写字母(A-Z)
         const pattern = /^[0-9A-Z]{18}$/;
         if (!pattern.test(value)) {
-          callback(new Error('统一社会信用代码必须是18位的字母和数字组合。'));
+          callback(new Error('统一社会信用代码必须是18位的大写字母和数字组合。'));
           return;
         }
         callback();
@@ -546,6 +554,15 @@ watch(
   () => [props.visible, props.initialData, props.auditStatus],
   ([visible, initialData]) => {
     if (visible) {
+      const { sys_enterprise_type } = toRefs<any>(proxy?.useDict('sys_enterprise_type'));
+      companyTypeOptions = Object.assign(
+        companyTypeOptions,
+        sys_enterprise_type.value.splice(
+          sys_enterprise_type.value.findIndex((item) => item.value === '99'),
+          1
+        )
+      );
+      console.log(companyTypeOptions);
       fillFormData(initialData);
     } else if (!visible) {
       // 弹窗关闭时，清空数据

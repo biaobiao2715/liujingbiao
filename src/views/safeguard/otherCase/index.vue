@@ -1,53 +1,49 @@
 <template>
-  <div class="container">
-    <el-card shadow="never" style="background: none; border: none">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="130">
-        <el-form-item label="其他渠道案件名称" prop="caseName">
-          <el-input v-model="queryParams.caseName" placeholder="请输入其他渠道案件名称" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createTime">
-          <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
-        </el-form-item>
-        <el-form-item label="创建人" prop="createByName">
-          <el-input v-model="queryParams.createByName" placeholder="请输入创建人" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        <el-form-item>
-          <el-button class="search-btn" type="primary" :icon="Search" @click="handleQuery">查询</el-button>
-          <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
-        </el-form-item>
-        <br />
-        <el-form-item>
-          <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
-          <el-button
-            v-throttle
-            v-hasPermi="['safeguard:otherCase:remove']"
-            :color="loading || multiple ? '#F2F3F5' : '#F23255'"
-            @click="handleDelete()"
-            >删除</el-button
-          >
-        </el-form-item>
-      </el-form>
-      <el-table v-loading="loading" :data="otherCaseList" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="55" align="center" :show-overflow-tooltip="true" />
-        <el-table-column label="其他渠道案件名称" align="center" prop="caseName" :show-overflow-tooltip="true" />
-        <el-table-column label="链接地址" align="center" prop="linkAddress" :show-overflow-tooltip="true" />
-        <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true" />
-        <el-table-column label="创建人" align="center" prop="createByName" :show-overflow-tooltip="true" />
-        <el-table-column label="操作" align="left" fixed="right" class-name="small-padding fixed-width">
-          <template #default="scope">
-            <div class="operation-buttons">
-              <el-button link class="operation-link-button" @click="handleUpdate(scope.row)">编辑</el-button>
-              <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">
-                删除
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+  <div class="legal-document-container">
+    <!-- <el-card shadow="never" style="background: none; border: none"> -->
+    <el-form ref="queryFormRef" :model="queryParams" :inline="true" :label-width="130">
+      <el-form-item label="其他渠道案件名称" prop="caseName">
+        <el-input v-model="queryParams.caseName" placeholder="请输入其他渠道案件名称" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="创建时间" prop="createTime">
+        <el-date-picker v-model="queryParams.createTime" type="datetime" placeholder="选择创建时间" value-format="YYYY-MM-DD HH:mm:ss" />
+      </el-form-item>
+      <el-form-item label="创建人" prop="createByName">
+        <el-input v-model="queryParams.createByName" placeholder="请输入创建人" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button class="search-btn" type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+        <el-button class="reset-btn" plain :icon="RefreshLeft" @click="resetQuery">重置</el-button>
+      </el-form-item>
+      <br />
+      <el-form-item>
+        <el-button class="search-btn" type="primary" icon="Plus" @click="handleAdd" v-hasPermi="['safeguard:otherCase:add']">新增</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:otherCase:remove']" :color="loading || multiple ? '#F2F3F5' : '#F23255'" @click="handleDelete()"
+          >删除</el-button
+        >
+      </el-form-item>
+    </el-form>
+    <el-table v-loading="loading" :data="otherCaseList" @selection-change="handleSelectionChange" style="width: 100%">
+      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column type="index" label="序号" width="55" align="center" :show-overflow-tooltip="true" />
+      <el-table-column label="其他渠道案件名称" align="center" prop="caseName" :show-overflow-tooltip="true" />
+      <el-table-column label="链接地址" align="center" prop="linkAddress" :show-overflow-tooltip="true" />
+      <el-table-column label="创建时间" align="center" prop="createTime" :show-overflow-tooltip="true" />
+      <el-table-column label="创建人" align="center" prop="createByName" :show-overflow-tooltip="true" />
+      <el-table-column label="操作" align="left">
+        <template #default="scope">
+          <div class="operation-buttons">
+            <el-button link class="operation-link-button" @click="handleUpdate(scope.row)">编辑</el-button>
+            <el-button link class="operation-link-button" @click="handleDelete(scope.row)" v-hasPermi="['safeguard:otherCase:remove']">
+              删除
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
-    </el-card>
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+    <!-- </el-card> -->
     <!-- 添加或修改其他渠道案件对话框 -->
     <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
       <el-form ref="otherCaseFormRef" :model="form" :rules="rules" label-width="80px">
@@ -235,8 +231,10 @@ onMounted(() => {
   border-radius: 4px !important;
 }
 
-.container {
+.legal-document-container {
   min-height: calc(100vh - 120px);
+  padding: 20px;
+  width: 100%;
 }
 // 禁用新增和删除按钮的hover变色效果
 .no-hover-effect {

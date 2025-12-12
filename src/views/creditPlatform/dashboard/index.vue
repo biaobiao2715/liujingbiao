@@ -1,3 +1,10 @@
+<!--
+  标题: index.vue
+  功能: 金融后台首页
+  说明: 金融后台首页，展示信贷平台的各项统计数据和趋势分析。
+  当前版本: 2.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
+-->
 <template>
   <div class="credit-dashboard">
     <div class="dashboard-content">

@@ -37,6 +37,7 @@ type DetailView =
   | 'demandDetail'
   | 'marketDetail'
   | 'compareGoods'
+  | 'compareDetail'
   //   专家学堂相关
   | 'expertDetail'
   | 'qaMoreList'
@@ -80,6 +81,8 @@ const TITLE_MAP: Record<Exclude<DetailView, never>, string> = {
   demandDetail: '供需详情',
   marketDetail: '行情详情',
   compareGoods: '对比商品',
+  compareDetail: '对比详情',
+
   // 专家学堂相关
   expertDetail: '专家详情',
   qaMoreList: '问答列表',

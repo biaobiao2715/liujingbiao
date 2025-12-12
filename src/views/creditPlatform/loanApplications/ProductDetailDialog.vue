@@ -115,7 +115,6 @@
 import { ref, computed, watch, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import type { UploadFile } from 'element-plus';
-import { ElMessage } from 'element-plus';
 import { getProduct } from '@/api/creditPlatform/loanApplications';
 
 const props = defineProps<{

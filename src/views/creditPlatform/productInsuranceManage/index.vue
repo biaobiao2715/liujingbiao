@@ -1,4 +1,10 @@
-<!-- 产品管理-保险列表页 -->
+<!-- 
+  标题: creditPlatform/productInsuranceManage/index.vue
+  功能: 保险产品管理
+  说明: 用于保险产品的管理，包括查询、新增、编辑、删除、上架下架等操作
+  负责人： 门世超
+  当前版本: 1.0
+   -->
 <template>
   <div class="product-insurance-manage">
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-width="auto" label-position="left">

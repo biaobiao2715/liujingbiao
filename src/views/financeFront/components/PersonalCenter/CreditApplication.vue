@@ -36,7 +36,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="applicationDate" label="申请时间" />
-        <el-table-column prop="productIntro" label="产品简介" />
+        <!-- <el-table-column prop="productIntro" label="产品简介" show-overflow-tooltip /> -->
         <!-- 操作 -->
         <el-table-column label="操作" width="100">
           <template #default="scope">

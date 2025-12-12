@@ -1,4 +1,10 @@
-<!-- 产品管理-信贷列表页 -->
+ <!-- 
+  标题: productCreditManage/index.vue
+  功能: 信贷产品管理
+  说明: 用于信贷产品的管理，包括查询、新增、编辑、删除、上架下架等操作
+  负责人： 门世超
+  当前版本: 1.0
+   -->
 <template>
   <div class="product-credit-manage">
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
@@ -145,7 +151,7 @@
 
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增产品' : dialog.type === 'edit' ? '编辑产品' : '产品详情'"
+      :title="dialog.type === 'add' ? '新增信贷产品' : dialog.type === 'edit' ? '编辑信贷产品' : '信贷产品详情'"
       width="75%"
       destroy-on-close
       :close-on-click-modal="false"
