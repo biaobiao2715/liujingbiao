@@ -1,3 +1,10 @@
+<!--
+  标题: EssayComponent.vue
+  功能: 文章专栏组件
+  说明:     
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-12
+-->
 <template>
   <div class="essay-container">
     <div class="header flex-center-between">

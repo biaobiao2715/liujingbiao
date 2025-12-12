@@ -25,6 +25,8 @@
         </el-col>
       </el-row>
     </div>
+
+    <el-empty v-if="seedHotRecommendations.length === 0 && agriculturalToolsHotRecommendations.length === 0" description="暂无热销推荐"></el-empty>
   </div>
 </template>
 
