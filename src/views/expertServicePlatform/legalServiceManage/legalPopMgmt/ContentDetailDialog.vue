@@ -6,7 +6,7 @@
 -->
 <template>
   <div class="content-detail-dialog" v-loading="loading">
-     <div class="title">{{ detailData?.contentTitle }}</div>
+    <div class="title">{{ detailData?.contentTitle }}</div>
     <div class="article-meta">
       <div class="meta-left">
         <div class="author-info">
@@ -63,7 +63,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -102,7 +101,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 const fetchContentDetail = async () => {
@@ -110,31 +109,25 @@ const fetchContentDetail = async () => {
     ElMessage.error('缺少内容ID');
     return;
   }
-  
   loading.value = true;
   try {
     const response: any = await getContentDetail(props.id as number);
-    
     if (response && response.code === 200) {
       const data = response.data;
-      
       if (!data) {
         ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
-      
       let statusText = '未知';
       if (data.contentStatus === '3' || data.contentStatus === 3) {
         statusText = '启用';
       } else if (data.contentStatus === '2' || data.contentStatus === 2) {
         statusText = '禁用';
       }
-      
       // 处理附件列表，格式化文件大小等信息
       const sysList = Array.isArray(data.sysOssLists) ? data.sysOssLists : [];
       const voList = Array.isArray(data.ossVoList) ? data.ossVoList : [];
       const list = sysList.length > 0 ? sysList : voList;
-      
       const attachments = list.map((item: any) => {
         const ossId = item.ossId || item.id || item.ossID;
         const url = item.url || '';
@@ -163,7 +156,6 @@ const fetchContentDetail = async () => {
           fileSize: fileSizeText
         };
       });
-      
       detailData.value = {
         id: data.id,
         contentNo: data.contentNo || '',
@@ -196,14 +188,12 @@ const handleDownload = async (file: any) => {
       (proxy as any)?.$download?.oss(String(file.ossId));
       return;
     }
-    
     // 如果没有 ossId，但有 url，则直接下载
     if (file.url) {
       const fileName = file.originalName || file.fileName || '附件';
       downloadFileByUrl(file.url, fileName);
       return;
     }
-    
     // 如果既没有 ossId 也没有 url，提示用户
     ElMessage.warning('附件链接不存在，无法下载');
   } catch (error) {
@@ -216,10 +206,10 @@ const getFileTypeText = (row: any): string => {
   const name: string = row?.originalName || row?.fileName || '';
   const suffix: string = (row?.fileSuffix || '').toString().toLowerCase();
   const ext = (name.split('.').pop() || suffix.replace('.', '') || '').toLowerCase();
-  const img = ['jpg','jpeg','png','gif','bmp','webp','svg'];
-  const video = ['mp4','mov','avi','mkv','wmv','flv'];
-  const audio = ['mp3','wav','aac','flac','ogg'];
-  const doc = ['pdf','ppt','pptx','doc','docx','xls','xlsx','txt'];
+  const img = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+  const video = ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv'];
+  const audio = ['mp3', 'wav', 'aac', 'flac', 'ogg'];
+  const doc = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
   if (img.includes(ext)) return '图片';
   if (video.includes(ext)) return '视频';
   if (audio.includes(ext)) return '音频';
@@ -250,47 +240,39 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  
   .meta-left {
     display: flex;
     align-items: center;
     gap: 24px;
-    
     .author-info {
       display: flex;
       align-items: center;
       gap: 12px;
-      
       .author-name {
         font-size: 16px;
         font-weight: 600;
         color: #303133;
       }
     }
-    
     .publish-time {
       font-size: 14px;
       color: #909399;
     }
   }
-  
   .meta-right {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    
     .stats {
       display: flex;
       gap: 16px;
-      
       .stat-item {
         display: flex;
         align-items: center;
         gap: 4px;
         font-size: 14px;
         color: #606266;
-        
         .el-icon {
           font-size: 16px;
         }
@@ -304,24 +286,20 @@ onMounted(() => {
     display: flex;
     margin-bottom: 20px;
     line-height: 1.8;
-    
     &.content-row {
       flex-direction: column;
     }
-    
     .detail-label {
       min-width: 100px;
       font-weight: 600;
       color: #606266;
       flex-shrink: 0;
     }
-    
     .detail-value {
       flex: 1;
       color: #303133;
       word-break: break-all;
     }
-    
     .detail-content {
       margin-top: 8px;
       padding: 16px;
@@ -330,13 +308,11 @@ onMounted(() => {
       min-height: 200px;
       color: #303133;
       line-height: 1.8;
-      
       :deep(img) {
         max-width: 100%;
         height: auto;
       }
     }
-    
     .attachments-list {
       flex: 1;
       margin-top: 8px;
@@ -349,22 +325,18 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-    
     .meta-left {
       flex-direction: column;
       align-items: flex-start;
       gap: 8px;
     }
-    
     .meta-right {
       align-items: flex-start;
     }
   }
-  
   .content-details {
     .detail-row {
       flex-direction: column;
-      
       .detail-label {
         margin-bottom: 4px;
       }
@@ -372,4 +344,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -10,24 +10,13 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="普法标题" prop="contentTitle" required>
-            <el-input 
-              v-model="formData.contentTitle" 
-              placeholder="请输入标题内容" 
-              maxlength="30"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.contentTitle" placeholder="请输入标题内容" maxlength="30" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="发布状态" prop="contentStatus" required>
             <el-select v-model="formData.contentStatus" placeholder="请选择" style="width: 100%" clearable>
-              <el-option 
-                v-for="item in legal_popularize_status" 
-                :key="item.value" 
-                :label="item.label" 
-                :value="item.value" 
-              />
+              <el-option v-for="item in legal_popularize_status" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -36,26 +25,13 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="普法简介" prop="contentSummary" required>
-            <el-input 
-              v-model="formData.contentSummary" 
-              type="textarea" 
-              :rows="3" 
-              placeholder="请输入简介"
-              maxlength="60"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.contentSummary" type="textarea" :rows="3" placeholder="请输入简介" maxlength="60" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="普法类别" prop="contentType" required>
             <el-select v-model="formData.contentType" placeholder="请选择" style="width: 100%" clearable>
-              <el-option 
-                v-for="item in legal_popularize_type" 
-                :key="item.value" 
-                :label="item.label" 
-                :value="item.value" 
-              />
+              <el-option v-for="item in legal_popularize_type" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -64,15 +40,8 @@
       <el-form-item label="正文编辑" prop="contentContent" required>
         <div class="editor-container">
           <div class="editor-wrapper">
-            <Editor 
-              v-model="formData.contentContent" 
-              :height="500" 
-              :minHeight="500" 
-              :fileSize="10"
-              :key="editorKey"
-            />
+            <Editor v-model="formData.contentContent" :height="500" :minHeight="500" :fileSize="10" :key="editorKey" />
           </div>
-          
           <TocSidebar
             :content="formData.contentContent"
             editor-container=".w-e-text-container"
@@ -146,12 +115,8 @@
 import { ref, onMounted, getCurrentInstance, toRefs, watch, nextTick } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox, type UploadRequestHandler, type UploadRawFile } from 'element-plus';
-import { Upload, View, Delete, Document, Download } from '@element-plus/icons-vue';
-import { 
-  getContentDetail, 
-  addContent,
-  editContent
-} from '@/api/expertServicePlatform/legalServiceManage/contentManage';
+import { Upload, Delete, Download } from '@element-plus/icons-vue';
+import { getContentDetail, addContent, editContent } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
@@ -168,9 +133,7 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_type, legal_popularize_status } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status')
-);
+const { legal_popularize_type, legal_popularize_status } = toRefs<any>((proxy as any)?.useDict('legal_popularize_type', 'legal_popularize_status'));
 
 const formRef = ref();
 const saving = ref(false);
@@ -186,15 +149,17 @@ const formData = ref({
   contentContent: ''
 });
 
-const attachmentList = ref<Array<{
-  ossId?: number | string;
-  fileName: string;
-  originalName: string;
-  fileSuffix: string;
-  url: string;
-  fileSize?: string;
-  uid?: string;
-}>>([]);
+const attachmentList = ref<
+  Array<{
+    ossId?: number | string;
+    fileName: string;
+    originalName: string;
+    fileSuffix: string;
+    url: string;
+    fileSize?: string;
+    uid?: string;
+  }>
+>([]);
 
 const tocSidebarRef = ref();
 
@@ -203,16 +168,12 @@ const rules = {
     { required: true, message: '请输入普法标题', trigger: 'blur' },
     { min: 2, max: 30, message: '标题长度在 2 到 30 个字符', trigger: 'blur' }
   ],
-  contentStatus: [
-    { required: true, message: '请选择发布状态', trigger: 'change' }
-  ],
+  contentStatus: [{ required: true, message: '请选择发布状态', trigger: 'change' }],
   contentSummary: [
     { required: true, message: '请输入普法简介', trigger: 'blur' },
     { min: 5, max: 60, message: '简介长度在 5 到 60 个字符', trigger: 'blur' }
   ],
-  contentType: [
-    { required: true, message: '请选择普法类别', trigger: 'change' }
-  ],
+  contentType: [{ required: true, message: '请选择普法类别', trigger: 'change' }],
   contentContent: [
     { required: true, message: '请输入文章内容', trigger: 'blur' },
     { min: 10, message: '内容至少 10 个字符', trigger: 'blur' }
@@ -221,24 +182,19 @@ const rules = {
 
 const fetchContentDetail = async () => {
   if (!props.id) return;
-  
   loading.value = true;
   try {
     const response: any = await getContentDetail(props.id as number);
-    
     if (response && response.code === 200) {
       const data = response.data;
-      
       if (!data) {
         ElMessage.error('获取内容详情失败：数据为空');
         return;
       }
-      
       let contentContent = data.contentContent || '';
       if (!contentContent || (typeof contentContent === 'string' && contentContent.trim() === '')) {
         contentContent = '';
       }
-      
       formData.value = {
         id: data.id,
         contentTitle: data.contentTitle || '',
@@ -251,7 +207,6 @@ const fetchContentDetail = async () => {
       editorKey.value += 1;
       await nextTick();
       await nextTick();
-      
       // 优先兼容后端返回的 sysOssLists，其次兼容旧的 ossVoList
       const sysList = Array.isArray(data.sysOssLists) ? data.sysOssLists : [];
       const voList = Array.isArray(data.ossVoList) ? data.ossVoList : [];
@@ -302,30 +257,22 @@ const fetchContentDetail = async () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
-    
     const contentContent = formData.value.contentContent || '';
     const textContent = contentContent.replace(/<[^>]*>/g, '').trim();
     if (!textContent || textContent === '') {
       ElMessage.warning('请输入正文内容');
       return;
     }
-    
-    const confirmMsg = props.type === 'add' 
-      ? '确定要发布此普法内容吗？发布后用户将可以看到此内容。'
-      : '确定要保存并发布此普法内容吗？';
-    
+    const confirmMsg = props.type === 'add' ? '确定要发布此普法内容吗？发布后用户将可以看到此内容。' : '确定要保存并发布此普法内容吗？';
     await ElMessageBox.confirm(confirmMsg, '系统提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning',
+      type: 'warning'
     });
-    
     saving.value = true;
-    
     // 获取本地时间
     const now = new Date();
     const year = now.getFullYear();
@@ -335,7 +282,6 @@ const handleSubmit = async () => {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
     const currentTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    
     const submitData = {
       ...(props.type === 'edit' ? { id: formData.value.id } : {}),
       contentTitle: formData.value.contentTitle,
@@ -346,13 +292,10 @@ const handleSubmit = async () => {
       publishTime: currentTime,
       ossVoList: attachmentList.value
     };
-    
     console.log('提交数据:', submitData);
     console.log('contentStatus:', formData.value.contentStatus, 'publishTime:', currentTime);
-    
     const api = props.type === 'add' ? addContent : editContent;
     const response: any = await api(submitData);
-    
     if (response && response.code === 200) {
       ElMessage.success(props.type === 'add' ? '普法内容发布成功' : '普法内容修改成功');
       emit('success');
@@ -384,20 +327,6 @@ const handleContentUpdate = (updatedContent: string) => {
   formData.value.contentContent = updatedContent;
 };
 
-const scrollToHeading = (id: string) => {
-  try {
-    const editor = document.querySelector('.w-e-text-container');
-    if (editor) {
-      const el = editor.querySelector(`#${id}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  } catch (error) {
-    // ignore
-  }
-};
-
 const MB = 1024 * 1024;
 
 const formatFileSize = (bytes: number): string => {
@@ -405,7 +334,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 const validateFile = (file: File): boolean => {
@@ -424,7 +353,6 @@ const validateFile = (file: File): boolean => {
     ElMessage.error(imageExt.includes(ext) ? '图片文件最大10MB' : '文档文件最大100MB');
     return false;
   }
-  
   return true;
 };
 
@@ -483,10 +411,6 @@ const handleAttachmentUpload: UploadRequestHandler = async (options) => {
   }
 };
 
-const handlePreviewFile = async (file: any) => {
-  // 兼容旧逻辑：预览已替换为“重新上传”，此函数保留为空实现
-};
-
 const handleReuploadFile = async (row: any) => {
   const input = document.createElement('input');
   input.type = 'file';
@@ -498,9 +422,7 @@ const handleReuploadFile = async (row: any) => {
     try {
       const newItem = await uploadAttachmentFile(file, { uid: row.uid });
       const idx = attachmentList.value.findIndex(
-        (it: any) =>
-          (it.uid && row.uid && it.uid === row.uid) ||
-          (it.ossId && row.ossId && String(it.ossId) === String(row.ossId))
+        (it: any) => (it.uid && row.uid && it.uid === row.uid) || (it.ossId && row.ossId && String(it.ossId) === String(row.ossId))
       );
       if (idx !== -1) {
         attachmentList.value.splice(idx, 1, newItem);
@@ -520,12 +442,10 @@ const handleRemoveFile = (file: any) => {
   ElMessageBox.confirm('确定要删除该附件吗？', '删除确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
-    type: 'warning',
+    type: 'warning'
   })
     .then(() => {
-      const index = attachmentList.value.findIndex(
-        (item) => item.uid === file.uid || item.ossId === file.ossId
-      );
+      const index = attachmentList.value.findIndex((item) => item.uid === file.uid || item.ossId === file.ossId);
       if (index !== -1) {
         attachmentList.value.splice(index, 1);
         ElMessage.success('附件删除成功');
@@ -536,20 +456,15 @@ const handleRemoveFile = (file: any) => {
 
 const handleDownloadFile = async (file: any) => {
   try {
-    // 优先使用 ossId 通过后端接口下载
     if (file.ossId) {
       (proxy as any)?.$download?.oss(String(file.ossId));
       return;
     }
-    
-    // 如果没有 ossId，但有 url，则直接下载
     if (file.url) {
       const fileName = file.originalName || file.fileName || '附件';
       downloadFileByUrl(file.url, fileName);
       return;
     }
-    
-    // 如果既没有 ossId 也没有 url，提示用户
     ElMessage.warning('附件链接不存在，无法下载');
   } catch (error) {
     console.error('下载失败:', error);
@@ -561,10 +476,10 @@ const getFileTypeText = (row: any): string => {
   const name: string = row?.originalName || row?.fileName || '';
   const suffix: string = (row?.fileSuffix || '').toString().toLowerCase();
   const ext = (name.split('.').pop() || suffix.replace('.', '') || '').toLowerCase();
-  const img = ['jpg','jpeg','png','gif','bmp','webp','svg'];
-  const video = ['mp4','mov','avi','mkv','wmv','flv'];
-  const audio = ['mp3','wav','aac','flac','ogg'];
-  const doc = ['pdf','ppt','pptx','doc','docx','xls','xlsx','txt'];
+  const img = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+  const video = ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv'];
+  const audio = ['mp3', 'wav', 'aac', 'flac', 'ogg'];
+  const doc = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
   if (img.includes(ext)) return '图片';
   if (video.includes(ext)) return '视频';
   if (audio.includes(ext)) return '音频';
@@ -620,19 +535,16 @@ onMounted(() => {
   min-width: 0;
   background: #ffffff;
   border-right: 1px solid #dcdfe6;
-  
   :deep(.ql-toolbar) {
     border: none !important;
     border-bottom: 1px solid #dcdfe6 !important;
     border-radius: 0;
     background-color: #fafafa;
   }
-  
   :deep(.ql-container) {
     border: none !important;
     border-radius: 0;
   }
-  
   :deep(.ql-editor) {
     min-height: 450px;
   }
@@ -644,7 +556,6 @@ onMounted(() => {
   background: #f5f5f5;
   display: flex;
   flex-direction: column;
-  
   .toc-header {
     padding: 16px 20px;
     font-size: 14px;
@@ -654,35 +565,28 @@ onMounted(() => {
     border-bottom: 1px solid #dcdfe6;
     text-align: center;
   }
-  
   .toc-content {
     flex: 1;
     overflow-y: auto;
     max-height: 500px;
     padding: 16px;
-    
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
     &::-webkit-scrollbar-thumb {
       background-color: #c0c4cc;
       border-radius: 3px;
-      
       &:hover {
         background-color: #909399;
       }
     }
-    
     &::-webkit-scrollbar-track {
       background-color: #e4e7ed;
     }
   }
-  
   .toc-list {
     max-height: none;
   }
-  
   .toc-item {
     padding: 8px 10px;
     margin-bottom: 4px;
@@ -693,41 +597,34 @@ onMounted(() => {
     font-size: 13px;
     line-height: 1.5;
     position: relative;
-    
     &:hover {
       background-color: #e4e7ed;
       color: #409eff;
     }
-    
     &:active {
       background-color: #d9dcdf;
     }
-    
     .toc-text {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
     &.toc-level-1 {
       font-weight: 600;
       font-size: 13px;
       color: #303133;
       padding-left: 10px;
     }
-    
     &.toc-level-2 {
       padding-left: 20px;
       font-size: 12px;
     }
-    
     &.toc-level-3 {
       padding-left: 30px;
       font-size: 12px;
       color: #909399;
     }
-    
     &.toc-level-4,
     &.toc-level-5,
     &.toc-level-6 {
@@ -736,24 +633,20 @@ onMounted(() => {
       color: #a8abb2;
     }
   }
-  
   .toc-empty {
     text-align: center;
     padding: 60px 20px;
     color: #909399;
-    
     .empty-icon {
       font-size: 36px;
       color: #c0c4cc;
       margin-bottom: 12px;
     }
-    
     .empty-text {
       font-size: 13px;
       color: #909399;
       margin: 8px 0 4px;
     }
-    
     .empty-tip {
       font-size: 11px;
       color: #c0c4cc;
@@ -771,7 +664,6 @@ onMounted(() => {
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;
   gap: 12px;
-  
   .el-button {
     min-width: 100px;
   }
@@ -783,7 +675,6 @@ onMounted(() => {
   background-color: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e4e7ed;
-  
   .attachment-title {
     font-size: 16px;
     font-weight: 600;
@@ -791,7 +682,6 @@ onMounted(() => {
     margin-bottom: 16px;
     position: relative;
     padding-left: 12px;
-    
     &::before {
       content: '';
       position: absolute;
@@ -804,20 +694,16 @@ onMounted(() => {
       border-radius: 2px;
     }
   }
-  
   .upload-tip {
     font-size: 12px;
     color: #909399;
     margin-top: 8px;
     line-height: 1.6;
   }
-  
   .attachment-table {
     margin-top: 20px;
-    
     :deep(.el-button) {
       padding: 4px 8px;
-      
       .el-icon {
         margin-right: 4px;
       }
@@ -829,23 +715,19 @@ onMounted(() => {
   .editor-container {
     flex-direction: column;
   }
-  
   .toc-sidebar {
     width: 100%;
     min-width: 100%;
     max-height: 300px;
-    
     .toc-list {
       max-height: 200px;
     }
   }
-  
   .form-actions {
     .el-button {
       width: 100%;
     }
   }
-  
   .attachment-section {
     .attachment-table {
       :deep(.el-table__body-wrapper) {
@@ -861,10 +743,8 @@ onMounted(() => {
     min-width: 200px;
     padding: 16px;
   }
-  
   .editor-container {
     gap: 16px;
   }
 }
 </style>
-

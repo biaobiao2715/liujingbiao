@@ -9,7 +9,7 @@
 <template>
   <div class="content-management">
     <!-- 搜索条件 -->
-    <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
+    <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="普法标题" prop="title" label-width="auto">
         <el-input v-model="queryParams.title" placeholder="请输入普法标题" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -49,7 +49,7 @@
     </el-row>
 
     <!-- 表格 -->
-    <el-table :data="tableData" v-loading="loading" @selection-change="handleSelectionChange">
+    <el-table :data="tableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="55" align="center" />
 
       <el-table-column label="发布时间" align="center" prop="publishTime" min-width="160">
@@ -216,9 +216,6 @@ const total = ref(0);
 const loading = ref(false);
 const queryFormRef = ref();
 const dateRange = ref(['', '']);
-const showSearch = ref(true);
-const selectedIds = ref([]);
-const selectedRows = ref([]);
 
 const dialog = ref({
   visible: false,
@@ -278,11 +275,6 @@ const getList = () => {
     });
 };
 
-const handleSearch = () => {
-  queryParams.value.pageNum = 1;
-  getList();
-};
-
 const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
@@ -313,11 +305,6 @@ const handlePageSizeChange = (size: number) => {
   getList();
 };
 
-const handleSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item) => Number(item.id));
-  selectedRows.value = selection;
-};
-
 const getDialogTitle = () => {
   const map: Record<string, string> = {
     'add': '新增普法内容',
@@ -333,137 +320,6 @@ const openDialog = (type: 'add' | 'edit' | 'view', id?: string | number) => {
 
 const handleAdd = () => {
   openDialog('add');
-};
-
-const handleEnable = () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要启用的内容');
-    return;
-  }
-
-  const invalidRows = selectedRows.value.filter((row: any) => {
-    const status = row.contentStatus || row.status;
-    return status === '2' || status === '启用' || status === 2;
-  });
-
-  if (invalidRows.length > 0) {
-    ElMessage.warning('所选内容中包含已启用的内容，无法重复启用');
-    return;
-  }
-
-  ElMessageBox.confirm('是否确认启用？', '操作确认', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(() => {
-      const idsToEnable = selectedIds.value.map((id) => Number(id));
-      const enableData = {
-        contentTitle: 'batch_enable',
-        contentType: 'batch',
-        contentSummary: 'batch_operation',
-        ids: idsToEnable,
-        contentStatus: '2'
-      };
-
-      editContent(enableData)
-        .then((response: any) => {
-          if (response.code === 200) {
-            ElMessage.success(`成功启用 ${selectedIds.value.length} 条内容`);
-            getList();
-            selectedIds.value = [];
-            selectedRows.value = [];
-          } else {
-            ElMessage.error(response.msg || '启用操作失败');
-          }
-        })
-        .catch(() => {
-          ElMessage.error('启用操作失败，请稍后重试');
-        });
-    })
-    .catch(() => {});
-};
-
-const handleDisable = () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要禁用的内容');
-    return;
-  }
-
-  const invalidRows = selectedRows.value.filter((row: any) => {
-    const status = row.contentStatus || row.status;
-    return status === '3' || status === '禁用' || status === 3;
-  });
-
-  if (invalidRows.length > 0) {
-    ElMessage.warning('所选内容中包含已禁用的内容，无法重复禁用');
-    return;
-  }
-
-  ElMessageBox.confirm('是否确认禁用？', '操作确认', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(() => {
-      const idsToDisable = selectedIds.value.map((id) => Number(id));
-      const disableData = {
-        contentTitle: 'batch_disable',
-        contentType: 'batch',
-        contentSummary: 'batch_operation',
-        ids: idsToDisable,
-        contentStatus: '3'
-      };
-
-      editContent(disableData)
-        .then((response: any) => {
-          if (response.code === 200) {
-            ElMessage.success(`成功禁用 ${selectedIds.value.length} 条内容`);
-            getList();
-            selectedIds.value = [];
-            selectedRows.value = [];
-          } else {
-            ElMessage.error(response.msg || '禁用操作失败');
-          }
-        })
-        .catch(() => {
-          ElMessage.error('禁用操作失败，请稍后重试');
-        });
-    })
-    .catch(() => {});
-};
-
-const handleDelete = async () => {
-  if (selectedIds.value.length === 0) {
-    ElMessage.warning('请先选择要删除的内容');
-    return;
-  }
-
-  const hasEnabledItems = selectedRows.value.some((row) => row.status === '启用');
-  if (hasEnabledItems) {
-    ElMessage.warning('只能删除已禁用的内容，请先禁用后再删除');
-    return;
-  }
-
-  try {
-    await ElMessageBox.confirm('是否确认删除？删除后将无法恢复！', '操作确认', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-
-    const idsToDelete = selectedIds.value.map((id) => Number(id));
-    await deleteContent(idsToDelete);
-
-    ElMessage.success(`成功删除 ${selectedIds.value.length} 条内容`);
-    getList();
-    selectedIds.value = [];
-    selectedRows.value = [];
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败，请稍后重试');
-    }
-  }
 };
 
 const handleEdit = (row: any) => {

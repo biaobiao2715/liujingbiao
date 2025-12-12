@@ -31,7 +31,6 @@
             editor-container=".case-content-area"
             :auto-scroll="true"
             @toc-click="handleTocClick"
-            @active-change="handleActiveChange"
             ref="tocSidebarRef"
           />
         </div>
@@ -214,10 +213,6 @@ const handleTocClick = (item: any) => {
       }
     }
   }
-};
-
-const handleActiveChange = (_id: string) => {
-  // 激活项变化，按需扩展
 };
 
 // 监听内容区域滚动，更新目录激活状态
