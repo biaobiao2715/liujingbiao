@@ -5,7 +5,11 @@
     <!-- 查询表单 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
       <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 200px" />
+        <GoodsCategorySelect 
+          v-model="normalizedVariety"
+          @categoryChange="handleCategoryChange" 
+          style="width: 200px" 
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -49,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch, nextTick, computed, onErrorCaptured } from 'vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import { todayTrendList } from '@/api/mall/marketComponent';
 import { eventBus } from '@/utils/eventBus';
@@ -77,26 +81,79 @@ const queryParams = reactive({
   analysisDate: getYesterdayDate()
 });
 
+// 规范化品种值，确保始终是数组
+const normalizedVariety = computed({
+  get: () => {
+    return Array.isArray(queryParams.variety) ? queryParams.variety : [];
+  },
+  set: (val: any) => {
+    queryParams.variety = Array.isArray(val) ? val : [];
+  }
+});
+
+// 捕获子组件错误
+onErrorCaptured((err: any, instance, info) => {
+  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
+  if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
+    console.warn('品种选择器清空时的错误已捕获:', err.message);
+    // 确保值被重置
+    nextTick(() => {
+      normalizedVariety.value = [];
+    });
+    return false; // 阻止错误继续传播
+  }
+  return true; // 其他错误正常传播
+});
+
 // 表格数据
 const tableData = ref<any[]>([]);
 const total = ref(0);
 
 // 查询
 const handleQuery = () => {
+  // 规范化品种参数：确保是数组，并过滤掉空值
+  const varietyArray = normalizedVariety.value;
+  normalizedVariety.value = varietyArray.filter((item: any) => {
+    const str = String(item || '').trim();
+    return str !== '' && str !== 'null' && str !== 'undefined';
+  });
+  // 强制重置页码
   queryParams.pageNum = 1;
   getList();
 };
 
 // 品种分类变化处理
-const handleCategoryChange = (value: string[]) => {
-  queryParams.variety = value;
-  console.log('选择的品种分类:', value);
+const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
+  try {
+    // 处理 undefined、null 或非数组的情况
+    if (!value || !Array.isArray(value)) {
+      normalizedVariety.value = [];
+      return;
+    }
+    
+    // 过滤掉空值、null、undefined
+    const filteredValue = value.filter((item: any) => {
+      if (item === null || item === undefined) {
+        return false;
+      }
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    
+    normalizedVariety.value = filteredValue;
+    console.log('选择的品种分类:', filteredValue);
+  } catch (error) {
+    // 捕获可能的错误，确保不会影响其他功能
+    console.error('处理品种分类变化时出错:', error);
+    normalizedVariety.value = [];
+  }
 };
 
 // 重置
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
-  queryParams.variety = [];
+  // 强制清空品种参数
+  normalizedVariety.value = [];
   queryParams.pageNum = 1;
   queryParams.analysisDate = getYesterdayDate();
   getList();
@@ -106,15 +163,35 @@ const resetQuery = () => {
 const getList = async () => {
   loading.value = true;
   try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 使用 normalizedVariety 确保值始终是数组
+    const varietyArray = normalizedVariety.value;
+    
+    // 过滤掉空值、null、undefined
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    
+    // 获取品种ID（取数组最后一个有效元素）
+    let goodsCategoryId = '';
+    if (filteredVariety.length > 0) {
+      const lastItem = String(filteredVariety[filteredVariety.length - 1]).trim();
+      // 再次验证，确保不是空字符串
+      if (lastItem && lastItem !== '' && lastItem !== 'null' && lastItem !== 'undefined') {
+        goodsCategoryId = lastItem;
+      }
+    }
 
     const params: any = {
-      goodsCategoryId: goodsCategoryId || '',
       pageNum: queryParams.pageNum,
       pageSize: queryParams.pageSize,
       analysisDate: queryParams.analysisDate
     };
+    
+    // 只有当 goodsCategoryId 有有效值时才添加到参数中
+    if (goodsCategoryId) {
+      params.goodsCategoryId = goodsCategoryId;
+    }
 
     const response = await todayTrendList(params);
     if (response && response.code === 200) {
@@ -218,6 +295,18 @@ const handleTrendClick = (row: any) => {
     eventBus.emit('priceTrend:applyFilters', filterPayload);
   }, 100);
 };
+
+// 监听品种参数变化，确保清空时正确同步
+watch(
+  () => queryParams.variety,
+  (newVal) => {
+    // 如果值不是数组，强制设为空数组
+    if (!Array.isArray(newVal)) {
+      queryParams.variety = [];
+    }
+  },
+  { deep: true }
+);
 
 // 页面加载时获取数据
 onMounted(() => {

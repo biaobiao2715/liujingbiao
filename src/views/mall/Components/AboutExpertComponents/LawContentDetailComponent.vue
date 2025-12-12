@@ -44,7 +44,11 @@
       <div class="attachment-title">附件</div>
       <el-table :data="detail?.sysOssLists">
         <el-table-column prop="fileSuffix" label="附件类型" />
-        <el-table-column prop="originalName" label="附件名称" />
+        <el-table-column prop="originalName" label="附件名称">
+          <template #default="scope">
+            <span class="attachment-name">{{ scope.row.originalName }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="size" label="附件大小">
           <template #default="scope">
             {{ formatFileSize(JSON.parse(scope.row.ext1)?.fileSize || 0) }}
@@ -61,7 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
 import { getContentDetail } from '@/api/expertServicePlatform/legalServiceManage/contentManage';
 import { addViewRecords, addDownloadRecords } from '@/api/mall/expert';
 import { formatFileSize } from '@/utils/fileUtils';
@@ -262,6 +267,9 @@ const handleCollection = async () => {
         top: 50%;
         transform: translateY(-50%);
       }
+    }
+    .attachment-name {
+      color: #108c58;
     }
   }
 }
