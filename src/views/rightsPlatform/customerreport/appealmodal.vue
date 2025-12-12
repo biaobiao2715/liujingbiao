@@ -381,6 +381,7 @@ const attachmentList = ref<
     url: string;
     fileSize?: string;
     uid?: string;
+    fileType: string;
   }>
 >([]);
 const reuploadInputRef = ref<HTMLInputElement>(); // 重新上传的input引用
@@ -667,7 +668,8 @@ const handleSubmit = async () => {
         fileName: item.fileName,
         originalName: item.originalName,
         fileSuffix: item.fileSuffix,
-        url: item.url
+        url: item.url,
+        fileType: item.fileType
       }))
     };
     console.log('submitData提交的数据', submitData);
@@ -821,7 +823,7 @@ const handleFileChange = async (file: any) => {
   const isImage = ['jpg', 'jpeg', 'png'].includes(fileExtension) || ['image/jpeg', 'image/png', 'image/jpg'].includes(fileMimeType);
 
   const isVideo = ['mp4', 'mov', 'avi'].includes(fileExtension) || ['video/mp4', 'video/quicktime', 'video/x-msvideo'].includes(fileMimeType);
-
+  const fileType = file.raw.type?.includes('image') ? '0' : '1';
   if (isImage && currentImageCount.value >= 6) {
     ElMessage.warning('最多只能上传6张图片');
     return;
@@ -851,7 +853,8 @@ const handleFileChange = async (file: any) => {
       fileSuffix: file.raw.type,
       url: response.url,
       fileSize: formatFileSize(file.raw.size),
-      uid: file.uid
+      uid: file.uid,
+      fileType
     });
     ElMessage.success('附件上传成功');
   } catch (error) {
