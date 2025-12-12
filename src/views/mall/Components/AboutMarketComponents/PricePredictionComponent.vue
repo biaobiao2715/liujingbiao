@@ -46,6 +46,7 @@
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
             <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
+            <!-- <p>1. {{ marketAnalysis.overallTrend || '暂无数据' }}</p> -->
             <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
             <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion }}</p>
           </div>
@@ -91,7 +92,7 @@ import { ref, reactive, onMounted, computed, onErrorCaptured, nextTick, watch } 
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PricePredictionChart from './PricePredictionChart.vue';
-import { pricePredictionList,fileAnalysis } from '@/api/mall/marketComponent';
+import { pricePredictionList, fileAnalysis } from '@/api/mall/marketComponent';
 import historicalLineIcon from '@/assets/images/marketConditions/gw.png';
 import historicalMaxIcon from '@/assets/images/marketConditions/gwMax.png';
 import historicalMinIcon from '@/assets/images/marketConditions/gwMin.png';
@@ -320,7 +321,6 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
     if (labels && Array.isArray(labels) && labels.length > 0) {
       seedName.value = labels[labels.length - 1];
     } else if (filteredValue.length > 0) {
-      // 如果没有 labels，保持当前名称或使用默认值
       seedName.value = seedName.value || '小麦种子';
     } else {
       seedName.value = '小麦种子';
@@ -328,13 +328,10 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
 
     fetchPricePrediction();
   } catch (error) {
-    // 捕获可能的错误，确保不会影响其他功能
-    console.error('处理品种分类变化时出错:', error);
     normalizedVariety.value = [];
     seedName.value = '小麦种子';
     fetchPricePrediction();
   } finally {
-    // 延迟重置标志，确保 watch 能正确判断
     nextTick(() => {
       isHandlingCategoryChange.value = false;
     });
@@ -415,7 +412,7 @@ const fetchPricePrediction = async () => {
       goodsCategoryId: goodsCategoryId || ''
     };
 
-      const response = await pricePredictionList(params);
+    const response = await pricePredictionList(params);
     if (response && response.code === 200) {
       const data = response.data || {};
       const historicalData = data.historicalData || {};
@@ -579,7 +576,15 @@ const fetchPricePrediction = async () => {
       });
 
       const seedText = seedName.value || '种子';
-      const extractPrompt = `你是一名农业市场分析师，需要基于提供的${seedText}月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（${histRange}）：\n  时间序列：${JSON.stringify(histMonths)}\n  价格序列：${JSON.stringify(histPrices)}\n  预测数据（${predRange}）：\n  价格预测：${JSON.stringify(predictedMap)}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来12个月的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析并给出不超过50字总结。开头可参考示例（如\"整体趋势：未来12个月，${seedText}价格预计趋于平稳...\"），确保语言专业、清晰，并基于数据支持结论。`;
+      const timeRangeToMonths: Record<string, number> = {
+        '1': 1,
+        '3': 3,
+        '6': 6,
+        '12': 12
+      };
+      const futureMonthsCount = timeRangeToMonths[queryParams.timeRange] || validPredPairs.length || predictedPairs.length || 12;
+      const futureMonthsLabel = `${futureMonthsCount}个月`;
+      const extractPrompt = `你是一名农业市场分析师，需要基于提供的${seedText}月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（${histRange}）：\n  时间序列：${JSON.stringify(histMonths)}\n  价格序列：${JSON.stringify(histPrices)}\n  预测数据（${predRange}）：\n  价格预测：${JSON.stringify(predictedMap)}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来${futureMonthsLabel}的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析,不超过50字。开头可参考示例（如\"整体趋势：未来${futureMonthsLabel}，${seedText}价格预计趋于平稳...\"），确保语言专业、清晰，并基于数据支持结论。`;
 
       // 调用文件分析接口，获取插件输出的 info（需产地、品种、时间范围均选择）
       let fileAnalysisInfo = '';
@@ -590,26 +595,14 @@ const fetchPricePrediction = async () => {
         fileAnalysisInfo = await fetchFileAnalysis(extractPrompt);
       }
 
-      // 市场分析数据（
-     
-      const pluginInfo =
-        fileAnalysisInfo ||
-        data?.pluginOutput?.info ||
-        data?.responseData?.[2]?.pluginOutput?.info ||
-        data?.responseData?.[0]?.pluginOutput?.info;
-
-     
-      console.log('价格预测接口返回数据:', {
-        pluginOutput: data?.pluginOutput,
-        responseData: data?.responseData,
-        pluginInfo
-      });
-
-      if (pluginInfo) {
-        marketAnalysis.value.overallTrend = pluginInfo;
-      } else if (data.overallTrend) {
-        marketAnalysis.value.overallTrend = data.overallTrend;
+      // 展示插件输出的整体趋势（不再使用后端 overallTrend）
+      let pluginInfo =
+        fileAnalysisInfo || data?.pluginOutput?.info || data?.responseData?.[2]?.pluginOutput?.info || data?.responseData?.[0]?.pluginOutput?.info;
+      // 去掉返回文本中的“整体趋势：”前缀
+      if (typeof pluginInfo === 'string') {
+        pluginInfo = pluginInfo.replace(/^整体趋势[:：]\s*/i, '');
       }
+      marketAnalysis.value.overallTrend = pluginInfo || '';
 
       const minPredictEntry = predictedLineMin.value;
       const maxPredictEntry = predictedLineMax.value;
@@ -723,22 +716,12 @@ const fetchFileAnalysis = async (extractPrompt: string) => {
 
     const res = await fileAnalysis(analysisParams);
     const pluginInfo =
-      res?.data?.pluginOutput?.info ||
-      res?.data?.responseData?.[2]?.pluginOutput?.info ||
-      res?.data?.responseData?.[0]?.pluginOutput?.info;
-
-    // 调试：打印 FastGPT 返回，便于确认 info 位置
-    // eslint-disable-next-line no-console
-    console.log('文件分析接口返回数据:', {
-      data: res?.data,
-      pluginInfo
-    });
+      res?.data?.pluginOutput?.info || res?.data?.responseData?.[2]?.pluginOutput?.info || res?.data?.responseData?.[0]?.pluginOutput?.info;
 
     return pluginInfo || '';
   } catch (error: any) {
     // 如果是"数据正在处理"的错误，不打印错误日志
     if (error?.message && error.message.includes('数据正在处理')) {
-      // 静默处理，不打印错误
       return '';
     }
     // 其他错误才打印
