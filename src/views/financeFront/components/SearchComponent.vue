@@ -27,6 +27,7 @@
         </div>
       </div>
     </div>
+    <div class="bold-line"></div>
   </div>
 </template>
 
@@ -78,12 +79,17 @@ const handleSearch = (hotKey?: string) => {
 .search-container {
   background: url('../../../assets/images/finance-bg.png') no-repeat center center;
   background-size: cover;
+  .bold-line {
+    width: 100%;
+    height: 10px;
+    background: #108c58;
+  }
   .content {
     width: 1500px;
     margin: 0 auto;
     text-align: center;
     position: relative;
-    padding: 20px;
+    padding: 20px 0;
   }
   .left-space {
     .point {

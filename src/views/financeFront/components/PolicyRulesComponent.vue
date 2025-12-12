@@ -96,7 +96,7 @@ const handleMore = () => {
 
 <style scoped lang="scss">
 .policy-rules {
-  margin: 24px;
+  margin: 20px 0;
   padding: 18px 12px 12px 12px;
   background: rgba(16, 140, 88, 0.6);
   border-radius: 8px;

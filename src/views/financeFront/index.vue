@@ -18,7 +18,7 @@
     <div v-if="showArea === 'area'" class="detail-content">
       <!-- 贷款产品 -->
       <LoanProductsComponent />
-      <el-row>
+      <el-row :gutter="24">
         <el-col :span="16">
           <!-- 保险产品 -->
           <InsuranceproductComponent />
