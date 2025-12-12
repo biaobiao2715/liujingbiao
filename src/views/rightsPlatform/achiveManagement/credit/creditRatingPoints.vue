@@ -66,7 +66,6 @@
 
 <script setup name="Dict" lang="ts">
 import { getCreditRatingPointsList, getCreditRating, updateCreditRating } from '@/api/rightsPlatform/achiveManagement/credit/creditRatingPoints';
-import { string } from 'vue-types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { plat_credit_rating } = toRefs<any>(proxy?.useDict('plat_credit_rating'));
