@@ -45,10 +45,9 @@
         <div class="analysis-card">
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
-            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
-            <!-- <p>1. {{ marketAnalysis.overallTrend || '暂无数据' }}</p> -->
-            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
-            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion }}</p>
+            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend || '暂无数据'}}</p>
+            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange || '暂无数据'}}</p>
+            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion || '暂无数据'}}</p>
           </div>
         </div>
 
