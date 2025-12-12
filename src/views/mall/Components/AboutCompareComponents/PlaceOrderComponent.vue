@@ -52,7 +52,7 @@
                       <el-image :src="row.image" fit="cover" class="product-image" />
                       <div class="product-details">
                         <div class="product-name">{{ row.name }}</div>
-                        <div class="product-spec">{{ row.spec }}</div>
+                        <div class="product-spec">{{ row.spec + ' x ' + row.quantity }}</div>
                       </div>
                     </div>
                   </template>

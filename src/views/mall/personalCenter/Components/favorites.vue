@@ -50,10 +50,11 @@
                   <div class="name-ellipsis">{{ item.googsName }}</div>
                   <img src="@/assets/images/mall/favorite-icon.png" alt="取消收藏" class="favorites-icon" @click.stop="onUnfav(item)" />
                 </div>
-                <div class="flex-center-between">
-                  <div>
-                    <el-tag v-for="(vs, index) in item.productGuarantee" :key="index" type="primary" style="margin-right: 4px; margin-bottom: 4px">{{
-                      vs.attributeName
+                <div class="flex-center-between" style="height: 24px">
+                  <div class="flex-center goods-tags">
+                    <!-- 最多三个标签 -->
+                    <el-tag v-for="tag in item?.productGuarantee?.slice(0, 3)" :key="tag.attributeName" type="primary" class="goods-tag">{{
+                      tag.attributeName
                     }}</el-tag>
                   </div>
                   <div class="addr-ellipsis">{{ item.address }}</div>
@@ -329,7 +330,7 @@ onBeforeUnmount(() => {
 
 /* 商品收藏：固定 5 列，20 条即 4 行 */
 .goods-grid {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 /* 商品卡片统一高度与交互优化 */
@@ -354,7 +355,7 @@ onBeforeUnmount(() => {
 /* 图片比例统一 */
 .li-img {
   width: 100%;
-  height: 140px;
+  height: 263px;
   object-fit: cover;
   border-radius: 8px;
   background: #f7f8fa;
@@ -382,16 +383,34 @@ onBeforeUnmount(() => {
 
 /* 文本省略 */
 .name-ellipsis {
-  max-width: 65%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.goods-tags {
+  gap: 5px;
+  margin: 5px 0;
+  flex-wrap: wrap;
+}
+
+.goods-tag {
+  background-color: #f0f0f0;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
 .addr-ellipsis {
-  max-width: 45%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 24px;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-size: 18px;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  flex: 1 0 auto;
+  flex-shrink: 0;
+  word-break: break-word;
+  text-align: right;
 }
 
 /* 收藏心形按钮：图标化、悬停放大 */

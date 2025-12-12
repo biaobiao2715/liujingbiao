@@ -8,10 +8,15 @@
 
 <template>
   <div>
-    <div class="details_title">
-      <div class="item_productName">{{ form?.productName }}</div>
-      <dict-text class="item_type" :options="product_insurance_type" :value="form.productType ?? ''" />
-      <div class="item_productIntro">{{ form?.productIntro }}</div>
+    <div class="details_title flex-between">
+      <div>
+        <div class="item_productName">{{ form?.productName }}</div>
+        <dict-text class="item_type" :options="product_insurance_type" :value="form.productType ?? ''" />
+        <div class="item_productIntro">{{ form?.productIntro }}</div>
+      </div>
+      <!-- <button class="btn btn-favorite flex-center-center gap-4" @click="submitApply">
+        <div>{{ form.isFavorite ? '加入收藏夹' : '取消收藏' }}</div>
+      </button> -->
     </div>
 
     <div class="detail-content detail-content--advantages">
@@ -48,6 +53,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { addToFavorites } from '@/api/mall/index';
 import { getInsuranceProductsVersion } from '@/api/financeFront/Insuranceproduct/index';
 const props = defineProps({
   id: {
@@ -68,6 +74,10 @@ const form = ref({
   applicationInstructions: '',
   branchOfficeAttachment: '',
   productRemark: '',
+  isFavorite: false,
+  productId: '',
+  productVersion: '',
+
   remoteFile: {
     originalName: '',
     url: ''
@@ -95,6 +105,21 @@ const downloadAttachmentByObj = async (file?: { originalName?: string; url?: str
   } catch (error) {
     console.error('下载失败', error);
     ElMessage.error('下载失败，请稍后重试');
+  }
+};
+
+// 收藏/取消收藏
+const submitApply = async () => {
+  const res = await addToFavorites({
+    favoriteType: '7',
+    insuranceProductFavoritesBo: {
+      productId: form.value.productId,
+      productVersion: form.value.productVersion
+    }
+  });
+  if (res.code === 200) {
+    form.value.isFavorite = !form.value.isFavorite;
+    ElMessage.success(form.value.isFavorite ? '收藏成功' : '取消收藏成功');
   }
 };
 
@@ -291,6 +316,29 @@ const getArticleDetail = async () => {
     margin-top: 1.5em;
     margin-bottom: 0.8em;
     font-weight: 600;
+  }
+}
+
+.btn {
+  width: 160px;
+  height: 50px;
+  border-radius: 2px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.btn-favorite {
+  background: rgba(16, 140, 88, 0.1);
+  border: 1px solid #ffffff;
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 20px;
+
+  &:hover {
+    opacity: 0.8;
   }
 }
 </style>

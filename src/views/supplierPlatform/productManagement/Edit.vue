@@ -566,8 +566,6 @@ const handleDelete = (file: any) => {
 // 裁剪完成后上传
 const onCropSuccess = (response: any) => {
   try {
-    // const file = new File([payload.blob], payload.fileName || '商品主图.png', { type: 'image/png' });
-    // const response = await ossUploadImage({ file });
     const newFile = {
       name: response.fileName || '商品主图',
       url: response.url,

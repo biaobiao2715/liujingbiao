@@ -7,7 +7,7 @@
         <div class="filter-row">
           <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
             <el-form-item label="品种:" prop="variety">
-              <GoodsCategorySelect v-model="queryParams.variety" @categoryChange="handleCategoryChange" style="width: 250px" />
+              <GoodsCategorySelect v-model="normalizedVariety" @categoryChange="handleCategoryChange" style="width: 250px" />
             </el-form-item>
             <el-form-item label="产地:" prop="origin">
               <RegionSelect v-model="queryParams.origin" @regionChange="handleRegionChange" style="width: 250px" />
@@ -108,7 +108,7 @@
           <template #default="{ row }">
             <span v-if="row.change === '-' || row.change === 0 || row.change === '0'" class="text-gray">-</span>
             <span v-else-if="row.change > 0" class="change-tag change-up">+{{ row.change }}%</span>
-            <span v-else class="change-tag change-down">{{ Math.abs(row.change) }}%</span>
+            <span v-else class="change-tag change-down">+{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">
@@ -135,14 +135,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance, watch, nextTick, onErrorCaptured } from 'vue';
 import { useRouter } from 'vue-router';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PriceTrendChart from './PriceTrendChart.vue';
 import PriceSpecialReportDialog from './PriceSpecialReportDialog.vue';
 import { priceActionList, hotRecommendationList, priceExplanationList, heatmapList } from '@/api/mall/marketComponent';
-import Pagination from '@/components/Pagination/index.vue';
 import { eventBus } from '@/utils/eventBus';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
 import type { ComponentInternalInstance } from 'vue';
@@ -163,6 +162,30 @@ const categoryList = ref<any[]>([]); // 分类列表数据
 const queryParams = reactive({
   variety: [] as string[], // 三级分类数组
   origin: [] as string[] // 区域选择路径数组
+});
+
+// 规范化品种值，确保始终是数组
+const normalizedVariety = computed({
+  get: () => {
+    return Array.isArray(queryParams.variety) ? queryParams.variety : [];
+  },
+  set: (val: any) => {
+    queryParams.variety = Array.isArray(val) ? val : [];
+  }
+});
+
+// 捕获子组件错误
+onErrorCaptured((err: any, instance, info) => {
+  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
+  if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
+    console.warn('品种选择器清空时的错误已捕获:', err.message);
+    // 确保值被重置
+    nextTick(() => {
+      normalizedVariety.value = [];
+    });
+    return false; // 阻止错误继续传播
+  }
+  return true; // 其他错误正常传播
 });
 
 // 区域代码
@@ -240,17 +263,17 @@ const applyExternalFilters = async (payload: any) => {
   // 如果有分类ID，尝试查找完整路径
   if (goodsCategoryId && categoryList.value.length > 0) {
     const categoryPath = findCategoryPath(goodsCategoryId, categoryList.value);
-    queryParams.variety = categoryPath;
+    normalizedVariety.value = categoryPath;
   } else {
-    // 如果没有分类列表数据，先设置为数组，组件可能会自动处理
-    queryParams.variety = goodsCategoryId ? [goodsCategoryId] : [];
+    // 如果没有分类列表数据，先设置为数组
+    normalizedVariety.value = goodsCategoryId ? [goodsCategoryId] : [];
   }
 
   regionCodes.provinceCode = payload.provinceCode || '';
   regionCodes.cityCode = payload.cityCode || '';
   regionCodes.regionCode = payload.regionCode || '';
 
-  // RegionSelect 需要代码数组 [provinceCode, cityCode, regionCode]
+  // RegionSelect 需要代码数组
   const originPath: string[] = [];
   if (payload.provinceCode) originPath.push(payload.provinceCode);
   if (payload.cityCode) originPath.push(payload.cityCode);
@@ -277,8 +300,13 @@ const fetchPriceData = async () => {
       priceActionDays = 3;
     }
 
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 获取品种ID（取数组最后一个有效元素）
+    const varietyArray = normalizedVariety.value;
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    const goodsCategoryId = filteredVariety.length > 0 ? filteredVariety[filteredVariety.length - 1] : '';
 
     const params: any = {
       priceActionDays,
@@ -289,7 +317,7 @@ const fetchPriceData = async () => {
     const response = await priceActionList(params);
     if (response && response.code === 200) {
       const data = response.data || {};
-      // 处理返回数据，转换为图表需要的格式
+      // 处理返回数据
       const dates: string[] = [];
       const prices: number[] = [];
 
@@ -374,7 +402,7 @@ const initMiniChart = () => {
 
   updateMiniChart();
 
-  // 延迟调整，确保图表正确渲染
+  // 延迟调整
   setTimeout(() => {
     miniChartInstance?.resize();
     updateMiniChart();
@@ -478,12 +506,84 @@ const changeTimeRange = (days: number) => {
 };
 // 种子变量
 const seedName = ref('小麦种子');
+
+// 标记是否正在处理分类变化，避免重复调用接口
+const isHandlingCategoryChange = ref(false);
+
 // 品种分类变化处理
-const handleCategoryChange = (value: string[], label: any) => {
-  seedName.value = label[label.length - 1];
-  queryParams.variety = value;
-  refreshAllData();
+const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
+  try {
+    isHandlingCategoryChange.value = true;
+    
+    // 处理 undefined、null 或非数组的情况
+    if (!value || !Array.isArray(value)) {
+      normalizedVariety.value = [];
+      seedName.value = '小麦种子'; // 重置为默认值
+      refreshAllData();
+      return;
+    }
+    
+    // 过滤掉空值、null、undefined
+    const filteredValue = value.filter((item: any) => {
+      if (item === null || item === undefined) {
+        return false;
+      }
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    
+    normalizedVariety.value = filteredValue;
+    
+    // 更新种子名称
+    if (labels && Array.isArray(labels) && labels.length > 0) {
+      seedName.value = labels[labels.length - 1];
+    } else if (filteredValue.length > 0) {
+      // 如果没有 labels，保持当前名称或使用默认值
+      seedName.value = seedName.value || '小麦种子';
+    } else {
+      seedName.value = '小麦种子';
+    }
+    
+    refreshAllData();
+  } catch (error) {
+    // 捕获可能的错误，确保不会影响其他功能
+    console.error('处理品种分类变化时出错:', error);
+    normalizedVariety.value = [];
+    seedName.value = '小麦种子';
+    refreshAllData();
+  } finally {
+    // 延迟重置标志，确保 watch 能正确判断
+    nextTick(() => {
+      isHandlingCategoryChange.value = false;
+    });
+  }
 };
+
+// 监听品种变化，确保清空时也调用接口
+watch(
+  () => normalizedVariety.value,
+  (newVal, oldVal) => {
+    // 如果正在处理分类变化事件，跳过（避免重复调用）
+    if (isHandlingCategoryChange.value) {
+      return;
+    }
+    
+    // 如果品种被清空（从有值变为空数组），调用接口
+    const wasEmpty = !oldVal || !Array.isArray(oldVal) || oldVal.length === 0;
+    const isEmpty = !newVal || !Array.isArray(newVal) || newVal.length === 0;
+    
+    // 如果从有值变为空，或者从空变为空（确保初始化时也会调用）
+    if (!wasEmpty && isEmpty) {
+      seedName.value = '小麦种子';
+      refreshAllData();
+    } else if (wasEmpty && isEmpty && oldVal !== newVal) {
+      // 如果都是空但引用不同（可能是重置操作），也调用接口
+      seedName.value = '小麦种子';
+      refreshAllData();
+    }
+  },
+  { deep: true }
+);
 
 // 产地变化处理
 const handleRegionChange = (value: any) => {
@@ -515,8 +615,13 @@ const getYesterdayDate = () => {
 // 获取价格说明数据
 const fetchPriceExplanation = async () => {
   try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 获取品种ID（取数组最后一个有效元素）
+    const varietyArray = normalizedVariety.value;
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    const goodsCategoryId = filteredVariety.length > 0 ? filteredVariety[filteredVariety.length - 1] : '';
 
     const params: any = {
       goodsCategoryId: goodsCategoryId || '',
@@ -527,7 +632,6 @@ const fetchPriceExplanation = async () => {
     if (response && response.code === 200) {
       const data = response.data || {};
 
-      // 处理价格走势：将数字转换为文字描述
       // 1:趋于平稳、2:略有上升、3:大幅上升、4:略有下降、5:大幅下降
       let trendText = '';
       if (data.sevenDaysPriceTrend !== undefined && data.sevenDaysPriceTrend !== null) {
@@ -553,7 +657,7 @@ const fetchPriceExplanation = async () => {
         }
       }
 
-      // 映射接口返回的数据到价格统计
+      // 接口返回的数据到价格统计
       priceStats.value = {
         todayPrice: Number(data.yesterdayPrice || 0), // 当日均价
         yesterdayPrice: Number(data.dayBeforeYesterdayPrice || 0),
@@ -594,8 +698,13 @@ const fetchPriceExplanation = async () => {
 const fetchHotRecommendation = async () => {
   recommendationLoading.value = true;
   try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 获取品种ID（取数组最后一个有效元素）
+    const varietyArray = normalizedVariety.value;
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    const goodsCategoryId = filteredVariety.length > 0 ? filteredVariety[filteredVariety.length - 1] : '';
 
     const params: any = {
       goodsCategoryId: goodsCategoryId || '',
@@ -606,7 +715,7 @@ const fetchHotRecommendation = async () => {
     const response = await hotRecommendationList(params);
     if (response && response.code === 200) {
       const data = response.data || response.rows || [];
-      // 映射接口返回的数据到表格需要的格式，保留原始字段用于弹窗
+      // 接口返回的数据到表格需要的格式
       recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
         // 格式化日期：从 "2025-11-15 00:00:00" 提取日期部分
         let time = '--';
@@ -663,33 +772,16 @@ const fetchHotRecommendation = async () => {
   }
 };
 
-// 查询
-const handleQuery = () => {
-  console.log('查询参数:', queryParams);
-  fetchPriceData();
-  fetchPriceExplanation();
-  fetchHotRecommendation();
-};
-
-// 重置
-const resetQuery = () => {
-  queryFormRef.value?.resetFields();
-  queryParams.variety = [];
-  queryParams.origin = [];
-  regionCodes.provinceCode = '';
-  regionCodes.cityCode = '';
-  regionCodes.regionCode = '';
-  activeTimeRange.value = 7;
-  fetchPriceData();
-  fetchPriceExplanation();
-  fetchHotRecommendation();
-};
-
 // 查看热力图
 const viewHeatmap = async () => {
   try {
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 获取品种ID（取数组最后一个有效元素）
+    const varietyArray = normalizedVariety.value;
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    const goodsCategoryId = filteredVariety.length > 0 ? filteredVariety[filteredVariety.length - 1] : '';
 
     if (!goodsCategoryId) {
       ElMessage.warning('请先选择品种');
@@ -736,33 +828,6 @@ const viewHeatmap = async () => {
     }
   } catch (error) {}
 };
-
-// 点击走势图图标，切换到价格走势页面
-// const handleTrendClick = (row: any) => {
-//   if (!row || !row.goodsCategoryId) {
-//     ElMessage.warning('数据异常，无法查看价格走势');
-//     return;
-//   }
-
-//   // 切换到价格走势标签页
-//   eventBus.emit('market:switchTab', 'second');
-
-//   // 传递筛选条件给价格走势组件
-//   const filterPayload = {
-//     goodsCategoryId: row.goodsCategoryId,
-//     provinceCode: row.provinceCode || '',
-//     cityCode: row.cityCode || '',
-//     regionCode: row.regionCode || '',
-//     provinceName: row.provinceName || '',
-//     cityName: row.cityName || '',
-//     regionName: row.regionName || ''
-//   };
-
-//   // 延迟一下确保组件已切换完成
-//   setTimeout(() => {
-//     eventBus.emit('priceTrend:applyFilters', filterPayload);
-//   }, 100);
-// };
 
 // 查看报告
 const viewReport = (row: any) => {

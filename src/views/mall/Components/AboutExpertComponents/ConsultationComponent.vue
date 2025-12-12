@@ -8,12 +8,10 @@
           <!-- <div class="title">专家咨询</div> -->
           <!-- <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" /> -->
 
-          <el-button :type="activeTab === 'technology' ? 'primary' : 'text'" plain round @click="handleChange('technology')" :disabled="expertLoading"
-            >技术专家</el-button
-          >
-          <el-button :type="activeTab === 'legal' ? 'primary' : 'text'" plain round @click="handleChange('legal')" :disabled="expertLoading"
-            >法务专家</el-button
-          >
+          <el-button :type="activeTab === 'technology' ? 'primary' : 'text'" plain round
+            @click="handleChange('technology')" :disabled="expertLoading">技术专家</el-button>
+          <el-button :type="activeTab === 'legal' ? 'primary' : 'text'" plain round @click="handleChange('legal')"
+            :disabled="expertLoading">法务专家</el-button>
         </div>
         <div type="text" :class="{ 'rotate-180': isExpanded }" @click="toggleExpand">
           <img src="@/assets/mall/expert-expand-icon.png" width="18" />
@@ -33,7 +31,7 @@
                 <div class="description">
                   专家简介：
                   <span>
-                    {{ expert.expertInfo }}
+                    {{ expert.expertInfo || expert.professionalSummary || '暂无简介' }}
                   </span>
                 </div>
               </div>
@@ -126,8 +124,8 @@ const handleConsultation = (expert) => {
 };
 
 // 处理查看详情按钮点击
-const handleDetail = (id) => {
-  emit('detailChange', { id, type: 'expertDetail', expertType: activeTab.value });
+const handleDetail = (id: string) => {
+  emit('detailChange', { id, type: 'expertDetail', expertType: activeTab.value, expertId: id });
 };
 </script>
 
@@ -161,6 +159,7 @@ const handleDetail = (id) => {
       cursor: pointer;
       border-radius: 8px;
       position: relative;
+
       .title-info {
         font-size: 16px;
         margin-bottom: 5px;
@@ -168,6 +167,7 @@ const handleDetail = (id) => {
         background-color: rgba(16, 140, 88, 0.05);
         border-radius: 8px;
         flex-direction: column;
+
         .avatar-container {
           width: 74px;
           height: 74px;
@@ -175,6 +175,7 @@ const handleDetail = (id) => {
           padding: 4px;
           border: 1px solid #108c58;
         }
+
         .el-avatar {
           width: 70px;
           height: 70px;
@@ -192,18 +193,24 @@ const handleDetail = (id) => {
           font-weight: bold;
           color: var(--color-main);
         }
+
         .description {
           width: 100%;
           font-size: 16px;
           font-weight: bold;
           color: #333;
           height: 40px;
-          overflow: hidden; /* 修改为隐藏超出内容 */
+          overflow: hidden;
+          /* 修改为隐藏超出内容 */
           text-overflow: ellipsis;
           // 超出展示省略号
-          display: -webkit-box; /* 添加多行省略号支持 */
-          -webkit-line-clamp: 2; /* 限制显示的行数 */
-          -webkit-box-orient: vertical; /* 设置盒子方向为垂直 */
+          display: -webkit-box;
+          /* 添加多行省略号支持 */
+          -webkit-line-clamp: 2;
+          /* 限制显示的行数 */
+          -webkit-box-orient: vertical;
+
+          /* 设置盒子方向为垂直 */
           span {
             font-size: 14px;
             color: #333;
@@ -214,12 +221,14 @@ const handleDetail = (id) => {
 
       .statistic-item {
         flex-direction: column;
+
         .number {
           font-size: 24px;
           font-weight: bold;
           color: var(--color-main);
           font-family: YouSheBiaoTiYuan, YouSheBiaoTiYuan;
         }
+
         .label {
           font-size: 14px;
           font-weight: 500;
@@ -246,10 +255,12 @@ const handleDetail = (id) => {
         font-weight: bold;
         color: var(--color-main);
         margin: 20px auto 0 auto;
+
         &:hover {
           opacity: 0.8;
         }
       }
+
       .detail-btn {
         position: absolute;
         gap: 6px;
@@ -263,10 +274,12 @@ const handleDetail = (id) => {
       .hot {
         .hot-tag {
           gap: 4px;
+
           div:first-child {
             color: red;
             font-weight: bold;
           }
+
           div:last-child {
             font-size: 12px;
             color: #666;

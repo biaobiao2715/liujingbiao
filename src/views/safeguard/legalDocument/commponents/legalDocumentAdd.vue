@@ -174,7 +174,7 @@ const handleFileUpload = async (uploadFile: any) => {
       console.log(`上传进度: ${p}%`);
     });
     console.log(response, rawFile, '切片成功了');
-    const data = response?.data || {};
+    const data = response || {};
     const item: AttachmentItem = {
       fileType: 'document',
       fileTypeText: '文档',

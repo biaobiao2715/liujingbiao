@@ -625,8 +625,9 @@ const handlePreview = async (row: any) => {
   appealDialogLoading.value = true;
   try {
     // 等接口切换后，获取违规记录详情
-    const res = await getlookDetail(String(id)); //获取违规记录详情
-    const data: any = res?.data ?? {};
+    // const res = await getlookDetail(String(id)); //获取违规记录详情
+    // const data: any = res?.data ?? {};
+    const data = row;
     console.log('历史申诉详情数据:', data);
 
     // 文本信息
@@ -1059,5 +1060,33 @@ onMounted(() => {
   .editor-container {
     gap: 16px;
   }
+}
+.video-card {
+  position: relative;
+  width: 160px;
+  height: 120px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.video-card .size {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+.video-card .icon {
+  font-size: 18px;
+  color: #1989fa;
+  margin-bottom: 8px;
+}
+.video-card .ops {
+  position: absolute;
+  bottom: 6px;
 }
 </style>

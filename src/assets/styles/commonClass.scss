@@ -156,6 +156,13 @@
   }
 }
 
+.region-select {
+  .el-cascader__tags {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
 // 正常
 .normal {
   width: 6px;

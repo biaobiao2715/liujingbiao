@@ -38,7 +38,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="被举报人：">
-            <span style="color: #108c58" @click="openSupplierDialog">
+            <span class="reported-person" @click="openSupplierDialog">
               {{ formData.reporterName }}
             </span>
           </el-form-item>
@@ -207,10 +207,9 @@
             </el-form-item>
           </el-col>
           <!-- 平台驳回申诉理由 -->
-          <!-- <el-col :span="24" v-if="isRejected"> -->
           <el-col :span="24">
             <el-form-item label="平台驳回申诉理由：">
-              <el-input v-model="formData.newAppealFile.appealReason" type="textarea" :rows="4" disabled autosize />
+              <el-input v-model="formData.newAppealFile.backReason" type="textarea" :rows="4" disabled autosize />
             </el-form-item>
           </el-col>
         </el-row>
@@ -357,12 +356,7 @@
                 style="width: 100%"
                 @change="handleProcessingFeedbackChange"
               />
-              <div
-                v-if="!processingFeedback.feedbackCascader || processingFeedback.feedbackCascader.length === 0"
-                style="color: #f56c6c; font-size: 12px; margin-top: 4px"
-              >
-                请选择处理反馈
-              </div>
+              <div v-if="feedBackValueStatus" class="rules-class">请选择处理反馈</div>
             </el-form-item>
           </el-col>
           <!-- 选择驳回申诉：显示驳回申诉原因 -->
@@ -376,7 +370,7 @@
                 maxlength="200"
                 show-word-limit
               />
-              <div v-if="!processingFeedback.appealReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回申诉原因</div>
+              <div v-if="!processingFeedback.appealReason" class="rules-class">请填写驳回申诉原因</div>
             </el-form-item>
           </el-col>
 
@@ -387,7 +381,9 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="供应商名称/企业名称：">
-                <el-input v-model="formData.reporterName" disabled />
+                <span>
+                  {{ formData.reporterName }}
+                </span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -397,12 +393,9 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="扣分：">
-                <el-input
-                  :model-value="
-                    formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
-                  "
-                  disabled
-                />
+                <span>{{
+                  formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
+                }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -412,10 +405,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="剩余信用积分：">
-                <el-input
-                  :model-value="formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore"
-                  disabled
-                />
+                <span>{{ formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="24">
@@ -671,7 +661,6 @@ const formData = ref<FormData>({
   reportFiles: [],
   statusAndDate: []
 });
-
 // 判断是否是已驳回状态
 const isRejected = computed(() => {
   return formData.value?.status === '2';
@@ -987,9 +976,14 @@ const loadCaseTypeOptions = async () => {
     ElMessage.error('获取案件类型列表失败');
   }
 };
-
+const feedBackValueStatus = ref(false);
 // 处理中状态处理反馈选择变化处理
 const handleProcessingFeedbackChange = (value: string[]) => {
+  if (value) {
+    feedBackValueStatus.value = false;
+  } else {
+    feedBackValueStatus.value = true;
+  }
   // 清空处理结果
   processingFeedback.appealReason = '';
   processingFeedback.dealResult = '';
@@ -1056,6 +1050,7 @@ const handleConfirm = async () => {
     if (status === '0') {
       if (processFeedback.handleBack === '' || processFeedback.handleBack === undefined || processFeedback.handleBack === null) {
         ElMessage.error('请选择处理反馈类型');
+        feedBackValueStatus.value = true;
         submitLoading.value = false;
         return;
       }
@@ -1081,6 +1076,7 @@ const handleConfirm = async () => {
     if (status === '1') {
       if (!processingFeedback.feedbackCascader || processingFeedback.feedbackCascader.length === 0) {
         ElMessage.error('请选择处理反馈');
+        feedBackValueStatus.value = true;
         submitLoading.value = false;
         return;
       }
@@ -1622,5 +1618,14 @@ watch(
 .timeline-item.active-connection .stage-name,
 .timeline-item.active-connection .stage-time {
   color: #409eff;
+}
+.reported-person {
+  color: #108c58;
+  cursor: pointer;
+}
+.rules-class {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

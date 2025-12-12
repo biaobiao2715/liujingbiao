@@ -105,7 +105,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="可贷周期" prop="loanCycle">
+          <el-form-item label="可贷周期" prop="loanCycle" required>
             <el-select
               v-model="formData.loanCycle"
               placeholder="请选择可贷周期"
@@ -783,16 +783,35 @@ const CREDIT_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，可�
 
 响应, 请直接返回JSON结果: \`\`\`json`;
 
+// 校验自动解析文件（只允许 PDF 和 DOCX）
+const validateFileForParse = (file: File): boolean => {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const allowedExt = ['pdf', 'docx'];
+  
+  if (!allowedExt.includes(ext)) {
+    ElMessage.error('自动解析功能仅支持 PDF 和 DOCX 格式的文件');
+    return false;
+  }
+
+  const limit = 100 * MB;
+  if (file.size > limit) {
+    ElMessage.error('文档文件最大100MB');
+    return false;
+  }
+  
+  return true;
+};
+
 const triggerUpload = async () => {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt';
+  input.accept = '.pdf,.docx';
   input.onchange = async (e: Event) => {
     const file = (e.target as HTMLInputElement)?.files?.[0];
     if (!file) return;
 
-    // 验证文件
-    if (!validateFile(file)) {
+    // 验证文件（自动解析只允许 PDF 和 DOCX）
+    if (!validateFileForParse(file)) {
       return;
     }
 

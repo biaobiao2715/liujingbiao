@@ -1,5 +1,6 @@
 <template>
   <el-cascader
+    class="region-select"
     v-model="regionValue"
     filterable
     clearable
@@ -13,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, defineProps, defineEmits } from 'vue';
+import { computed, ref, watch } from 'vue';
 import areaData from 'china-area-data';
 
 const emits = defineEmits(['regionChange']);
@@ -139,6 +140,4 @@ const handleChange = (val: string[] | string[][] | undefined) => {
 };
 </script>
 
-<style scoped lang="scss">
-/* 可根据需要添加样式 */
-</style>
+<style scoped lang="scss"></style>

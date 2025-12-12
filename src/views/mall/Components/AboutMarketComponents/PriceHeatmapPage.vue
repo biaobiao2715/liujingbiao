@@ -22,7 +22,6 @@ interface MapDataItem {
 }
 
 const route = useRoute();
-const heatmapRef = ref<InstanceType<typeof ChinaMapHeatmap> | null>(null);
 
 // 热力图数据
 const heatmapData = ref<MapDataItem[]>([]);

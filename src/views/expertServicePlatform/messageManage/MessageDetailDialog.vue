@@ -10,21 +10,19 @@
       <div class="section-header">
         <h3 class="section-title">我的问题</h3>
       </div>
-      
       <div class="question-content">
         <div class="question-item">
           <el-tag class="question-tag">问</el-tag>
           <span class="question-text">{{ detailData.questionContent || detailData.messageContent }}</span>
         </div>
-        
         <div class="question-time" v-if="detailData.publishTime || detailData.messageTime">
           {{ detailData.publishTime || detailData.messageTime }}
         </div>
-        
         <div v-if="detailData.attachments && detailData.attachments.length > 0" class="attachments">
-          <template v-for="(attachment, index) in detailData.attachments" :key="index">
+          <template v-for="(attachment, index) in detailData.attachments">
             <el-image
               v-if="isImage(attachment.url)"
+              :key="`img-${attachment.url || index}`"
               class="attachment-thumb"
               :src="attachment.url"
               fit="cover"
@@ -32,7 +30,7 @@
               :initial-index="getImageIndex(attachment.url)"
               :z-index="3000"
             />
-            <div v-else class="attachment-file" @click="handleDownloadAttachment(attachment)">
+            <div v-else :key="`file-${attachment.url || index}`" class="attachment-file" @click="handleDownloadAttachment(attachment)">
               <el-icon class="attachment-icon"><Folder /></el-icon>
               <div class="file-name" :title="attachment.originalName || attachment.fileName">文件</div>
             </div>
@@ -45,24 +43,17 @@
 
     <div class="reply-section">
       <h3 class="section-title">回复历史</h3>
-      
       <div v-if="replyList.length > 0" class="reply-list">
-        <div 
-          v-for="(reply, index) in replyList" 
-          :key="index" 
-          class="reply-item"
-        >
+        <div v-for="(reply, index) in replyList" :key="index" class="reply-item">
           <div class="reply-header">
             <el-tag class="reply-tag">答</el-tag>
             <span class="reply-content">{{ reply.content }}</span>
           </div>
-          
           <div class="reply-time">
             {{ reply.time }}
           </div>
         </div>
       </div>
-      
       <div v-else class="no-reply">
         <el-empty description="暂无回复记录" :image-size="100" />
       </div>
@@ -109,22 +100,15 @@ const detailData = ref({
   attachments: [] as any[]
 });
 
-const replyList = ref<Array<{
-  content: string;
-  time: string;
-  replyBy?: string;
-}>>([]);
+const replyList = ref<Array<{ content: string; time: string; replyBy?: string }>>([]);
 
 const fetchDetail = async () => {
   if (!props.id) return;
-  
   loading.value = true;
   try {
     const response: any = await getMessageDetail(props.id);
-    
     if (response && response.code === 200 && response.data) {
       const data = response.data;
-      
       detailData.value = {
         id: data.id,
         questionNo: data.questionNo || '',
@@ -152,7 +136,6 @@ const fetchDetail = async () => {
         messageTime: data.publishTime || '',
         attachments: []
       };
-      
       if (data.hnCommonRelevanceFilesVos && Array.isArray(data.hnCommonRelevanceFilesVos)) {
         detailData.value.attachments = data.hnCommonRelevanceFilesVos.flatMap((item: any) => {
           if (item.remoteOssVos && Array.isArray(item.remoteOssVos)) {
@@ -165,7 +148,6 @@ const fetchDetail = async () => {
           return [];
         });
       }
-      
       if (data.hnAnswerVoList && Array.isArray(data.hnAnswerVoList) && data.hnAnswerVoList.length > 0) {
         replyList.value = data.hnAnswerVoList.map((item: any) => ({
           content: item.answerContent || item.content || '',
@@ -185,19 +167,19 @@ const fetchDetail = async () => {
   }
 };
 
-const imagePreviewList = computed(() => {
-  return (detailData.value.attachments || [])
-    .map((a: any) => a?.url)
-    .filter((u: string) => !!u && isImage(u));
-});
 const isImage = (url?: string) => {
   if (!url) return false;
   const u = url.split('?')[0].toLowerCase();
-  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some(ext => u.endsWith(ext));
+  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some((ext) => u.endsWith(ext));
 };
+
+const imagePreviewList = computed(() => {
+  return (detailData.value.attachments || []).map((a: any) => a?.url).filter((u: string) => !!u && isImage(u));
+});
+
 const getImageIndex = (url?: string) => {
   if (!url) return 0;
-  return imagePreviewList.value.findIndex(u => u === url);
+  return imagePreviewList.value.findIndex((u) => u === url);
 };
 
 const handleDownloadAttachment = (attachment: any) => {
@@ -221,10 +203,8 @@ onMounted(() => {
 
 .question-section {
   margin-bottom: 24px;
-  
   .section-header {
     margin-bottom: 20px;
-    
     .section-title {
       font-size: 16px;
       font-weight: 600;
@@ -232,14 +212,12 @@ onMounted(() => {
       margin: 0;
     }
   }
-  
   .question-content {
     .question-item {
       display: flex;
       align-items: flex-start;
       gap: 8px;
       margin-bottom: 12px;
-      
       .question-tag {
         flex-shrink: 0;
         background-color: #67c23a;
@@ -249,7 +227,6 @@ onMounted(() => {
         font-size: 13px;
         font-weight: 500;
       }
-      
       .question-text {
         flex: 1;
         font-size: 14px;
@@ -258,27 +235,23 @@ onMounted(() => {
         word-break: break-all;
       }
     }
-    
     .question-time {
       font-size: 13px;
       color: #909399;
       margin-bottom: 12px;
     }
-    
     .attachments {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      
       .attachment-thumb {
         width: 80px;
         height: 80px;
         border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         cursor: zoom-in;
         background: #f8f8f8;
       }
-      
       .attachment-file {
         width: 80px;
         height: 80px;
@@ -290,7 +263,6 @@ onMounted(() => {
         flex-direction: column;
         cursor: pointer;
         border: 1px solid #e5e7ef;
-        
         .attachment-icon {
           font-size: 28px;
           color: #409eff;
@@ -304,8 +276,9 @@ onMounted(() => {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        
-        &:hover { opacity: 0.9; }
+        &:hover {
+          opacity: 0.9;
+        }
       }
     }
   }
@@ -318,25 +291,21 @@ onMounted(() => {
     color: #303133;
     margin: 0 0 20px 0;
   }
-  
   .reply-list {
     .reply-item {
       margin-bottom: 16px;
       padding-bottom: 16px;
       border-bottom: 1px solid #e4e7ed;
-      
       &:last-child {
         border-bottom: none;
         margin-bottom: 0;
         padding-bottom: 0;
       }
-      
       .reply-header {
         display: flex;
         align-items: flex-start;
         gap: 8px;
         margin-bottom: 8px;
-        
         .reply-tag {
           flex-shrink: 0;
           background-color: #ff9800;
@@ -346,7 +315,6 @@ onMounted(() => {
           font-size: 13px;
           font-weight: 500;
         }
-        
         .reply-content {
           flex: 1;
           font-size: 14px;
@@ -355,14 +323,12 @@ onMounted(() => {
           word-break: break-all;
         }
       }
-      
       .reply-time {
         font-size: 13px;
         color: #909399;
       }
     }
   }
-  
   .no-reply {
     padding: 40px 0;
     text-align: center;
@@ -377,7 +343,6 @@ onMounted(() => {
   .message-detail-dialog {
     padding: 16px;
   }
-  
   .question-section {
     .question-content {
       .attachments {

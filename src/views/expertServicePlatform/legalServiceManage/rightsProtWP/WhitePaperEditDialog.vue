@@ -8,13 +8,7 @@
   <div class="whitepaper-edit-dialog" v-loading="loading">
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px">
       <el-form-item label="维权白皮书标题" prop="paperTitle" required :show-message="false">
-        <el-input 
-          v-model="formData.paperTitle" 
-          placeholder="请输入标题内容" 
-          maxlength="30"
-          clearable
-          @blur="titleTouched = true"
-        />
+        <el-input v-model="formData.paperTitle" placeholder="请输入标题内容" maxlength="30" clearable @blur="titleTouched = true" />
         <div v-if="titleTouched && !formData.paperTitle" class="form-tip">请输入标题内容，最多支持30个汉字</div>
       </el-form-item>
 
@@ -56,12 +50,7 @@
           <el-table-column label="附件大小" prop="fileSize" width="120" align="center" />
           <el-table-column label="版本号" prop="version" width="200" align="center">
             <template #default="scope">
-              <el-input 
-                v-model="scope.row.version" 
-                placeholder="版本号" 
-                disabled
-                size="small"
-              />
+              <el-input v-model="scope.row.version" placeholder="版本号" disabled size="small" />
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200" align="center">
@@ -79,14 +68,7 @@
       </el-form-item>
 
       <el-form-item label="备注" prop="remark">
-        <el-input 
-          v-model="formData.remark" 
-          type="textarea" 
-          :rows="5" 
-          placeholder="请输入备注内容（200字以内）"
-          maxlength="200"
-          clearable
-        />
+        <el-input v-model="formData.remark" type="textarea" :rows="5" placeholder="请输入备注内容（200字以内）" maxlength="200" clearable />
       </el-form-item>
 
       <div class="form-actions">
@@ -115,9 +97,7 @@
         <el-table-column label="版本号" prop="version" width="120" align="center" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleDownloadAttachment(scope.row)">
-              下载
-            </el-button>
+            <el-button type="primary" link @click="handleDownloadAttachment(scope.row)"> 下载 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -135,9 +115,7 @@
         <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleDownloadHistory(scope.row)" :disabled="!scope.row.ossId">
-              下载
-            </el-button>
+            <el-button type="primary" link @click="handleDownloadHistory(scope.row)" :disabled="!scope.row.ossId"> 下载 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -152,11 +130,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Delete, Document, Paperclip, FolderOpened } from '@element-plus/icons-vue';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
-import { 
-  getWhitePaperDetail, 
-  addWhitePaper,
-  editWhitePaper
-} from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
+import { getWhitePaperDetail, addWhitePaper, editWhitePaper } from '@/api/expertServicePlatform/legalServiceManage/whitePaperManage';
 import dayjs from 'dayjs';
 
 const props = defineProps<{
@@ -171,8 +145,6 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const MB = 1024 * 1024;
-
 const formRef = ref();
 const saving = ref(false);
 const loading = ref(false);
@@ -185,18 +157,20 @@ const formData = ref({
   attachment: ''
 });
 
-const attachmentList = ref<Array<{
-  ossId?: number;
-  fileName: string;
-  originalName: string;
-  fileType: string;
-  fileSuffix: string;
-  url: string;
-  fileSize: string;
-  version: string;
-  versionError?: string;
-  uid?: string;
-}>>([]);
+const attachmentList = ref<
+  Array<{
+    ossId?: number;
+    fileName: string;
+    originalName: string;
+    fileType: string;
+    fileSuffix: string;
+    url: string;
+    fileSize: string;
+    version: string;
+    versionError?: string;
+    uid?: string;
+  }>
+>([]);
 
 const uploadAttachmentFile = async (file: File, options?: { uid?: string }) => {
   const modal = (proxy as any)?.$modal;
@@ -255,47 +229,42 @@ const detailData = ref({
   paperStatus: ''
 });
 
-const currentAttachments = ref<Array<{
-  ossId: number | string;
-  fileName: string;
-  originalName: string;
-  fileType: string;
-  version: string;
-  url: string;
-  fileSuffix: string;
-}>>([]);
+const currentAttachments = ref<
+  Array<{
+    ossId: number | string;
+    fileName: string;
+    originalName: string;
+    fileType: string;
+    version: string;
+    url: string;
+    fileSuffix: string;
+  }>
+>([]);
 
 const loadCurrentAttachments = async () => {
-  const attachments = detailData.value.latestFiles && detailData.value.latestFiles.length > 0
-    ? detailData.value.latestFiles
-    : (detailData.value.ossVoList || []);
-  
+  const attachments =
+    detailData.value.latestFiles && detailData.value.latestFiles.length > 0 ? detailData.value.latestFiles : detailData.value.ossVoList || [];
+
   if (!Array.isArray(attachments) || attachments.length === 0) {
     currentAttachments.value = [];
     return;
   }
-  
   const ossIds = attachments.map((item: any) => item.ossId).filter(Boolean);
-  
   if (ossIds.length === 0) {
     currentAttachments.value = [];
     return;
   }
-  
   try {
     const ossIdsStr = ossIds.join(',');
     const ossResponse: any = await listByIds(ossIdsStr);
-    
     const ossMap = new Map();
     if (ossResponse && ossResponse.data && Array.isArray(ossResponse.data)) {
       ossResponse.data.forEach((oss: any) => {
         ossMap.set(String(oss.ossId), oss);
       });
     }
-    
     currentAttachments.value = attachments.map((item: any) => {
       const ossInfo = ossMap.get(String(item.ossId)) || {};
-      
       return {
         ossId: item.ossId,
         // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
@@ -350,14 +319,11 @@ const historyVersions = computed(() => {
     const timeB = new Date(b.updateTime || b.createTime || 0).getTime();
     return timeB - timeA;
   });
-  
   return sortedList.map((item: any) => {
     const version = resolveVersion(item);
-    
     // 优先从 sysOssLists 获取 ossId 和 url
     let ossId = item.ossId;
     let url = item.url || '';
-    
     if (item.sysOssLists && Array.isArray(item.sysOssLists) && item.sysOssLists.length > 0) {
       ossId = item.sysOssLists[0].ossId || item.ossId;
       url = item.sysOssLists[0].url || item.url || '';
@@ -365,7 +331,6 @@ const historyVersions = computed(() => {
       ossId = item.ossVoList[0].ossId || item.ossId;
       url = item.ossVoList[0].url || item.url || '';
     }
-    
     return {
       ...item,
       updateTime: item.updateTime || item.createTime || '',
@@ -422,75 +387,20 @@ const getNextVersion = (currentVersion?: string | null): string => {
   if (!currentVersion || !currentVersion.trim()) {
     return '1.0';
   }
-  
   const versionStr = currentVersion.trim();
   const versionPattern = /^(\d+)\.(\d+)$/;
   const match = versionStr.match(versionPattern);
-  
   if (!match) {
     return '1.0';
   }
-  
   const majorVersion = parseInt(match[1], 10);
   const minorVersion = parseInt(match[2], 10);
-  
   // 如果小版本号小于9，则递增小版本号
   if (minorVersion === 9) {
-     return `${majorVersion + 1}.0`;
+    return `${majorVersion + 1}.0`;
   }
-  
   // 如果小版本号大于等于9，则升级大版本号，小版本号重置为0
   return `${majorVersion}.${minorVersion + 1}`;
-};
-
-const getLatestVersion = (): string => {
-  if (attachmentList.value.length > 0) {
-    const versions = attachmentList.value
-      .map(item => item.version)
-      .filter(v => v && v.trim())
-      .sort((a, b) => {
-        const aMatch = a.match(/^(\d+)\.(\d+)$/);
-        const bMatch = b.match(/^(\d+)\.(\d+)$/);
-        if (!aMatch || !bMatch) return 0;
-        const aMajor = parseInt(aMatch[1], 10);
-        const aMinor = parseInt(aMatch[2], 10);
-        const bMajor = parseInt(bMatch[1], 10);
-        const bMinor = parseInt(bMatch[2], 10);
-        if (aMajor !== bMajor) return bMajor - aMajor;
-        return bMinor - aMinor;
-      });
-    
-    if (versions.length > 0) {
-      return versions[0];
-    }
-  }
-  
-  if (detailData.value.currentVersion) {
-    return detailData.value.currentVersion;
-  }
-  
-  if (historyVersions.value.length > 0) {
-    const versions = historyVersions.value
-      .map(item => item.version)
-      .filter(v => v && v.trim())
-      .sort((a, b) => {
-        const aMatch = a.match(/^(\d+)\.(\d+)$/);
-        const bMatch = b.match(/^(\d+)\.(\d+)$/);
-        if (!aMatch || !bMatch) return 0;
-        const aMajor = parseInt(aMatch[1], 10);
-        const aMinor = parseInt(aMatch[2], 10);
-        const bMajor = parseInt(bMatch[1], 10);
-        const bMinor = parseInt(bMatch[2], 10);
-        if (aMajor !== bMajor) return bMajor - aMajor;
-        return bMinor - aMinor;
-      });
-    
-    if (versions.length > 0) {
-      return versions[0];
-    }
-  }
-  
-  return '';
 };
 
 const validateFile = (file: File): boolean => {
@@ -508,7 +418,6 @@ const validateFile = (file: File): boolean => {
     ElMessage.error('文档文件最大100MB');
     return false;
   }
-  
   return true;
 };
 
@@ -519,69 +428,56 @@ const handleExceed = () => {
 const uploadingFiles = ref<Set<string>>(new Set());
 
 // 跟踪编辑过程中上传的所有版本
-const uploadedVersions = ref<Array<{
-  version: string;
-  ossId: number;
-  fileName: string;
-  originalName: string;
-  url: string;
-  fileSuffix: string;
-  uploadTime: string;
-}>>([]);
+const uploadedVersions = ref<
+  Array<{
+    version: string;
+    ossId: number;
+    fileName: string;
+    originalName: string;
+    url: string;
+    fileSuffix: string;
+    uploadTime: string;
+  }>
+>([]);
 
 const handleFileChange = async (file: any) => {
   if (!file) {
     ElMessage.error('文件对象不存在');
     return;
   }
-  
   const rawFile = file.raw || file;
-  
   if (!rawFile) {
     ElMessage.error('无法获取文件对象');
     return;
   }
-  
   const fileKey = `${rawFile.name}_${rawFile.size}_${rawFile.lastModified}`;
-  
   if (uploadingFiles.value.has(fileKey)) {
     return;
   }
-  
-  const isDuplicate = attachmentList.value.some(
-    item => item.originalName === rawFile.name && item.fileSize === formatFileSize(rawFile.size)
-  );
+  const isDuplicate = attachmentList.value.some((item) => item.originalName === rawFile.name && item.fileSize === formatFileSize(rawFile.size));
   if (isDuplicate) {
     ElMessage.warning('该文件已上传，请勿重复上传');
     return;
   }
-  
   if (!validateFile(rawFile)) {
     return;
   }
-  
   if (attachmentList.value.length >= 10) {
     ElMessage.warning('最多只能上传10个附件');
     return;
   }
-  
   uploadingFiles.value.add(fileKey);
-  
   try {
     const uploadResult = await uploadAttachmentFile(rawFile);
-    
     if (uploadResult?.ossId) {
       const ossData = uploadResult;
       const fileSuffix = ossData.fileSuffix;
-      
       let newVersion = '1.0';
       if (props.type === 'edit') {
         // 编辑模式下版本号只在第一次上传时递增一次
         if (uploadedVersions.value.length === 0) {
           // 第一次上传，版本号递增
-          const baseVersion = attachmentList.value.length > 0 
-            ? attachmentList.value[0].version 
-            : detailData.value.currentVersion || '1.0';
+          const baseVersion = attachmentList.value.length > 0 ? attachmentList.value[0].version : detailData.value.currentVersion || '1.0';
           newVersion = getNextVersion(baseVersion);
         } else {
           // 后续上传，保持第一次上传的版本号
@@ -593,7 +489,6 @@ const handleFileChange = async (file: any) => {
         newVersion = attachmentList.value[0].version || '1.0';
         attachmentList.value = [];
       }
-      
       const newAttachment = {
         ossId: ossData.ossId,
         // 优先使用用户上传时的原始文件名
@@ -607,12 +502,9 @@ const handleFileChange = async (file: any) => {
         versionError: '',
         uid: ossData.uid || file.uid || Date.now() + Math.random()
       };
-      
       attachmentList.value.push(newAttachment);
-      
       // 更新表单数据中的附件字段，避免验证报错
       formData.value.attachment = 'has_attachment';
-      
       // 编辑模式下，记录上传的版本到历史
       if (props.type === 'edit' && attachmentList.value.length > 0) {
         uploadedVersions.value.push({
@@ -625,7 +517,6 @@ const handleFileChange = async (file: any) => {
           uploadTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
         });
       }
-      
       ElMessage.success('附件上传成功');
     } else {
       ElMessage.error('上传失败，请重试');
@@ -642,20 +533,15 @@ const handleReplaceFile = async (row: any) => {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
-  
   input.onchange = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     if (!validateFile(file)) return;
-    
     try {
       const uploadResult = await uploadAttachmentFile(file, { uid: row.uid ? String(row.uid) : undefined });
-      
       if (uploadResult?.ossId) {
         const ossData = uploadResult;
         const fileSuffix = ossData.fileSuffix;
-        
         // 重新上传时保持当前版本号
         let keepVersion = row.version;
         if (props.type === 'edit' && uploadedVersions.value.length === 0) {
@@ -665,7 +551,6 @@ const handleReplaceFile = async (row: any) => {
           // 已经上传过，保持第一次上传的版本号
           keepVersion = uploadedVersions.value[0].version;
         }
-        
         // 编辑模式下，记录重新上传的版本
         if (props.type === 'edit') {
           uploadedVersions.value.push({
@@ -678,7 +563,6 @@ const handleReplaceFile = async (row: any) => {
             uploadTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
           });
         }
-        
         Object.assign(row, {
           ossId: ossData.ossId,
           fileName: ossData.fileName || file.name,
@@ -690,7 +574,6 @@ const handleReplaceFile = async (row: any) => {
           version: keepVersion,
           versionError: ''
         });
-        
         ElMessage.success('文件替换成功');
       } else {
         ElMessage.error('文件上传失败');
@@ -699,7 +582,6 @@ const handleReplaceFile = async (row: any) => {
       ElMessage.error('文件上传失败，请稍后重试');
     }
   };
-  
   input.click();
 };
 
@@ -708,7 +590,6 @@ const validateVersion = (row: any) => {
     row.versionError = '';
     return;
   }
-  
   const versionPattern = /^\d+(\.\d+)?$/;
   if (!versionPattern.test(row.version)) {
     row.versionError = '版本号只能输入数字，例如：1.0';
@@ -721,12 +602,10 @@ const handleRemoveFile = (file: any) => {
   ElMessageBox.confirm('确定要删除该附件吗？', '删除确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
-    type: 'warning',
+    type: 'warning'
   })
     .then(() => {
-      const index = attachmentList.value.findIndex(
-        (item) => item.uid === file.uid || item.ossId === file.ossId
-      );
+      const index = attachmentList.value.findIndex((item) => item.uid === file.uid || item.ossId === file.ossId);
       if (index !== -1) {
         attachmentList.value.splice(index, 1);
         // 如果删除后没有附件了，清空表单字段
@@ -764,30 +643,22 @@ const fetchWhitePaperDetail = async () => {
     ElMessage.error('白皮书ID不存在');
     return;
   }
-  
   loading.value = true;
   try {
     const response: any = await getWhitePaperDetail(props.id);
-    
     if (response && response.code === 200) {
       const data = response.data;
-      
       if (!data) {
         ElMessage.error('获取白皮书详情失败：数据为空');
         return;
       }
-      
       formData.value = {
         id: data.id,
         paperTitle: data.paperTitle || '',
         remark: data.remark || '',
         attachment: data.ossVoList && data.ossVoList.length > 0 ? 'has_attachment' : ''
       };
-      
-      const historyVersionsList = data.historyVersionsList === null 
-        ? [] 
-        : (Array.isArray(data.historyVersionsList) ? data.historyVersionsList : []);
-      
+      const historyVersionsList = data.historyVersionsList === null ? [] : Array.isArray(data.historyVersionsList) ? data.historyVersionsList : [];
       detailData.value = {
         ossVoList: data.ossVoList || [],
         latestFiles: data.latestFiles || [],
@@ -796,31 +667,23 @@ const fetchWhitePaperDetail = async () => {
         currentVersion: data.currentVersion || '',
         paperStatus: data.paperStatus || '1'
       };
-      
       await loadCurrentAttachments();
-      
-      const attachmentsForEdit = (data.latestFiles && data.latestFiles.length > 0) 
-        ? data.latestFiles 
-        : (data.ossVoList || []);
-      
+      const attachmentsForEdit =
+        (data.latestFiles && data.latestFiles.length > 0 ? data.latestFiles : data.ossVoList) || [];
       if (attachmentsForEdit && Array.isArray(attachmentsForEdit) && attachmentsForEdit.length > 0) {
         const ossIds = attachmentsForEdit.map((item: any) => item.ossId).filter(Boolean);
-        
         if (ossIds.length > 0) {
           try {
             const ossIdsStr = ossIds.join(',');
             const ossResponse: any = await listByIds(ossIdsStr);
-            
             const ossMap = new Map();
             if (ossResponse && ossResponse.data && Array.isArray(ossResponse.data)) {
               ossResponse.data.forEach((oss: any) => {
                 ossMap.set(String(oss.ossId), oss);
               });
             }
-            
             attachmentList.value = attachmentsForEdit.map((item: any, index: number) => {
               const ossInfo = ossMap.get(String(item.ossId)) || {};
-              
               let fileSize = '--';
               try {
                 if (ossInfo.ext1) {
@@ -840,9 +703,7 @@ const fetchWhitePaperDetail = async () => {
                     }
                   }
                 }
-              } catch (e) {
-              }
-              
+              } catch (e) {}
               return {
                 ossId: item.ossId,
                 // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
@@ -878,11 +739,10 @@ const fetchWhitePaperDetail = async () => {
       } else {
         attachmentList.value = [];
       }
-      
       originalData.value = {
         paperTitle: formData.value.paperTitle || '',
         remark: formData.value.remark || '',
-        attachmentOssIds: attachmentList.value.map(item => item.ossId || 0).filter(id => id > 0)
+        attachmentOssIds: attachmentList.value.map((item) => item.ossId || 0).filter((id) => id > 0)
       };
     } else {
       ElMessage.error(response?.msg || '获取白皮书详情失败');
@@ -897,9 +757,7 @@ const fetchWhitePaperDetail = async () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
   titleTouched.value = true;
-  
   try {
     const titleEmpty = !formData.value.paperTitle || !formData.value.paperTitle.trim();
     const noAttachment = attachmentList.value.length === 0;
@@ -920,13 +778,11 @@ const handleSubmit = async () => {
 
     const valid = await formRef.value.validate();
     if (!valid) return;
-    
     // 新增和编辑模式下必须上传附件
     if (attachmentList.value.length === 0) {
       ElMessage.error('操作失败，请添加附件');
       return;
     }
-    
     // 编辑模式下如果没有上传新附件，跳过版本号验证
     if (props.type === 'add' && attachmentList.value.length > 0) {
       const hasEmptyVersion = attachmentList.value.some(item => !item.version || !item.version.trim());
@@ -935,9 +791,7 @@ const handleSubmit = async () => {
         return;
       }
     }
-    
     saving.value = true;
-    
     const ossVoList = attachmentList.value.map(item => {
       const ossItem: any = {
         ossId: item.ossId || 0,
@@ -954,17 +808,11 @@ const handleSubmit = async () => {
       };
       return ossItem;
     });
-    
-    const currentVersion = attachmentList.value.length > 0 
-      ? attachmentList.value[0].version 
-      : detailData.value.currentVersion || '';
-    
-    const paperStatus = props.type === 'add' 
-      ? '1'
-      : (detailData.value.paperStatus || '1');
-    
+    const currentVersion = attachmentList.value.length > 0 ? attachmentList.value[0].version : detailData.value.currentVersion || '';
+    const paperStatus = props.type === 'add' ? '1' : detailData.value.paperStatus || '1';
+
     // 编辑模式下，将所有上传过的版本加入历史记录
-    let historyVersionsList: any[] = [];
+    let historyVersionsPayload: any[] = [];
     if (props.type === 'edit' && uploadedVersions.value.length > 0) {
       // 先添加原始版本到历史
       if (detailData.value.currentVersion && currentVersion !== detailData.value.currentVersion) {
@@ -976,7 +824,6 @@ const handleSubmit = async () => {
           url: currentAttachments.value[0].url,
           versionNo: detailData.value.currentVersion
         }] : [];
-        
         const oldVersionRecord = {
           paperId: formData.value.id,
           versionNo: detailData.value.currentVersion,
@@ -985,9 +832,8 @@ const handleSubmit = async () => {
           updateTime: detailData.value.updateTime,
           ossVoList: ossVoListForHistory
         };
-        historyVersionsList.push(oldVersionRecord);
+        historyVersionsPayload.push(oldVersionRecord);
       }
-      
       // 添加编辑过程中上传的所有中间版本（除了最后一个当前版本）
       if (uploadedVersions.value.length > 1) {
         for (let i = 0; i < uploadedVersions.value.length - 1; i++) {
@@ -1007,11 +853,10 @@ const handleSubmit = async () => {
               versionNo: versionRecord.version
             }]
           };
-          historyVersionsList.push(historyRecord);
+          historyVersionsPayload.push(historyRecord);
         }
       }
     }
-    
     const submitData: any = {
       ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
       paperNo: '',
@@ -1024,12 +869,10 @@ const handleSubmit = async () => {
       beginTime: '',
       endTime: '',
       ossVoList: ossVoList,
-      historyVersionsList: historyVersionsList
+      historyVersionsList: historyVersionsPayload
     };
-    
     const api = props.type === 'add' ? addWhitePaper : editWhitePaper;
     const response: any = await api(submitData);
-    
     if (response && response.code === 200) {
       ElMessage.success(props.type === 'add' ? '维权白皮书发布成功' : '修改成功');
       emit('success');
@@ -1106,16 +949,13 @@ watch(
 
 .attachment-section {
   width: 100%;
-  
   :deep(.el-upload__tip) {
     margin-top: 8px;
-    
     .upload-tip {
       color: #909399;
       font-size: 12px;
       line-height: 1.5;
     }
-    
     .upload-tip.warning {
       color: #f56c6c;
       font-weight: 500;
@@ -1126,17 +966,14 @@ watch(
 .attachment-table {
   margin-top: 16px;
   width: 100%;
-  
   :deep(.el-table__header) {
     background-color: #fafafa;
-    
     th {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
     }
   }
-  
   .version-tip {
     color: #f56c6c;
     font-size: 12px;
@@ -1152,7 +989,6 @@ watch(
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;
   gap: 12px;
-  
   .el-button {
     min-width: 100px;
   }
@@ -1179,30 +1015,25 @@ watch(
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;
-  
   .section-header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    
     .el-icon {
       font-size: 18px;
       color: #606266;
     }
-    
     .section-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
     }
   }
-  
   .file-icon {
     font-size: 24px;
     color: #409eff;
   }
-  
   :deep(.el-table) {
     .el-table__header {
       th {
@@ -1211,7 +1042,6 @@ watch(
         font-weight: 600;
       }
     }
-    
     .el-table__body {
       tr {
         &:hover {
@@ -1226,25 +1056,21 @@ watch(
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;
-  
   .section-header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    
     .el-icon {
       font-size: 18px;
       color: #606266;
     }
-    
     .section-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
     }
   }
-  
   :deep(.el-table) {
     .el-table__header {
       th {
@@ -1253,7 +1079,6 @@ watch(
         font-weight: 600;
       }
     }
-    
     .el-table__body {
       tr {
         &:hover {

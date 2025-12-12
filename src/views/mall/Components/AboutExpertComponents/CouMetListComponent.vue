@@ -141,7 +141,7 @@ const getMeetingDescription = (meeting: any) => {
 
 // 点击课程或会议时触发方法，传递课程或会议数据
 const handleDetail = (type: string, id: string) => {
-  console.log(id);
+  console.log(type,id);
   emit('detailChange', { type, id });
 };
 </script>

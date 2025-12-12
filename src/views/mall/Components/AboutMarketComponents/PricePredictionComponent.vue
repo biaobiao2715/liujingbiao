@@ -12,7 +12,7 @@
             <RegionSelect class="full-width-select" v-model="queryParams.origin" @regionChange="handleRegionChange" />
           </el-form-item>
           <el-form-item label="品种:" prop="variety">
-            <GoodsCategorySelect class="full-width-select" v-model="queryParams.variety" @categoryChange="handleCategoryChange" />
+            <GoodsCategorySelect class="full-width-select" v-model="normalizedVariety" @categoryChange="handleCategoryChange" />
           </el-form-item>
           <el-form-item label="时间范围:" prop="timeRange">
             <el-select class="full-width-select" v-model="queryParams.timeRange" placeholder="请选择时间范围" @change="handleTimeRangeChange">
@@ -45,9 +45,9 @@
         <div class="analysis-card">
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
-            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend }}</p>
-            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange }}</p>
-            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion }}</p>
+            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend || '暂无数据'}}</p>
+            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange || '暂无数据'}}</p>
+            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion || '暂无数据'}}</p>
           </div>
         </div>
 
@@ -87,11 +87,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, onErrorCaptured, nextTick, watch } from 'vue';
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PricePredictionChart from './PricePredictionChart.vue';
-import { pricePredictionList } from '@/api/mall/marketComponent';
+import { pricePredictionList, fileAnalysis } from '@/api/mall/marketComponent';
 import historicalLineIcon from '@/assets/images/marketConditions/gw.png';
 import historicalMaxIcon from '@/assets/images/marketConditions/gwMax.png';
 import historicalMinIcon from '@/assets/images/marketConditions/gwMin.png';
@@ -107,6 +107,30 @@ const queryParams = reactive({
   origin: [] as string[],
   variety: [] as string[],
   timeRange: '12'
+});
+
+// 规范化品种值，确保始终是数组
+const normalizedVariety = computed({
+  get: () => {
+    return Array.isArray(queryParams.variety) ? queryParams.variety : [];
+  },
+  set: (val: any) => {
+    queryParams.variety = Array.isArray(val) ? val : [];
+  }
+});
+
+// 捕获子组件错误，兼容 GoodsCategorySelect 清空时报错
+onErrorCaptured((err: any, instance, info) => {
+  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
+  if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
+    console.warn('品种选择器清空时的错误已捕获:', err.message);
+    // 确保值被重置
+    nextTick(() => {
+      normalizedVariety.value = [];
+    });
+    return false; // 阻止错误继续传播
+  }
+  return true; // 其他错误正常传播
 });
 
 // 区域代码
@@ -265,12 +289,79 @@ const chartTitle = computed(() => {
   return `${seedName.value}未来${timeRangeMap[queryParams.timeRange] || '12个月'}价格预测走势图`;
 });
 
+// 标记是否正在处理分类变化，避免 watch 与事件重复触发接口
+const isHandlingCategoryChange = ref(false);
+
 // 品种分类变化处理
-const handleCategoryChange = (value: string[], label: any) => {
-  queryParams.variety = value;
-  seedName.value = label[label.length - 1];
-  fetchPricePrediction();
+const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
+  try {
+    isHandlingCategoryChange.value = true;
+
+    // 处理 undefined、null 或非数组的情况
+    if (!value || !Array.isArray(value)) {
+      normalizedVariety.value = [];
+      seedName.value = '小麦种子'; // 重置为默认值
+      fetchPricePrediction();
+      return;
+    }
+
+    // 过滤掉空值、null、undefined
+    const filteredValue = value.filter((item: any) => {
+      if (item === null || item === undefined) {
+        return false;
+      }
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+
+    normalizedVariety.value = filteredValue;
+
+    // 更新种子名称
+    if (labels && Array.isArray(labels) && labels.length > 0) {
+      seedName.value = labels[labels.length - 1];
+    } else if (filteredValue.length > 0) {
+      seedName.value = seedName.value || '小麦种子';
+    } else {
+      seedName.value = '小麦种子';
+    }
+
+    fetchPricePrediction();
+  } catch (error) {
+    normalizedVariety.value = [];
+    seedName.value = '小麦种子';
+    fetchPricePrediction();
+  } finally {
+    nextTick(() => {
+      isHandlingCategoryChange.value = false;
+    });
+  }
 };
+
+// 监听品种变化，确保清空时也调用接口
+watch(
+  () => normalizedVariety.value,
+  (newVal, oldVal) => {
+    // 如果正在处理分类变化事件，跳过（避免重复调用）
+    if (isHandlingCategoryChange.value) {
+      return;
+    }
+
+    // 如果品种被清空（从有值变为空数组），调用接口
+    const wasEmpty = !oldVal || !Array.isArray(oldVal) || oldVal.length === 0;
+    const isEmpty = !newVal || !Array.isArray(newVal) || newVal.length === 0;
+
+    // 如果从有值变为空，或者从空变为空（确保初始化时也会调用）
+    if (!wasEmpty && isEmpty) {
+      seedName.value = '小麦种子';
+      fetchPricePrediction();
+    } else if (wasEmpty && isEmpty && oldVal !== newVal) {
+      // 如果都是空但引用不同（可能是重置操作），也调用接口
+      seedName.value = '小麦种子';
+      fetchPricePrediction();
+    }
+  },
+  { deep: true }
+);
 
 // 产地变化处理
 const handleRegionChange = (value: any) => {
@@ -306,8 +397,13 @@ const fetchPricePrediction = async () => {
     };
     const pricePredictionTimeframe = timeRangeMap[queryParams.timeRange] || 4;
 
-    // 获取品种ID（取数组最后一个元素）
-    const goodsCategoryId = queryParams.variety && queryParams.variety.length > 0 ? queryParams.variety[queryParams.variety.length - 1] : '';
+    // 获取品种ID（取数组最后一个有效元素）
+    const varietyArray = normalizedVariety.value;
+    const filteredVariety = varietyArray.filter((item: any) => {
+      const str = String(item || '').trim();
+      return str !== '' && str !== 'null' && str !== 'undefined';
+    });
+    const goodsCategoryId = filteredVariety.length > 0 ? filteredVariety[filteredVariety.length - 1] : '';
 
     const params: any = {
       pricePredictionTimeframe,
@@ -460,10 +556,52 @@ const fetchPricePrediction = async () => {
 
       updateYAxisRange();
 
-      // 市场分析数据
-      if (data.overallTrend) {
-        marketAnalysis.value.overallTrend = data.overallTrend;
+      // 组装动态提示词，基于当前品种与历史/预测数据
+      const histMonths = (historicalLineMonths.value || []).filter((m) => !!m);
+      const histPrices = (historicalLinePrices.value || []).map((val) => {
+        const num = Number(val);
+        return Number.isFinite(num) ? Number(num).toFixed(2) : null;
+      });
+      const histRange = histMonths.length ? `${histMonths[0]}至${histMonths[histMonths.length - 1]}` : '历史区间缺失';
+
+      const predictedPairs = predictedLineMonths.value.map((m, idx) => [normalizeMonthLabel(m), predictedLinePrices.value[idx]] as [string, any]);
+      const validPredPairs = predictedPairs.filter(
+        ([month, price]) => !!month && price !== null && price !== undefined && !Number.isNaN(Number(price))
+      );
+      const predRange = validPredPairs.length ? `${validPredPairs[0][0]}至${validPredPairs[validPredPairs.length - 1][0]}` : '预测区间缺失';
+      const predictedMap: Record<string, string> = {};
+      validPredPairs.forEach(([month, price]) => {
+        predictedMap[month] = Number(price).toFixed(2);
+      });
+
+      const seedText = seedName.value || '种子';
+      const timeRangeToMonths: Record<string, number> = {
+        '1': 1,
+        '3': 3,
+        '6': 6,
+        '12': 12
+      };
+      const futureMonthsCount = timeRangeToMonths[queryParams.timeRange] || validPredPairs.length || predictedPairs.length || 12;
+      const futureMonthsLabel = `${futureMonthsCount}个月`;
+      const extractPrompt = `你是一名农业市场分析师，需要基于提供的${seedText}月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（${histRange}）：\n  时间序列：${JSON.stringify(histMonths)}\n  价格序列：${JSON.stringify(histPrices)}\n  预测数据（${predRange}）：\n  价格预测：${JSON.stringify(predictedMap)}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来${futureMonthsLabel}的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析,不超过50字。开头可参考示例（如\"整体趋势：未来${futureMonthsLabel}，${seedText}价格预计趋于平稳...\"），确保语言专业、清晰，并基于数据支持结论。`;
+
+      // 调用文件分析接口，获取插件输出的 info（需产地、品种、时间范围均选择）
+      let fileAnalysisInfo = '';
+      const hasOrigin = !!regionCodes.regionCode;
+      const hasVariety = !!goodsCategoryId;
+      const hasTimeRange = !!queryParams.timeRange;
+      if (hasOrigin && hasVariety && hasTimeRange) {
+        fileAnalysisInfo = await fetchFileAnalysis(extractPrompt);
       }
+
+      // 展示插件输出的整体趋势（不再使用后端 overallTrend）
+      let pluginInfo =
+        fileAnalysisInfo || data?.pluginOutput?.info || data?.responseData?.[2]?.pluginOutput?.info || data?.responseData?.[0]?.pluginOutput?.info;
+      // 去掉返回文本中的“整体趋势：”前缀
+      if (typeof pluginInfo === 'string') {
+        pluginInfo = pluginInfo.replace(/^整体趋势[:：]\s*/i, '');
+      }
+      marketAnalysis.value.overallTrend = pluginInfo || '';
 
       const minPredictEntry = predictedLineMin.value;
       const maxPredictEntry = predictedLineMax.value;
@@ -480,7 +618,7 @@ const fetchPricePrediction = async () => {
 
       const suggestionMonth = minPredictEntry?.month ? formatMonthDisplay(minPredictEntry.month) : '';
       if (suggestionMonth) {
-        marketAnalysis.value.suggestion = `建议采购窗口为${suggestionMonth}`;
+        marketAnalysis.value.suggestion = `建议采购单窗口期为${suggestionMonth}`;
       } else if (data.suggestion || data.predictionSuggestion) {
         marketAnalysis.value.suggestion = data.suggestion || data.predictionSuggestion;
       }
@@ -553,6 +691,49 @@ const updateYAxisRange = () => {
   chartYAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
+// 文件分析接口调用状态，防止重复提交
+const isFileAnalysisLoading = ref(false);
+
+// 调用文件分析接口，支持传入动态 prompt，返回插件输出的 info
+const fetchFileAnalysis = async (extractPrompt: string) => {
+  // 防止重复提交
+  if (isFileAnalysisLoading.value) {
+    return '';
+  }
+
+  isFileAnalysisLoading.value = true;
+  try {
+    // 调用 fileAnalysis 接口，使用动态 prompt
+    const analysisParams = {
+      variables: {
+        extract_prompt: extractPrompt
+      },
+      appId: '693b8b96dd48d8d992960426',
+      detail: false,
+      stream: false
+    };
+
+    const res = await fileAnalysis(analysisParams);
+    const pluginInfo =
+      res?.data?.pluginOutput?.info || res?.data?.responseData?.[2]?.pluginOutput?.info || res?.data?.responseData?.[0]?.pluginOutput?.info;
+
+    return pluginInfo || '';
+  } catch (error: any) {
+    // 如果是"数据正在处理"的错误，不打印错误日志
+    if (error?.message && error.message.includes('数据正在处理')) {
+      return '';
+    }
+    // 其他错误才打印
+    console.error('调用文件分析接口失败:', error);
+    return '';
+  } finally {
+    // 延迟重置状态，避免短时间内重复调用
+    setTimeout(() => {
+      isFileAnalysisLoading.value = false;
+    }, 1000);
+  }
+};
+
 const handleQuery = () => {
   fetchPricePrediction();
 };
@@ -561,8 +742,9 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   queryParams.origin = [];
-  queryParams.variety = [];
+  normalizedVariety.value = [];
   queryParams.timeRange = '12';
+  seedName.value = '小麦种子';
   regionCodes.provinceCode = '';
   regionCodes.cityCode = '';
   regionCodes.regionCode = '';
@@ -586,6 +768,7 @@ defineExpose({
 
   .query-form {
     width: 100%;
+    margin-top: 15px;
     margin-bottom: 20px;
     position: relative;
     z-index: 10;
@@ -626,7 +809,6 @@ defineExpose({
     display: flex;
     gap: 24px;
     position: relative;
-    padding: 15px 15px 0px 15px;
     z-index: 1;
 
     .chart-section {
@@ -685,6 +867,9 @@ defineExpose({
         border-radius: 4px;
         padding: 20px;
         border: 1px solid #b7eb8f;
+        display: flex;
+        flex-direction: column;
+        max-height: 450px; // 固定高度，超出出现滚动条
 
         .analysis-title {
           font-size: 15px;
@@ -706,6 +891,19 @@ defineExpose({
         }
 
         .analysis-content {
+          flex: 1;
+          overflow-y: auto;
+          padding-right: 4px;
+
+          // 优化滚动条样式（可选）
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+          &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+          }
+
           p {
             margin-bottom: 12px;
             font-size: 13px;

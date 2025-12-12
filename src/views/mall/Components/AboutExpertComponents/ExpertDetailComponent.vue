@@ -20,7 +20,7 @@
           <span> {{ expertDetail?.technicalQualification || '' }}</span>
         </div>
         <!-- 专家简介 -->
-        <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || '暂无简介' }}</div>
+        <div class="expert-card-info">专家简介：{{ expertDetail?.expertInfo || expertDetail?.professionalSummary || '暂无简介' }}</div>
         <div class="expert-card-number">
           <div class="card-number">
             <div class="card-number-title">{{ expertDetail?.questionCount || 0 }}</div>
@@ -35,7 +35,7 @@
       </div>
       <!-- 我要提问 -->
       <div class="question-box">
-        <div class="question-title">
+        <div class="question-title" @click="handleConsultation()">
           <img src="@/assets/images/twtb@2x.png" />
           <div class="question-title-text">我要提问</div>
         </div>
@@ -46,8 +46,8 @@
       <div class="QA-box-header">
         <div class="QA-title">专家问答</div>
         <!-- 查看更多 -->
-        <div class="QA-more">
-          <span>查看更多》〉</span>
+        <div class="QA-more" @click="handleQAList()">
+          <span>查看更多 >></span>
         </div>
       </div>
       <div class="QA-list-box">
@@ -73,12 +73,15 @@
         </template>
       </div>
     </div>
+    <!-- 咨询专家弹窗 -->
+    <AskExpertComponent ref="askExpertRef" @submitSuccess="handleChange"></AskExpertComponent>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { technologyExpertDetail, legalExpertDetail, questionList } from '@/api/mall/expert';
+import AskExpertComponent from './AskExpertComponent.vue';
 
 const emit = defineEmits(['detailChange']);
 
@@ -92,6 +95,8 @@ const expertId = ref<string | null>(null);
 const expertDetail = ref();
 
 const qaList = ref([]);
+
+const askExpertRef = ref(null);
 
 onMounted(async () => {
   console.log(props);
@@ -137,8 +142,23 @@ const getAvatarUrl = (imgList) => {
   return imgList?.filter((img) => img.fileType === '0')[0]?.ossInfo?.url || '';
 };
 
+// 处理立即咨询按钮点击
+const handleConsultation = () => {
+  // 处理咨询逻辑，例如跳转到咨询页面并传递专家信息
+  askExpertRef.value?.openDialog(expertDetail.value?.id, props.type === 'technology' ? '1' : '2');
+};
+
+const handleChange = async (tab) => {
+  await getQuestionList();
+};
+
 const handleDetail = (id: string) => {
   emit('detailChange', { type: 'qaDetail', id });
+};
+
+// 处理查看更多问答按钮点击
+const handleQAList = () => {
+  emit('detailChange', { type: 'qaMoreList' });
 };
 </script>
 
@@ -238,6 +258,8 @@ const handleDetail = (id: string) => {
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+
       img {
         width: 14px;
         height: 14px;
@@ -277,6 +299,7 @@ const handleDetail = (id: string) => {
       display: flex;
       align-items: center;
       justify-content: flex-end;
+      cursor: pointer;
       span {
         font-weight: 400;
         font-size: 14px;
@@ -351,6 +374,7 @@ const handleDetail = (id: string) => {
           color: #108c58;
           line-height: 14px;
           text-align: left;
+          cursor: pointer;
         }
       }
       .QA-image {

@@ -103,7 +103,7 @@
 
     <!-- 合并后的新增/编辑/查看弹窗（查看态与新增/编辑同款表单） -->
     <el-dialog v-model="dialog.visible" :title="dialogTitle" width="600px" append-to-body>
-      <el-form ref="dataFormRef" :model="form" :rules="rules" label-width="120px" :disabled="dialog.mode === 'view'">
+      <el-form ref="dataFormRef" :model="form" :rules="rules" label-width="140px" :disabled="dialog.mode === 'view'">
         <el-form-item label="预警规则名称" prop="ruleName">
           <el-input v-model="form.ruleName" placeholder="请输入规则名称" :maxlength="30" show-word-limit clearable />
         </el-form-item>
@@ -114,8 +114,17 @@
           </el-select>
         </el-form-item>
 
+        <el-form-item label="信用等级积分区间：">
+          <div class="range-wrapper">
+            <el-input v-model.number="creditMinPoints" disabled type="number" min="0" max="100" placeholder="请选择信用等级" style="width: 180px" />
+            <span class="split">-</span>
+            <el-input v-model.number="creditMaxPoints" disabled type="number" min="0" max="100" placeholder="请选择信用等级" style="width: 180px" />
+          </div>
+        </el-form-item>
+
         <el-form-item label="预警值" prop="warnValue">
-          <el-input-number v-model="form.warnValue" :min="0" />
+          <el-input-number v-model="form.warnValue" />
+          <!-- <div v-if="numericMin !== null && numericMax !== null" class="help-txt">需在 {{ numericMin }} - {{ numericMax }} 之间</div> -->
         </el-form-item>
 
         <el-form-item label="状态" prop="status">
@@ -134,7 +143,7 @@
 </template>
 
 <script setup name="EarlyWarningRule" lang="ts">
-import { ref, reactive, toRefs, onMounted, getCurrentInstance, ComponentInternalInstance, computed } from 'vue';
+import { ref, reactive, toRefs, onMounted, getCurrentInstance, ComponentInternalInstance, computed, watch } from 'vue';
 import {
   initForm,
   listWarnRule,
@@ -147,6 +156,7 @@ import {
   EarlyWarningRuleForm,
   EarlyWarningRuleVO
 } from '@/api/rightsPlatform/achiveManagement/credit/earlyWarningRuleSettings';
+import { getCreditRatingPointsList } from '@/api/rightsPlatform/achiveManagement/credit/creditRatingPoints';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { plat_credit_rating, warn_rule_status } = toRefs<any>(proxy?.useDict('plat_credit_rating', 'warn_rule_status'));
@@ -178,9 +188,37 @@ const rules = {
     { min: 1, max: 30, message: '长度应在 1-30 个字符内', trigger: 'blur' }
   ],
   creditRatingId: [{ required: true, message: '信用等级不能为空', trigger: 'change' }],
-  warnValue: [{ required: true, message: '预警值不能为空', trigger: 'blur' }],
+  warnValue: [
+    { required: true, message: '预警值不能为空', trigger: 'blur' },
+    { validator: warnValueValidator, trigger: ['blur', 'change'] }
+  ],
   status: [{ required: true, message: '状态不能为空', trigger: 'change' }]
 };
+
+// 信用等级积分区间展示
+const creditMinPoints = ref<number | string>('');
+const creditMaxPoints = ref<number | string>('');
+const numericMin = computed<number | null>(() => {
+  const n = Number(creditMinPoints.value);
+  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
+});
+const numericMax = computed<number | null>(() => {
+  const n = Number(creditMaxPoints.value);
+  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
+});
+
+function warnValueValidator(_rule: any, value: any, callback: (err?: Error) => void) {
+  if (dialog.mode === 'view') return callback();
+  const min = numericMin.value;
+  const max = numericMax.value;
+  if (min === null || max === null) {
+    return callback(new Error('请先选择信用等级以获取积分区间'));
+  }
+  const num = Number(value);
+  if (Number.isNaN(num)) return callback(new Error('预警值必须为数字'));
+  if (num < min || num > max) return callback(new Error(`预警值需在 ${min} - ${max} 之间`));
+  return callback();
+}
 
 const dialog = reactive<{ visible: boolean; title: string; mode: 'create' | 'edit' | 'view' }>({
   visible: false,
@@ -216,6 +254,8 @@ function normalizeCreditRatingId(id: unknown): string {
 // 新增/编辑/查看
 const handleAdd = () => {
   form.value = { ...initForm };
+  creditMinPoints.value = '';
+  creditMaxPoints.value = '';
   dialog.mode = 'create';
   setTimeout(() => dataFormRef.value?.clearValidate(), 100);
   dialog.visible = true;
@@ -229,6 +269,7 @@ const handleEdit = async (row: EarlyWarningRuleVO) => {
   };
   dialog.mode = 'edit';
   dialog.visible = true;
+  loadCreditPoints(form.value.creditRatingId as any);
 };
 const handleView = async (row: EarlyWarningRuleVO) => {
   const res = await getWarnRule(row.id!);
@@ -239,6 +280,7 @@ const handleView = async (row: EarlyWarningRuleVO) => {
   };
   dialog.mode = 'view';
   dialog.visible = true;
+  loadCreditPoints(form.value.creditRatingId as any);
 };
 
 // 提交
@@ -329,6 +371,32 @@ const cancel = () => {
 
 onMounted(getList);
 
+// 根据信用等级获取积分区间
+async function loadCreditPoints(creditRatingId: string | number | null | undefined) {
+  creditMinPoints.value = '';
+  creditMaxPoints.value = '';
+  const id = normalizeCreditRatingId(creditRatingId as any);
+  if (!id) return;
+  try {
+    const res: any = await getCreditRatingPointsList({ pageNum: 1, pageSize: 10, creditRatingId: id });
+    const list = (res && (res.rows || res.data)) || [];
+    const item = Array.isArray(list) && list.length ? list[0] : null;
+    creditMinPoints.value = item?.creditMinPoints ?? '';
+    creditMaxPoints.value = item?.creditMaxPoints ?? '';
+  } catch (e) {
+    // 忽略异常，保持空展示
+  }
+}
+
+// 选择变化时请求积分区间（新增/编辑/查看均展示）
+watch(
+  () => form.value.creditRatingId,
+  (val) => {
+    if (!dialog.visible) return;
+    loadCreditPoints(val as any);
+  }
+);
+
 // 行内操作按钮配置（前三个直显，超出收“更多”）
 const getRowActions = (row: EarlyWarningRuleVO) => {
   const actions = [
@@ -356,5 +424,11 @@ const getRowActions = (row: EarlyWarningRuleVO) => {
   margin-top: 4px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+.range-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

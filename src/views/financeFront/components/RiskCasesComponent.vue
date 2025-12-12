@@ -87,7 +87,7 @@ const handleMore = () => {
 
 <style scoped lang="scss">
 .risk-cases {
-  padding: 20px;
+  // padding: 20px;
   .section-title {
     height: 20px;
     line-height: 20px;
