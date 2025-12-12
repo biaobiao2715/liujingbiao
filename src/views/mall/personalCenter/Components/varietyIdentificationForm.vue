@@ -62,35 +62,34 @@
         <el-button v-throttle @click="handcancel">历史记录</el-button>
       </el-row>
       <!-- 搜索条件 -->
-      <el-form ref="formRef" :model="form" :label-width="130" v-show="formShow">
-        <el-form-item label="品种名称：" prop="varietyType">
-          {{ form.varietyType }}
+      <el-form ref="formRef" :model="formData" :label-width="130" v-show="formShow">
+        <el-form-item label="品种名称：" prop="varietyName">
+          {{ formData.varietyName }}
         </el-form-item>
 
         <el-form-item label="品种类型：" prop="varietyType">
-          <!-- <dict-text :options="varietyTypeOptions" :value="form.varietyType ?? ''" /> -->
-          {{ form.varietyType }}
+          {{ formData.varietyType }}
         </el-form-item>
 
-        <el-form-item label="特征描述：" prop="varietyType">
-          {{ form.varietyType }}
+        <el-form-item label="特征描述：" prop="featureDescription">
+          {{ formData.featureDescription }}
         </el-form-item>
 
-        <el-form-item label="种植技术指导：" prop="varietyType">
-          {{ form.varietyType }}
+        <el-form-item label="种植技术指导：" prop="plantingTechniquesGuidance">
+          {{ formData.plantingTechniquesGuidance }}
         </el-form-item>
-        <el-form-item label="注意事项：" prop="varietyType">
-          {{ form.varietyType }}
+        <el-form-item label="注意事项：" prop="precautions">
+          {{ formData.precautions }}
         </el-form-item>
-        <el-form-item label="置信度评分：" prop="varietyType">
-          {{ form.varietyType }}
+        <el-form-item label="置信度评分：" prop="confidenceLevel">
+          {{ formData.confidenceLevel }}
         </el-form-item>
-        <el-form-item label="识别状态：" prop="varietyType">
-          <img :src="form.skeleton_URL" alt="" style="width: 100px; height: 100px" />
+        <el-form-item label="识别状态：" prop="skeleton_URL">
+          <img :src="formData.skeleton_URL" alt="" style="width: 100px; height: 100px" />
         </el-form-item>
 
         <div class="flex-center-end">
-          <el-button v-throttle type="primary" @click="handleSubmit">确定</el-button>
+          <el-button v-throttle type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
           <el-button v-throttle @click="handcancel">取消</el-button>
         </div>
       </el-form>
@@ -101,7 +100,7 @@
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import {} from '@/api/register'; // 图片上传接口
-import { ossUploadImage, varietyRecognizeIdentify } from '@/api/mall/personalCenter/varietyIdentification';
+import { ossUploadImage, varietyRecognizeIdentify, varietyRecognizeAdd } from '@/api/mall/personalCenter/varietyIdentification';
 
 import type { UploadFile } from 'element-plus';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -111,12 +110,15 @@ const emit = defineEmits<{
   (e: 'cancel'): void;
 }>();
 // 搜索表单数据
-const form = ref({
-  pageNum: 1,
-  pageSize: 10,
+const formData = ref({
+  confidenceLevel: '',
   varietyType: '',
   skeleton_URL: '',
-  identifyTime: [] as string[] | []
+  varietyName: '',
+  featureDescription: '',
+  plantingTechniquesGuidance: '',
+  fileName: '',
+  precautions: ''
 });
 
 const selectedCategory = ref<string>('');
@@ -131,10 +133,27 @@ const uploadRef = ref();
 const sizeLimit = 10 * 1024 * 1024; // 10M
 const allowExt = ['jpg', 'jpeg', 'png', 'pdf'];
 const allowMime = ['image/jpeg', 'image/png', 'application/pdf'];
+// 提交按钮操作（加入校验、加载态与错误处理）
+const submitting = ref(false);
 
-// 提交按钮操作
-const handleSubmit = () => {
-  emit('refresh');
+const handleSubmit = async () => {
+  if (submitting.value) return;
+  // 简单必填校验：至少包含名称与类型
+  // if (!formData.value.varietyName || !formData.value.varietyType) {
+  //   ElMessage.warning('请先完成识别并补全品种名称与类型');
+  //   return;
+  // }
+  try {
+    submitting.value = true;
+    console.log('提交的识别结果：', formData.value);
+    await varietyRecognizeAdd(formData.value);
+    ElMessage.success('提交成功');
+    emit('refresh');
+  } catch (e) {
+    console.error('提交失败：', e);
+  } finally {
+    submitting.value = false;
+  }
 };
 /** 取消按钮操作 */
 const handcancel = () => {
@@ -154,9 +173,20 @@ const submitForm = () => {
   varietyRecognizeIdentify({ imageUrl: diplomaUrl.value.url, modelName: selectedCategory.value })
     .then((res) => {
       ElMessage.success('识别成功');
+      const arr = res.data.result;
       console.log('识别结果：', res);
       formShow.value = true;
-      form.value = res.data || {};
+
+      formData.value = {
+        fileName: diplomaUrl.value.name,
+        confidenceLevel: arr.Plant_Type.confidence || '',
+        varietyType: arr.Plant_Type.type || '',
+        skeleton_URL: arr.skeleton_URL || '',
+        varietyName: arr.Plant_Type.varietyName || '',
+        featureDescription: arr.Plant_Type.featureDescription || '',
+        plantingTechniquesGuidance: arr.Plant_Type.plantingTechniquesGuidance || '',
+        precautions: arr.Plant_Type.precautions || ''
+      };
     })
     .catch((error) => {
       console.error('识别过程出错：', error);
