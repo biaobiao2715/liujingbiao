@@ -130,7 +130,7 @@ const handleFavorite = async (item: any) => {
 
 <style scoped lang="scss">
 .loan-products {
-  padding: 20px;
+  padding: 20px 0;
 
   .item {
     border: 1px solid #e4e4e4;

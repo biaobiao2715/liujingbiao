@@ -121,7 +121,7 @@ const handleMore = () => {
 
 <style scoped lang="scss">
 .risk-cases {
-  padding: 20px;
+  // padding: 20px;
 }
 
 .section-title {

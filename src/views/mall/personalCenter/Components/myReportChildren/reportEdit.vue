@@ -50,7 +50,7 @@
           <div class="file-list-section">
             <el-upload
               class="upload-demo"
-              action=""
+              action="#"
               :auto-upload="false"
               :on-change="handleFileChange"
               :before-upload="beforeFileUpload"
@@ -139,7 +139,6 @@ const formRules = {
   reportTypeId: [{ required: true, message: '请选择举报类别', trigger: 'change' }],
   reportDescription: [{ required: true, message: '请输入举报描述', trigger: 'blur' }]
 };
-
 // 监听弹窗显示状态，当弹窗打开时检查是否有初始化数据
 watch(
   () => props.modelValue,
@@ -277,6 +276,22 @@ const loadReportMaterials = async (reportId: string | number | null) => {
 
 // 文件变更处理
 const handleFileChange = async (file: any, elFileList: any[]) => {
+  if (file.raw.type.includes('image')) {
+    const fileListImageCount = fileList.value.filter((f: any) => f.fileType === '0').length;
+    if (fileListImageCount >= 6) {
+      elFileList.splice(elFileList.length - 1, 1);
+      ElMessage.warning('最多只能上传6张图片');
+      return;
+    }
+  }
+  if (file.raw.type.includes('video')) {
+    const fileListVideoCount = fileList.value.filter((f: any) => f.fileType === '1').length;
+    if (fileListVideoCount >= 3) {
+      elFileList.splice(elFileList.length - 1, 1);
+      ElMessage.warning('最多只能上传3个视频');
+      return;
+    }
+  }
   // 如果是新添加的文件，上传到服务器
   if (file.status === 'ready') {
     // 检查文件大小限制
@@ -356,7 +371,7 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
     try {
       const rawFile = file.raw || file.file;
       const response = await uploadByChunks(rawFile);
-      const data = response.data || {};
+      const data = response || {};
       const isVideo = rawFile?.type?.startsWith('video/') || isVideoFile(data.fileType, data.originalName || data.fileName || file.name);
       const uploaded = {
         uid: file.uid || `${Date.now()}-${Math.random()}`,
@@ -391,11 +406,8 @@ const handleFileChange = async (file: any, elFileList: any[]) => {
     }
   }
 };
-
 // 上传前检查
 const beforeFileUpload = (file: any) => {
-  console.log(file);
-
   // 检查文件类型
   const isImage = file.type?.startsWith('image/');
   const isVideo = file.type?.startsWith('video/');
