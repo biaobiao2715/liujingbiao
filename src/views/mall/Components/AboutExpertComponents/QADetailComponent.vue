@@ -5,51 +5,17 @@
         <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #00a1d6; margin-right: 20px">
           <!-- 头像 -->
         </div>
-        <span
-          style="
-            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-            font-weight: 500;
-            font-size: 14px;
-            color: #3d3d3d;
-            line-height: 20px;
-            text-align: left;
-            font-style: normal;
-          "
-        >
-          {{ answers?.questionUser ? answers?.questionUser : '' }}
+        <span class="question-user">
+          {{ answers?.questionUser || '' }}
         </span>
       </div>
-      <span
-        style="
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-          font-weight: 400;
-          font-size: 14px;
-          color: #909090;
-          line-height: 20px;
-          text-align: left;
-          font-style: normal;
-          text-transform: none;
-        "
-        >{{ answers?.publishTime ? '提问于 ' + answers?.publishTime : '' }}</span
-      >
+      <span class="question-time">{{ answers?.publishTime ? '提问于 ' + answers?.publishTime : '' }}</span>
     </div>
     <!-- 问题部分 -->
     <div class="qa-question">
       <div class="question-title">
         <img src="@/assets/images/wt@2x.png" alt="" />
-        <span
-          style="
-            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
-            font-weight: 500;
-            font-size: 14px;
-            color: #333333;
-            line-height: 20px;
-            text-align: left;
-            font-style: normal;
-            text-transform: none;
-            margin-left: 10px;
-          "
-        >
+        <span class="question-content">
           {{ answers?.questionContent || '' }}
         </span>
       </div>
@@ -74,10 +40,10 @@
         <div class="reply-item">
           <div class="reply-item-avator">
             <!-- 头像 -->
-            <img src="" alt="" />
+            <img :src="answers.expertImage" width="50" />
             <div class="reply-item-title">
               <div class="reply-item-name">
-                {{ '肖新明·技术员' }}
+                {{ answers.answerUser || '' }}
               </div>
               <div class="reply-item-time">
                 {{ answer.replyTime }}
@@ -134,6 +100,21 @@ const fetchQuestionDetail = async () => {
     display: flex;
     justify-content: space-between;
     margin-bottom: 25px;
+    .question-user {
+      font-weight: 500;
+      font-size: 14px;
+      color: #3d3d3d;
+      line-height: 20px;
+      text-align: left;
+    }
+    .question-time {
+      font-weight: 400;
+      font-size: 14px;
+      color: #909090;
+      line-height: 20px;
+      text-align: left;
+      font-style: normal;
+    }
   }
 }
 
@@ -149,6 +130,13 @@ const fetchQuestionDetail = async () => {
     img {
       width: 28px;
       height: 28px;
+    }
+    .question-content {
+      font-weight: 500;
+      font-size: 14px;
+      color: #333333;
+      line-height: 20px;
+      margin-left: 10px;
     }
   }
 
@@ -220,7 +208,6 @@ const fetchQuestionDetail = async () => {
   color: #909399;
 }
 .border-dashed-style {
-  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
   font-weight: 400;
   font-size: 14px;
   color: #a3a3a3;
@@ -253,7 +240,6 @@ const fetchQuestionDetail = async () => {
       }
       .reply-item-title {
         .reply-item-name {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 500;
           font-size: 14px;
           color: #3d3d3d;
@@ -264,7 +250,6 @@ const fetchQuestionDetail = async () => {
           margin-bottom: 10px;
         }
         .reply-item-time {
-          font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
           font-weight: 400;
           font-size: 14px;
           color: #909090;
@@ -276,7 +261,6 @@ const fetchQuestionDetail = async () => {
       }
     }
     .reply-item-content {
-      font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
       font-weight: 400;
       font-size: 14px;
       color: #333333;

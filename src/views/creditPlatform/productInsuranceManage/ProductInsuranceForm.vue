@@ -190,10 +190,10 @@ const INSURANCE_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，�
 
 const validateFileForParse = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+  const allowedExt = ['pdf', 'docx'];
   
-  if (!docExt.includes(ext)) {
-    ElMessage.error(`不支持 ${ext.toUpperCase()} 格式的文件，请上传文档文件`);
+  if (!allowedExt.includes(ext)) {
+    ElMessage.error('自动解析功能仅支持 PDF 和 DOCX 格式的文件');
     return false;
   }
 
@@ -209,12 +209,12 @@ const validateFileForParse = (file: File): boolean => {
 const triggerUpload = async () => {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt';
+  input.accept = '.pdf,.docx';
   input.onchange = async (e: Event) => {
     const file = (e.target as HTMLInputElement)?.files?.[0];
     if (!file) return;
 
-    // 验证文件
+    // 验证文件（自动解析只允许 PDF 和 DOCX）
     if (!validateFileForParse(file)) {
       return;
     }

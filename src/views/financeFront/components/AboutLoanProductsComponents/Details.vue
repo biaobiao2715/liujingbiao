@@ -10,7 +10,13 @@
   <div>
     <div class="details_title">
       <div class="item-left">
-        <div class="item_productName">{{ form?.productName }}</div>
+        <div class="flex-between">
+          <div class="item_productName">{{ form?.productName }}</div>
+
+          <!-- <button class="btn btn-favorite flex-center-center gap-4" @click="submitApply">
+            <div>{{ form.isFavorite ? '加入收藏夹' : '加入收藏夹' }}</div>
+          </button> -->
+        </div>
         <dict-text class="item_type" :options="prod_credit_type" :value="form.productType ?? ''" />
         <div class="item_productIntro">{{ form?.productIntro }}</div>
         <div class="kpi-list">
@@ -88,6 +94,7 @@
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { eventBus } from '@/utils/eventBus';
+import { addToFavorites } from '@/api/mall/index';
 import { getCreditProductsVersionDetailNoTenant, getCreditProductMoney } from '@/api/financeFront/LoanProducts/index';
 const props = defineProps({
   id: {
@@ -113,6 +120,7 @@ const form = ref({
   applicableInstructions: '',
   maxLoanAmount: '',
   repaymentMethod: '',
+  isFavorite: false,
   loanCycle: ''
 });
 
@@ -134,6 +142,21 @@ const amountDisplay = computed(() => {
 
 const revealAmount = () => {
   showAmount.value = !showAmount.value;
+};
+
+// 收藏/取消收藏
+const submitApply = async () => {
+  const res = await addToFavorites({
+    favoriteType: '6',
+    creditProductFavoritesBo: {
+      productId: form.value.productId,
+      productVersion: form.value.productVersion
+    }
+  });
+  if (res.code === 200) {
+    form.value.isFavorite = !form.value.isFavorite;
+    ElMessage.success(form.value.isFavorite ? '收藏成功' : '取消收藏成功');
+  }
 };
 
 // 立即申请
@@ -363,6 +386,7 @@ const getLoanAmount = async () => {
   font-style: normal;
   text-transform: none;
   margin-bottom: 22px;
+  flex: 1 1 auto;
 }
 
 .item_type {
@@ -582,6 +606,30 @@ const getLoanAmount = async () => {
     margin-top: 1.5em;
     margin-bottom: 0.8em;
     font-weight: 600;
+  }
+}
+
+.btn {
+  width: 160px;
+  height: 50px;
+  border-radius: 2px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.btn-favorite {
+  background: rgba(16, 140, 88, 0.1);
+  border: 1px solid #ffffff;
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 20px;
+
+  &:hover {
+    opacity: 0.8;
   }
 }
 </style>

@@ -108,6 +108,7 @@ onMounted(() => {
 
 // 展示对应的详情组件
 const showDetail = (incomeData: { type: showAreaType; id?: string; expertType?: string; expertId?: string }) => {
+  console.log(incomeData);
   id.value = incomeData.id || id.value;
   expertType.value = incomeData.expertType || expertType.value; // 专家类型
   expertId.value = incomeData.expertId || expertId.value; // 专家ID

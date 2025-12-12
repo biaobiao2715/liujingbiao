@@ -25,7 +25,7 @@
           v-model="queryParams.messageContent"
           :placeholder="queryParams.messageContent ? '' : '请输入内容'"
           clearable
-          @keyup.enter="handleQuery"
+          @keyup.enter="handleSearch"
         />
       </el-form-item>
 
@@ -299,30 +299,7 @@ const isPinned = (id?: string | number | null) => {
   return pinnedIds.value.map(String).includes(String(id));
 };
 
-const togglePin = (row: any) => {
-  const id = row?.id;
-  if (id === undefined || id === null || id === '') return;
-  const sid = String(id);
-  const list = pinnedIds.value.map(String);
-  if (list.includes(sid)) {
-    // 取消置顶
-    pinnedIds.value = pinnedIds.value.filter((x) => String(x) !== sid);
-    tableData.value = applyPinSort(tableData.value as any[]);
-    ElMessage.success('已取消置顶');
-  } else {
-    // 置顶（追加到置顶序列末尾，序列在顶部按顺序显示）
-    pinnedIds.value.push(id);
-    tableData.value = applyPinSort(tableData.value as any[]);
-    ElMessage.success('已置顶该条留言');
-  }
-};
-
 const handleSearch = () => {
-  queryParams.value.pageNum = 1;
-  getList();
-};
-
-const handleQuery = () => {
   queryParams.value.pageNum = 1;
   getList();
 };
@@ -334,7 +311,7 @@ const handleReset = () => {
   queryParams.value.messageContent = '';
   queryParams.value.questionStatus = '';
   queryParams.value.pageNum = 1;
-  handleQuery();
+  getList();
 };
 
 const handlePageChange = (page: number) => {
@@ -411,8 +388,6 @@ const handleReply = (row: any) => {
   replyDialog.value.batchIds = batchIds;
   replyDialog.value.batchIndex = index >= 0 ? index : 0;
 };
-
-// 行内“关闭”操作已移除，改为在回复弹窗内部执行关闭动作
 
 const onReplySuccess = () => {
   // 保持弹窗打开，刷新列表以同步最新状态与时间

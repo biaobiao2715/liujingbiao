@@ -134,6 +134,7 @@ const getQuestionList = async () => {
 .qa-question-text {
   // 超出2行显示省略号
   height: 46px;
+  line-height: 23px;
   font-size: 14px;
   color: #333333;
   font-weight: bold;

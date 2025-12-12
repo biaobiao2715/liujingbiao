@@ -6,23 +6,10 @@
 -->
 <template>
   <div class="activity-edit-dialog" v-loading="loading">
-    <el-form 
-      ref="formRef" 
-      :model="formData" 
-      :rules="formRules" 
-      label-width="140px"
-      class="edit-form"
-    >
+    <el-form ref="formRef" :model="formData" :rules="formRules" label-width="140px" class="edit-form">
       <el-form-item label="普法活动标题" prop="activityTitle" required>
-        <el-input 
-          v-model="formData.activityTitle" 
-          placeholder="请输入标题内容" 
-          maxlength="30"
-          show-word-limit
-          clearable
-        />
+        <el-input v-model="formData.activityTitle" placeholder="请输入标题内容" maxlength="30" show-word-limit clearable />
       </el-form-item>
-      
       <el-form-item label="普法简介" prop="activitySummary" required>
         <el-input
           v-model="formData.activitySummary"
@@ -34,33 +21,19 @@
           resize="vertical"
         />
       </el-form-item>
-      
       <el-form-item label="普法活动类型" prop="activityType" required>
         <el-select v-model="formData.activityType" placeholder="请选择" style="width: 100%" clearable>
-          <el-option 
-            v-for="item in legal_popularize_activity_type" 
-            :key="item.value" 
-            :label="item.label" 
-            :value="item.value" 
-          />
+          <el-option v-for="item in legal_popularize_activity_type" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      
       <el-form-item label="普法活动地址" prop="activityAddress" required>
-        <el-input 
-          v-model="formData.activityAddress" 
-          placeholder="请输入普法活动地址" 
-          maxlength="30"
-          show-word-limit
-          clearable
-        />
+        <el-input v-model="formData.activityAddress" placeholder="请输入普法活动地址" maxlength="30" show-word-limit clearable />
       </el-form-item>
-      
       <el-form-item label="普法活动时间" required>
         <div class="time-range">
           <div class="time-item">
             <label class="time-label">开始时间:</label>
-            <el-form-item prop="startTime" style="margin-bottom: 0;">
+            <el-form-item prop="startTime" style="margin-bottom: 0">
               <el-date-picker
                 v-model="formData.startTime"
                 type="datetime"
@@ -77,7 +50,7 @@
           <span class="time-separator">-</span>
           <div class="time-item">
             <label class="time-label">结束时间:</label>
-            <el-form-item prop="endTime" style="margin-bottom: 0;">
+            <el-form-item prop="endTime" style="margin-bottom: 0">
               <el-date-picker
                 v-model="formData.endTime"
                 type="datetime"
@@ -92,17 +65,9 @@
           </div>
         </div>
       </el-form-item>
-      
       <el-form-item label="普法活动联系人" prop="activityContact" required>
-        <el-input 
-          v-model="formData.activityContact" 
-          placeholder="请输入联系人" 
-          maxlength="20"
-          show-word-limit
-          clearable 
-        />
+        <el-input v-model="formData.activityContact" placeholder="请输入联系人" maxlength="20" show-word-limit clearable />
       </el-form-item>
-      
       <el-form-item label="联系人电话" prop="activityContactPhone" required>
         <el-input v-model="formData.activityContactPhone" placeholder="请输入联系电话" clearable />
       </el-form-item>
@@ -121,11 +86,7 @@
 import { ref, onMounted, getCurrentInstance, toRefs, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { 
-  getActivityDetail, 
-  editActivity,
-  addActivity
-} from '@/api/expertServicePlatform/legalServiceManage/activityManage';
+import { getActivityDetail, editActivity, addActivity } from '@/api/expertServicePlatform/legalServiceManage/activityManage';
 
 const props = defineProps<{
   id?: string | number | null;
@@ -139,9 +100,7 @@ const emit = defineEmits<{
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { legal_popularize_activity_type } = toRefs<any>(
-  (proxy as any)?.useDict('legal_popularize_activity_type')
-);
+const { legal_popularize_activity_type } = toRefs<any>((proxy as any)?.useDict('legal_popularize_activity_type'));
 
 const formRef = ref();
 const saving = ref(false);
@@ -169,9 +128,7 @@ const formRules = {
     { required: true, message: '请输入简介,最多支持60个汉字', trigger: 'blur' },
     { min: 1, max: 60, message: '简介长度在 1 到 60 个字符', trigger: 'blur' }
   ],
-  activityType: [
-    { required: true, message: '请选择普法活动类型', trigger: 'change' }
-  ],
+  activityType: [{ required: true, message: '请选择普法活动类型', trigger: 'change' }],
   activityAddress: [
     { required: true, message: '请输入普法活动地址,最多支持30个汉字', trigger: 'blur' },
     { min: 1, max: 30, message: '地址长度在 1 到 30 个字符', trigger: 'blur' }
@@ -184,30 +141,24 @@ const formRules = {
           callback(new Error('请选择开始时间'));
           return;
         }
-        
         if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
           callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
           return;
         }
-        
         // 检查开始时间不能早于当前时间
         const startDate = new Date(value);
         const now = new Date();
-        
         if (startDate < now) {
           callback(new Error('开始时间不能早于当前时间'));
           return;
         }
-        
         if (formData.value.endTime) {
           const endDate = new Date(formData.value.endTime);
-          
           if (startDate >= endDate) {
             callback(new Error('开始时间必须早于结束时间'));
             return;
           }
         }
-        
         callback();
       },
       trigger: ['change', 'blur']
@@ -221,33 +172,27 @@ const formRules = {
           callback(new Error('请选择结束时间'));
           return;
         }
-        
         if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
           callback(new Error('时间格式不正确，请使用 YYYY-MM-DD HH:mm:ss 格式'));
           return;
         }
-        
         const endDate = new Date(value);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const endDateOnly = new Date(endDate);
         endDateOnly.setHours(0, 0, 0, 0);
-        
         // 结束时间不得早于今天
         if (endDateOnly < today) {
           callback(new Error('结束时间不得早于今天'));
           return;
         }
-        
         if (formData.value.startTime) {
           const startDate = new Date(formData.value.startTime);
-          
           if (endDate <= startDate) {
             callback(new Error('结束时间必须晚于开始时间'));
             return;
           }
         }
-        
         callback();
       },
       trigger: ['change', 'blur']
@@ -268,19 +213,15 @@ const fetchActivityDetail = async () => {
     ElMessage.error('活动ID不存在');
     return;
   }
-  
   loading.value = true;
   try {
     const response: any = await getActivityDetail(props.id);
-    
     if (response && response.code === 200) {
       const data = response.data;
-      
       if (!data) {
         ElMessage.error('获取活动详情失败：数据为空');
         return;
       }
-      
       formData.value = {
         id: data.id,
         activityTitle: data.activityTitle || '',
@@ -316,25 +257,17 @@ const formatCurrentTime = () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
-    
-    const confirmMsg = props.type === 'add' 
-      ? '确定要发布此普法活动吗？发布后用户将可以看到此活动。'
-      : '确定要保存并发布此普法活动吗？';
-    
+    const confirmMsg = props.type === 'add' ? '确定要发布此普法活动吗？发布后用户将可以看到此活动。' : '确定要保存并发布此普法活动吗？';
     await ElMessageBox.confirm(confirmMsg, '系统提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning',
+      type: 'warning'
     });
-    
     saving.value = true;
-    
     const currentTime = formatCurrentTime();
-    
     const submitData: any = {
       ...(props.type === 'edit' && formData.value.id ? { id: formData.value.id } : {}),
       activityTitle: formData.value.activityTitle?.trim(),
@@ -349,16 +282,13 @@ const handleSubmit = async () => {
       publishTimeStart: currentTime,
       publishTimeEnd: currentTime
     };
-    
     if (props.type === 'edit' && !submitData.id) {
       ElMessage.error('编辑活动时缺少活动ID');
       saving.value = false;
       return;
     }
-    
     const api = props.type === 'add' ? addActivity : editActivity;
     const response: any = await api(submitData);
-    
     if (response && response.code === 200) {
       ElMessage.success(props.type === 'add' ? '普法活动发布成功' : '普法活动修改成功');
       emit('success');
@@ -401,13 +331,8 @@ const disabledStartDate = (time: Date) => {
 const disabledStartTime = (time: Date) => {
   const now = new Date();
   const selectedDate = new Date(time);
-  
   // 如果选择的日期是今天，则禁用早于当前时间的时间点
-  if (
-    selectedDate.getFullYear() === now.getFullYear() &&
-    selectedDate.getMonth() === now.getMonth() &&
-    selectedDate.getDate() === now.getDate()
-  ) {
+  if (selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth() && selectedDate.getDate() === now.getDate()) {
     return {
       disabledHours: () => {
         const hours = [];
@@ -438,7 +363,6 @@ const disabledStartTime = (time: Date) => {
       }
     };
   }
-  
   return {};
 };
 
@@ -456,7 +380,6 @@ const handleEndTimeChange = () => {
 
 onMounted(async () => {
   formRef.value?.resetFields?.();
-  
   if ((props.type === 'edit' || props.type === 'view') && props.id) {
     await fetchActivityDetail();
   } else if (props.type === 'add') {
@@ -481,12 +404,10 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  
   .time-item {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    
     .time-label {
       font-size: 14px;
       color: #606266;
@@ -494,12 +415,10 @@ onMounted(async () => {
       white-space: nowrap;
       line-height: 32px;
     }
-    
     .el-form-item {
       margin-bottom: 0 !important;
     }
   }
-  
   .time-separator {
     color: #606266;
     font-size: 16px;
@@ -516,7 +435,6 @@ onMounted(async () => {
   padding-top: 24px;
   border-top: 1px solid #e4e7ed;
   gap: 12px;
-  
   .el-button {
     min-width: 100px;
   }
@@ -527,16 +445,13 @@ onMounted(async () => {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    
     .time-item {
       justify-content: space-between;
-      
       .el-date-editor {
         width: 100% !important;
         max-width: 200px;
       }
     }
-    
     .time-separator {
       text-align: center;
       margin: 8px 0;
@@ -544,4 +459,3 @@ onMounted(async () => {
   }
 }
 </style>
-

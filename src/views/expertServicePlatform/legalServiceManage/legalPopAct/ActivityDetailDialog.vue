@@ -13,21 +13,19 @@
       <div class="header-top">
         <h2 class="main-title">{{ activityDetail.activityTitle || '活动标题' }}</h2>
       </div>
-      
       <div class="header-bottom">
         <div class="publisher-info">
           <el-avatar :size="48" class="avatar">{{ (activityDetail.publisher || '发布人').slice(0, 1) }}</el-avatar>
           <span class="publisher-name">发布人: {{ activityDetail.publisher || '未知' }}</span>
           <span class="publish-time">发布时间: {{ formatPublishTime(activityDetail.publishTime) }}</span>
         </div>
-        
         <div class="status-enroll-info">
-        <div class="status-info">
-          <span class="status-label">活动状态:</span>
-          <span class="status-pill" :class="getStatusClass(activityDetail.activityStatus)">
-            {{ getStatusLabel(activityDetail.activityStatus) }}
-          </span>
-        </div>
+          <div class="status-info">
+            <span class="status-label">活动状态:</span>
+            <span class="status-pill" :class="getStatusClass(activityDetail.activityStatus)">
+              {{ getStatusLabel(activityDetail.activityStatus) }}
+            </span>
+          </div>
           <div class="enroll-info">
             <span class="enroll-label">报名人数:</span>
             <span class="enroll-value">{{ activityDetail.enrollCount || 0 }}人</span>
@@ -41,32 +39,26 @@
         <span class="detail-label">活动主题:</span>
         <span class="detail-value">{{ getTypeLabel(activityDetail.activityType) }}</span>
       </div>
-      
       <div class="detail-row">
         <span class="detail-label">活动简介:</span>
         <span class="detail-value">{{ activityDetail.activitySummary || '-' }}</span>
       </div>
-      
       <div class="detail-row">
         <span class="detail-label">活动联系人:</span>
         <span class="detail-value">{{ activityDetail.activityContact || '-' }}</span>
       </div>
-      
       <div class="detail-row">
         <span class="detail-label">活动联系人电话:</span>
         <span class="detail-value">{{ activityDetail.activityContactPhone || '-' }}</span>
       </div>
-      
       <div class="detail-row">
         <span class="detail-label">活动时间:</span>
         <span class="detail-value">{{ formatTime(activityDetail.startTime) }} 至 {{ formatTime(activityDetail.endTime) }}</span>
       </div>
-      
       <div class="detail-row">
         <span class="detail-label">活动地址:</span>
         <span class="detail-value">{{ activityDetail.activityAddress || '-' }}</span>
       </div>
-      
       <div class="detail-row" v-if="activityDetail.cancelReason">
         <span class="detail-label">取消原因:</span>
         <span class="detail-value cancel-reason">{{ activityDetail.cancelReason }}</span>
@@ -147,10 +139,12 @@ const activityDetail = ref({
   avatar: undefined as number | undefined
 });
 
-const enrollList = ref<Array<{
-  name: string;
-  phone: string;
-}>>([]);
+const enrollList = ref<
+  Array<{
+    name: string;
+    phone: string;
+  }>
+>([]);
 
 const enrollPage = ref({
   pageNum: 1,
@@ -167,19 +161,17 @@ const paginatedEnrollList = computed(() => {
 
 const getStatusType = (status: string) => {
   const map: Record<string, any> = {
-    '1': 'primary',  // 待开始
-    '2': 'success',  // 进行中
-    '3': 'danger',   // 已结束
-    '4': 'warning',  // 已取消
-    '99': 'danger'   // 已结束（兼容)
+    '1': 'primary',
+    '2': 'success',
+    '3': 'danger',
+    '4': 'warning',
+    '99': 'danger'
   };
   return map[String(status)] || 'info';
 };
 
 const getStatusLabel = (status: string) => {
-  const item = legal_popularize_activity_status?.value?.find((item: any) => 
-    String(item.value) === String(status)
-  );
+  const item = legal_popularize_activity_status?.value?.find((item: any) => String(item.value) === String(status));
   return item?.label || status || '-';
 };
 
@@ -274,19 +266,15 @@ const fetchActivityDetail = async () => {
     ElMessage.error('缺少活动ID');
     return;
   }
-  
   loading.value = true;
   try {
     const response: any = await getActivityDetail(props.id);
-    
     if (response && response.code === 200) {
       const data = response.data;
-      
       if (!data) {
         ElMessage.error('获取活动详情失败：数据为空');
         return;
       }
-      
       activityDetail.value = {
         id: data.id,
         activityTitle: data.activityTitle || '',
@@ -304,7 +292,6 @@ const fetchActivityDetail = async () => {
         cancelReason: data.cancelReason || '',
         avatar: data.avatar
       };
-      
       await fetchEnrollList();
     } else {
       ElMessage.error(response?.msg || '获取活动详情失败');
@@ -337,11 +324,9 @@ onMounted(() => {
 
 .header-section {
   margin-bottom: 24px;
-  
   .header-top {
     text-align: center;
     margin-bottom: 16px;
-    
     .main-title {
       font-size: 20px;
       font-weight: 600;
@@ -350,52 +335,43 @@ onMounted(() => {
       line-height: 1.5;
     }
   }
-  
   .header-bottom {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    
     .publisher-info {
       display: flex;
       align-items: center;
       gap: 16px;
       flex-wrap: wrap;
-      
       .avatar {
         flex-shrink: 0;
       }
-      
       .publisher-name {
         font-size: 14px;
         color: #303133;
         white-space: nowrap;
       }
-      
       .publish-time {
         font-size: 14px;
         color: #909399;
         white-space: nowrap;
       }
     }
-    
     .status-enroll-info {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 12px;
       flex-shrink: 0;
-      
       .status-info {
         display: flex;
         align-items: center;
         gap: 8px;
-        
         .status-label {
           font-size: 14px;
           color: #606266;
         }
-        
         .status-pill {
           display: inline-flex;
           align-items: center;
@@ -407,48 +383,40 @@ onMounted(() => {
           border: 1px solid transparent;
           box-sizing: border-box;
         }
-        
         .status-default {
           color: #606266;
           border-color: #dcdfe6;
           background-color: #f5f7fa;
         }
-        
         .status-started {
           color: #409eff;
           border-color: rgba(64, 158, 255, 0.4);
           background-color: rgba(64, 158, 255, 0.08);
         }
-        
         .status-canceled {
           color: #c0c4cc;
           border-color: rgba(192, 196, 204, 0.6);
           background-color: rgba(192, 196, 204, 0.12);
         }
-        
         .status-finished {
           color: #f56c6c;
           border-color: rgba(245, 108, 108, 0.4);
           background-color: rgba(245, 108, 108, 0.08);
         }
-        
         .status-pending {
           color: #f08a24;
           border-color: rgba(240, 138, 36, 0.4);
           background-color: rgba(240, 138, 36, 0.08);
         }
       }
-      
       .enroll-info {
         display: flex;
         align-items: center;
         gap: 8px;
-        
         .enroll-label {
           font-size: 14px;
           color: #606266;
         }
-        
         .enroll-value {
           font-size: 14px;
           color: #303133;
@@ -465,28 +433,23 @@ onMounted(() => {
   padding: 16px;
   margin-bottom: 24px;
   background-color: #fff;
-  
   .detail-row {
     display: flex;
     margin-bottom: 16px;
     line-height: 1.8;
-    
     &:last-child {
       margin-bottom: 0;
     }
-    
     .detail-label {
       min-width: 140px;
       font-weight: 500;
       color: #606266;
       flex-shrink: 0;
     }
-    
     .detail-value {
       flex: 1;
       color: #303133;
       word-break: break-all;
-      
       &.cancel-reason {
         color: #f56c6c;
         font-weight: 500;
@@ -497,22 +460,18 @@ onMounted(() => {
 
 .enroll-section {
   margin-top: 24px;
-  
   .section-title {
     font-size: 16px;
     font-weight: 600;
     color: #303133;
     margin: 0 0 16px 0;
   }
-  
   .enroll-table {
     margin-bottom: 16px;
-    
     :deep(.el-table__empty-text) {
       color: #909399;
     }
   }
-  
   .pagination-wrapper {
     display: flex;
     justify-content: center;
@@ -524,28 +483,23 @@ onMounted(() => {
   .activity-detail-dialog {
     padding: 16px;
   }
-  
   .header-section {
     .header-bottom {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
-      
       .publisher-info {
         width: 100%;
       }
-      
       .status-enroll-info {
         align-items: flex-start;
         width: 100%;
       }
     }
   }
-  
   .activity-details-box {
     .detail-row {
       flex-direction: column;
-      
       .detail-label {
         margin-bottom: 4px;
       }
@@ -553,4 +507,3 @@ onMounted(() => {
   }
 }
 </style>
-

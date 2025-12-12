@@ -30,9 +30,7 @@
         <el-table-column label="版本号" prop="version" width="120" align="center" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleDownload(scope.row)">
-              下载
-            </el-button>
+            <el-button type="primary" link @click="handleDownload(scope.row)"> 下载 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -49,9 +47,7 @@
         <el-table-column label="备注" prop="remark" :show-overflow-tooltip="true" min-width="200" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
-            <el-button type="primary" link @click="handleDownloadHistory(scope.row)">
-              下载
-            </el-button>
+            <el-button type="primary" link @click="handleDownloadHistory(scope.row)"> 下载 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -85,27 +81,25 @@ const detailData = ref({
   currentVersion: ''
 });
 
-const currentAttachments = ref<Array<{
-  ossId: number | string;
-  originalName: string;
-  fileName: string;
-  updateTime: string;
-  version: string;
-  url: string;
-}>>([]);
+const currentAttachments = ref<
+  Array<{
+    ossId: number | string;
+    originalName: string;
+    fileName: string;
+    updateTime: string;
+    version: string;
+    url: string;
+  }>
+>([]);
 
 const loadCurrentAttachments = async () => {
-  const attachments = detailData.value.latestFiles && detailData.value.latestFiles.length > 0
-    ? detailData.value.latestFiles
-    : (detailData.value.ossVoList || []);
-  
+  const attachments =
+    detailData.value.latestFiles && detailData.value.latestFiles.length > 0 ? detailData.value.latestFiles : detailData.value.ossVoList || [];
   if (!Array.isArray(attachments) || attachments.length === 0) {
     currentAttachments.value = [];
     return;
   }
-  
   const ossIds = attachments.map((item: any) => item.ossId).filter(Boolean);
-  
   if (ossIds.length === 0) {
     currentAttachments.value = attachments.map((item: any) => ({
       ossId: item.ossId,
@@ -118,21 +112,17 @@ const loadCurrentAttachments = async () => {
     }));
     return;
   }
-  
   try {
     const ossIdsStr = ossIds.join(',');
     const ossResponse: any = await listByIds(ossIdsStr);
-    
     const ossMap = new Map();
     if (ossResponse && ossResponse.data && Array.isArray(ossResponse.data)) {
       ossResponse.data.forEach((oss: any) => {
         ossMap.set(String(oss.ossId), oss);
       });
     }
-    
     currentAttachments.value = attachments.map((item: any) => {
       const ossInfo = ossMap.get(String(item.ossId)) || {};
-      
       return {
         ossId: item.ossId,
         // 优先使用 originalName（用户上传时的原始文件名），而不是后端返回的 fileName（可能包含路径）
@@ -204,18 +194,12 @@ const fetchWhitePaperDetail = async () => {
     ElMessage.error('缺少白皮书ID');
     return;
   }
-  
   loading.value = true;
   try {
     const response: any = await getWhitePaperDetail(props.id);
-    
     if (response && response.code === 200 && response.data) {
       const data = response.data;
-      
-      const historyVersionsList = data.historyVersionsList === null 
-        ? [] 
-        : (Array.isArray(data.historyVersionsList) ? data.historyVersionsList : []);
-      
+      const historyVersionsList = data.historyVersionsList === null ? [] : Array.isArray(data.historyVersionsList) ? data.historyVersionsList : [];
       detailData.value = {
         id: data.id,
         paperTitle: data.paperTitle || '',
@@ -225,7 +209,6 @@ const fetchWhitePaperDetail = async () => {
         updateTime: data.updateTime || data.createTime || '',
         currentVersion: data.currentVersion || ''
       };
-      
       await loadCurrentAttachments();
     } else {
       ElMessage.error(response?.msg || '获取白皮书详情失败');
@@ -271,7 +254,6 @@ onMounted(() => {
 .paper-title {
   text-align: center;
   margin-bottom: 32px;
-  
   h2 {
     margin: 0;
     font-size: 20px;
@@ -282,25 +264,21 @@ onMounted(() => {
 
 .attachment-section {
   margin-bottom: 32px;
-  
   .section-header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    
     .el-icon {
       font-size: 18px;
       color: #606266;
     }
-    
     .section-title {
       font-size: 16px;
       font-weight: 600;
       color: #303133;
     }
   }
-  
   .file-icon {
     font-size: 24px;
     color: #409eff;
@@ -313,12 +291,10 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    
     .el-icon {
       font-size: 18px;
       color: #606266;
     }
-    
     .section-title {
       font-size: 16px;
       font-weight: 600;
@@ -335,7 +311,6 @@ onMounted(() => {
       font-weight: 600;
     }
   }
-  
   .el-table__body {
     tr {
       &:hover {

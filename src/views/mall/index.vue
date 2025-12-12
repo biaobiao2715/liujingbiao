@@ -119,6 +119,12 @@ function handleTabClick(tab: any) {
   eventBus.emit('navigationChange', tab);
   activeTab.value = tab;
 }
+
+onUnmounted(() => {
+  // 移除监听事件
+  eventBus.off('activeTabChange');
+  eventBus.off('supplyDemandmessage');
+});
 </script>
 
 <style scoped lang="scss">

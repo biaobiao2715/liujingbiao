@@ -11,20 +11,14 @@
         <el-tag class="question-tag">问</el-tag>
         <span class="question-text">{{ questionDetail?.questionContent || props.messageContent }}</span>
         <div class="question-actions">
-          <el-button 
-            v-throttle 
-            type="primary" 
-            size="small" 
-            plain
-            @click="handlePinToTop"
-          >
+          <el-button v-throttle type="primary" size="small" plain @click="handlePinToTop">
             {{ props.isPinned ? '取消置顶' : '置顶' }}
           </el-button>
-          <el-button 
-            v-throttle 
+          <el-button
+            v-throttle
             v-hasPermi="['system:question:stopQuestion']"
-            type="danger" 
-            size="small" 
+            type="danger"
+            size="small"
             plain
             @click="handleCloseQuestion"
             :loading="closing"
@@ -33,14 +27,12 @@
           </el-button>
         </div>
       </div>
-      
       <div class="question-time" v-if="messageTime">{{ messageTime }}</div>
-      
       <div v-if="attachments && attachments.length > 0" class="attachments">
         <template v-for="(attachment, index) in attachments">
           <el-image
             v-if="isImage(attachment.url)"
-            :key="`img-${index}-${attachment.url}`"
+            :key="`img-${attachment.url || index}`"
             class="attachment-thumb"
             :src="attachment.url"
             fit="cover"
@@ -48,12 +40,7 @@
             :initial-index="getImageIndex(attachment.url)"
             :z-index="3000"
           />
-          <div
-            v-else
-            :key="`file-${index}-${attachment.url}`"
-            class="attachment-file"
-            @click="handleDownloadAttachment(attachment)"
-          >
+          <div v-else :key="`file-${attachment.url || index}`" class="attachment-file" @click="handleDownloadAttachment(attachment)">
             <el-icon class="attachment-icon"><Folder /></el-icon>
             <div class="file-name" :title="attachment.originalName || attachment.fileName">文件</div>
           </div>
@@ -66,62 +53,48 @@
     <!-- 只有已回复状态的才会在这里显示 -->
     <div class="reply-section" v-if="questionDetail && questionDetail.questionStatus === '1'">
       <h3 class="section-title">回复历史</h3>
-      
       <div v-if="replyList.length > 0" class="reply-list">
-        <div 
-          v-for="(reply, index) in replyList" 
-          :key="index" 
-          class="reply-item"
-        >
+        <div v-for="(reply, index) in replyList" :key="index" class="reply-item">
           <div class="reply-header">
             <el-tag class="reply-tag">答</el-tag>
             <span class="reply-content">{{ reply.content }}</span>
           </div>
-          
           <div class="reply-time">
             {{ reply.time }}
           </div>
         </div>
       </div>
-      
       <div v-else class="no-reply">
         <el-empty description="暂无回复记录" :image-size="100" />
       </div>
     </div>
 
-    <el-divider v-if="questionDetail && questionDetail.questionStatus === '1'"/>
+    <el-divider v-if="questionDetail && questionDetail.questionStatus === '1'" />
 
     <div class="reply-input-section">
       <el-form ref="formRef" :model="formData" :rules="rules">
         <el-form-item prop="answerContent">
           <div class="textarea-wrapper">
-            <el-input 
-              v-model="formData.answerContent" 
-              type="textarea" 
-              :rows="10" 
+            <el-input
+              v-model="formData.answerContent"
+              type="textarea"
+              :rows="10"
               placeholder="输入回复内容"
               maxlength="300"
               resize="none"
               class="reply-textarea"
               @keydown.enter="onEnterKey"
             />
-            <div class="char-counter">
-              已输入{{ charCount }}/300
-            </div>
+            <div class="char-counter">已输入{{ charCount }}/300</div>
           </div>
         </el-form-item>
       </el-form>
-      
-      <div class="input-hint">
-        还可以输入{{ remainingChars }}字，按下Shift+Enter键换行
-      </div>
+      <div class="input-hint">还可以输入{{ remainingChars }}字，按下Shift+Enter键换行</div>
     </div>
 
     <div class="footer-buttons">
       <el-button @click="emitCancel">取消</el-button>
-      <el-button v-throttle type="primary" @click="handleSubmit" :loading="saving">
-        回复
-      </el-button>
+      <el-button v-throttle type="primary" @click="handleSubmit" :loading="saving">回复</el-button>
     </div>
   </div>
 </template>
@@ -149,11 +122,13 @@ const emit = defineEmits<{
   (e: 'unpin'): void;
 }>();
 
-const replyList = ref<Array<{
-  content: string;
-  time: string;
-  replyBy?: string;
-}>>([]);
+const replyList = ref<
+  Array<{
+    content: string;
+    time: string;
+    replyBy?: string;
+  }>
+>([]);
 const formRef = ref();
 const saving = ref(false);
 const loading = ref(false);
@@ -165,27 +140,23 @@ const questionDetail = ref<any>(null);
 const messageTime = ref('');
 const attachments = ref<any[]>([]);
 const imagePreviewList = computed(() => {
-  return attachments.value
-    .map((a: any) => a?.url)
-    .filter((u: string) => !!u && isImage(u));
+  return attachments.value.map((a: any) => a?.url).filter((u: string) => !!u && isImage(u));
 });
 const isImage = (url?: string) => {
   if (!url) return false;
   const u = url.split('?')[0].toLowerCase();
-  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some(ext => u.endsWith(ext));
+  return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some((ext) => u.endsWith(ext));
 };
 const getImageIndex = (url?: string) => {
   if (!url) return 0;
-  return imagePreviewList.value.findIndex(u => u === url);
+  return imagePreviewList.value.findIndex((u) => u === url);
 };
 
 const fetchMessageDetail = async () => {
   if (!props.id) return;
-  
   loading.value = true;
   try {
     const response: any = await getMessageDetail(props.id);
-    
     if (response && response.code === 200 && response.data) {
       const data = response.data;
       questionDetail.value = {
@@ -198,9 +169,7 @@ const fetchMessageDetail = async () => {
         hnCommonRelevanceFilesVos: data.hnCommonRelevanceFilesVos || [],
         hnAnswerVoList: data.hnAnswerVoList || []
       };
-      
       messageTime.value = data.publishTime || '';
-      
       if (data.hnCommonRelevanceFilesVos && Array.isArray(data.hnCommonRelevanceFilesVos)) {
         attachments.value = data.hnCommonRelevanceFilesVos.flatMap((item: any) => {
           if (item.remoteOssVos && Array.isArray(item.remoteOssVos)) {
@@ -264,18 +233,14 @@ const onEnterKey = (e: KeyboardEvent) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
-    
     if (formData.value.answerContent.trim().length === 0) {
       ElMessage.warning('请输入回复内容');
       return;
     }
-    
     let questionId: string | number | null = null;
-    
     if (props.id !== undefined && props.id !== null && props.id !== '') {
       questionId = props.id;
     } else if (props.rowData?.id !== undefined && props.rowData?.id !== null && props.rowData?.id !== '') {
@@ -283,12 +248,10 @@ const handleSubmit = async () => {
     } else if (questionDetail.value?.id !== undefined && questionDetail.value?.id !== null && questionDetail.value?.id !== '') {
       questionId = questionDetail.value.id;
     }
-    
     if (!questionId || questionId === '' || (typeof questionId === 'number' && (isNaN(questionId) || questionId <= 0))) {
       ElMessage.error('问题ID不存在或无效');
       return;
     }
-    
     let finalQuestionId: string | number = questionId;
     if (typeof questionId === 'string') {
       const numId = Number(questionId);
@@ -301,16 +264,12 @@ const handleSubmit = async () => {
         return;
       }
     }
-    
     saving.value = true;
-    
     const submitData: ReplyAnswerParams = {
       questionId: finalQuestionId,
       answerContent: formData.value.answerContent.trim()
     };
-    
     const response: any = await replyMessage(submitData);
-    
     if (response && response.code === 200) {
       ElMessage.success('回复成功');
       emit('success');
@@ -351,44 +310,31 @@ const handlePinToTop = () => {
 
 const handleCloseQuestion = async () => {
   // 简化ID获取逻辑，优先使用props.id，其次是rowData.id，最后是questionDetail.id
-  let questionId: string | number | null = props.id || props.rowData?.id || questionDetail.value?.id || null;
-  
+  const questionId: string | number | null = props.id || props.rowData?.id || questionDetail.value?.id || null;
   // 统一转换为字符串类型，避免类型问题和大整数精度丢失
   const finalQuestionId = String(questionId || '');
-  
   if (!finalQuestionId || finalQuestionId === 'null' || finalQuestionId === 'undefined') {
     ElMessage.error('问题ID不存在或无效');
     return;
   }
-  
   // 判断是否回复过消息
   const hasReplied = getReplyCount.value > 0;
-  const confirmMessage = hasReplied 
-    ? '确定要关闭该会话吗？' 
-    : '至少需回复一条信息，请确认是否关闭该会话?';
-  
+  const confirmMessage = hasReplied ? '确定要关闭该会话吗？' : '至少需回复一条信息，请确认是否关闭该会话?';
   try {
-    await ElMessageBox.confirm(
-      confirmMessage,
-      '关闭确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
+    await ElMessageBox.confirm(confirmMessage, '关闭确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
   } catch (error) {
     if (error === 'cancel') {
       return;
     }
   }
-  
   closing.value = true;
-  
   try {
     // 调用关闭接口：专家单向关闭，关闭后用户需重新发起提问
     const response: any = await stopQuestion(finalQuestionId);
-    
     if (response && response.code === 200) {
       ElMessage.success('关闭成功');
       // 关闭成功后，关闭弹窗并刷新列表
@@ -402,7 +348,7 @@ const handleCloseQuestion = async () => {
   } finally {
     closing.value = false;
   }
-}
+};
 
 watch(
   () => props.id,
@@ -424,14 +370,12 @@ watch(
 
 .question-section {
   margin-bottom: 30px;
-  
   .question-header {
     display: flex;
     align-items: flex-start;
     gap: 8px;
     margin-bottom: 12px;
     flex-wrap: nowrap;
-    
     .question-tag {
       flex-shrink: 0;
       background-color: #67c23a;
@@ -441,7 +385,6 @@ watch(
       font-size: 13px;
       font-weight: 500;
     }
-    
     .question-text {
       flex: 1;
       min-width: 0;
@@ -451,7 +394,6 @@ watch(
       word-break: break-word;
       overflow-wrap: break-word;
     }
-    
     .question-actions {
       display: flex;
       align-items: center;
@@ -459,7 +401,6 @@ watch(
       flex-shrink: 0;
       margin-left: 12px;
       white-space: nowrap;
-      
       .el-button {
         padding: 5px 12px;
         font-size: 12px;
@@ -467,55 +408,54 @@ watch(
       }
     }
   }
-  
   .question-time {
     font-size: 13px;
     color: #909399;
     margin-bottom: 12px;
   }
-  
   .attachments {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  
-  .attachment-thumb {
-    width: 80px;
-    height: 80px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    cursor: zoom-in;
-    background: #f8f8f8;
-  }
-  
-  .attachment-file {
-    width: 80px;
-    height: 80px;
-    border-radius: 4px;
-    background: #f0f4ff;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    cursor: pointer;
-    border: 1px solid #e5e7ef;
-    
-    .attachment-icon {
-      font-size: 28px;
-      color: #409eff;
-      margin-bottom: 4px;
+    gap: 8px;
+    flex-wrap: wrap;
+    .attachment-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      cursor: zoom-in;
+      background: #f8f8f8;
     }
-    .file-name {
-      font-size: 12px;
-      color: #606266;
-      max-width: 72px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+
+    .attachment-file {
+      width: 80px;
+      height: 80px;
+      border-radius: 4px;
+      background: #f0f4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      border: 1px solid #e5e7ef;
+
+      .attachment-icon {
+        font-size: 28px;
+        color: #409eff;
+        margin-bottom: 4px;
+      }
+      .file-name {
+        font-size: 12px;
+        color: #606266;
+        max-width: 72px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
     }
-    
-    &:hover { opacity: 0.9; }
-  }
   }
 }
 
@@ -526,25 +466,21 @@ watch(
     color: #303133;
     margin: 0 0 20px 0;
   }
-  
   .reply-list {
     .reply-item {
       margin-bottom: 16px;
       padding-bottom: 16px;
       border-bottom: 1px solid #e4e7ed;
-      
       &:last-child {
         border-bottom: none;
         margin-bottom: 0;
         padding-bottom: 0;
       }
-      
       .reply-header {
         display: flex;
         align-items: flex-start;
         gap: 8px;
         margin-bottom: 8px;
-        
         .reply-tag {
           flex-shrink: 0;
           background-color: #ff9800;
@@ -554,7 +490,6 @@ watch(
           font-size: 13px;
           font-weight: 500;
         }
-        
         .reply-content {
           flex: 1;
           font-size: 14px;
@@ -563,14 +498,12 @@ watch(
           word-break: break-all;
         }
       }
-      
       .reply-time {
         font-size: 13px;
         color: #909399;
       }
     }
   }
-  
   .no-reply {
     padding: 40px 0;
     text-align: center;
@@ -579,15 +512,12 @@ watch(
 
 .reply-input-section {
   margin-bottom: 24px;
-  
   :deep(.el-form-item) {
     margin-bottom: 0;
   }
-  
   .textarea-wrapper {
     position: relative;
     width: 100%;
-    
     .reply-textarea {
       :deep(.el-textarea__inner) {
         padding: 12px;
@@ -595,17 +525,14 @@ watch(
         line-height: 1.6;
         border-radius: 4px;
         border: 1px solid #dcdfe6;
-        
         &:focus {
           border-color: #409eff;
         }
-        
         &::placeholder {
           color: #c0c4cc;
         }
       }
     }
-    
     .char-counter {
       position: absolute;
       right: 12px;
@@ -618,7 +545,6 @@ watch(
       pointer-events: none;
     }
   }
-  
   .input-hint {
     font-size: 12px;
     color: #909399;
@@ -633,7 +559,6 @@ watch(
   justify-self: flex-end;
   gap: 12px;
   padding-top: 20px;
-  
   .el-button {
     min-width: 100px;
     padding: 10px 24px;
@@ -645,7 +570,6 @@ watch(
   .message-reply-dialog {
     padding: 16px;
   }
-  
   .question-section {
     .attachments {
       .attachment-icon {
@@ -653,10 +577,8 @@ watch(
       }
     }
   }
-  
   .footer-buttons {
     flex-direction: column;
-    
     .el-button {
       width: 100%;
     }

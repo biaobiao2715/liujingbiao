@@ -8,69 +8,33 @@
 修改内容：
 -->
 <template>
-  <el-dialog
-    :model-value="visible"
-    :title="dialogTitle"
-    width="50%"
-    destroy-on-close
-    :close-on-click-modal="false"
-    @close="handleClose"
-  >
+  <el-dialog :model-value="visible" :title="dialogTitle" width="50%" destroy-on-close :close-on-click-modal="false" @close="handleClose">
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px" v-loading="loading">
       <el-form-item label="案件名称" prop="knowledgeCaseName" required>
-        <el-input 
-          v-model="formData.knowledgeCaseName" 
-          placeholder="请输入知识库案件名称" 
-          :disabled="mode === 'view'"
-          maxlength="30"
-          show-word-limit
-          clearable
-        />
+        <el-input v-model="formData.knowledgeCaseName" placeholder="请输入知识库案件名称" :disabled="mode === 'view'"
+          maxlength="30" show-word-limit clearable />
       </el-form-item>
-      
       <el-form-item label="正文编辑" prop="knowledgeCaseContent" required>
         <div class="editor-container">
           <div class="editor-wrapper">
-            <Editor 
-              v-model="formData.knowledgeCaseContent" 
-              :height="500" 
-              :minHeight="500" 
-              :fileSize="10"
-              :key="editorKey"
-            />
+            <Editor v-model="formData.knowledgeCaseContent" :height="500" :minHeight="500" :fileSize="10" :key="editorKey" />
           </div>
-          
-          <TocSidebar
-            :content="formData.knowledgeCaseContent"
-            editor-container=".w-e-text-container"
-            :auto-scroll="true"
-            @toc-click="handleTocClick"
-            @active-change="handleActiveChange"
-            @content-update="handleContentUpdate"
-            ref="tocSidebarRef"
-          />
+          <TocSidebar :content="formData.knowledgeCaseContent" editor-container=".w-e-text-container"
+            :auto-scroll="true" @toc-click="handleTocClick" @content-update="handleContentUpdate" ref="tocSidebarRef" />
         </div>
       </el-form-item>
 
       <el-form-item label="附件上传" v-if="mode !== 'view'">
-        <el-upload
-          ref="uploadRef"
-          action="#"
-          :auto-upload="false"
-          accept=".pdf,.doc,.docx,.xls,.xlsx"
-          :show-file-list="false"
-          :limit="1"
-          :on-change="handleFileChange"
-          :on-exceed="handleExceed"
-        >
+        <el-upload ref="uploadRef" action="#" :auto-upload="false" accept=".pdf,.doc,.docx,.xls,.xlsx"
+          :show-file-list="false" :limit="1" :on-change="handleFileChange" :on-exceed="handleExceed">
           <el-button type="primary" plain>
-            <el-icon class="el-icon--left"><Upload /></el-icon>
+            <el-icon class="el-icon--left">
+              <Upload />
+            </el-icon>
             {{ attachmentList.length > 0 ? '重新上传' : '上传附件' }}
           </el-button>
           <template #tip>
-            <div class="upload-tip">
-              非必填，仅支持 PDF、Word(doc/docx)、Excel(xls/xlsx)，仅可上传一个，单个文件最大100MB
-            </div>
+            <div class="upload-tip">非必填，仅支持 PDF、Word(doc/docx)、Excel(xls/xlsx)，仅可上传一个，单个文件最大100MB</div>
           </template>
         </el-upload>
       </el-form-item>
@@ -88,11 +52,15 @@
           <el-table-column label="操作" width="200" align="center" v-if="mode !== 'view'">
             <template #default="scope">
               <el-button type="primary" link @click="triggerReUpload">
-                <el-icon><Upload /></el-icon>
+                <el-icon>
+                  <Upload />
+                </el-icon>
                 重新上传
               </el-button>
               <el-button type="danger" link @click="handleRemoveFile(scope.row)">
-                <el-icon><Delete /></el-icon>
+                <el-icon>
+                  <Delete />
+                </el-icon>
                 删除
               </el-button>
             </template>
@@ -100,7 +68,9 @@
           <el-table-column label="操作" width="120" align="center" v-else>
             <template #default="scope">
               <el-button type="primary" link @click="handleDownloadFile(scope.row)">
-                <el-icon><Download /></el-icon>
+                <el-icon>
+                  <Download />
+                </el-icon>
                 下载
               </el-button>
             </template>
@@ -117,12 +87,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, getCurrentInstance, withDefaults, defineAsyncComponent, nextTick } from 'vue';
+import { ref, watch, computed, getCurrentInstance, defineAsyncComponent, nextTick } from 'vue';
 import type { FormInstance, FormRules, UploadInstance } from 'element-plus';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Download, Delete } from '@element-plus/icons-vue';
-import { addKnowledgeCase, updateKnowledgeCase, fetchKnowledgeCaseDetail, fetchKnowledgeCaseList } from '@/api/rightsPlatform/knowledgeCaseManage/index';
+import {
+  addKnowledgeCase,
+  updateKnowledgeCase,
+  fetchKnowledgeCaseDetail,
+  fetchKnowledgeCaseList
+} from '@/api/rightsPlatform/knowledgeCaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 import TocSidebar from '@/components/Tocsidebar/index.vue';
@@ -162,16 +137,18 @@ const formData = ref({
   knowledgeCaseContent: ''
 });
 
-const attachmentList = ref<Array<{
-  ossId?: number;
-  fileName?: string;
-  originalName: string;
-  fileSuffix?: string;
-  url: string;
-  fileSize?: string;
-  fileType?: string;
-  foreignType?: string;
-}>>([]);
+const attachmentList = ref<
+  Array<{
+    ossId?: number;
+    fileName?: string;
+    originalName: string;
+    fileSuffix?: string;
+    url: string;
+    fileSize?: string;
+    fileType?: string;
+    foreignType?: string;
+  }>
+>([]);
 
 // 仅当附件类型有值时才显示在列表中；如果后端未返回附件类型，则不展示附件部分
 const visibleAttachmentList = computed(() =>
@@ -192,15 +169,15 @@ const rules: FormRules = {
   ],
   knowledgeCaseContent: [
     { required: true, message: '请输入正文内容', trigger: 'blur' },
-    { 
+    {
       validator: (rule: any, value: any, callback: any) => {
         if (!value || value.trim() === '' || value.replace(/<[^>]*>/g, '').trim() === '') {
           callback(new Error('请输入正文内容'));
         } else {
           callback();
         }
-      }, 
-      trigger: 'blur' 
+      },
+      trigger: 'blur'
     }
   ]
 };
@@ -217,7 +194,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 // 获取文件类型文本
@@ -237,7 +214,6 @@ const getFileType = (fileName: string, fileType?: string): string => {
   const imageExt = ['jpg', 'jpeg', 'png'];
   const videoExt = ['mp4', 'mov', 'avi'];
   const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
-  
   if (imageExt.includes(ext)) return '0';
   if (videoExt.includes(ext)) return '1';
   if (docExt.includes(ext)) return '2';
@@ -342,7 +318,6 @@ const handleFileChange = async (file: any) => {
       fileType: fileType,
       foreignType: '1' // 根据接口文档，1表示法律文书模版等
     };
-    
     if (attachmentList.value.length > 0) {
       attachmentList.value = [newAttachment];
       ElMessage.success('附件已重新上传并覆盖原文件');
@@ -369,10 +344,7 @@ const handleDownloadFile = (row: any) => {
 
 // 删除文件
 const handleRemoveFile = (row: any) => {
-  const idx = attachmentList.value.findIndex((item) => 
-    (item.ossId && row.ossId && String(item.ossId) === String(row.ossId)) ||
-    (item.url === row.url)
-  );
+  const idx = attachmentList.value.findIndex((item) => (item.ossId && row.ossId && String(item.ossId) === String(row.ossId)) || item.url === row.url);
   if (idx > -1) {
     attachmentList.value = [];
     uploadRef.value?.clearFiles();
@@ -400,7 +372,6 @@ const fetchDetail = async () => {
   loading.value = true;
   try {
     const response: any = await fetchKnowledgeCaseDetail(props.detail.id);
-    
     if (response && response.code === 200) {
       const data = response.data;
       formData.value = {
@@ -424,7 +395,7 @@ const fetchDetail = async () => {
       };
 
       if (data.protectionFiles && Array.isArray(data.protectionFiles)) {
-        const validFiles = data.protectionFiles.filter(file => !isAttachmentEmpty(file));
+        const validFiles = data.protectionFiles.filter((file) => !isAttachmentEmpty(file));
         attachmentList.value = validFiles.length > 0 ? [normalizeAttachment(validFiles[0])] : [];
       } else if (data.protectionFiles && typeof data.protectionFiles === 'object') {
         // 单个附件对象
@@ -475,10 +446,6 @@ const handleTocClick = (_item: any) => {
   // 目录点击行为交由 TocSidebar 内部滚动处理
 };
 
-const handleActiveChange = (_id: string) => {
-  // 激活项变化，按需扩展
-};
-
 const handleContentUpdate = (updatedContent: string) => {
   // 由目录组件在必要时回写处理后的内容（包含标题锚点等）
   formData.value.knowledgeCaseContent = updatedContent;
@@ -486,7 +453,6 @@ const handleContentUpdate = (updatedContent: string) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
   try {
     const valid = await formRef.value.validate();
     if (!valid) return;
@@ -577,11 +543,11 @@ const handleSubmit = async () => {
 .attachment-table {
   margin-top: 20px;
   width: 100%;
-  
+
   :deep(.el-button) {
     padding: 4px 8px;
     font-size: 14px;
-    
+
     .el-icon {
       margin-right: 4px;
     }
@@ -650,23 +616,23 @@ const handleSubmit = async () => {
   min-width: 0;
   background: #ffffff;
   border-right: 1px solid #dcdfe6;
-  
+
   :deep(.ql-toolbar) {
     border: none !important;
     border-bottom: 1px solid #dcdfe6 !important;
     border-radius: 0;
     background-color: #fafafa;
   }
-  
+
   :deep(.ql-container) {
     border: none !important;
     border-radius: 0;
   }
-  
+
   :deep(.ql-editor) {
     min-height: 450px;
   }
-  
+
   :deep(.w-e-text-container) {
     min-height: 500px;
   }
@@ -678,7 +644,7 @@ const handleSubmit = async () => {
   background: #f5f5f5;
   display: flex;
   flex-direction: column;
-  
+
   .toc-header {
     padding: 16px 20px;
     font-size: 14px;
@@ -688,35 +654,35 @@ const handleSubmit = async () => {
     border-bottom: 1px solid #dcdfe6;
     text-align: center;
   }
-  
+
   .toc-content {
     flex: 1;
     overflow-y: auto;
     max-height: 500px;
     padding: 16px;
-    
+
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background-color: #c0c4cc;
       border-radius: 3px;
-      
+
       &:hover {
         background-color: #909399;
       }
     }
-    
+
     &::-webkit-scrollbar-track {
       background-color: #e4e7ed;
     }
   }
-  
+
   .toc-list {
     max-height: none;
   }
-  
+
   .toc-item {
     padding: 8px 10px;
     margin-bottom: 4px;
@@ -727,21 +693,21 @@ const handleSubmit = async () => {
     font-size: 13px;
     line-height: 1.5;
     position: relative;
-    
+
     &:hover {
       background-color: #e4e7ed;
       color: #409eff;
     }
-    
+
     &:active {
       background-color: #d9dcdf;
     }
-    
+
     &.toc-active {
       background-color: #e6f4ff;
       color: #409eff;
       font-weight: 500;
-      
+
       &::before {
         content: '';
         position: absolute;
@@ -754,32 +720,32 @@ const handleSubmit = async () => {
         border-radius: 0 2px 2px 0;
       }
     }
-    
+
     .toc-text {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     &.toc-level-1 {
       font-weight: 600;
       font-size: 13px;
       color: #303133;
       padding-left: 10px;
     }
-    
+
     &.toc-level-2 {
       padding-left: 20px;
       font-size: 12px;
     }
-    
+
     &.toc-level-3 {
       padding-left: 30px;
       font-size: 12px;
       color: #909399;
     }
-    
+
     &.toc-level-4,
     &.toc-level-5,
     &.toc-level-6 {
@@ -788,24 +754,24 @@ const handleSubmit = async () => {
       color: #a8abb2;
     }
   }
-  
+
   .toc-empty {
     text-align: center;
     padding: 60px 20px;
     color: #909399;
-    
+
     .empty-icon {
       font-size: 36px;
       color: #c0c4cc;
       margin-bottom: 12px;
     }
-    
+
     .empty-text {
       font-size: 13px;
       color: #909399;
       margin: 8px 0 4px;
     }
-    
+
     .empty-tip {
       font-size: 11px;
       color: #c0c4cc;
@@ -820,12 +786,12 @@ const handleSubmit = async () => {
   .editor-container {
     flex-direction: column;
   }
-  
+
   :deep(.toc-sidebar) {
     width: 100%;
     min-width: 100%;
     max-height: 300px;
-    
+
     .toc-list {
       max-height: 200px;
     }
@@ -838,7 +804,7 @@ const handleSubmit = async () => {
     min-width: 200px;
     padding: 16px;
   }
-  
+
   .editor-container {
     gap: 16px;
   }
