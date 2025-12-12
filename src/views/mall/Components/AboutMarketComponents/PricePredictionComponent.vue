@@ -421,9 +421,6 @@ const fetchPricePrediction = async () => {
       const historicalData = data.historicalData || {};
       const predictedData = data.predictedData || data.predictionData || {};
 
-      // 调用文件分析接口（使用固定参数），获取插件输出的 info
-      const fileAnalysisInfo = await fetchFileAnalysis();
-
       // 处理历史数据（historicalData）
       if (historicalData.xAxis && Array.isArray(historicalData.xAxis)) {
         allMonths.value = historicalData.xAxis.map((dateStr: string) => normalizeMonthLabel(dateStr));
@@ -563,6 +560,36 @@ const fetchPricePrediction = async () => {
 
       updateYAxisRange();
 
+      // 组装动态提示词，基于当前品种与历史/预测数据
+      const histMonths = (historicalLineMonths.value || []).filter((m) => !!m);
+      const histPrices = (historicalLinePrices.value || []).map((val) => {
+        const num = Number(val);
+        return Number.isFinite(num) ? Number(num).toFixed(2) : null;
+      });
+      const histRange = histMonths.length ? `${histMonths[0]}至${histMonths[histMonths.length - 1]}` : '历史区间缺失';
+
+      const predictedPairs = predictedLineMonths.value.map((m, idx) => [normalizeMonthLabel(m), predictedLinePrices.value[idx]] as [string, any]);
+      const validPredPairs = predictedPairs.filter(
+        ([month, price]) => !!month && price !== null && price !== undefined && !Number.isNaN(Number(price))
+      );
+      const predRange = validPredPairs.length ? `${validPredPairs[0][0]}至${validPredPairs[validPredPairs.length - 1][0]}` : '预测区间缺失';
+      const predictedMap: Record<string, string> = {};
+      validPredPairs.forEach(([month, price]) => {
+        predictedMap[month] = Number(price).toFixed(2);
+      });
+
+      const seedText = seedName.value || '种子';
+      const extractPrompt = `你是一名农业市场分析师，需要基于提供的${seedText}月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（${histRange}）：\n  时间序列：${JSON.stringify(histMonths)}\n  价格序列：${JSON.stringify(histPrices)}\n  预测数据（${predRange}）：\n  价格预测：${JSON.stringify(predictedMap)}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来12个月的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析并给出不超过50字总结。开头可参考示例（如\"整体趋势：未来12个月，${seedText}价格预计趋于平稳...\"），确保语言专业、清晰，并基于数据支持结论。`;
+
+      // 调用文件分析接口，获取插件输出的 info（需产地、品种、时间范围均选择）
+      let fileAnalysisInfo = '';
+      const hasOrigin = !!regionCodes.regionCode;
+      const hasVariety = !!goodsCategoryId;
+      const hasTimeRange = !!queryParams.timeRange;
+      if (hasOrigin && hasVariety && hasTimeRange) {
+        fileAnalysisInfo = await fetchFileAnalysis(extractPrompt);
+      }
+
       // 市场分析数据（
      
       const pluginInfo =
@@ -675,8 +702,8 @@ const updateYAxisRange = () => {
 // 文件分析接口调用状态，防止重复提交
 const isFileAnalysisLoading = ref(false);
 
-// 调用文件分析接口（使用固定参数），返回插件输出的 info
-const fetchFileAnalysis = async () => {
+// 调用文件分析接口，支持传入动态 prompt，返回插件输出的 info
+const fetchFileAnalysis = async (extractPrompt: string) => {
   // 防止重复提交
   if (isFileAnalysisLoading.value) {
     return '';
@@ -684,10 +711,7 @@ const fetchFileAnalysis = async () => {
 
   isFileAnalysisLoading.value = true;
   try {
-    // 固定的 extract_prompt
-    const extractPrompt = '你是一名农业市场分析师，需要基于提供的种子月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（2024年11月至2025年11月）：\n  时间序列：["2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11"]\n  价格序列：["82.76", "78.84", "60.30", "64.27", "70.41", "72.67", "74.29", "75.61", "72.08", "68.02", "65.27", "71.81", "67.65"]\n  预测数据（2025年11月至2026年11月）：\n  价格预测：{"2025-11": "53.27", "2025-12": "54.63", "2026-01": "54.93", "2026-02": "48.64", "2026-03": "44.56", "2026-04": "67.64", "2026-05": "85.87", "2026-06": "57.54", "2026-07": "28.73", "2026-08": "42.01", "2026-09": "62.91", "2026-10": "76.01", "2026-11": "67.05"}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来12个月（从2025年11月到2026年11月）的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析进行不超过50字总结。开头可参考示例（如"整体趋势：未来12个月，xx种子价格预计趋于平稳......."），确保语言专业、清晰，并基于数据支持结论。';
-
-    // 调用 fileAnalysis 接口，使用固定参数格式
+    // 调用 fileAnalysis 接口，使用动态 prompt
     const analysisParams = {
       variables: {
         extract_prompt: extractPrompt
@@ -762,6 +786,7 @@ defineExpose({
 
   .query-form {
     width: 100%;
+    margin-top: 15px;
     margin-bottom: 20px;
     position: relative;
     z-index: 10;
@@ -802,7 +827,6 @@ defineExpose({
     display: flex;
     gap: 24px;
     position: relative;
-    padding: 15px 15px 0px 15px;
     z-index: 1;
 
     .chart-section {
@@ -861,6 +885,9 @@ defineExpose({
         border-radius: 4px;
         padding: 20px;
         border: 1px solid #b7eb8f;
+        display: flex;
+        flex-direction: column;
+        max-height: 450px; // 固定高度，超出出现滚动条
 
         .analysis-title {
           font-size: 15px;
@@ -882,6 +909,19 @@ defineExpose({
         }
 
         .analysis-content {
+          flex: 1;
+          overflow-y: auto;
+          padding-right: 4px;
+
+          // 优化滚动条样式（可选）
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+          &::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+          }
+
           p {
             margin-bottom: 12px;
             font-size: 13px;
