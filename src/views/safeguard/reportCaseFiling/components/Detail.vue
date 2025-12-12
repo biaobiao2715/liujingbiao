@@ -7,7 +7,7 @@
 -->
 <template>
   <div class="supplier-edit-details">
-    <el-form :model="formData" v-loading="loading" :rules="rules">
+    <el-form :model="formData" v-loading="loading">
       <FormHeader title="案件信息" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
@@ -661,10 +661,6 @@ const formData = ref<FormData>({
   reportFiles: [],
   statusAndDate: []
 });
-// 校验规则
-const rules = {
-  feedbackCascader: [{ required: true, message: '请选择处理反馈', trigger: 'change' }]
-};
 // 判断是否是已驳回状态
 const isRejected = computed(() => {
   return formData.value?.status === '2';
