@@ -35,7 +35,7 @@
         <template #default="{ row }">
           <span v-if="row.changePercent === '-' || row.changePercent === 0 || row.changePercent === '0'" class="text-gray">-</span>
           <span v-else-if="row.changePercent > 0" class="change-tag change-up">+{{ row.changePercent }}%</span>
-          <span v-else class="change-tag change-down">{{ Math.abs(row.changePercent) }}%</span>
+          <span v-else class="change-tag change-down">+{{ Math.abs(row.changePercent) }}%</span>
         </template>
       </el-table-column>
       <el-table-column label="走势图" align="center" width="180">

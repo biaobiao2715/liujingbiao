@@ -108,7 +108,7 @@
           <template #default="{ row }">
             <span v-if="row.change === '-' || row.change === 0 || row.change === '0'" class="text-gray">-</span>
             <span v-else-if="row.change > 0" class="change-tag change-up">+{{ row.change }}%</span>
-            <span v-else class="change-tag change-down">{{ Math.abs(row.change) }}%</span>
+            <span v-else class="change-tag change-down">+{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
         <el-table-column label="走势图" align="center" width="200">

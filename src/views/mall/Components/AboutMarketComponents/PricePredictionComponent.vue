@@ -91,7 +91,7 @@ import { ref, reactive, onMounted, computed, onErrorCaptured, nextTick, watch } 
 import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
 import PricePredictionChart from './PricePredictionChart.vue';
-import { pricePredictionList } from '@/api/mall/marketComponent';
+import { pricePredictionList,fileAnalysis } from '@/api/mall/marketComponent';
 import historicalLineIcon from '@/assets/images/marketConditions/gw.png';
 import historicalMaxIcon from '@/assets/images/marketConditions/gwMax.png';
 import historicalMinIcon from '@/assets/images/marketConditions/gwMin.png';
@@ -119,7 +119,7 @@ const normalizedVariety = computed({
   }
 });
 
-// 捕获子组件错误
+// 捕获子组件错误，兼容 GoodsCategorySelect 清空时报错
 onErrorCaptured((err: any, instance, info) => {
   // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
   if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
@@ -289,14 +289,14 @@ const chartTitle = computed(() => {
   return `${seedName.value}未来${timeRangeMap[queryParams.timeRange] || '12个月'}价格预测走势图`;
 });
 
-// 标记是否正在处理分类变化，避免重复调用接口
+// 标记是否正在处理分类变化，避免 watch 与事件重复触发接口
 const isHandlingCategoryChange = ref(false);
 
 // 品种分类变化处理
 const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
   try {
     isHandlingCategoryChange.value = true;
-    
+
     // 处理 undefined、null 或非数组的情况
     if (!value || !Array.isArray(value)) {
       normalizedVariety.value = [];
@@ -304,7 +304,7 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       fetchPricePrediction();
       return;
     }
-    
+
     // 过滤掉空值、null、undefined
     const filteredValue = value.filter((item: any) => {
       if (item === null || item === undefined) {
@@ -313,9 +313,9 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       const str = String(item || '').trim();
       return str !== '' && str !== 'null' && str !== 'undefined';
     });
-    
+
     normalizedVariety.value = filteredValue;
-    
+
     // 更新种子名称
     if (labels && Array.isArray(labels) && labels.length > 0) {
       seedName.value = labels[labels.length - 1];
@@ -325,7 +325,7 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
     } else {
       seedName.value = '小麦种子';
     }
-    
+
     fetchPricePrediction();
   } catch (error) {
     // 捕获可能的错误，确保不会影响其他功能
@@ -349,11 +349,11 @@ watch(
     if (isHandlingCategoryChange.value) {
       return;
     }
-    
+
     // 如果品种被清空（从有值变为空数组），调用接口
     const wasEmpty = !oldVal || !Array.isArray(oldVal) || oldVal.length === 0;
     const isEmpty = !newVal || !Array.isArray(newVal) || newVal.length === 0;
-    
+
     // 如果从有值变为空，或者从空变为空（确保初始化时也会调用）
     if (!wasEmpty && isEmpty) {
       seedName.value = '小麦种子';
@@ -415,11 +415,14 @@ const fetchPricePrediction = async () => {
       goodsCategoryId: goodsCategoryId || ''
     };
 
-    const response = await pricePredictionList(params);
+      const response = await pricePredictionList(params);
     if (response && response.code === 200) {
       const data = response.data || {};
       const historicalData = data.historicalData || {};
       const predictedData = data.predictedData || data.predictionData || {};
+
+      // 调用文件分析接口（使用固定参数），获取插件输出的 info
+      const fileAnalysisInfo = await fetchFileAnalysis();
 
       // 处理历史数据（historicalData）
       if (historicalData.xAxis && Array.isArray(historicalData.xAxis)) {
@@ -560,8 +563,24 @@ const fetchPricePrediction = async () => {
 
       updateYAxisRange();
 
-      // 市场分析数据
-      if (data.overallTrend) {
+      // 市场分析数据（
+     
+      const pluginInfo =
+        fileAnalysisInfo ||
+        data?.pluginOutput?.info ||
+        data?.responseData?.[2]?.pluginOutput?.info ||
+        data?.responseData?.[0]?.pluginOutput?.info;
+
+     
+      console.log('价格预测接口返回数据:', {
+        pluginOutput: data?.pluginOutput,
+        responseData: data?.responseData,
+        pluginInfo
+      });
+
+      if (pluginInfo) {
+        marketAnalysis.value.overallTrend = pluginInfo;
+      } else if (data.overallTrend) {
         marketAnalysis.value.overallTrend = data.overallTrend;
       }
 
@@ -651,6 +670,62 @@ const updateYAxisRange = () => {
 
   const range = chartYAxisMax.value - chartYAxisMin.value;
   chartYAxisInterval.value = Math.max(1, Math.ceil(range / 6));
+};
+
+// 文件分析接口调用状态，防止重复提交
+const isFileAnalysisLoading = ref(false);
+
+// 调用文件分析接口（使用固定参数），返回插件输出的 info
+const fetchFileAnalysis = async () => {
+  // 防止重复提交
+  if (isFileAnalysisLoading.value) {
+    return '';
+  }
+
+  isFileAnalysisLoading.value = true;
+  try {
+    // 固定的 extract_prompt
+    const extractPrompt = '你是一名农业市场分析师，需要基于提供的种子月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（2024年11月至2025年11月）：\n  时间序列：["2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11"]\n  价格序列：["82.76", "78.84", "60.30", "64.27", "70.41", "72.67", "74.29", "75.61", "72.08", "68.02", "65.27", "71.81", "67.65"]\n  预测数据（2025年11月至2026年11月）：\n  价格预测：{"2025-11": "53.27", "2025-12": "54.63", "2026-01": "54.93", "2026-02": "48.64", "2026-03": "44.56", "2026-04": "67.64", "2026-05": "85.87", "2026-06": "57.54", "2026-07": "28.73", "2026-08": "42.01", "2026-09": "62.91", "2026-10": "76.01", "2026-11": "67.05"}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来12个月（从2025年11月到2026年11月）的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析进行不超过50字总结。开头可参考示例（如"整体趋势：未来12个月，xx种子价格预计趋于平稳......."），确保语言专业、清晰，并基于数据支持结论。';
+
+    // 调用 fileAnalysis 接口，使用固定参数格式
+    const analysisParams = {
+      variables: {
+        extract_prompt: extractPrompt
+      },
+      appId: '693b8b96dd48d8d992960426',
+      detail: false,
+      stream: false
+    };
+
+    const res = await fileAnalysis(analysisParams);
+    const pluginInfo =
+      res?.data?.pluginOutput?.info ||
+      res?.data?.responseData?.[2]?.pluginOutput?.info ||
+      res?.data?.responseData?.[0]?.pluginOutput?.info;
+
+    // 调试：打印 FastGPT 返回，便于确认 info 位置
+    // eslint-disable-next-line no-console
+    console.log('文件分析接口返回数据:', {
+      data: res?.data,
+      pluginInfo
+    });
+
+    return pluginInfo || '';
+  } catch (error: any) {
+    // 如果是"数据正在处理"的错误，不打印错误日志
+    if (error?.message && error.message.includes('数据正在处理')) {
+      // 静默处理，不打印错误
+      return '';
+    }
+    // 其他错误才打印
+    console.error('调用文件分析接口失败:', error);
+    return '';
+  } finally {
+    // 延迟重置状态，避免短时间内重复调用
+    setTimeout(() => {
+      isFileAnalysisLoading.value = false;
+    }, 1000);
+  }
 };
 
 const handleQuery = () => {
