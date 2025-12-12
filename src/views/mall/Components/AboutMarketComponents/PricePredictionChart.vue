@@ -89,7 +89,6 @@ const buildScatterData = (axis: string[], months: string[], values: number[], ty
   const comparator = type === 'max' ? Math.max : Math.min;
   const extreme = comparator(...Array.from(map.values()));
 
-  // 确定需要高亮的索引：
   // - 最低点：如果有多个，取最前面一个
   // - 最高点：如果有多个，取最后面一个
   let targetIndex = -1;
@@ -155,18 +154,6 @@ const updateChart = () => {
     props.predictedPrices?.length > 0 &&
     predictedMonths.length > 0 &&
     predictedData.some((v) => v !== null && v !== undefined && typeof v === 'number' && !Number.isNaN(v));
-
-  // console.log('[PricePredictionChart] 历史数据：', {
-  //   axis: allAxis,
-  //   historicalMonths,
-  //   historicalPrices: props.historicalPrices,
-  //   historicalData
-  // });
-  // console.log('[PricePredictionChart] 预测数据：', {
-  //   predictedMonths,
-  //   predictedPrices: props.predictedPrices,
-  //   predictedData
-  // });
 
   // 只有在有有效数据时才显示最高最低点
   const historicalMaxData = hasValidHistorical ? buildScatterData(allAxis, historicalMonths, props.historicalPrices, 'max') : allAxis.map(() => null);
