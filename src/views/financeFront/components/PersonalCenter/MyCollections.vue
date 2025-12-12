@@ -52,11 +52,11 @@
                 </div>
               </div>
               <!-- 描述 -->
-              <div class="description">
-                <el-tooltip :content="product.creditProductsVersionVo.productIntro" placement="top">
+              <el-tooltip :content="product.creditProductsVersionVo.productIntro" placement="top">
+                <div class="description">
                   {{ product.creditProductsVersionVo.productIntro }}
-                </el-tooltip>
-              </div>
+                </div>
+              </el-tooltip>
             </div>
             <div class="footer flex-center-center">
               <el-button type="primary" round @click="handleDetail(product, 'LoanProductsComponentDetails')">查看详情 →</el-button>
@@ -87,7 +87,11 @@
               <el-tag class="mt-12 mb-12" :type="productTypeMap[item.remoteInsuranceProductsVersionVo.productType]?.type">{{
                 productTypeMap[item.remoteInsuranceProductsVersionVo.productType]?.label
               }}</el-tag>
-              <div class="introduction">{{ item.remoteInsuranceProductsVersionVo.productIntro }}</div>
+              <el-tooltip :content="item.remoteInsuranceProductsVersionVo.productIntro" placement="top">
+                <div class="introduction">
+                  {{ item.remoteInsuranceProductsVersionVo.productIntro }}
+                </div>
+              </el-tooltip>
             </div>
             <div class="product-actions flex-center-center">
               <el-button type="primary" round @click="handleDetail(item, 'InsuranceproductComponentDetails')">查看详情 →</el-button>
@@ -346,9 +350,10 @@ const handleDetail = (row: any, type: string) => {
       }
       // 最多两行 超出展示省略号
       .description {
+        height: 48px;
         font-size: 14px;
         color: #676767;
-        height: 42px;
+        line-height: 24px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -406,9 +411,10 @@ const handleDetail = (row: any, type: string) => {
       text-overflow: ellipsis;
     }
     .introduction {
+      height: 48px;
       font-size: 14px;
       color: #757474;
-      height: 42px;
+      line-height: 24px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
