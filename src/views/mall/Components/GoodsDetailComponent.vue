@@ -14,7 +14,7 @@
             indicator-position="none"
             arrow="hover"
             :interval="3000"
-            :autoplay="(goods?.sysOssLists?.length ?? 0) > 1"
+            :autoplay="(goods?.sysOssLists?.length ?? 0) > 4"
             class="main-carousel"
           >
             <el-carousel-item v-for="(img, index) in goods?.sysOssLists" :key="index">
