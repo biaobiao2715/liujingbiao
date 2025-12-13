@@ -303,22 +303,16 @@ const caseCode = ref<string>('');
 // 打开对话框：查看/处理
 const handleView = (row: any) => {
   selectID.value = row.id;
-  console.log(row.appealTime);
-
   selectType.value = 'view';
   selectStatus.value = row.status || '';
   selectAppealTime.value = row.appealTime || '';
   caseCode.value = row.caseCode;
-  console.log(row);
-
   dlgTitle.value = '查看举报立案详情';
   dlgPreviewVisible.value = true;
 };
 
 // 打开对话框：处理
 const handleProcess = (row: any) => {
-  console.log(row.appealTime);
-  
   selectID.value = row.id;
   selectType.value = 'process';
   selectStatus.value = row.status || '';

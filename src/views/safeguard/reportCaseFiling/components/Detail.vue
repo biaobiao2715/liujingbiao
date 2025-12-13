@@ -970,7 +970,6 @@ const loadCaseTypeOptions = async () => {
     }));
   } catch (error) {
     console.error('获取案件类型列表失败:', error);
-    ElMessage.error('获取案件类型列表失败');
   }
 };
 const feedBackValueStatus = ref(false);
@@ -1020,12 +1019,9 @@ const handleCaseTypeChange = async (id: string | number) => {
     if (res && res.code === 200) {
       caseTypeDetail.value = res.data || {};
     } else {
-      console.error('获取案件类型详情失败:', res?.msg);
       caseTypeDetail.value = null;
     }
   } catch (error) {
-    console.error('获取案件类型详情失败:', error);
-    ElMessage.error('获取案件类型详情失败');
     caseTypeDetail.value = null;
   } finally {
     caseTypeDetailLoading.value = false;
@@ -1103,8 +1099,6 @@ const handleConfirm = async () => {
         }
       }
     }
-
-    console.log('processFeedback.id', processFeedback.id);
     // 构建提交数据
     const submitData = {
       // 先展开 formData，避免覆盖处理反馈数据
@@ -1146,8 +1140,6 @@ const handleConfirm = async () => {
     emit('success');
     emit('cancel');
   } catch (error: any) {
-    console.error('提交失败:', error);
-    ElMessage.error(error?.msg || error?.message || '提交失败，请稍后重试');
   } finally {
     submitLoading.value = false;
   }
@@ -1210,7 +1202,6 @@ const handlePreview = async (row: any) => {
     // 等接口切换后，获取违规记录详情
     const res = await getlookDetail(String(id)); //获取违规记录详情
     const data: any = res?.data ?? {};
-    console.log('历史申诉详情数据:', data);
 
     // 文本信息
     appealDetail.value.appealReason = data.appealReason ?? '';
@@ -1230,7 +1221,6 @@ const handlePreview = async (row: any) => {
     histAppealImagePreviewUrls.value = buildPreviewUrls(s.images);
     histAppealVideoList.value = s.videos;
   } catch (e) {
-    console.error('获取申诉详情失败:', e);
     histAppealImageList.value = [];
     histAppealImagePreviewUrls.value = [];
     histAppealVideoList.value = [];
@@ -1359,7 +1349,6 @@ const fetchDetail = async () => {
         processingFeedbackCascaderOptions[0].disabled = false;
       }
     } else {
-      console.error('获取详情失败:', res?.msg);
       return;
     }
 
@@ -1373,12 +1362,10 @@ const fetchDetail = async () => {
     // 使用统一方法构建申诉材料
     const appealFiles = safeArray(formData.value?.newAppealFile?.appealFiles || []);
     const a = splitFiles(appealFiles);
-    console.log('a', a);
     appealImageList.value = a.images;
     appealImagePreviewUrls.value = buildPreviewUrls(a.images);
     appealVideoList.value = a.videos;
   } catch (error) {
-    console.error('获取违规记录详情失败:', error);
     loading.value = false;
   }
 };
