@@ -7,6 +7,8 @@
 -->
 <template>
   <div class="orders">
+    <!-- 页面标题 -->
+    <!-- <div class="menu-title">品种识别记录</div> -->
     <div class="pading20">
       <!-- 搜索条件 -->
       <el-form ref="queryFormRef" :model="queryParams" inline label-position="left">
@@ -23,7 +25,7 @@
           />
         </el-form-item>
         <el-form-item label="品种类型" prop="varietyType" label-width="auto">
-          <el-select v-model="queryParams.varietyType" placeholder="品种类型" filterable clearable>
+          <el-select v-model="queryParams.varietyType" placeholder="请选择品种类型" filterable clearable>
             <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
           </el-select>
         </el-form-item>
@@ -36,7 +38,7 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
-          <el-button v-throttle icon="Plus" type="primary" @click="handleAdd">新增</el-button>
+          <el-button v-throttle icon="Plus" type="primary" @click="handleAdd">新增品种识别</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-button v-throttle @click="handleExport"> 导出 </el-button>
@@ -48,32 +50,47 @@
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
           <template #default="scope">
-            <span>{{ proxy.parseTime(scope.row.identifyBeginTime) }}</span>
+            <span>{{ proxy.parseTime(scope.row.identifyBeginTime) || '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="160">
           <template #default="scope">
-            <span>{{ proxy.parseTime(scope.row.identifyEndTime) }}</span>
+            <span>{{ proxy.parseTime(scope.row.identifyEndTime) || '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
           <template #default="scope">
-            <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName }}</span>
+            <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true" />
+        <el-table-column label="品种名称" align="center" prop="varietyName" min-width="100" :show-overflow-tooltip="true">
+          <template #default="scope">
+            {{ scope.row.varietyName || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="品种类型" align="center" prop="varietyType" width="210" style="color: #0000ff">
           <template #default="scope">
             <dict-text :options="review_status" :value="scope.row.varietyType ?? ''" />
           </template>
         </el-table-column>
-        <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true"> </el-table-column>
-        <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
+        <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true">
+          <template #default="scope">
+            {{ scope.row.featureDescription || '-' }}
+          </template>
         </el-table-column>
-        <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true"> </el-table-column>
+        <el-table-column label="种植技术指导" align="center" prop="plantingTechniquesGuidance" width="210" :show-overflow-tooltip="true">
+          <template #default="scope">
+            {{ scope.row.plantingTechniquesGuidance || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="注意事项" align="center" prop="precautions" width="210" :show-overflow-tooltip="true">
+          <template #default="scope">
+            {{ scope.row.precautions || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="置信度评分" align="center" prop="confidenceLevel" width="210" fixed="right" :show-overflow-tooltip="true">
           <template #default="scope">
-            <span style="color: #108c58">{{ scope.row.confidenceLevel }}</span>
+            <span style="color: #108c58">{{ scope.row.confidenceLevel || '-' }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -154,6 +171,11 @@ const getList = () => {
     total.value = res.total;
     loading.value = false;
   });
+
+  // 查询品种识别类别
+  varietyRecognizeGroupType().then((res) => {
+    varietyTypeOptions.value = res.data;
+  });
 };
 
 // 查询按钮事件
@@ -172,7 +194,7 @@ const handleAdd = () => {
   selectID.value = '';
   selectType.value = 'add';
   isReadonly.value = false;
-  dlgTitle.value = '新增作物';
+  dlgTitle.value = '新增品种识别';
   dlgPreviewVisible.value = true;
 };
 
@@ -222,10 +244,6 @@ const handlePictureCardPreview = (file: any) => {
 
 onMounted(() => {
   getList();
-  // 查询品种识别类别
-  varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.data;
-  });
 });
 </script>
 

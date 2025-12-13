@@ -221,7 +221,7 @@ const quoteFormRules = {
         } else if (Number(value) <= 0) {
           callback(new Error('报价需大于0'));
         } else if (Number(value) > 9999) {
-          callback(new Error('报价最大为9999'));
+          callback(new Error('报价最大为9999.00'));
         } else if (!/^\d+(\.\d{1,2})?$/.test(value)) {
           callback(new Error('报价最多支持两位小数'));
         } else {
