@@ -19,8 +19,15 @@
           <div class="editor-wrapper">
             <Editor v-model="formData.knowledgeCaseContent" :height="500" :minHeight="500" :fileSize="10" :key="editorKey" />
           </div>
-          <TocSidebar :content="formData.knowledgeCaseContent" editor-container=".w-e-text-container"
-            :auto-scroll="true" @toc-click="handleTocClick" @content-update="handleContentUpdate" ref="tocSidebarRef" />
+          <TocSidebar
+            :content="formData.knowledgeCaseContent"
+            editor-container=".ql-container"
+            :auto-scroll="true"
+            :enable-content-update="true"
+            @toc-click="handleTocClick"
+            @content-update="handleContentUpdate"
+            ref="tocSidebarRef"
+          />
         </div>
       </el-form-item>
 

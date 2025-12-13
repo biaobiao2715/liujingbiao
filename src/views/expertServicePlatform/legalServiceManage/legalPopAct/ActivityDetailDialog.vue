@@ -233,7 +233,7 @@ const fetchEnrollList = async () => {
             : [];
 
       enrollList.value = rows.map((item: any) => ({
-        name: item.enrollUserName || item.userName || item.name || '未知',
+        name: item.enrollUserNickName || item.enrollUserName || item.userName || item.name || '未知',
         phone: item.enrollUserPhone || item.userPhone || item.phone || '-'
       }));
       enrollPage.value.total = Number(response.total ?? rows.length ?? 0);

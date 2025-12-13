@@ -150,6 +150,7 @@
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
             <el-button
+              v-if="canEditActivity(scope.row)"
               v-throttle
               v-hasPermi="['skill:lawActivity:edit']"
               type="text"
@@ -369,6 +370,18 @@ const canCancelActivity = (row: any): boolean => {
 
   // 如果当前时间已经大于等于开始时间，则不能取消
   return now < startTime;
+};
+
+/**
+ * 判断活动是否可以编辑
+ * 规则：已取消（状态为99）和已结束（状态为3）的活动不能编辑
+ * @param row 活动数据
+ * @returns 是否可以编辑
+ */
+const canEditActivity = (row: any): boolean => {
+  const status = String(row.activityStatus || '');
+  // 已取消（99）和已结束（3）状态的活动不能编辑
+  return status !== '3' && status !== '99';
 };
 
 /**

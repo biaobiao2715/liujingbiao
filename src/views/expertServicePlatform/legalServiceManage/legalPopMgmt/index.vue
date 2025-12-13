@@ -265,12 +265,12 @@ const getList = () => {
         tableData.value = processedData;
         total.value = res.total || 0;
       } else {
-        ElMessage.error(res?.msg || '获取普法内容列表失败');
+        // ElMessage.error(res?.msg || '获取普法内容列表失败');
       }
       loading.value = false;
     })
     .catch(() => {
-      ElMessage.error('获取普法内容列表失败，请稍后重试');
+      // ElMessage.error('获取普法内容列表失败，请稍后重试');
       loading.value = false;
     });
 };
