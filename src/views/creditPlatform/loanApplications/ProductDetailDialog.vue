@@ -12,7 +12,7 @@
     <template #header>
       <div class="dialog-title">产品详情</div>
     </template>
-    
+
     <div v-loading="loading" class="product-detail-content">
       <div class="section-title">基本信息</div>
 
@@ -22,21 +22,21 @@
           <span class="label">产品名称：</span>
           <span class="value">{{ productDetail.productName || '--' }}</span>
         </div>
-        
+
         <div class="info-item">
           <span class="label">产品类型：</span>
           <span class="value">
             <dict-tag :options="prodCreditOptions" :value="productDetail.productType" />
           </span>
         </div>
-        
+
         <div class="info-item">
           <span class="label">适用对象：</span>
           <span class="value">
             <dict-tag :options="applicableObjectOptions" :value="applicableObjectValue" />
           </span>
         </div>
-        
+
         <div class="info-item range">
           <span class="label">可贷金额：</span>
           <span class="value">
@@ -58,19 +58,19 @@
             <template v-else>--</template>
           </span>
         </div>
-        
+
         <div class="info-item range">
           <span class="label">利率/费率：</span>
           <span class="value">{{ interestRateRangeText }}</span>
         </div>
-        
+
         <div class="info-item loan-cycle-item">
           <span class="label">可贷周期：</span>
           <span class="value">
             <dict-tag :options="loanCycleOptions" :value="loanCycleValue" />
           </span>
         </div>
-        
+
         <div class="info-item repayment-method-item">
           <span class="label">还款方式：</span>
           <span class="value">
@@ -146,7 +146,6 @@ const props = defineProps<{
   productId?: string | number | null;
 }>();
 
-
 const emit = defineEmits<{
   (event: 'update:visible', payload: boolean): void;
 }>();
@@ -177,7 +176,7 @@ const productDetail = ref<any>({});
 const formatDictValue = (value: unknown) => {
   // 如果已经是数组，直接返回
   if (Array.isArray(value)) return value;
-  
+
   // 如果是字符串，按逗号分割并去除空白
   if (typeof value === 'string') {
     const arr = value
@@ -186,12 +185,12 @@ const formatDictValue = (value: unknown) => {
       .filter((item) => item !== '');
     return arr.length ? arr : undefined;
   }
-  
+
   // 如果值为空，返回 undefined
   if (value === undefined || value === null || value === '') {
     return undefined;
   }
-  
+
   // 单个值转换为数组
   return [value];
 };
@@ -223,17 +222,17 @@ const repaymentMethodOptions = computed(() => repayment_method?.value ?? []);
  */
 const interestRateRangeText = computed(() => {
   const { baseInterestRate, floatInterestRate } = productDetail.value;
-  
+
   // 如果任一利率值为空，返回默认显示
   if (baseInterestRate === null || baseInterestRate === undefined || floatInterestRate === null || floatInterestRate === undefined) {
     return '--';
   }
-  
+
   // 如果两个利率相等，显示单个值
   if (Number(baseInterestRate) === Number(floatInterestRate)) {
     return `${baseInterestRate}%`;
   }
-  
+
   // 显示利率范围
   return `${baseInterestRate}% - ${floatInterestRate}%`;
 });
@@ -266,7 +265,7 @@ const cooperationFileList = computed<UploadFile[]>(() => {
       status: 'success'
     }));
   }
-  
+
   // 兼容旧格式：单个文件
   if (productDetail.value.cooperationAttachment && productDetail.value.cooperationAttachmentUrl) {
     return [
@@ -278,7 +277,7 @@ const cooperationFileList = computed<UploadFile[]>(() => {
       }
     ];
   }
-  
+
   return [];
 });
 
@@ -291,7 +290,7 @@ const fetchProductDetail = async () => {
     productDetail.value = {};
     return;
   }
-  
+
   loading.value = true;
   try {
     const res = await getProduct(props.productId);
@@ -309,7 +308,7 @@ const fetchProductDetail = async () => {
 };
 
 /**
- * 避免重复请求：仅在对话框从关闭变为打开，或产品ID发生变化时触发
+ * 仅在对话框从关闭变为打开，或产品ID发生变化时触发
  */
 watch([() => props.visible, () => props.productId], ([visible, productId], [prevVisible, prevProductId]) => {
   if (visible && (!prevVisible || productId !== prevProductId)) {

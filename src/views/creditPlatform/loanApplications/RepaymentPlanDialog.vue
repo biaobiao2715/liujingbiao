@@ -147,8 +147,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (event: 'update:visible', payload: boolean): void }>();
 
-const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
 const loading = ref(false);
 const plans = ref<any[]>([]);
 const contractFiles = ref<ContractFile[]>([]);
@@ -171,11 +169,10 @@ const getYearMonth = (dateStr: string): string => {
 };
 
 /**
- * 将字符串日期转为当天 00:00:00 的 Date
+ * 将字符串日期转为当天 00:00:00
  */
 const toDateAtMidnight = (dateStr?: string | null): Date | null => {
   if (!dateStr) return null;
-  // 兼容 "YYYY-MM-DD HH:mm:ss" 只取日期部分
   const pureDate = dateStr.split(' ')[0];
   const parts = pureDate.split('-').map((p) => Number(p));
   if (parts.length < 3 || parts.some((p) => Number.isNaN(p))) return null;
@@ -205,9 +202,6 @@ const isSameMonth = (dateStr1: string, dateStr2: string): boolean => {
 
 /**
  * 获取禁用日期的规则
- * @param date - 当前日期
- * @param currentPeriod - 当前期数
- * @returns 是否禁用该日期
  */
 const getDisabledDate = (date: Date, currentPeriod: number): boolean => {
   if (!plans.value || plans.value.length === 0) return false;
@@ -342,7 +336,7 @@ const handleDateChange = (currentPeriod: number) => {
       currentPlan.repaymentDate = '';
       return;
     }
-  } else{
+  } else {
     // 其他期数验证
     const loanDateStr = loanDate.value || props.data?.loanDate;
     if (loanDateStr) {
@@ -454,20 +448,17 @@ const beforeUpload = (file: any) => {
   );
 
   if (!isValidType) {
-    // ElMessage.error('只能上传 Word/PDF 格式的文件！');
     return false;
   }
 
   // 重复文件拦截（按名称简单判断）
   if (contractFiles.value.some((f) => (f.fileName || f.name) === file.name)) {
-    // ElMessage.error('已选择相同文件，请勿重复上传');
     return false;
   }
 
   // 文件大小限制（200MB，与视频文件相同）
   const sizeMB = file.size / 1024 / 1024;
   if (sizeMB > 200) {
-    // ElMessage.error('上传文件大小不能超过200MB!');
     return false;
   }
 
@@ -592,7 +583,6 @@ const handleContractRemove = async (file: ContractFile) => {
 
 /**
  * 验证还款日期是否符合规则
- * @returns 验证是否通过，错误信息
  */
 const validateRepaymentDates = (): { valid: boolean; message?: string } => {
   if (!plans.value || plans.value.length === 0) {
@@ -616,20 +606,20 @@ const validateRepaymentDates = (): { valid: boolean; message?: string } => {
       if (props.data?.firstRepaymentDate) {
         const firstRepaymentDate = new Date(props.data.firstRepaymentDate);
         firstRepaymentDate.setHours(0, 0, 0, 0);
-        
+
         if (currentDate < firstRepaymentDate) {
           return {
             valid: false,
             message: '第一期还款日期不能早于审批信息中的第一期还款日期'
           };
         }
-        
+
         const firstDateParts = props.data.firstRepaymentDate.split('-');
         const firstRepaymentYear = parseInt(firstDateParts[0]);
         const firstRepaymentMonth = parseInt(firstDateParts[1]);
         const monthEnd = new Date(firstRepaymentYear, firstRepaymentMonth, 0);
         monthEnd.setHours(0, 0, 0, 0);
-        
+
         if (currentDate > monthEnd) {
           return {
             valid: false,

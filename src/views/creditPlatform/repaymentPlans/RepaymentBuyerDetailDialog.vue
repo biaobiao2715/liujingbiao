@@ -78,10 +78,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="贷款金额">
-                <el-input
-                  :model-value="detail.loan.amount === '--' ? '--' : `${detail.loan.amount} 万元`"
-                  disabled
-                />
+                <el-input :model-value="detail.loan.amount === '--' ? '--' : `${detail.loan.amount} 万元`" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -317,7 +314,7 @@ const getBankLabel = (value: string | number | undefined | null): string => {
 
 // ==================== 计算属性 ====================
 /**
- * 格式化用户信息和贷款信息，包括从身份证号提取生日、获取还款方式标签、银行名称等
+ * 用户信息和贷款信息，包括从身份证号提取生日、获取还款方式标签、银行名称等
  */
 const detail = computed(() => {
   const row = detailRow.value || {};

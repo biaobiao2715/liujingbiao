@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import {  ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { getRepaymentPlan } from '@/api/creditPlatform/loanApplications';
 
 interface RepaymentPlan {
@@ -142,7 +142,6 @@ const fetchRepaymentPlan = async () => {
       repaymentPlans.value = [];
     }
   } catch (error) {
-    console.error('获取还款计划失败:', error);
     repaymentPlans.value = [];
   } finally {
     loading.value = false;

@@ -416,8 +416,7 @@ const legalInfoList = computed<DetailField[]>(() => {
 });
 
 /**
- * 申请人信息列表
- * 格式化申请人相关信息，包括从身份证号提取生日
+ * 申请人相关信息，包括从身份证号提取生日
  */
 const applicantInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
@@ -444,7 +443,7 @@ const applicantAuthFiles = computed(() => {
   const row = detailRow.value;
   const urls = collectUrls(row.authorizationUrl);
   const fileName = row.authorizationFileName;
-  
+
   // 如果有文件名，返回包含文件名和URL的对象数组
   if (fileName && urls.length > 0) {
     return urls.map((url, idx) => ({
@@ -452,14 +451,13 @@ const applicantAuthFiles = computed(() => {
       name: urls.length === 1 ? fileName : `${fileName}${idx + 1}`
     }));
   }
-  
-  // 如果没有文件名，返回URL数组（保持向后兼容）
+
+  // 如果没有文件名，返回URL数组
   return urls;
 });
 
 /**
  * 贷款信息列表
- * 格式化贷款相关信息，包括金额、期限、还款方式、银行卡信息等
  */
 const loanInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
@@ -480,7 +478,6 @@ const loanInfoList = computed<DetailField[]>(() => {
 
 /**
  * 银行卡正反面图片列表
- * 收集银行卡正反面照片URL
  */
 const bankCardImages = computed(() => {
   const row = detailRow.value;
@@ -496,7 +493,6 @@ const handleClose = () => {
 
 /**
  * 查看产品详情
- * 打开产品详情对话框
  */
 const handleViewProductDetail = () => {
   if (!currentDetail.value.productId) {

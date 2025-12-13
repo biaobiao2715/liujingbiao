@@ -165,7 +165,6 @@ const queryParams = ref({
 });
 
 /**
- * 获取还款状态颜色
  * 0=待还款(#FF7B00)，1=还款中(#00BF33)，2=已还清(#0B79EF)，3=已逾期(#FF0000)
  */
 const getPlanStatusColor = (status: string | number | undefined) => {
@@ -276,7 +275,7 @@ const handleRepayment = (row: RepaymentPlan) => {
 };
 
 /**
- * 详情按钮 - 根据适用对象类型打开对应的详情弹窗
+ * 详情按钮
  */
 const handleDetail = (row: RepaymentPlan) => {
   detailData.value = row;
@@ -300,7 +299,6 @@ const handleDetail = (row: RepaymentPlan) => {
 
 /**
  * 追踪按钮 - 打开追踪弹窗
- * @param row - 当前行数据
  */
 const handleTracking = (row: RepaymentPlan) => {
   detailData.value = row;
@@ -327,7 +325,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
       actualType = 'overdue';
       messageType = '2';
     } else if (row.currentPeriodStatus === '1') {
-      // currentPeriodStatus = 1 → 不显示还款提示按钮（这里不应该被调用，但为了安全处理）
       ElMessage.warning('当前期次已还款，无需发送提示');
       return;
     } else {
@@ -366,7 +363,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
 
         // 3. 调用 messageRecord 接口
         const messageResponse = await messageRecord(dataWithMessageType);
-        console.log(messageResponse);
         if (messageResponse && messageResponse.code === 200) {
           ElMessage.success(`${messages[actualType]}已发送`);
         } else {
@@ -380,7 +376,7 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
 };
 
 /**
- * 删除按钮 - 删除还款记录
+ * 删除按钮
  */
 const handleDelete = (row: RepaymentPlan) => {
   ElMessageBox.confirm(`确认要删除「${row.productName}」的还款记录吗？`, '提示', {
@@ -406,7 +402,7 @@ const handleRefresh = () => {
   getList();
 };
 
-// 每次页面激活时执行（从缓存中恢复）
+// 每次页面激活时执行
 onActivated(() => {
   getList();
 });

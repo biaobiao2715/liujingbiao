@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import {  ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue';
 import { getTrackingInfo } from '@/api/creditPlatform/repaymentPlans';
 
@@ -136,7 +136,7 @@ const loading = ref(false);
 // 追踪步骤数据
 const trackingData = ref<TrackingStep[]>([]);
 
-// 还款日期展开状态（按步骤索引存储）
+// 还款日期展开状态
 const repaymentExpanded = ref<Record<number, boolean>>({});
 
 // 默认显示的还款日期数量
@@ -353,7 +353,7 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
     status: data.loanDate ? 'finish' : 'wait'
   });
 
-  // 5. 还款中（优先使用新字段 repaymentPeriodAndDates，兼容旧字段 repaymentDateList）
+  // 5. 还款中
   const repaymentDates =
     parseRepaymentPeriodAndDates(data.repaymentPeriodAndDates) ||
     parseRepaymentPeriodAndDates(data.repaymentPeriodAndDatesList) || // 兼容可能的命名
@@ -378,14 +378,11 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
 /**
  * 监听弹窗显示状态和数据 ID 变化
  */
-watch(
-  [() => props.visible, () => props.data?.id],
-  ([visible, id], [prevVisible, prevId]) => {
-    if (visible && (!prevVisible || id !== prevId)) {
-      fetchTrackingData();
-    }
+watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
+  if (visible && (!prevVisible || id !== prevId)) {
+    fetchTrackingData();
   }
-);
+});
 
 /**
  * 切换还款日期展开/收起状态

@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getRepaymentPlan, updateRepaymentPlan } from '@/api/creditPlatform/loanApplications';
 
@@ -91,7 +91,7 @@ interface RepaymentItem {
   cardNumberError?: string; // 卡号错误信息
   planStatus: number; // 还款状态：0=待还款, 1=已还款, 2=已逾期
   originalStatus?: number; // 原始状态（用于判断是否可编辑）
-  [key: string]: any; // 其余字段保持与后端一致
+  [key: string]: any;
 }
 
 const props = defineProps<{
@@ -105,7 +105,6 @@ const emit = defineEmits<{
 }>();
 
 const loading = ref(false);
-
 
 /**
  * 只保留日期部分（YYYY-MM-DD）
@@ -122,12 +121,8 @@ const formatDateOnly = (value: string | undefined | null) => {
   return str;
 };
 
-
-
 /**
  * 判断还款日期是否已到
- * @param dateStr - 还款日期（格式：YYYY-MM-DD HH:mm:ss）
- * @returns 还款日期是否已到或已过
  */
 const isRepaymentDateReached = (dateStr: string) => {
   const repaymentDate = new Date(dateStr);
@@ -146,7 +141,7 @@ const fetchRepaymentPlan = async () => {
   loading.value = true;
   try {
     const response: any = await getRepaymentPlan(props.data.id);
-    // 保存原始状态，并确保 planStatus 是数字类型
+    // 确保 planStatus 是数字类型
     repaymentList.value = (response || []).map((item: any) => ({
       ...item,
       repaymentCardNo: item.repaymentCardNo ?? item.collectionAccountNumber ?? '',
@@ -173,8 +168,7 @@ watch(
 );
 
 /**
- * 获取还款状态文本
- * @param status - 状态值：0=待还款, 1=已还款, 2=已逾期
+ 状态值：0=待还款, 1=已还款, 2=已逾期
  */
 const getStatusText = (status: number | undefined) => {
   const statusMap: Record<number, string> = {
@@ -186,7 +180,6 @@ const getStatusText = (status: number | undefined) => {
 };
 
 /**
- * 获取状态颜色
  * 待还款(#FF7B00)、已还款(#0B79EF)、已逾期(#FF0000)
  */
 const getStatusColor = (status: number | undefined) => {
@@ -237,7 +230,6 @@ const canEditCardNumber = (item: RepaymentItem) => {
 
 /**
  * 判断是否可以编辑还款状态
- * 规则与还款卡号相同，但使用原始状态判断
  */
 const canEditStatus = (item: RepaymentItem) => {
   return canEditCardNumber(item);
@@ -280,7 +272,6 @@ const handleReadCardNumber = (item: RepaymentItem) => {
 
 /**
  * 提交修改信息
- * 调用 updateRepaymentPlan 接口提交还款卡号和还款状态
  */
 const handleSubmit = async () => {
   // 首先对所有可编辑的银行卡号进行校验

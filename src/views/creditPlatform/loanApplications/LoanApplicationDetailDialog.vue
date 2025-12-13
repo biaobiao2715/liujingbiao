@@ -6,7 +6,6 @@
   开发信息: Created by 吴威振 2025-11-25
 -->
 
-
 <template>
   <el-dialog :model-value="visible" width="50%" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
@@ -584,7 +583,7 @@ const fetchDetail = async () => {
     if (props.mode === 'approval') {
       resetApprovalForm();
     } else {
-      // 详情模式下，填充已有数据（如果有）
+      // 详情模式下，填充已有数据
       hydrateApprovalForm(merged);
     }
   } catch (error) {
@@ -734,7 +733,6 @@ const isApprovalMode = computed(() => props.mode === 'approval');
 const isApprovalReadonly = computed(() => {
   return props.mode !== 'approval';
 });
-const isApproveAgree = computed(() => approvalForm.opinion === 'agree');
 
 const isPendingStatus = computed(() => {
   const status = detailData.value?.applyStatus;
