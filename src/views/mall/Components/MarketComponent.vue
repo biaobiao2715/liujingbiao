@@ -1,3 +1,13 @@
+
+<!--
+  标题: MarketComponent
+  功能: 市场行情
+  说明: 总页面
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
+
+
 <template>
   <div class="market-container">
     <div class="market-tabs">

@@ -1,4 +1,10 @@
-<!-- 专项报告 -->
+ <!--
+  标题: PriceSpecialReportDialog
+  功能: 专项报告
+  说明: 专项报告弹窗组件
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <el-dialog
     v-model="dialogVisible"
@@ -186,7 +192,6 @@ const fetchReportList = async () => {
       reportTotal.value = 0;
     }
   } catch (error) {
-    console.error('获取价格专项报告数据失败:', error);
     reportTableData.value = [];
     reportTotal.value = 0;
   } finally {

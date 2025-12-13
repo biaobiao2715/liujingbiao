@@ -1,4 +1,11 @@
-<!-- 价格走势图表 -->
+
+<!--
+  标题: PriceTrendChart
+  功能: 价格走势图表
+  说明: 价格走势图表
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="price-trend-chart">
     <div class="chart-header" v-if="showHeader">

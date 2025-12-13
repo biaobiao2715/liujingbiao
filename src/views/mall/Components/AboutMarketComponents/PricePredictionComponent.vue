@@ -1,5 +1,10 @@
-<!-- 价格预测与分析 -->
-
+ <!--
+  标题: PricePredictionComponent
+  功能: 价格预测与分析
+  说明: 价格预测与分析 Tabs页面
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="price-prediction-component">
     <!-- 图表和分析区域 -->
@@ -102,14 +107,14 @@ import predictedMinIcon from '@/assets/images/marketConditions/ycMin.png';
 const queryFormRef = ref();
 const loading = ref(false);
 
-// 查询参数
+// 查询参数（产地/品种/时间范围）
 const queryParams = reactive({
   origin: [] as string[],
   variety: [] as string[],
   timeRange: '12'
 });
 
-// 规范化品种值，确保始终是数组
+// 品种值，确保始终是数组
 const normalizedVariety = computed({
   get: () => {
     return Array.isArray(queryParams.variety) ? queryParams.variety : [];
@@ -119,11 +124,9 @@ const normalizedVariety = computed({
   }
 });
 
-// 捕获子组件错误，兼容 GoodsCategorySelect 清空时报错
+// GoodsCategorySelect 清空时报错
 onErrorCaptured((err: any, instance, info) => {
-  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
   if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
-    console.warn('品种选择器清空时的错误已捕获:', err.message);
     // 确保值被重置
     nextTick(() => {
       normalizedVariety.value = [];
@@ -133,7 +136,7 @@ onErrorCaptured((err: any, instance, info) => {
   return true; // 其他错误正常传播
 });
 
-// 区域代码
+// （配合 RegionSelect）
 const regionCodes = reactive({
   provinceCode: '',
   cityCode: '',
@@ -141,6 +144,7 @@ const regionCodes = reactive({
 });
 
 // 图表数据
+// 图表主序列与上下界
 const allMonths = ref<string[]>([]);
 const pastPrices = ref<(number | null)[]>([]);
 const pastPriceUpper = ref<(number | null)[]>([]);
@@ -148,20 +152,25 @@ const pastPriceLower = ref<(number | null)[]>([]);
 const predictedPrices = ref<(number | null)[]>([]);
 const predictedPriceUpper = ref<(number | null)[]>([]);
 const predictedPriceLower = ref<(number | null)[]>([]);
+// 折线图显示用的月份与价格（历史/预测）
 const historicalLineMonths = ref<string[]>([]);
 const historicalLinePrices = ref<number[]>([]);
 const predictedLineMonths = ref<string[]>([]);
 const predictedLinePrices = ref<number[]>([]);
+// 极值标记（最低/最高点）
 const predictedLineMin = ref<{ month: string; price: number } | null>(null);
 const predictedLineMax = ref<{ month: string; price: number } | null>(null);
 const pastHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const pastLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedHighest = ref<{ month: string; price: number }>({ month: '', price: 0 });
 const predictedLowest = ref<{ month: string; price: number }>({ month: '', price: 0 });
+// Y 轴范围配置
 const chartYAxisMin = ref(0);
 const chartYAxisMax = ref(5);
 const chartYAxisInterval = ref(1);
 
+
+//  将月份数据统一格式化为 "YYYY-MM" 
 const normalizeMonthLabel = (value: any) => {
   if (value === undefined || value === null) return '';
   const str = String(value).trim();
@@ -174,12 +183,20 @@ const normalizeMonthLabel = (value: any) => {
   return str;
 };
 
+/**
+ * 格式化日期为月份字符串
+ * 将 Date 对象转换为 "YYYY-MM" 格式
+ */
 const formatMonth = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
 };
 
+/**
+ * 生成连续的月份序列
+ * 从起始月份开始，生成指定数量的连续月份
+ */
 const generateSequentialMonths = (startMonth: string, count: number) => {
   const normalized = normalizeMonthLabel(startMonth);
   let baseDate: Date;
@@ -202,6 +219,9 @@ const generateSequentialMonths = (startMonth: string, count: number) => {
   return months;
 };
 
+/**
+ * 获取上一个月份
+ */
 const getPreviousMonth = (month: string) => {
   const normalized = normalizeMonthLabel(month);
   if (!normalized) return normalized;
@@ -211,6 +231,10 @@ const getPreviousMonth = (month: string) => {
   return formatMonth(date);
 };
 
+/**
+ * 解析价格值
+ * 将各种格式的价格值转换为数字，无效值返回 null
+ */
 const parsePriceValue = (val: any) => {
   if (val === undefined || val === null || val === '' || val === '-') return null;
   const num = Number(val);
@@ -218,6 +242,10 @@ const parsePriceValue = (val: any) => {
   return num;
 };
 
+/**
+ * 根据 X 轴构建数据系列
+ * 将 X 轴和 Y 轴数据映射到基础月份数组上，生成对应的价格序列
+ */
 const buildSeriesByXAxis = (baseMonths: string[], xAxis?: any[], yAxis?: any[]): (number | null)[] => {
   const map = new Map<string, number | null>();
   if (Array.isArray(xAxis) && Array.isArray(yAxis)) {
@@ -228,11 +256,19 @@ const buildSeriesByXAxis = (baseMonths: string[], xAxis?: any[], yAxis?: any[]):
   return baseMonths.map((month) => map.get(month) ?? null);
 };
 
+/**
+ * 如果系列为空则填充顺序值
+ * 当系列数据全为空时，使用提供的 values 数组填充
+ */
 const fillSequentialIfEmpty = (series: (number | null)[], baseMonths: string[], values?: any[]) => {
   if (series.some((val) => val !== null) || !Array.isArray(values)) return series;
   return baseMonths.map((_, idx) => parsePriceValue(values[idx]));
 };
 
+/**
+ * 计算极值点（最高或最低）
+ * 从价格系列中找出最大值或最小值及其对应的月份
+ */
 const deriveExtreme = (series: (number | null)[], months: string[], type: 'max' | 'min'): { month: string; price: number } => {
   const entries = series.map((price, idx) => ({ price, month: months[idx] })).filter((item) => item.price !== null && item.month) as {
     price: number;
@@ -247,12 +283,20 @@ const deriveExtreme = (series: (number | null)[], months: string[], type: 'max' 
   return { month: result.month, price: Number(result.price.toFixed(2)) };
 };
 
+/**
+ * 格式化价格值
+ * 将价格数字格式化为字符串，保留两位小数
+ */
 const formatPriceValue = (price?: number | null) => {
   if (price === undefined || price === null || Number.isNaN(price)) return '';
   const fixed = Number(price).toFixed(2);
   return fixed.endsWith('.00') ? fixed.slice(0, -3) : fixed;
 };
 
+/**
+ * 格式化月份用于显示
+ * 将 "YYYY-MM" 格式转换为 "X月" 
+ */
 const formatMonthDisplay = (month: string) => {
   const normalized = normalizeMonthLabel(month);
   if (!normalized) return '';
@@ -261,7 +305,7 @@ const formatMonthDisplay = (month: string) => {
   return `${Number(monthStr)}月`;
 };
 
-// 市场分析数据
+// 市场分析数据（右侧卡片内容）
 const marketAnalysis = ref({
   overallTrend: '暂无数据',
   priceRange: '暂无数据',
@@ -292,7 +336,7 @@ const chartTitle = computed(() => {
 // 标记是否正在处理分类变化，避免 watch 与事件重复触发接口
 const isHandlingCategoryChange = ref(false);
 
-// 品种分类变化处理
+// 品种分类变化处理：同步品种、种子名并触发查询
 const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
   try {
     isHandlingCategoryChange.value = true;
@@ -363,7 +407,7 @@ watch(
   { deep: true }
 );
 
-// 产地变化处理
+// 产地变化处理：更新区域编码并重新查询
 const handleRegionChange = (value: any) => {
   if (value && value.regionPath) {
     queryParams.origin = value.regionPath;
@@ -380,11 +424,15 @@ const handleRegionChange = (value: any) => {
   fetchPricePrediction();
 };
 
+/**
+ * 时间范围变化处理
+ * 当用户选择不同的时间范围时，重新获取价格预测数据
+ */
 const handleTimeRangeChange = () => {
   fetchPricePrediction();
 };
 
-// 获取价格预测数据
+// 获取价格预测数据：组装参数、更新图表与市场分析
 const fetchPricePrediction = async () => {
   loading.value = true;
   try {
@@ -594,7 +642,7 @@ const fetchPricePrediction = async () => {
         fileAnalysisInfo = await fetchFileAnalysis(extractPrompt);
       }
 
-      // 展示插件输出的整体趋势（不再使用后端 overallTrend）
+      // 展示插件输出的整体趋势
       let pluginInfo =
         fileAnalysisInfo || data?.pluginOutput?.info || data?.responseData?.[2]?.pluginOutput?.info || data?.responseData?.[0]?.pluginOutput?.info;
       // 去掉返回文本中的“整体趋势：”前缀
@@ -634,7 +682,7 @@ const fetchPricePrediction = async () => {
   }
 };
 
-// 重置图表数据
+// 重置图表数据与分析文案
 const resetChartData = () => {
   allMonths.value = [];
   pastPrices.value = [];
@@ -657,6 +705,9 @@ const resetChartData = () => {
   };
 };
 
+/**
+ * 更新图表 Y 轴范围
+ */
 const updateYAxisRange = () => {
   const values = [
     ...pastPrices.value,
@@ -691,10 +742,10 @@ const updateYAxisRange = () => {
   chartYAxisInterval.value = Math.max(1, Math.ceil(range / 6));
 };
 
-// 文件分析接口调用状态，防止重复提交
+// 文件分析接口调用状态
 const isFileAnalysisLoading = ref(false);
 
-// 调用文件分析接口，支持传入动态 prompt，返回插件输出的 info
+// 调用文件分析接口，支持传入动态 prompt
 const fetchFileAnalysis = async (extractPrompt: string) => {
   // 防止重复提交
   if (isFileAnalysisLoading.value) {
@@ -719,26 +770,26 @@ const fetchFileAnalysis = async (extractPrompt: string) => {
 
     return pluginInfo || '';
   } catch (error: any) {
-    // 如果是"数据正在处理"的错误，不打印错误日志
     if (error?.message && error.message.includes('数据正在处理')) {
       return '';
     }
-    // 其他错误才打印
-    console.error('调用文件分析接口失败:', error);
     return '';
   } finally {
-    // 延迟重置状态，避免短时间内重复调用
     setTimeout(() => {
       isFileAnalysisLoading.value = false;
     }, 1000);
   }
 };
 
+/**
+ * 查询处理
+ * 触发价格预测数据的获取
+ */
 const handleQuery = () => {
   fetchPricePrediction();
 };
 
-// 重置
+// 重置查询条件并重新获取数据
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
   queryParams.origin = [];

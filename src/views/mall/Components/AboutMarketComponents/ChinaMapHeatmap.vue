@@ -1,3 +1,12 @@
+
+ <!--
+  标题: ChinaMapHeatmap
+  功能: 热力图图表
+  说明: 热力图图表
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
+
 <template>
   <div ref="mapContainer" class="china-map-heatmap"></div>
 </template>

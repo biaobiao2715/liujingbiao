@@ -1,5 +1,10 @@
-<!-- 热地图 -->
-
+ <!--
+  标题: PriceHeatmapPage
+  功能: 热力图页面
+  说明: 热力图
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="price-heatmap-page">
     <!-- 热力图内容 -->

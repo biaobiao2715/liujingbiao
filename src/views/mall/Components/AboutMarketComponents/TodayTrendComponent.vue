@@ -1,5 +1,10 @@
-<!-- 今日行情 -->
-
+<!--
+  标题: TodayTrendComponent
+  功能: 今日行情
+  说明: 今日行情组件
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="today-trend-component">
     <!-- 查询表单 -->

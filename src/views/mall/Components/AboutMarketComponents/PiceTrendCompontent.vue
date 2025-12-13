@@ -1,3 +1,10 @@
+ <!--
+  标题: PiceTrendCompontent
+  功能: 价格走势页面
+  说明: 价格走势
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="price-trend-component">
     <!-- 主要内容区域 -->

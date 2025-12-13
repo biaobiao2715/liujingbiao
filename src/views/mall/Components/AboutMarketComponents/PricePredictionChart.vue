@@ -1,5 +1,10 @@
-<!-- 价格预测与分析图表 -->
-
+ <!--
+  标题: PricePredictionChart
+  功能: 价格预测与分析图表
+  说明: 价格预测与分析图表组件
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
 <template>
   <div class="price-prediction-chart">
     <div ref="chartContainer" class="chart-container"></div>
@@ -34,6 +39,11 @@ const props = withDefaults(defineProps<Props>(), {
 const chartContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 
+/**
+ * 规范化月份标签格式
+ * 将月份数据统一格式化为 "YYYY-MM" 格式（月份补零）
+ * 支持 "-" 和 "/" 分隔符
+ */
 const normalizeMonthLabel = (value: any) => {
   if (value === undefined || value === null) return '';
   const str = String(value).trim();
@@ -51,14 +61,27 @@ const normalizeMonthLabel = (value: any) => {
   return str;
 };
 
+/**
+ * 规范化月份数组
+ * 将月份数组中的每个元素格式化为标准格式，并过滤掉空值
+ */
 const normalizeMonths = (months?: string[]) => (months || []).map((m) => normalizeMonthLabel(m)).filter((label) => !!label);
 
+/**
+ * 构建 X 轴数据
+ * 合并历史月份和预测月份，去除重复项，生成完整的 X 轴数组
+ */
 const buildAxis = (history: string[], predicted: string[]) => {
   const uniqueHistory = history || [];
   const uniquePredicted = predicted || [];
   return [...uniqueHistory, ...uniquePredicted.filter((m) => !uniqueHistory.includes(m))];
 };
 
+/**
+ * 构建系列数据
+ * 将月份和价格数据映射到 X 轴数组上，生成对应的价格序列
+ * 缺失的月份用 null 填充
+ */
 const buildSeriesData = (axis: string[], months: string[], values: number[]) => {
   const map = new Map<string, number>();
   months.forEach((m, idx) => {
@@ -75,6 +98,12 @@ const buildSeriesData = (axis: string[], months: string[], values: number[]) => 
   });
 };
 
+/**
+ * 构建散点数据（最高/最低点）
+ * 从价格数据中找出最大值或最小值，并在对应位置标记
+ * 最低点：如果有多个相同值，取最前面一个
+ * 最高点：如果有多个相同值，取最后面一个
+ */
 const buildScatterData = (axis: string[], months: string[], values: number[], type: 'max' | 'min') => {
   if (!months?.length || !values?.length) return axis.map(() => null);
 
@@ -123,6 +152,9 @@ const buildScatterData = (axis: string[], months: string[], values: number[], ty
   });
 };
 
+/**
+ * 初始化图表
+ */
 const initChart = () => {
   if (!chartContainer.value) return;
   chartInstance = echarts.init(chartContainer.value);
@@ -130,12 +162,17 @@ const initChart = () => {
   nextTick(() => chartInstance?.resize());
 };
 
-// 检查数据是否有效（非全0且有实际数据）
+/**
+ * 判断价格数组是否包含有效的正数数据（非全0且有实际数据）
+ */
 const hasValidData = (values: number[]) => {
   if (!values?.length) return false;
   return values.some((v) => typeof v === 'number' && v > 0);
 };
 
+/**
+ * 包括历史价格线、预测价格线、最高/最低点标记、预测区域高亮等
+ */
 const updateChart = () => {
   if (!chartInstance) return;
   const historicalMonths = normalizeMonths(props.historicalMonths);
@@ -294,7 +331,7 @@ const updateChart = () => {
               },
               z: 2
             },
-            // 历史最高点（使用图片标记）
+            // 历史最高点
             {
               name: '过往最高点',
               type: 'scatter',
@@ -306,7 +343,7 @@ const updateChart = () => {
               },
               z: 10
             },
-            // 历史最低点（使用图片标记）
+            // 历史最低点（
             {
               name: '过往最低点',
               type: 'scatter',
@@ -353,7 +390,7 @@ const updateChart = () => {
               },
               z: 2
             },
-            // 预测最高点（使用图片标记）
+            // 预测最高点
             {
               name: '预测最高点',
               type: 'scatter',
@@ -365,7 +402,7 @@ const updateChart = () => {
               },
               z: 10
             },
-            // 预测最低点（使用图片标记）
+            // 预测最低点
             {
               name: '预测最低点',
               type: 'scatter',
@@ -407,6 +444,9 @@ const updateChart = () => {
   chartInstance.setOption(option, true);
 };
 
+/**
+ * 调整图表大小
+ */
 const resizeChart = () => {
   chartInstance?.resize();
 };
@@ -425,12 +465,12 @@ watch(
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
-  // 使用双重 nextTick 和 requestAnimationFrame 确保容器有正确的尺寸
+  // 确保容器有正确的尺寸
   nextTick(() => {
     requestAnimationFrame(() => {
       initChart();
 
-      // 使用 ResizeObserver 监听容器大小变化
+      // 监听容器大小变化
       if (chartContainer.value) {
         resizeObserver = new ResizeObserver(() => {
           chartInstance?.resize();
@@ -438,7 +478,7 @@ onMounted(() => {
         resizeObserver.observe(chartContainer.value);
       }
 
-      // 再次延迟调整，确保图表正确渲染
+      // 确保图表正确渲染
       setTimeout(() => {
         chartInstance?.resize();
       }, 100);
