@@ -1,8 +1,9 @@
 <!--
-  标题: WhitePaperDetailDialog.vue
-  功能: 维权白皮书详情弹窗
-  说明: 用于查看维权白皮书的详细信息（弹窗形式）
+  标题: 专家咨询服务平台 - 维权白皮书详情弹窗
+  功能: 用于查看维权白皮书的详细信息（弹窗形式）
+  说明: 弹窗用于查看维权白皮书的详细信息，包括标题、附件、历史版本等
   当前版本: 1.0
+  负责人： 门世超
 -->
 <template>
   <div class="whitepaper-detail-dialog" v-loading="loading">

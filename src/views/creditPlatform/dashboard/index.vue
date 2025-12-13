@@ -52,83 +52,76 @@
       </div>
 
       <div class="main-content">
-          <div class="middle-section">
-            <el-row :gutter="20">
-              <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">总贷款金额</span>
-                    <div class="data-card-icon">
-                      <el-icon :size="20"><Money /></el-icon>
-                    </div>
+        <div class="middle-section">
+          <el-row :gutter="20">
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">总贷款金额</span>
+                  <div class="data-card-icon">
+                    <el-icon :size="20"><Money /></el-icon>
                   </div>
-                  <div class="data-card-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
                 </div>
-
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">本月应收金额</span>
-                  </div>
-                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">当前逾期金额</span>
-                    <div class="data-card-icon warning-icon">
-                      <el-icon :size="20"><Warning /></el-icon>
-                    </div>
-                  </div>
-                  <div class="data-card-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
-                </div>
-
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">本月已收金额</span>
-                  </div>
-                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
-                </div>
-
-              </el-col>
-              <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">总违约率</span>
-                    <div class="data-card-icon">
-                      <el-icon :size="20"><TrendCharts /></el-icon>
-                    </div>
-                  </div>
-                  <div class="data-card-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
-                </div>
-
-                <div class="data-card">
-                  <div class="data-card-header">
-                    <span class="data-card-title">本月逾期金额</span>
-                  </div>
-                  <div class="data-card-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
-                </div>
-              </el-col>
-            </el-row>
-          </div>
-
-          <div class="bottom-chart-section">
-            <div class="chart-header">
-              <div class="chart-title">近6个月违约率趋势</div>
-              <div class="chart-tabs">
-                <el-button
-                  v-for="tab in chartTabs"
-                  :key="tab.value"
-                  size="small"
-                  disabled
-                  plain
-                >
-                  {{ tab.label }}
-                </el-button>
+                <div class="data-card-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
               </div>
+
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">本月应收金额</span>
+                </div>
+                <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
+              </div>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">当前逾期金额</span>
+                  <div class="data-card-icon warning-icon">
+                    <el-icon :size="20"><Warning /></el-icon>
+                  </div>
+                </div>
+                <div class="data-card-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
+              </div>
+
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">本月已收金额</span>
+                </div>
+                <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
+              </div>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">总违约率</span>
+                  <div class="data-card-icon">
+                    <el-icon :size="20"><TrendCharts /></el-icon>
+                  </div>
+                </div>
+                <div class="data-card-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
+              </div>
+
+              <div class="data-card">
+                <div class="data-card-header">
+                  <span class="data-card-title">本月逾期金额</span>
+                </div>
+                <div class="data-card-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+
+        <div class="bottom-chart-section">
+          <div class="chart-header">
+            <div class="chart-title">近6个月违约率趋势</div>
+            <div class="chart-tabs">
+              <el-button v-for="tab in chartTabs" :key="tab.value" size="small" disabled plain>
+                {{ tab.label }}
+              </el-button>
             </div>
-            <div ref="defaultRateChart" class="chart-container"></div>
           </div>
+          <div ref="defaultRateChart" class="chart-container"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -217,9 +210,9 @@ const initDefaultRateChart = () => {
     chartInstance.dispose();
   }
   chartInstance = echarts.init(defaultRateChart.value);
-  
+
   updateChart();
-  
+
   window.addEventListener('resize', () => {
     chartInstance?.resize();
   });
@@ -227,11 +220,11 @@ const initDefaultRateChart = () => {
 
 const updateChart = () => {
   if (!chartInstance) return;
-  
+
   // 处理年度数据（总违约率，红色线）
   let yearXAxisData: string[] = [];
   let yearSeries: number[] = [];
-  
+
   if (chartData.value.yearData) {
     const yearData = chartData.value.yearData;
     if (yearData?.xAxis && yearData?.yAxis) {
@@ -250,11 +243,11 @@ const updateChart = () => {
       });
     }
   }
-  
+
   // 处理月度数据（本月违约率，蓝色线）
   let monthXAxisData: string[] = [];
   let monthSeries: number[] = [];
-  
+
   if (chartData.value.monthData) {
     const monthData = chartData.value.monthData;
     if (monthData?.xAxis && monthData?.yAxis) {
@@ -273,10 +266,10 @@ const updateChart = () => {
       });
     }
   }
-  
+
   // 使用年度数据的 X 轴（如果年度数据为空，使用月度数据的 X 轴）
   const xAxisData = yearXAxisData.length > 0 ? yearXAxisData : monthXAxisData;
-  
+
   // 如果数据为空，不渲染图表
   if (xAxisData.length === 0 && yearSeries.length === 0 && monthSeries.length === 0) {
     return;
@@ -330,10 +323,7 @@ const updateChart = () => {
   ];
 
   // 动态 Y 轴上限，默认 1%
-  const maxVal = Math.max(
-    ...(yearSeries.length ? yearSeries : [0]),
-    ...(monthSeries.length ? monthSeries : [0])
-  );
+  const maxVal = Math.max(...(yearSeries.length ? yearSeries : [0]), ...(monthSeries.length ? monthSeries : [0]));
   const yMax = maxVal > 0 ? Math.ceil(maxVal * 1.2 * 100) / 100 : 1;
 
   const option = {
@@ -441,11 +431,11 @@ const fetchDashboardData = async () => {
   try {
     const res = await getDashboardStats();
     let data = null;
-    
+
     if (res && res.code === 200) {
       data = res.data;
     }
-    
+
     if (data) {
       dashboardData.value = {
         pendingApprovals: data.pendingCount || 0,
@@ -472,9 +462,9 @@ const fetchChartData = async () => {
     // 同时调用年度和月度接口
     const [yearRes, monthRes] = await Promise.all([
       getDashboardLineChart({ dateType: '2' }), // 年度
-      getDashboardLineChart({ dateType: '1' })  // 月度
+      getDashboardLineChart({ dateType: '1' }) // 月度
     ]);
-    
+
     // 处理年度数据
     let yearData = null;
     if (yearRes && yearRes.code === 200) {
@@ -484,7 +474,7 @@ const fetchChartData = async () => {
         yearData = yearRes.data;
       }
     }
-    
+
     // 处理月度数据
     let monthData = null;
     if (monthRes && monthRes.code === 200) {
@@ -494,13 +484,13 @@ const fetchChartData = async () => {
         monthData = monthRes.data;
       }
     }
-    
+
     // 更新图表数据
     chartData.value = {
       yearData,
       monthData
     };
-    
+
     nextTick(() => {
       updateChart();
     });
@@ -523,7 +513,7 @@ onMounted(() => {
       { label: '年度', value: '2' }
     ];
   }
-  
+
   fetchDashboardData();
   nextTick(() => {
     initDefaultRateChart();

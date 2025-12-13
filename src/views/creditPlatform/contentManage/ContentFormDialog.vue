@@ -3,6 +3,7 @@
   功能: 金融内容新增/编辑弹窗
   说明: 用于新增和编辑金融文章
   当前版本: 1.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
 -->
 <template>
   <div class="content-form-dialog" v-loading="loading">
@@ -10,13 +11,7 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="文章标题" prop="articleTitle" required>
-            <el-input
-              v-model="formData.articleTitle"
-              placeholder="请输入文章标题"
-              maxlength="50"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.articleTitle" placeholder="请输入文章标题" maxlength="50" show-word-limit clearable />
           </el-form-item>
         </el-col>
       </el-row>
@@ -24,15 +19,8 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="文章来源" prop="articleSource" required>
-            <div style="display: flex; gap: 8px;">
-              <el-input
-                v-model="formData.articleSource"
-                placeholder="请输入文章来源"
-                maxlength="50"
-                show-word-limit
-                clearable
-                style="flex: 1;"
-              />
+            <div style="display: flex; gap: 8px">
+              <el-input v-model="formData.articleSource" placeholder="请输入文章来源" maxlength="50" show-word-limit clearable style="flex: 1" />
               <el-button type="primary" @click="loadAccountName">读取账号名称</el-button>
             </div>
           </el-form-item>
@@ -40,14 +28,10 @@
       </el-row>
 
       <el-row>
-         <el-col :span="24">
+        <el-col :span="24">
           <el-form-item label="文章类型" prop="articleType" required>
             <el-radio-group v-model="formData.articleType">
-              <el-radio
-                v-for="dict in art_article_type"
-                :key="dict.value"
-                :label="dict.value"
-              >
+              <el-radio v-for="dict in art_article_type" :key="dict.value" :label="dict.value">
                 {{ dict.label }}
               </el-radio>
             </el-radio-group>
@@ -137,7 +121,10 @@ const rules = {
     {
       required: true,
       validator: (_rule, value, callback) => {
-        const content = (value || '').replace(/<p><br><\/p>/g, '').replace(/\s|&nbsp;/g, '').trim();
+        const content = (value || '')
+          .replace(/<p><br><\/p>/g, '')
+          .replace(/\s|&nbsp;/g, '')
+          .trim();
         if (!content) {
           callback(new Error('请输入文章内容'));
         } else {
@@ -157,7 +144,9 @@ const generateArticleNo = () => {
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0');
   return `ART${year}${month}${day}${hours}${minutes}${seconds}${random}`;
 };
 

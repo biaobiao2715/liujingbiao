@@ -1,9 +1,9 @@
 <!--
-  标题: whitePaperManage.vue
-  功能: 维权白皮书管理
-  说明: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用禁用、版本更新等操作
-  负责人： 门世超
+  标题: 专家咨询服务平台 - 维权白皮书管理 
+  功能: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用禁用等操作
+  说明: 用于维权白皮书的管理，包括查询、添加、编辑、删除、启用禁用等操作
   当前版本: 1.0
+  负责人： 门世超
 -->
 <template>
   <div class="white-paper-management">
@@ -356,6 +356,7 @@ const versionFormData = ref({
   remark: ''
 });
 
+// 表单校验规则
 const versionFormRules = {
   file: [{ required: true, message: '请上传文件', trigger: 'change' }]
 };
@@ -377,6 +378,7 @@ const normalizeStatus = (status: string | number | null | undefined) => {
   return '';
 };
 
+// 获取状态标签
 const getStatusLabel = (status: string | number) => {
   const statusStr = normalizeStatus(status);
   if (statusStr === '1') {

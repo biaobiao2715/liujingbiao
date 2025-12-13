@@ -1,8 +1,14 @@
-<!-- 产品管理-信贷新增和编辑弹窗 -->
+<!--
+  标题: ProductCreditFormDialog.vue
+  功能: 信贷产品新增和编辑弹窗
+  说明: 提供信贷产品的新增和编辑功能
+  当前版本: 1.0
+  开发信息: Created by 门世超, Refactored by 门世超
+-->
 <template>
   <div class="product-credit-form-dialog" v-loading="loading">
     <div class="section-title">基础信息</div>
-          <div class="upload-global-hint" @click="triggerUpload">
+    <div class="upload-global-hint" @click="triggerUpload">
       <div class="upload-icon-box">
         <span class="plus">+</span>
       </div>
@@ -13,24 +19,13 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="产品名称" prop="productName">
-            <el-input
-              v-model="formData.productName"
-              placeholder="请输入产品名称"
-              maxlength="50"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="产品类型" prop="productType">
             <el-select v-model="formData.productType" placeholder="请选择产品类型" clearable>
-              <el-option
-                v-for="dict in prod_credit_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -40,12 +35,7 @@
         <el-col :span="12">
           <el-form-item label="适用对象" prop="applicableObject">
             <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
-              <el-option
-                v-for="dict in applicable_object"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -53,23 +43,11 @@
           <el-form-item label="可贷金额" required class="loan-amount-item">
             <div class="range-inputs">
               <el-form-item prop="minLoanAmount" label-width="0" class="inline-form-item">
-                <el-input-number
-                  v-model="formData.minLoanAmount"
-                  :min="0"
-                  :precision="2"
-                  :controls="false"
-                  placeholder="最低额度"
-                />
+                <el-input-number v-model="formData.minLoanAmount" :min="0" :precision="2" :controls="false" placeholder="最低额度" />
               </el-form-item>
               <span class="range-split">万元 —</span>
               <el-form-item prop="maxLoanAmount" label-width="0" class="inline-form-item">
-                <el-input-number
-                  v-model="formData.maxLoanAmount"
-                  :min="0"
-                  :precision="2"
-                  :controls="false"
-                  placeholder="最高额度"
-                />
+                <el-input-number v-model="formData.maxLoanAmount" :min="0" :precision="2" :controls="false" placeholder="最高额度" />
               </el-form-item>
               <span class="unit">万元</span>
             </div>
@@ -82,23 +60,11 @@
           <el-form-item label="利率/费率" required>
             <div class="range-inputs">
               <el-form-item prop="baseInterestRate" label-width="0" class="inline-form-item">
-                <el-input-number
-                  v-model="formData.baseInterestRate"
-                  :min="0"
-                  :precision="2"
-                  :controls="false"
-                  placeholder="最低利率"
-                />
+                <el-input-number v-model="formData.baseInterestRate" :min="0" :precision="2" :controls="false" placeholder="最低利率" />
               </el-form-item>
               <span class="range-split">% —</span>
               <el-form-item prop="floatInterestRate" label-width="0" class="inline-form-item">
-                <el-input-number
-                  v-model="formData.floatInterestRate"
-                  :min="0"
-                  :precision="2"
-                  :controls="false"
-                  placeholder="最高利率"
-                />
+                <el-input-number v-model="formData.floatInterestRate" :min="0" :precision="2" :controls="false" placeholder="最高利率" />
               </el-form-item>
               <span class="unit">%</span>
             </div>
@@ -106,19 +72,8 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="可贷周期" prop="loanCycle" required>
-            <el-select
-              v-model="formData.loanCycle"
-              placeholder="请选择可贷周期"
-              clearable
-              multiple
-              :collapse-tags="false"
-            >
-              <el-option
-                v-for="dict in loan_cycle"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+            <el-select v-model="formData.loanCycle" placeholder="请选择可贷周期" clearable multiple :collapse-tags="false">
+              <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -128,12 +83,7 @@
         <el-col :span="12">
           <el-form-item label="还款方式" prop="repaymentMethod">
             <el-select v-model="formData.repaymentMethod" placeholder="请选择还款方式" clearable multiple>
-              <el-option
-                v-for="dict in repayment_method"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in repayment_method" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -212,11 +162,7 @@ import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import { Document } from '@element-plus/icons-vue';
-import {
-  addCreditProduct,
-  editCreditProduct,
-  creditProductDetail
-} from '@/api/creditPlatform/productCreditManage';
+import { addCreditProduct, editCreditProduct, creditProductDetail } from '@/api/creditPlatform/productCreditManage';
 import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
 import { getDicts } from '@/api/system/dict/data';
 import { useDictStore } from '@/store/modules/dict';
@@ -300,7 +246,7 @@ watch(
   () => formData.value.minLoanAmount,
   (newVal, oldVal) => {
     // 当最小额度变化时，重新验证最大额度
-    if (formRef.value && (newVal !== oldVal)) {
+    if (formRef.value && newVal !== oldVal) {
       nextTick(() => {
         formRef.value?.validateField('maxLoanAmount').catch(() => {});
       });
@@ -435,7 +381,10 @@ const rules: FormRules = {
           return;
         }
         // 去除HTML标签后的纯文本
-        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const text = htmlContent
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
         // 检查是否有图片标签
         const hasImage = /<img[^>]+>/i.test(htmlContent);
         // 只要有文本或图片就认为不为空
@@ -459,7 +408,10 @@ const rules: FormRules = {
           return;
         }
         // 去除HTML标签后的纯文本
-        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const text = htmlContent
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
         // 检查是否有图片标签
         const hasImage = /<img[^>]+>/i.test(htmlContent);
         // 只要有文本或图片就认为不为空
@@ -483,7 +435,10 @@ const rules: FormRules = {
           return;
         }
         // 去除HTML标签后的纯文本
-        const text = htmlContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const text = htmlContent
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
         // 检查是否有图片标签
         const hasImage = /<img[^>]+>/i.test(htmlContent);
         // 只要有文本或图片就认为不为空
@@ -520,21 +475,23 @@ const fetchDetail = async () => {
       const productAdvantages = data.productAdvantages || '';
       const applicableInstructions = data.applicableInstructions || '';
       const applicationInstructions = data.applicationInstructions || '';
-      
+
       formData.value = {
         id: data.id,
         productId: data.productId,
         productName: data.productName || '',
         productType: data.productType || '',
-        applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
+        applicableObject: data.applicableObject
+          ? Array.isArray(data.applicableObject)
+            ? data.applicableObject
+            : data.applicableObject.split(',')
+          : [],
         status: data.productStatus || data.status || '',
         minLoanAmount: data.minLoanAmount ?? null,
         maxLoanAmount: data.maxLoanAmount ?? null,
         baseInterestRate: data.baseInterestRate ?? data.minInterestRate ?? null,
         floatInterestRate: data.floatInterestRate ?? data.maxInterestRate ?? null,
-        loanCycle: data.loanCycle
-          ? (Array.isArray(data.loanCycle) ? data.loanCycle : data.loanCycle.split(','))
-          : [],
+        loanCycle: data.loanCycle ? (Array.isArray(data.loanCycle) ? data.loanCycle : data.loanCycle.split(',')) : [],
         repaymentMethod: data.repaymentMethod ? (Array.isArray(data.repaymentMethod) ? data.repaymentMethod : data.repaymentMethod.split(',')) : [],
         productIntro: data.productIntro || '',
         productAdvantages,
@@ -544,12 +501,12 @@ const fetchDetail = async () => {
         cooperationAttachmentName: data.cooperationAttachmentName || '',
         productRemark: data.productRemark || ''
       };
-      
+
       advantagesEditorKey.value += 1;
       instructionsEditorKey.value += 1;
       applicationEditorKey.value += 1;
       await nextTick();
-      
+
       // 格式化文件名称，确保有 .pdf 扩展名
       const formatFileName = (fileName: string | undefined | null): string => {
         if (!fileName) return '合作机构附件.pdf';
@@ -564,7 +521,7 @@ const fetchDetail = async () => {
         // 优先使用 originalName，然后是 fileName，最后是 name
         const originalFileName = file.originalName || file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件';
         const displayName = formatFileName(originalFileName);
-        
+
         formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
         formData.value.cooperationAttachmentName = originalFileName;
         attachmentFileList.value = [
@@ -611,14 +568,14 @@ const handleSubmit = () => {
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
-        applicableObject: Array.isArray(formData.value.applicableObject) ? formData.value.applicableObject.join(',') : formData.value.applicableObject,
+        applicableObject: Array.isArray(formData.value.applicableObject)
+          ? formData.value.applicableObject.join(',')
+          : formData.value.applicableObject,
         minLoanAmount: Math.round((formData.value.minLoanAmount ?? 0) * 100) / 100,
         maxLoanAmount: Math.round((formData.value.maxLoanAmount ?? 0) * 100) / 100,
         baseInterestRate: formData.value.baseInterestRate ?? 0,
         floatInterestRate: formData.value.floatInterestRate ?? 0,
-        loanCycle: Array.isArray(formData.value.loanCycle)
-          ? formData.value.loanCycle.join(',')
-          : formData.value.loanCycle,
+        loanCycle: Array.isArray(formData.value.loanCycle) ? formData.value.loanCycle.join(',') : formData.value.loanCycle,
         repaymentMethod: Array.isArray(formData.value.repaymentMethod) ? formData.value.repaymentMethod.join(',') : formData.value.repaymentMethod,
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
@@ -681,7 +638,7 @@ const validateFile = (file: File): boolean => {
     ElMessage.error(imageExt.includes(ext) ? '图片文件最大10MB' : '文档文件最大100MB');
     return false;
   }
-  
+
   return true;
 };
 
@@ -691,7 +648,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 const uploadAttachmentFile = async (file: File) => {
@@ -787,7 +744,7 @@ const CREDIT_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，可�
 const validateFileForParse = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const allowedExt = ['pdf', 'docx'];
-  
+
   if (!allowedExt.includes(ext)) {
     ElMessage.error('自动解析功能仅支持 PDF 和 DOCX 格式的文件');
     return false;
@@ -798,7 +755,7 @@ const validateFileForParse = (file: File): boolean => {
     ElMessage.error('文档文件最大100MB');
     return false;
   }
-  
+
   return true;
 };
 
@@ -843,7 +800,7 @@ const triggerUpload = async () => {
         console.error('错误数据:', uploadError?.response?.data);
         console.error('请求配置:', uploadError?.config);
         console.error('请求数据:', uploadError?.config?.data);
-        
+
         // 检查 FormData 是否正确
         if (uploadError?.config?.data instanceof FormData) {
           console.log('FormData 内容检查:');
@@ -855,26 +812,24 @@ const triggerUpload = async () => {
             }
           }
         }
-        
-        const errorMsg = uploadError?.response?.data?.message || 
-                        uploadError?.response?.data?.msg || 
-                        uploadError?.message || 
-                        '上传失败';
+
+        const errorMsg = uploadError?.response?.data?.message || uploadError?.response?.data?.msg || uploadError?.message || '上传失败';
         throw new Error(`文件上传失败: ${errorMsg}`);
       }
-      
+
       // 尝试多种可能的 previewUrl 路径（严格按照接口文档：上传接口返回 previewUrl）
-      const previewUrl = uploadRes?.data?.previewUrl || 
-                        uploadRes?.data?.data?.previewUrl ||
-                        uploadRes?.data?.url ||
-                        uploadRes?.data?.data?.url ||
-                        uploadRes?.previewUrl || 
-                        uploadRes?.url ||
-                        // 兼容旧格式（如果返回的是 fileId，可能需要拼接 URL）
-                        (uploadRes?.data?.fileId ? `http://8.153.15.72:81/fastgpt/file/${uploadRes.data.fileId}` : null);
-      
+      const previewUrl =
+        uploadRes?.data?.previewUrl ||
+        uploadRes?.data?.data?.previewUrl ||
+        uploadRes?.data?.url ||
+        uploadRes?.data?.data?.url ||
+        uploadRes?.previewUrl ||
+        uploadRes?.url ||
+        // 兼容旧格式（如果返回的是 fileId，可能需要拼接 URL）
+        (uploadRes?.data?.fileId ? `http://8.153.15.72:81/fastgpt/file/${uploadRes.data.fileId}` : null);
+
       console.log('提取的 previewUrl:', previewUrl, '完整响应:', uploadRes);
-      
+
       if (!previewUrl) {
         console.error('未找到 previewUrl，完整响应:', uploadRes);
         throw new Error(`上传失败，未获取到文件预览URL。响应数据: ${JSON.stringify(uploadRes?.data || uploadRes)}`);
@@ -891,12 +846,12 @@ const triggerUpload = async () => {
         const errorMsg = analysisError?.response?.data?.message || analysisError?.response?.data?.msg || analysisError?.message || '解析失败';
         throw new Error(`文件解析失败: ${errorMsg}`);
       }
-      
+
       // 解析返回的JSON（支持新的数据结构：responseData数组）
       let parsedData: any = {};
       try {
         const responseData = analysisRes?.data || analysisRes;
-        
+
         // 优先尝试从新的数据结构中提取（responseData数组）
         if (responseData?.responseData && Array.isArray(responseData.responseData)) {
           // 遍历 responseData 数组，查找 extractResult.info 或 pluginOutput.info
@@ -910,7 +865,7 @@ const triggerUpload = async () => {
             }
           }
         }
-        
+
         // 如果新结构中没有找到，尝试旧的解析方式
         if (!parsedData || Object.keys(parsedData).length === 0) {
           // 如果返回的是字符串，尝试解析JSON
@@ -936,7 +891,7 @@ const triggerUpload = async () => {
             }
           }
         }
-        
+
         console.log('提取的解析数据:', parsedData);
       } catch (parseError) {
         console.error('解析返回数据失败:', parseError);
@@ -950,12 +905,12 @@ const triggerUpload = async () => {
         if (parsedData.productName) {
           formData.value.productName = String(parsedData.productName);
         }
-        
+
         // 产品类型
         if (parsedData.productType) {
           formData.value.productType = String(parsedData.productType);
         }
-        
+
         // 适用对象（可能是字符串或数组）
         if (parsedData.applicableObject) {
           if (Array.isArray(parsedData.applicableObject)) {
@@ -964,7 +919,7 @@ const triggerUpload = async () => {
             formData.value.applicableObject = parsedData.applicableObject.split(',').filter(Boolean);
           }
         }
-        
+
         // 可贷金额
         if (parsedData.minLoanAmount !== undefined && parsedData.minLoanAmount !== null) {
           formData.value.minLoanAmount = Number(parsedData.minLoanAmount);
@@ -972,7 +927,7 @@ const triggerUpload = async () => {
         if (parsedData.maxLoanAmount !== undefined && parsedData.maxLoanAmount !== null) {
           formData.value.maxLoanAmount = Number(parsedData.maxLoanAmount);
         }
-        
+
         // 利率
         if (parsedData.baseInterestRate !== undefined && parsedData.baseInterestRate !== null) {
           formData.value.baseInterestRate = Number(parsedData.baseInterestRate);
@@ -980,7 +935,7 @@ const triggerUpload = async () => {
         if (parsedData.floatInterestRate !== undefined && parsedData.floatInterestRate !== null) {
           formData.value.floatInterestRate = Number(parsedData.floatInterestRate);
         }
-        
+
         // 贷款周期（可能是字符串或数组）
         if (parsedData.loanCycle) {
           if (Array.isArray(parsedData.loanCycle)) {
@@ -989,7 +944,7 @@ const triggerUpload = async () => {
             formData.value.loanCycle = parsedData.loanCycle.split(',').filter(Boolean);
           }
         }
-        
+
         // 还款方式（可能是字符串或数组）
         if (parsedData.repaymentMethod) {
           if (Array.isArray(parsedData.repaymentMethod)) {
@@ -998,24 +953,24 @@ const triggerUpload = async () => {
             formData.value.repaymentMethod = parsedData.repaymentMethod.split(',').filter(Boolean);
           }
         }
-        
+
         // 产品简介
         if (parsedData.productIntro) {
           formData.value.productIntro = String(parsedData.productIntro);
         }
-        
+
         // 产品优势
         if (parsedData.productAdvantages) {
           formData.value.productAdvantages = String(parsedData.productAdvantages);
           advantagesEditorKey.value += 1;
         }
-        
+
         // 适用说明
         if (parsedData.applicableInstructions) {
           formData.value.applicableInstructions = String(parsedData.applicableInstructions);
           instructionsEditorKey.value += 1;
         }
-        
+
         // 申请条件
         if (parsedData.applicationInstructions) {
           formData.value.applicationInstructions = String(parsedData.applicationInstructions);
@@ -1023,7 +978,7 @@ const triggerUpload = async () => {
         }
 
         ElMessage.success('文件解析成功，已自动填充表单');
-        
+
         // 触发表单验证
         await nextTick();
         formRef.value?.validateField('productName').catch(() => {});
@@ -1032,11 +987,8 @@ const triggerUpload = async () => {
       }
     } catch (error: any) {
       console.error('文件上传解析失败:', error);
-      const errorMsg = error?.message || 
-                       error?.response?.data?.message || 
-                       error?.response?.data?.msg ||
-                       error?.response?.statusText ||
-                       '文件上传解析失败，请重试';
+      const errorMsg =
+        error?.message || error?.response?.data?.message || error?.response?.data?.msg || error?.response?.statusText || '文件上传解析失败，请重试';
       ElMessage.error(errorMsg);
     } finally {
       modal?.closeLoading?.();

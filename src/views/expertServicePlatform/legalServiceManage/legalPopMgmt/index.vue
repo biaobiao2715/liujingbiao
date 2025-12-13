@@ -1,7 +1,7 @@
 <!--
-  标题: contentManage.vue
-  功能: 普法内容管理
-  说明: 用于普法内容的管理，包括查询、添加、编辑、删除、启用禁用等操作
+  标题: 专家咨询服务平台 - 普法内容管理
+  功能: 用于普法内容的管理，包括查询、添加、编辑、删除、启用禁用等操作
+  说明: 该页面提供普法内容的搜索、分页展示功能，并支持新增、编辑、删除和启用禁用操作。
   当前版本: 1.0
   负责人： 门世超
   开发信息: Created by AI Assistant
@@ -161,6 +161,7 @@
       />
     </div>
 
+    <!-- 弹窗 -->
     <el-dialog
       v-model="dialog.visible"
       :title="getDialogTitle()"
@@ -211,7 +212,7 @@ const queryParams = ref({
   title: ''
 });
 
-const tableData = ref([]);
+const tableData = ref([]); 
 const total = ref(0);
 const loading = ref(false);
 const queryFormRef = ref();

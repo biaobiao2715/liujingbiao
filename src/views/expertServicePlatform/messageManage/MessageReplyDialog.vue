@@ -1,7 +1,8 @@
 <!--
-  标题: MessageDetailDialog.vue
-  功能: 留言回复弹窗
-  说明: 用于查看留言详细信息
+  标题: 专家咨询服务平台 - 留言回复
+  功能: 用于专家咨询服务平台的留言回复功能
+  说明: 提供留言回复界面，支持查看留言详情并进行回复操作
+  负责人： 门世超
   当前版本: 1.0
 -->
 <template>
@@ -138,8 +139,8 @@ const formData = ref({
 });
 const questionDetail = ref<any>(null);
 const messageTime = ref('');
-const attachments = ref<any[]>([]);
-const imagePreviewList = computed(() => {
+const attachments = ref<any[]>([]); // 附件列表
+const imagePreviewList = computed(() => {  // 预览图片列表
   return attachments.value.map((a: any) => a?.url).filter((u: string) => !!u && isImage(u));
 });
 const isImage = (url?: string) => {
