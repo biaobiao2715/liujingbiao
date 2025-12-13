@@ -69,7 +69,7 @@ export async function varietyRecognizeIdentify(data: any) {
   while (attempt <= maxRetries) {
     try {
       return await request({
-        url: '/resource/varietyRecognize/identify',
+        url: '/safeguard-server/varietyRecognize/identify',
         method: 'post',
         data,
         timeout
