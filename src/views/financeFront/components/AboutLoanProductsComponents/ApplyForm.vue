@@ -673,6 +673,7 @@ function mapLenderTypeByUserType(ut: string | number) {
   if (v === '3') return '1';
   return '1';
 }
+// 构建提交载荷
 function buildPayload() {
   return {
     productId: productDetails.value.id || '',

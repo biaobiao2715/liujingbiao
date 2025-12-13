@@ -136,7 +136,7 @@
 import { ref, watch, onMounted, getCurrentInstance, type ComponentInternalInstance, computed } from 'vue';
 import { addArticle, getArticle, updateArticle, ossUploadImage } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { uploadByChunks } from '@/utils/chunkUpload';
-import { Plus, ZoomIn, Delete, Document } from '@element-plus/icons-vue';
+import { Plus, Document } from '@element-plus/icons-vue';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['success', 'cancel']);
 
@@ -180,7 +180,7 @@ const videoExt = ['mp4', 'mov', 'avi'];
 const docExt = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
 const allExt = [...imageExt, ...videoExt, ...docExt];
 const lockedCategory = ref<'image' | 'video' | 'doc' | null>(null);
-
+// 根据文件扩展名获取类别
 const getCategoryByExt = (ext: string) => {
   if (imageExt.includes(ext)) return 'image' as const;
   if (videoExt.includes(ext)) return 'video' as const;
@@ -196,7 +196,23 @@ const acceptTypes = computed(() => {
   return '.jpg,.jpeg,.png,.mp4,.mov,.avi,.pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt';
 });
 
+// 预览主图
 const emitCancel = () => emit('cancel');
+
+// 提交表单
+const submit = async () => {
+  await formRef.value?.validate();
+  const payload = {
+    ...form.value,
+    ossVoList: fileListtable.value
+  };
+  const api = props.id ? updateArticle : addArticle;
+  const res = await api(payload);
+  if ((res?.code ?? 200) === 200) {
+    ElMessage.success(props.id ? '保存成功' : '新增成功');
+    emit('success');
+  }
+};
 
 // 防止 watch 内部再次赋值造成递归
 const internalUpdating = ref(false);
@@ -239,7 +255,7 @@ watch(
   },
   { flush: 'post' }
 );
-
+// 滚动到对应目录位置
 function scrollTo(id: string) {
   const editor = document.querySelector('.ql-editor');
   if (editor) {
@@ -249,20 +265,8 @@ function scrollTo(id: string) {
     }
   }
 }
-const submit = async () => {
-  await formRef.value?.validate();
-  const payload = {
-    ...form.value,
-    ossVoList: fileListtable.value
-  };
-  const api = props.id ? updateArticle : addArticle;
-  const res = await api(payload);
-  if ((res?.code ?? 200) === 200) {
-    ElMessage.success(props.id ? '保存成功' : '新增成功');
-    emit('success');
-  }
-};
 
+// 验证文件是否合法
 const validateFile = (file: File) => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (!allExt.includes(ext)) {

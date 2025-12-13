@@ -29,10 +29,6 @@
         </el-table-column>
         <el-table-column prop="deliveryDay" label="交付时间/天" align="center" />
         <el-table-column label="发布状态" align="center">
-          <!-- <template #default="{ row }">
-            <dict-text :options="demand_status" :value="row.demandStatus ?? ''" />
-          </template> -->
-
           <template #default="scope">
             <div class="flex-center-center">
               <div

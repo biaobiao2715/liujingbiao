@@ -29,11 +29,11 @@
       <el-table-column label="信用积分" prop="creditMinPoints">
         <template #default="{ row }"> {{ row.creditMinPoints }} - {{ row.creditMaxPoints }} </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="160" class-name="flex-center">
+      <!-- <el-table-column fixed="right" label="操作" width="160" class-name="flex-center">
         <template #default="scope">
           <el-button v-throttle v-hasPermi="['safeguard:creditRating:edit']" link type="primary" @click="openSetDialog(scope.row)">设置</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
     </el-table>
 
     <pagination v-show="total > 0" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" :total="total" @pagination="getList" />
