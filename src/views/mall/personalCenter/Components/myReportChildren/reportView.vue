@@ -510,7 +510,7 @@ const currentScenario = computed(() => {
     } else if (stage.id === 2 && !stage.time && status !== '0') {
       stage.time = props.reportData?.updateTime || props.reportData?.createTime || '';
     } else if (stage.id === 3 && !stage.time && (status === '3' || scenarioKey.startsWith('4'))) {
-      stage.time = props.reportData?.closeTime || props.reportData?.withdrawTime || props.reportData?.updateTime || '';
+      stage.time = props.reportData?.closeTime || props.reportData?.withdrawTime || props.reportData?.updateTime || scenarioKey.startsWith('1');
     }
     return stage;
   });
