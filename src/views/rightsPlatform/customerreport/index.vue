@@ -115,7 +115,7 @@ div<!--
               >查看</el-button
             >
 
-            <!-- 申述按钮 - 只在处理中和已驳回状态显示 -->
+            <!-- 申诉按钮 - 只在处理中和已驳回状态显示 -->
             <el-button
               v-if="scope.row.status === '1' || scope.row.status === '2'"
               style="font-size: 14px; color: #108c58"
@@ -169,7 +169,7 @@ div<!--
         </span>
       </template>
     </el-dialog>
-    <!-- 弹窗：申述/查看 -->
+    <!-- 弹窗：申诉/查看 -->
     <el-dialog
       v-if="dialog.visible"
       v-model="dialog.visible"
@@ -351,7 +351,7 @@ const getStatusName = (status: string | undefined | null) => {
 const openDialog = (type: 'appeal' | 'view', status, id?: string | number) => {
   dialog.value = { visible: true, type, status, id: id ?? null };
 };
-/* 申述 */
+/* 申诉 */
 const handleAppeal = (row) => {
   console.log('row', row);
   openDialog('appeal', row.status, row.id);
@@ -364,7 +364,7 @@ const handleEdit = (row) => {
 /** 弹窗标题 */
 const getDialogTitle = () => {
   const map: Record<string, string> = {
-    'appeal': '举报申述',
+    'appeal': '举报申诉',
     'view': '查看举报'
   };
   return map[dialog.value.type] || '';
