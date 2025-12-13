@@ -52,10 +52,10 @@
           <div class="analysis-content">
             <div class="content-item">1. <span>整体趋势:</span> {{ marketAnalysis.overallTrend || '暂无数据' }}</div>
             <div class="content-item">
-              2. <span><strong>价格区间:</strong></span> {{ marketAnalysis.priceRange || '暂无数据' }}
+              2. <span>价格区间:</span> {{ marketAnalysis.priceRange || '暂无数据' }}
             </div>
             <div class="content-item">
-              3. <span><strong>预测建议:</strong></span> {{ marketAnalysis.suggestion || '暂无数据' }}
+              3. <span>预测建议:</span> {{ marketAnalysis.suggestion || '暂无数据' }}
             </div>
           </div>
         </div>
