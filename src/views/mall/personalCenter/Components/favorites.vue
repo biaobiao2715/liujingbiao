@@ -106,10 +106,7 @@ import { reactive, onMounted, onBeforeUnmount, getCurrentInstance, toRefs, compu
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { unifiedFavoriteList, favoriteDelete, FavoriteItem } from '@/api/mall/personalCenter/favorite';
-import { StarFilled } from '@element-plus/icons-vue';
-import { useRouter } from 'vue-router';
 import { eventBus } from '@/utils/eventBus';
-const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { goods_specification } = toRefs<any>(proxy?.useDict('goods_specification'));
 // 本地占位图（可根据实际资源调整路径）
@@ -121,7 +118,7 @@ const tabList = [
   { label: '培训课程', value: '4' },
   { label: '普法内容', value: '5' }
 ];
-
+// 组件状态
 const state = reactive({
   activeTab: '1', // 1=商品 3=文章
   list: [] as FavoriteItem[],
@@ -136,13 +133,13 @@ const state = reactive({
     googsName: ''
   }
 });
-
+// Tab 切换
 function onTabChange(name: string | number) {
   state.activeTab = String(name);
   state.query.pageNum = 1;
   reload();
 }
-
+// 刷新列表
 function reload() {
   state.loading = true;
   const query = {
@@ -165,7 +162,7 @@ function reload() {
       state.loading = false;
     });
 }
-
+// 取消收藏
 function onUnfav(item: FavoriteItem) {
   if (!item?.id) return;
   ElMessageBox.confirm(`确定要取消收藏“${item.googsName || item.articleTitle || ''}”吗？`, '取消收藏确认', {

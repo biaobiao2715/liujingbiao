@@ -217,7 +217,7 @@ const picPreBeforeClose = () => {
 };
 // 预览
 const handlePictureCardPreview = (file: any) => {
-  console.log('预览图片', file);
+  // console.log('预览图片', file);
   // dialogImageUrl.value = file.skeletonURL;
   // picOpen.value = true;
 };

@@ -31,7 +31,6 @@
       <div>{{ form.articleSummary || '-' }}</div>
     </div>
 
-    <!-- <div class="content" v-html=""></div> -->
     <!-- 编辑器内容 -->
     <ContentWithToc :content="form.articleContent" ref="contentWithTocRef" />
 
@@ -72,7 +71,6 @@ import { ref, onMounted, getCurrentInstance, type ComponentInternalInstance, toR
 import { View, Star } from '@element-plus/icons-vue';
 import { getArticle } from '@/api/expertServicePlatform/knowledgeBaseManage/index';
 import { ElMessage } from 'element-plus';
-import { downloadFileByUrl } from '@/utils/downloadFileByUrl';
 import ContentWithToc from '@/components/ContentWithToc/index.vue';
 const props = defineProps<{ id?: string | number }>();
 const emit = defineEmits(['cancel']);
@@ -82,7 +80,7 @@ const { article_type } = toRefs<any>(proxy?.useDict('article_type'));
 
 const form = ref<any>({});
 const imgList = ref<Array<any>>([]);
-
+// 构建附件列表
 const buildAttachments = (data: any) => {
   const files = data?.commonRelevanceFilesVos || [];
   imgList.value = files.map((item: any) => {
@@ -113,7 +111,7 @@ const buildAttachments = (data: any) => {
     };
   });
 };
-
+// 下载附件
 const downloadAttachment = async (row: any) => {
   try {
     const response = await fetch(row.url);
@@ -129,7 +127,7 @@ const downloadAttachment = async (row: any) => {
     console.error('下载失败', error);
   }
 };
-
+// 格式化文件大小
 const formatSize = (bytes: number) => {
   if (!bytes || bytes === 0) return '--';
   const kb = 1024;
