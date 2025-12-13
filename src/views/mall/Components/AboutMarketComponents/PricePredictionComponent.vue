@@ -50,9 +50,13 @@
         <div class="analysis-card">
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
-            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend || '暂无数据' }}</p>
-            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange || '暂无数据' }}</p>
-            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion || '暂无数据' }}</p>
+            <div class="content-item">1. <span>整体趋势:</span> {{ marketAnalysis.overallTrend || '暂无数据' }}</div>
+            <div class="content-item">
+              2. <span><strong>价格区间:</strong></span> {{ marketAnalysis.priceRange || '暂无数据' }}
+            </div>
+            <div class="content-item">
+              3. <span><strong>预测建议:</strong></span> {{ marketAnalysis.suggestion || '暂无数据' }}
+            </div>
           </div>
         </div>
 
@@ -640,21 +644,34 @@ const fetchPricePrediction = async () => {
       const minPredictEntry = predictedLineMin.value;
       const maxPredictEntry = predictedLineMax.value;
 
+      // 处理价格区间
       if (minPredictEntry && maxPredictEntry && minPredictEntry.price !== maxPredictEntry.price) {
         const minText = formatPriceValue(minPredictEntry.price);
         const maxText = formatPriceValue(maxPredictEntry.price);
         if (minText && maxText) {
           marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元/kg`;
+        } else {
+          marketAnalysis.value.priceRange = '暂无数据';
         }
       } else if (data.priceRange) {
         marketAnalysis.value.priceRange = data.priceRange;
+      } else {
+        marketAnalysis.value.priceRange = '暂无数据';
       }
 
+      // 处理预测建议
       const suggestionMonth = minPredictEntry?.month ? formatMonthDisplay(minPredictEntry.month) : '';
       if (suggestionMonth) {
         marketAnalysis.value.suggestion = `建议采购单窗口期为${suggestionMonth}`;
       } else if (data.suggestion || data.predictionSuggestion) {
         marketAnalysis.value.suggestion = data.suggestion || data.predictionSuggestion;
+      } else {
+        marketAnalysis.value.suggestion = '暂无数据';
+      }
+
+      // 如果没有整体趋势数据，重置为暂无数据
+      if (!marketAnalysis.value.overallTrend) {
+        marketAnalysis.value.overallTrend = '暂无数据';
       }
     } else {
       // 重置数据
@@ -920,11 +937,13 @@ defineExpose({
             border-radius: 3px;
           }
 
-          p {
+          .content-item {
             margin-bottom: 12px;
             font-size: 13px;
             color: #4a4a4a;
             line-height: 1.7;
+            word-break: break-word;
+            white-space: normal;
 
             &:last-child {
               margin-bottom: 0;
