@@ -1,3 +1,12 @@
+
+ <!--
+  标题: PermissionPopup
+  功能: 企业注册申请弹窗
+  说明: 企业注册申请弹窗 
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
+
 <template>
   <el-dialog
     :model-value="props.visible"

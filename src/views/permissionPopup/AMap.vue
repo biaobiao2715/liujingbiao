@@ -1,7 +1,14 @@
+ <!--
+  标题: AMap
+  功能: 高德地图
+  说明: 高德地图 
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-12-13
+-->
+
 <template>
   <div class="map-wrapper">
-    <div ref="mapContainer" class="map-container" :id="mapId"></div>
-    
+    <div ref="mapContainer" class="map-container" :id="mapId"></div>   
   </div>
 </template>
 
