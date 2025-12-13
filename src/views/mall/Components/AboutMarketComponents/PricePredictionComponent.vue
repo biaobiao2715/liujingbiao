@@ -104,7 +104,6 @@ import predictedLineIcon from '@/assets/images/marketConditions/yc.png';
 import predictedMaxIcon from '@/assets/images/marketConditions/ycMax.png';
 import predictedMinIcon from '@/assets/images/marketConditions/ycMin.png';
 
-const queryFormRef = ref();
 const loading = ref(false);
 
 // 查询参数（产地/品种/时间范围）

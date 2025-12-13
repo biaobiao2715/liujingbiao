@@ -51,11 +51,6 @@ const loadChinaMap = () => {
     // 注册地图
     echarts.registerMap('china', geoJson);
 
-    if (process.env.NODE_ENV === 'development') {
-      const features = geoJson.features || [];
-      const regionNames = features.map((f: any) => f.properties?.name || f.properties?.NAME_CHN || f.properties?.name_ch);
-    }
-
     // 初始化图表
     updateChart();
   } catch (error) {
