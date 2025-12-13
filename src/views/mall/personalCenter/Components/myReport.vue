@@ -81,12 +81,12 @@
         <template #default="scope">
           <div class="operation-buttons">
             <el-button link class="operation-view-btn" @click="handleView(scope.row)">查看</el-button>
-            <el-button v-if="['0', '1'].includes(scope.row.status)" link class="operation-withdraw-btn" @click="handleWithdraw(scope.row)"
-              >撤回</el-button
-            >
-            <el-button v-else-if="['2', '4'].includes(scope.row.status)" link class="operation-resubmit-btn" @click="handleReSubmit(scope.row)"
-              >重新提交</el-button
-            >
+            <el-button v-if="['0', '1'].includes(scope.row.status)" link class="operation-withdraw-btn" @click="handleWithdraw(scope.row)">
+              撤回
+            </el-button>
+            <el-button v-else-if="['2', '4'].includes(scope.row.status)" link class="operation-resubmit-btn" @click="handleReSubmit(scope.row)">
+              重新提交
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -621,13 +621,10 @@ const getReportTypeText = (reportTypeId: string): string => {
 
 /* 操作列样式 */
 .operation-buttons {
-  text-align: left;
   display: flex;
-  gap: 0;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
-  padding-left: 0;
 }
 
 .operation-view-btn,
@@ -635,7 +632,6 @@ const getReportTypeText = (reportTypeId: string): string => {
 .operation-resubmit-btn {
   background-color: transparent !important;
   border: none !important;
-  padding: 0 8px !important;
 
   &:hover,
   &:focus {
