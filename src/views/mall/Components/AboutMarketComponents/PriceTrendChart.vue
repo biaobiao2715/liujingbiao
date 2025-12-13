@@ -1,4 +1,3 @@
-
 <!--
   标题: PriceTrendChart
   功能: 价格走势图表
@@ -49,7 +48,7 @@ const initChart = () => {
 
   chartInstance = echarts.init(chartContainer.value);
   updateChart();
-  // 初始化后立即调整大小，确保图表正确显示
+
   nextTick(() => {
     chartInstance?.resize();
   });
@@ -216,16 +215,16 @@ watch(
   { deep: true }
 );
 
-// 使用 ResizeObserver 监听容器大小变化
+// 监听容器大小变化
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
-  // 使用双重 nextTick 和 requestAnimationFrame 确保容器有正确的尺寸
+  //确保容器有正确的尺寸
   nextTick(() => {
     requestAnimationFrame(() => {
       initChart();
 
-      // 使用 ResizeObserver 监听容器大小变化
+      //  监听容器大小变化
       if (chartContainer.value) {
         resizeObserver = new ResizeObserver(() => {
           chartInstance?.resize();
@@ -233,7 +232,7 @@ onMounted(() => {
         resizeObserver.observe(chartContainer.value);
       }
 
-      // 再次延迟调整，确保图表正确渲染
+      // 延迟调整，确保图表正确渲染
       setTimeout(() => {
         chartInstance?.resize();
       }, 100);

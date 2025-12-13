@@ -1,4 +1,4 @@
- <!--
+<!--
   标题: PricePredictionChart
   功能: 价格预测与分析图表
   说明: 价格预测与分析图表组件
@@ -40,9 +40,7 @@ const chartContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 
 /**
- * 规范化月份标签格式
  * 将月份数据统一格式化为 "YYYY-MM" 格式（月份补零）
- * 支持 "-" 和 "/" 分隔符
  */
 const normalizeMonthLabel = (value: any) => {
   if (value === undefined || value === null) return '';
@@ -62,14 +60,12 @@ const normalizeMonthLabel = (value: any) => {
 };
 
 /**
- * 规范化月份数组
  * 将月份数组中的每个元素格式化为标准格式，并过滤掉空值
  */
 const normalizeMonths = (months?: string[]) => (months || []).map((m) => normalizeMonthLabel(m)).filter((label) => !!label);
 
 /**
  * 构建 X 轴数据
- * 合并历史月份和预测月份，去除重复项，生成完整的 X 轴数组
  */
 const buildAxis = (history: string[], predicted: string[]) => {
   const uniqueHistory = history || [];
@@ -78,9 +74,7 @@ const buildAxis = (history: string[], predicted: string[]) => {
 };
 
 /**
- * 构建系列数据
  * 将月份和价格数据映射到 X 轴数组上，生成对应的价格序列
- * 缺失的月份用 null 填充
  */
 const buildSeriesData = (axis: string[], months: string[], values: number[]) => {
   const map = new Map<string, number>();
@@ -100,7 +94,6 @@ const buildSeriesData = (axis: string[], months: string[], values: number[]) => 
 
 /**
  * 构建散点数据（最高/最低点）
- * 从价格数据中找出最大值或最小值，并在对应位置标记
  * 最低点：如果有多个相同值，取最前面一个
  * 最高点：如果有多个相同值，取最后面一个
  */
@@ -163,7 +156,7 @@ const initChart = () => {
 };
 
 /**
- * 判断价格数组是否包含有效的正数数据（非全0且有实际数据）
+ * 判断价格数组是否包含有效的正数数据
  */
 const hasValidData = (values: number[]) => {
   if (!values?.length) return false;
@@ -184,9 +177,9 @@ const updateChart = () => {
   const historicalData = buildSeriesData(allAxis, historicalMonths, props.historicalPrices);
   const predictedData = buildSeriesData(allAxis, predictedMonths, props.predictedPrices);
 
-  // 检查是否有有效数据 - 检查构建后的数据中是否有非null值
+  // 检查是否有有效数据
   const hasValidHistorical = hasValidData(props.historicalPrices) && historicalData.some((v) => v !== null && v !== undefined);
-  // 预测数据：只要数组存在且有长度，且构建后的数据中有非null值就显示
+  // 预测数据
   const hasValidPredicted =
     props.predictedPrices?.length > 0 &&
     predictedMonths.length > 0 &&

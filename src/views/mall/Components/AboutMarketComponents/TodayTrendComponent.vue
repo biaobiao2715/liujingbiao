@@ -10,11 +10,7 @@
     <!-- 查询表单 -->
     <el-form ref="queryFormRef" :model="queryParams" inline :label-width="60" class="query-form">
       <el-form-item label="品种:" prop="variety">
-        <GoodsCategorySelect 
-          v-model="normalizedVariety"
-          @categoryChange="handleCategoryChange" 
-          style="width: 200px" 
-        />
+        <GoodsCategorySelect v-model="normalizedVariety" @categoryChange="handleCategoryChange" style="width: 200px" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -68,7 +64,7 @@ import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
 
 const loading = ref(false);
 const queryFormRef = ref();
-
+//昨天日期
 const getYesterdayDate = () => {
   const date = new Date();
   date.setDate(date.getDate() - 1);
@@ -86,7 +82,7 @@ const queryParams = reactive({
   analysisDate: getYesterdayDate()
 });
 
-// 规范化品种值，确保始终是数组
+// 品种值，确保是数组
 const normalizedVariety = computed({
   get: () => {
     return Array.isArray(queryParams.variety) ? queryParams.variety : [];
@@ -96,11 +92,9 @@ const normalizedVariety = computed({
   }
 });
 
-// 捕获子组件错误
+// 处理组件错误
 onErrorCaptured((err: any, instance, info) => {
-  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
   if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
-    console.warn('品种选择器清空时的错误已捕获:', err.message);
     // 确保值被重置
     nextTick(() => {
       normalizedVariety.value = [];
@@ -116,7 +110,7 @@ const total = ref(0);
 
 // 查询
 const handleQuery = () => {
-  // 规范化品种参数：确保是数组，并过滤掉空值
+  //确保品种是数组，并过滤掉空值
   const varietyArray = normalizedVariety.value;
   normalizedVariety.value = varietyArray.filter((item: any) => {
     const str = String(item || '').trim();
@@ -135,7 +129,7 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       normalizedVariety.value = [];
       return;
     }
-    
+
     // 过滤掉空值、null、undefined
     const filteredValue = value.filter((item: any) => {
       if (item === null || item === undefined) {
@@ -144,12 +138,9 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       const str = String(item || '').trim();
       return str !== '' && str !== 'null' && str !== 'undefined';
     });
-    
+
     normalizedVariety.value = filteredValue;
-    console.log('选择的品种分类:', filteredValue);
   } catch (error) {
-    // 捕获可能的错误，确保不会影响其他功能
-    console.error('处理品种分类变化时出错:', error);
     normalizedVariety.value = [];
   }
 };
@@ -157,7 +148,7 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
 // 重置
 const resetQuery = () => {
   queryFormRef.value?.resetFields();
-  // 强制清空品种参数
+  // 清空品种参数
   normalizedVariety.value = [];
   queryParams.pageNum = 1;
   queryParams.analysisDate = getYesterdayDate();
@@ -170,13 +161,13 @@ const getList = async () => {
   try {
     // 使用 normalizedVariety 确保值始终是数组
     const varietyArray = normalizedVariety.value;
-    
+
     // 过滤掉空值、null、undefined
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
       return str !== '' && str !== 'null' && str !== 'undefined';
     });
-    
+
     // 获取品种ID（取数组最后一个有效元素）
     let goodsCategoryId = '';
     if (filteredVariety.length > 0) {
@@ -192,7 +183,7 @@ const getList = async () => {
       pageSize: queryParams.pageSize,
       analysisDate: queryParams.analysisDate
     };
-    
+
     // 只有当 goodsCategoryId 有有效值时才添加到参数中
     if (goodsCategoryId) {
       params.goodsCategoryId = goodsCategoryId;
@@ -256,7 +247,6 @@ const getList = async () => {
       total.value = 0;
     }
   } catch (error) {
-    console.error('获取今日行情数据失败:', error);
     tableData.value = [];
     total.value = 0;
   } finally {
@@ -301,7 +291,7 @@ const handleTrendClick = (row: any) => {
   }, 100);
 };
 
-// 监听品种参数变化，确保清空时正确同步
+// 监听品种参数变化
 watch(
   () => queryParams.variety,
   (newVal) => {

@@ -1,4 +1,4 @@
- <!--
+<!--
   标题: PiceTrendCompontent
   功能: 价格走势页面
   说明: 价格走势
@@ -161,7 +161,6 @@ import trendFlatIcon from '@/assets/images/marketConditions/flat.png';
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const loading = ref(false);
-const queryFormRef = ref();
 const activeTimeRange = ref(7);
 const categoryList = ref<any[]>([]); // 分类列表数据
 
@@ -183,7 +182,6 @@ const normalizedVariety = computed({
 
 // 捕获子组件错误
 onErrorCaptured((err: any, instance, info) => {
-  // 如果是 GoodsCategorySelect 组件相关的 length 错误，静默处理
   if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
     console.warn('品种选择器清空时的错误已捕获:', err.message);
     // 确保值被重置
@@ -307,7 +305,7 @@ const fetchPriceData = async () => {
       priceActionDays = 3;
     }
 
-    // 获取品种ID（取数组最后一个有效元素）
+    // 获取品种ID
     const varietyArray = normalizedVariety.value;
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
@@ -328,7 +326,7 @@ const fetchPriceData = async () => {
       const dates: string[] = [];
       const prices: number[] = [];
 
-      // 后端返回 xAxis 和 yAxis 数组
+      //  xAxis 和 yAxis 数组
       if (data.xAxis && Array.isArray(data.xAxis)) {
         data.xAxis.forEach((dateStr: string) => {
           // 格式化日期为 MM-DD 格式
@@ -357,7 +355,6 @@ const fetchPriceData = async () => {
       updateAxisRange([]);
     }
   } catch (error) {
-    console.error('获取价格走势数据失败:', error);
     currentChartData.value = { dates: [], prices: [] };
     updateAxisRange([]);
   } finally {
@@ -423,7 +420,7 @@ const updateMiniChart = () => {
   const prices = currentChartData.value.prices;
   const dates = currentChartData.value.dates;
 
-  // 只显示最近的数据点（最多显示所有数据）
+  // 只显示最近的数据点
   const displayPrices = prices;
   const displayDates = dates.map((_, index) => index + 1); // 使用索引作为 x 轴
 
@@ -514,14 +511,14 @@ const changeTimeRange = (days: number) => {
 // 种子变量
 const seedName = ref('小麦种子');
 
-// 标记是否正在处理分类变化，避免重复调用接口
+// 标记是否正在处理分类变化
 const isHandlingCategoryChange = ref(false);
 
 // 品种分类变化处理
 const handleCategoryChange = (value: string[] | null | undefined, labels?: string[]) => {
   try {
     isHandlingCategoryChange.value = true;
-    
+
     // 处理 undefined、null 或非数组的情况
     if (!value || !Array.isArray(value)) {
       normalizedVariety.value = [];
@@ -529,7 +526,7 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       refreshAllData();
       return;
     }
-    
+
     // 过滤掉空值、null、undefined
     const filteredValue = value.filter((item: any) => {
       if (item === null || item === undefined) {
@@ -538,9 +535,9 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
       const str = String(item || '').trim();
       return str !== '' && str !== 'null' && str !== 'undefined';
     });
-    
+
     normalizedVariety.value = filteredValue;
-    
+
     // 更新种子名称
     if (labels && Array.isArray(labels) && labels.length > 0) {
       seedName.value = labels[labels.length - 1];
@@ -550,41 +547,37 @@ const handleCategoryChange = (value: string[] | null | undefined, labels?: strin
     } else {
       seedName.value = '小麦种子';
     }
-    
+
     refreshAllData();
   } catch (error) {
-    // 捕获可能的错误，确保不会影响其他功能
-    console.error('处理品种分类变化时出错:', error);
     normalizedVariety.value = [];
     seedName.value = '小麦种子';
     refreshAllData();
   } finally {
-    // 延迟重置标志，确保 watch 能正确判断
+    // 延迟重置标志
     nextTick(() => {
       isHandlingCategoryChange.value = false;
     });
   }
 };
 
-// 监听品种变化，确保清空时也调用接口
+// 监听品种变化
 watch(
   () => normalizedVariety.value,
   (newVal, oldVal) => {
-    // 如果正在处理分类变化事件，跳过（避免重复调用）
+    // 如果正在处理分类变化事件，跳过
     if (isHandlingCategoryChange.value) {
       return;
     }
-    
-    // 如果品种被清空（从有值变为空数组），调用接口
+
+    // 如果品种被清空，调用接口
     const wasEmpty = !oldVal || !Array.isArray(oldVal) || oldVal.length === 0;
     const isEmpty = !newVal || !Array.isArray(newVal) || newVal.length === 0;
-    
-    // 如果从有值变为空，或者从空变为空（确保初始化时也会调用）
+
     if (!wasEmpty && isEmpty) {
       seedName.value = '小麦种子';
       refreshAllData();
     } else if (wasEmpty && isEmpty && oldVal !== newVal) {
-      // 如果都是空但引用不同（可能是重置操作），也调用接口
       seedName.value = '小麦种子';
       refreshAllData();
     }
@@ -605,7 +598,6 @@ const handleRegionChange = (value: any) => {
     regionCodes.cityCode = '';
     regionCodes.regionCode = '';
   }
-  console.log('选择的产地:', value);
   refreshAllData();
 };
 
@@ -622,7 +614,7 @@ const getYesterdayDate = () => {
 // 获取价格说明数据
 const fetchPriceExplanation = async () => {
   try {
-    // 获取品种ID（取数组最后一个有效元素）
+    // 获取品种ID
     const varietyArray = normalizedVariety.value;
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
@@ -687,7 +679,6 @@ const fetchPriceExplanation = async () => {
       };
     }
   } catch (error) {
-    console.error('获取价格说明数据失败:', error);
     // 重置为默认值
     priceStats.value = {
       todayPrice: 0,
@@ -705,7 +696,7 @@ const fetchPriceExplanation = async () => {
 const fetchHotRecommendation = async () => {
   recommendationLoading.value = true;
   try {
-    // 获取品种ID（取数组最后一个有效元素）
+    // 获取品种ID
     const varietyArray = normalizedVariety.value;
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
@@ -724,7 +715,7 @@ const fetchHotRecommendation = async () => {
       const data = response.data || response.rows || [];
       // 接口返回的数据到表格需要的格式
       recommendationTableData.value = (Array.isArray(data) ? data : []).map((item: any) => {
-        // 格式化日期：从 "2025-11-15 00:00:00" 提取日期部分
+        // 格式化日期：从 "2025-11-15 00:00:00"
         let time = '--';
         if (item.analysisDate) {
           const dateStr = item.analysisDate;
@@ -761,7 +752,6 @@ const fetchHotRecommendation = async () => {
           origin,
           price: item.goodsPriceAvg ? `${item.goodsPriceAvg}元/kg` : '--',
           change,
-          // 保留原始字段用于弹窗
           goodsCategoryId: item.goodsCategoryId || '',
           regionCode: item.regionCode || '',
           goodsCategoryName: item.goodsCategoryName || '--',
@@ -782,7 +772,7 @@ const fetchHotRecommendation = async () => {
 // 查看热力图
 const viewHeatmap = async () => {
   try {
-    // 获取品种ID（取数组最后一个有效元素）
+    // 获取品种ID
     const varietyArray = normalizedVariety.value;
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
@@ -869,7 +859,7 @@ const fetchCategoryList = async () => {
   }
 };
 
-// 刷新数据方法（供父组件调用）
+// 刷新数据方法
 const refreshData = () => {
   fetchPriceData();
   fetchPriceExplanation();
@@ -887,7 +877,7 @@ const getTrendIcon = (change: number | string) => {
   return trendFlatIcon;
 };
 
-// 监听图表数据变化，更新小折线图
+// 更新小折线图
 watch(
   () => [currentChartData.value.dates, currentChartData.value.prices],
   () => {

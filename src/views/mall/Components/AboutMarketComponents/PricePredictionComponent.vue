@@ -1,4 +1,4 @@
- <!--
+<!--
   标题: PricePredictionComponent
   功能: 价格预测与分析
   说明: 价格预测与分析 Tabs页面
@@ -50,9 +50,9 @@
         <div class="analysis-card">
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
-            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend || '暂无数据'}}</p>
-            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange || '暂无数据'}}</p>
-            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion || '暂无数据'}}</p>
+            <p>1.<strong>整体趋势:</strong> {{ marketAnalysis.overallTrend || '暂无数据' }}</p>
+            <p>2.<strong>价格区间:</strong> {{ marketAnalysis.priceRange || '暂无数据' }}</p>
+            <p>3.<strong>预测建议:</strong> {{ marketAnalysis.suggestion || '暂无数据' }}</p>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ const normalizedVariety = computed({
   }
 });
 
-// GoodsCategorySelect 清空时报错
+//  清空时报错
 onErrorCaptured((err: any, instance, info) => {
   if (err && err.message && err.message.includes('length') && err.stack && err.stack.includes('GoodsCategorySelect')) {
     // 确保值被重置
@@ -136,7 +136,6 @@ onErrorCaptured((err: any, instance, info) => {
   return true; // 其他错误正常传播
 });
 
-// （配合 RegionSelect）
 const regionCodes = reactive({
   provinceCode: '',
   cityCode: '',
@@ -144,7 +143,6 @@ const regionCodes = reactive({
 });
 
 // 图表数据
-// 图表主序列与上下界
 const allMonths = ref<string[]>([]);
 const pastPrices = ref<(number | null)[]>([]);
 const pastPriceUpper = ref<(number | null)[]>([]);
@@ -169,8 +167,7 @@ const chartYAxisMin = ref(0);
 const chartYAxisMax = ref(5);
 const chartYAxisInterval = ref(1);
 
-
-//  将月份数据统一格式化为 "YYYY-MM" 
+//  将月份数据统一格式化为 "YYYY-MM"
 const normalizeMonthLabel = (value: any) => {
   if (value === undefined || value === null) return '';
   const str = String(value).trim();
@@ -184,7 +181,6 @@ const normalizeMonthLabel = (value: any) => {
 };
 
 /**
- * 格式化日期为月份字符串
  * 将 Date 对象转换为 "YYYY-MM" 格式
  */
 const formatMonth = (date: Date) => {
@@ -194,7 +190,6 @@ const formatMonth = (date: Date) => {
 };
 
 /**
- * 生成连续的月份序列
  * 从起始月份开始，生成指定数量的连续月份
  */
 const generateSequentialMonths = (startMonth: string, count: number) => {
@@ -232,7 +227,6 @@ const getPreviousMonth = (month: string) => {
 };
 
 /**
- * 解析价格值
  * 将各种格式的价格值转换为数字，无效值返回 null
  */
 const parsePriceValue = (val: any) => {
@@ -243,7 +237,6 @@ const parsePriceValue = (val: any) => {
 };
 
 /**
- * 根据 X 轴构建数据系列
  * 将 X 轴和 Y 轴数据映射到基础月份数组上，生成对应的价格序列
  */
 const buildSeriesByXAxis = (baseMonths: string[], xAxis?: any[], yAxis?: any[]): (number | null)[] => {
@@ -258,7 +251,6 @@ const buildSeriesByXAxis = (baseMonths: string[], xAxis?: any[], yAxis?: any[]):
 
 /**
  * 如果系列为空则填充顺序值
- * 当系列数据全为空时，使用提供的 values 数组填充
  */
 const fillSequentialIfEmpty = (series: (number | null)[], baseMonths: string[], values?: any[]) => {
   if (series.some((val) => val !== null) || !Array.isArray(values)) return series;
@@ -266,7 +258,6 @@ const fillSequentialIfEmpty = (series: (number | null)[], baseMonths: string[], 
 };
 
 /**
- * 计算极值点（最高或最低）
  * 从价格系列中找出最大值或最小值及其对应的月份
  */
 const deriveExtreme = (series: (number | null)[], months: string[], type: 'max' | 'min'): { month: string; price: number } => {
@@ -284,7 +275,6 @@ const deriveExtreme = (series: (number | null)[], months: string[], type: 'max' 
 };
 
 /**
- * 格式化价格值
  * 将价格数字格式化为字符串，保留两位小数
  */
 const formatPriceValue = (price?: number | null) => {
@@ -294,8 +284,7 @@ const formatPriceValue = (price?: number | null) => {
 };
 
 /**
- * 格式化月份用于显示
- * 将 "YYYY-MM" 格式转换为 "X月" 
+ * 将 "YYYY-MM" 格式转换为 "X月"
  */
 const formatMonthDisplay = (month: string) => {
   const normalized = normalizeMonthLabel(month);
@@ -333,7 +322,7 @@ const chartTitle = computed(() => {
   return `${seedName.value}未来${timeRangeMap[queryParams.timeRange] || '12个月'}价格预测走势图`;
 });
 
-// 标记是否正在处理分类变化，避免 watch 与事件重复触发接口
+// 标记是否正在处理分类变化
 const isHandlingCategoryChange = ref(false);
 
 // 品种分类变化处理：同步品种、种子名并触发查询
@@ -399,7 +388,6 @@ watch(
       seedName.value = '小麦种子';
       fetchPricePrediction();
     } else if (wasEmpty && isEmpty && oldVal !== newVal) {
-      // 如果都是空但引用不同（可能是重置操作），也调用接口
       seedName.value = '小麦种子';
       fetchPricePrediction();
     }
@@ -420,19 +408,17 @@ const handleRegionChange = (value: any) => {
     regionCodes.cityCode = '';
     regionCodes.regionCode = '';
   }
-  console.log('选择的产地:', value);
   fetchPricePrediction();
 };
 
 /**
- * 时间范围变化处理
  * 当用户选择不同的时间范围时，重新获取价格预测数据
  */
 const handleTimeRangeChange = () => {
   fetchPricePrediction();
 };
 
-// 获取价格预测数据：组装参数、更新图表与市场分析
+// 获取价格预测数据
 const fetchPricePrediction = async () => {
   loading.value = true;
   try {
@@ -445,7 +431,7 @@ const fetchPricePrediction = async () => {
     };
     const pricePredictionTimeframe = timeRangeMap[queryParams.timeRange] || 4;
 
-    // 获取品种ID（取数组最后一个有效元素）
+    // 获取品种ID
     const varietyArray = normalizedVariety.value;
     const filteredVariety = varietyArray.filter((item: any) => {
       const str = String(item || '').trim();
@@ -633,7 +619,7 @@ const fetchPricePrediction = async () => {
       const futureMonthsLabel = `${futureMonthsCount}个月`;
       const extractPrompt = `你是一名农业市场分析师，需要基于提供的${seedText}月度售价数据，进行市场趋势分析和解读。以下为历史数据和预测数据：\n  历史数据（${histRange}）：\n  时间序列：${JSON.stringify(histMonths)}\n  价格序列：${JSON.stringify(histPrices)}\n  预测数据（${predRange}）：\n  价格预测：${JSON.stringify(predictedMap)}\n\n  请基于以上数据，完成以下分析任务：\n  总结历史价格走势：分析历史数据的波动趋势，识别关键变化点（如峰值、谷值）、季节性模式或长期趋势。\n  解读预测数据：描述未来${futureMonthsLabel}的价格预测变化，指出预期的高点、低点及整体走势。\n  提供整体市场展望：结合历史趋势和预测数据，评估市场稳定性、风险或机遇，并给出对种子价格未来表现的见解。\n  输出格式：以连贯的文本段落输出市场分析,不超过50字。开头可参考示例（如\"整体趋势：未来${futureMonthsLabel}，${seedText}价格预计趋于平稳...\"），确保语言专业、清晰，并基于数据支持结论。`;
 
-      // 调用文件分析接口，获取插件输出的 info（需产地、品种、时间范围均选择）
+      // 调用文件分析接口
       let fileAnalysisInfo = '';
       const hasOrigin = !!regionCodes.regionCode;
       const hasVariety = !!goodsCategoryId;
@@ -779,27 +765,6 @@ const fetchFileAnalysis = async (extractPrompt: string) => {
       isFileAnalysisLoading.value = false;
     }, 1000);
   }
-};
-
-/**
- * 查询处理
- * 触发价格预测数据的获取
- */
-const handleQuery = () => {
-  fetchPricePrediction();
-};
-
-// 重置查询条件并重新获取数据
-const resetQuery = () => {
-  queryFormRef.value?.resetFields();
-  queryParams.origin = [];
-  normalizedVariety.value = [];
-  queryParams.timeRange = '12';
-  seedName.value = '小麦种子';
-  regionCodes.provinceCode = '';
-  regionCodes.cityCode = '';
-  regionCodes.regionCode = '';
-  fetchPricePrediction();
 };
 
 // 页面加载时获取数据

@@ -1,4 +1,4 @@
- <!--
+<!--
   标题: PriceHeatmapPage
   功能: 热力图页面
   说明: 热力图
@@ -47,7 +47,7 @@ const title = computed(() => '区域价格差异热力图');
 // 获取热力图数据
 const fetchHeatmapData = async (goodsCategoryId?: string) => {
   try {
-    // 优先使用 sessionStorage 中的数据（从价格走势页面传递过来的）
+    // 优先使用 sessionStorage 中的数据
     const storedData = sessionStorage.getItem('heatmapData');
     if (storedData) {
       try {

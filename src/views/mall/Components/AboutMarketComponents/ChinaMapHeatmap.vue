@@ -1,5 +1,4 @@
-
- <!--
+<!--
   标题: ChinaMapHeatmap
   功能: 热力图图表
   说明: 热力图图表
@@ -52,11 +51,9 @@ const loadChinaMap = () => {
     // 注册地图
     echarts.registerMap('china', geoJson);
 
-    // 调试：打印地图中的省份名称（仅开发时使用）
     if (process.env.NODE_ENV === 'development') {
       const features = geoJson.features || [];
       const regionNames = features.map((f: any) => f.properties?.name || f.properties?.NAME_CHN || f.properties?.name_ch);
-      console.log('地图中的省份名称:', regionNames);
     }
 
     // 初始化图表
@@ -117,12 +114,6 @@ const updateChart = () => {
       minValue = Math.max(0, baseValue - range);
       maxValue = baseValue + range;
     }
-  }
-
-  // 调试：打印数据
-  if (process.env.NODE_ENV === 'development') {
-    console.log('地图数据:', mapData);
-    console.log('视觉映射范围:', { min: minValue, max: maxValue });
   }
 
   const option = {
@@ -194,13 +185,12 @@ const updateChart = () => {
         right: '5%',
         top: '3%',
         bottom: '5%',
-        aspectScale: 0.7, // 【修改5】微调宽高比，避免放大后变形
+        aspectScale: 0.7,
         label: {
           show: true,
-          fontSize: 10, // 【修改6】标签字体略小，避免放大后重叠
+          fontSize: 10,
           color: '#333',
           fontWeight: 'normal',
-          // 使用富文本样式，避免重叠
           rich: {
             small: {
               fontSize: 9,
@@ -220,23 +210,18 @@ const updateChart = () => {
           // 根据区域大小调整标签
           formatter: (params: any) => {
             const name = params.name;
-            // 对于特别小的区域，使用更小的字体或隐藏
             const tinyRegions = ['澳门', '香港'];
             const smallRegions = ['北京', '天津', '上海', '台湾', '海南'];
 
             if (tinyRegions.includes(name)) {
-              // 特别小的区域使用极小字体
               return `{small|${name}}`;
             } else if (smallRegions.includes(name)) {
-              // 小区域使用小字体
               return `{small|${name}}`;
             }
-            // 对于大区域，使用正常字体
             return name;
           },
           // 调整标签位置
           offset: [0, 0],
-          // 标签位置：优先显示在区域内部，如果空间不足则显示在外部
           position: function (params: any) {
             const name = params.name;
             // 对于特别小的区域，标签显示在外部
@@ -275,9 +260,8 @@ const updateChart = () => {
           borderWidth: 1
         },
         data: mapData,
-        // 名称映射，确保数据名称与地图名称匹配
+        // 名称映射
         nameMap: {
-          // 处理可能的名称差异
           '北京市': '北京',
           '天津市': '天津',
           '河北省': '河北',
@@ -336,7 +320,7 @@ const watchData = () => {
 
 onMounted(() => {
   nextTick(() => {
-    // 初始化图表（图表内部会调用 loadChinaMap）
+    // 初始化图表
     initChart();
 
     // 使用 ResizeObserver 监听容器大小变化
