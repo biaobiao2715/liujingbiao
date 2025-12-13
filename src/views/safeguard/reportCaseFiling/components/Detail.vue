@@ -912,7 +912,6 @@ const currentScenario = computed(() => {
         stage.time = statusItem.time || statusItem.date || '';
         stage.active = true;
       }
-      console.log(stage);
       return stage;
     });
   } else {
@@ -928,8 +927,6 @@ const currentScenario = computed(() => {
       return stage;
     });
   }
-  // console.log(scenario.stages);
-
   return scenario;
 });
 

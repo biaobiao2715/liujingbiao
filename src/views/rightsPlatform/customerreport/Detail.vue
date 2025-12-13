@@ -1,11 +1,11 @@
 <!--
 标题：		appealmodal.vue
-功能：		举报申述
+功能：		举报申诉
 说明：
 当前版本：	1.0
 开发信息：	Created by 李政达 2025-11-18
 修改人信息：	李政达 2025-11-18
-修改内容：	举报申述
+修改内容：	举报申诉
  -->
 <template>
   <div class="content-edit-dialog" v-loading="loading">
@@ -330,7 +330,7 @@ const buildPreviewUrls = (imgs: FileViewItem[]) => imgs.map((i) => i.url!);
 const { report_status, report_type_id, case_type, plat_credit_rating } = toRefs<any>(
   (proxy as any)?.useDict('report_status', 'report_type_id', 'case_type', 'plat_credit_rating')
 );
-/* 申述理由 */
+/* 申诉理由 */
 const presentarguments = ref();
 // 表单引用
 const formRef = ref();

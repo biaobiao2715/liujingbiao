@@ -1,11 +1,11 @@
 <!--
 标题：		appealmodal.vue
-功能：		举报申述
+功能：		举报申诉
 说明：
 当前版本：	1.0
 开发信息：	Created by 李政达 2025-11-18
 修改人信息：	李政达 2025-11-18
-修改内容：	举报申述
+修改内容：	举报申诉
  -->
 <template>
   <div class="content-edit-dialog" v-loading="loading">
@@ -137,7 +137,7 @@
     </el-table>
 
     <div class="section-title" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">申诉时间:{{ formData.appealTime }}</div>
-    <el-row :gutter="20" class="detail-form">
+    <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 2 || Number(formData.status) === 3">
       <el-col :span="24">
         <el-form-item label="申诉图片：">
           <div class="evidence">
@@ -343,7 +343,7 @@ const hnReportHistoryList = ref([]); //案件类型list
 const count = ref(0);
 // 使用字典数据
 const { report_status, report_type_id, case_type } = toRefs<any>((proxy as any)?.useDict('report_status', 'report_type_id', 'case_type'));
-/* 申述理由 */
+/* 申诉理由 */
 const presentarguments = ref();
 // 表单引用
 const formRef = ref();
@@ -649,12 +649,12 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
   // 添加校验逻辑
   if (!presentarguments.value || presentarguments.value.trim() === '') {
-    ElMessage.warning('请输入申述理由');
+    ElMessage.warning('请输入申诉理由');
     return;
   }
 
   if (!attachmentList.value || attachmentList.value.length === 0) {
-    ElMessage.warning('请上传申述材料');
+    ElMessage.warning('请上传申诉材料');
     return;
   }
 

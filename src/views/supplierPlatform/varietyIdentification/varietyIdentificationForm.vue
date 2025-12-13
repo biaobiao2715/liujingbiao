@@ -59,32 +59,32 @@
         <div style="width: 20px"></div>
         <el-button v-throttle type="primary" @click="submitForm">开始识别</el-button>
         <div style="width: 20px"></div>
-        <el-button v-throttle @click="handcancel">历史记录</el-button>
+        <el-button v-throttle @click="handcancel">取消</el-button>
       </el-row>
       <!-- 搜索条件 -->
       <el-form ref="formRef" :model="formData" :label-width="130" v-show="formShow">
-        <el-form-item label="品种名称：" prop="varietyName">
+        <el-form-item v-if="formData.varietyName" label="品种名称：" prop="varietyName">
           {{ formData.varietyName }}
         </el-form-item>
 
-        <el-form-item label="品种类型：" prop="varietyType">
+        <el-form-item v-if="formData.varietyType" label="品种类型：" prop="varietyType">
           {{ formData.varietyType }}
         </el-form-item>
 
-        <el-form-item label="特征描述：" prop="featureDescription">
+        <el-form-item v-if="formData.featureDescription" label="特征描述：" prop="featureDescription">
           {{ formData.featureDescription }}
         </el-form-item>
 
-        <el-form-item label="种植技术指导：" prop="plantingTechniquesGuidance">
+        <el-form-item v-if="formData.plantingTechniquesGuidance" label="种植技术指导：" prop="plantingTechniquesGuidance">
           {{ formData.plantingTechniquesGuidance }}
         </el-form-item>
-        <el-form-item label="注意事项：" prop="precautions">
+        <el-form-item v-if="formData.precautions" label="注意事项：" prop="precautions">
           {{ formData.precautions }}
         </el-form-item>
-        <el-form-item label="置信度评分：" prop="confidenceLevel">
+        <el-form-item v-if="formData.confidenceLevel" label="置信度评分：" prop="confidenceLevel">
           {{ formData.confidenceLevel }}
         </el-form-item>
-        <el-form-item label="识别状态：" prop="skeleton_URL">
+        <el-form-item v-if="formData.skeleton_URL" label="识别状态：" prop="skeleton_URL">
           <img :src="formData.skeleton_URL" alt="" style="width: 100px; height: 100px" />
         </el-form-item>
 
