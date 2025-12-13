@@ -51,12 +51,8 @@
           <div class="analysis-title">市场分析解读</div>
           <div class="analysis-content">
             <div class="content-item">1. <span>整体趋势:</span> {{ marketAnalysis.overallTrend || '暂无数据' }}</div>
-            <div class="content-item">
-              2. <span>价格区间:</span> {{ marketAnalysis.priceRange || '暂无数据' }}
-            </div>
-            <div class="content-item">
-              3. <span>预测建议:</span> {{ marketAnalysis.suggestion || '暂无数据' }}
-            </div>
+            <div class="content-item">2. <span>价格区间:</span> {{ marketAnalysis.priceRange || '暂无数据' }}</div>
+            <div class="content-item">3. <span>预测建议:</span> {{ marketAnalysis.suggestion || '暂无数据' }}</div>
           </div>
         </div>
 
@@ -649,7 +645,7 @@ const fetchPricePrediction = async () => {
         const minText = formatPriceValue(minPredictEntry.price);
         const maxText = formatPriceValue(maxPredictEntry.price);
         if (minText && maxText) {
-          marketAnalysis.value.priceRange = `预测价格区间为${minText}~${maxText}元/kg`;
+          marketAnalysis.value.priceRange = `预测价格区间为 ${minText} ~ ${maxText} 元/kg`;
         } else {
           marketAnalysis.value.priceRange = '暂无数据';
         }
@@ -938,9 +934,11 @@ defineExpose({
           }
 
           .content-item {
+            font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
             margin-bottom: 12px;
-            font-size: 13px;
-            color: #4a4a4a;
+            font-size: 14px;
+            color: #1d2129;
+            font-weight: 400;
             line-height: 1.7;
             word-break: break-word;
             white-space: normal;
