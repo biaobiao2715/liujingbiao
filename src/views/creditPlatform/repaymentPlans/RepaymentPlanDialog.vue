@@ -1,3 +1,10 @@
+<!--
+  标题: creditPlatform/repaymentPlans/RepaymentPlanDialog.vue
+  功能: 还款计划
+  说明: 还款计划
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
 <template>
   <el-dialog
     :model-value="visible"
@@ -51,8 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import {  ref, watch } from 'vue';
 import { getRepaymentPlan } from '@/api/creditPlatform/loanApplications';
 
 interface RepaymentPlan {

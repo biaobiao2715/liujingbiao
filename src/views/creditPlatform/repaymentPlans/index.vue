@@ -277,7 +277,6 @@ const handleRepayment = (row: RepaymentPlan) => {
 
 /**
  * 详情按钮 - 根据适用对象类型打开对应的详情弹窗
- * @param row - 当前行数据
  */
 const handleDetail = (row: RepaymentPlan) => {
   detailData.value = row;

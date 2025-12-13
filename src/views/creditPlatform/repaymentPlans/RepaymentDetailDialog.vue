@@ -1,3 +1,11 @@
+<!--
+  标题: creditPlatform/repaymentPlans/RepaymentDetailDialog.vue
+  功能: 企业贷后管理详情
+  说明: 企业贷后管理详情
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
 <template>
   <el-dialog :model-value="visible" width="50%" class="repayment-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
@@ -208,12 +216,17 @@ const REPAYMENT_METHOD_MAP: Record<string, string> = {
 };
 
 // ==================== 工具函数 ====================
+/**
+ * 将空值（undefined、null、空字符串）转换为 '--'，其他值原样返回
+ */
 const formatValue = (value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return value;
 };
 
-// 带单位格式化：空值返回 '--'
+/**
+ * 将值格式化为带单位的字符串，空值返回 '--'
+ */
 const formatWithUnit = (value: any, unit: string) => {
   if (value === undefined || value === null || value === '') return '--';
   return `${value}${unit}`;
@@ -237,6 +250,9 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
 
+/**
+ * 根据映射表将值转换为对应的标签，空值或未匹配返回 '--'
+ */
 const mapValue = (map: Record<string, string>, value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return map[String(value)] || '--';
@@ -256,6 +272,9 @@ const getBankLabel = (value: string | number | undefined | null): string => {
   return '--';
 };
 
+/**
+ * 从身份证号提取生日
+ */
 const extractBirthdayFromId = (id: string | undefined | null) => {
   const value = (id || '').trim();
   if (!value) return '';
@@ -276,12 +295,20 @@ const extractBirthdayFromId = (id: string | undefined | null) => {
   return '';
 };
 
+/**
+ * 判断是否为URL
+ */
 const isLikelyUrl = (value: string) => {
   if (!value) return false;
   const lower = value.toLowerCase();
   return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/');
 };
 
+/**
+ * 收集URL
+ * 从多个数据源中提取URL，支持字符串、数组、对象等多种格式
+ * 对象中会尝试从 url、fileUrl、path、src 等字段提取
+ */
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = [];
   const append = (item: any) => {
@@ -304,6 +331,9 @@ const collectUrls = (...sources: any[]): string[] => {
   return urls;
 };
 
+/**
+ * 获取详情数据
+ */
 const fetchDetail = async () => {
   if (!props.data?.id) {
     detailRow.value = props.data || {};
@@ -343,6 +373,9 @@ watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible,
   }
 });
 
+/**
+ * 企业基础信息列表
+ */
 const companyInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
@@ -361,11 +394,17 @@ const companyInfoList = computed<DetailField[]>(() => {
   ];
 });
 
+/**
+ * 企业营业执照图片列表
+ */
 const companyLicenseList = computed(() => {
   const row = detailRow.value;
   return collectUrls(row.licenses, row.url);
 });
 
+/**
+ * 法人信息列表
+ */
 const legalInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   return [
@@ -376,6 +415,10 @@ const legalInfoList = computed<DetailField[]>(() => {
   ];
 });
 
+/**
+ * 申请人信息列表
+ * 格式化申请人相关信息，包括从身份证号提取生日
+ */
 const applicantInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
@@ -386,11 +429,17 @@ const applicantInfoList = computed<DetailField[]>(() => {
   ];
 });
 
+/**
+ * 申请人身份证照片列表
+ */
 const applicantIdPhotos = computed(() => {
   const row = detailRow.value;
   return collectUrls(row.idFrontUrl, row.idBackUrl, row.idBackUr, row.idCardUrl, row.idcardUrl, row.idcardUr);
 });
 
+/**
+ * 申请人授权文件列表
+ */
 const applicantAuthFiles = computed(() => {
   const row = detailRow.value;
   const urls = collectUrls(row.authorizationUrl);
@@ -408,6 +457,10 @@ const applicantAuthFiles = computed(() => {
   return urls;
 });
 
+/**
+ * 贷款信息列表
+ * 格式化贷款相关信息，包括金额、期限、还款方式、银行卡信息等
+ */
 const loanInfoList = computed<DetailField[]>(() => {
   const row = detailRow.value;
   const repayment = row.repaymentMethod || row.repaymentType;
@@ -425,15 +478,26 @@ const loanInfoList = computed<DetailField[]>(() => {
   ];
 });
 
+/**
+ * 银行卡正反面图片列表
+ * 收集银行卡正反面照片URL
+ */
 const bankCardImages = computed(() => {
   const row = detailRow.value;
   return collectUrls(row.bankFrontUrl, row.bankBackUrl);
 });
 
+/**
+ * 关闭对话框
+ */
 const handleClose = () => {
   emit('update:visible', false);
 };
 
+/**
+ * 查看产品详情
+ * 打开产品详情对话框
+ */
 const handleViewProductDetail = () => {
   if (!currentDetail.value.productId) {
     ElMessage.warning('产品ID不存在');
@@ -442,7 +506,9 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
-// 处理文件查看
+/**
+ * 查看文件
+ */
 const handleViewFile = (fileUrl: string) => {
   if (!fileUrl) {
     ElMessage.warning('文件地址不存在');
@@ -451,6 +517,9 @@ const handleViewFile = (fileUrl: string) => {
   window.open(fileUrl, '_blank');
 };
 
+/**
+ * 查看合同
+ */
 const handleViewContract = () => {
   // 从多个可能的位置获取合同地址
   const contractUrl =
@@ -465,6 +534,9 @@ const handleViewContract = () => {
   window.open(contractUrl, '_blank');
 };
 
+/**
+ * 查看还款计划
+ */
 const handleViewRepaymentPlan = () => {
   repaymentPlanVisible.value = true;
 };

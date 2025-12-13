@@ -1,3 +1,11 @@
+<!--
+  标题: creditPlatform/repaymentPlans/RepaymentBuyerDetailDialog.vue
+  功能: 个人贷后管理详情
+  说明: 个人贷后管理详情
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
 <template>
   <el-dialog
     :model-value="visible"
@@ -169,6 +177,9 @@ const currentDetail = computed(() => detailRow.value || {});
 const productDetailVisible = ref(false);
 const repaymentPlanVisible = ref(false);
 
+/**
+ * 从身份证号提取生日
+ */
 const extractBirthdayFromId = (id: string | undefined | null) => {
   const value = (id || '').trim();
   if (!value) return '';
@@ -189,12 +200,20 @@ const extractBirthdayFromId = (id: string | undefined | null) => {
   return '';
 };
 
+/**
+ * 判断是否为URL
+ */
 const isLikelyUrl = (value: string) => {
   if (!value) return false;
   const lower = value.toLowerCase();
   return lower.startsWith('http') || lower.startsWith('//') || lower.includes('/');
 };
 
+/**
+ * 收集URL
+ * 从多个数据源中提取URL，支持字符串、数组、对象等多种格式
+ * 对象中会尝试从 url、fileUrl、path、src 等字段提取
+ */
 const collectUrls = (...sources: any[]): string[] => {
   const urls: string[] = [];
   const append = (item: any) => {
@@ -217,6 +236,9 @@ const collectUrls = (...sources: any[]): string[] => {
   return urls;
 };
 
+/**
+ * 获取详情数据
+ */
 const fetchDetail = async () => {
   if (!props.data?.id) {
     detailRow.value = props.data || {};
@@ -245,6 +267,9 @@ watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible,
 });
 
 // ==================== 工具函数 ====================
+/**
+ * 将空值（undefined、null、空字符串）转换为 '--'，其他值原样返回
+ */
 const fallback = (value: any) => {
   if (value === undefined || value === null || value === '') return '--';
   return value;
@@ -291,6 +316,9 @@ const getBankLabel = (value: string | number | undefined | null): string => {
 };
 
 // ==================== 计算属性 ====================
+/**
+ * 格式化用户信息和贷款信息，包括从身份证号提取生日、获取还款方式标签、银行名称等
+ */
 const detail = computed(() => {
   const row = detailRow.value || {};
   const birthday = row.birthday || row.birthDate || extractBirthdayFromId(row.idCardNumber || row.idNumber);
@@ -321,10 +349,16 @@ const detail = computed(() => {
   };
 });
 
+/**
+ * 关闭对话框
+ */
 const handleClose = () => {
   emit('update:visible', false);
 };
 
+/**
+ * 查看产品详情
+ */
 const handleViewProductDetail = () => {
   if (!currentDetail.value.productId) {
     ElMessage.warning('产品ID不存在');
@@ -333,6 +367,9 @@ const handleViewProductDetail = () => {
   productDetailVisible.value = true;
 };
 
+/**
+ * 查看合同
+ */
 const handleViewContract = () => {
   // 从多个可能的位置获取合同地址
   const contractUrl =
@@ -347,6 +384,9 @@ const handleViewContract = () => {
   window.open(contractUrl, '_blank');
 };
 
+/**
+ * 查看还款计划
+ */
 const handleViewRepaymentPlan = () => {
   repaymentPlanVisible.value = true;
 };

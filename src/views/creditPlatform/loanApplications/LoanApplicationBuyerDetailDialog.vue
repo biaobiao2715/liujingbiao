@@ -1,3 +1,12 @@
+<!--
+  标题: creditPlatform/loanApplications/LoanApplicationBuyerDetailDialog.vue
+  功能: 个人贷款申请详情
+  说明: 个人贷款申请详情
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
+
 <template>
   <el-dialog
     :model-value="visible"
@@ -510,9 +519,7 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
 
-/**
- * 从字典获取申请状态标签
- */
+
 /**
  * 获取银行名称
  */

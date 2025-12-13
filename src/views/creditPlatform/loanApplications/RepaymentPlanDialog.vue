@@ -1,3 +1,11 @@
+<!--
+  标题: creditPlatform/loanApplications/RepaymentPlanDialog.vue
+  功能: 还款计划
+  说明: 还款计划
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
 <template>
   <el-dialog
     :model-value="visible"

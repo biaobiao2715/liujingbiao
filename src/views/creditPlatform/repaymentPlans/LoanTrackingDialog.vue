@@ -1,3 +1,11 @@
+<!--
+  标题: creditPlatform/repaymentPlans/LoanTrackingDialog.vue
+  功能: 贷款追踪
+  说明: 贷款追踪
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
 <template>
   <el-dialog :model-value="visible" width="50%" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
@@ -89,8 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import {  ref, watch } from 'vue';
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue';
 import { getTrackingInfo } from '@/api/creditPlatform/repaymentPlans';
 
@@ -137,8 +144,6 @@ const DEFAULT_REPAYMENT_DISPLAY_COUNT = 5;
 
 /**
  * 获取步骤样式类
- * @param status - 步骤状态
- * @returns 样式类对象
  */
 const getStepClass = (status: string) => {
   return {
@@ -151,8 +156,6 @@ const getStepClass = (status: string) => {
 
 /**
  * 判断连接线是否激活
- * @param index - 当前步骤索引
- * @returns 是否激活
  */
 const isLineActive = (index: number) => {
   const currentStep = trackingData.value[index];
@@ -164,7 +167,6 @@ const isLineActive = (index: number) => {
 
 /**
  * 获取追踪数据
- * 从后端 API 获取贷款申请的追踪信息
  */
 const fetchTrackingData = async () => {
   if (!props.data?.id) return;
@@ -185,9 +187,7 @@ const fetchTrackingData = async () => {
 };
 
 /**
- * 格式化日期，只显示年月日
- * @param dateStr - 日期时间字符串
- * @returns 格式化后的日期字符串（YYYY-MM-DD）
+ * 将日期时间字符串格式化为 YYYY-MM-DD 格式
  */
 const formatDateOnly = (dateStr: string | null | undefined): string => {
   if (!dateStr) return '';
@@ -223,10 +223,7 @@ const formatDateOnly = (dateStr: string | null | undefined): string => {
 };
 
 /**
- * 解析还款日期列表（新字段：repaymentPeriodAndDates）
- * 结构示例：[{ planStatusList: 1, repaymentDateList: '2025-12-31 00:00:00' }, ...]
- * @param periodAndDates - 新字段数组
- * @returns 还款日期项数组（包含期数和日期）
+ * 解析还款日期列表
  */
 const parseRepaymentPeriodAndDates = (periodAndDates: Array<Record<string, any>> | null | undefined): RepaymentDateItem[] => {
   if (!periodAndDates || !Array.isArray(periodAndDates)) return [];
@@ -254,9 +251,7 @@ const parseRepaymentPeriodAndDates = (periodAndDates: Array<Record<string, any>>
 };
 
 /**
- * 解析旧格式还款日期列表（兼容保留）
- * @param repaymentDateList - 还款日期列表字符串（支持逗号分隔或分号分隔的期数格式）
- * @returns 还款日期项数组（包含期数和日期）
+ * 支持逗号分隔或分号分隔的期数格式，返回包含期数和日期的还款日期项数组
  */
 const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefined): RepaymentDateItem[] => {
   if (!repaymentDateList) return [];
@@ -326,8 +321,6 @@ const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefin
 
 /**
  * 将原始数据转换为追踪步骤格式
- * @param data - 接口返回的原始数据
- * @returns 追踪步骤数组
  */
 const convertToTrackingSteps = (data: any): TrackingStep[] => {
   const steps: TrackingStep[] = [];
@@ -384,17 +377,18 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
 
 /**
  * 监听弹窗显示状态和数据 ID 变化
- * 当弹窗打开或数据 ID 变化时，重新获取追踪数据
  */
-watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible, prevId]) => {
-  if (visible && (!prevVisible || id !== prevId)) {
-    fetchTrackingData();
+watch(
+  [() => props.visible, () => props.data?.id],
+  ([visible, id], [prevVisible, prevId]) => {
+    if (visible && (!prevVisible || id !== prevId)) {
+      fetchTrackingData();
+    }
   }
-});
+);
 
 /**
  * 切换还款日期展开/收起状态
- * @param index - 步骤索引
  */
 const toggleRepaymentExpand = (index: number) => {
   repaymentExpanded.value[index] = !repaymentExpanded.value[index];

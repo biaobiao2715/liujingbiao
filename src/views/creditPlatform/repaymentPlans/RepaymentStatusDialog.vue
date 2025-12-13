@@ -1,3 +1,11 @@
+<!--
+  标题: creditPlatform/repaymentPlans/RepaymentStatusDialog.vue
+  功能: 还款情况
+  说明: 还款情况
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
 <template>
   <el-dialog :model-value="visible" width="50%" class="repayment-status-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
@@ -98,14 +106,6 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 
-/**
- * 获取当前年月
- * @returns 当前年月（格式：2025-1）
- */
-const getCurrentYearMonth = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth() + 1}`;
-};
 
 /**
  * 只保留日期部分（YYYY-MM-DD）
@@ -122,21 +122,7 @@ const formatDateOnly = (value: string | undefined | null) => {
   return str;
 };
 
-/**
- * 判断是否是当月或历史月份
- * @param dateStr - 日期字符串（格式：YYYY-MM-DD）
- * @returns 是否是当月或历史月份
- */
-const isCurrentOrPastMonth = (dateStr: string) => {
-  const [year, month] = dateStr.split('-').map(Number);
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
 
-  if (year < currentYear) return true;
-  if (year === currentYear && month <= currentMonth) return true;
-  return false;
-};
 
 /**
  * 判断还款日期是否已到
@@ -189,7 +175,6 @@ watch(
 /**
  * 获取还款状态文本
  * @param status - 状态值：0=待还款, 1=已还款, 2=已逾期
- * @returns 状态文本
  */
 const getStatusText = (status: number | undefined) => {
   const statusMap: Record<number, string> = {
@@ -224,12 +209,9 @@ const getCardClass = (status: number) => {
 
 /**
  * 判断是否可以编辑还款卡号
- * 规则：
  * 1. 已还款(status=1) - 不可编辑
  * 2. 已逾期(status=2) - 可以编辑
  * 3. 待还款(status=0) - 只有还款日期已到的可以编辑
- * @param item - 还款项目
- * @returns 是否可以编辑
  */
 const canEditCardNumber = (item: RepaymentItem) => {
   // 使用原始状态进行判断，而不是当前修改后的状态
@@ -256,15 +238,12 @@ const canEditCardNumber = (item: RepaymentItem) => {
 /**
  * 判断是否可以编辑还款状态
  * 规则与还款卡号相同，但使用原始状态判断
- * 这样在用户修改状态时，下拉框不会立即消失
- * @param item - 还款项目
- * @returns 是否可以编辑
  */
 const canEditStatus = (item: RepaymentItem) => {
   return canEditCardNumber(item);
 };
 
-// 校验银行卡号（简化：只校验12-19位数字）
+// 校验银行卡号（只校验12-19位数字）
 const validateCardNumber = (item: RepaymentItem) => {
   const cardNumber = (item.repaymentCardNo || '').replace(/\s/g, '');
 

@@ -1,3 +1,12 @@
+<!--
+  标题: creditPlatform/loanApplications/LoanApplicationDetailDialog.vue
+  功能: 企业贷款申请详情
+  说明: 企业贷款申请详情
+  当前版本: 1.0
+  开发信息: Created by 吴威振 2025-11-25
+-->
+
+
 <template>
   <el-dialog :model-value="visible" width="50%" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
