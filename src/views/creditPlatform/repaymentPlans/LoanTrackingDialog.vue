@@ -251,7 +251,7 @@ const parseRepaymentPeriodAndDates = (periodAndDates: Array<Record<string, any>>
 };
 
 /**
- * 支持逗号分隔或分号分隔的期数格式，返回包含期数和日期的还款日期项数组
+ * 还款日期项数组
  */
 const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefined): RepaymentDateItem[] => {
   if (!repaymentDateList) return [];
@@ -259,9 +259,8 @@ const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefin
   const dateStr = String(repaymentDateList).trim();
   if (!dateStr || dateStr === '--' || dateStr === 'null') return [];
 
-  // 判断格式：如果包含"第X期:"，则是期数格式（分号分隔）
   if (dateStr.includes('期:')) {
-    // 解析期数格式：第24期:2048-11-28 00:00:00;第23期:2046-12-28 00:00:00;
+    // 第24期:2048-11-28 00:00:00;第23期:2046-12-28 00:00:00;
     const items: RepaymentDateItem[] = [];
     const parts = dateStr.split(';');
 
@@ -300,7 +299,7 @@ const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefin
 
     return items;
   } else {
-    // 逗号分隔格式：2023-10-01,2023-11-01,2023-12-01
+    //2023-10-01,2023-11-01,2023-12-01
     const dates = dateStr
       .split(',')
       .map((date) => date.trim())

@@ -350,8 +350,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
       const detailResponse = await getRemainingDetail(row.id);
       if (detailResponse && detailResponse.code === 200) {
         const detailData = detailResponse.data || {};
-        console.log(detailData);
-        console.log(messageType);
 
         // 2. 直接将 messageType 和 productName 添加到对象中
         const dataWithMessageType = {
@@ -359,7 +357,6 @@ const handleNotification = async (row: RepaymentPlan, type?: 'pending' | 'comple
           messageType: messageType,
           productName: row.productName
         };
-        console.log(dataWithMessageType);
 
         // 3. 调用 messageRecord 接口
         const messageResponse = await messageRecord(dataWithMessageType);
