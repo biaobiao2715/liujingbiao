@@ -81,7 +81,7 @@ const loading = ref(false);
 const activeTab = ref('course');
 const courseList = ref([]);
 const meetingList = ref([]);
-const queryParams = ref({ pageNum: 1, pageSize: 999, orderBy: 'desc', orderByColumn: 'default' });
+const queryParams = ref({ pageNum: 1, pageSize: 999, orderBy: 'desc', orderByColumn: 'default', cultivateStatus: '1' });
 
 const tabs = ref([
   {
@@ -94,7 +94,7 @@ const tabs = ref([
   },
   {
     label: '最多浏览量',
-    value: 'replyCount'
+    value: 'pageViews'
   }
 ]);
 
@@ -118,12 +118,34 @@ const fetchData = (type: string) => {
 
 // 获取培训课程列表
 const fetchCourseList = async () => {
-  const response = await courseCultivateList({ pageNum: queryParams.value.pageNum, pageSize: 10, cultivateStatus: '1' });
+  loading.value = true;
+  const query =
+    queryParams.value.orderByColumn === 'publishTime'
+      ? {
+          pageNum: 1,
+          pageSize: 999,
+          orderByColumn: 'publishTime',
+          isAsc: 'desc'
+        }
+      : queryParams.value.orderByColumn === 'pageViews'
+        ? {
+            pageNum: 1,
+            pageSize: 999,
+            sortColumn: 'pageViews',
+            isDesc: true
+          }
+        : {
+            pageNum: 1,
+            pageSize: 999
+          };
+  const response = await courseCultivateList(query);
   courseList.value = response.rows || [];
+  loading.value = false;
 };
 
 // 获取培训会议列表
 const fetchMeetingList = async () => {
+  loading.value = true;
   const response = await meetingCultivateList({
     pageNum: queryParams.value.pageNum,
     pageSize: 10,
@@ -131,7 +153,7 @@ const fetchMeetingList = async () => {
   });
 
   meetingList.value = response.rows || [];
-  console.log(meetingList.value);
+  loading.value = false;
 };
 
 // 拼接成类似于：2025年12月30日将会在中山XXXX，举行农户XXX会议 然后返回
@@ -141,7 +163,6 @@ const getMeetingDescription = (meeting: any) => {
 
 // 点击课程或会议时触发方法，传递课程或会议数据
 const handleDetail = (type: string, id: string) => {
-  console.log(type,id);
   emit('detailChange', { type, id });
 };
 </script>
@@ -150,11 +171,11 @@ const handleDetail = (type: string, id: string) => {
 .course-meeting-container {
   margin-bottom: 24px;
   .header {
+    position: relative;
     justify-content: flex-end;
+
     .btns {
-      width: calc(100% - 80px);
       margin: 0 auto;
-      padding-left: 82px;
     }
     .more {
       cursor: pointer;
@@ -241,5 +262,13 @@ const handleDetail = (type: string, id: string) => {
 }
 .el-col {
   margin-bottom: 16px;
+}
+
+::v-deep .el-tabs {
+  position: absolute;
+}
+
+::v-deep .el-tabs__nav-wrap:after {
+  display: none !important;
 }
 </style>

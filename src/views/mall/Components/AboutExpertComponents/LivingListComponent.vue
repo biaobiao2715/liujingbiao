@@ -10,7 +10,7 @@
     <div class="header flex-center-between">
       <div class="header-title">在线直播</div>
       <div>
-        <el-tabs v-model="activeTab" @tab-click="getVideoList">
+        <el-tabs v-model="activeTab" @tab-change="getVideoList">
           <el-tab-pane v-for="item in tabsList" :key="item.value" :label="item.label" :name="item.value"></el-tab-pane>
         </el-tabs>
       </div>
@@ -65,7 +65,8 @@ const getVideoList = async () => {
   loading.value = true;
   try {
     // 0、1默认按发布时间查，2按播放量查
-    const params = activeTab.value === '2' ? { orderByColumn: 'createTime', isAsc: 'desc' } : { viewSort: true, sortDesc: true };
+    const params =
+      activeTab.value === '1' ? { orderByColumn: 'createTime', isAsc: 'desc' } : activeTab.value === '2' ? { viewSort: true, sortDesc: true } : {};
     const res = await VideoList({
       videoStatus: '1', // 启用
       type: activeTab.value, // 0 默认，1 最新发布时间 2 最多播放量

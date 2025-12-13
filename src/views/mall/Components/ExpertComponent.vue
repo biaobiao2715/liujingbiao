@@ -30,13 +30,13 @@
       <!-- 文章详情 -->
       <EssayDetailComponent v-if="showArea === 'essayDetail'" :id="id" />
       <!-- 培训课程+会议的列表 -->
-      <CouMetListComponent v-if="showArea === 'couMetList'" />
+      <CouMetListComponent v-if="showArea === 'couMetList'" @detailChange="showDetail" />
       <!-- 课程详情 -->
       <CourseDetailComponent v-if="showArea === 'courseDetail'" :id="id" />
       <!-- 会议详情 -->
       <MeetingDetailComponent v-if="showArea === 'meetingDetail'" :id="id" />
       <!-- 普法专栏列表 -->
-      <LawListComponent v-show="showArea === 'lawList'"  @detailChange="showDetail" />
+      <LawListComponent v-if="showArea === 'lawList'" @detailChange="showDetail" />
       <!-- 普法内容详情 -->
       <LawContentDetailComponent v-if="showArea === 'lawContentDetail'" :id="id" />
       <!-- 普法活动详情 -->

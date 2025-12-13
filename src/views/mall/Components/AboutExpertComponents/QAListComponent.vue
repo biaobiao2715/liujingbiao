@@ -58,14 +58,14 @@ const emit = defineEmits(['detailChange']);
 
 const total = ref(0);
 
-const queryParams = ref({ pageNum: 1, pageSize: 15, orderBy: 'desc', orderByColumn: 'default' });
+const queryParams = ref({ pageNum: 1, pageSize: 15, isAsc: 'desc', orderByColumn: '' });
 
 const qaList = ref([]);
 
 const tabs = ref([
   {
     label: '默认排序',
-    value: 'default'
+    value: ''
   },
   {
     label: '最多回复量',
