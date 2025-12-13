@@ -25,10 +25,10 @@
       <!-- 主要内容区域：左侧目录 + 右侧内容 -->
       <div class="content-wrapper">
         <!-- 左侧目录导航 -->
-        <div class="toc-sidebar-wrapper">
+        <div class="toc-sidebar-wrapper" :class="{ 'toc-collapsed': isTocCollapsed }">
           <TocSidebar
             :content="caseContent"
-            editor-container=".case-content-area"
+            editor-container=".content-area"
             :auto-scroll="true"
             @toc-click="handleTocClick"
             ref="tocSidebarRef"
@@ -102,6 +102,7 @@ const loading = ref(false);
 const caseName = ref('');
 const caseContent = ref('');
 const tocSidebarRef = ref();
+const isTocCollapsed = ref(false);
 
 const attachmentList = ref<Array<{
   ossId?: number;
@@ -193,24 +194,80 @@ const handleDownloadFile = (row: any) => {
 };
 
 // 目录相关回调
-const handleTocClick = (item: any) => {
-  // 滚动到对应标题
+const handleTocClick = async (item: any) => {
+  // 目录点击行为交由 TocSidebar 内部滚动处理，这里作为备用处理
+  // 如果 TocSidebar 的自动滚动失败，则使用此逻辑
   if (item && item.id) {
-    const targetElement = document.getElementById(item.id);
-    if (targetElement) {
-      const contentArea = document.querySelector('.case-content-area') as HTMLElement;
-      if (contentArea) {
-        const offsetTop = targetElement.offsetTop - contentArea.offsetTop;
-        contentArea.scrollTo({
-          top: offsetTop - 20,
-          behavior: 'smooth'
-        });
-      } else {
-        targetElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
+    await nextTick();
+    await nextTick(); // 多等待一个 tick，确保 DOM 完全渲染
+    
+    // 滚动容器是 .content-area，内容是 .case-content-area
+    const scrollContainer = document.querySelector('.content-area') as HTMLElement;
+    const contentArea = document.querySelector('.case-content-area') as HTMLElement;
+    
+    if (!scrollContainer || !contentArea) {
+      console.warn('未找到滚动容器或内容区域');
+      return;
+    }
+    
+    let targetElement: HTMLElement | null = null;
+    
+    // 优先通过ID查找（会在所有后代元素中查找，包括嵌套的）
+    // 如果 ID 包含特殊字符，使用 getElementById；否则使用 querySelector
+    try {
+      targetElement = contentArea.querySelector(`#${item.id}`) as HTMLElement;
+      // 如果 querySelector 找不到但 ID 存在，尝试 getElementById
+      if (!targetElement) {
+        const globalElement = document.getElementById(item.id);
+        if (globalElement && contentArea.contains(globalElement)) {
+          targetElement = globalElement as HTMLElement;
+        }
       }
+    } catch (e) {
+      // 如果 querySelector 因为特殊字符失败，使用 getElementById
+      const globalElement = document.getElementById(item.id);
+      if (globalElement && contentArea.contains(globalElement)) {
+        targetElement = globalElement as HTMLElement;
+      }
+    }
+    
+    // 如果通过ID找不到，尝试通过标签和文本精确匹配（查找所有后代元素）
+    if (!targetElement && item.tag) {
+      const headings = Array.from(contentArea.querySelectorAll(item.tag)) as HTMLElement[];
+      // 精确匹配文本内容
+      targetElement = headings.find((heading) => {
+        const headingText = heading.textContent?.trim() || '';
+        const itemText = item.text?.trim() || '';
+        return headingText === itemText;
+      }) || null;
+    }
+    
+    // 如果还是找不到，尝试全局查找（作为最后的兜底方案）
+    if (!targetElement) {
+      targetElement = document.getElementById(item.id) as HTMLElement;
+      // 如果全局找到但不在内容区域内，重新查找
+      if (targetElement && !contentArea.contains(targetElement)) {
+        targetElement = null;
+      }
+    }
+    
+    if (targetElement) {
+      // 使用 getBoundingClientRect 计算相对于滚动容器的位置
+      const scrollRect = scrollContainer.getBoundingClientRect();
+      const targetRect = targetElement.getBoundingClientRect();
+      
+      // 计算目标元素相对于滚动容器的滚动位置
+      const scrollTop = scrollContainer.scrollTop;
+      const relativeTop = targetRect.top - scrollRect.top + scrollTop;
+      
+      // 滚动到目标位置，留出20px的偏移量
+      scrollContainer.scrollTo({
+        top: Math.max(0, relativeTop - 20), // 确保不为负数
+        behavior: 'smooth'
+      });
+    } else {
+      console.warn('未找到目标元素:', item);
+      ElMessage.warning(`未找到标题"${item.text}"，请检查内容是否已修改`);
     }
   }
 };
@@ -222,18 +279,20 @@ const handleContentScroll = () => {
     clearTimeout(scrollTimer);
   }
   scrollTimer = setTimeout(() => {
+    const scrollContainer = document.querySelector('.content-area');
     const contentArea = document.querySelector('.case-content-area');
-    if (!contentArea || !tocSidebarRef.value) return;
+    if (!scrollContainer || !contentArea || !tocSidebarRef.value) return;
     
     const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
     let activeId = '';
     
+    const scrollRect = (scrollContainer as HTMLElement).getBoundingClientRect();
+    
     for (let i = headings.length - 1; i >= 0; i--) {
       const heading = headings[i] as HTMLElement;
       const rect = heading.getBoundingClientRect();
-      const contentRect = contentArea.getBoundingClientRect();
       
-      if (rect.top <= contentRect.top + 100) {
+      if (rect.top <= scrollRect.top + 100) {
         activeId = heading.id;
         break;
       }
@@ -245,17 +304,30 @@ const handleContentScroll = () => {
   }, 100);
 };
 
+// 监听目录折叠状态变化
+watch(
+  () => tocSidebarRef.value?.collapsed,
+  (collapsed) => {
+    isTocCollapsed.value = collapsed || false;
+  },
+  { immediate: true, deep: true }
+);
+
 onMounted(() => {
-  const contentArea = document.querySelector('.case-content-area');
-  if (contentArea) {
-    contentArea.addEventListener('scroll', handleContentScroll);
+  const scrollContainer = document.querySelector('.content-area');
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', handleContentScroll);
+  }
+  // 初始化折叠状态
+  if (tocSidebarRef.value?.collapsed !== undefined) {
+    isTocCollapsed.value = tocSidebarRef.value.collapsed;
   }
 });
 
 onUnmounted(() => {
-  const contentArea = document.querySelector('.case-content-area');
-  if (contentArea) {
-    contentArea.removeEventListener('scroll', handleContentScroll);
+  const scrollContainer = document.querySelector('.content-area');
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', handleContentScroll);
   }
   if (scrollTimer) {
     clearTimeout(scrollTimer);
@@ -290,14 +362,19 @@ const fetchDetail = async () => {
       await nextTick();
       
       // 确保标题有ID，以便目录导航
+      // 使用与 TocSidebar 相同的 ID 生成逻辑
       const contentArea = document.querySelector('.case-content-area');
       if (contentArea) {
         const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
         headings.forEach((heading, index) => {
           if (!heading.id) {
             const text = heading.textContent?.trim() || `heading-${index}`;
-            const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
-            heading.id = `heading-${cleanText}-${index}-${Date.now()}`;
+            const cleanText = text
+              .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '');
+            const baseId = cleanText || `heading-${index}`;
+            heading.id = `${baseId}-${Date.now().toString(36).slice(-4)}`;
           }
         });
       }
@@ -356,15 +433,19 @@ watch(
   async (newContent) => {
     if (newContent) {
       await nextTick();
-      // 确保标题有ID
+      // 确保标题有ID，使用与 TocSidebar 相同的 ID 生成逻辑
       const contentArea = document.querySelector('.case-content-area');
       if (contentArea) {
         const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
         headings.forEach((heading, index) => {
-          if (!heading.id || !heading.id.startsWith('heading-')) {
+          if (!heading.id) {
             const text = heading.textContent?.trim() || `heading-${index}`;
-            const cleanText = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-').toLowerCase();
-            heading.id = `heading-${cleanText}-${index}-${Date.now()}`;
+            const cleanText = text
+              .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '');
+            const baseId = cleanText || `heading-${index}`;
+            heading.id = `${baseId}-${Date.now().toString(36).slice(-4)}`;
           }
         });
       }
@@ -415,11 +496,17 @@ const handleClose = () => {
 }
 
 .toc-sidebar-wrapper {
-  width: 260px;
-  min-width: 260px;
+  width: 280px;
+  min-width: 280px;
   background: #f5f5f5;
   border-right: 1px solid #dcdfe6;
   overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease;
+  
+  &.toc-collapsed {
+    width: 60px;
+    min-width: 60px;
+  }
 }
 
 .content-area {

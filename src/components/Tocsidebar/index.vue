@@ -172,7 +172,10 @@ const generateToc = (content: string): { toc: TocItem[]; updatedContent: string 
 
 /** 滚动到指定标题（优化：兼容iframe + 精准定位 + 防抖动） */
 const scrollToHeading = async (item: TocItem): Promise<void> => {
-  if (!item.isValid) return ElMessage.warning('该标题无效，无法定位');
+  if (!item.isValid) {
+    ElMessage.warning('该标题无效，无法定位');
+    return;
+  }
 
   try {
     await nextTick();
@@ -184,17 +187,24 @@ const scrollToHeading = async (item: TocItem): Promise<void> => {
       // 1. 优先查找iframe内的元素
       const iframe = editorContainer.querySelector('iframe') as HTMLIFrameElement;
       if (iframe?.contentDocument) {
-        // 先通过ID查找，失败则通过文本+层级匹配
-        targetElement =
-          iframe.contentDocument.getElementById(item.id) ||
-          (Array.from(iframe.contentDocument.querySelectorAll(item.tag)).find((el) => el.textContent?.trim() === item.text) as HTMLElement);
+        // 先通过ID查找，失败则通过文本+标签匹配
+        targetElement = iframe.contentDocument.getElementById(item.id);
+        if (!targetElement) {
+          // 通过标签和文本精确匹配（查找所有匹配的元素，然后选择最匹配的）
+          const candidates = Array.from(iframe.contentDocument.querySelectorAll(item.tag));
+          targetElement = candidates.find((el) => el.textContent?.trim() === item.text) as HTMLElement || null;
+        }
       }
 
-      // 2. iframe内未找到，查找容器内直接子元素
+      // 2. iframe内未找到，查找容器内的所有后代元素（包括嵌套的）
       if (!targetElement) {
-        targetElement =
-          editorContainer.querySelector(`#${item.id}`) ||
-          (Array.from(editorContainer.querySelectorAll(item.tag)).find((el) => el.textContent?.trim() === item.text) as HTMLElement);
+        // 先通过ID查找（会在所有后代元素中查找）
+        targetElement = editorContainer.querySelector(`#${item.id}`);
+        if (!targetElement) {
+          // 通过标签和文本精确匹配（查找所有后代元素）
+          const candidates = Array.from(editorContainer.querySelectorAll(item.tag));
+          targetElement = candidates.find((el) => el.textContent?.trim() === item.text) as HTMLElement || null;
+        }
       }
     }
 
@@ -206,15 +216,31 @@ const scrollToHeading = async (item: TocItem): Promise<void> => {
     }
 
     if (targetElement) {
-      // 优化滚动逻辑：避免滚动到视口外
-      const container = targetElement.closest(props.editorContainer) || window;
-      if (container === window) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        (container as HTMLElement).scrollTo({
-          top: targetElement.offsetTop - 20, // 偏移20px，避免被导航栏遮挡
+      // 优化滚动逻辑：使用 getBoundingClientRect 精确计算滚动位置
+      const container = editorContainer ? (editorContainer as HTMLElement) : null;
+      
+      if (container && container.scrollHeight > container.clientHeight) {
+        // 容器可滚动，使用 getBoundingClientRect 计算精确位置
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+        const scrollTop = container.scrollTop;
+        
+        // 计算目标元素相对于容器的滚动位置
+        const relativeTop = targetRect.top - containerRect.top + scrollTop;
+        
+        container.scrollTo({
+          top: relativeTop - 20, // 偏移20px，避免被导航栏遮挡
           behavior: 'smooth'
         });
+      } else if (container) {
+        // 容器不可滚动，使用 offsetTop（向后兼容）
+        container.scrollTo({
+          top: targetElement.offsetTop - 20,
+          behavior: 'smooth'
+        });
+      } else {
+        // 没有找到容器，使用全局滚动
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
       // 高亮动画（优化：使用CSS动画，避免操作DOM）
@@ -225,12 +251,12 @@ const scrollToHeading = async (item: TocItem): Promise<void> => {
       activeId.value = item.id;
       emit('active-change', item.id);
     } else {
+      // 静默处理：找不到元素时不显示错误提示，只记录日志
       console.warn('未找到标题元素:', item);
-      ElMessage.info('未找到对应的标题，请检查内容是否已修改');
     }
   } catch (error) {
+    // 静默处理：捕获错误但不显示提示，只记录日志（因为备用处理可能会成功）
     console.error('滚动失败:', error);
-    ElMessage.error('标题定位失败，请稍后重试');
   }
 };
 
@@ -283,7 +309,8 @@ defineExpose({
   setActiveToc: (id: string) => (activeId.value = id),
   toggleCollapse,
   refreshToc,
-  tocList
+  tocList,
+  collapsed // 暴露折叠状态
 });
 </script>
 

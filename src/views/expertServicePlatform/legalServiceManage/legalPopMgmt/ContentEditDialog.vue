@@ -44,8 +44,9 @@
           </div>
           <TocSidebar
             :content="formData.contentContent"
-            editor-container=".w-e-text-container"
+            editor-container=".ql-container"
             :auto-scroll="true"
+            :enable-content-update="true"
             @toc-click="handleTocClick"
             @active-change="handleActiveChange"
             @content-update="handleContentUpdate"
@@ -316,15 +317,21 @@ const emitCancel = () => {
 };
 
 // 使用与培训课程编辑一致的目录组件回调，保持标题作为目录项
-const handleTocClick = (_item: any) => {
+const handleTocClick = (item: any) => {
   // 目录点击行为交由 TocSidebar 内部滚动处理，这里可按需扩展
+  console.log('目录项点击:', item);
 };
-const handleActiveChange = (_id: string) => {
+
+const handleActiveChange = (id: string) => {
   // 激活项变化，按需扩展
+  console.log('激活的目录项ID:', id);
 };
+
 const handleContentUpdate = (updatedContent: string) => {
   // 由目录组件在必要时回写处理后的内容（包含标题锚点等）
-  formData.value.contentContent = updatedContent;
+  if (updatedContent && updatedContent !== formData.value.contentContent) {
+    formData.value.contentContent = updatedContent;
+  }
 };
 
 const MB = 1024 * 1024;
@@ -550,112 +557,6 @@ onMounted(() => {
   }
 }
 
-.toc-sidebar {
-  width: 260px;
-  min-width: 260px;
-  background: #f5f5f5;
-  display: flex;
-  flex-direction: column;
-  .toc-header {
-    padding: 16px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #303133;
-    background: #ebebeb;
-    border-bottom: 1px solid #dcdfe6;
-    text-align: center;
-  }
-  .toc-content {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 500px;
-    padding: 16px;
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background-color: #c0c4cc;
-      border-radius: 3px;
-      &:hover {
-        background-color: #909399;
-      }
-    }
-    &::-webkit-scrollbar-track {
-      background-color: #e4e7ed;
-    }
-  }
-  .toc-list {
-    max-height: none;
-  }
-  .toc-item {
-    padding: 8px 10px;
-    margin-bottom: 4px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #606266;
-    font-size: 13px;
-    line-height: 1.5;
-    position: relative;
-    &:hover {
-      background-color: #e4e7ed;
-      color: #409eff;
-    }
-    &:active {
-      background-color: #d9dcdf;
-    }
-    .toc-text {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    &.toc-level-1 {
-      font-weight: 600;
-      font-size: 13px;
-      color: #303133;
-      padding-left: 10px;
-    }
-    &.toc-level-2 {
-      padding-left: 20px;
-      font-size: 12px;
-    }
-    &.toc-level-3 {
-      padding-left: 30px;
-      font-size: 12px;
-      color: #909399;
-    }
-    &.toc-level-4,
-    &.toc-level-5,
-    &.toc-level-6 {
-      padding-left: 40px;
-      font-size: 12px;
-      color: #a8abb2;
-    }
-  }
-  .toc-empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: #909399;
-    .empty-icon {
-      font-size: 36px;
-      color: #c0c4cc;
-      margin-bottom: 12px;
-    }
-    .empty-text {
-      font-size: 13px;
-      color: #909399;
-      margin: 8px 0 4px;
-    }
-    .empty-tip {
-      font-size: 11px;
-      color: #c0c4cc;
-      line-height: 1.6;
-      margin: 0;
-      padding: 0 10px;
-    }
-  }
-}
 
 .form-actions {
   display: flex;
@@ -715,14 +616,6 @@ onMounted(() => {
   .editor-container {
     flex-direction: column;
   }
-  .toc-sidebar {
-    width: 100%;
-    min-width: 100%;
-    max-height: 300px;
-    .toc-list {
-      max-height: 200px;
-    }
-  }
   .form-actions {
     .el-button {
       width: 100%;
@@ -738,11 +631,6 @@ onMounted(() => {
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .toc-sidebar {
-    width: 200px;
-    min-width: 200px;
-    padding: 16px;
-  }
   .editor-container {
     gap: 16px;
   }

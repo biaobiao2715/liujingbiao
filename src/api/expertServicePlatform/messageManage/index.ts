@@ -14,11 +14,7 @@ export interface MessageListQuery {
   createTime?: string; // 创建时间
   updateBy?: number; // 更新者
   updateTime?: string; // 更新时间
-  params?: {
-    key?: {
-      key?: any;
-    };
-  };
+  params?: Record<string, any>;
   // 问题相关字段
   id?: number; // 问题id
   questionNo?: string; // 问题编号

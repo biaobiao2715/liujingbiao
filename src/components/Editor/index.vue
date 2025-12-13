@@ -32,6 +32,8 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { QuillEditor, Quill } from '@vueup/vue-quill';
 import { propTypes } from '@/utils/propTypes';
 import { globalHeaders } from '@/utils/request';
+import { ElMessage } from 'element-plus';
+import { nextTick } from 'vue';
 
 defineEmits(['update:modelValue']);
 
@@ -93,38 +95,95 @@ const options = ref<any>({
               const range = quill.getSelection(true);
               
               if (!range || range.length === 0) {
-                // 如果没有选中文字，不执行任何操作
+                // 如果没有选中文字，提示用户
+                ElMessage.warning('请先选中要设置为标题的文本');
                 return;
               }
               
               // 获取选中的文本
               const selectedText = quill.getText(range.index, range.length);
               if (!selectedText || selectedText.trim() === '') {
+                ElMessage.warning('选中的文本为空，无法设置为标题');
                 return;
               }
               
-              // 使用 size 来模拟标题效果，而不是使用 header（header 会作用于整段）
-              let fontSize = false;
-              let fontWeight = false;
+              // 获取选中文本所在的行/块
+              const [line, offset] = quill.getLine(range.index);
+              if (!line) return;
               
-              if (value !== false) {
-                // 根据标题级别设置字体大小
-                const sizeMap: any = {
-                  1: 'huge',   // h1 最大
-                  2: 'large',  // h2
-                  3: 'large',  // h3
-                  4: false,    // h4 正常大小
-                  5: 'small',  // h5
-                  6: 'small'   // h6
-                };
-                fontSize = sizeMap[value] || false;
-                fontWeight = true; // 标题加粗
+              const lineStart = line.offset();
+              const lineLength = line.length();
+              const isFullLine = range.index === lineStart && range.length === lineLength;
+              
+              if (isFullLine) {
+                // 如果选中的是整行，直接应用 header 格式到这一行
+                if (value !== false) {
+                  // 先移除可能存在的其他格式
+                  quill.formatLine(range.index, 1, 'header', false);
+                  // 再应用新的 header 格式
+                  quill.formatLine(range.index, 1, 'header', value);
+                } else {
+                  quill.formatLine(range.index, 1, 'header', false);
+                }
+                // 确保格式已应用，并触发更新
+                quill.setSelection(range.index + range.length);
+              } else {
+                // 如果只选中了部分文本，将选中文本提取为独立的标题行
+                const headerText = selectedText.trim();
+                
+                // 获取当前行的完整文本和格式
+                const lineText = quill.getText(lineStart, lineLength);
+                const beforeText = lineText.substring(0, range.index - lineStart);
+                const afterText = lineText.substring(range.index + range.length - lineStart);
+                const lineFormats = quill.getFormat(lineStart, lineLength);
+                
+                // 删除整行内容
+                quill.deleteText(lineStart, lineLength);
+                
+                let insertPos = lineStart;
+                
+                // 插入前面的文本（如果有），保持原有格式，但移除 header 格式
+                if (beforeText) {
+                  const beforeFormats = { ...lineFormats };
+                  delete beforeFormats.header; // 确保前面的文本不是标题
+                  quill.insertText(insertPos, beforeText, beforeFormats, 'user');
+                  insertPos += beforeText.length;
+                  // 如果前面有文本，需要换行
+                  if (beforeText.trim()) {
+                    quill.insertText(insertPos, '\n', 'user');
+                    insertPos += 1;
+                  }
+                }
+                
+                // 插入标题文本（先插入文本，再应用格式）
+                quill.insertText(insertPos, headerText, 'user');
+                
+                // 在标题后插入换行，确保标题是独立的块
+                quill.insertText(insertPos + headerText.length, '\n', 'user');
+                
+                // 应用 header 格式到刚插入的文本行（必须在插入换行后应用，才能正确创建标题块）
+                quill.formatLine(insertPos, 1, 'header', value);
+                
+                insertPos += headerText.length + 1; // +1 是换行符
+                
+                // 插入后面的文本（如果有），保持原有格式，但移除 header 格式
+                if (afterText) {
+                  const afterFormats = { ...lineFormats };
+                  delete afterFormats.header; // 确保后面的文本不是标题
+                  quill.insertText(insertPos, afterText, afterFormats, 'user');
+                }
+                
+                // 设置光标位置到标题文本末尾
+                quill.setSelection(insertPos - (afterText ? afterText.length + 1 : 1));
               }
               
-              // 应用格式
-              quill.formatText(range.index, range.length, {
-                size: fontSize,
-                bold: fontWeight
+              // 触发内容更新，确保目录能够识别新标题
+              // 通过更新 content ref 来触发 v-model 更新
+              nextTick(() => {
+                const newContent = quill.root.innerHTML;
+                if (content.value !== newContent) {
+                  content.value = newContent;
+                }
               });
             }
           }
