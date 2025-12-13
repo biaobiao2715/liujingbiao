@@ -202,7 +202,7 @@
       </el-table>
     </div>
 
-    <div class="section-title" v-if="Number(formData.status) === 3 ">平台处理结果:</div>
+    <div class="section-title" v-if="Number(formData.status) === 3">平台处理结果:</div>
     <el-row :gutter="20" class="detail-form" v-if="Number(formData.status) === 3 && Number(formData.rejectBack) === 1">
       <el-col :span="24">
         <el-form-item label="信用等级：">
@@ -224,7 +224,7 @@
       </el-col>
     </el-row>
 
-    <div v-if="Number(formData.rejectBack) === 2"> 平台处理/申诉成功</div>
+    <div v-if="Number(formData.rejectBack) === 2">平台处理/申诉成功</div>
 
     <div class="section-title" v-if="Number(formData.status) === 4">举报人撤回原因</div>
     <div class="section-title-che" style="font-size: 18px; margin-left: 15px" v-if="Number(formData.status) === 4">
@@ -350,8 +350,8 @@ const formData = ref({
   createTime: '', //举报时间
   caseCode: '', //案件编号
   reportDescription: '', //举报描述
-  withdrawCause:'',
-  rejectBack:'',
+  withdrawCause: '',
+  rejectBack: '',
   status: '', //订单状态
   appealTime: '', //申诉时间
   enterpriseType: '', //0供应商 1企业
@@ -590,23 +590,14 @@ const handleSubmit = async () => {
       createTime: formData.value.createTime,
       caseCode: formData.value.caseCode,
       reportDescription: formData.value.reportDescription,
- 
+
       status: formData.value.status,
       withdrawCause: formData.value.withdrawCause,
       rejectBack: formData.value.rejectBack
     };
     console.log('submitData提交的数据', submitData);
     return;
-    // 调用对应的接口
-    const api = props.type === 'add' ? courseCultivateadd : courseCultivateupdate;
-    const response: any = await api(submitData);
-
-    if (response && response.code === 200) {
-      ElMessage.success(props.type === 'add' ? '培训课程发布成功' : '培训课程修改成功');
-      emit('success');
-    } else {
-      ElMessage.error(response?.msg || '操作失败，请稍后重试');
-    }
+  
   } catch (error) {
     if (error !== 'cancel') {
       console.error('操作失败:', error);
