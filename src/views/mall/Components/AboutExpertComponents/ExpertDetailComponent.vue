@@ -250,6 +250,7 @@ const handleQAList = () => {
     padding: 20px;
     box-sizing: border-box;
     .question-title {
+      z-index: 200;
       width: 163px;
       height: 40px;
       background: rgba(255, 255, 255, 0.3);
