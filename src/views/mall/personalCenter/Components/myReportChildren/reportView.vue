@@ -498,6 +498,7 @@ const currentScenario = computed(() => {
     scenarioKey = isWithdrawPending.value ? '4-pending' : '4-processing';
   }
   const template = statusScenarios[scenarioKey] || statusScenarios['0'];
+
   const scenario = {
     title: template.title,
     currentStageId: template.currentStageId,
@@ -506,20 +507,31 @@ const currentScenario = computed(() => {
 
   scenario.stages = scenario.stages.map((stage: any) => {
     if (stage.id === 1 && !stage.time) {
-      stage.time = props.reportData?.createTime || '';
-    } else if (stage.id === 2 && !stage.time && status !== '0') {
-      stage.time = props.reportData?.updateTime || props.reportData?.createTime || '';
-    } else if (stage.id === 3 && !stage.time && (status === '3' || scenarioKey.startsWith('4'))) {
-      stage.time = props.reportData?.closeTime || props.reportData?.withdrawTime || props.reportData?.updateTime || scenarioKey.startsWith('1');
+      // 待处理
+      stage.time = props.reportData?.statusAndDate.find((item) => item.status === '0')?.time || '';
+    }
+    if (stage.id === 2 && !stage.time && status !== '0') {
+      // 处理中\已驳回\已撤回
+      stage.time =
+        props.reportData?.statusAndDate.find((item) => item.status === '4')?.time ||
+        props.reportData?.statusAndDate.find((item) => item.status === '2')?.time ||
+        props.reportData?.statusAndDate.find((item) => item.status === '1')?.time;
+    }
+    if (stage.id === 3 && !stage.time && (status === '3' || status === '4')) {
+      // 已结案\已撤回
+      stage.time =
+        props.reportData?.statusAndDate.find((item) => item.status === '3')?.time ||
+        props.reportData?.statusAndDate.find((item) => item.status === '4')?.time;
     }
     return stage;
   });
 
   return scenario;
 });
+console.log(currentScenario.value);
 
 const statusStages = computed(() => currentScenario.value.stages);
-const currentStatus = computed(() => currentScenario.value.stages.find((s) => s.id === currentScenario.value.currentStageId));
+// const currentStatus = computed(() => currentScenario.value.stages.find((s) => s.id === currentScenario.value.currentStageId));
 
 // 移除 watch，使用 computed 自动处理双向绑定
 
