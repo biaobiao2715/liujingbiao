@@ -264,7 +264,8 @@ const handleRedirect = async (path: string) => {
 
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
-    router.push(path);
+    // 移除掉字符串第一位的&符号
+    router.push(path.replace(/^app/, ''));
     setTimeout(() => {
       initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
     }, 2000);
