@@ -68,7 +68,7 @@
         </el-form-item>
 
         <el-form-item v-if="formData.varietyType" label="品种类型：" prop="varietyType">
-          {{ formData.varietyType }}
+          <dict-text :options="breed_identification" :value="formData.varietyType ?? ''" />
         </el-form-item>
 
         <el-form-item v-if="formData.featureDescription" label="特征描述：" prop="featureDescription">
@@ -84,8 +84,8 @@
         <el-form-item v-if="formData.confidenceLevel" label="置信度评分：" prop="confidenceLevel">
           {{ formData.confidenceLevel }}
         </el-form-item>
-        <el-form-item v-if="formData.skeleton_URL" label="识别状态：" prop="skeleton_URL">
-          <img :src="formData.skeleton_URL" alt="" style="width: 100px; height: 100px" />
+        <el-form-item v-if="formData.skeletonUrl" label="识别状态：" prop="skeletonUrl">
+          <img :src="formData.skeletonUrl" alt="" style="width: 100px; height: 100px" />
         </el-form-item>
 
         <div class="flex-center-end">
@@ -101,8 +101,8 @@
 import { ref, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import {} from '@/api/register'; // 图片上传接口
 import { ossUploadImage, varietyRecognizeIdentify, varietyRecognizeAdd } from '@/api/mall/personalCenter/varietyIdentification';
-
 import type { UploadFile } from 'element-plus';
+
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { breed_identification } = toRefs<any>(proxy?.useDict('breed_identification'));
 const emit = defineEmits<{
@@ -113,12 +113,13 @@ const emit = defineEmits<{
 const formData = ref({
   confidenceLevel: '',
   varietyType: '',
-  skeleton_URL: '',
+  skeletonUrl: '',
   varietyName: '',
   featureDescription: '',
   plantingTechniquesGuidance: '',
   fileName: '',
-  precautions: ''
+  precautions: '',
+  identifyBeginTime: ''
 });
 
 const selectedCategory = ref<string>('');
@@ -169,23 +170,29 @@ const submitForm = () => {
     ElMessage.warning('请上传图片后再进行识别');
     return;
   }
+  // 记录开始识别时间
+  formData.value.identifyBeginTime = proxy.parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}');
   proxy?.$modal.loading('正在识别中，请稍候...');
   varietyRecognizeIdentify({ imageUrl: diplomaUrl.value.url, modelName: selectedCategory.value })
     .then((res) => {
       ElMessage.success('识别成功');
-      const arr = res.data.result;
-      console.log('识别结果：', res);
+      const arr = res.data;
+      const brr = {
+        ...res.data
+      };
+      console.log('识别结果：', res, brr);
       formShow.value = true;
 
       formData.value = {
         fileName: diplomaUrl.value.name,
-        confidenceLevel: arr.Plant_Type.confidence || '',
-        varietyType: arr.Plant_Type.type || '',
-        skeleton_URL: arr.skeleton_URL || '',
-        varietyName: arr.Plant_Type.varietyName || '',
-        featureDescription: arr.Plant_Type.featureDescription || '',
-        plantingTechniquesGuidance: arr.Plant_Type.plantingTechniquesGuidance || '',
-        precautions: arr.Plant_Type.precautions || ''
+        confidenceLevel: arr.confidenceValue || '',
+        varietyType: arr.varietyType || '',
+        skeletonUrl: arr.skeleton_URL || arr.imgUrl || '',
+        varietyName: arr.varietyName || '',
+        featureDescription: arr.featureDescription || '',
+        plantingTechniquesGuidance: arr.plantingTechniquesGuidance || '',
+        precautions: arr.precautions || '',
+        identifyBeginTime: formData.value.identifyBeginTime || ''
       };
     })
     .catch((error) => {

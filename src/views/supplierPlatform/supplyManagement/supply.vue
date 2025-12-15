@@ -107,7 +107,7 @@
 
           <el-col :span="12">
             <el-form-item label="报价/元" prop="supplyPrice">
-              <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" :disabled="dialogMode === 'detail'" />
+              <el-input v-model="quoteForm.supplyPrice" placeholder="请输入报价/元" :disabled="dialogMode === 'detail'" @blur="handlePriceBlur" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -357,6 +357,10 @@ const handleDelete = async (row: any) => {
 const submitQuote = () => {
   quoteFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
+    // 提交前统一格式化报价为两位小数
+    if (quoteForm.value.supplyPrice !== '') {
+      quoteForm.value.supplyPrice = formatToTwoDecimals(quoteForm.value.supplyPrice);
+    }
     let params;
     if (dialogMode.value === 'add') {
       params = {
@@ -432,6 +436,22 @@ const supplierSupplyDeliveryBosForm = (val: any[], result: any[]) => {
 onMounted(() => {
   getTableData();
 });
+
+// 报价失焦时，自动补齐两位小数
+const handlePriceBlur = () => {
+  const val = quoteForm.value.supplyPrice;
+  if (val === undefined || val === null || val === '') return;
+  quoteForm.value.supplyPrice = formatToTwoDecimals(val);
+};
+
+// 工具：将输入统一转为保留两位小数的字符串
+const formatToTwoDecimals = (value: any): string => {
+  const num = Number(value);
+  if (isNaN(num)) return '';
+  // 限制最大值9999，保持与规则一致
+  const clamped = Math.min(num, 9999);
+  return clamped.toFixed(2);
+};
 </script>
 
 <style scoped lang="scss">
