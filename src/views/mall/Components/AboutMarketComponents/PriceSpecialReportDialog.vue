@@ -32,7 +32,14 @@
       </el-table-column>
       <el-table-column label="商品图片" align="center" width="120">
         <template #default="{ row }">
-          <el-image v-if="row.goodsImage" :src="row.goodsImage" :preview-src-list="[row.goodsImage]" style="width: 60px; height: 60px" fit="cover" />
+          <el-image
+            v-if="row.goodsImage"
+            :src="row.goodsImage"
+            :preview-src-list="[row.goodsImage]"
+            :preview-teleported="true"
+            style="width: 60px; height: 60px"
+            fit="cover"
+          />
           <span v-else class="text-gray">暂无图片</span>
         </template>
       </el-table-column>
@@ -343,5 +350,12 @@ const getCreditLevelClass = (level: string) => {
 
 .credit-text.credit-poor {
   color: #ff4d4f;
+}
+</style>
+
+<style lang="scss">
+// 确保图片预览层级高于对话框
+.el-image-viewer__wrapper {
+  z-index: 3000 !important;
 }
 </style>
