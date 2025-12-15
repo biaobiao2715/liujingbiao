@@ -14,7 +14,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import * as echarts from 'echarts';
 import type { ECharts } from 'echarts';
-import chinaGeoJson from './chinaMap.json';
 
 interface MapDataItem {
   name: string;
@@ -39,23 +38,55 @@ const props = withDefaults(defineProps<Props>(), {
 const mapContainer = ref<HTMLElement | null>(null);
 let chartInstance: ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let chinaMapReady = false;
+let loadChinaMapPromise: Promise<void> | null = null;
 
-// 加载中国地图数据
-const loadChinaMap = () => {
-  if (!chartInstance) return;
+// 通过 script 动态加载 china.js（UMD 版依赖全局 this/window）
+const loadChinaMapScript = () => {
+  if (loadChinaMapPromise) return loadChinaMapPromise;
 
-  try {
-    // 使用本地 JSON 文件
-    const geoJson = chinaGeoJson as any;
+  loadChinaMapPromise = new Promise<void>((resolve, reject) => {
+    // 如果已注册直接返回
+    if (echarts.getMap('china')) {
+      chinaMapReady = true;
+      resolve();
+      return;
+    }
 
-    // 注册地图
-    echarts.registerMap('china', geoJson);
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    // 通过 import.meta.url 生成静态资源路径，适配打包
+    script.src = new URL('./china.js', import.meta.url).href;
 
-    // 初始化图表
-    updateChart();
-  } catch (error) {
-    console.error('加载地图数据失败:', error);
+    // china.js 依赖全局 echarts
+    (window as any).echarts = echarts;
+
+    script.onload = () => {
+      chinaMapReady = !!echarts.getMap('china');
+      resolve();
+    };
+    script.onerror = (err) => {
+      chinaMapReady = false;
+      reject(err);
+    };
+
+    document.body.appendChild(script);
+  });
+
+  return loadChinaMapPromise;
+};
+
+// 确保中国地图已注册。china.js 依赖全局 echarts，因此先挂到 window 后按需动态导入。
+const ensureChinaMapRegistered = async () => {
+  if (chinaMapReady && echarts.getMap('china')) return;
+
+  // 如果未注册，加载 china.js 脚本
+  if (!echarts.getMap('china')) {
+    await loadChinaMapScript();
   }
+
+  chinaMapReady = !!echarts.getMap('china');
 };
 
 // 初始化图表
@@ -65,10 +96,14 @@ const initChart = () => {
   chartInstance = echarts.init(mapContainer.value);
 
   // 初始化后立即调整大小
-  nextTick(() => {
+  nextTick(async () => {
     chartInstance?.resize();
-    // 加载地图数据
-    loadChinaMap();
+    await ensureChinaMapRegistered();
+    if (echarts.getMap('china')) {
+      updateChart();
+    } else {
+      console.warn('中国地图数据未注册，请检查 china.js 是否正确加载');
+    }
   });
 };
 
@@ -173,13 +208,13 @@ const updateChart = () => {
         type: 'map',
         map: 'china',
         roam: false, // 禁止缩放和拖动
-        zoom: 1.15, // 初始缩放比例
-        layoutCenter: ['50%', '65%'], // 控制垂直位置稍向下
-        layoutSize: '100%', // 适中尺寸
-        left: '5%',
-        right: '5%',
-        top: '3%',
-        bottom: '5%',
+        zoom: 1.0, // 初始缩放比例（略缩小）
+        layoutCenter: ['50%', '52%'], // 上移地图位置
+        layoutSize: '90%', // 缩小整体占比
+        left: '6%',
+        right: '6%',
+        top: '3%', // 减少上侧留白
+        bottom: '8%',
         aspectScale: 0.7,
         label: {
           show: true,
@@ -351,7 +386,7 @@ defineExpose({
 .china-map-heatmap {
   width: 100%;
   height: 100%;
-  min-height: 600px;
+  min-height: 520px; // 收缩默认高度
   margin: 0 auto;
 }
 </style>
