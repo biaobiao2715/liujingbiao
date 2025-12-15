@@ -1,3 +1,11 @@
+
+<!--
+  标题: ExpertComponent.vue
+  功能: 专家组件，包含专家咨询、专家问答、培训课程会议、文章专栏、普法专栏、直播等功能
+  说明: 
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-15
+-->
 <template>
   <div class="expert-container">
     <div class="show-area" v-if="showArea === 'expert'">

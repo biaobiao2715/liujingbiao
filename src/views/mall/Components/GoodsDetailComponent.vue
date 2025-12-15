@@ -1,3 +1,11 @@
+
+<!--
+  标题: GoodsDetailComponent.vue
+  功能: 商品详情组件，包含商品图片、商品信息、商品评论等功能
+  说明: 
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-15
+-->
 <template>
   <div class="goods-detail-container">
     <div class="goods-detail" v-loading="loading" v-show="!showOrder">

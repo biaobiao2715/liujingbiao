@@ -109,13 +109,15 @@ const TITLE_MAP: Record<Exclude<DetailView, never>, string> = {
   varietyIdentification: '品种识别记录'
 };
 
-const naviteList = ref([]);
+const naviteList = ref([]); // 导航列表
+
+const homeType = ['goods', 'demand', 'market', 'expert'];
 
 onMounted(() => {
   eventBus.on('navigationChange', (command: string) => {
     const uniqueId = new Date().getTime();
     // 如果是大类，那么就清空导航列表，重新添加
-    if (command === 'goods' || command === 'demand' || command === 'market' || command === 'expert') {
+    if (homeType.includes(command)) {
       naviteList.value = [
         {
           uniqueId,

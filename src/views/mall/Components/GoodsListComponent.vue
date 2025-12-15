@@ -5,7 +5,6 @@
   当前版本: 1.0
   开发信息: Created by 李春雷 2025-12-09
 -->
-
 <template>
   <div class="goods-list-container">
     <!-- 查询组件 -->

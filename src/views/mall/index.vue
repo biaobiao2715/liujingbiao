@@ -84,7 +84,7 @@ onMounted(() => {
   // 监听切换Tabs事件
   eventBus.on('activeTabChange', (data: any) => {
     console.log(data);
-    
+
     activeTab.value = data.command;
 
     if (data.command === 'compareDetail') {
@@ -116,7 +116,9 @@ onMounted(() => {
 
 // 点击Tabs切换事件
 function handleTabClick(tab: any) {
-  eventBus.emit('navigationChange', tab);
+  if (tab !== activeTab.value) {
+    eventBus.emit('navigationChange', tab);
+  }
   activeTab.value = tab;
 }
 

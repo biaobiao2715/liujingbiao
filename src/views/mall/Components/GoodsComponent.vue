@@ -1,3 +1,11 @@
+<!--
+  标题: GoodsComponent.vue
+  功能: 商城首页组件，包含商品展示、商品详情、商品比价等功能
+  说明: 
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-15
+-->
+
 <template>
   <div class="goods-container">
     <div class="show-area" v-if="showArea === 'goods'">
