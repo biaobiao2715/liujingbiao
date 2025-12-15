@@ -1,9 +1,10 @@
 <template>
   <div class="qa-detail-card">
     <div class="question-info">
-      <div style="display: flex; align-items: center; justify-content: flex-start">
-        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #00a1d6; margin-right: 20px">
+      <div class="profile-box">
+        <div class="profile-avatar-class">
           <!-- 头像 -->
+          <img v-if="!!answers?.expertImage" :src="answers?.expertImage" alt="" />
         </div>
         <span class="question-user">
           {{ answers?.questionUser || '' }}
@@ -94,6 +95,23 @@ const fetchQuestionDetail = async () => {
   border-radius: 8px 8px 8px 8px;
   padding: 20px;
   box-sizing: border-box;
+  .profile-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    .profile-avatar-class {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #00a1d6;
+      margin-right: 20px;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
   .question-info {
     font-size: 14px;
     color: #666;
