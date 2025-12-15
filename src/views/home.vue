@@ -1,7 +1,7 @@
 <template>
   <div class="application-container">
     <div class="user-info-bar flex-center-between">
-      <img src="@/assets/images/logo-white.svg" width="32" />
+      <img src="@/assets/images/logo.svg" width="32" />
       <div class="user-info flex-center gap-12">
         <el-icon color="#fff"><Bell /></el-icon>
         <div class="dept-name">{{ userInfo?.deptName }}</div>
@@ -182,11 +182,20 @@ const getUserInfo = async () => {
   tenantType.value = res.data.tenantType;
 
   if (res.data.superAdmin) {
+    const thirdData = homeData.find((item: any) => item.path === 'thirdPartyLogin');
+
     currentPlatform.value = [
       {
         title: homeData[0].meta.title,
         description: homeData[0]?.remark,
         redirect: homeData[0].path,
+        icon: 'application-icon-7.svg',
+        bg: 'application-bg-7.svg'
+      },
+      {
+        title: thirdData.meta.title,
+        description: thirdData?.remark,
+        redirect: thirdData.path,
         icon: 'application-icon-7.svg',
         bg: 'application-bg-7.svg'
       }
