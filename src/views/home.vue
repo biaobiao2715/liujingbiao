@@ -44,7 +44,10 @@ import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
 import { initSSE } from '@/utils/sse';
+import { getRouters } from '@/api/menu';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
+import { getToken } from '@/utils/auth';
+
 const userStore = useUserStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -161,16 +164,34 @@ const permissionPopupData = ref<any>(null);
 const auditStatus = ref<number | null>(null);
 
 onMounted(async () => {
+  // getRouterList()
   getUserInfo();
 });
 
 const getUserInfo = async () => {
   const res: any = await getInfo();
+  const routeRes = await getRouters();
+  const { data } = routeRes;
+  const homeData =
+    data.filter((item: any) => {
+      return item.path === '/applications';
+    })[0]?.children || [];
+
+  currentPlatform.value = homeData.map((item: any) => {
+    return {
+      title: item.meta.title,
+      description: item.remark,
+      redirect: item.path,
+      icon: 'application-icon-7.svg',
+      bg: 'application-bg-7.svg'
+    };
+  });
+
   userInfo.value = res.data.user;
   userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
   // 采购商
-  currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
+  // currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
 };
 
 const getIcon = (svgName: string) => {
@@ -180,6 +201,7 @@ const getIcon = (svgName: string) => {
 // 处理点击跳转 用axios原始请求方式
 const handleRedirect = async (path: string) => {
   // 跳转到第三方溯源系统
+  const token = getToken();
   if (path === 'thirdPartyLogin') {
     // 调用溯源用户校验接口
     try {
@@ -210,8 +232,12 @@ const handleRedirect = async (path: string) => {
       permissionPopupVisible.value = true;
     }
     return;
-  } else if (path === 'environmentMonitor') {
-    window.open('http://rmthingscore.com/login/hbmm', '_blank');
+  } else if (path.includes('http')) {
+    if (path.includes('rmthingscore')) {
+      window.open(path, '_blank');
+    } else {
+      window.open(path + '/' + token, '_blank');
+    }
     return;
   }
 
