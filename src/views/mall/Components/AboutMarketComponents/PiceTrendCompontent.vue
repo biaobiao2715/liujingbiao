@@ -118,7 +118,7 @@
             <span v-else class="change-tag change-down">+{{ Math.abs(row.change) }}%</span>
           </template>
         </el-table-column>
-        <el-table-column label="走势图" align="center" width="200">
+        <el-table-column label="走势图" align="center" width="150">
           <template #default="{ row }">
             <img class="trend-img" :src="getTrendIcon(row.change)" alt="走势图" />
           </template>
