@@ -11,7 +11,6 @@
   } else {
     // Browser globals
     factory({}, root.echarts);
-    s;
   }
 })(this, function (exports, echarts) {
   var log = function (msg) {
