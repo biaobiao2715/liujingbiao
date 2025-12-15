@@ -434,7 +434,7 @@ const statusScenarios: Record<string, any> = {
   '0': {
     title: '待处理',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '处理中', time: '', active: false, show: true },
       { id: 3, name: '已结案', time: '', active: false, show: true }
     ],
@@ -444,8 +444,8 @@ const statusScenarios: Record<string, any> = {
   '1': {
     title: '处理中',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
-      { id: 2, name: '处理中', time: props.reportData?.updateTime || props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: props.reportData?.updateTime || '', active: true, show: true },
       { id: 3, name: '已结案', time: '', active: false, show: true }
     ],
     currentStageId: 2
@@ -454,7 +454,7 @@ const statusScenarios: Record<string, any> = {
   '2': {
     title: '已驳回',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '已驳回', time: props.reportData?.updateTime || props.reportData?.reviewTime || '', active: true, show: true }
     ],
     currentStageId: 2
@@ -463,8 +463,8 @@ const statusScenarios: Record<string, any> = {
   '3': {
     title: '已结案',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
-      { id: 2, name: '处理中', time: props.reportData?.updateTime || props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: props.reportData?.updateTime || '', active: true, show: true },
       { id: 3, name: '已结案', time: props.reportData?.closeTime || props.reportData?.updateTime || '', active: true, show: true }
     ],
     currentStageId: 3
@@ -473,8 +473,8 @@ const statusScenarios: Record<string, any> = {
   '4-processing': {
     title: '已撤回',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
-      { id: 2, name: '处理中', time: props.reportData?.updateTime || props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
+      { id: 2, name: '处理中', time: props.reportData?.updateTime || '', active: true, show: true },
       { id: 3, name: '已撤回', time: props.reportData?.withdrawTime || props.reportData?.updateTime || '', active: true, show: true }
     ],
     currentStageId: 3
@@ -483,7 +483,7 @@ const statusScenarios: Record<string, any> = {
   '4-pending': {
     title: '已撤回',
     stages: [
-      { id: 1, name: '待处理', time: props.reportData?.createTime || '', active: true, show: true },
+      { id: 1, name: '待处理', time: '', active: true, show: true },
       { id: 2, name: '已撤回', time: props.reportData?.withdrawTime || props.reportData?.updateTime || '', active: true, show: true }
     ],
     currentStageId: 2
@@ -506,18 +506,22 @@ const currentScenario = computed(() => {
   };
 
   scenario.stages = scenario.stages.map((stage: any) => {
-    if (stage.id === 1 && !stage.time) {
+    if (stage.id === 1) {
       // 待处理
       stage.time = props.reportData?.statusAndDate.find((item) => item.status === '0')?.time || '';
     }
-    if (stage.id === 2 && !stage.time && status !== '0') {
-      // 处理中\已驳回\已撤回
-      stage.time =
-        props.reportData?.statusAndDate.find((item) => item.status === '4')?.time ||
-        props.reportData?.statusAndDate.find((item) => item.status === '2')?.time ||
-        props.reportData?.statusAndDate.find((item) => item.status === '1')?.time;
+    if (stage.id === 2) {
+      // 处理中-1\已驳回-2\已结案-3\已撤回-4
+      if (status === '4' && isWithdrawPending.value) {
+        // 待处理-撤回
+        stage.time = props.reportData?.statusAndDate.find((item) => item.status === '4')?.time;
+      }
+      if (status === '1' || status === '2' || status === '3' || (status === '4' && !isWithdrawPending.value)) {
+        // 处理中 \ 已驳回 \ 已结案 // 处理中-撤回
+        stage.time = props.reportData?.statusAndDate.find((item) => item.status === '1')?.time;
+      }
     }
-    if (stage.id === 3 && !stage.time && (status === '3' || status === '4')) {
+    if (stage.id === 3 && (status === '3' || status === '4')) {
       // 已结案\已撤回
       stage.time =
         props.reportData?.statusAndDate.find((item) => item.status === '3')?.time ||
@@ -528,7 +532,6 @@ const currentScenario = computed(() => {
 
   return scenario;
 });
-console.log(currentScenario.value);
 
 const statusStages = computed(() => currentScenario.value.stages);
 // const currentStatus = computed(() => currentScenario.value.stages.find((s) => s.id === currentScenario.value.currentStageId));
