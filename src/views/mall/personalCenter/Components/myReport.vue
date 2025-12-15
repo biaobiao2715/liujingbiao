@@ -43,7 +43,7 @@
             />
           </el-form-item>
           <el-form-item label="所属状态：">
-            <el-select v-model="queryParams.status" placeholder="请选择">
+            <el-select v-model="queryParams.status" placeholder="请选择" clearable>
               <el-option v-for="status in statusOptions" :key="status.value" :label="status.label" :value="status.value" />
             </el-select>
           </el-form-item>
