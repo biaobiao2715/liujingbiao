@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item label="品种类型" prop="varietyType" label-width="auto">
           <el-select v-model="queryParams.varietyType" placeholder="请选择品种类型" filterable clearable>
-            <el-option v-for="(dict, index) in varietyTypeOptions" :key="index" :label="dict.varietyType" :value="dict.varietyType" />
+            <el-option v-for="(dict, index) in breed_identification" :key="index" :label="dict.label" :value="dict.value" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -70,7 +70,7 @@
         </el-table-column>
         <el-table-column label="品种类型" align="center" prop="varietyType" width="210" style="color: #0000ff">
           <template #default="scope">
-            <dict-text :options="review_status" :value="scope.row.varietyType ?? ''" />
+            <dict-text :options="breed_identification" :value="scope.row.varietyType ?? ''" />
           </template>
         </el-table-column>
         <el-table-column label="特征描述" align="center" prop="featureDescription" width="210" :show-overflow-tooltip="true">
@@ -130,10 +130,10 @@
 
 <script setup lang="ts">
 import { ref, getCurrentInstance, toRefs, onMounted, onActivated, type ComponentInternalInstance } from 'vue';
-import { varietyRecognizeList, varietyRecognizeGroupType } from '@/api/mall/personalCenter/varietyIdentification';
+import { varietyRecognizeList } from '@/api/mall/personalCenter/varietyIdentification';
 import varietyIdentificationForm from './varietyIdentificationForm.vue';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status } = toRefs<any>(proxy?.useDict('review_status'));
+const { review_status, breed_identification } = toRefs<any>(proxy?.useDict('review_status', 'breed_identification'));
 // 搜索表单数据
 const queryParams = ref({
   pageNum: 1,
@@ -153,8 +153,7 @@ const dlgTitle = ref('');
 const isReadonly = ref(false);
 const selectID = ref<string | number>('');
 const selectType = ref<'view' | 'add'>('view');
-// 品种识别类别
-const varietyTypeOptions = ref([]);
+
 // 图片预览
 const picOpen = ref(false);
 const dialogImageUrl = ref('');
@@ -170,11 +169,6 @@ const getList = () => {
     tableData.value = res.rows;
     total.value = res.total;
     loading.value = false;
-  });
-
-  // 查询品种识别类别
-  varietyRecognizeGroupType().then((res) => {
-    varietyTypeOptions.value = res.data;
   });
 };
 
@@ -238,8 +232,10 @@ const picPreBeforeClose = () => {
 // 预览
 const handlePictureCardPreview = (file: any) => {
   // console.log('预览图片', file);
-  // dialogImageUrl.value = file.skeletonURL;
-  // picOpen.value = true;
+  if (file.skeletonUrl) {
+    dialogImageUrl.value = file.skeletonUrl;
+    picOpen.value = true;
+  }
 };
 
 onMounted(() => {
