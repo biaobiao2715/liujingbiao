@@ -1,38 +1,23 @@
-<!-- 
-标题：    CaseViewDialog.vue
-功能：    知识库案件查看弹窗
-说明：    专门用于查看知识库案件详情，包含目录导航和附件列表
-当前版本：1.0
-开发信息：Created by Cursor AI 2025-01-XX
-修改人信息：
-修改内容：
+<!--
+  标题: 知识库案件查看弹窗
+  功能: 知识库案件详情查看，包含目录导航和附件列表
+  说明: 专门用于查看知识库案件详情，包含目录导航和附件列表功能，支持下载附件
+  当前版本: 2.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
 -->
 <template>
-  <el-dialog
-    :model-value="visible"
-    title="查看案件分析"
-    width="50%"
-    destroy-on-close
-    :close-on-click-modal="false"
-    @close="handleClose"
-  >
+  <el-dialog :model-value="visible" title="查看案件分析" width="50%" destroy-on-close :close-on-click-modal="false" @close="handleClose">
     <div class="case-view-container" v-loading="loading">
       <!-- 案件名称 -->
       <div class="case-name-section">
         <div class="case-name-value">{{ caseName || '--' }}</div>
       </div>
-      
+
       <!-- 主要内容区域：左侧目录 + 右侧内容 -->
       <div class="content-wrapper">
         <!-- 左侧目录导航 -->
         <div class="toc-sidebar-wrapper" :class="{ 'toc-collapsed': isTocCollapsed }">
-          <TocSidebar
-            :content="caseContent"
-            editor-container=".content-area"
-            :auto-scroll="true"
-            @toc-click="handleTocClick"
-            ref="tocSidebarRef"
-          />
+          <TocSidebar :content="caseContent" editor-container=".content-area" :auto-scroll="true" @toc-click="handleTocClick" ref="tocSidebarRef" />
         </div>
 
         <!-- 右侧内容区域 -->
@@ -104,16 +89,18 @@ const caseContent = ref('');
 const tocSidebarRef = ref();
 const isTocCollapsed = ref(false);
 
-const attachmentList = ref<Array<{
-  ossId?: number;
-  fileName?: string;
-  originalName: string;
-  fileSuffix?: string;
-  url: string;
-  fileSize?: string;
-  fileType?: string;
-  foreignType?: string;
-}>>([]);
+const attachmentList = ref<
+  Array<{
+    ossId?: number;
+    fileName?: string;
+    originalName: string;
+    fileSuffix?: string;
+    url: string;
+    fileSize?: string;
+    fileType?: string;
+    foreignType?: string;
+  }>
+>([]);
 
 // 仅当附件类型有值时才显示在列表中；如果后端未返回附件类型或前端已清空附件，则不展示附件部分
 const visibleAttachmentList = computed(() =>
@@ -200,18 +187,18 @@ const handleTocClick = async (item: any) => {
   if (item && item.id) {
     await nextTick();
     await nextTick(); // 多等待一个 tick，确保 DOM 完全渲染
-    
+
     // 滚动容器是 .content-area，内容是 .case-content-area
     const scrollContainer = document.querySelector('.content-area') as HTMLElement;
     const contentArea = document.querySelector('.case-content-area') as HTMLElement;
-    
+
     if (!scrollContainer || !contentArea) {
       console.warn('未找到滚动容器或内容区域');
       return;
     }
-    
+
     let targetElement: HTMLElement | null = null;
-    
+
     // 优先通过ID查找（会在所有后代元素中查找，包括嵌套的）
     // 如果 ID 包含特殊字符，使用 getElementById；否则使用 querySelector
     try {
@@ -230,18 +217,19 @@ const handleTocClick = async (item: any) => {
         targetElement = globalElement as HTMLElement;
       }
     }
-    
+
     // 如果通过ID找不到，尝试通过标签和文本精确匹配（查找所有后代元素）
     if (!targetElement && item.tag) {
       const headings = Array.from(contentArea.querySelectorAll(item.tag)) as HTMLElement[];
       // 精确匹配文本内容
-      targetElement = headings.find((heading) => {
-        const headingText = heading.textContent?.trim() || '';
-        const itemText = item.text?.trim() || '';
-        return headingText === itemText;
-      }) || null;
+      targetElement =
+        headings.find((heading) => {
+          const headingText = heading.textContent?.trim() || '';
+          const itemText = item.text?.trim() || '';
+          return headingText === itemText;
+        }) || null;
     }
-    
+
     // 如果还是找不到，尝试全局查找（作为最后的兜底方案）
     if (!targetElement) {
       targetElement = document.getElementById(item.id) as HTMLElement;
@@ -250,16 +238,16 @@ const handleTocClick = async (item: any) => {
         targetElement = null;
       }
     }
-    
+
     if (targetElement) {
       // 使用 getBoundingClientRect 计算相对于滚动容器的位置
       const scrollRect = scrollContainer.getBoundingClientRect();
       const targetRect = targetElement.getBoundingClientRect();
-      
+
       // 计算目标元素相对于滚动容器的滚动位置
       const scrollTop = scrollContainer.scrollTop;
       const relativeTop = targetRect.top - scrollRect.top + scrollTop;
-      
+
       // 滚动到目标位置，留出20px的偏移量
       scrollContainer.scrollTo({
         top: Math.max(0, relativeTop - 20), // 确保不为负数
@@ -282,22 +270,22 @@ const handleContentScroll = () => {
     const scrollContainer = document.querySelector('.content-area');
     const contentArea = document.querySelector('.case-content-area');
     if (!scrollContainer || !contentArea || !tocSidebarRef.value) return;
-    
+
     const headings = contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6');
     let activeId = '';
-    
+
     const scrollRect = (scrollContainer as HTMLElement).getBoundingClientRect();
-    
+
     for (let i = headings.length - 1; i >= 0; i--) {
       const heading = headings[i] as HTMLElement;
       const rect = heading.getBoundingClientRect();
-      
+
       if (rect.top <= scrollRect.top + 100) {
         activeId = heading.id;
         break;
       }
     }
-    
+
     if (activeId && tocSidebarRef.value.setActiveToc) {
       tocSidebarRef.value.setActiveToc(activeId);
     }
@@ -346,11 +334,11 @@ const fetchDetail = async () => {
   loading.value = true;
   try {
     const response: any = await fetchKnowledgeCaseDetail(props.detail.id);
-    
+
     if (response && response.code === 200) {
       const data = response.data;
       caseName.value = data.knowledgeCaseName || '';
-      
+
       let contentContent = decodeRichText(data.knowledgeCaseContent || '');
       if (!contentContent || (typeof contentContent === 'string' && contentContent.trim() === '')) {
         contentContent = '';
@@ -360,7 +348,7 @@ const fetchDetail = async () => {
 
       await nextTick();
       await nextTick();
-      
+
       // 确保标题有ID，以便目录导航
       // 使用与 TocSidebar 相同的 ID 生成逻辑
       const contentArea = document.querySelector('.case-content-area');
@@ -390,7 +378,7 @@ const fetchDetail = async () => {
       };
 
       if (data.protectionFiles && Array.isArray(data.protectionFiles)) {
-        const validFiles = data.protectionFiles.filter(file => !isAttachmentEmpty(file));
+        const validFiles = data.protectionFiles.filter((file) => !isAttachmentEmpty(file));
         attachmentList.value = validFiles.length > 0 ? [normalizeAttachment(validFiles[0])] : [];
       } else if (data.protectionFiles && typeof data.protectionFiles === 'object') {
         // 单个附件对象
@@ -468,14 +456,14 @@ const handleClose = () => {
 .case-name-section {
   text-align: center;
   margin-bottom: 24px;
-  
+
   .case-name-label {
     font-size: 14px;
     color: #606266;
     margin-bottom: 8px;
     font-weight: 500;
   }
-  
+
   .case-name-value {
     font-size: 20px;
     font-weight: 600;
@@ -501,8 +489,10 @@ const handleClose = () => {
   background: #f5f5f5;
   border-right: 1px solid #dcdfe6;
   overflow: hidden;
-  transition: width 0.3s ease, min-width 0.3s ease;
-  
+  transition:
+    width 0.3s ease,
+    min-width 0.3s ease;
+
   &.toc-collapsed {
     width: 60px;
     min-width: 60px;
@@ -515,12 +505,12 @@ const handleClose = () => {
   background: #ffffff;
   overflow-y: auto;
   max-height: 600px;
-  
+
   .case-content-area {
     padding: 20px;
     line-height: 1.8;
     color: #303133;
-    
+
     :deep(h1),
     :deep(h2),
     :deep(h3),
@@ -532,57 +522,57 @@ const handleClose = () => {
       font-weight: 600;
       color: #303133;
     }
-    
+
     :deep(h1) {
       font-size: 24px;
     }
-    
+
     :deep(h2) {
       font-size: 20px;
     }
-    
+
     :deep(h3) {
       font-size: 18px;
     }
-    
+
     :deep(h4) {
       font-size: 16px;
     }
-    
+
     :deep(p) {
       margin-bottom: 12px;
       line-height: 1.8;
     }
-    
+
     :deep(img) {
       max-width: 100%;
       height: auto;
       margin: 12px 0;
       border-radius: 4px;
     }
-    
+
     :deep(ul),
     :deep(ol) {
       margin-bottom: 12px;
       padding-left: 24px;
     }
-    
+
     :deep(li) {
       margin-bottom: 8px;
     }
-    
+
     :deep(table) {
       width: 100%;
       border-collapse: collapse;
       margin: 12px 0;
-      
+
       th,
       td {
         border: 1px solid #dcdfe6;
         padding: 8px 12px;
         text-align: left;
       }
-      
+
       th {
         background-color: #f5f7fa;
         font-weight: 600;
@@ -593,7 +583,7 @@ const handleClose = () => {
 
 .attachment-section {
   margin-top: 20px;
-  
+
   .section-title {
     font-size: 16px;
     font-weight: 600;
@@ -604,11 +594,11 @@ const handleClose = () => {
 
 .attachment-table {
   width: 100%;
-  
+
   :deep(.el-button) {
     padding: 4px 8px;
     font-size: 14px;
-    
+
     .el-icon {
       margin-right: 4px;
     }
@@ -672,7 +662,7 @@ const handleClose = () => {
   background: #f5f5f5;
   border: none;
   border-radius: 0;
-  
+
   .toc-header {
     padding: 16px 20px;
     font-size: 14px;
@@ -682,35 +672,35 @@ const handleClose = () => {
     border-bottom: 1px solid #dcdfe6;
     text-align: center;
   }
-  
+
   .toc-content {
     flex: 1;
     overflow-y: auto;
     max-height: calc(600px - 60px);
     padding: 16px;
-    
+
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background-color: #c0c4cc;
       border-radius: 3px;
-      
+
       &:hover {
         background-color: #909399;
       }
     }
-    
+
     &::-webkit-scrollbar-track {
       background-color: #e4e7ed;
     }
   }
-  
+
   .toc-list {
     max-height: none;
   }
-  
+
   .toc-item {
     padding: 8px 10px;
     margin-bottom: 4px;
@@ -721,21 +711,21 @@ const handleClose = () => {
     font-size: 13px;
     line-height: 1.5;
     position: relative;
-    
+
     &:hover {
       background-color: #e4e7ed;
       color: #409eff;
     }
-    
+
     &:active {
       background-color: #d9dcdf;
     }
-    
+
     &.toc-active {
       background-color: #e6f4ff;
       color: #409eff;
       font-weight: 500;
-      
+
       &::before {
         content: '';
         position: absolute;
@@ -748,32 +738,32 @@ const handleClose = () => {
         border-radius: 0 2px 2px 0;
       }
     }
-    
+
     .toc-text {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    
+
     &.toc-level-1 {
       font-weight: 600;
       font-size: 13px;
       color: #303133;
       padding-left: 10px;
     }
-    
+
     &.toc-level-2 {
       padding-left: 20px;
       font-size: 12px;
     }
-    
+
     &.toc-level-3 {
       padding-left: 30px;
       font-size: 12px;
       color: #909399;
     }
-    
+
     &.toc-level-4,
     &.toc-level-5,
     &.toc-level-6 {
@@ -782,24 +772,24 @@ const handleClose = () => {
       color: #a8abb2;
     }
   }
-  
+
   .toc-empty {
     text-align: center;
     padding: 60px 20px;
     color: #909399;
-    
+
     .empty-icon {
       font-size: 36px;
       color: #c0c4cc;
       margin-bottom: 12px;
     }
-    
+
     .empty-text {
       font-size: 13px;
       color: #909399;
       margin: 8px 0 4px;
     }
-    
+
     .empty-tip {
       font-size: 11px;
       color: #c0c4cc;
@@ -814,19 +804,19 @@ const handleClose = () => {
   .content-wrapper {
     flex-direction: column;
   }
-  
+
   .toc-sidebar-wrapper {
     width: 100%;
     min-width: 100%;
     max-height: 300px;
-    
+
     :deep(.toc-sidebar) {
       .toc-list {
         max-height: 200px;
       }
     }
   }
-  
+
   .content-area {
     max-height: 400px;
   }
@@ -839,4 +829,3 @@ const handleClose = () => {
   }
 }
 </style>
-

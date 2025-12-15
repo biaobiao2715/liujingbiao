@@ -1,4 +1,10 @@
-<!-- 产品管理-保险详情页 -->
+<!--
+  标题: 保险产品详情页
+  功能: 显示保险产品的详细信息
+  说明: 展示保险产品的基本信息、产品简介、产品优势、保障计划、申请条件、网点清单和产品备注等信息
+  当前版本: 1.0
+  开发信息: 门世超
+-->
 <template>
   <div class="product-insurance-detail" v-loading="loading">
     <div class="section-title">基本信息</div>
@@ -17,7 +23,10 @@
       <div class="info-item">
         <span class="label">适用对象：</span>
         <span class="value">
-          <dict-tag :options="applicable_object" :value="typeof detailData.applicableObject === 'string' ? detailData.applicableObject.split(',') : detailData.applicableObject" />
+          <dict-tag
+            :options="applicable_object"
+            :value="typeof detailData.applicableObject === 'string' ? detailData.applicableObject.split(',') : detailData.applicableObject"
+          />
         </span>
       </div>
     </div>
@@ -66,13 +75,7 @@
 
     <div class="info-block" v-if="detailData.productRemark">
       <span class="label">产品备注：</span>
-      <el-input
-        :model-value="detailData.productRemark"
-        type="textarea"
-        class="readonly-textarea"
-        :autosize="{ minRows: 3 }"
-        readonly
-      />
+      <el-input :model-value="detailData.productRemark" type="textarea" class="readonly-textarea" :autosize="{ minRows: 3 }" readonly />
     </div>
 
     <div class="footer-actions">
@@ -100,9 +103,7 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { product_insurance_type, applicable_object } = toRefs<any>(
-  proxy?.useDict('product_insurance_type', 'applicable_object')
-);
+const { product_insurance_type, applicable_object } = toRefs<any>(proxy?.useDict('product_insurance_type', 'applicable_object'));
 
 const loading = ref(false);
 
@@ -163,7 +164,7 @@ const syncDetailAttachmentList = async (data: any) => {
     const remoteFile = data.remoteFile;
     const fileName = remoteFile.originalName || remoteFile.name || data.branchOfficeAttachmentName || '网点清单';
     const displayName = formatFileName(fileName);
-    
+
     detailFileList.value = [
       buildUploadFileItem({
         ossId: remoteFile.ossId,
@@ -176,13 +177,13 @@ const syncDetailAttachmentList = async (data: any) => {
     detailData.value.branchOfficeAttachmentUrl = remoteFile.url || data.branchOfficeAttachmentUrl || '';
     return;
   }
-  
+
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     const firstFile = ossList[0];
     const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.branchOfficeAttachmentName || '网点清单';
     const displayName = formatFileName(fileName);
-    
+
     detailFileList.value = [
       buildUploadFileItem({
         ossId: firstFile.ossId,
@@ -195,16 +196,16 @@ const syncDetailAttachmentList = async (data: any) => {
     detailData.value.branchOfficeAttachmentUrl = firstFile.url || firstFile.fileUrl || data.branchOfficeAttachmentUrl || '';
     return;
   }
-  
+
   if (data?.branchOfficeAttachment) {
     try {
       const ossResponse: any = await listByIds(data.branchOfficeAttachment);
-      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : (ossResponse ?? []);
       if (Array.isArray(ossData) && ossData.length > 0) {
         const firstFile = ossData[0];
         const fileName = firstFile.originalName || firstFile.fileName || data.branchOfficeAttachmentName || '网点清单';
         const displayName = formatFileName(fileName);
-        
+
         detailFileList.value = [
           buildUploadFileItem({
             ossId: firstFile.ossId,

@@ -1,4 +1,10 @@
-<!-- 产品管理-信贷详情弹窗 -->
+<!--
+  标题: ProductCreditDetail.vue
+  功能: 信贷产品详情弹窗
+  说明: 显示信贷产品的详细信息
+  当前版本: 1.0
+  开发信息: Created by 门世超, Refactored by 门世超
+-->
 <template>
   <div class="product-credit-detail" v-loading="loading">
     <div class="section-title">基本信息</div>
@@ -17,19 +23,25 @@
       <div class="info-item">
         <span class="label">适用对象：</span>
         <span class="value">
-          <dict-tag :options="applicable_object" :value="typeof productDetail.applicableObject === 'string' ? productDetail.applicableObject.split(',') : productDetail.applicableObject" />
+          <dict-tag
+            :options="applicable_object"
+            :value="typeof productDetail.applicableObject === 'string' ? productDetail.applicableObject.split(',') : productDetail.applicableObject"
+          />
         </span>
       </div>
       <div class="info-item range">
         <span class="label">可贷金额：</span>
         <span class="value">
-          <template v-if="productDetail.minLoanAmount !== null && productDetail.minLoanAmount !== undefined && productDetail.maxLoanAmount !== null && productDetail.maxLoanAmount !== undefined">
-            <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount">
-              {{ productDetail.minLoanAmount }} 万元
-            </template>
-            <template v-else>
-              {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元
-            </template>
+          <template
+            v-if="
+              productDetail.minLoanAmount !== null &&
+              productDetail.minLoanAmount !== undefined &&
+              productDetail.maxLoanAmount !== null &&
+              productDetail.maxLoanAmount !== undefined
+            "
+          >
+            <template v-if="productDetail.minLoanAmount === productDetail.maxLoanAmount"> {{ productDetail.minLoanAmount }} 万元 </template>
+            <template v-else> {{ productDetail.minLoanAmount }} 万元 — {{ productDetail.maxLoanAmount }} 万元 </template>
           </template>
           <template v-else>--</template>
         </span>
@@ -37,13 +49,16 @@
       <div class="info-item range">
         <span class="label">利率/费率：</span>
         <span class="value">
-          <template v-if="productDetail.baseInterestRate !== null && productDetail.baseInterestRate !== undefined && productDetail.floatInterestRate !== null && productDetail.floatInterestRate !== undefined">
-            <template v-if="productDetail.baseInterestRate === productDetail.floatInterestRate">
-              {{ productDetail.baseInterestRate }}%
-            </template>
-            <template v-else>
-              {{ productDetail.baseInterestRate }}% — {{ productDetail.floatInterestRate }}%
-            </template>
+          <template
+            v-if="
+              productDetail.baseInterestRate !== null &&
+              productDetail.baseInterestRate !== undefined &&
+              productDetail.floatInterestRate !== null &&
+              productDetail.floatInterestRate !== undefined
+            "
+          >
+            <template v-if="productDetail.baseInterestRate === productDetail.floatInterestRate"> {{ productDetail.baseInterestRate }}% </template>
+            <template v-else> {{ productDetail.baseInterestRate }}% — {{ productDetail.floatInterestRate }}% </template>
           </template>
           <template v-else>--</template>
         </span>
@@ -51,13 +66,19 @@
       <div class="info-item">
         <span class="label">可贷周期：</span>
         <span class="value">
-          <dict-tag :options="loan_cycle" :value="typeof productDetail.loanCycle === 'string' ? productDetail.loanCycle.split(',') : productDetail.loanCycle" />
+          <dict-tag
+            :options="loan_cycle"
+            :value="typeof productDetail.loanCycle === 'string' ? productDetail.loanCycle.split(',') : productDetail.loanCycle"
+          />
         </span>
       </div>
       <div class="info-item">
         <span class="label">还款方式：</span>
         <span class="value">
-          <dict-tag :options="repayment_method" :value="typeof productDetail.repaymentMethod === 'string' ? productDetail.repaymentMethod.split(',') : productDetail.repaymentMethod" />
+          <dict-tag
+            :options="repayment_method"
+            :value="typeof productDetail.repaymentMethod === 'string' ? productDetail.repaymentMethod.split(',') : productDetail.repaymentMethod"
+          />
         </span>
       </div>
     </div>
@@ -92,25 +113,13 @@
     <div class="info-block" v-if="productDetail.cooperationAttachment || (productDetail.ossFileVo && productDetail.ossFileVo.length > 0)">
       <span class="label">合作机构：</span>
       <div class="attachment-content">
-        <el-upload
-          class="upload-display"
-          :file-list="detailFileList"
-          :disabled="true"
-          list-type="text"
-        >
-        </el-upload>
+        <el-upload class="upload-display" :file-list="detailFileList" :disabled="true" list-type="text"> </el-upload>
       </div>
     </div>
 
     <div class="info-block" v-if="productDetail.productRemark">
       <span class="label">产品备注：</span>
-      <el-input
-        :model-value="productDetail.productRemark"
-        type="textarea"
-        class="readonly-textarea"
-        :autosize="{ minRows: 3 }"
-        readonly
-      />
+      <el-input :model-value="productDetail.productRemark" type="textarea" class="readonly-textarea" :autosize="{ minRows: 3 }" readonly />
     </div>
 
     <div class="footer-actions">
@@ -170,7 +179,7 @@ const syncDetailAttachmentList = async (data: any) => {
     const remoteFile = data.remoteFile;
     const fileName = remoteFile.originalName || remoteFile.name || data.cooperationAttachmentName || '合作机构附件';
     const displayName = formatFileName(fileName);
-    
+
     detailFileList.value = [
       buildUploadFileItem({
         ossId: remoteFile.ossId,
@@ -180,14 +189,14 @@ const syncDetailAttachmentList = async (data: any) => {
     ];
     return;
   }
-  
+
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     const firstFile = ossList[0];
     // 优先使用 originalName，然后是 fileName，最后是 name
     const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.cooperationAttachmentName || '合作机构附件';
     const displayName = formatFileName(fileName);
-    
+
     detailFileList.value = [
       buildUploadFileItem({
         ossId: firstFile.ossId,
@@ -197,16 +206,16 @@ const syncDetailAttachmentList = async (data: any) => {
     ];
     return;
   }
-  
+
   if (data?.cooperationAttachment) {
     try {
       const ossResponse: any = await listByIds(data.cooperationAttachment);
-      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : (ossResponse ?? []);
       if (Array.isArray(ossData) && ossData.length > 0) {
         const firstFile = ossData[0];
         const fileName = firstFile.originalName || firstFile.fileName || data.cooperationAttachmentName || '合作机构附件';
         const displayName = formatFileName(fileName);
-        
+
         detailFileList.value = [
           buildUploadFileItem({
             ossId: firstFile.ossId,

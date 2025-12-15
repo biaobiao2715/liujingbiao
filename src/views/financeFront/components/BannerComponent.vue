@@ -5,15 +5,8 @@
         <div class="banner-item" :class="`banner-bg-${index + 1}`">
           <div class="banner-text flex gap-12">
             <div class="product-name">{{ tab.data?.productName || '' }}</div>
-            <!-- <div class="product-name">
-              skjafkjsadfjalsdsjfhfgdjsghs可视电话富士康符合大嫂喝咖啡肯定会说佳慧房东机构和房东健身更好就大嫂回复康师傅喝开水是否收到后回复
-            </div> -->
 
             <div class="product-remark">{{ tab.data?.productRemark || '' }}</div>
-            <!-- <div class="product-remark">
-              skjafkjsadfjalsdsjfhfgdjsghs可视电话富士康符合大嫂喝咖啡肯定会说佳慧房东机构和房东健身更好就大嫂回复康师傅喝开水是否收到后回复
-            </div> -->
-
             <el-button round type="primary" size="large" @click="handleDetail(tab)">{{
               '查看' + (tab?.type === 'insurance' ? '保险产品' : '信贷产品')
             }}</el-button>

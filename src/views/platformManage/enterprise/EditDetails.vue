@@ -198,7 +198,13 @@
             <el-table-column prop="orderStatus" label="订单状态">
               <template #default="scope">
                 {{
-                  scope.row.orderStatus === 1 ? '待发货' : scope.row.orderStatus === 2 ? '已发货' : scope.row.orderStatus === 3 ? '已完成' : '已取消'
+                  scope.row.orderStatus === '1'
+                    ? '待发货'
+                    : scope.row.orderStatus === '2'
+                      ? '已发货'
+                      : scope.row.orderStatus === '3'
+                        ? '已完成'
+                        : '已取消'
                 }}
               </template>
             </el-table-column>

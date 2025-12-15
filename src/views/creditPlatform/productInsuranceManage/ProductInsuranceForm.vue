@@ -1,4 +1,10 @@
-<!-- 产品管理-保险新增/编辑页 -->
+<!--
+  标题: 保险产品新增/编辑页
+  功能: 提供保险产品的新增和编辑功能
+  说明: 支持保险产品的基本信息录入、富文本编辑、附件上传等功能
+  当前版本: 1.0
+  开发信息: 门世超
+-->
 <template>
   <div class="product-insurance-form" v-loading="loading">
     <div class="section-title">基础信息</div>
@@ -13,24 +19,13 @@
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="产品名称" prop="productName">
-            <el-input
-              v-model="formData.productName"
-              placeholder="请输入产品名称"
-              maxlength="50"
-              show-word-limit
-              clearable
-            />
+            <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="适用对象" prop="applicableObject">
             <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
-              <el-option
-                v-for="dict in applicable_object"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -40,12 +35,7 @@
         <el-col :span="12">
           <el-form-item label="产品类型" prop="productType">
             <el-select v-model="formData.productType" placeholder="请选择产品类型" clearable>
-              <el-option
-                v-for="dict in product_insurance_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -116,9 +106,7 @@
             </el-upload>
             <span class="upload-tip">注: 请上传PDF文件</span>
           </div>
-          <div v-if="showReplaceTip" class="replace-tip">
-            请删除后重新上传
-          </div>
+          <div v-if="showReplaceTip" class="replace-tip">请删除后重新上传</div>
         </div>
       </el-form-item>
 
@@ -191,7 +179,7 @@ const INSURANCE_EXTRACT_PROMPT = `你是一个专业的产品信息提取器，�
 const validateFileForParse = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const allowedExt = ['pdf', 'docx'];
-  
+
   if (!allowedExt.includes(ext)) {
     ElMessage.error('自动解析功能仅支持 PDF 和 DOCX 格式的文件');
     return false;
@@ -202,7 +190,7 @@ const validateFileForParse = (file: File): boolean => {
     ElMessage.error('文档文件最大100MB');
     return false;
   }
-  
+
   return true;
 };
 
@@ -236,25 +224,23 @@ const triggerUpload = async () => {
         console.error('上传文件失败:', uploadError);
         console.error('错误响应:', uploadError?.response);
         console.error('错误数据:', uploadError?.response?.data);
-        const errorMsg = uploadError?.response?.data?.message || 
-                        uploadError?.response?.data?.msg || 
-                        uploadError?.message || 
-                        '上传失败';
+        const errorMsg = uploadError?.response?.data?.message || uploadError?.response?.data?.msg || uploadError?.message || '上传失败';
         throw new Error(`文件上传失败: ${errorMsg}`);
       }
-      
+
       // 尝试多种可能的 previewUrl 路径（严格按照接口文档：上传接口返回 previewUrl）
-      const previewUrl = uploadRes?.data?.previewUrl || 
-                        uploadRes?.data?.data?.previewUrl ||
-                        uploadRes?.data?.url ||
-                        uploadRes?.data?.data?.url ||
-                        uploadRes?.previewUrl || 
-                        uploadRes?.url ||
-                        // 兼容旧格式（如果返回的是 fileId，可能需要拼接 URL）
-                        (uploadRes?.data?.fileId ? `http://8.153.15.72:81/fastgpt/file/${uploadRes.data.fileId}` : null);
-      
+      const previewUrl =
+        uploadRes?.data?.previewUrl ||
+        uploadRes?.data?.data?.previewUrl ||
+        uploadRes?.data?.url ||
+        uploadRes?.data?.data?.url ||
+        uploadRes?.previewUrl ||
+        uploadRes?.url ||
+        // 兼容旧格式（如果返回的是 fileId，可能需要拼接 URL）
+        (uploadRes?.data?.fileId ? `http://8.153.15.72:81/fastgpt/file/${uploadRes.data.fileId}` : null);
+
       console.log('提取的 previewUrl:', previewUrl, '完整响应:', uploadRes);
-      
+
       if (!previewUrl) {
         console.error('未找到 previewUrl，完整响应:', uploadRes);
         throw new Error(`上传失败，未获取到文件预览URL。响应数据: ${JSON.stringify(uploadRes?.data || uploadRes)}`);
@@ -271,12 +257,12 @@ const triggerUpload = async () => {
         const errorMsg = analysisError?.response?.data?.message || analysisError?.response?.data?.msg || analysisError?.message || '解析失败';
         throw new Error(`文件解析失败: ${errorMsg}`);
       }
-      
+
       // 解析返回的JSON（支持新的数据结构：responseData数组）
       let parsedData: any = {};
       try {
         const responseData = analysisRes?.data || analysisRes;
-        
+
         // 优先尝试从新的数据结构中提取（responseData数组）
         if (responseData?.responseData && Array.isArray(responseData.responseData)) {
           // 遍历 responseData 数组，查找 extractResult.info 或 pluginOutput.info
@@ -290,7 +276,7 @@ const triggerUpload = async () => {
             }
           }
         }
-        
+
         // 如果新结构中没有找到，尝试旧的解析方式
         if (!parsedData || Object.keys(parsedData).length === 0) {
           // 如果返回的是字符串，尝试解析JSON
@@ -316,7 +302,7 @@ const triggerUpload = async () => {
             }
           }
         }
-        
+
         console.log('提取的解析数据:', parsedData);
       } catch (parseError) {
         console.error('解析返回数据失败:', parseError);
@@ -330,12 +316,12 @@ const triggerUpload = async () => {
         if (parsedData.productName) {
           formData.value.productName = String(parsedData.productName);
         }
-        
+
         // 产品类型
         if (parsedData.productType) {
           formData.value.productType = String(parsedData.productType);
         }
-        
+
         // 适用对象（可能是字符串或数组）
         if (parsedData.applicableObject) {
           if (Array.isArray(parsedData.applicableObject)) {
@@ -344,24 +330,24 @@ const triggerUpload = async () => {
             formData.value.applicableObject = parsedData.applicableObject.split(',').filter(Boolean);
           }
         }
-        
+
         // 产品简介
         if (parsedData.productIntro) {
           formData.value.productIntro = String(parsedData.productIntro);
         }
-        
+
         // 产品优势
         if (parsedData.productAdvantages) {
           formData.value.productAdvantages = String(parsedData.productAdvantages);
           advantagesEditorKey.value += 1;
         }
-        
+
         // 保障计划
         if (parsedData.guaranteePlan) {
           formData.value.guaranteePlan = String(parsedData.guaranteePlan);
           guaranteePlanEditorKey.value += 1;
         }
-        
+
         // 申请条件
         if (parsedData.applicationInstructions) {
           formData.value.applicationInstructions = String(parsedData.applicationInstructions);
@@ -369,7 +355,7 @@ const triggerUpload = async () => {
         }
 
         ElMessage.success('文件解析成功，已自动填充表单');
-        
+
         // 触发表单验证
         await nextTick();
         formRef.value?.validateField('productName').catch(() => {});
@@ -378,11 +364,8 @@ const triggerUpload = async () => {
       }
     } catch (error: any) {
       console.error('文件上传解析失败:', error);
-      const errorMsg = error?.message || 
-                       error?.response?.data?.message || 
-                       error?.response?.data?.msg ||
-                       error?.response?.statusText ||
-                       '文件上传解析失败，请重试';
+      const errorMsg =
+        error?.message || error?.response?.data?.message || error?.response?.data?.msg || error?.response?.statusText || '文件上传解析失败，请重试';
       ElMessage.error(errorMsg);
     } finally {
       modal?.closeLoading?.();
@@ -445,15 +428,9 @@ const rules: FormRules = {
     { required: true, message: '请输入产品简介', trigger: 'blur' },
     { min: 5, max: 100, message: '产品简介长度需在5~100个字符内', trigger: 'blur' }
   ],
-  productAdvantages: [
-    { required: true, message: '请输入产品优势', trigger: 'change' }
-  ],
-  guaranteePlan: [
-    { required: true, message: '请输入保障计划', trigger: 'change' }
-  ],
-  applicationInstructions: [
-    { required: true, message: '请输入申请条件', trigger: 'change' }
-  ],
+  productAdvantages: [{ required: true, message: '请输入产品优势', trigger: 'change' }],
+  guaranteePlan: [{ required: true, message: '请输入保障计划', trigger: 'change' }],
+  applicationInstructions: [{ required: true, message: '请输入申请条件', trigger: 'change' }],
   branchOfficeAttachment: [
     {
       validator: (_rule, value, callback) => {
@@ -480,11 +457,13 @@ const handleSubmit = () => {
     try {
       // 产品备注默认值（未填写时使用）
       const defaultProductRemark = '具体开办的业务种类及办理程序、办理条件等以线下网点信息为准。';
-      
+
       const payload: any = {
         productName: formData.value.productName,
         productType: formData.value.productType,
-        applicableObject: Array.isArray(formData.value.applicableObject) ? formData.value.applicableObject.join(',') : formData.value.applicableObject,
+        applicableObject: Array.isArray(formData.value.applicableObject)
+          ? formData.value.applicableObject.join(',')
+          : formData.value.applicableObject,
         productStatus: formData.value.status || '3',
         productIntro: formData.value.productIntro,
         productAdvantages: formData.value.productAdvantages,
@@ -498,9 +477,7 @@ const handleSubmit = () => {
         payload.productId = formData.value.productId;
         payload.optType = '1';
       }
-      const response = props.type === 'edit' 
-        ? await editInsuranceProduct(payload)
-        : await addInsuranceProduct(payload);
+      const response = props.type === 'edit' ? await editInsuranceProduct(payload) : await addInsuranceProduct(payload);
       if (response && response.code === 200) {
         ElMessage.success(props.type === 'edit' ? '修改成功' : '新增成功');
         emit('success');
@@ -531,7 +508,7 @@ const validateFile = (file: File): boolean => {
     ElMessage.error(imageExt.includes(ext) ? '图片文件最大10MB' : '文档文件最大100MB');
     return false;
   }
-  
+
   return true;
 };
 
@@ -541,7 +518,7 @@ const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 const uploadAttachmentFile = async (file: File) => {
@@ -661,7 +638,7 @@ const syncAttachmentFromDetail = async (data: any) => {
     const remoteFile = data.remoteFile;
     const fileName = remoteFile.originalName || remoteFile.name || data.branchOfficeAttachmentName || '网点清单';
     const displayName = formatFileName(fileName);
-    
+
     attachmentFileList.value = [
       buildUploadFileItem({
         ossId: remoteFile.ossId,
@@ -673,13 +650,13 @@ const syncAttachmentFromDetail = async (data: any) => {
     formData.value.branchOfficeAttachmentName = displayName;
     return;
   }
-  
+
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     const firstFile = ossList[0];
     const fileName = firstFile.originalName || firstFile.fileName || firstFile.name || data.branchOfficeAttachmentName || '网点清单';
     const displayName = formatFileName(fileName);
-    
+
     attachmentFileList.value = [
       buildUploadFileItem({
         ossId: firstFile.ossId,
@@ -691,16 +668,16 @@ const syncAttachmentFromDetail = async (data: any) => {
     formData.value.branchOfficeAttachmentName = displayName;
     return;
   }
-  
+
   if (data?.branchOfficeAttachment) {
     try {
       const ossResponse: any = await listByIds(data.branchOfficeAttachment);
-      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : ossResponse ?? [];
+      const ossData = Array.isArray(ossResponse?.data) ? ossResponse.data : (ossResponse ?? []);
       if (Array.isArray(ossData) && ossData.length > 0) {
         const firstFile = ossData[0];
         const fileName = firstFile.originalName || firstFile.fileName || data.branchOfficeAttachmentName || '网点清单';
         const displayName = formatFileName(fileName);
-        
+
         attachmentFileList.value = [
           buildUploadFileItem({
             ossId: firstFile.ossId,
@@ -751,7 +728,11 @@ const loadDetail = async () => {
       formData.value = {
         productName: data.productName || '',
         productType: data.productType || '',
-        applicableObject: data.applicableObject ? (Array.isArray(data.applicableObject) ? data.applicableObject : data.applicableObject.split(',')) : [],
+        applicableObject: data.applicableObject
+          ? Array.isArray(data.applicableObject)
+            ? data.applicableObject
+            : data.applicableObject.split(',')
+          : [],
         productId: data.productId || null,
         status: data.productStatus || data.status || '',
         productIntro: data.productIntro || '',

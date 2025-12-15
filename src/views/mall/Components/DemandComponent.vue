@@ -1,3 +1,11 @@
+
+<!--
+  标题: DemandComponent.vue
+  功能: 需求组件，包含需求咨询、需求问答、需求发布、需求详情等功能
+  说明: 
+  当前版本: 1.0
+  开发信息: Created by 李春雷 2025-12-15
+-->
 <template>
   <div class="demand-component">
     <div class="demand-content" v-if="showArea === 'demand'">

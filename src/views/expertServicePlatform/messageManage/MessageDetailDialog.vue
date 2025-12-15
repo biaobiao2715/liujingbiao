@@ -1,7 +1,8 @@
 <!--
-  标题: MessageDetailDialog.vue
-  功能: 留言详情弹窗
-  说明: 用于查看留言详细信息
+  标题: 专家咨询服务平台 - 留言详情
+  功能: 用于查看留言详细信息
+  说明: 显示留言的详细内容、附件及回复历史
+  负责人： 门世超
   当前版本: 1.0
 -->
 <template>
@@ -100,6 +101,7 @@ const detailData = ref({
   attachments: [] as any[]
 });
 
+// 回复列表
 const replyList = ref<Array<{ content: string; time: string; replyBy?: string }>>([]);
 
 const fetchDetail = async () => {
@@ -167,16 +169,17 @@ const fetchDetail = async () => {
   }
 };
 
+// 判断是否为图片类型
 const isImage = (url?: string) => {
   if (!url) return false;
   const u = url.split('?')[0].toLowerCase();
   return ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'].some((ext) => u.endsWith(ext));
 };
-
+// 预览图片列表
 const imagePreviewList = computed(() => {
   return (detailData.value.attachments || []).map((a: any) => a?.url).filter((u: string) => !!u && isImage(u));
 });
-
+// 获取图片在预览列表中的索引
 const getImageIndex = (url?: string) => {
   if (!url) return 0;
   return imagePreviewList.value.findIndex((u) => u === url);

@@ -3,6 +3,7 @@
   功能: 金融内容详情弹窗
   说明: 用于查看金融文章的详细信息
   当前版本: 1.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
 -->
 <template>
   <div class="content-detail-dialog" v-loading="loading">

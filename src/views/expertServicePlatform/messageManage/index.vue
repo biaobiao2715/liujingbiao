@@ -1,7 +1,7 @@
 <!--
-  标题: messageManage.vue
-  功能: 留言管理
-  说明: 用于专家咨询服务平台的留言管理，包括查询、查看、回复、删除等操作
+  标题: 专家咨询服务平台 - 留言管理
+  功能: 用于专家咨询服务平台的留言管理，包括查询、查看、回复、删除等操作
+  说明: 该页面提供留言的搜索、分页展示功能，并支持查看留言详情和回复留言的弹窗操作。
   负责人： 门世超
   当前版本: 1.0
 -->
@@ -175,11 +175,10 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getMessageList, type MessageListQuery } from '@/api/expertServicePlatform/messageManage/index';
 
-const MessageDetailDialog = defineAsyncComponent(() => import('./MessageDetailDialog.vue'));
-const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDialog.vue'));
+const MessageDetailDialog = defineAsyncComponent(() => import('./MessageDetailDialog.vue')); // 留言详情弹窗组件
+const MessageReplyDialog = defineAsyncComponent(() => import('./MessageReplyDialog.vue')); // 留言回复弹窗组件
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-
 const { reply_status } = toRefs<any>((proxy as any)?.useDict('reply_status'));
 
 const queryParams = ref<MessageListQuery>({
@@ -204,6 +203,7 @@ const detailDialog = ref({
   id: null as string | number | null
 });
 
+// 回复留言弹窗数据
 const replyDialog = ref({
   visible: false,
   id: null as string | number | null,
@@ -213,18 +213,20 @@ const replyDialog = ref({
   batchIndex: 0
 });
 
+// 获取留言列表
 const getList = () => {
   loading.value = true;
 
-  const messageDate = messageDateRange.value;
-  const replyDate = replyDateRange.value;
-  const messageStartTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[0] : null;
-  const messageEndTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[1] : null;
-  const replyStartTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[0] : null;
-  const replyEndTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[1] : null;
+  const messageDate = messageDateRange.value; // 留言时间范围
+  const replyDate = replyDateRange.value; // 回复时间范围
+  const messageStartTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[0] : null; // 留言开始时间
+  const messageEndTime = messageDate && Array.isArray(messageDate) && messageDate.length >= 2 ? messageDate[1] : null;  // 留言结束时间
+  const replyStartTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[0] : null; // 回复开始时间
+  const replyEndTime = replyDate && Array.isArray(replyDate) && replyDate.length >= 2 ? replyDate[1] : null; // 回复结束时间
 
+  // 构建查询参数
   const params: MessageListQuery = {
-    pageNum: queryParams.value.pageNum,
+    pageNum: queryParams.value.pageNum, 
     pageSize: queryParams.value.pageSize,
     ...(queryParams.value.messageContent ? { questionContent: queryParams.value.messageContent } : {}),
     ...(queryParams.value.questionStatus ? { questionStatus: queryParams.value.questionStatus } : {}),
@@ -259,6 +261,7 @@ const getList = () => {
     });
 };
 
+// 置顶排序
 const applyPinSort = (rows: any[]) => {
   if (!pinnedIds.value.length) return rows;
   const indexMap = new Map<string, number>();
@@ -271,6 +274,7 @@ const applyPinSort = (rows: any[]) => {
   });
 };
 
+// 置顶留言
 const pinMessage = (id?: string | number | null) => {
   if (id === undefined || id === null || id === '') return;
   const sid = String(id);
@@ -281,10 +285,12 @@ const pinMessage = (id?: string | number | null) => {
   ElMessage.success('已置顶该条留言');
 };
 
+// 取消置顶留言
 const onPin = () => {
   pinMessage(replyDialog.value.id);
 };
 
+// 取消置顶留言
 const onUnpin = () => {
   const id = replyDialog.value.id;
   if (id === undefined || id === null || id === '') return;
@@ -294,6 +300,7 @@ const onUnpin = () => {
   ElMessage.success('已取消置顶');
 };
 
+// 判断留言是否已置顶
 const isPinned = (id?: string | number | null) => {
   if (id === undefined || id === null || id === '') return false;
   return pinnedIds.value.map(String).includes(String(id));

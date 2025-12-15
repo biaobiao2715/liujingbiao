@@ -1,8 +1,9 @@
 <!--
-  标题: ContentEditDialog.vue
-  功能: 普法内容新增/编辑弹窗
-  说明: 用于新增和编辑普法内容
+  标题: 专家咨询服务平台 - 普法内容编辑弹窗
+  功能: 用于普法内容的编辑和新增
+  说明: 弹窗用于编辑或新增普法内容，包括标题、简介、类别、正文和附件等信息
   当前版本: 1.0
+  负责人： 门世超
 -->
 <template>
   <div class="content-edit-dialog" v-loading="loading">
@@ -556,7 +557,6 @@ onMounted(() => {
     min-height: 450px;
   }
 }
-
 
 .form-actions {
   display: flex;

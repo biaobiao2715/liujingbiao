@@ -245,7 +245,8 @@ const handleAudit = async (status: '99' | '1') => {
     const res = await legalUpdateOrSaveData({
       hnBaseLegalExpertInfoBo: {
         id: formData.value.id,
-        reviewRemark: formData.value.reviewRemark
+        reviewRemark: formData.value.reviewRemark,
+        reviewStatus: status
       },
       optType: '3'
     });

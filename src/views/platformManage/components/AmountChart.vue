@@ -1,3 +1,10 @@
+<!--
+  标题: 平台管理首页 - 销售额统计图组件
+  功能: 展示平台管理首页的销售额统计图，支持按类目和时间范围筛选数据，并提供导出功能。
+  说明: 该组件使用 ECharts 绘制柱状图，支持日、周、月、年四种时间范围的切换，并可根据一级商品类目进行数据筛选。
+  当前版本: 2.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
+-->
 <template>
   <el-card class="chart-card" shadow="hover" v-loading="loading">
     <div class="card-header">
@@ -13,9 +20,7 @@
           >
             {{ item.label }}
           </div>
-          <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">
-            暂无类目数据
-          </div>
+          <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
         </div>
       </div>
       <el-button type="primary" plain size="small" @click="handleExport">导出</el-button>
@@ -46,6 +51,7 @@ import { getProductCategoryList } from '@/api/platform/mallConfiguration/product
 
 type TimeRange = '1' | '2' | '3' | '4';
 
+// 时间范围选项
 const timeRanges: { label: string; value: TimeRange }[] = [
   { label: '日', value: '1' },
   { label: '周', value: '2' },
@@ -53,16 +59,17 @@ const timeRanges: { label: string; value: TimeRange }[] = [
   { label: '年', value: '4' }
 ];
 
-const categoryOptions = ref<Array<{ label: string; value: string; goodsCategoryId: number | string }>>([]);
-const category = ref<string>('');
-const timeRange = ref<TimeRange>('1');
-const categoryLoading = ref(false);
-const loading = ref(false);
-const chartRef = ref<HTMLDivElement | null>(null);
-let chart: echarts.ECharts | null = null;
-const isMounted = ref(false);
-const { proxy } = getCurrentInstance() as any;
+const categoryOptions = ref<Array<{ label: string; value: string; goodsCategoryId: number | string }>>([]); // 一级商品类目选项
+const category = ref<string>(''); // 当前选中的类目
+const timeRange = ref<TimeRange>('1'); // 当前选中的时间范围
+const categoryLoading = ref(false); // 一级商品类目加载状态
+const loading = ref(false); // 图表数据加载状态
+const chartRef = ref<HTMLDivElement | null>(null); // 图表容器引用
+let chart: echarts.ECharts | null = null; // ECharts 实例
+const isMounted = ref(false); // 组件是否已挂载
+const { proxy } = getCurrentInstance() as any;  // 获取组件实例以访问全局属性
 
+// 计算属性：当前选中的类目对象
 const categoryOption = computed(() => {
   if (categoryOptions.value.length === 0) {
     return { label: '', value: '', goodsCategoryId: '' };
@@ -70,16 +77,19 @@ const categoryOption = computed(() => {
   return categoryOptions.value.find((item) => item.value === category.value) ?? categoryOptions.value[0];
 });
 
+ // 初始化图表
 const initChart = () => {
   if (chartRef.value && !chart) {
     chart = echarts.init(chartRef.value);
   }
 };
 
+// 处理窗口大小变化，调整图表尺寸
 const handleResize = () => {
   chart?.resize();
 };
 
+// 解析返回数据，提取列表
 const unwrapList = (payload: any) => {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.list)) return payload.list;
@@ -88,6 +98,7 @@ const unwrapList = (payload: any) => {
   return [];
 };
 
+ // 更新图表数据
 const updateChart = (data: { label: string; value: number }[]) => {
   if (!chart) return;
   chart.setOption(
@@ -121,6 +132,7 @@ const updateChart = (data: { label: string; value: number }[]) => {
   );
 };
 
+// 构建通用请求参数
 const buildCommonParams = () => {
   const cat = categoryOption.value;
   if (!cat || !cat.goodsCategoryId) {
@@ -132,12 +144,13 @@ const buildCommonParams = () => {
   };
 };
 
+// 获取图表数据
 const fetchData = async () => {
   if (!chart) return;
   loading.value = true;
   try {
     const response: any = await getFirstLevelCategorySalesAmountTotal(buildCommonParams());
-    
+
     // 优先处理 xAxis 和 yAxis 格式的数据
     if (response?.data?.xAxis && response?.data?.yAxis) {
       const xAxis = Array.isArray(response.data.xAxis) ? response.data.xAxis : [];
@@ -164,29 +177,24 @@ const fetchData = async () => {
   }
 };
 
+// 获取一级商品类目列表
 const fetchCategoryList = async () => {
   categoryLoading.value = true;
   try {
     const response: any = await getProductCategoryList();
     const list = response?.data || response?.rows || response?.list || response || [];
-    
+
     const firstLevelCategories = list.filter((item: any) => {
       const parentId = item.parentId;
-      return (
-        parentId === 0 || 
-        parentId === '0' || 
-        parentId === null || 
-        parentId === undefined ||
-        parentId === ''
-      );
+      return parentId === 0 || parentId === '0' || parentId === null || parentId === undefined || parentId === '';
     });
-    
+
     categoryOptions.value = firstLevelCategories.map((item: any, index: number) => ({
       label: item.categoryName || item.name || `类目${index + 1}`,
       value: String(item.id || item.categoryId || index),
       goodsCategoryId: item.id || item.categoryId || ''
     }));
-    
+
     if (categoryOptions.value.length > 0 && !category.value) {
       category.value = categoryOptions.value[0].value;
     }
@@ -198,20 +206,24 @@ const fetchCategoryList = async () => {
   }
 };
 
+// 切换类目
 const changeCategory = (value: string) => {
   if (category.value === value) return;
   category.value = value;
 };
 
+// 切换时间范围
 const changeRange = (value: TimeRange) => {
   timeRange.value = value;
 };
 
+// 导出数据
 const handleExport = () => {
   const params = buildCommonParams();
   exportSalesAmountTotal(params);
 };
 
+// 组件挂载和卸载生命周期钩子
 onMounted(async () => {
   await nextTick();
   initChart();
@@ -223,11 +235,13 @@ onMounted(async () => {
   }
 });
 
+// 组件卸载时清理事件监听和图表实例
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
   chart?.dispose();
 });
 
+// 监听类目和时间范围变化，重新获取数据
 watch([category, timeRange], () => {
   if (!isMounted.value || !category.value) return;
   fetchData();

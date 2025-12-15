@@ -1,18 +1,22 @@
-<!-- 
-标题：    CaseDetailDialog.vue
-功能：    知识库案件新增/编辑弹窗
-说明：    配合知识库案件管理列表使用
-当前版本：1.0
-开发信息：Created by Cursor AI 2025-11-19
-修改人信息：
-修改内容：
+<!--
+  标题: 知识库案件详情弹窗
+  功能: 展示知识库案件详情，支持正文编辑和附件管理
+  说明: 该组件用于展示知识库案件的详细信息，包括正文内容和附件列表，支持编辑和下载操作。
+  当前版本: 2.0
+  开发信息: Created by 门世超 2025-10-20, Refactored 2025-11-22
 -->
 <template>
   <el-dialog :model-value="visible" :title="dialogTitle" width="50%" destroy-on-close :close-on-click-modal="false" @close="handleClose">
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="140px" v-loading="loading">
       <el-form-item label="案件名称" prop="knowledgeCaseName" required>
-        <el-input v-model="formData.knowledgeCaseName" placeholder="请输入知识库案件名称" :disabled="mode === 'view'"
-          maxlength="30" show-word-limit clearable />
+        <el-input
+          v-model="formData.knowledgeCaseName"
+          placeholder="请输入知识库案件名称"
+          :disabled="mode === 'view'"
+          maxlength="30"
+          show-word-limit
+          clearable
+        />
       </el-form-item>
       <el-form-item label="正文编辑" prop="knowledgeCaseContent" required>
         <div class="editor-container">
@@ -32,8 +36,16 @@
       </el-form-item>
 
       <el-form-item label="附件上传" v-if="mode !== 'view'">
-        <el-upload ref="uploadRef" action="#" :auto-upload="false" accept=".pdf,.doc,.docx,.xls,.xlsx"
-          :show-file-list="false" :limit="1" :on-change="handleFileChange" :on-exceed="handleExceed">
+        <el-upload
+          ref="uploadRef"
+          action="#"
+          :auto-upload="false"
+          accept=".pdf,.doc,.docx,.xls,.xlsx"
+          :show-file-list="false"
+          :limit="1"
+          :on-change="handleFileChange"
+          :on-exceed="handleExceed"
+        >
           <el-button type="primary" plain>
             <el-icon class="el-icon--left">
               <Upload />
