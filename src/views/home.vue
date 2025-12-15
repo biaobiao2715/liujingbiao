@@ -177,19 +177,31 @@ const getUserInfo = async () => {
       return item.path === '/applications';
     })[0]?.children || [];
 
-  currentPlatform.value = homeData.map((item: any) => {
-    return {
-      title: item.meta.title,
-      description: item.remark,
-      redirect: item.path,
-      icon: 'application-icon-7.svg',
-      bg: 'application-bg-7.svg'
-    };
-  });
-
   userInfo.value = res.data.user;
   userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
+
+  if (tenantType.value === '0') {
+    currentPlatform.value = [
+      {
+        title: homeData[0].meta.title,
+        description: homeData[0]?.remark,
+        redirect: homeData[0].path,
+        icon: 'application-icon-7.svg',
+        bg: 'application-bg-7.svg'
+      }
+    ];
+  } else {
+    currentPlatform.value = homeData.map((item: any, index: number) => {
+      return {
+        title: item.meta.title,
+        description: item.remark,
+        redirect: item.path,
+        icon: 'application-icon-7.svg',
+        bg: 'application-bg-7.svg'
+      };
+    });
+  }
   // 采购商
   // currentPlatform.value = applications.value.filter((e) => e.type && e.type.includes(res.data.tenantType));
 };
