@@ -181,7 +181,7 @@ const getUserInfo = async () => {
   userInfo.value.nickName = res.data.user.nickName.length > 2 ? res.data.user.nickName.slice(-2) : res.data.user.nickName;
   tenantType.value = res.data.tenantType;
 
-  if (tenantType.value === '0') {
+  if (res.data.superAdmin) {
     currentPlatform.value = [
       {
         title: homeData[0].meta.title,
