@@ -214,9 +214,7 @@ const getList = async () => {
       delete params.createTime;
     }
 
-    console.log('调用接口，查询参数：', params);
     const res = await reportList(params);
-    console.log('接口返回结果：', res);
     // 响应拦截器已经处理了非200的情况，这里直接使用返回的数据
     // 如果接口返回成功，res 就是 res.data（因为响应拦截器返回的是 res.data）
     if (res && res.code === 200) {
@@ -389,7 +387,6 @@ const handleView = async (row: Report) => {
     const {
       data: { tenantType }
     } = await getInfo();
-    console.log(tenantType, '用户信息');
 
     // 设置接口返回的数据
     if (res && res.data) {

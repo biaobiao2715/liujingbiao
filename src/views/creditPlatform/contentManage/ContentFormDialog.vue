@@ -136,6 +136,7 @@ const rules = {
   ]
 };
 
+//· 生成文章编号
 const generateArticleNo = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -150,6 +151,7 @@ const generateArticleNo = () => {
   return `ART${year}${month}${day}${hours}${minutes}${seconds}${random}`;
 };
 
+// 获取当前时间字符串
 const getCurrentTime = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -161,6 +163,7 @@ const getCurrentTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
+// 获取文章详情
 const fetchDetail = async () => {
   if (!props.id) return;
   loading.value = true;

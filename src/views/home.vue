@@ -134,6 +134,14 @@ const applications = ref([
     redirect: '/credit/dashboard',
     type: ['6']
   },
+  {
+    title: '育种环境监测服务平台',
+    description: '育种环境监测服务系统是一个集设备管控、数据汇聚、智能预警与多维分析于一体的综合管理平台',
+    icon: 'application-icon-7.svg',
+    bg: 'application-bg-7.svg',
+    redirect: 'environmentMonitor',
+    type: ['0', '3']
+  },
   // 所有人
   {
     title: '全链条溯源服务系统',
@@ -201,6 +209,9 @@ const handleRedirect = async (path: string) => {
       auditStatus.value = null;
       permissionPopupVisible.value = true;
     }
+    return;
+  } else if (path === 'environmentMonitor') {
+    window.open('http://rmthingscore.com/login/hbmm', '_blank');
     return;
   }
 

@@ -262,6 +262,7 @@ const handleQuery = () => {
   getList();
 };
 
+
 const resetQuery = () => {
   queryFormRef.value?.resetFields?.();
   queryParams.pageNum = 1;
@@ -275,6 +276,7 @@ const resetQuery = () => {
   handleQuery();
 };
 
+// 状态匹配函数
 const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
   const value = String(status ?? '').trim();
   if (!value) return false;
@@ -289,6 +291,7 @@ const matchStatus = (status: string | number | undefined | null, candidates: str
 const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
 const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['5', '待上架', 'pending', 'waiting']);
 
+// 权限判断函数
 const canPublish = (row: CreditProduct) => {
   const status = row.productStatus;
   const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
@@ -302,16 +305,19 @@ const canOffline = (row: CreditProduct) => {
   return status === '2' || status === 'enabled' || status === '1';
 };
 
+// 编辑权限判断
 const canEdit = (row: CreditProduct) => {
   const status = row.productStatus;
   return isOfflineStatus(status) || isPendingStatus(status);
 };
 
+// 删除权限判断
 const canDelete = (row: CreditProduct) => {
   const status = row.productStatus;
   return status !== '2' && status !== 'enabled' && status !== '1';
 };
 
+// 获取状态标签
 const getStatusLabel = (status: string | number) => {
   const value = String(status ?? '');
   const list = product_status.value || [];

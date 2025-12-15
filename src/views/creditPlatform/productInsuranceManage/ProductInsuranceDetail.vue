@@ -140,6 +140,7 @@ const detailData = ref<InsuranceProductDetail>({
 const detailFileList = ref<UploadFile[]>([]);
 const mainAttachment = computed(() => (detailFileList.value.length > 0 ? detailFileList.value[0] : null));
 
+// 构建上传文件项
 const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
   const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
   const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
@@ -159,6 +160,7 @@ const formatFileName = (fileName: string | undefined | null): string => {
   return `${fileName}.pdf`;
 };
 
+// 同步详情附件列表
 const syncDetailAttachmentList = async (data: any) => {
   if (data?.remoteFile && data.remoteFile.ossId) {
     const remoteFile = data.remoteFile;
@@ -178,6 +180,7 @@ const syncDetailAttachmentList = async (data: any) => {
     return;
   }
 
+  // 同步详情附件列表
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     const firstFile = ossList[0];
@@ -197,6 +200,7 @@ const syncDetailAttachmentList = async (data: any) => {
     return;
   }
 
+  // 继续同步 branchOfficeAttachment 字段
   if (data?.branchOfficeAttachment) {
     try {
       const ossResponse: any = await listByIds(data.branchOfficeAttachment);
@@ -251,6 +255,7 @@ const syncDetailAttachmentList = async (data: any) => {
   detailFileList.value = [];
 };
 
+// 获取详情数据
 const fetchDetail = async () => {
   if (!props.id) return;
   loading.value = true;

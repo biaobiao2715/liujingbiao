@@ -81,7 +81,7 @@
 
       <!-- 举报材料 -->
       <div v-if="shouldShowMaterials" class="info-section">
-        <h3 class="section-title">*举报材料</h3>
+        <h3 class="section-title"><span>*</span> 举报材料</h3>
 
         <!-- 图片区域 -->
         <div class="material-section">
@@ -633,6 +633,9 @@ defineExpose({
   font-weight: 500;
   margin-bottom: 20px;
   color: #333;
+  span {
+    color: #f56c6c;
+  }
 }
 
 .status-timeline {

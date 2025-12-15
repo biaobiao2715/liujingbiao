@@ -330,9 +330,11 @@ const matchStatus = (status: string | number | undefined | null, candidates: str
   });
 };
 
+// 状态判断函数
 const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
 const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['1', '5', '待上架', 'pending', 'waiting']);
 
+// 权限判断函数
 const canPublish = (row: any) => {
   const status = row.articleStatus;
   const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
@@ -357,6 +359,7 @@ const canDelete = (row: any) => {
   return status !== '2' && status !== 'enabled';
 };
 
+// 获取状态标签
 const getStatusLabel = (status: string | number) => {
   const value = String(status ?? '');
   const list = art_article_status.value || [];

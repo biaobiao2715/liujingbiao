@@ -162,6 +162,7 @@ const formatFileName = (fileName: string | undefined | null): string => {
   return `${fileName}.pdf`;
 };
 
+// 构建上传文件对象
 const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
   const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
   const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
@@ -249,6 +250,7 @@ const syncDetailAttachmentList = async (data: any) => {
   detailFileList.value = [];
 };
 
+// 获取产品详情
 const fetchDetail = async () => {
   if (!props.id) {
     ElMessage.error('缺少产品ID');
