@@ -516,9 +516,13 @@ const currentScenario = computed(() => {
         // 待处理-撤回
         stage.time = props.reportData?.statusAndDate.find((item) => item.status === '4')?.time;
       }
-      if (status === '1' || status === '2' || status === '3' || (status === '4' && !isWithdrawPending.value)) {
-        // 处理中 \ 已驳回 \ 已结案 // 处理中-撤回
+      if (status === '1' || status === '3' || (status === '4' && !isWithdrawPending.value)) {
+        // 处理中 \ 已结案 \ 处理中-撤回
         stage.time = props.reportData?.statusAndDate.find((item) => item.status === '1')?.time;
+      }
+      if (status === '2') {
+        // 已驳回
+        stage.time = props.reportData?.statusAndDate.find((item) => item.status === '2')?.time;
       }
     }
     if (stage.id === 3 && (status === '3' || status === '4')) {
