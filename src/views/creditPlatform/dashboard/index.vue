@@ -225,6 +225,8 @@ const updateChart = () => {
   let yearXAxisData: string[] = [];
   let yearSeries: number[] = [];
 
+  // 从字典获取年度月度选项（仅用于显示按钮文本）
+  const yearMonthOptions = sys_year_month.value || [];
   if (chartData.value.yearData) {
     const yearData = chartData.value.yearData;
     if (yearData?.xAxis && yearData?.yAxis) {

@@ -276,6 +276,7 @@ const resetQuery = () => {
   handleQuery();
 };
 
+// 状态匹配辅助函数
 const matchStatus = (status: string | number | undefined | null, candidates: string[]) => {
   const value = String(status ?? '').trim();
   if (!value) return false;
@@ -290,6 +291,7 @@ const matchStatus = (status: string | number | undefined | null, candidates: str
 const isOfflineStatus = (status: string | number | undefined | null) => matchStatus(status, ['3', '下架', 'disabled', 'offline']);
 const isPendingStatus = (status: string | number | undefined | null) => matchStatus(status, ['1', '5', '待上架', 'pending', 'waiting']);
 
+// 权限判断函数
 const canPublish = (row: InsuranceProduct) => {
   const status = row.productStatus;
   const canStatusPublish = isPendingStatus(status) || isOfflineStatus(status) || matchStatus(status, ['draft']);
@@ -298,6 +300,7 @@ const canPublish = (row: InsuranceProduct) => {
   return isAdmin.value;
 };
 
+// 下架和编辑权限判断函数
 const canOffline = (row: InsuranceProduct) => {
   const status = row.productStatus;
   return status === '2' || status === 'enabled';

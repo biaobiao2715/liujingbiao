@@ -193,7 +193,7 @@ const advantagesEditorKey = ref(0);
 const instructionsEditorKey = ref(0);
 const applicationEditorKey = ref(0);
 const MB = 1024 * 1024;
-const CHUNK_UPLOAD_THRESHOLD = 100 * MB; // 与普法附件上传一致，>100MB 走分片
+const CHUNK_UPLOAD_THRESHOLD = 100 * MB; 
 const loanCycleLoading = ref(false);
 
 interface CreditProductForm {
@@ -297,6 +297,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 最大贷款额度校验
   maxLoanAmount: [
     {
       validator: (_rule, value, callback) => {
@@ -327,6 +328,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 利率/费率校验
   baseInterestRate: [
     {
       validator: (_rule, value, callback) => {
@@ -339,6 +341,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 最高利率校验
   floatInterestRate: [
     {
       validator: (_rule, value, callback) => {
@@ -353,6 +356,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 可贷周期校验
   loanCycle: [
     {
       validator: (_rule, value, callback) => {
@@ -365,11 +369,13 @@ const rules: FormRules = {
       trigger: 'change'
     }
   ],
+  // 还款方式校验
   repaymentMethod: [{ required: true, message: '请选择还款方式', trigger: 'change' }],
   productIntro: [
     { required: true, message: '请输入产品简介', trigger: 'blur' },
     { min: 1, max: 100, message: '产品简介长度需在1~100个字符内', trigger: 'blur' }
   ],
+  // 产品优势校验
   productAdvantages: [
     { required: true, message: '请输入产品优势', trigger: 'change' },
     {
@@ -397,6 +403,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 适用说明校验
   applicableInstructions: [
     { required: true, message: '请输入适用说明', trigger: 'change' },
     {
@@ -424,6 +431,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 申请条件校验
   applicationInstructions: [
     { required: true, message: '请输入申请条件', trigger: 'change' },
     {
@@ -451,6 +459,7 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
+  // 合作机构附件校验
   cooperationAttachment: [
     {
       validator: (_rule, value, callback) => {
@@ -465,6 +474,7 @@ const rules: FormRules = {
   ]
 };
 
+// 获取产品详情
 const fetchDetail = async () => {
   if (!props.id) return;
   loading.value = true;
@@ -516,12 +526,14 @@ const fetchDetail = async () => {
         return `${fileName}.pdf`;
       };
 
+      // 处理合作机构附件显示
       if (data.ossFileVo && Array.isArray(data.ossFileVo) && data.ossFileVo.length > 0) {
         const file = data.ossFileVo[0];
         // 优先使用 originalName，然后是 fileName，最后是 name
         const originalFileName = file.originalName || file.fileName || file.name || data.cooperationAttachmentName || '合作机构附件';
         const displayName = formatFileName(originalFileName);
 
+        // 设置表单数据和文件列表
         formData.value.cooperationAttachment = file.ossId || data.cooperationAttachment || null;
         formData.value.cooperationAttachmentName = originalFileName;
         attachmentFileList.value = [
@@ -559,6 +571,7 @@ const fetchDetail = async () => {
   }
 };
 
+// 组件挂载时获取详情
 const handleSubmit = () => {
   if (!formRef.value) return;
   formRef.value.validate(async (valid) => {
@@ -689,8 +702,10 @@ const uploadAttachmentFile = async (file: File) => {
   }
 };
 
+// 附件上传前的校验
 const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => validateFile(file);
 
+// 附件移除处理
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
   const modal = (proxy as any)?.$modal;
@@ -759,6 +774,7 @@ const validateFileForParse = (file: File): boolean => {
   return true;
 };
 
+// 触发文件上传和解析
 const triggerUpload = async () => {
   const input = document.createElement('input');
   input.type = 'file';
@@ -997,6 +1013,7 @@ const triggerUpload = async () => {
   input.click();
 };
 
+// 附件移除处理
 const handleAttachmentRemove: UploadProps['onRemove'] = () => {
   attachmentFileList.value = [];
   formData.value.cooperationAttachment = null;

@@ -194,6 +194,7 @@ const validateFileForParse = (file: File): boolean => {
   return true;
 };
 
+// 触发上传解析
 const triggerUpload = async () => {
   const input = document.createElement('input');
   input.type = 'file';
@@ -405,7 +406,7 @@ const formData = ref<InsuranceProductForm>({
 });
 
 const attachmentFileList = ref<UploadFile[]>([]);
-
+// 构建上传文件项
 const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: string; url?: string }) => {
   const rawUid = payload.ossId !== undefined && payload.ossId !== null ? Number(payload.ossId) : NaN;
   const uid = Number.isFinite(rawUid) ? rawUid : Date.now();
@@ -417,6 +418,7 @@ const buildUploadFileItem = (payload: { ossId?: string | number | null; name?: s
   } as UploadFile;
 };
 
+// 触发附件上传
 const rules: FormRules = {
   productName: [
     { required: true, message: '请输入产品名称', trigger: 'blur' },
@@ -492,6 +494,7 @@ const handleSubmit = () => {
   });
 };
 
+// 加载编辑数据
 const validateFile = (file: File): boolean => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const imageExt = ['jpg', 'jpeg', 'png'];
@@ -572,6 +575,7 @@ const beforeAttachmentUpload: UploadProps['beforeUpload'] = (file) => {
   return validateFile(file);
 };
 
+// 处理附件上传
 const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
   const { file, onError, onSuccess } = options;
   const modal = (proxy as any)?.$modal;
@@ -607,6 +611,7 @@ const handleAttachmentUpload: UploadProps['httpRequest'] = async (options) => {
 
 const handleExceed: UploadProps['onExceed'] = () => {};
 
+// 处理附件移除
 const handleAttachmentRemove = () => {
   attachmentFileList.value = [];
   formData.value.branchOfficeAttachment = null;
@@ -633,6 +638,7 @@ const formatFileName = (fileName: string | undefined | null): string => {
   return `${fileName}.pdf`;
 };
 
+// 从详情数据同步附件信息
 const syncAttachmentFromDetail = async (data: any) => {
   if (data?.remoteFile && data.remoteFile.ossId) {
     const remoteFile = data.remoteFile;
@@ -651,6 +657,7 @@ const syncAttachmentFromDetail = async (data: any) => {
     return;
   }
 
+  // 优先使用 ossFileVo 数组中的文件信息
   const ossList = Array.isArray(data?.ossFileVo) ? data.ossFileVo : [];
   if (ossList.length > 0) {
     const firstFile = ossList[0];
