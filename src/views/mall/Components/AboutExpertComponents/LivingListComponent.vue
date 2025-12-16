@@ -15,8 +15,8 @@
         </el-tabs>
       </div>
     </div>
-    <div class="list-content">
-      <el-row :gutter="16">
+    <div class="list-content" v-loading="loading">
+      <el-row :gutter="16" v-if="liveData.length > 0">
         <el-col :span="6" v-for="item in liveData" :key="item">
           <div class="item">
             <img :src="item.coverImageUrl" width="100%" class="cover-img" @click="handleVideoClick(item)" />
@@ -27,6 +27,7 @@
           </div>
         </el-col>
       </el-row>
+      <el-empty v-else description="暂无直播" />
     </div>
   </div>
 </template>

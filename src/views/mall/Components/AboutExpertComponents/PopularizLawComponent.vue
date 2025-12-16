@@ -26,7 +26,7 @@
         <div class="data-list" v-if="dataList.length > 0">
           <div class="law-title flex-center gap-12" v-for="(item, index) in dataList" :key="item.type" @click="handleDetail(item.id)">
             <div :class="[{ 'three': index < 3 }, 'index flex-center-center']">{{ index + 1 }}</div>
-            <div>{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
+            <div class="title-text">{{ item.contentTitle || item.activityTitle || item.paperTitle }}</div>
           </div>
         </div>
         <el-empty v-else style="margin-top: 145px"></el-empty>
@@ -159,6 +159,12 @@ const handleMoreList = () => {
       }
       &:hover {
         color: var(--color-main);
+      }
+      .title-text {
+        width: calc(100% - 48px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }

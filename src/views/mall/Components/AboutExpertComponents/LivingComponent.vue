@@ -19,17 +19,23 @@
     <div class="content flex" v-loading="loading">
       <!-- 左侧列表 -->
       <div class="left-list flex">
-        <div v-for="item in liveData" :key="item.id" class="list-item flex" @click="currentItem = item">
+        <div v-for="item in liveData" :key="item.id" class="list-item flex" @click="currentItem = item" v-if="liveData.length > 0">
           <img v-if="item.coverImageUrl" :src="item.coverImageUrl" class="cover-image" />
           <div class="video-info">
             <div class="title">{{ item.title }}</div>
             <div class="description">简介：{{ item.description || '暂无简介' }}</div>
           </div>
         </div>
+        <el-empty v-else description="暂无直播" />
       </div>
+
       <!-- 右侧封面 -->
       <div class="right-cover">
-        <div class="video-cover flex-center-center" :style="{ backgroundImage: 'url(' + currentItem?.coverImageUrl + ')' }">
+        <div
+          class="video-cover flex-center-center"
+          :style="{ backgroundImage: 'url(' + currentItem?.coverImageUrl + ')' }"
+          v-if="currentItem?.coverImageUrl"
+        >
           <img src="@/assets/mall/play-icon.png" width="125px" @click="handleVideoClick()" />
         </div>
       </div>
@@ -50,12 +56,6 @@ const currentItem = ref(null);
 
 const value = ref(0); // 0 默认，1 最新发布时间
 
-const options = ref([
-  { label: '默认', value: 0 },
-  { label: '最新发布时间', value: 1 },
-  { label: '最多浏览量', value: 2 }
-]);
-
 // 获取直播列表
 const getVideoList = async () => {
   loading.value = true;
@@ -69,7 +69,7 @@ const getVideoList = async () => {
     });
     if (res.code === 200) {
       liveData.value = res.rows || res.data || [];
-      currentItem.value = liveData.value[0] || null;
+      currentItem.value = liveData.value?.[0] || null;
     }
   } catch (error) {
     console.error('获取直播列表失败:', error);
@@ -147,6 +147,7 @@ const handleVideoClick = () => {
           border-radius: 8px;
         }
         .video-info {
+          width: calc(100% - 180px);
           padding: 16px 0;
           .title {
             font-size: 16px;

@@ -204,8 +204,12 @@ const handleDetail = (type: string, id: string) => {
       display: inline-block;
     }
     .meeting-title {
+      width: calc(100% - 14px);
       padding: 12px;
       cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .meeting-title:hover {
       color: var(--el-color-primary);
@@ -249,6 +253,9 @@ const handleDetail = (type: string, id: string) => {
       font-size: 16px;
       color: #333;
       font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .course-type {
       font-size: 14px;

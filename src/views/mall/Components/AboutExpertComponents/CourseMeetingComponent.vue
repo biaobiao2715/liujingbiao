@@ -160,8 +160,13 @@ const handleMoreList = () => {
       display: inline-block;
     }
     .meeting-title {
+      width: calc(100% - 14px);
       padding: 12px;
       cursor: pointer;
+      // 超出部分省略号
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .meeting-title:hover {
       color: var(--el-color-primary);
@@ -205,6 +210,10 @@ const handleMoreList = () => {
       font-size: 16px;
       color: #333;
       font-weight: bold;
+      // 超出部分省略号
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .course-type {
       font-size: 14px;

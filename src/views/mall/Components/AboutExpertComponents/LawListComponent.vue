@@ -131,11 +131,16 @@ const handleDetail = (id: string, type: string) => {
         background: #108c58;
       }
       .name {
+        width: calc(100% - 16px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-weight: 400;
         font-size: 14px;
         color: #333333;
         line-height: 14px;
         cursor: pointer;
+
         &:hover {
           color: #108c58;
         }
