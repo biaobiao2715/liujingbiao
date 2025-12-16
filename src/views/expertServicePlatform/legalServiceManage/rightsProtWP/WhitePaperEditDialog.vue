@@ -764,11 +764,11 @@ const handleSubmit = async () => {
 
     // 自定义优先级提示
     if (titleEmpty && noAttachment) {
-      ElMessage.error('操作失败，请稍后重试');
+      ElMessage.error('操作失败，请输入标题和上传附件');
       return;
     }
     if (titleEmpty) {
-      ElMessage.warning('请上传标题');
+      ElMessage.error('请上传标题');
       return;
     }
     if (noAttachment) {

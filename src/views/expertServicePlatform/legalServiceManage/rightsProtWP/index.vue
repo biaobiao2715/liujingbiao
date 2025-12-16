@@ -1018,7 +1018,7 @@ onMounted(() => {
 .white-paper-btn {
   width: auto;
   min-width: 96px;
-  height: 36px;
+  height: 32px;
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
