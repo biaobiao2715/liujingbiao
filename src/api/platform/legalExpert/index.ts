@@ -59,7 +59,7 @@ interface TechUpdateOrSaveDataRequest {
   };
 }
 // 法务专家注册、审核、修改、启停
-export const legalUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosPromise<boolean> => {
+export const legalUpdateOrSaveData = (data: any): AxiosPromise<boolean> => {
   return request({
     url: '/system/baseLegalExpertInfo/legalUpdateOrSaveData',
     method: 'post',

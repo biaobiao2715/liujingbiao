@@ -52,7 +52,7 @@ interface TechUpdateOrSaveDataRequest {
 }
 
 // 技术专家注册、审核、修改、启停
-export const techUpdateOrSaveData = (data: TechUpdateOrSaveDataRequest): AxiosPromise<boolean> => {
+export const techUpdateOrSaveData = (data: any): AxiosPromise<boolean> => {
   return request({
     url: '/system/baseTechExpertInfo/techUpdateOrSaveData',
     method: 'post',

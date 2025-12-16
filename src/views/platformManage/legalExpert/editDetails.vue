@@ -242,15 +242,13 @@ const handleAudit = async (status: '99' | '1') => {
   }
   try {
     loading.value = true;
-    const res = await legalUpdateOrSaveData({
-      hnBaseLegalExpertInfoBo: {
-        id: formData.value.id,
-        reviewRemark: formData.value.reviewRemark,
-        reviewStatus: status
-      },
+    const { id, reviewRemark } = formData.value || {};
+    const hnBaseLegalExpertInfoBo = status === '1' ? { ...formData.value, reviewStatus: status } : { id, reviewRemark, reviewStatus: status };
+    const payload = {
+      hnBaseLegalExpertInfoBo,
       optType: '3'
-    });
-
+    };
+    const res = await legalUpdateOrSaveData(payload);
     if (res.code === 200) {
       ElMessage.success(status === '99' ? '审核退回成功' : '审核通过成功');
       operateMode.value = 'view';

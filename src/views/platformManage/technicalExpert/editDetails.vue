@@ -217,7 +217,6 @@ const handleSave = async () => {
   try {
     loading.value = true;
     const response = await techUpdateOrSaveData({
-      // @ts-ignore
       hnBaseTechExpertInfoBo: {
         ...formData.value,
         folder: formData.value.hnBaseRegisterFolderVoList?.map((item) => ({
@@ -245,14 +244,14 @@ const handleAudit = async (status: '99' | '1') => {
   }
   try {
     loading.value = true;
-    const res = await techUpdateOrSaveData({
-      hnBaseTechExpertInfoBo: {
-        id: formData.value?.id,
-        reviewRemark: formData.value.reviewRemark,
-        reviewStatus: status
-      },
+    const { id, reviewRemark } = formData.value || {};
+    const hnBaseTechExpertInfoBo = status === '1' ? { ...formData.value, reviewStatus: status } : { id, reviewRemark, reviewStatus: status };
+    const payload = {
+      hnBaseTechExpertInfoBo,
       optType: '3'
-    });
+    };
+    const res = await techUpdateOrSaveData(payload);
+
     if (res.code === 200) {
       ElMessage.success(status === '99' ? '审核退回成功' : '审核通过成功');
       operateMode.value = 'view';
