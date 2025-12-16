@@ -197,15 +197,7 @@
             <el-table-column prop="orderSn" label="订单编号"></el-table-column>
             <el-table-column prop="orderStatus" label="订单状态">
               <template #default="scope">
-                {{
-                  scope.row.orderStatus === '1'
-                    ? '待发货'
-                    : scope.row.orderStatus === '2'
-                      ? '已发货'
-                      : scope.row.orderStatus === '3'
-                        ? '已完成'
-                        : '已取消'
-                }}
+                <dict-tag :options="order_status" :value="scope.row.orderStatus" />
               </template>
             </el-table-column>
           </el-table>
@@ -255,8 +247,8 @@ import FormHeader from '@/components/FormHeader/index.vue';
 
 import { FormData } from '@/api/platform/enterprise/types'; //ts类型
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { review_status, plat_qualification_grade, plat_credit_rating, contact_user_type } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'contact_user_type')
+const { review_status, order_status, plat_qualification_grade, plat_credit_rating, contact_user_type } = toRefs<any>(
+  proxy?.useDict('review_status', 'order_status', 'plat_qualification_grade', 'plat_credit_rating', 'contact_user_type')
 );
 
 // 通过 props 接收父组件传参
