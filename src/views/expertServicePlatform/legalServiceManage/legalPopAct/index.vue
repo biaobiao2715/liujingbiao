@@ -650,8 +650,8 @@ onMounted(() => {
 
 .operation-btn {
   width: auto;
-  min-width: 100px;
-  height: 36px;
+  min-width: 80px;
+  height: 32px;
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
