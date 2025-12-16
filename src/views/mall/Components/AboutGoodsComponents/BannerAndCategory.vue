@@ -29,7 +29,7 @@
           <!-- 三级分类 -->
           <div class="flex-center gap-12 third-container">
             <div v-for="(grandchild, index) in child.children" :key="grandchild.id">
-              <div class="third-category">
+              <div class="third-category" @click="handleSearchByCategory(grandchild.id)">
                 {{ grandchild.categoryName + (index === child.children.length - 1 ? '' : ' /') }}
               </div>
             </div>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import { eventBus } from '@/utils/eventBus';
 
 interface Category {
   id: string;
@@ -72,6 +73,10 @@ const fetchCategories = async () => {
   } catch (error) {
     console.error('获取商品分类数据失败:', error);
   }
+};
+
+const handleSearchByCategory = (categoryId: string) => {
+  eventBus.emit('searchGoodsList', { categoryId });
 };
 </script>
 

@@ -2,55 +2,57 @@
   <div class="login-container flex-center-between" @keydown.enter="handleLogin">
     <div class="left-container"></div>
     <div class="right-container">
-      <div class="login-header flex-center-center">
-        <!-- 登录页面标题 -->
-        <img src="../assets/images/logo.svg" width="32" />
-        <div>全国种子销售服务平台</div>
-      </div>
-      <!-- 添加租户选择 -->
-      <!-- <el-select v-model="accountForm.tenantId" placeholder="选择租户" size="large">
+      <div class="login-box">
+        <div class="login-header flex-center-center">
+          <!-- 登录页面标题 -->
+          <img src="../assets/images/logo.svg" width="32" />
+          <div>全国种子销售服务平台</div>
+        </div>
+        <!-- 添加租户选择 -->
+        <!-- <el-select v-model="accountForm.tenantId" placeholder="选择租户" size="large">
         <el-option v-for="tenantList in tenants" :key="tenant.tenantId" :label="tenant.companyName" :value="tenant.tenantId" />
       </el-select> -->
 
-      <!-- 登录方式切换 -->
-      <el-tabs v-model="activeTab" class="login-tabs">
-        <div class="form-item">
-          <el-input v-model="accountForm.phone" type="text" placeholder="手机号" size="large" :prefix-icon="UserFilled" />
+        <!-- 登录方式切换 -->
+        <el-tabs v-model="activeTab" class="login-tabs">
+          <div class="form-item">
+            <el-input v-model="accountForm.phone" type="text" placeholder="手机号" size="large" :prefix-icon="UserFilled" />
+          </div>
+          <!-- 账号密码登录 -->
+          <el-tab-pane label="手机号密码登录" name="account">
+            <div class="form-item">
+              <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" :prefix-icon="Lock" />
+            </div>
+            <div class="form-item"></div>
+          </el-tab-pane>
+          <!-- 手机号登录 -->
+          <el-tab-pane label="验证码登录" name="phone">
+            <div class="form-item">
+              <el-input v-model="accountForm.smsCode" placeholder="验证码" size="large">
+                <template #append>
+                  <!-- 获取验证码按钮 -->
+                  <el-button v-throttle @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
+                    {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
+                  </el-button>
+                </template>
+              </el-input>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+
+        <!-- 记住密码选项 -->
+        <div class="form-item align-left">
+          <el-checkbox v-model="accountForm.rememberMe">记住密码</el-checkbox>
         </div>
-        <!-- 账号密码登录 -->
-        <el-tab-pane label="手机号密码登录" name="account">
-          <div class="form-item">
-            <el-input v-model="accountForm.password" type="password" placeholder="密码" size="large" :prefix-icon="Lock" />
-          </div>
-          <div class="form-item"></div>
-        </el-tab-pane>
-        <!-- 手机号登录 -->
-        <el-tab-pane label="验证码登录" name="phone">
-          <div class="form-item">
-            <el-input v-model="accountForm.smsCode" placeholder="验证码" size="large">
-              <template #append>
-                <!-- 获取验证码按钮 -->
-                <el-button v-throttle @click="sendCode" type="primary" size="small" :disabled="countdown > 0">
-                  {{ countdown > 0 ? `${countdown}s后重试` : '获取验证码' }}
-                </el-button>
-              </template>
-            </el-input>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
 
-      <!-- 记住密码选项 -->
-      <div class="form-item align-left">
-        <el-checkbox v-model="accountForm.rememberMe">记住密码</el-checkbox>
-      </div>
+        <!-- 登录按钮 -->
+        <el-button v-throttle type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">登录</el-button>
 
-      <!-- 登录按钮 -->
-      <el-button v-throttle type="primary" size="large" :loading="loading" class="login-button" @click="handleLogin">登录</el-button>
-
-      <!-- 底部链接 -->
-      <div class="login-footer flex-between">
-        <router-link to="/forgot-password">忘记密码?</router-link>
-        <router-link to="/register">立即注册</router-link>
+        <!-- 底部链接 -->
+        <div class="login-footer flex-between">
+          <router-link to="/forgot-password">忘记密码?</router-link>
+          <router-link to="/register">立即注册</router-link>
+        </div>
       </div>
     </div>
   </div>
@@ -291,17 +293,22 @@ onUnmounted(() => {
 }
 
 .left-container {
-  flex: 2;
+  flex: 29 1 0;
   height: 100%;
   background: url('../assets/images/login-bg.png') no-repeat center center;
   background-size: cover;
 }
 
 .right-container {
-  flex: 1;
-  padding: 0 10%;
+  flex: 19 1 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .login-box {
+    max-width: 450px;
+  }
   .login-header {
-    margin-bottom: 20px;
+    margin-bottom: 38px;
     font-size: 24px;
     font-weight: bold;
     color: #000;
@@ -311,7 +318,6 @@ onUnmounted(() => {
   .login-tabs {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
   }
 
   .form-item {
@@ -346,9 +352,20 @@ onUnmounted(() => {
   .login-footer {
     margin-top: 20px;
     font-size: 14px;
-    a:last-child {
-      color: var(--el-color-primary);
+    a:first-child {
+      font-weight: 400;
+      font-size: 14px;
+      color: #999999;
     }
+    a:last-child {
+      font-weight: 400;
+      font-size: 14px;
+      color: #108c58;
+    }
+  }
+
+  ::v-deep .el-tabs__header {
+    margin-bottom: 38px;
   }
 
   ::v-deep .el-tabs__nav-wrap:after {

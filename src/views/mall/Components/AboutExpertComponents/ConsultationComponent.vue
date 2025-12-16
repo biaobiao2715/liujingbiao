@@ -8,18 +8,20 @@
           <!-- <div class="title">专家咨询</div> -->
           <!-- <el-segmented v-model="activeTab" :options="options" @change="handleChange" :disabled="expertLoading" /> -->
 
-          <el-button :type="activeTab === 'technology' ? 'primary' : 'text'" plain round
-            @click="handleChange('technology')" :disabled="expertLoading">技术专家</el-button>
-          <el-button :type="activeTab === 'legal' ? 'primary' : 'text'" plain round @click="handleChange('legal')"
-            :disabled="expertLoading">法务专家</el-button>
+          <el-button :type="activeTab === 'technology' ? 'primary' : 'text'" plain round @click="handleChange('technology')" :disabled="expertLoading"
+            >技术专家</el-button
+          >
+          <el-button :type="activeTab === 'legal' ? 'primary' : 'text'" plain round @click="handleChange('legal')" :disabled="expertLoading"
+            >法务专家</el-button
+          >
         </div>
-        <div type="text" :class="{ 'rotate-180': isExpanded }" @click="toggleExpand">
+        <div type="text" :class="{ 'rotate-180': isExpanded }" @click="toggleExpand" v-if="expertList.length > 0">
           <img src="@/assets/mall/expert-expand-icon.png" width="18" />
         </div>
       </div>
 
-      <div class="content flex gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
-        <el-row :gutter="24" style="width: 100%">
+      <div class="content flex-center-center gap-12" :class="{ expanded: isExpanded }" v-loading="expertLoading">
+        <el-row :gutter="24" style="width: 100%" v-if="expertList.length > 0">
           <el-col :span="6" v-for="(expert, index) in expertList" :key="expert.id">
             <el-card class="expert-item" v-show="isExpanded || index < 4">
               <div class="title-info flex-center-center gap-12">
@@ -55,7 +57,7 @@
           </el-col>
         </el-row>
 
-        <el-empty v-if="expertList.length === 0" description="暂无专家入驻，请耐心等待"></el-empty>
+        <el-empty v-else description="暂无专家入驻，请耐心等待"></el-empty>
       </div>
     </div>
     <!-- 咨询专家弹窗 -->

@@ -2,9 +2,9 @@
   <div class="category-container">
     <div class="title mb-24">商品列表</div>
     <div class="weight-selection flex-center gap-24">
-      <div class="category-selection">
+      <!-- <div class="category-selection">
         <GoodsCategorySelect v-model="filterState.category" @categoryChange="handleCategoryChange" />
-      </div>
+      </div> -->
       <div class="local">
         <RegionSelect v-model="filterState.areaCodes" @regionChange="handleAreaChange" />
       </div>

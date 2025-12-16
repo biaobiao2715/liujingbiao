@@ -39,6 +39,7 @@ import { ref } from 'vue';
 import { goodsList } from '@/api/mall/goods/index';
 import SearchComponent from './SearchComponent.vue'; // 分类组件
 import GoodsItemComponent from './GoodsItemComponent.vue';
+import { eventBus } from '@/utils/eventBus';
 
 const emit = defineEmits(['detailChange']);
 
@@ -49,7 +50,7 @@ const goodsData = ref([]); // 商品列表数据
 const total = ref(0); // 总页数
 
 const queryParams = reactive({
-  goodsCategoryId: [] as string[], // 商品分类ID
+  goodsCategoryId: undefined, // 商品分类ID
   goodsName: undefined, // 商品名称
   goodsBrandName: undefined, // 商品品牌名称
   goodsAbilityName: undefined, // 商品能力名称
@@ -66,17 +67,19 @@ const queryParams = reactive({
 // 初始化获取商品列表数据
 onMounted(() => {
   fetchGoodsList();
+  eventBus.on('searchGoodsList', (data: { categoryId?: string }) => {
+    queryParams.goodsCategoryId = data?.categoryId;
+    fetchGoodsList();
+  });
 });
 
 // 处理搜索组件变化
 const getSearchInfo = (searchInfo) => {
-  console.log(searchInfo);
-
   // 商品名称
   queryParams[searchInfo.searchType] = searchInfo.searchContent || undefined;
 
   // 商品分类
-  queryParams.goodsCategoryId = searchInfo.category.length > 0 ? searchInfo.category[searchInfo.category.length - 1] : undefined;
+  // queryParams.goodsCategoryId = searchInfo.category.length > 0 ? searchInfo.category[searchInfo.category.length - 1] : undefined;
 
   // 省市区
   queryParams.provinceCode = searchInfo.areaCodes[0] || undefined;
