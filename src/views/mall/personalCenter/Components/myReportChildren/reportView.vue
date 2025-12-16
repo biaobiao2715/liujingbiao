@@ -378,7 +378,7 @@ const dialogVisible = computed({
 });
 // 监听 dialogVisible 改变
 watch(
-  () => props.modelValue, // 为什么是props.modelValue
+  () => props.modelValue,
   (value) => {
     // console.log(value);
     if (value) {
@@ -592,7 +592,6 @@ const handleDownloadVideo = async (video: any) => {
     ElMessage.success('视频下载完成');
   } catch (error) {
     console.error('视频下载失败:', error);
-    // ElMessage.error('视频下载失败');
   }
 };
 
