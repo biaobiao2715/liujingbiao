@@ -94,7 +94,7 @@ export const constantRoutes: RouteRecordRaw[] = [
       {
         path: 'welcome',
         name: 'Welcome',
-        meta: { title: '首页', icon: 'welcome' },
+        meta: { title: '首页', icon: '平台管理' },
         component: () => import('@/views/welcome.vue')
       }
     ]
