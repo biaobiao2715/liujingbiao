@@ -5,7 +5,6 @@ import Layout from '@/layout/index.vue';
 // import { useUserStore } from '@/store/modules/user';
 // console.log(useUserStore());
 
-
 /**
  * Note: 路由配置项
  *
@@ -87,6 +86,19 @@ export const constantRoutes: RouteRecordRaw[] = [
     redirect: '/home',
     hidden: true
   },
+  {
+    path: '/',
+    redirect: '/welcome', // ← 换成你要跳转的路由
+    component: Layout,
+    children: [
+      {
+        path: 'welcome',
+        name: 'Welcome',
+        meta: { title: '首页', icon: 'welcome' },
+        component: () => import('@/views/welcome.vue')
+      }
+    ]
+  },
   // 金融前台
   {
     path: '/financeFront/index',
@@ -107,27 +119,6 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: { title: '区域价格差异热力图', icon: 'dashboard' },
     hidden: true
   },
-  // {
-  //   path: '/mall/goods-detail',
-  //   component: () => import('@/views/mall/Components/GoodsDetailComponent.vue'),
-  //   name: 'GoodsDetail',
-  //   meta: { title: '商品详情', icon: 'dashboard' },
-  //   hidden: true
-  // },
-  // {
-  //   path: '/mall/compare-goods',
-  //   component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsPage.vue'),
-  //   name: 'CompareGoods',
-  //   meta: { title: '商品比价', icon: 'dashboard' },
-  //   hidden: true
-  // },
-  // {
-  //   path: '/mall/compare-detail',
-  //   component: () => import('@/views/mall/Components/AboutCompareComponents/CompareGoodsComponent.vue'),
-  //   name: 'CompareDetail',
-  //   meta: { title: '比价详情', icon: 'dashboard' },
-  //   hidden: true
-  // },
   {
     path: '/user',
     component: Layout,
