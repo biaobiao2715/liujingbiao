@@ -175,6 +175,7 @@ const props = defineProps<{
     legalFiles?: LegalFile[];
     historyList?: HistoryFile[];
     currentVersion?: string;
+    remark?: string;
   };
   loading?: boolean;
   mode?: 'edit' | 'view';

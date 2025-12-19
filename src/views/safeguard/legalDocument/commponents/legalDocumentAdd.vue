@@ -41,7 +41,7 @@
         <el-table-column prop="version" label="版本号" width="120" />
         <el-table-column label="操作" width="100">
           <template #default="{ $index }">
-            <el-button type="text" @click="handleRemoveAttachment($index)">删除</el-button>
+            <el-button link type="danger" @click="handleRemoveAttachment($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
