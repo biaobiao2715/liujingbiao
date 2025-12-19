@@ -47,8 +47,21 @@ import { initSSE } from '@/utils/sse';
 import { getRouters } from '@/api/menu';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 import { getToken } from '@/utils/auth';
+import { useNoticeStore } from '@/store/modules/notice';
+import { ElNotification } from 'element-plus';
+
+const eventTitleMap: Record<string, string> = {
+  message: '消息',
+  purchaseDemand: '采购需求通知',
+  supplyDemand: '供给需求通知',
+  seed_economy_notice: '消息',
+  notice_status: '消息',
+  tech_notice: '消息',
+  report: '消息'
+};
 
 const userStore = useUserStore();
+const noticeStore = useNoticeStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 路由实例
@@ -164,6 +177,7 @@ const permissionPopupData = ref<any>(null);
 const auditStatus = ref<number | null>(null);
 
 onMounted(async () => {
+  initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
   // getRouterList()
   getUserInfo();
 });
@@ -265,11 +279,41 @@ const handleRedirect = async (path: string) => {
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
     // 移除掉字符串第一位的&符号
-    router.push(path.replace(/^app/, ''));
-    setTimeout(() => {
-      initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
-    }, 2000);
+    await router.push(path.replace(/^app/, ''));
+    // 种子经纪服务平台
+    if (path === 'app/mall') {
+      batchNotify(noticeStore.state.notices, ['seed_economy_notice', 'report', 'supplyDemand'], eventTitleMap);
+    }
+
+    // 种子金融服务平台
+    if (path === 'app/financeFront/index') {
+      batchNotify(noticeStore.state.notices, ['notice_status'], eventTitleMap);
+    }
+
+    //企业销售平台,供应商销售平台,种子技术服务平台,种子维权服务平台,平台管理系统
+    if (path === '/welcome') {
+      batchNotify(noticeStore.state.notices, ['seed_economy_notice', 'tech_notice', 'report', 'purchaseDemand'], eventTitleMap);
+    }
+    // console.log('跳转路径:', noticeStore.state.notices);
   }
+};
+
+const batchNotify = (notices: any[], filterEvents: string[], eventTitleMap: Record<string, string>, interval = 100) => {
+  let idx = 0;
+  notices.forEach((item) => {
+    console.log('检查消息事件类型:', item.event);
+    if (filterEvents.includes(item.event)) {
+      setTimeout(() => {
+        ElNotification({
+          title: eventTitleMap[item.event] || '消息',
+          message: item.message.message,
+          type: 'success',
+          duration: 3000
+        });
+      }, idx * interval);
+      idx++;
+    }
+  });
 };
 
 // 处理权限申请提交

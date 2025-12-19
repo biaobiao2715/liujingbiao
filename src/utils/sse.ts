@@ -10,13 +10,17 @@ import { watch, ref } from 'vue';
 const eventTitleMap: Record<string, string> = {
   message: '消息',
   purchaseDemand: '采购需求通知',
-  supplyDemand: '供给需求通知'
+  supplyDemand: '供给需求通知',
+  seed_economy_notice: '消息',
+  notice_status: '消息',
+  tech_notice: '消息',
+  report: '消息'
 };
 
 // 防抖标记
 let isProcessing = false;
-// 存储最后一次的数据
-const lastData = ref<{ payload: any; event: string } | null>(null);
+// 用队列缓存所有待处理的数据，避免高频触发丢数据
+const pendingQueue = ref<Array<{ payload: any; event: string }>>([]);
 
 function parsePayload(raw: any): any {
   if (raw == null) return null;
@@ -66,37 +70,42 @@ function handleNotification(payload: any, event: string) {
     read: false,
     time: new Date().toLocaleString()
   });
-
-  // 显示通知
-  ElNotification({
-    title: eventTitleMap[event] || '消息',
-    message: msg,
-    type: 'success',
-    duration: 3000
-  });
+  if (event === 'message') {
+    // 显示通知
+    ElNotification({
+      title: eventTitleMap[event] || '消息',
+      message: msg,
+      type: 'success',
+      duration: 3000
+    });
+  }
 }
 
 // 初始化
 export const initSSE = (url: any) => {
+  console.log('Initializing SSE with URL:', '执行了么');
   if (import.meta.env.VITE_APP_SSE === 'false') {
     return;
   }
 
   // 重置状态
   isProcessing = false;
-  lastData.value = null;
 
   url = url + '?Authorization=Bearer ' + getToken() + '&clientid=' + import.meta.env.VITE_APP_CLIENT_ID;
   // 新增采购与供给两个主题
-  const { data, event, error } = useEventSource(url, ['message', 'purchaseDemand', 'supplyDemand'], {
-    autoReconnect: {
-      retries: 5,
-      delay: 5000,
-      onFailed() {
-        console.log('Failed to connect after 5 retries');
+  const { data, event, error } = useEventSource(
+    url,
+    ['message', 'purchaseDemand', 'supplyDemand', 'seed_economy_notice', 'tech_notice', 'report', 'notice_status'],
+    {
+      autoReconnect: {
+        retries: 5,
+        delay: 5000,
+        onFailed() {
+          console.log('Failed to connect after 5 retries');
+        }
       }
     }
-  });
+  );
 
   watch(error, () => {
     if (error.value) {
@@ -114,28 +123,12 @@ export const initSSE = (url: any) => {
       const payload = parsePayload(newData);
       if (!payload) return;
 
-      // 如果正在处理，存储最后一次数据
-      if (isProcessing) {
-        lastData.value = { payload, event: newEvent };
-        return;
-      }
+      // 推入队列
+      pendingQueue.value.push({ payload, event: newEvent });
 
-      isProcessing = true;
-
-      try {
-        handleNotification(payload, newEvent);
-      } finally {
-        // 重置处理状态
-        setTimeout(() => {
-          isProcessing = false;
-
-          // 检查是否有未处理的数据
-          if (lastData.value) {
-            const { payload: lastPayload, event: lastEvent } = lastData.value;
-            lastData.value = null;
-            handleNotification(lastPayload, lastEvent);
-          }
-        }, 100);
+      // 如果未在处理，则启动处理流程
+      if (!isProcessing) {
+        processQueue();
       }
 
       // 清空数据
@@ -143,6 +136,23 @@ export const initSSE = (url: any) => {
     },
     { flush: 'post' }
   );
+
+  // 队列处理函数
+  function processQueue() {
+    if (pendingQueue.value.length === 0) {
+      isProcessing = false;
+      return;
+    }
+    isProcessing = true;
+    const { payload, event } = pendingQueue.value.shift()!;
+    try {
+      handleNotification(payload, event);
+    } finally {
+      setTimeout(() => {
+        processQueue();
+      }, 100);
+    }
+  }
 
   // 初始化后仅调用一次推荐需求接口
   getRecommendDemand()
