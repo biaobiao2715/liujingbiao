@@ -9,6 +9,8 @@
   <div :class="[{ 'is-home': activeTab === 'goods' }, 'mall-container flex-column']">
     <!-- 头部组件 -->
     <HeaderComponent />
+    <!-- 搜索组件 -->
+    <SearchByCategoryComponent />
 
     <!-- Tabs 切换 -->
     <div class="tabs-container">
@@ -40,6 +42,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
+import SearchByCategoryComponent from './Components/SearchByCategoryComponent.vue'; // 搜索组件
 import CommonNavigation from './Components/CommonNavigation.vue'; // 导航组件
 import GoodsComponent from './Components/GoodsComponent.vue'; // 商城首页组件
 import DemandComponent from './Components/DemandComponent.vue'; // 需求组件

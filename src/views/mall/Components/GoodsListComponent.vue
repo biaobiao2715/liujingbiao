@@ -75,6 +75,10 @@ onMounted(() => {
 
 // 处理搜索组件变化
 const getSearchInfo = (searchInfo) => {
+  //  先清空之前三个分类查询
+  queryParams.goodsName = undefined;
+  queryParams.goodsBrandName = undefined;
+  queryParams.goodsAbilityName = undefined;
   // 商品名称
   queryParams[searchInfo.searchType] = searchInfo.searchContent || undefined;
 

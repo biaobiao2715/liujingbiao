@@ -44,7 +44,7 @@
           清空
         </el-button>
       </div>
-      <div class="search-component flex">
+      <!-- <div class="search-component flex">
         <div class="search-select">
           <el-input v-model="searchContent" placeholder="请输入要搜索的内容" style="width: 380px">
             <template #prepend>
@@ -59,7 +59,7 @@
             </template>
           </el-input>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -67,8 +67,9 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted, toRaw } from 'vue';
 import { ElMessage } from 'element-plus';
-import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
+// import GoodsCategorySelect from '@/components/GoodsCategorySelect/index.vue';
 import RegionSelect from '@/components/RegionSelect/index.vue';
+import { eventBus } from '@/utils/eventBus';
 
 const emit = defineEmits(['searchChange']);
 
@@ -110,6 +111,14 @@ const isInitialized = ref(false);
 onMounted(() => {
   // 标记初始化完成
   isInitialized.value = true;
+
+  eventBus.on('mallSearch', (params: { searchType: string; queryParam: string }) => {
+    searchType.value = params.searchType;
+    searchContent.value = params.queryParam;
+    console.log(searchType.value);
+
+    handleSearch();
+  });
 });
 
 watch(
@@ -167,6 +176,7 @@ const handleSearch = () => {
     searchType: searchType.value,
     searchContent: searchContent.value
   };
+  console.log(searchParams);
 
   emit('searchChange', searchParams);
 };
@@ -188,9 +198,9 @@ const handleAreaChange = (val: any) => {
 };
 
 // 处理分类变化
-const handleCategoryChange = (value: string[]) => {
-  filterState.category = value || [];
-};
+// const handleCategoryChange = (value: string[]) => {
+//   filterState.category = value || [];
+// };
 
 // 处理最低价变化，允许清空
 const handleMinPriceChange = (value: number | null | undefined) => {
