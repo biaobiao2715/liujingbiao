@@ -43,7 +43,7 @@ import { useRouter } from 'vue-router';
 import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
-import { initSSE } from '@/utils/sse';
+import { initSSE, onOfflinePhaseEnd } from '@/utils/sse';
 import { getRouters } from '@/api/menu';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 import { getToken } from '@/utils/auth';
@@ -278,43 +278,63 @@ const handleRedirect = async (path: string) => {
 
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
-    // 移除掉字符串第一位的&符号
     await router.push(path.replace(/^app/, ''));
-    // 种子经纪服务平台
-    if (path === 'app/mall') {
-      batchNotify(noticeStore.state.notices, ['seed_economy_notice', 'report', 'supplyDemand'], eventTitleMap);
+    // 平台与事件类型映射
+    const platformEventMap: Record<string, string[]> = {
+      'app/mall': ['seed_economy_notice', 'report', 'supplyDemand'],
+      'app/financeFront/index': ['notice_status'],
+      '/welcome': ['seed_economy_notice', 'tech_notice', 'report', 'purchaseDemand']
+    };
+    const filterEvents = platformEventMap[path];
+    if (filterEvents) {
+      batchNotify(noticeStore.state.notices, filterEvents, eventTitleMap);
+      // 离线窗口结束时自动批量通知所有未通知的消息（可按当前平台事件列表筛选）
+      onOfflinePhaseEnd(filterEvents);
     }
-
-    // 种子金融服务平台
-    if (path === 'app/financeFront/index') {
-      batchNotify(noticeStore.state.notices, ['notice_status'], eventTitleMap);
-    }
-
-    //企业销售平台,供应商销售平台,种子技术服务平台,种子维权服务平台,平台管理系统
-    if (path === '/welcome') {
-      batchNotify(noticeStore.state.notices, ['seed_economy_notice', 'tech_notice', 'report', 'purchaseDemand'], eventTitleMap);
-    }
-    // console.log('跳转路径:', noticeStore.state.notices);
   }
 };
 
 const batchNotify = (notices: any[], filterEvents: string[], eventTitleMap: Record<string, string>, interval = 100) => {
   let idx = 0;
   notices.forEach((item) => {
-    console.log('检查消息事件类型:', item.event);
-    if (filterEvents.includes(item.event)) {
-      setTimeout(() => {
-        ElNotification({
-          title: eventTitleMap[item.event] || '消息',
-          message: item.message.message,
-          type: 'success',
-          duration: 3000
-        });
-      }, idx * interval);
-      idx++;
+    if (!filterEvents.includes(item.event) || item.notified) return;
+    let msg = extractMessage(item.message);
+    if (item.event === 'purchaseDemand') {
+      msg += (item.message.categoryName ? item.message.categoryName + '类型；' : '') + (item.message.demandDescription || '');
     }
+    if (item.event === 'supplyDemand') {
+      msg += (item.message.categoryName ? item.message.categoryName + '类型；' : '') + (item.message.supplyDescription || '');
+    }
+    setTimeout(() => {
+      ElNotification({
+        title: eventTitleMap[item.event] || '消息',
+        message: msg,
+        type: 'success',
+        duration: 3000
+      });
+      item.notified = true;
+    }, idx * interval);
+    idx++;
   });
 };
+
+function extractMessage(payload: any): string {
+  if (!payload) return '';
+  if (typeof payload === 'string') return payload;
+  return (
+    payload.message ||
+    payload.title ||
+    // 回退：取所有可序列化基本类型字段拼接
+    Object.keys(payload)
+      .filter((k) => ['message', 'title'].indexOf(k) === -1)
+      .map((k) => {
+        const v = payload[k];
+        return typeof v === 'object' ? '' : String(v);
+      })
+      .filter(Boolean)
+      .join(' ')
+  );
+}
 
 // 处理权限申请提交
 const handlePermissionSubmit = async (tenantId: string) => {

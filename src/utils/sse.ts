@@ -4,9 +4,7 @@ import { useNoticeStore } from '@/store/modules/notice';
 import { getRecommendDemand } from '@/api/login';
 import { watch, ref } from 'vue';
 
-// 事件标题映射：根据不同SSE事件使用不同的通知标题
-// purchaseDemand: 采购主题 (推给供应商使用)
-// supplyDemand: 供给主题 (推给采购商使用)
+// 事件标题映射
 const eventTitleMap: Record<string, string> = {
   message: '消息',
   purchaseDemand: '采购需求通知',
@@ -17,83 +15,29 @@ const eventTitleMap: Record<string, string> = {
   report: '消息'
 };
 
-// 防抖标记
-let isProcessing = false;
-// 用队列缓存所有待处理的数据，避免高频触发丢数据
-const pendingQueue = ref<Array<{ payload: any; event: string }>>([]);
-
-function parsePayload(raw: any): any {
-  if (raw == null) return null;
-  if (typeof raw === 'string') {
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return { message: raw };
-    }
+// 离线消息窗口标记
+let isOfflinePhase = false;
+let isOfflinePhaseList: string[] = [];
+const OFFLINE_WINDOW = 10000; // ms，离线消息窗口
+// SSE初始化（单例保护）
+let eventSourceInstance: any = null;
+export const closeSSE = () => {
+  if (eventSourceInstance && eventSourceInstance.close) {
+    eventSourceInstance.close();
   }
-  return raw;
-}
+  eventSourceInstance = null;
+};
 
-function extractMessage(payload: any): string {
-  if (!payload) return '';
-  if (typeof payload === 'string') return payload;
-  return (
-    payload.message ||
-    payload.title ||
-    // 回退：取所有可序列化基本类型字段拼接
-    Object.keys(payload)
-      .filter((k) => ['message', 'title'].indexOf(k) === -1)
-      .map((k) => {
-        const v = payload[k];
-        return typeof v === 'object' ? '' : String(v);
-      })
-      .filter(Boolean)
-      .join(' ')
-  );
-}
-
-// 处理通知的函数
-function handleNotification(payload: any, event: string) {
-  let msg = extractMessage(payload);
-
-  if (event === 'purchaseDemand') {
-    msg = msg + (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.demandDescription || '');
-  }
-  if (event === 'supplyDemand') {
-    msg = msg + (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.supplyDescription || '');
-  }
-
-  // 添加到通知存储
-  useNoticeStore().addNotice({
-    event: event,
-    message: payload,
-    read: false,
-    time: new Date().toLocaleString()
-  });
-  if (event === 'message') {
-    // 显示通知
-    ElNotification({
-      title: eventTitleMap[event] || '消息',
-      message: msg,
-      type: 'success',
-      duration: 3000
-    });
-  }
-}
-
-// 初始化
 export const initSSE = (url: any) => {
-  console.log('Initializing SSE with URL:', '执行了么');
-  if (import.meta.env.VITE_APP_SSE === 'false') {
-    return;
-  }
-
-  // 重置状态
-  isProcessing = false;
-
+  // 每次初始化前先销毁上一次的SSE连接
+  closeSSE();
+  if (import.meta.env.VITE_APP_SSE === 'false') return;
+  isOfflinePhase = false;
+  setTimeout(() => {
+    isOfflinePhase = true;
+  }, OFFLINE_WINDOW);
   url = url + '?Authorization=Bearer ' + getToken() + '&clientid=' + import.meta.env.VITE_APP_CLIENT_ID;
-  // 新增采购与供给两个主题
-  const { data, event, error } = useEventSource(
+  const { data, event, error, eventSource } = useEventSource(
     url,
     ['message', 'purchaseDemand', 'supplyDemand', 'seed_economy_notice', 'tech_notice', 'report', 'notice_status'],
     {
@@ -106,60 +50,115 @@ export const initSSE = (url: any) => {
       }
     }
   );
-
+  eventSourceInstance = eventSource || null;
   watch(error, () => {
     if (error.value) {
       console.log('SSE connection error:', error.value);
       error.value = null;
     }
   });
-
-  // 监听数据变化
   watch(
     [data, event],
     ([newData, newEvent]) => {
+      console.log('接受SSE received event:', newEvent, 'data:', newData);
       if (!newData || !newEvent) return;
-
       const payload = parsePayload(newData);
       if (!payload) return;
-
-      // 推入队列
-      pendingQueue.value.push({ payload, event: newEvent });
-
-      // 如果未在处理，则启动处理流程
-      if (!isProcessing) {
-        processQueue();
-      }
-
-      // 清空数据
+      handleNotification(payload, newEvent);
       data.value = null;
     },
     { flush: 'post' }
   );
+  // 初始化后立即获取推荐需求
+  getRecommendDemand().catch(() => {});
+};
 
-  // 队列处理函数
-  function processQueue() {
-    if (pendingQueue.value.length === 0) {
-      isProcessing = false;
-      return;
-    }
-    isProcessing = true;
-    const { payload, event } = pendingQueue.value.shift()!;
+// 注册离线窗口结束后的事件白名单
+// 支持传入单个事件或事件数组
+export function onOfflinePhaseEnd(events: string | string[]) {
+  if (Array.isArray(events)) {
+    isOfflinePhaseList = events;
+  } else if (typeof events === 'string') {
+    isOfflinePhaseList = [events];
+  } else {
+    isOfflinePhaseList = [];
+  }
+  console.log('注册离线窗口结束后的事件白名单：', isOfflinePhaseList);
+}
+
+function parsePayload(raw: any): any {
+  if (raw == null) return null;
+  if (typeof raw === 'string') {
     try {
-      handleNotification(payload, event);
-    } finally {
-      setTimeout(() => {
-        processQueue();
-      }, 100);
+      return JSON.parse(raw);
+    } catch {
+      return { message: raw };
     }
   }
+  return raw;
+}
+function extractMessage(payload: any): string {
+  if (!payload) return '';
+  if (typeof payload === 'string') return payload;
+  return (
+    payload.message ||
+    payload.title ||
+    Object.keys(payload)
+      .filter((k) => k !== 'message' && k !== 'title')
+      .map((k) => {
+        const v = payload[k];
+        return typeof v === 'object' ? '' : String(v);
+      })
+      .filter(Boolean)
+      .join(' ')
+  );
+}
 
-  // 初始化后仅调用一次推荐需求接口
-  getRecommendDemand()
-    .then((res: any) => {
-      // console.log('推荐需求', res);
-    })
-    .catch((err: any) => {
-      // console.log('推荐需求接口错误', err);
+// 存储并（如需）弹窗通知
+function handleNotification(payload: any, event: string) {
+  let msg = extractMessage(payload);
+  if (event === 'purchaseDemand') {
+    msg += (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.demandDescription || '');
+  }
+  if (event === 'supplyDemand') {
+    msg += (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.supplyDescription || '');
+  }
+  const noticeStore = useNoticeStore();
+  const exists =
+    noticeStore.state.notices &&
+    noticeStore.state.notices.some((item: any) => item.event === event && JSON.stringify(item.message) === JSON.stringify(payload));
+  if (exists) return;
+
+  // 判断是否需要弹窗
+  let shouldNotify = false;
+  let notified = false;
+  if (!isOfflinePhase && Array.isArray(isOfflinePhaseList) && isOfflinePhaseList.includes(event)) {
+    // 离线窗口内且白名单事件
+    shouldNotify = true;
+    notified = true;
+    console.log('离线窗口内白名单事件，直接弹窗通知：', event, msg);
+  } else if (isOfflinePhase) {
+    // 离线窗口结束后全部弹窗
+    shouldNotify = true;
+    notified = true;
+  } else {
+    // 离线窗口内非白名单事件
+    notified = false;
+  }
+
+  noticeStore.addNotice({
+    event,
+    message: payload,
+    read: false,
+    time: new Date().toLocaleString(),
+    notified
+  });
+  if (shouldNotify) {
+    ElNotification({
+      title: eventTitleMap[event] || '消息',
+      message: msg,
+      type: 'success',
+      duration: 3000
     });
-};
+  }
+}
