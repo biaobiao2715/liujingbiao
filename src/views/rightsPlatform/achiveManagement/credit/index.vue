@@ -17,7 +17,7 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" icon="Search" type="primary" @click="handleQuery">搜索</el-button>
+        <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" icon="Search" type="primary" @click="handleQuery">查询</el-button>
         <el-button v-throttle v-hasPermi="['safeguard:creditRating:list']" icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
