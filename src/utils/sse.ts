@@ -17,8 +17,8 @@ const eventTitleMap: Record<string, string> = {
 
 // 离线消息窗口标记
 let isOfflinePhase = false;
-let isOfflinePhaseList: string[] = [];
-const OFFLINE_WINDOW = 10000; // ms，离线消息窗口
+let typeList: string[] = [];
+const OFFLINE_WINDOW = 5000; // ms，离线消息窗口
 // SSE初始化（单例保护）
 let eventSourceInstance: any = null;
 export const closeSSE = () => {
@@ -39,7 +39,7 @@ export const initSSE = (url: any) => {
   url = url + '?Authorization=Bearer ' + getToken() + '&clientid=' + import.meta.env.VITE_APP_CLIENT_ID;
   const { data, event, error, eventSource } = useEventSource(
     url,
-    ['message', 'purchaseDemand', 'supplyDemand', 'seed_economy_notice', 'tech_notice', 'report', 'notice_status'],
+    ['message', 'purchaseDemand', 'supplyDemand', 'seed_economy_notice', 'tech_notice', 'report', 'notice_status', 'seedEconomyNotice'],
     {
       autoReconnect: {
         retries: 5,
@@ -60,7 +60,7 @@ export const initSSE = (url: any) => {
   watch(
     [data, event],
     ([newData, newEvent]) => {
-      console.log('接受SSE received event:', newEvent, 'data:', newData);
+      // console.log('接受SSE received event:', newEvent, 'data:', newData);
       if (!newData || !newEvent) return;
       const payload = parsePayload(newData);
       if (!payload) return;
@@ -77,13 +77,12 @@ export const initSSE = (url: any) => {
 // 支持传入单个事件或事件数组
 export function onOfflinePhaseEnd(events: string | string[]) {
   if (Array.isArray(events)) {
-    isOfflinePhaseList = events;
+    typeList = events;
   } else if (typeof events === 'string') {
-    isOfflinePhaseList = [events];
+    typeList = [events];
   } else {
-    isOfflinePhaseList = [];
+    typeList = [];
   }
-  console.log('注册离线窗口结束后的事件白名单：', isOfflinePhaseList);
 }
 
 function parsePayload(raw: any): any {
@@ -124,19 +123,27 @@ function handleNotification(payload: any, event: string) {
     msg += (payload.categoryName ? payload.categoryName + '类型；' : '') + (payload.supplyDescription || '');
   }
   const noticeStore = useNoticeStore();
+  // 只在3秒内收到完全相同的event+payload才去重
+  const now = Date.now();
   const exists =
     noticeStore.state.notices &&
-    noticeStore.state.notices.some((item: any) => item.event === event && JSON.stringify(item.message) === JSON.stringify(payload));
+    noticeStore.state.notices.some((item: any) => {
+      return (
+        item.event === event &&
+        JSON.stringify(item.message) === JSON.stringify(payload) &&
+        item.time &&
+        Math.abs(new Date(item.time).getTime() - now) < 3000
+      );
+    });
   if (exists) return;
 
   // 判断是否需要弹窗
   let shouldNotify = false;
   let notified = false;
-  if (!isOfflinePhase && Array.isArray(isOfflinePhaseList) && isOfflinePhaseList.includes(event)) {
+  if (!isOfflinePhase && Array.isArray(typeList) && typeList.includes(event)) {
     // 离线窗口内且白名单事件
     shouldNotify = true;
     notified = true;
-    console.log('离线窗口内白名单事件，直接弹窗通知：', event, msg);
   } else if (isOfflinePhase) {
     // 离线窗口结束后全部弹窗
     shouldNotify = true;

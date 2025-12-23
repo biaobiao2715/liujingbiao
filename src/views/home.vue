@@ -177,7 +177,7 @@ const permissionPopupData = ref<any>(null);
 const auditStatus = ref<number | null>(null);
 
 onMounted(async () => {
-  initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
+  // initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
   // getRouterList()
   getUserInfo();
 });
@@ -279,9 +279,10 @@ const handleRedirect = async (path: string) => {
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
     await router.push(path.replace(/^app/, ''));
+
     // 平台与事件类型映射
     const platformEventMap: Record<string, string[]> = {
-      'app/mall': ['seed_economy_notice', 'report', 'supplyDemand'],
+      'app/mall': ['seed_economy_notice', 'report', 'supplyDemand', 'seedEconomyNotice'],
       'app/financeFront/index': ['notice_status'],
       '/welcome': ['seed_economy_notice', 'tech_notice', 'report', 'purchaseDemand']
     };
@@ -289,7 +290,7 @@ const handleRedirect = async (path: string) => {
     if (filterEvents) {
       batchNotify(noticeStore.state.notices, filterEvents, eventTitleMap);
       // 离线窗口结束时自动批量通知所有未通知的消息（可按当前平台事件列表筛选）
-      onOfflinePhaseEnd(filterEvents);
+      // onOfflinePhaseEnd(filterEvents);
     }
   }
 };
