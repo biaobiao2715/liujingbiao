@@ -31,7 +31,7 @@
         <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable />
       </el-form-item>
       <el-form-item label="所属类型">
-        <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类别">
+        <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类型">
           <el-option v-for="dict in meeting_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
