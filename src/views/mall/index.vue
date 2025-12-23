@@ -36,6 +36,8 @@
       <!-- 个人中心 -->
       <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
     </div>
+    <!-- 底部组件 -->
+    <!-- <FooterComponents /> -->
   </div>
 </template>
 
@@ -49,6 +51,7 @@ import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件
 import ExpertComponent from './Components/ExpertComponent.vue'; // 专家组件
 import PersonalCenterComponent from './personalCenter/index.vue'; // 个人中心组件
+// import FooterComponents from './Components/FooterComponents.vue'; // 底部组件
 
 import { eventBus } from '@/utils/eventBus';
 
