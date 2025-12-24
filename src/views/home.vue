@@ -1,7 +1,7 @@
 <template>
   <div class="application-container">
     <div class="user-info-bar flex-center-between">
-      <img src="@/assets/images/logo.svg" width="32" />
+      <img src="@/assets/images/logo-white.png" width="32" />
       <div class="user-info flex-center gap-12">
         <el-icon color="#fff"><Bell /></el-icon>
         <div class="dept-name">{{ userInfo?.deptName }}</div>
