@@ -393,9 +393,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="扣分：">
-                <span>{{
-                  formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
-                }}</span>
+                <span>{{ formData.caseScore !== undefined && formData.caseScore !== null ? String(formData.caseScore) : formData.caseScore }}</span>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -463,9 +461,7 @@
             <el-col :span="12">
               <el-form-item label="扣分：">
                 <el-input
-                  :model-value="
-                    formData.caseScore !== undefined && formData.caseScore !== null ? '-' + String(formData.caseScore) : formData.caseScore
-                  "
+                  :model-value="formData.caseScore !== undefined && formData.caseScore !== null ? String(formData.caseScore) : formData.caseScore"
                   disabled
                 />
               </el-form-item>
