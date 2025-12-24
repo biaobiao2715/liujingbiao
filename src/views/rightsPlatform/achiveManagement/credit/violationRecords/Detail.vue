@@ -687,7 +687,7 @@ const caseScoreText = computed(() => {
   const v = (formData.value as any)?.caseScore;
   const n = Number(v);
   if (!isFinite(n)) return '';
-  return `- ${Math.max(0, n)}`;
+  return `${Math.max(0, n)}`;
 });
 
 const remainingScoreText = computed(() => {
