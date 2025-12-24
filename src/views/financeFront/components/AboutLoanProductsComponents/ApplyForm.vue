@@ -1035,7 +1035,7 @@ onMounted(async () => {
       // 法人身份证
       setFromUrl(uploaderLegalFront, formData.value.frontCardUrl, undefined);
       // 反面字段应使用后端返回的“backCardUrl”，此前误用了“bankCardUrl”导致有值仍校验报错
-      setFromUrl(uploaderLegalBack, formData.value.backCardUrl, undefined);
+      setFromUrl(uploaderLegalBack, formData.value.bankCardUrl, undefined);
       setFromUrl(uploaderAuthorization, formData.value.authorizationUrl, formData.value.authorizationFileName);
 
       await populateBirthdayIfNeeded(applyRes.data);
