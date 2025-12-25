@@ -44,6 +44,13 @@
           清空
         </el-button>
       </div>
+
+      <el-input v-model="searchContent" placeholder="请输入要搜索的内容" style="width: 380px" @keydown.enter="handleSearch">
+        <template #append>
+          <el-button type="primary" @click="handleSearch"> 搜索 </el-button>
+        </template>
+      </el-input>
+
       <!-- <div class="search-component flex">
         <div class="search-select">
           <el-input v-model="searchContent" placeholder="请输入要搜索的内容" style="width: 380px">

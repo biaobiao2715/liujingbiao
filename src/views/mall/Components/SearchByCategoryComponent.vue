@@ -9,7 +9,7 @@
             <div class="second-title">智创</div>
           </div>
         </div>
-        <div class="tip">#nonghezhich</div>
+        <div class="tip">#nonghezhichuang</div>
       </div>
 
       <div class="right-search">
