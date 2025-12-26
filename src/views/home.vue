@@ -358,7 +358,7 @@ const handlePermissionSubmit = async (tenantId: string) => {
       setTimeout(() => {
         if (!newWindow) return;
         newWindow.postMessage({ type: 'SET_TOKEN', token }, res.data.redirectUrl);
-      }, 300); // 基本 300~500ms 足够
+      }, 1500); // 基本 300~500ms 足够
     }
   } catch (error) {
     console.error('第三方登录失败:', error);
