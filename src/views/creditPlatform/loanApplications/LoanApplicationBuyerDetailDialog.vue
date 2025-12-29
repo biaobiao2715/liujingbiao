@@ -1371,3 +1371,12 @@ const handleViewProductDetail = () => {
   }
 }
 </style>
+
+<style lang="scss">
+.buyer-detail-drawer {
+  .el-drawer__header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0px !important;
+  }
+}
+</style>

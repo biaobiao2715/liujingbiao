@@ -63,20 +63,26 @@
                 <el-input :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="个人身份证明">
-                <template v-if="applicantIdPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in applicantIdPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="applicantIdPhotos"
-                    class="license-image"
-                  />
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="12">
+              <el-form-item label="身份证正面">
+                <template v-if="applicantIdFrontPhoto">
+                  <el-image :src="applicantIdFrontPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="身份证反面">
+                <template v-if="applicantIdBackPhoto">
+                  <el-image :src="applicantIdBackPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
             <el-col :span="24">
               <el-form-item label="授权文件">
                 <template v-if="applicantAuthFiles.length">
@@ -103,10 +109,20 @@
                 <el-input :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="银行卡正反面">
-                <template v-if="bankCardImages.length">
-                  <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="12">
+              <el-form-item label="银行卡正面">
+                <template v-if="bankCardFrontImage">
+                  <el-image :src="bankCardFrontImage" :preview-src-list="bankCardImages" class="license-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="银行卡反面">
+                <template v-if="bankCardBackImage">
+                  <el-image :src="bankCardBackImage" :preview-src-list="bankCardImages" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -436,6 +452,16 @@ const applicantIdPhotos = computed(() => {
   return collectUrls(row.idFrontUrl, row.idBackUrl, row.idBackUr, row.idCardUrl, row.idcardUrl, row.idcardUr);
 });
 
+const applicantIdFrontPhoto = computed(() => {
+  const row = detailRow.value;
+  return row.idFrontUrl || row.idCardUrl || applicantIdPhotos.value[0] || '';
+});
+
+const applicantIdBackPhoto = computed(() => {
+  const row = detailRow.value;
+  return row.idBackUrl || row.idBackUr || applicantIdPhotos.value[1] || '';
+});
+
 /**
  * 申请人授权文件列表
  */
@@ -482,6 +508,16 @@ const loanInfoList = computed<DetailField[]>(() => {
 const bankCardImages = computed(() => {
   const row = detailRow.value;
   return collectUrls(row.bankFrontUrl, row.bankBackUrl);
+});
+
+const bankCardFrontImage = computed(() => {
+  const row = detailRow.value;
+  return row.bankFrontUrl || bankCardImages.value[0] || '';
+});
+
+const bankCardBackImage = computed(() => {
+  const row = detailRow.value;
+  return row.bankBackUrl || bankCardImages.value[1] || '';
 });
 
 /**
@@ -655,5 +691,14 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
+}
+</style>
+
+<style lang="scss">
+.repayment-detail-drawer {
+  .el-drawer__header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0px !important;
+  }
 }
 </style>

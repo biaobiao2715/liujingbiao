@@ -50,16 +50,18 @@
                 <el-input :model-value="detail.user.address" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="身份证正反面">
-                <template v-if="detail.user.idPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in detail.user.idPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="detail.user.idPhotos"
-                    class="identity-image"
-                  />
+            <el-col :span="12">
+              <el-form-item label="身份证正面">
+                <template v-if="detail.user.idFrontPhoto">
+                  <el-image :src="detail.user.idFrontPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="身份证反面">
+                <template v-if="detail.user.idBackPhoto">
+                  <el-image :src="detail.user.idBackPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -102,16 +104,18 @@
                 <el-input :model-value="detail.loan.bankCardNo" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="银行卡正反面">
-                <template v-if="detail.loan.cardPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in detail.loan.cardPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="detail.loan.cardPhotos"
-                    class="identity-image"
-                  />
+            <el-col :span="12">
+              <el-form-item label="银行卡正面">
+                <template v-if="detail.loan.cardFrontPhoto">
+                  <el-image :src="detail.loan.cardFrontPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="银行卡反面">
+                <template v-if="detail.loan.cardBackPhoto">
+                  <el-image :src="detail.loan.cardBackPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -325,6 +329,8 @@ const detail = computed(() => {
   const bankCode = row.collectionBankCode || row.bankCode;
   const bankLabel = getBankLabel(bankCode);
   const bankDisplay = bankLabel !== '--' ? bankLabel : fallback(row.collectionBankCode || row.bankName);
+  const idPhotos = collectUrls(row.idFrontUrl, row.idBackUrl, row.idCardPhotoFront, row.idCardPhotoBack);
+  const cardPhotos = collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack);
 
   return {
     user: {
@@ -333,7 +339,9 @@ const detail = computed(() => {
       idNumber: fallback(row.idCardNumber),
       phone: fallback(row.contactPhone || row.phone),
       address: fallback(row.contactAddress || row.address),
-      idPhotos: collectUrls(row.idFrontUrl, row.idBackUrl, row.idCardPhotoFront, row.idCardPhotoBack)
+      idPhotos,
+      idFrontPhoto: row.idFrontUrl || row.idCardPhotoFront || idPhotos[0] || '',
+      idBackPhoto: row.idBackUrl || row.idCardPhotoBack || idPhotos[1] || ''
     },
     loan: {
       applyDate: fallback(row.createTime || row.applyTime),
@@ -342,7 +350,9 @@ const detail = computed(() => {
       repaymentType: fallback(repaymentTypeText),
       bank: bankDisplay,
       bankCardNo: fallback(row.bankAccountNumber || row.bankCardNo),
-      cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
+      cardPhotos,
+      cardFrontPhoto: row.bankFrontUrl || row.bankCardPhotoFront || cardPhotos[0] || '',
+      cardBackPhoto: row.bankBackUrl || row.bankCardPhotoBack || cardPhotos[1] || ''
     }
   };
 });
@@ -481,5 +491,14 @@ const handleViewRepaymentPlan = () => {
 .repayment-section {
   display: flex;
   justify-content: center;
+}
+</style>
+
+<style lang="scss">
+.buyer-repayment-detail-drawer {
+  .el-drawer__header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0px !important;
+  }
 }
 </style>

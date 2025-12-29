@@ -1468,3 +1468,12 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   }
 }
 </style>
+
+<style lang="scss">
+.loan-detail-drawer {
+  .el-drawer__header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0px !important;
+  }
+}
+</style>
