@@ -486,10 +486,8 @@ onMounted(() => {
   }
 
   .el-table__body {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
+    tr:hover > td {
+      background-color: #f5f7fa !important;
     }
   }
 }
