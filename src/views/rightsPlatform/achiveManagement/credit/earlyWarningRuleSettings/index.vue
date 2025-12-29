@@ -145,7 +145,6 @@
 <script setup name="EarlyWarningRule" lang="ts">
 import { ref, reactive, toRefs, onMounted, getCurrentInstance, ComponentInternalInstance, computed, watch } from 'vue';
 import {
-  initForm,
   listWarnRule,
   getWarnRule,
   addWarnRule,
@@ -168,7 +167,6 @@ const ids = ref<(number | string)[]>([]);
 const multiple = ref(true);
 // 新增：保存选中行，用于状态校验
 const selectedRows = ref<EarlyWarningRuleVO[]>([]);
-
 const queryParams = reactive<EarlyWarningRuleQuery>({
   pageNum: 1,
   pageSize: 10,
@@ -176,11 +174,16 @@ const queryParams = reactive<EarlyWarningRuleQuery>({
   creditRatingId: '',
   status: ''
 });
-
 const queryFormRef = ref<any>(null);
 const dataFormRef = ref<any>(null);
-
-const form = ref<EarlyWarningRuleForm>({ ...initForm });
+const form = ref<EarlyWarningRuleForm>({
+  id: undefined,
+  ruleName: '',
+  creditRatingId: undefined,
+  warnValue: 0,
+  status: '0', // 默认启用
+  remark: ''
+});
 // 表单校验：名称增加长度限制
 const rules = {
   ruleName: [
@@ -190,42 +193,39 @@ const rules = {
   creditRatingId: [{ required: true, message: '信用等级不能为空', trigger: 'change' }],
   warnValue: [
     { required: true, message: '预警值不能为空', trigger: 'blur' },
-    { validator: warnValueValidator, trigger: ['blur', 'change'] }
+    {
+      validator(_rule, value, callback) {
+        if (dialog.mode === 'view') return callback();
+        const min = numericMin.value,
+          max = numericMax.value;
+        if (min === null || max === null) return callback(new Error('请先选择信用等级以获取积分区间'));
+        const num = Number(value);
+        if (!Number.isFinite(num)) return callback(new Error('预警值必须为数字'));
+        if (num < min || num > max) return callback(new Error(`预警值需在 ${min} - ${max} 之间`));
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
   ],
   status: [{ required: true, message: '状态不能为空', trigger: 'change' }]
 };
-
+const initForm = {
+  id: undefined,
+  ruleName: '',
+  creditRatingId: undefined,
+  warnValue: 0,
+  status: '0', // 默认启用
+  remark: ''
+};
 // 信用等级积分区间展示
 const creditMinPoints = ref<number | string>('');
 const creditMaxPoints = ref<number | string>('');
-const numericMin = computed<number | null>(() => {
-  const n = Number(creditMinPoints.value);
-  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
-});
-const numericMax = computed<number | null>(() => {
-  const n = Number(creditMaxPoints.value);
-  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
-});
-
-function warnValueValidator(_rule: any, value: any, callback: (err?: Error) => void) {
-  if (dialog.mode === 'view') return callback();
-  const min = numericMin.value;
-  const max = numericMax.value;
-  if (min === null || max === null) {
-    return callback(new Error('请先选择信用等级以获取积分区间'));
-  }
-  const num = Number(value);
-  if (Number.isNaN(num)) return callback(new Error('预警值必须为数字'));
-  if (num < min || num > max) return callback(new Error(`预警值需在 ${min} - ${max} 之间`));
-  return callback();
-}
 
 const dialog = reactive<{ visible: boolean; title: string; mode: 'create' | 'edit' | 'view' }>({
   visible: false,
   title: '',
   mode: 'create'
 });
-const dialogTitle = computed(() => (dialog.mode === 'create' ? '新增预警规则设置' : dialog.mode === 'edit' ? '修改预警规则设置' : '预警规则详情'));
 
 // 表格
 const getList = async () => {
@@ -247,20 +247,17 @@ const resetQuery = () => {
   getList();
 };
 
-function normalizeCreditRatingId(id: unknown): string {
-  return id == null ? '' : String(id);
-}
-
-// 新增/编辑/查看
+// 新增
 const handleAdd = () => {
-  form.value = { ...initForm };
+  resetForm();
   creditMinPoints.value = '';
   creditMaxPoints.value = '';
   dialog.mode = 'create';
-  setTimeout(() => dataFormRef.value?.clearValidate(), 100);
   dialog.visible = true;
 };
+// 编辑
 const handleEdit = async (row: EarlyWarningRuleVO) => {
+  resetForm();
   const res = await getWarnRule(row.id!);
   const data = res?.data || row;
   form.value = {
@@ -271,7 +268,9 @@ const handleEdit = async (row: EarlyWarningRuleVO) => {
   dialog.visible = true;
   loadCreditPoints(form.value.creditRatingId as any);
 };
+// 查看
 const handleView = async (row: EarlyWarningRuleVO) => {
+  resetForm();
   const res = await getWarnRule(row.id!);
   const data = res?.data || row;
   form.value = {
@@ -290,12 +289,23 @@ const submitForm = () => {
     form.value.id ? await updateWarnRule(form.value) : await addWarnRule(form.value);
     proxy?.$modal.msgSuccess('操作成功');
     dialog.visible = false;
-
     getList();
   });
 };
 
-// 选择
+// 取消/关闭
+const cancel = () => {
+  dialog.visible = false;
+  resetForm();
+};
+
+/** 表单重置 */
+const resetForm = () => {
+  form.value = { ...initForm };
+  dataFormRef.value?.resetFields();
+};
+
+// 表格多选选择
 const handleSelectionChange = (rows: EarlyWarningRuleVO[]) => {
   ids.value = rows.map((r) => r.id!);
   selectedRows.value = rows; // 新增
@@ -360,16 +370,10 @@ const toggleStatus = async (row: EarlyWarningRuleVO) => {
   getList();
 };
 
-// 取消/关闭
-const cancel = () => {
-  dialog.visible = false;
-  if (dialog.mode !== 'view') {
-    dataFormRef.value?.resetFields();
-    form.value = { ...initForm };
-  }
-};
-
-onMounted(getList);
+// 信用等级ID归一化处理
+function normalizeCreditRatingId(id: unknown): string {
+  return id == null ? '' : String(id);
+}
 
 // 根据信用等级获取积分区间
 async function loadCreditPoints(creditRatingId: string | number | null | undefined) {
@@ -397,19 +401,20 @@ watch(
   }
 );
 
-// 行内操作按钮配置（前三个直显，超出收“更多”）
-const getRowActions = (row: EarlyWarningRuleVO) => {
-  const actions = [
-    { key: 'edit', label: '修改', permi: ['safeguard:warnRule:edit'], onClick: (r: any) => handleEdit(r) },
-    { key: 'view', label: '查看', permi: ['safeguard:warnRule:query'], onClick: (r: any) => handleView(r) },
-    // 根据当前状态展示启用或禁用
-    String(row.status) === '0'
-      ? { key: 'disable', label: '禁用', permi: ['safeguard:warnRule:enableAndDisabled'], onClick: (r: any) => toggleStatus(r) }
-      : { key: 'enable', label: '启用', permi: ['safeguard:warnRule:enableAndDisabled'], onClick: (r: any) => toggleStatus(r) },
-    { key: 'delete', label: '删除', permi: ['safeguard:warnRule:remove'], onClick: (r: any) => handleDelete(r) }
-  ];
-  return actions;
-};
+const dialogTitle = computed(() => (dialog.mode === 'create' ? '新增预警规则设置' : dialog.mode === 'edit' ? '修改预警规则设置' : '预警规则详情'));
+
+const numericMin = computed<number | null>(() => {
+  const n = Number(creditMinPoints.value);
+  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
+});
+const numericMax = computed<number | null>(() => {
+  const n = Number(creditMaxPoints.value);
+  return Number.isFinite(n) && !Number.isNaN(n) ? n : null;
+});
+
+onMounted(() => {
+  getList();
+});
 </script>
 
 <style scoped lang="scss">

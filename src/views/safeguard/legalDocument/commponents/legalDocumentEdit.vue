@@ -27,7 +27,6 @@
     >
       <el-form-item :label="isViewMode ? '文书名称' : '法律文书模版名称'" prop="legalDocumentName" class="legal-form-left-item">
         <el-input v-model="formData.legalDocumentName" placeholder="请输入法律文书模版名称" maxlength="30" show-word-limit :disabled="isViewMode" />
-        <p v-if="!formData.legalDocumentName && !isViewMode" class="tip-text">请输入法律文书模版名称，最多支持30个汉字</p>
       </el-form-item>
 
       <el-form-item label="法律文书模版编号" class="legal-form-left-item">
@@ -176,6 +175,7 @@ const props = defineProps<{
     legalFiles?: LegalFile[];
     historyList?: HistoryFile[];
     currentVersion?: string;
+    remark?: string;
   };
   loading?: boolean;
   mode?: 'edit' | 'view';
@@ -221,9 +221,22 @@ const statusOptions = [
 //   const option = statusOptions.find((item) => item.value === formData.status);
 //   return option?.label || '--';
 // });
+const legalDocumentNameValidator = (rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入法律文书模版名称，最多支持30个汉字'));
+  } else {
+    callback();
+  }
+};
 
 const formRules = {
-  legalDocumentName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
+  legalDocumentName: [
+    {
+      required: true,
+      validator: legalDocumentNameValidator,
+      trigger: 'blur'
+    }
+  ],
   legalFiles: [{ required: true, message: '请上传文件', trigger: 'change' }]
   // status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
 };

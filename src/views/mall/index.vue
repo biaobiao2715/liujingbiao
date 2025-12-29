@@ -9,6 +9,8 @@
   <div :class="[{ 'is-home': activeTab === 'goods' }, 'mall-container flex-column']">
     <!-- 头部组件 -->
     <HeaderComponent />
+    <!-- 搜索组件 -->
+    <SearchByCategoryComponent />
 
     <!-- Tabs 切换 -->
     <div class="tabs-container">
@@ -34,18 +36,22 @@
       <!-- 个人中心 -->
       <PersonalCenterComponent v-else-if="activeTab === 'personal'" :command="personalCommand" />
     </div>
+    <!-- 底部组件 -->
+    <!-- <FooterComponents /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import HeaderComponent from './Components/HeaderComponent.vue'; // 头部组件
+import SearchByCategoryComponent from './Components/SearchByCategoryComponent.vue'; // 搜索组件
 import CommonNavigation from './Components/CommonNavigation.vue'; // 导航组件
 import GoodsComponent from './Components/GoodsComponent.vue'; // 商城首页组件
 import DemandComponent from './Components/DemandComponent.vue'; // 需求组件
 import MarketComponent from './Components/MarketComponent.vue'; // 市场组件
 import ExpertComponent from './Components/ExpertComponent.vue'; // 专家组件
 import PersonalCenterComponent from './personalCenter/index.vue'; // 个人中心组件
+// import FooterComponents from './Components/FooterComponents.vue'; // 底部组件
 
 import { eventBus } from '@/utils/eventBus';
 

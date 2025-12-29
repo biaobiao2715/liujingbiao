@@ -206,7 +206,8 @@ const queryParams = reactive({
   createTime: '', // 创建时间
   createByName: '', // 举报人
   reporterName: '', // 被举报人
-  status: '' // 所属状态
+  status: '', // 所属状态
+  reportPersonName: '' // 被举报人
 });
 
 // 状态选项

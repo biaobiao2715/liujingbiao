@@ -199,7 +199,14 @@ const fetchCategoryList = async () => {
       return parentId === 0 || parentId === '0' || parentId === null || parentId === undefined || parentId === '';
     });
 
-    categoryOptions.value = firstLevelCategories.map((item: any, index: number) => ({
+    // 只保留"种子"和"农资农具"两种分类
+    const allowedCategories = ['种子', '农资农具'];
+    const filteredCategories = firstLevelCategories.filter((item: any) => {
+      const categoryName = item.categoryName || item.name || '';
+      return allowedCategories.includes(categoryName);
+    });
+
+    categoryOptions.value = filteredCategories.map((item: any, index: number) => ({
       label: item.categoryName || item.name || `类目${index + 1}`,
       value: String(item.id || item.categoryId || index),
       goodsCategoryId: item.id || item.categoryId || ''

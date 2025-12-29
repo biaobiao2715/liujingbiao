@@ -38,7 +38,7 @@
     </div>
     <!-- 文章内容部分 -->
     <div class="article-content">
-      <div v-html="detail?.contentContent"></div>
+      <ContentWithToc :content="detail?.contentContent" style="height: 600px" />
     </div>
     <div class="attachment">
       <div class="attachment-title">附件</div>
@@ -272,5 +272,10 @@ const handleCollection = async () => {
       color: #108c58;
     }
   }
+}
+
+::v-deep .detail-content-wrapper {
+  height: 100%;
+  overflow: auto;
 }
 </style>

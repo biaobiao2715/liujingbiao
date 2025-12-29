@@ -18,7 +18,7 @@
 <style scoped lang="scss">
 .welcome {
   flex-direction: column;
-  padding: 100px 10%;
+  padding: 68px 10%;
   background-color: #fff;
   .title {
     font-family:
@@ -30,7 +30,7 @@
   }
   .img {
     width: 100%;
-    height: calc(100vh - 440px);
+    height: calc(100vh - 380px);
     background: url('@/assets/images/welcome.png') no-repeat center;
     background-size: 100% 100%;
   }

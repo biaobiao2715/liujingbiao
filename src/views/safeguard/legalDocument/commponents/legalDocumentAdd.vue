@@ -8,7 +8,7 @@
 <template>
   <el-dialog :model-value="formVisible" width="50%" :title="dialogTitle" align-center :close-on-click-modal="false" @close="handleClose">
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="200px" class="legal-edit-form">
-      <el-form-item label="法律文书名称模版" prop="legalDocumentName">
+      <el-form-item label="法律文书模版名称" prop="legalDocumentName">
         <el-input v-model="formData.legalDocumentName" placeholder="请输入法律文书模版名称" maxlength="30" show-word-limit />
       </el-form-item>
 
@@ -41,7 +41,7 @@
         <el-table-column prop="version" label="版本号" width="120" />
         <el-table-column label="操作" width="100">
           <template #default="{ $index }">
-            <el-button type="text" @click="handleRemoveAttachment($index)">删除</el-button>
+            <el-button link type="danger" @click="handleRemoveAttachment($index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -108,9 +108,21 @@ const statusOptions = [
   { value: '0', label: '启用' },
   { value: '1', label: '禁用' }
 ];
-
+const legalDocumentNameValidator = (rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback(new Error('请输入法律文书模版名称，最多支持30个汉字'));
+  } else {
+    callback();
+  }
+};
 const formRules = {
-  legalDocumentName: [{ required: true, message: '请输入法律文书模版名称', trigger: 'blur' }],
+  legalDocumentName: [
+    {
+      required: true,
+      validator: legalDocumentNameValidator,
+      trigger: 'blur'
+    }
+  ],
   attachments: [{ required: true, message: '请至少上传一个文件', trigger: 'change' }]
   // status: [{ required: true, message: '请选择所属状态', trigger: 'change' }]
 };

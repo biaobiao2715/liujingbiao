@@ -7,6 +7,7 @@ interface NoticeItem {
   read: boolean;
   message: any;
   time: string;
+  notified?: boolean;
 }
 
 export const useNoticeStore = defineStore('notice', () => {

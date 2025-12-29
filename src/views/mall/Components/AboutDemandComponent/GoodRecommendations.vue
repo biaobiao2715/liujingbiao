@@ -2,7 +2,7 @@
   <div class="good-goods-wrapper">
     <div class="title mt-24">好物推荐</div>
 
-    <el-carousel height="400" autoplay v-if="goodRecommendations.length > 0">
+    <el-carousel height="400" autoplay v-if="goodRecommendations.length > 0" :indicator-position="'none'">
       <el-carousel-item v-for="(group, index) in groupArray(goodRecommendations, 5)" :key="index">
         <div class="recommendation-grid flex gap-12">
           <GoodsItemComponent v-for="item in group" :key="item.id" :goods="item" @clickGoods="handleDetail(item.id)" />

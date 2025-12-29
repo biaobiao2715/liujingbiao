@@ -71,13 +71,13 @@
                 :emitPath="false"
                 v-model="quoteForm.supplyCategoryId"
                 @categoryChange="handleCategoryForm"
-                :disabled="dialogMode === 'edit'"
+                :disabled="dialogMode !== 'add'"
               />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="备注：" prop="supplyDescription">
-              <el-input v-model="quoteForm.supplyDescription" placeholder="请输入" autosize type="textarea" :disabled="dialogMode === 'edit'" />
+              <el-input v-model="quoteForm.supplyDescription" placeholder="请输入" autosize type="textarea" :disabled="dialogMode !== 'add'" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -86,7 +86,7 @@
                 v-model="quoteForm.supplierSupplyDeliveryBos"
                 :multiple="true"
                 placeholder="请选择配送范围"
-                :disabled="dialogMode === 'edit'"
+                :disabled="dialogMode !== 'add'"
                 @regionChange="supplierSupplyDeliveryBosForm"
                 style="width: 100%"
               />
@@ -101,7 +101,7 @@
 
           <el-col :span="12">
             <el-form-item label="可交付周期/天：" prop="deliveryDays">
-              <el-input v-model="quoteForm.deliveryDays" placeholder="请输入可交付时间" :disabled="dialogMode === 'edit'" />
+              <el-input v-model="quoteForm.deliveryDays" placeholder="请输入可交付时间" :disabled="dialogMode !== 'add'" />
             </el-form-item>
           </el-col>
 

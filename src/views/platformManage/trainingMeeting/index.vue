@@ -31,7 +31,7 @@
         <el-input v-model.trim="queryParams.publishUser" placeholder="请输入发布人" clearable />
       </el-form-item>
       <el-form-item label="所属类型">
-        <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类别">
+        <el-select v-model="queryParams.meetingType" filterable clearable placeholder="请选择所属类型">
           <el-option v-for="dict in meeting_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -148,7 +148,7 @@
         <template #default="scope">
           <!-- <div> -->
           <!-- 待开始 -->
-          <template v-if="scope.row.meetingStatus === '1'">
+          <template v-if="scope.row.meetingStatus == '1'">
             <el-button
               v-hasPermi="['skill:HnMeetingCultivate:edit']"
               class="operation-link-button"
@@ -190,7 +190,7 @@
   <AddMeeting v-model="visible" :mode="dialogMode" :data="meetingData" @save="handleSave" />
   <!-- 取消会议 -->
   <el-dialog title="取消会议" v-model="dialogVisible" width="30%" @close="handleMettingClose">
-    <el-input type="textarea" :rows="2" placeholder="请输入取消原因" v-model.trim="cancellation" max="200"></el-input>
+    <el-input type="textarea" :rows="4" placeholder="请输入取消原因" v-model.trim="cancellation" maxlength="200" show-word-limit></el-input>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="handleMettingClose">取 消</el-button>
@@ -401,11 +401,11 @@ const handleView = async (row: any) => {
   detailLoading.value = true;
   currentLoadingId.value = row.id;
   try {
-    let params = {
+    const params = {
       isView: true,
       id: row.id
     };
-    let res = await getHnMeetingCultivatedetail(params);
+    const res = await getHnMeetingCultivatedetail(params);
     dialogMode.value = 'view';
     meetingData.value = res;
     visible.value = true;
@@ -422,11 +422,11 @@ const handleEdit = async (row: any) => {
   editLoading.value = true;
   currentLoadingId.value = row.id;
   try {
-    let params = {
+    const params = {
       isView: false,
       id: row.id
     };
-    let res = await getHnMeetingCultivatedetail(params);
+    const res = await getHnMeetingCultivatedetail(params);
     dialogMode.value = 'edit';
     meetingData.value = res;
     visible.value = true;
@@ -459,7 +459,7 @@ const Confirmcancel = async () => {
     return ElMessage.warning('请输入取消原因');
   }
   try {
-    let params = {
+    const params = {
       ids: [cancelobj.value.id],
       cancelReason: cancellation.value.trim()
     };

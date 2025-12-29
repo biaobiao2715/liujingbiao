@@ -1,7 +1,7 @@
 <template>
   <div class="application-container">
     <div class="user-info-bar flex-center-between">
-      <img src="@/assets/images/logo.svg" width="32" />
+      <img src="@/assets/images/logo-white.png" width="32" />
       <div class="user-info flex-center gap-12">
         <el-icon color="#fff"><Bell /></el-icon>
         <div class="dept-name">{{ userInfo?.deptName }}</div>
@@ -43,12 +43,25 @@ import { useRouter } from 'vue-router';
 import { getInfo, thirdPartyLogin, queryTraceableUser } from '@/api/login';
 import { ElMessageBox } from 'element-plus';
 import { useUserStore } from '@/store/modules/user';
-import { initSSE } from '@/utils/sse';
+import { initSSE, onOfflinePhaseEnd } from '@/utils/sse';
 import { getRouters } from '@/api/menu';
 import PermissionPopup from './permissionPopup/PermissionPopup.vue';
 import { getToken } from '@/utils/auth';
+import { useNoticeStore } from '@/store/modules/notice';
+import { ElNotification } from 'element-plus';
+
+const eventTitleMap: Record<string, string> = {
+  message: '消息',
+  purchaseDemand: '采购需求通知',
+  supplyDemand: '供给需求通知',
+  seed_economy_notice: '消息',
+  notice_status: '消息',
+  tech_notice: '消息',
+  report: '消息'
+};
 
 const userStore = useUserStore();
+const noticeStore = useNoticeStore();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
 // 路由实例
@@ -164,6 +177,7 @@ const permissionPopupData = ref<any>(null);
 const auditStatus = ref<number | null>(null);
 
 onMounted(async () => {
+  // initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
   // getRouterList()
   getUserInfo();
 });
@@ -264,13 +278,64 @@ const handleRedirect = async (path: string) => {
 
   if (path) {
     // 不同角色进入到后台管理，定位不同页面
-    // 移除掉字符串第一位的&符号
-    router.push(path.replace(/^app/, ''));
-    setTimeout(() => {
-      initSSE(import.meta.env.VITE_APP_BASE_API + '/resource/sse');
-    }, 2000);
+    await router.push(path.replace(/^app/, ''));
+
+    // 平台与事件类型映射
+    const platformEventMap: Record<string, string[]> = {
+      'app/mall': ['seed_economy_notice', 'report', 'supplyDemand', 'seedEconomyNotice'],
+      'app/financeFront/index': ['notice_status'],
+      '/welcome': ['seed_economy_notice', 'tech_notice', 'report', 'purchaseDemand']
+    };
+    const filterEvents = platformEventMap[path];
+    if (filterEvents) {
+      batchNotify(noticeStore.state.notices, filterEvents, eventTitleMap);
+      // 离线窗口结束时自动批量通知所有未通知的消息（可按当前平台事件列表筛选）
+      // onOfflinePhaseEnd(filterEvents);
+    }
   }
 };
+
+const batchNotify = (notices: any[], filterEvents: string[], eventTitleMap: Record<string, string>, interval = 100) => {
+  let idx = 0;
+  notices.forEach((item) => {
+    if (!filterEvents.includes(item.event) || item.notified) return;
+    let msg = extractMessage(item.message);
+    if (item.event === 'purchaseDemand') {
+      msg += (item.message.categoryName ? item.message.categoryName + '类型；' : '') + (item.message.demandDescription || '');
+    }
+    if (item.event === 'supplyDemand') {
+      msg += (item.message.categoryName ? item.message.categoryName + '类型；' : '') + (item.message.supplyDescription || '');
+    }
+    setTimeout(() => {
+      ElNotification({
+        title: eventTitleMap[item.event] || '消息',
+        message: msg,
+        type: 'success',
+        duration: 3000
+      });
+      item.notified = true;
+    }, idx * interval);
+    idx++;
+  });
+};
+
+function extractMessage(payload: any): string {
+  if (!payload) return '';
+  if (typeof payload === 'string') return payload;
+  return (
+    payload.message ||
+    payload.title ||
+    // 回退：取所有可序列化基本类型字段拼接
+    Object.keys(payload)
+      .filter((k) => ['message', 'title'].indexOf(k) === -1)
+      .map((k) => {
+        const v = payload[k];
+        return typeof v === 'object' ? '' : String(v);
+      })
+      .filter(Boolean)
+      .join(' ')
+  );
+}
 
 // 处理权限申请提交
 const handlePermissionSubmit = async (tenantId: string) => {
@@ -293,7 +358,7 @@ const handlePermissionSubmit = async (tenantId: string) => {
       setTimeout(() => {
         if (!newWindow) return;
         newWindow.postMessage({ type: 'SET_TOKEN', token }, res.data.redirectUrl);
-      }, 300); // 基本 300~500ms 足够
+      }, 1500); // 基本 300~500ms 足够
     }
   } catch (error) {
     console.error('第三方登录失败:', error);

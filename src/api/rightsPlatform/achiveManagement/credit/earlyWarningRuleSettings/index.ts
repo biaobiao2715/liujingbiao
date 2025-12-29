@@ -83,12 +83,3 @@ export interface EarlyWarningRuleForm {
 export interface EarlyWarningRuleVO extends EarlyWarningRuleForm {
   createTime?: string;
 }
-
-export const initForm: EarlyWarningRuleForm = {
-  id: undefined,
-  ruleName: '',
-  creditRatingId: '' as any,
-  warnValue: 0,
-  status: '0', // 默认启用
-  remark: ''
-};

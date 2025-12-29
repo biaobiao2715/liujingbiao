@@ -89,7 +89,6 @@
             action="#"
             :http-request="handleLegalBasisUpload"
             :before-upload="handleLegalBasisBeforeUpload"
-            :on-remove="handleLegalBasisRemove"
             :on-exceed="handleLegalBasisExceed"
             :show-file-list="false"
             accept=".pdf,.doc,.docx,.xls,.xlsx"
@@ -253,7 +252,7 @@
           :max="100"
           @input="handleCaseScoreInput"
         />
-        <span v-else>{{ formData.caseScore || '-' }}</span>
+        <span v-else>{{ formData.caseScore }}</span>
       </el-form-item>
     </el-form>
 
@@ -295,12 +294,14 @@ interface LegalFile {
 }
 
 interface HistoryFile {
+  ossInfo: any;
   fileName: string;
   updateTime: string;
   fileSize: number;
   version: string;
   remark?: string;
   url?: string;
+  ossId?: string;
 }
 
 const props = defineProps<{
@@ -315,7 +316,7 @@ const props = defineProps<{
     legalDocumentFiles?: LegalFile[];
     legalDocumentHistoryList?: HistoryFile[];
     status?: string;
-    caseScore?: string | number;
+    caseScore?: number;
   };
   loading?: boolean;
   mode?: 'add' | 'edit' | 'view';
@@ -340,7 +341,8 @@ const formData = reactive({
   legalDocumentTemplate: '',
   legalDocumentFiles: [] as LegalFile[],
   status: '',
-  caseScore: ''
+  caseScore: 0,
+  currentVersion: ''
 });
 
 const legalBasisHistoryList = ref<HistoryFile[]>([]);
@@ -672,11 +674,6 @@ const handleLegalBasisUpload = (req: any) =>
     }
   });
 
-const handleLegalBasisRemove = async (file: LegalFile) => {
-  formData.legalBasisFiles = [];
-  isUpload.value = false;
-};
-
 const handleRemoveLegalBasisFile = (index: number) => {
   formData.legalBasisFiles.splice(index, 1);
   formRef.value?.validateField?.('legalBasisFiles');
@@ -795,6 +792,7 @@ const loadLegalDocumentTemplateData = async (value: string, showMessage = true) 
 
 const handleRemoveLegalDocumentFile = (index: number) => {
   formData.legalDocumentFiles.splice(index, 1);
+  formData.legalDocumentTemplate = '';
 };
 
 const handleDownloadLegalDocumentFile = async (file: LegalFile) => {
@@ -850,17 +848,17 @@ const handleLegalDocumentHistorySizeChange = (size: number) => {
 
 const handleCaseScoreInput = (value: string | number) => {
   if (value === '' || value === null || value === undefined) {
-    formData.caseScore = '';
+    formData.caseScore = 0;
     return;
   }
   const strValue = value.toString().replace(/[^\d]/g, '');
   if (strValue === '') {
-    formData.caseScore = '';
+    formData.caseScore = 0;
     return;
   }
   let num = Number(strValue);
   if (num > 100) num = 100;
-  formData.caseScore = num.toString();
+  formData.caseScore = num;
 };
 
 const applyData = (val?: typeof props.data) => {
@@ -871,7 +869,7 @@ const applyData = (val?: typeof props.data) => {
   formData.legalDocumentTemplate = val?.legalDocumentTemplate || '';
   formData.legalDocumentFiles = val?.legalDocumentFiles?.map((item) => ({ ...item })) || [];
   formData.status = val?.status || '';
-  formData.caseScore = val?.caseScore?.toString() || '';
+  formData.caseScore = val?.caseScore || 0;
   legalBasisHistoryList.value = val?.legalBasisHistoryList?.map((item) => ({ ...item })) || [];
   legalDocumentHistoryList.value = val?.legalDocumentHistoryList?.map((item) => ({ ...item })) || [];
   legalBasisHistoryPagination.page = 1;
@@ -928,7 +926,7 @@ const resetForm = () => {
   formData.legalDocumentTemplate = '';
   formData.legalDocumentFiles = [];
   formData.status = '';
-  formData.caseScore = '';
+  formData.caseScore = 0;
   legalBasisHistoryList.value = [];
   legalDocumentHistoryList.value = [];
   legalBasisHistoryPagination.page = 1;
@@ -943,6 +941,10 @@ const resetForm = () => {
 const handleSubmit = () => {
   formRef.value?.validate((valid: boolean) => {
     if (!valid) return;
+    if (formData.legalDocumentFiles.length <= 0) {
+      ElMessage.error('请选择法律文书模版');
+      return;
+    }
     const hasNewUpload = isUpload.value;
     formData.currentVersion = isAddMode.value ? '1.0' : formData.legalBasisFiles[0].version;
     emit('submit', {

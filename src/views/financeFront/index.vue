@@ -73,7 +73,7 @@
       <PersonalCenterComponent v-show="showArea === 'PersonalCenter'" :activeTab="personalActivityTab" />
     </div>
     <!-- 底部 -->
-    <FooterComponents />
+    <!-- <FooterComponents /> -->
   </div>
 </template>
 
@@ -88,7 +88,7 @@ import LoanProductsComponent from './components/LoanProductsComponent.vue';
 import RiskCasesComponent from './components/RiskCasesComponent.vue';
 import PolicyRulesComponent from './components/PolicyRulesComponent.vue';
 import InsuranceproductComponent from './components/InsuranceproductComponent.vue';
-import FooterComponents from './components/FooterComponents.vue';
+// import FooterComponents from './components/FooterComponents.vue';
 
 import { eventBus } from '@/utils/eventBus';
 

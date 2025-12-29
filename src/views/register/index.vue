@@ -10,7 +10,7 @@
     <!-- 大标题 -->
     <div class="title">
       <div class="flex-center gap-8">
-        <img src="../../assets/images/logo-white.svg" width="32" />
+        <img src="../../assets/images/logo-white.png" width="32" />
         <div>全国种子销售服务平台</div>
       </div>
     </div>

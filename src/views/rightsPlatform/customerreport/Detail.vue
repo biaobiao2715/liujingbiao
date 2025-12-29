@@ -213,7 +213,7 @@
       <el-col :span="24">
         <el-form-item label="扣分：">
           <!-- <el-input v-model="formData.caseScore" type="textarea" :rows="4" disabled autosize /> -->
-          <div style="color: red">{{ -formData.caseScore }}</div>
+          <div style="color: red">{{ formData.caseScore }}</div>
         </el-form-item>
       </el-col>
       <el-col :span="24">
@@ -527,7 +527,7 @@ const fetchContentDetail = async () => {
         NewAppealFile: data.NewAppealFile || '', //申诉材料
         backAppealReason: data.backAppealReason || '', //申诉驳回原因
         historyAppealList: data.historyAppealList || [], //历史申诉材料
-        caseScore: data.caseScore || undefined, //扣分
+        caseScore: data.caseScore, //扣分
         sore: data.sore || undefined, //信用分
         creditLevel: data.creditLevel || '' //信用等级
       };
@@ -597,7 +597,6 @@ const handleSubmit = async () => {
     };
     console.log('submitData提交的数据', submitData);
     return;
-  
   } catch (error) {
     if (error !== 'cancel') {
       console.error('操作失败:', error);
@@ -611,9 +610,9 @@ const handleSubmit = async () => {
 const emitCancel = () => {
   emit('cancel');
 };
-let appealDialogVisible = ref(false);
-let appealDialogLoading = ref(false);
-let appealDetail = reactive<any>({});
+const appealDialogVisible = ref(false);
+const appealDialogLoading = ref(false);
+const appealDetail = reactive<any>({});
 const histAppealImageList2 = ref();
 const histAppealImagePreviewUrls2 = ref();
 const histAppealVideoList2 = ref();

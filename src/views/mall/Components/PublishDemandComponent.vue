@@ -6,7 +6,7 @@
           <GoodsCategorySelect v-model="form.demandCategoryId" :emitPath="false" @categoryChange="handleCategoryChange" />
         </el-form-item>
         <el-form-item label="区域" required prop="region">
-          <RegionSelect v-model="form.region" :checkStrictly="true" @regionChange="handleAreaChange" style="width: 100%" />
+          <RegionSelect v-model="form.region" :checkStrictly="false" @regionChange="handleAreaChange" style="width: 100%" />
         </el-form-item>
         <el-form-item label="采购数量" required prop="quantity">
           <el-input v-model="form.quantity" placeholder="请输入采购数量" inputmode="numeric" @input="onQuantityInput"></el-input>
