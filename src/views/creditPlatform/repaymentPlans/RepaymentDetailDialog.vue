@@ -7,9 +7,9 @@
 -->
 
 <template>
-  <el-dialog :model-value="visible" width="50%" class="repayment-detail-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-drawer :model-value="visible" size="40%" direction="rtl" class="repayment-detail-drawer" append-to-body destroy-on-close @close="handleClose">
     <template #header>
-      <div class="dialog-title">贷后管理详情（企业）</div>
+      <div class="drawer-title">贷后管理详情（企业）</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -141,7 +141,7 @@
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
     <RepaymentPlanDialog v-model:visible="repaymentPlanVisible" :data="props.data" />
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -539,11 +539,17 @@ const handleViewRepaymentPlan = () => {
 </script>
 
 <style scoped lang="scss">
-.repayment-detail-dialog {
-  :deep(.el-dialog__body) {
+.repayment-detail-drawer {
+  :deep(.el-drawer__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .detail-section {

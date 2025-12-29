@@ -7,9 +7,9 @@
 -->
 
 <template>
-  <el-dialog :model-value="visible" width="50%" class="loan-detail-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-drawer :model-value="visible" size="40%" direction="rtl" class="loan-detail-drawer" append-to-body destroy-on-close @close="handleClose">
     <template #header>
-      <div class="dialog-title">{{ dialogTitle }}</div>
+      <div class="drawer-title">{{ dialogTitle }}</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -63,20 +63,26 @@
                 <el-input :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="个人身份证明">
-                <template v-if="applicantIdPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in applicantIdPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="applicantIdPhotos"
-                    class="license-image"
-                  />
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="12">
+              <el-form-item label="身份证正面">
+                <template v-if="applicantIdFrontPhoto">
+                  <el-image :src="applicantIdFrontPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="身份证反面">
+                <template v-if="applicantIdBackPhoto">
+                  <el-image :src="applicantIdBackPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
             <el-col :span="24">
               <el-form-item label="授权文件">
                 <template v-if="applicantAuthFiles.length">
@@ -103,10 +109,18 @@
                 <el-input :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="银行卡正反面">
-                <template v-if="bankCardImages.length">
-                  <el-image v-for="(img, idx) in bankCardImages" :key="idx" :src="img" :preview-src-list="bankCardImages" class="license-image" />
+            <el-col :span="12">
+              <el-form-item label="银行卡正面">
+                <template v-if="bankCardFrontImage">
+                  <el-image :src="bankCardFrontImage" :preview-src-list="bankCardImages" class="license-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="银行卡反面">
+                <template v-if="bankCardBackImage">
+                  <el-image :src="bankCardBackImage" :preview-src-list="bankCardImages" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -129,41 +143,39 @@
           v-if="showApprovalForm"
           ref="approvalFormRef"
           :model="approvalForm"
-          :rules="approvalRules"
+          :rules="isApprovalMode ? approvalRules : {}"
           label-width="100px"
           class="approval-form no-wrap-label"
         >
           <el-form-item label="审批意见" prop="opinion" class="required-field">
-            <el-select v-model="approvalForm.opinion" :disabled="isApprovalReadonly">
-              <el-option label="同意" value="agree" />
-              <el-option label="不同意" value="reject" />
-            </el-select>
+            <el-input v-model="approvalForm.opinion" type="textarea" :rows="4" placeholder="请输入..." :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
-            <el-date-picker
-              v-model="approvalForm.loanDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-              :disabledDate="disablePastDates"
-            />
-          </el-form-item>
-          <el-form-item
-            label="第一期还款日期"
-            prop="firstRepaymentDate"
-            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
-            class="date-picker-field"
-          >
-            <el-date-picker
-              v-model="approvalForm.firstRepaymentDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-              :disabledDate="disablePastDates"
-            />
-          </el-form-item>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="放款日期" prop="loanDate" class="required-field date-picker-field">
+                <el-date-picker
+                  v-model="approvalForm.loanDate"
+                  type="date"
+                  placeholder="请选择"
+                  style="width: 100%"
+                  :disabled="isApprovalReadonly"
+                  :disabledDate="disablePastDates"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="第一期还款日" prop="firstRepaymentDate" class="required-field date-picker-field">
+                <el-date-picker
+                  v-model="approvalForm.firstRepaymentDate"
+                  type="date"
+                  placeholder="请选择"
+                  style="width: 100%"
+                  :disabled="isApprovalReadonly"
+                  :disabledDate="disablePastDates"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
           <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
@@ -201,9 +213,9 @@
                   :show-file-list="false"
                 >
                   <el-button type="primary" icon="Upload"> 点击上传 </el-button>
-                  <template #tip>
+                  <!-- <template #tip>
                     <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
-                  </template>
+                  </template> -->
                 </el-upload>
               </div>
             </template>
@@ -226,6 +238,15 @@
           </el-form-item>
           <div class="approval-actions" v-if="isApprovalMode">
             <el-button
+              type="danger"
+              plain
+              :loading="submittingApproval && currentApprovalAction === 'reject'"
+              :disabled="submittingApproval"
+              @click="handleSubmitApproval('reject')"
+            >
+              审批驳回
+            </el-button>
+            <el-button
               type="primary"
               :loading="submittingApproval && currentApprovalAction === 'agree'"
               :disabled="submittingApproval"
@@ -233,22 +254,15 @@
             >
               审批通过
             </el-button>
-            <el-button
-              :loading="submittingApproval && currentApprovalAction === 'reject'"
-              :disabled="submittingApproval"
-              @click="handleSubmitApproval('reject')"
-            >
-              审批驳回
-            </el-button>
           </div>
         </el-form>
       </div>
     </div>
-    <template #footer>
+    <template #footer v-if="!isApprovalMode">
       <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -303,7 +317,7 @@ const productDetailVisible = ref(false);
 
 const approvalFormRef = ref<FormInstance>();
 const approvalForm = reactive({
-  opinion: 'agree',
+  opinion: '',
   rejectionReason: '',
   loanDate: '',
   firstRepaymentDate: '',
@@ -374,7 +388,7 @@ const REPAYMENT_METHOD_MAP: Record<string, string> = {
 const PENDING_STATUS_CODES = new Set(['0', '1']);
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
+  opinion: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
   loanDate: [
     {
       required: true,
@@ -700,6 +714,16 @@ const applicantIdPhotos = computed(() => {
   return collectUrls(row.idFrontUrl, row.idBackUrl, row.idBackUr, row.idCardUrl, row.idcardUrl, row.idcardUr);
 });
 
+const applicantIdFrontPhoto = computed(() => {
+  const row = detailData.value || {};
+  return row.idFrontUrl || row.idCardUrl || applicantIdPhotos.value[0] || '';
+});
+
+const applicantIdBackPhoto = computed(() => {
+  const row = detailData.value || {};
+  return row.idBackUrl || row.idBackUr || applicantIdPhotos.value[1] || '';
+});
+
 const applicantAuthFiles = computed(() => {
   const row = detailData.value || {};
   const urls = collectUrls(row.authorizationUrl);
@@ -724,10 +748,19 @@ const bankCardImages = computed(() => {
   return collectUrls(row.bankFrontUrl, row.bankBackUrl);
 });
 
+const bankCardFrontImage = computed(() => {
+  const row = detailData.value || {};
+  return row.bankFrontUrl || bankCardImages.value[0] || '';
+});
+
+const bankCardBackImage = computed(() => {
+  const row = detailData.value || {};
+  return row.bankBackUrl || bankCardImages.value[1] || '';
+});
+
 const dialogTitle = computed(() => {
   return props.mode === 'approval' ? '企业贷款申请审核' : '贷款申请详情（企业）';
 });
-
 const isApprovalMode = computed(() => props.mode === 'approval');
 // 详情模式下始终只读，审批模式下可编辑
 const isApprovalReadonly = computed(() => {
@@ -797,13 +830,18 @@ const hydrateApprovalForm = (row: Record<string, any>) => {
   }
 
   approvalForm.contractFiles = normalizeContractFiles(row);
+
+  // 详情模式下清除校验
+  nextTick(() => {
+    approvalFormRef.value?.clearValidate();
+  });
 };
 
 /**
  * 重置审批表单
  */
 const resetApprovalForm = () => {
-  approvalForm.opinion = 'agree';
+  approvalForm.opinion = '';
   approvalForm.rejectionReason = '';
   approvalForm.loanDate = '';
   approvalForm.firstRepaymentDate = '';
@@ -1070,8 +1108,8 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     white-space: nowrap;
   }
 }
-.loan-detail-dialog {
-  :deep(.el-dialog__body) {
+.loan-detail-drawer {
+  :deep(.el-drawer__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
@@ -1099,6 +1137,12 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
       border: 1px solid #e5e5e5;
     }
   }
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .detail-section {
@@ -1146,6 +1190,18 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     font-weight: 400;
     font-size: 14px;
     color: #3d3d3d;
+  }
+}
+
+// 审批信息区域的输入框需要背景色
+.approval-section {
+  :deep(.el-input__wrapper) {
+    background-color: #f5f7fa !important;
+  }
+
+  :deep(.el-textarea__inner),
+  :deep(.el-textarea.is-disabled .el-textarea__inner) {
+    background-color: #f5f7fa !important;
   }
 }
 
@@ -1359,6 +1415,14 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 
 // 调整日期选择器清除图标位置
 .approval-form {
+  // 审批意见文本域样式
+  :deep(.el-textarea__inner) {
+    background-color: #f5f7fa !important;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    resize: vertical !important;
+  }
+
   :deep(.el-date-editor) {
     .el-input__suffix {
       right: 8px;

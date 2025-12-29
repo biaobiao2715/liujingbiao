@@ -72,7 +72,7 @@
             </el-button>
             <el-button
               v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '0'"
-              style="color: #ff7b00; font-size: 14px"
+              style="color: #108c58; font-size: 14px"
               size="small"
               text
               @click="handleNotification(scope.row, 'pending')"
@@ -83,7 +83,7 @@
               v-if="scope.row.planStatus !== '2' && scope.row.currentPeriodStatus === '2'"
               size="small"
               text
-              style="color: #f23255; font-size: 14px"
+              style="color: #108c58; font-size: 14px"
               @click="handleNotification(scope.row, 'overdue')"
             >
               逾期提示

@@ -6,19 +6,19 @@
   开发信息: Created by 吴威振 2025-11-25
 -->
 
-
 <template>
-  <el-dialog
+  <el-drawer
     :model-value="visible"
-    width="50%"
-    class="buyer-detail-dialog"
+    size="40%"
+    direction="rtl"
+    class="buyer-detail-drawer"
     append-to-body
     destroy-on-close
     :close-on-click-modal="false"
     @close="handleClose"
   >
     <template #header>
-      <div class="dialog-title">{{ dialogTitle }}</div>
+      <div class="drawer-title">{{ dialogTitle }}</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -50,16 +50,18 @@
                 <el-input :model-value="detail.user.address" disabled></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="身份证正反面">
-                <template v-if="detail.user.idPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in detail.user.idPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="detail.user.idPhotos"
-                    class="identity-image"
-                  />
+            <el-col :span="12">
+              <el-form-item label="身份证正面">
+                <template v-if="detail.user.idFrontPhoto">
+                  <el-image :src="detail.user.idFrontPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="身份证反面">
+                <template v-if="detail.user.idBackPhoto">
+                  <el-image :src="detail.user.idBackPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -102,16 +104,18 @@
                 <el-input :model-value="detail.loan.bankCardNo" disabled></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="24">
-              <el-form-item label="银行卡正反面">
-                <template v-if="detail.loan.cardPhotos.length">
-                  <el-image
-                    v-for="(img, idx) in detail.loan.cardPhotos"
-                    :key="idx"
-                    :src="img"
-                    :preview-src-list="detail.loan.cardPhotos"
-                    class="identity-image"
-                  />
+            <el-col :span="12">
+              <el-form-item label="银行卡正面">
+                <template v-if="detail.loan.cardFrontPhoto">
+                  <el-image :src="detail.loan.cardFrontPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="银行卡反面">
+                <template v-if="detail.loan.cardBackPhoto">
+                  <el-image :src="detail.loan.cardBackPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -134,41 +138,39 @@
           v-if="showApprovalForm"
           ref="approvalFormRef"
           :model="approvalForm"
-          :rules="approvalRules"
+          :rules="isApprovalMode ? approvalRules : {}"
           label-width="100px"
           class="approval-form no-wrap-label"
         >
           <el-form-item label="审批意见" prop="opinion" class="required-field">
-            <el-select v-model="approvalForm.opinion" :disabled="isApprovalReadonly">
-              <el-option label="同意" value="agree" />
-              <el-option label="不同意" value="reject" />
-            </el-select>
+            <el-input v-model="approvalForm.opinion" type="textarea" :rows="4" placeholder="请输入..." :disabled="isApprovalReadonly" />
           </el-form-item>
-          <el-form-item label="放款日期" prop="loanDate" :class="{ 'required-field': approvalForm.opinion !== 'reject' }" class="date-picker-field">
-            <el-date-picker
-              v-model="approvalForm.loanDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-              :disabledDate="disablePastDates"
-            />
-          </el-form-item>
-          <el-form-item
-            label="第一期还款日期"
-            prop="firstRepaymentDate"
-            :class="{ 'required-field': approvalForm.opinion !== 'reject' }"
-            class="date-picker-field"
-          >
-            <el-date-picker
-              v-model="approvalForm.firstRepaymentDate"
-              type="date"
-              placeholder="选择日期"
-              style="width: 100%"
-              :disabled="isApprovalReadonly"
-              :disabledDate="disableFirstRepaymentDates"
-            />
-          </el-form-item>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="放款日期" prop="loanDate" class="required-field date-picker-field">
+                <el-date-picker
+                  v-model="approvalForm.loanDate"
+                  type="date"
+                  placeholder="请选择"
+                  style="width: 100%"
+                  :disabled="isApprovalReadonly"
+                  :disabledDate="disablePastDates"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="第一期还款日" prop="firstRepaymentDate" class="required-field date-picker-field">
+                <el-date-picker
+                  v-model="approvalForm.firstRepaymentDate"
+                  type="date"
+                  placeholder="请选择"
+                  style="width: 100%"
+                  :disabled="isApprovalReadonly"
+                  :disabledDate="disableFirstRepaymentDates"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
           <el-form-item label="贷款合同" prop="contractId" :class="['contract-field', { 'required-field': approvalForm.opinion !== 'reject' }]">
             <template v-if="isApprovalMode">
               <div class="contract-upload-wrapper">
@@ -205,10 +207,10 @@
                   :on-remove="handleRemoveFile"
                   :show-file-list="false"
                 >
-                  <el-button type="primary" icon="Upload"> 点击上传 </el-button>
-                  <template #tip>
+                  <el-button type="primary" icon="Upload"> 上传文件 </el-button>
+                  <!-- <template #tip>
                     <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
-                  </template>
+                  </template> -->
                 </el-upload>
               </div>
             </template>
@@ -231,6 +233,15 @@
           </el-form-item>
           <div class="approval-actions" v-if="isApprovalMode">
             <el-button
+              type="danger"
+              plain
+              :loading="submittingApproval && currentApprovalAction === 'reject'"
+              :disabled="submittingApproval"
+              @click="handleSubmitApproval('reject')"
+            >
+              审批驳回
+            </el-button>
+            <el-button
               type="primary"
               :loading="submittingApproval && currentApprovalAction === 'agree'"
               :disabled="submittingApproval"
@@ -238,22 +249,15 @@
             >
               审批通过
             </el-button>
-            <el-button
-              :loading="submittingApproval && currentApprovalAction === 'reject'"
-              :disabled="submittingApproval"
-              @click="handleSubmitApproval('reject')"
-            >
-              审批驳回
-            </el-button>
           </div>
         </el-form>
       </div>
     </div>
-    <template #footer>
+    <template #footer v-if="!isApprovalMode">
       <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -325,7 +329,7 @@ const productDetailVisible = ref(false);
 
 const approvalFormRef = ref<FormInstance>();
 const approvalForm = reactive({
-  opinion: 'agree',
+  opinion: '',
   rejectionReason: '',
   loanDate: '',
   firstRepaymentDate: '',
@@ -396,7 +400,7 @@ const APPLY_STATUS_MAP: Record<string, string> = {
 };
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请选择审批意见', trigger: 'change' }],
+  opinion: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
   loanDate: [
     {
       required: true,
@@ -519,7 +523,6 @@ const getRepaymentMethodLabel = (value: string | number | undefined | null): str
   return REPAYMENT_METHOD_MAP[String(value)] || '--';
 };
 
-
 /**
  * 获取银行名称
  */
@@ -587,6 +590,7 @@ const fetchDetail = async () => {
  */
 const mapUserInfo = (row: Record<string, any>) => {
   const birthday = getFieldValue(row, ['birthday', 'birthDate']) || extractBirthdayFromId(getFieldValue(row, ['idCardNumber', 'idNumber']));
+  const idPhotos = collectUrls(row.idFrontUrl, row.idBackUrl, row.idCardPhotoFront, row.idCardPhotoBack);
 
   return {
     name: formatValue(getFieldValue(row, ['realName', 'name'])),
@@ -594,7 +598,9 @@ const mapUserInfo = (row: Record<string, any>) => {
     idNumber: formatValue(getFieldValue(row, ['idCardNumber'])),
     phone: formatValue(getFieldValue(row, ['contactPhone', 'phone'])),
     address: formatValue(getFieldValue(row, ['contactAddress', 'address'])),
-    idPhotos: collectUrls(row.idFrontUrl, row.idBackUrl, row.idCardPhotoFront, row.idCardPhotoBack)
+    idPhotos,
+    idFrontPhoto: row.idFrontUrl || row.idCardPhotoFront || idPhotos[0] || '',
+    idBackPhoto: row.idBackUrl || row.idCardPhotoBack || idPhotos[1] || ''
   };
 };
 
@@ -610,6 +616,7 @@ const mapLoanInfo = (row: Record<string, any>) => {
 
   const amount = row.loanAmount;
   const amountText = amount === undefined || amount === null || amount === '' ? '--' : `${amount} 万元`;
+  const cardPhotos = collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack);
 
   return {
     applyDate: formatValue(getFieldValue(row, ['createTime', 'applyTime'])),
@@ -618,7 +625,9 @@ const mapLoanInfo = (row: Record<string, any>) => {
     repaymentType: formatValue(repaymentTypeText),
     bank: bankDisplay,
     bankCardNo: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])),
-    cardPhotos: collectUrls(row.bankFrontUrl, row.bankBackUrl, row.bankCardPhotoFront, row.bankCardPhotoBack)
+    cardPhotos,
+    cardFrontPhoto: row.bankFrontUrl || row.bankCardPhotoFront || cardPhotos[0] || '',
+    cardBackPhoto: row.bankBackUrl || row.bankCardPhotoBack || cardPhotos[1] || ''
   };
 };
 
@@ -721,13 +730,18 @@ const hydrateApprovalForm = (row: Record<string, any>) => {
   }
 
   approvalForm.contractFiles = normalizeContractFiles(row);
+
+  // 详情模式下清除校验
+  nextTick(() => {
+    approvalFormRef.value?.clearValidate();
+  });
 };
 
 /**
  * 重置审批表单
  */
 const resetApprovalForm = () => {
-  approvalForm.opinion = 'agree';
+  approvalForm.opinion = '';
   approvalForm.rejectionReason = '';
   approvalForm.loanDate = '';
   approvalForm.firstRepaymentDate = '';
@@ -1005,8 +1019,8 @@ const handleViewProductDetail = () => {
   }
 }
 
-.buyer-detail-dialog {
-  :deep(.el-dialog__body) {
+.buyer-detail-drawer {
+  :deep(.el-drawer__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
@@ -1034,6 +1048,12 @@ const handleViewProductDetail = () => {
       border: 1px solid #e5e5e5;
     }
   }
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .detail-section {
@@ -1080,6 +1100,18 @@ const handleViewProductDetail = () => {
     font-weight: 400;
     font-size: 14px;
     color: rgba(61, 61, 61, 0.5);
+  }
+}
+
+// 审批信息区域的输入框需要背景色
+.approval-section {
+  :deep(.el-input__wrapper) {
+    background-color: #f5f7fa !important;
+  }
+
+  :deep(.el-textarea__inner),
+  :deep(.el-textarea.is-disabled .el-textarea__inner) {
+    background-color: #f5f7fa !important;
   }
 }
 
@@ -1136,8 +1168,8 @@ const handleViewProductDetail = () => {
 .approval-actions {
   margin-top: 32px;
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  justify-content: right;
+  gap: 5px;
 }
 
 .contract-files,
@@ -1286,6 +1318,14 @@ const handleViewProductDetail = () => {
 
 // 调整日期选择器清除图标位置
 .approval-form {
+  // 审批意见文本域样式
+  :deep(.el-textarea__inner) {
+    background-color: #f5f7fa !important;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    resize: vertical !important;
+  }
+
   :deep(.el-date-editor) {
     .el-input__suffix {
       right: 8px;

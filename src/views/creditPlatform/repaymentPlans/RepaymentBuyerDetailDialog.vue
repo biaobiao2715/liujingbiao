@@ -7,17 +7,18 @@
 -->
 
 <template>
-  <el-dialog
+  <el-drawer
     :model-value="visible"
-    width="50%"
-    class="buyer-repayment-detail-dialog"
+    size="40%"
+    direction="rtl"
+    class="buyer-repayment-detail-drawer"
     append-to-body
     destroy-on-close
     :close-on-click-modal="false"
     @close="handleClose"
   >
     <template #header>
-      <div class="dialog-title">贷后管理详情（个人）</div>
+      <div class="drawer-title">贷后管理详情（个人）</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -145,7 +146,7 @@
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
     <RepaymentPlanDialog v-model:visible="repaymentPlanVisible" :data="props.data" />
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -390,11 +391,17 @@ const handleViewRepaymentPlan = () => {
 </script>
 
 <style scoped lang="scss">
-.buyer-repayment-detail-dialog {
-  :deep(.el-dialog__body) {
+.buyer-repayment-detail-drawer {
+  :deep(.el-drawer__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
 }
 
 .detail-section {
