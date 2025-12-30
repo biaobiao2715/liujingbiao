@@ -64,7 +64,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="状态" prop="productStatus" width="100">
+      <el-table-column label="状态" prop="productStatus" width="100" align="center">
         <template #default="scope">
           <div class="status-with-dot">
             <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.productStatus)}`"></span>

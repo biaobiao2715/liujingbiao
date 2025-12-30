@@ -7,25 +7,27 @@
 -->
 <template>
   <div class="product-credit-form-dialog" v-loading="loading">
-    <div class="section-title">基础信息</div>
     <div class="upload-global-hint" @click="triggerUpload">
-      <div class="upload-icon-box">
-        <span class="plus">+</span>
-      </div>
-      <el-icon class="file-icon" :size="24"><Document /></el-icon>
-      <span class="upload-text">注：上传文件自动解析</span>
+      <img :src="uploadIcon" alt="上传" class="upload-icon-img" />
+      <span class="upload-text">上传文件自动解析</span>
     </div>
-    <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
+    <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px" label-position="right">
+      <el-form-item label="产品名称" prop="productName">
+        <el-input v-model="formData.productName" placeholder="我是产品名称" maxlength="50" show-word-limit clearable />
+      </el-form-item>
+
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item label="产品名称" prop="productName">
-            <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
+          <el-form-item label="产品类型" prop="productType">
+            <el-select v-model="formData.productType" placeholder="请选择" clearable>
+              <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="产品类型" prop="productType">
-            <el-select v-model="formData.productType" placeholder="请选择产品类型" clearable>
-              <el-option v-for="dict in prod_credit_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-form-item label="适用对象" prop="applicableObject">
+            <el-select v-model="formData.applicableObject" placeholder="请选择" clearable multiple>
+              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -33,56 +35,48 @@
 
       <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item label="适用对象" prop="applicableObject">
-            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
-              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
           <el-form-item label="可贷金额" required class="loan-amount-item">
             <div class="range-inputs">
               <el-form-item prop="minLoanAmount" label-width="0" class="inline-form-item">
-                <el-input-number v-model="formData.minLoanAmount" :min="0" :precision="2" :controls="false" placeholder="最低额度" />
+                <el-input-number v-model="formData.minLoanAmount" :min="0" :precision="2" :controls="false" placeholder="请输入" />
               </el-form-item>
-              <span class="range-split">万元 —</span>
+              <span class="range-split">万元</span>
+              <span class="range-line"></span>
               <el-form-item prop="maxLoanAmount" label-width="0" class="inline-form-item">
-                <el-input-number v-model="formData.maxLoanAmount" :min="0" :precision="2" :controls="false" placeholder="最高额度" />
+                <el-input-number v-model="formData.maxLoanAmount" :min="0" :precision="2" :controls="false" placeholder="请输入" />
               </el-form-item>
               <span class="unit">万元</span>
             </div>
           </el-form-item>
         </el-col>
-      </el-row>
-
-      <el-row :gutter="24">
         <el-col :span="12">
-          <el-form-item label="利率/费率" required>
+          <el-form-item label="利率/费率" required class="loan-amount-item">
             <div class="range-inputs">
               <el-form-item prop="baseInterestRate" label-width="0" class="inline-form-item">
-                <el-input-number v-model="formData.baseInterestRate" :min="0" :precision="2" :controls="false" placeholder="最低利率" />
+                <el-input-number v-model="formData.baseInterestRate" :min="0" :precision="2" :controls="false" placeholder="请输入" />
               </el-form-item>
-              <span class="range-split">% —</span>
+              <span class="range-split">%</span>
+              <span class="range-line"></span>
               <el-form-item prop="floatInterestRate" label-width="0" class="inline-form-item">
-                <el-input-number v-model="formData.floatInterestRate" :min="0" :precision="2" :controls="false" placeholder="最高利率" />
+                <el-input-number v-model="formData.floatInterestRate" :min="0" :precision="2" :controls="false" placeholder="请输入" />
               </el-form-item>
               <span class="unit">%</span>
             </div>
           </el-form-item>
         </el-col>
-        <el-col :span="12">
-          <el-form-item label="可贷周期" prop="loanCycle" required>
-            <el-select v-model="formData.loanCycle" placeholder="请选择可贷周期" clearable multiple :collapse-tags="false">
-              <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
       </el-row>
 
       <el-row :gutter="24">
         <el-col :span="12">
+          <el-form-item label="可贷周期" prop="loanCycle">
+            <el-select v-model="formData.loanCycle" placeholder="请选择" clearable multiple :collapse-tags="false">
+              <el-option v-for="dict in loan_cycle" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
           <el-form-item label="还款方式" prop="repaymentMethod">
-            <el-select v-model="formData.repaymentMethod" placeholder="请选择还款方式" clearable multiple>
+            <el-select v-model="formData.repaymentMethod" placeholder="请选择" clearable multiple>
               <el-option v-for="dict in repayment_method" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
@@ -101,19 +95,23 @@
         />
       </el-form-item>
 
-      <el-form-item label="产品优势" prop="productAdvantages">
+      <div class="field-title">产品优势</div>
+      <el-form-item prop="productAdvantages" label-width="0">
         <Editor v-model="formData.productAdvantages" :height="420" :minHeight="420" :key="advantagesEditorKey" />
       </el-form-item>
 
-      <el-form-item label="适用说明" prop="applicableInstructions">
+      <div class="field-title">适用说明</div>
+      <el-form-item prop="applicableInstructions" label-width="0">
         <Editor v-model="formData.applicableInstructions" :height="420" :minHeight="420" :key="instructionsEditorKey" />
       </el-form-item>
 
-      <el-form-item label="申请条件" prop="applicationInstructions">
+      <div class="field-title">申请条件</div>
+      <el-form-item prop="applicationInstructions" label-width="0">
         <Editor v-model="formData.applicationInstructions" :height="420" :minHeight="420" :key="applicationEditorKey" />
       </el-form-item>
 
-      <el-form-item label="合作机构" prop="cooperationAttachment">
+      <div class="field-title">合作机构</div>
+      <el-form-item prop="cooperationAttachment" label-width="0">
         <div class="attachment-upload">
           <el-upload
             ref="uploadRef"
@@ -126,14 +124,25 @@
             :limit="1"
             action=""
             list-type="text"
+            :show-file-list="false"
           >
-            <el-button type="primary" plain>上传PDF文件</el-button>
+            <div class="custom-upload-btn">
+              <img :src="uploadBtnIcon" alt="上传" class="upload-btn-icon" />
+              <span class="upload-btn-text">上传文件</span>
+            </div>
           </el-upload>
-          <p class="attachment-tip">注：请上传PDF文件</p>
+          <div v-if="attachmentFileList.length > 0" class="file-list">
+            <div v-for="file in attachmentFileList" :key="file.uid" class="file-item">
+              <span class="file-name">{{ file.name }}</span>
+              <el-icon class="file-remove" @click="handleAttachmentRemove"><Close /></el-icon>
+            </div>
+          </div>
+          <p class="attachment-tip">支持格式：请上传PDF文件</p>
         </div>
       </el-form-item>
 
-      <el-form-item label="产品备注" prop="productRemark">
+      <div class="field-title">产品备注</div>
+      <el-form-item prop="productRemark" label-width="0">
         <el-input
           v-model="formData.productRemark"
           type="textarea"
@@ -146,10 +155,10 @@
       </el-form-item>
 
       <div class="form-actions">
+        <el-button @click="emitCancel">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '保存' : '确认修改' }}
         </el-button>
-        <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
   </div>
@@ -161,13 +170,18 @@ import type { ComponentInternalInstance } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus';
 import { uploadByChunks } from '@/utils/chunkUpload';
-import { Document } from '@element-plus/icons-vue';
+import { Document, Close } from '@element-plus/icons-vue';
 import { addCreditProduct, editCreditProduct, creditProductDetail } from '@/api/creditPlatform/productCreditManage';
 import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
 import { getDicts } from '@/api/system/dict/data';
 import { useDictStore } from '@/store/modules/dict';
+import uploadIconImg from '@/assets/images/finance/上传图标.png';
+import uploadBtnIconImg from '@/assets/images/finance/切图 73.png';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
+
+const uploadIcon = uploadIconImg;
+const uploadBtnIcon = uploadBtnIconImg;
 
 const props = defineProps<{
   id?: string | number | null;
@@ -1065,42 +1079,88 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-credit-form-dialog {
   padding: 20px 0;
+
+  :deep(.el-form) {
+    .el-form-item__label {
+      text-align: right;
+      padding-right: 12px;
+    }
+
+    .editor-item-top {
+      .el-form-item__label {
+        float: none;
+        display: block;
+        text-align: left;
+        padding-right: 0;
+        padding-bottom: 8px;
+        line-height: 1.5;
+      }
+
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
+  }
+
+  :deep(.el-form-item) {
+    &:has(.Editor),
+    &:has(.attachment-upload) {
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
+  }
+
+  .field-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: #202020;
+    margin-bottom: 8px;
+    margin-left: 0;
+    padding-left: 0;
+    line-height: 1.5;
+    display: block;
+    text-align: left;
+
+    &::before {
+      content: '*';
+      color: #F56C6C;
+      margin-right: 4px;
+    }
+  }
 }
 
 .upload-global-hint {
+  width: 100%;
+  height: 114px;
+  border: 2px dashed #D9D9D9;
+  border-radius: 4px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #f56c6c;
-  margin: 8px 0 12px;
+  justify-content: center;
+  gap: 12px;
+  margin: 8px 0 24px;
   cursor: pointer;
+  background: #FAFAFA;
+  transition: all 0.3s;
 
-  .upload-icon-box {
-    width: 36px;
-    height: 36px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #606266;
-    box-sizing: border-box;
-    background: #fff;
+  &:hover {
+    border-color: #108C58;
+    background: #F5F5F5;
   }
 
-  .upload-icon-box .plus {
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .file-icon {
-    color: #303133;
+  .upload-icon-img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
   }
 
   .upload-text {
-    color: #f56c6c;
-    font-size: 12px;
+    color: #606266;
+    font-size: 14px;
+    font-family: 'PingFang SC', sans-serif;
+    font-weight: 400;
   }
 }
 
@@ -1123,15 +1183,23 @@ onMounted(() => {
   .range-split {
     color: #909399;
     white-space: nowrap;
+    font-size: 14px;
+  }
+
+  .range-line {
+    width: 16px;
+    height: 1px;
+    background-color: #DCDFE6;
+    margin: 0 4px;
   }
 
   .unit {
     color: #606266;
-    margin-left: 4px;
+    font-size: 14px;
   }
 
   :deep(.el-input-number) {
-    width: 140px;
+    width: 120px;
   }
 
   .inline-form-item {
@@ -1151,23 +1219,79 @@ onMounted(() => {
   gap: 8px;
 
   .upload-block {
-    :deep(.el-upload-list) {
-      margin-top: 8px;
+    :deep(.el-upload) {
+      width: auto;
     }
 
-    :deep(.el-upload-list__item) {
-      margin-top: 8px;
-    }
+    .custom-upload-btn {
+      width: 126px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0;
+      background: #108C58;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
 
-    :deep(.el-upload-list__item-delete) {
-      display: none !important;
+      &:hover {
+        background: #0D7347;
+      }
+
+      .upload-btn-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+      }
+
+      .upload-btn-text {
+        color: #FFFFFF;
+        font-size: 14px;
+        font-weight: 400;
+      }
+    }
+  }
+
+  .file-list {
+    margin-top: 8px;
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #F5F7FA;
+      border-radius: 4px;
+      margin-bottom: 8px;
+
+      .file-name {
+        color: #606266;
+        font-size: 14px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-remove {
+        color: #909399;
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: 8px;
+
+        &:hover {
+          color: #F56C6C;
+        }
+      }
     }
   }
 
   .attachment-tip {
     font-size: 12px;
     color: #909399;
-    margin: 0;
+    margin: 4px 0 0 0;
   }
 }
 
@@ -1175,8 +1299,8 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
+  padding-top: 0;
+  border-top: none;
   gap: 12px;
 
   .el-button {

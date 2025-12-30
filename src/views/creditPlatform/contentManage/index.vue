@@ -62,16 +62,6 @@
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="文章名称" prop="articleTitle" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="文章简介" prop="articleSummary" min-width="200" :show-overflow-tooltip="true" />
-      <el-table-column label="状态" prop="articleStatus" width="100">
-        <template #default="scope">
-          <div class="status-with-dot">
-            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.articleStatus)}`"></span>
-            <span class="status-text" :class="`status-text-${getStatusType(scope.row.articleStatus)}`">
-              {{ getStatusLabel(scope.row.articleStatus) }}
-            </span>
-          </div>
-        </template>
-      </el-table-column>
       <el-table-column label="文章类型" prop="articleType" width="120">
         <template #default="scope">
           <dict-tag :options="art_article_type" :value="scope.row.articleType" />
@@ -85,6 +75,16 @@
       <el-table-column label="创建时间" prop="createTime" min-width="160">
         <template #default="scope">
           <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" prop="articleStatus" width="100" align="center">
+        <template #default="scope">
+          <div class="status-with-dot">
+            <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.articleStatus)}`"></span>
+            <span class="status-text" :class="`status-text-${getStatusType(scope.row.articleStatus)}`">
+              {{ getStatusLabel(scope.row.articleStatus) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
@@ -381,7 +381,7 @@ const getDialogTitle = () => {
   const map: Record<string, string> = {
     'add': '新增金融内容',
     'edit': '编辑金融内容',
-    'view': '查看金融内容'
+    'view': '查看'
   };
   return map[dialog.value.type] || '';
 };
