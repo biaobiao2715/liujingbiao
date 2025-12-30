@@ -14,30 +14,46 @@
     <div style="margin-bottom: 2%">
       <el-row :gutter="20">
         <el-col :span="6">
-          <el-card>
-            <div>
-              <el-statistic group-separator="," :value="staticdata.serviceCount || 0" title="总服务次数"></el-statistic>
+          <el-card class="counter-card server-total">
+            <div class="counter-card-item">
+              <el-statistic group-separator="," :value="staticdata.serviceCount || 0" title="总服务次数" :value-style="valueStyle">
+                <template #title>
+                  <div class="counter-card-item-title">总服务次数</div>
+                </template>
+              </el-statistic>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card>
-            <div>
-              <el-statistic group-separator="," :value="staticdata.serviceDuration || 0" title="总时长(分钟)"></el-statistic>
+          <el-card class="counter-card time-total">
+            <div class="counter-card-item">
+              <el-statistic group-separator="," :value="staticdata.serviceDuration || 0" title="总时长(分钟)" :value-style="valueStyle">
+                <template #title>
+                  <div class="counter-card-item-title">总时长(分钟)</div>
+                </template>
+              </el-statistic>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card>
-            <div>
-              <el-statistic group-separator="," :value="staticdata.totalConsultations || 0" title="总咨询量"></el-statistic>
+          <el-card class="counter-card advisory-total">
+            <div class="counter-card-item">
+              <el-statistic group-separator="," :value="staticdata.totalConsultations || 0" title="总咨询量" :value-style="valueStyle">
+                <template #title>
+                  <div class="counter-card-item-title">总咨询量</div>
+                </template>
+              </el-statistic>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
-          <el-card>
-            <div>
-              <el-statistic group-separator="," :value="staticdata.totalReplies || 0" title="总回复量"></el-statistic>
+          <el-card class="counter-card reply-total">
+            <div class="counter-card-item">
+              <el-statistic group-separator="," :value="staticdata.totalReplies || 0" title="总回复量" :value-style="valueStyle">
+                <template #title>
+                  <div class="counter-card-item-title">总回复量</div>
+                </template>
+              </el-statistic>
             </div>
           </el-card>
         </el-col>
@@ -165,6 +181,11 @@ const staticdata = ref({
 });
 const queryFormRef = ref<ElFormInstance>();
 const tableRef = ref<ElTableInstance>();
+const valueStyle = {
+  fontFamily: 'Bungee, Bungee',
+  fontSize: '28px',
+  fontWeight: 400
+};
 
 const registrationTime = ref<Array<string>>([]);
 
@@ -395,6 +416,36 @@ onActivated(() => {
     gap: 12px;
   }
 }
+.counter-card {
+  height: 140px;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  position: relative;
+  .counter-card-item {
+    position: absolute;
+    left: 40%;
+    top: 50%;
+    transform: translateY(-50%);
+    .counter-card-item-title {
+      font-size: 16px;
+      color: #3d3d3d;
+    }
+  }
+}
+.server-total {
+  background-image: url(./imgs/serverTotal.png);
+}
+.time-total {
+  background-image: url(./imgs/timeTotal.png);
+}
+.advisory-total {
+  background-image: url(./imgs/advisoryTotal.png);
+}
+.reply-total {
+  background-image: url(./imgs/replyTotal.png);
+}
 
 .date-filter {
   display: flex;
@@ -427,5 +478,10 @@ onActivated(() => {
       color: #fff;
     }
   }
+}
+:deep(.legalDept‌) {
+  background: rgba(0, 140, 255, 0.1);
+  border: 1px solid #008cff;
+  color: #008cff;
 }
 </style>
