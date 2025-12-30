@@ -91,4 +91,10 @@ const handleArray = (array: Array<string | number>) => {
 .el-tag + .el-tag {
   margin-left: 10px;
 }
+
+.legalDept‌ {
+  background: rgba(0, 140, 255, 0.1);
+  border: 1px solid #008cff;
+  color: #008cff;
+}
 </style>
