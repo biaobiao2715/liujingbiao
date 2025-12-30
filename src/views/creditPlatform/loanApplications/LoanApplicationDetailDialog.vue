@@ -734,7 +734,7 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
 
   return [
     { label: '贷款金额', value: amountText },
-    { label: '贷款期限', value: formatValue(row.loanTerm) },
+    { label: '贷款期限', value: row.loanTerm ? `${row.loanTerm} 期` : '--' },
     { label: '还款方式', value: formatValue(repaymentText) },
     { label: '收款银行卡', value: bankDisplay },
     { label: '银行卡号', value: formatValue(getFieldValue(row, ['bankAccountNumber', 'bankCardNo'])) },
