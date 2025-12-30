@@ -16,13 +16,24 @@
         <div class="section-title">企业基础信息</div>
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
-            <el-col v-for="item in companyInfoList" :key="item.label" :span="item.span || 12">
+            <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
                 <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
                 <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
               </el-form-item>
             </el-col>
-            <el-col :span="24">
+          </el-row>
+          <!-- 注册地址、办公地址（左）和 营业执照（右，占两行高度） -->
+          <el-row :gutter="20" class="detail-form address-license-row">
+            <el-col :span="12">
+              <el-form-item label="注册地址">
+                <el-input :model-value="registerAddress" disabled />
+              </el-form-item>
+              <el-form-item label="办公地址">
+                <el-input :model-value="officeAddress" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12" class="license-col">
               <el-form-item label="营业执照">
                 <template v-if="companyLicenseList.length">
                   <el-image
@@ -31,10 +42,18 @@
                     :src="img"
                     :preview-src-list="companyLicenseList"
                     fit="cover"
-                    class="license-image"
+                    class="license-image-large"
                   />
                 </template>
                 <span v-else>--</span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
+            <el-col v-for="item in companyInfoListAfter" :key="item.label" :span="item.span || 12">
+              <el-form-item :label="item.label">
+                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
+                <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
               </el-form-item>
             </el-col>
           </el-row>
@@ -192,6 +211,7 @@ type DetailField = {
   value: string;
   span?: number;
   isTextarea?: boolean;
+  isImage?: boolean;
 };
 
 const reviewStatusMap: Record<string, string> = {
@@ -400,8 +420,42 @@ const companyInfoList = computed<DetailField[]>(() => {
     { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
     { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
     { label: '注册日期', value: formatValue(row.createTime || row.registerDate) },
-    { label: '注册地址', value: registerRegion || formatValue(row.registerAddress), span: 24 },
-    { label: '办公地址', value: formatValue(row.officeAddress), span: 24 },
+    { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
+    { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
+    { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
+  ];
+});
+
+// 注册地址、办公地址之前的字段
+const companyInfoListBefore = computed<DetailField[]>(() => {
+  const row = detailRow.value;
+  return [
+    { label: '供应商编号', value: formatValue(row.enterpriseNumber || row.supplierNo) },
+    { label: '审核状态', value: mapValue(reviewStatusMap, row.reviewStatus) },
+    { label: '供应商名称', value: formatValue(row.companyName) },
+    { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
+    { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
+    { label: '注册日期', value: formatValue(row.createTime || row.registerDate) }
+  ];
+});
+
+// 注册地址
+const registerAddress = computed(() => {
+  const row = detailRow.value;
+  const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
+  return registerRegion || formatValue(row.registerAddress);
+});
+
+// 办公地址
+const officeAddress = computed(() => {
+  const row = detailRow.value;
+  return formatValue(row.officeAddress);
+});
+
+// 注册地址、办公地址之后的字段
+const companyInfoListAfter = computed<DetailField[]>(() => {
+  const row = detailRow.value;
+  return [
     { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
     { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
     { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
@@ -589,7 +643,6 @@ const handleViewRepaymentPlan = () => {
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
-  padding: 10px 24px;
   border-bottom: 1px dashed #e5e5e5;
 
   &:last-child {
@@ -650,6 +703,23 @@ const handleViewRepaymentPlan = () => {
   margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
+}
+
+.license-image-large {
+  width: 120px;
+  height: 90px;
+  border-radius: 4px;
+  margin-left: 11px;
+  border: 1px solid #e5e5e5;
+  background-color: #ffffff;
+}
+
+.address-license-row {
+  .license-col {
+    :deep(.el-form-item) {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .image-placeholder,
