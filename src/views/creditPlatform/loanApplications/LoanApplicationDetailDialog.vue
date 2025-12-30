@@ -193,7 +193,7 @@
                   placeholder="请选择"
                   style="width: 100%"
                   :disabled="isApprovalReadonly"
-                  :disabledDate="disablePastDates"
+                  :disabledDate="disableFirstRepaymentDates"
                 />
               </el-form-item>
             </el-col>
@@ -330,6 +330,26 @@ const disablePastDates = (time: Date) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return time.getTime() <= today.getTime();
+};
+
+// 第一期还款日期禁用规则：必须在放款日期之后
+const disableFirstRepaymentDates = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 禁止选择今天及之前
+  if (time.getTime() <= today.getTime()) {
+    return true;
+  }
+
+  // 如果已选择放款日期，禁止选择放款日期及之前的日期
+  if (approvalForm.loanDate) {
+    const loanDate = new Date(approvalForm.loanDate);
+    loanDate.setHours(0, 0, 0, 0);
+    return time.getTime() <= loanDate.getTime();
+  }
+
+  return false;
 };
 
 // ==================== 状态管理 ====================
@@ -931,6 +951,22 @@ watch(
       nextTick(() => {
         approvalFormRef.value?.validateField?.(['loanDate', 'firstRepaymentDate', 'contractId']);
       });
+    }
+  }
+);
+
+// 监听放款日期变化，如果第一期还款日在放款日期之前或同一天则清空
+watch(
+  () => approvalForm.loanDate,
+  (newLoanDate) => {
+    if (newLoanDate && approvalForm.firstRepaymentDate) {
+      const loanDate = new Date(newLoanDate);
+      loanDate.setHours(0, 0, 0, 0);
+      const firstRepaymentDate = new Date(approvalForm.firstRepaymentDate);
+      firstRepaymentDate.setHours(0, 0, 0, 0);
+      if (firstRepaymentDate.getTime() <= loanDate.getTime()) {
+        approvalForm.firstRepaymentDate = '';
+      }
     }
   }
 );
