@@ -50,7 +50,7 @@
             <Plus />
           </el-icon>
           <template #tip>
-            <div class="upload-tip">支持格式：支持jpg、gif、png三种格式，大小不超过10MB</div>
+            <div class="upload-tip" style="color: #909399 !important">支持格式：支持jpg、gif、png三种格式，大小不超过10MB</div>
           </template>
         </el-upload>
         <el-dialog v-model="dialogVisible">
@@ -58,10 +58,10 @@
         </el-dialog>
       </el-form-item>
       <div class="form-actions">
+        <el-button @click="emitCancel">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '发布' : '保存' }}
         </el-button>
-        <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
   </div>
