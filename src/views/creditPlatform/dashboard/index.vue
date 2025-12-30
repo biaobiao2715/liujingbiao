@@ -556,30 +556,24 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: space-between;
 }
 
 .top-stat-card-wrapper {
-  flex: 0 0 320px;
-  min-width: 320px;
+  flex: 1;
+  min-width: 0;
   height: 156px;
 
   @media (max-width: 1200px) {
-    flex: 0 0 calc(33.333% - 11px);
-    min-width: 200px;
     height: 140px;
   }
 
   @media (max-width: 768px) {
-    flex: 0 0 calc(50% - 8px);
-    min-width: 150px;
     height: 120px;
   }
 
   @media (max-width: 480px) {
-    flex: 0 0 100%;
-    min-width: 100%;
     height: 100px;
   }
 }

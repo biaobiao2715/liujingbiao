@@ -7,35 +7,27 @@
 -->
 <template>
   <div class="product-insurance-form" v-loading="loading">
-    <div class="section-title">基础信息</div>
     <div class="upload-global-hint" @click="triggerUpload">
-      <div class="upload-icon-box">
-        <span class="plus">+</span>
-      </div>
-      <el-icon class="file-icon" :size="24"><Document /></el-icon>
-      <span class="upload-text">注：上传文件自动解析</span>
+      <img :src="uploadIcon" alt="上传" class="upload-icon-img" />
+      <span class="upload-text">上传文件自动解析</span>
     </div>
-    <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
-      <el-row :gutter="24">
-        <el-col :span="12">
-          <el-form-item label="产品名称" prop="productName">
-            <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="适用对象" prop="applicableObject">
-            <el-select v-model="formData.applicableObject" placeholder="请选择适用对象" clearable multiple>
-              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
+    <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px" label-position="right">
+      <el-form-item label="产品名称" prop="productName">
+        <el-input v-model="formData.productName" placeholder="请输入产品名称" maxlength="50" show-word-limit clearable />
+      </el-form-item>
 
       <el-row :gutter="24">
         <el-col :span="12">
           <el-form-item label="产品类型" prop="productType">
-            <el-select v-model="formData.productType" placeholder="请选择产品类型" clearable>
+            <el-select v-model="formData.productType" placeholder="请选择" clearable>
               <el-option v-for="dict in product_insurance_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="适用对象" prop="applicableObject">
+            <el-select v-model="formData.applicableObject" placeholder="请选择" clearable multiple>
+              <el-option v-for="dict in applicable_object" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -53,19 +45,49 @@
         />
       </el-form-item>
 
-      <el-form-item label="产品优势" prop="productAdvantages">
+      <el-form-item label="产品优势" prop="productAdvantages" class="editor-field-item">
         <Editor v-model="formData.productAdvantages" :height="420" :minHeight="420" :key="advantagesEditorKey" />
       </el-form-item>
 
-      <el-form-item label="保障计划" prop="guaranteePlan">
+      <el-form-item label="保障计划" prop="guaranteePlan" class="editor-field-item">
         <Editor v-model="formData.guaranteePlan" :height="420" :minHeight="420" :key="guaranteePlanEditorKey" />
       </el-form-item>
 
-      <el-form-item label="申请条件" prop="applicationInstructions">
+      <el-form-item label="申请条件" prop="applicationInstructions" class="editor-field-item">
         <Editor v-model="formData.applicationInstructions" :height="420" :minHeight="420" :key="applicationEditorKey" />
       </el-form-item>
 
-      <el-form-item label="产品备注" prop="productRemark">
+      <el-form-item label="网点清单" prop="branchOfficeAttachment" class="editor-field-item">
+        <div class="attachment-upload">
+          <el-upload
+            ref="uploadRef"
+            class="upload-block"
+            :file-list="attachmentFileList"
+            :http-request="handleAttachmentUpload"
+            :before-upload="beforeAttachmentUpload"
+            :on-remove="handleAttachmentRemove"
+            accept=".pdf"
+            :limit="1"
+            action=""
+            list-type="text"
+            :show-file-list="false"
+          >
+            <div class="custom-upload-btn">
+              <img :src="uploadBtnIcon" alt="上传" class="upload-btn-icon" />
+              <span class="upload-btn-text">上传文件</span>
+            </div>
+          </el-upload>
+          <div v-if="attachmentFileList.length > 0" class="file-list">
+            <div v-for="file in attachmentFileList" :key="file.uid" class="file-item">
+              <span class="file-name">{{ file.name }}</span>
+              <el-icon class="file-remove" @click="handleAttachmentRemove"><Close /></el-icon>
+            </div>
+          </div>
+          <p class="attachment-tip">支持格式：请上传PDF文件</p>
+        </div>
+      </el-form-item>
+
+      <el-form-item label="产品备注" prop="productRemark" class="editor-field-item">
         <el-input
           v-model="formData.productRemark"
           type="textarea"
@@ -77,44 +99,11 @@
         />
       </el-form-item>
 
-      <el-form-item label="网点清单" prop="branchOfficeAttachment" required>
-        <div class="attachment-upload-wrapper" v-loading="uploadLoading">
-          <div class="attachment-content">
-            <div v-if="attachmentFileList.length > 0" class="uploaded-file-box">
-              <el-icon class="file-icon"><Document /></el-icon>
-              <span class="file-name">{{ attachmentFileList[0].name || '网点清单.pdf' }}</span>
-              <el-icon class="delete-icon" @click="handleAttachmentRemove" v-if="!uploadLoading">
-                <Close />
-              </el-icon>
-            </div>
-            <el-upload
-              :key="uploadKey"
-              ref="uploadRef"
-              class="upload-box"
-              :http-request="handleAttachmentUpload"
-              :before-upload="beforeAttachmentUpload"
-              accept=".pdf"
-              :limit="1"
-              :disabled="uploadLoading"
-              :show-file-list="false"
-              action=""
-              :on-exceed="handleExceed"
-            >
-              <div class="upload-trigger">
-                <el-icon class="plus-icon"><Plus /></el-icon>
-              </div>
-            </el-upload>
-            <span class="upload-tip">注: 请上传PDF文件</span>
-          </div>
-          <div v-if="showReplaceTip" class="replace-tip">请删除后重新上传</div>
-        </div>
-      </el-form-item>
-
       <div class="form-actions">
-        <el-button type="primary" @click="handleSubmit" :loading="saving" :disabled="uploadLoading">
+        <el-button @click="emitCancel">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '保存' : '确认修改' }}
         </el-button>
-        <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
   </div>
@@ -131,8 +120,13 @@ import { uploadByChunks } from '@/utils/chunkUpload';
 import { listByIds } from '@/api/system/oss';
 import { uploadFileToFastGPT, fileAnalysis } from '@/api/common/fileUpload';
 import { nextTick } from 'vue';
+import uploadIconImg from '@/assets/images/finance/上传图标.png';
+import uploadBtnIconImg from '@/assets/images/finance/切图 73.png';
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor/index.vue'));
+
+const uploadIcon = uploadIconImg;
+const uploadBtnIcon = uploadBtnIconImg;
 
 const props = defineProps<{
   id?: string | number | null;
@@ -773,185 +767,148 @@ onMounted(() => {
 <style scoped lang="scss">
 .product-insurance-form {
   padding: 20px 0;
-}
 
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 16px;
-  padding-left: 12px;
-  border-left: 4px solid #409eff;
+  :deep(.el-form) {
+    .el-form-item__label {
+      text-align: right;
+      padding-right: 12px;
+    }
+
+    .editor-field-item {
+      .el-form-item__label {
+        text-align: right;
+        padding-right: 12px;
+      }
+
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
+  }
+
+  :deep(.el-form-item) {
+    &:has(.Editor),
+    &:has(.attachment-upload) {
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
+  }
 }
 
 .upload-global-hint {
+  width: 100%;
+  height: 114px;
+  border: 2px dashed #D9D9D9;
+  border-radius: 4px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #f56c6c;
-  margin: 8px 0 12px;
+  justify-content: center;
+  gap: 12px;
+  margin: 8px 0 24px;
   cursor: pointer;
+  background: #FAFAFA;
+  transition: all 0.3s;
 
-  .upload-icon-box {
-    width: 36px;
-    height: 36px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #606266;
-    box-sizing: border-box;
-    background: #fff;
+  &:hover {
+    border-color: #108C58;
+    background: #F5F5F5;
   }
 
-  .upload-icon-box .plus {
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .file-icon {
-    color: #303133;
+  .upload-icon-img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
   }
 
   .upload-text {
-    color: #f56c6c;
-    font-size: 12px;
+    color: #606266;
+    font-size: 14px;
+    font-family: 'PingFang SC', sans-serif;
+    font-weight: 400;
   }
 }
 
-.attachment-upload-wrapper {
-  width: 100%;
+.attachment-upload {
   display: flex;
   flex-direction: column;
   gap: 8px;
 
-  .upload-hint,
-  .upload-global-hint {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #f56c6c;
-  }
-
-  .upload-icon-box {
-    width: 36px;
-    height: 36px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #606266;
-    box-sizing: border-box;
-  }
-
-  .upload-icon-box .plus {
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .file-icon {
-    color: #303133;
-  }
-
-  .upload-text {
-    color: #f56c6c;
-    font-size: 12px;
-  }
-
-  .attachment-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: nowrap;
-  }
-
-  .uploaded-file-box {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    background-color: #fff;
-    min-width: 150px;
-    max-width: 300px;
-    position: relative;
-
-    .file-icon {
-      font-size: 18px;
-      color: #409eff;
-      flex-shrink: 0;
+  .upload-block {
+    :deep(.el-upload) {
+      width: auto;
     }
 
-    .file-name {
-      font-size: 14px;
-      color: #606266;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .delete-icon {
-      font-size: 16px;
-      color: #909399;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-left: 4px;
-
-      &:hover {
-        color: #f56c6c;
-      }
-    }
-  }
-
-  .upload-box {
-    display: inline-block;
-    flex-shrink: 0;
-
-    .upload-trigger {
-      width: 80px;
-      height: 80px;
-      border: 1px solid #dcdfe6;
-      border-radius: 4px;
-      background-color: #fafafa;
-      display: flex;
+    .custom-upload-btn {
+      width: 126px;
+      height: 32px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
+      padding: 0;
+      background: #108C58;
+      border-radius: 2px;
       cursor: pointer;
       transition: all 0.3s;
 
       &:hover {
-        border-color: #409eff;
-        background-color: #f0f9ff;
+        background: #0D7347;
       }
 
-      .plus-icon {
-        font-size: 28px;
-        color: #909399;
+      .upload-btn-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
       }
 
-      &:hover .plus-icon {
-        color: #409eff;
+      .upload-btn-text {
+        color: #FFFFFF;
+        font-size: 14px;
+        font-weight: 400;
       }
     }
   }
 
-  .upload-tip {
-    font-size: 14px;
-    color: #f56c6c;
-    white-space: nowrap;
-    flex-shrink: 0;
+  .file-list {
+    margin-top: 8px;
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #F5F7FA;
+      border-radius: 4px;
+      margin-bottom: 8px;
+
+      .file-name {
+        color: #606266;
+        font-size: 14px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .file-remove {
+        color: #909399;
+        cursor: pointer;
+        font-size: 16px;
+        margin-left: 8px;
+
+        &:hover {
+          color: #F56C6C;
+        }
+      }
+    }
   }
 
-  .replace-tip {
-    margin-top: 8px;
-    color: #f56c6c;
-    font-size: 14px;
+  .attachment-tip {
+    font-size: 12px;
+    color: #909399;
+    margin: 4px 0 0 0;
   }
 }
 
@@ -959,8 +916,8 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
+  padding-top: 0;
+  border-top: none;
   gap: 12px;
 
   .el-button {

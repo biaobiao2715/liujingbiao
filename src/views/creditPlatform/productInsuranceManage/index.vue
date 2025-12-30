@@ -64,6 +64,11 @@
           />
         </template>
       </el-table-column>
+      <el-table-column label="创建时间" prop="createTime" min-width="160">
+        <template #default="scope">
+          <span>{{ scope.row.createTime || '--' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" prop="productStatus" width="100" align="center">
         <template #default="scope">
           <div class="status-with-dot">
@@ -72,11 +77,6 @@
               {{ getStatusLabel(scope.row.productStatus) }}
             </span>
           </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" prop="createTime" min-width="160">
-        <template #default="scope">
-          <span>{{ scope.row.createTime || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
@@ -151,7 +151,7 @@
 
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增保险产品' : dialog.type === 'edit' ? '编辑保险产品' : '保险产品详情'"
+      :title="dialog.type === 'add' ? '新增' : dialog.type === 'edit' ? '编辑' : '详情'"
       width="50%"
       destroy-on-close
       :close-on-click-modal="false"

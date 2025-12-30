@@ -9,7 +9,9 @@
   <div class="message-reply-dialog" v-loading="loading">
     <div class="question-section">
       <div class="question-header">
-        <el-tag class="question-tag">问</el-tag>
+        <div class="question-tag">
+          <img :src="questionIcon" alt="问" class="question-icon-img" />
+        </div>
         <span class="question-text">{{ questionDetail?.questionContent || props.messageContent }}</span>
         <div class="question-actions">
           <el-button v-throttle type="primary" size="small" plain @click="handlePinToTop">
@@ -48,8 +50,6 @@
         </template>
       </div>
     </div>
-
-    <el-divider />
 
     <!-- 只有已回复状态的才会在这里显示 -->
     <div class="reply-section" v-if="questionDetail && questionDetail.questionStatus === '1'">
@@ -105,6 +105,9 @@ import { ref, computed, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Folder } from '@element-plus/icons-vue';
 import { replyMessage, getMessageDetail, stopQuestion, type ReplyAnswerParams } from '@/api/expertServicePlatform/messageManage/index';
+import questionIconImg from '@/assets/images/问图标.png';
+
+const questionIcon = questionIconImg;
 
 const props = defineProps<{
   id: string | number | null;
@@ -379,12 +382,15 @@ watch(
     flex-wrap: nowrap;
     .question-tag {
       flex-shrink: 0;
-      background-color: #67c23a;
-      color: #fff;
-      border: none;
-      padding: 3px 10px;
-      font-size: 13px;
-      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .question-icon-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
     }
     .question-text {
       flex: 1;

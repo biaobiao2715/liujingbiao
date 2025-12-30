@@ -151,8 +151,8 @@
 
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增' : dialog.type === 'edit' ? '编辑信贷产品' : '信贷产品详情'"
-      width="50%"
+      :title="dialog.type === 'add' ? '新增' : dialog.type === 'edit' ? '编辑' : '详情'"
+      width="60%"
       destroy-on-close
       :close-on-click-modal="false"
     >

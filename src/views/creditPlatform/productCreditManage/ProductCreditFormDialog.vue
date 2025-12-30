@@ -95,23 +95,19 @@
         />
       </el-form-item>
 
-      <div class="field-title">产品优势</div>
-      <el-form-item prop="productAdvantages" label-width="0">
+      <el-form-item label="产品优势" prop="productAdvantages" class="editor-field-item">
         <Editor v-model="formData.productAdvantages" :height="420" :minHeight="420" :key="advantagesEditorKey" />
       </el-form-item>
 
-      <div class="field-title">适用说明</div>
-      <el-form-item prop="applicableInstructions" label-width="0">
+      <el-form-item label="适用说明" prop="applicableInstructions" class="editor-field-item">
         <Editor v-model="formData.applicableInstructions" :height="420" :minHeight="420" :key="instructionsEditorKey" />
       </el-form-item>
 
-      <div class="field-title">申请条件</div>
-      <el-form-item prop="applicationInstructions" label-width="0">
+      <el-form-item label="申请条件" prop="applicationInstructions" class="editor-field-item">
         <Editor v-model="formData.applicationInstructions" :height="420" :minHeight="420" :key="applicationEditorKey" />
       </el-form-item>
 
-      <div class="field-title">合作机构</div>
-      <el-form-item prop="cooperationAttachment" label-width="0">
+      <el-form-item label="合作机构" prop="cooperationAttachment" class="editor-field-item">
         <div class="attachment-upload">
           <el-upload
             ref="uploadRef"
@@ -141,8 +137,7 @@
         </div>
       </el-form-item>
 
-      <div class="field-title">产品备注</div>
-      <el-form-item prop="productRemark" label-width="0">
+      <el-form-item label="产品备注" prop="productRemark" class="editor-field-item">
         <el-input
           v-model="formData.productRemark"
           type="textarea"
@@ -1086,6 +1081,17 @@ onMounted(() => {
       padding-right: 12px;
     }
 
+    .editor-field-item {
+      .el-form-item__label {
+        text-align: right;
+        padding-right: 12px;
+      }
+
+      .el-form-item__content {
+        margin-left: 0 !important;
+      }
+    }
+
     .editor-item-top {
       .el-form-item__label {
         float: none;
@@ -1121,6 +1127,8 @@ onMounted(() => {
     line-height: 1.5;
     display: block;
     text-align: left;
+    width: 100%;
+    box-sizing: border-box;
 
     &::before {
       content: '*';

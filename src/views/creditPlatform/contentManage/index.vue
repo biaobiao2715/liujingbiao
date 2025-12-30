@@ -379,8 +379,8 @@ const getStatusType = (status: string | number) => {
 
 const getDialogTitle = () => {
   const map: Record<string, string> = {
-    'add': '新增金融内容',
-    'edit': '编辑金融内容',
+    'add': '新增',
+    'edit': '编辑',
     'view': '查看'
   };
   return map[dialog.value.type] || '';
