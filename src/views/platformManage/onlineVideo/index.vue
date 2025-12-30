@@ -43,7 +43,9 @@
         <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:onlineVideo:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle class="custom-btn-style primary-btn" @click="handleEnable" :disabled="selectedIds.length === 0">启用</el-button>
+        <el-button v-throttle class="custom-btn-style primary-btn" @click="handleEnable" icon="Unlock" :disabled="selectedIds.length === 0"
+          >启用</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button v-throttle class="custom-btn-style primary-btn" @click="handleDisable" :disabled="selectedIds.length === 0">禁用</el-button>
@@ -55,6 +57,7 @@
           @click="handleDelete"
           class="custom-btn-style delete-btn"
           :disabled="selectedIds.length === 0"
+          icon="Delete"
           >删除</el-button
         >
       </el-col>
