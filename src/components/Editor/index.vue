@@ -10,6 +10,7 @@
       name="file"
       :show-file-list="false"
       :headers="upload.headers"
+      multiple
     >
       <i ref="uploadRef"></i>
     </el-upload>
@@ -93,28 +94,28 @@ const options = ref<any>({
             header: (value: number | string | boolean) => {
               const quill = toRaw(quillEditorRef.value).getQuill();
               const range = quill.getSelection(true);
-              
+
               if (!range || range.length === 0) {
                 // 如果没有选中文字，提示用户
                 ElMessage.warning('请先选中要设置为标题的文本');
                 return;
               }
-              
+
               // 获取选中的文本
               const selectedText = quill.getText(range.index, range.length);
               if (!selectedText || selectedText.trim() === '') {
                 ElMessage.warning('选中的文本为空，无法设置为标题');
                 return;
               }
-              
+
               // 获取选中文本所在的行/块
               const [line, offset] = quill.getLine(range.index);
               if (!line) return;
-              
+
               const lineStart = line.offset();
               const lineLength = line.length();
               const isFullLine = range.index === lineStart && range.length === lineLength;
-              
+
               if (isFullLine) {
                 // 如果选中的是整行，直接应用 header 格式到这一行
                 if (value !== false) {
@@ -130,18 +131,18 @@ const options = ref<any>({
               } else {
                 // 如果只选中了部分文本，将选中文本提取为独立的标题行
                 const headerText = selectedText.trim();
-                
+
                 // 获取当前行的完整文本和格式
                 const lineText = quill.getText(lineStart, lineLength);
                 const beforeText = lineText.substring(0, range.index - lineStart);
                 const afterText = lineText.substring(range.index + range.length - lineStart);
                 const lineFormats = quill.getFormat(lineStart, lineLength);
-                
+
                 // 删除整行内容
                 quill.deleteText(lineStart, lineLength);
-                
+
                 let insertPos = lineStart;
-                
+
                 // 插入前面的文本（如果有），保持原有格式，但移除 header 格式
                 if (beforeText) {
                   const beforeFormats = { ...lineFormats };
@@ -154,29 +155,29 @@ const options = ref<any>({
                     insertPos += 1;
                   }
                 }
-                
+
                 // 插入标题文本（先插入文本，再应用格式）
                 quill.insertText(insertPos, headerText, 'user');
-                
+
                 // 在标题后插入换行，确保标题是独立的块
                 quill.insertText(insertPos + headerText.length, '\n', 'user');
-                
+
                 // 应用 header 格式到刚插入的文本行（必须在插入换行后应用，才能正确创建标题块）
                 quill.formatLine(insertPos, 1, 'header', value);
-                
+
                 insertPos += headerText.length + 1; // +1 是换行符
-                
+
                 // 插入后面的文本（如果有），保持原有格式，但移除 header 格式
                 if (afterText) {
                   const afterFormats = { ...lineFormats };
                   delete afterFormats.header; // 确保后面的文本不是标题
                   quill.insertText(insertPos, afterText, afterFormats, 'user');
                 }
-                
+
                 // 设置光标位置到标题文本末尾
                 quill.setSelection(insertPos - (afterText ? afterText.length + 1 : 1));
               }
-              
+
               // 触发内容更新，确保目录能够识别新标题
               // 通过更新 content ref 来触发 v-model 更新
               nextTick(() => {
