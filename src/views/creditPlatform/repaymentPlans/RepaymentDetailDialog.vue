@@ -643,7 +643,6 @@ const handleViewRepaymentPlan = () => {
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
-  padding: 10px 24px;
   border-bottom: 1px dashed #e5e5e5;
 
   &:last-child {

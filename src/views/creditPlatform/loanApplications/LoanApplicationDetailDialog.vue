@@ -16,10 +16,9 @@
         <div class="section-title">企业基础信息</div>
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
-            <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="item.span || 12">
+            <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="12">
               <el-form-item :label="item.label">
-                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
-                <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
+                <el-input :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
           </el-row>
@@ -1203,7 +1202,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
-  padding: 10px 24px;
   border-bottom: 1px dashed #e5e5e5;
 
   &:last-child {

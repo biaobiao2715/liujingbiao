@@ -1032,7 +1032,7 @@ const handleViewProductDetail = () => {
 .buyer-detail-dialog {
   :deep(.el-dialog__body) {
     background-color: #f7f8fa;
-    padding: 24px;
+    padding: 10px;
   }
 
   :deep(.el-descriptions) {
@@ -1070,7 +1070,6 @@ const handleViewProductDetail = () => {
   margin-bottom: 20px;
   background: #ffffff;
   // border-radius: 8px;
-  padding: 10px 24px;
   border-bottom: 1px dashed #e5e5e5;
   // box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.3);
   // border-radius: 8px 8px 8px 8px;
