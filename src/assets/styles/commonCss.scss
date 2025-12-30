@@ -1,6 +1,7 @@
 :root {
   --color-main: #108c58;
   --el-menu-hover-bg-color: red !important;
+  --el-disabled-bg-color: #f2f1f1 !important;
 
   //   --el-color-primary: var(--color-main) !important;
   //   .el-button--primary:hover {
@@ -19,5 +20,72 @@
   .el-sub-menu__title:hover {
     color: var(--color-main) !important;
     background-color: #108c581a !important;
+  }
+
+  // 覆盖dialog标题样式
+  .el-dialog__header {
+    padding: 4px 0 16px 0 !important;
+    .el-dialog__title {
+      font-family:
+        PingFang SC,
+        PingFang SC;
+      font-weight: 500;
+      font-size: 16px;
+      color: #3d3d3d;
+      line-height: 24px;
+    }
+    .el-dialog__headerbtn {
+      top: 8px !important;
+      .el-dialog__close {
+        color: #232325 !important;
+      }
+    }
+  }
+
+  // 覆盖表单label、value文字样式
+  .el-form-item__label {
+    font-family: AlibabaPuHuiTi-Regular;
+    font-weight: 400;
+    font-size: 14px;
+    color: #3d3d3d;
+    line-height: 40px !important;
+  }
+  .el-form-item__label:before {
+    color: #ff0000 !important;
+    margin-right: 0 !important;
+    font-size: 18px !important;
+    margin-top: -2px !important;
+  }
+  .el-form-item__content {
+    color: #333;
+  }
+
+  .el-input__wrapper,
+  .el-select__wrapper {
+    height: 40px;
+    background: #f7f8fa;
+    border-radius: 2px;
+    .el-input__count-inner {
+      background: #f7f8fa !important;
+    }
+  }
+
+  // 覆盖placeholder文字样式
+  .el-input__inner::placeholder,
+  .el-textarea__inner::placeholder {
+    font-family:
+      PingFang SC,
+      PingFang SC;
+    font-weight: 400;
+    font-size: 14px;
+    color: #86909c;
+  }
+
+  .el-textarea__inner {
+    background: #f7f8fa;
+    border-radius: 2px;
+  }
+  .el-input__count {
+    background: #f7f8fa !important;
   }
 }
