@@ -13,42 +13,42 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item :label="`${entityLabel}编码`">
-            <el-input v-model="formData.enterpriseNumber" disabled></el-input>
+            <el-input v-model="formData.enterpriseNumber" readonly></el-input>
           </el-form-item>
 
           <el-form-item :label="`${entityLabel}名称`">
-            <el-input v-model="formData.companyName" disabled></el-input>
+            <el-input v-model="formData.companyName" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="注册资本">
-            <el-input v-model="formData.signUpCapital" disabled></el-input>
+            <el-input v-model="formData.signUpCapital" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="注册地址">
-            <el-input v-model="areaCodes" disabled></el-input>
+            <el-input v-model="areaCodes" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="办公地址">
-            <el-input v-model="formData.officeAddress" disabled></el-input>
+            <el-input v-model="formData.officeAddress" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="企业经营范围">
-            <el-input v-model="formData.businessScope" autosize type="textarea" disabled></el-input>
+            <el-input v-model="formData.businessScope" autosize type="textarea" readonly></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="审核状态">
-            <el-select v-model="formData.reviewStatus" placeholder="请选择审核状态" filterable clearable disabled>
+            <el-select v-model="formData.reviewStatus" placeholder="请选择审核状态" filterable clearable readonly>
               <el-option v-for="dict in review_status" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
 
           <el-form-item label="社会统一信用代码">
-            <el-input v-model="formData.licenseNumber" disabled></el-input>
+            <el-input v-model="formData.licenseNumber" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="注册日期">
-            <el-input v-model="formData.signUpTime" disabled></el-input>
+            <el-input v-model="formData.signUpTime" readonly></el-input>
           </el-form-item>
 
           <el-form-item label="营业执照">
@@ -62,22 +62,22 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="法人姓名">
-            <el-input v-model="contactF.contactUserName" disabled></el-input>
+            <el-input v-model="contactF.contactUserName" readonly></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="证件类型">
-            <el-input v-model="idType" disabled></el-input>
+            <el-input v-model="idType" readonly></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="证件号码">
-            <el-input v-model="contactF.contactIdCard" disabled></el-input>
+            <el-input v-model="contactF.contactIdCard" readonly></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="联系电话">
-            <el-input v-model="contactF.contactPhone" disabled></el-input>
+            <el-input v-model="contactF.contactPhone" readonly></el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -88,12 +88,12 @@
         <el-row :gutter="20" v-for="(contact, index) in formData.contacts" :key="index">
           <el-col :span="12">
             <el-form-item :label="'联系人' + (index + 1)">
-              <el-input v-model="contact.contactUserName" disabled></el-input>
+              <el-input v-model="contact.contactUserName" readonly></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="联系电话">
-              <el-input v-model="contact.contactPhone" disabled></el-input>
+              <el-input v-model="contact.contactPhone" readonly></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -104,12 +104,12 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="账户名">
-            <el-input v-model="formData.loginUserName" disabled></el-input>
+            <el-input v-model="formData.loginUserName" readonly></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="注册手机号">
-            <el-input v-model="formData.phoneNumber" disabled></el-input>
+            <el-input v-model="formData.phoneNumber" readonly></el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -118,14 +118,14 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item label="信用等级">
-            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable disabled>
+            <el-select v-model="formData.creditLevel" placeholder="请选择信用等级" filterable clearable readonly>
               <el-option v-for="dict in plat_credit_rating" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="信用积分">
-            <el-input v-model="formData.sore" disabled></el-input>
+            <el-input v-model="formData.sore" readonly></el-input>
           </el-form-item>
         </el-col>
       </el-row>

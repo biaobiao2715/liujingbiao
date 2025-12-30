@@ -1,24 +1,18 @@
 <template>
   <div class="form-header-container">
     <div class="form-header-title flex-center">
-      <el-icon><Grid /></el-icon>
       <div>{{ title }}</div>
     </div>
   </div>
 </template>
 
-<script>
-import { Grid } from '@element-plus/icons-vue';
-
-export default {
-  name: 'FormHeader',
-  props: {
-    title: {
-      type: String,
-      required: true
-    }
+<script setup lang="ts">
+const props = defineProps({
+  title: {
+    type: String,
+    required: true
   }
-};
+});
 </script>
 
 <style scoped lang="scss">
@@ -26,12 +20,27 @@ export default {
   display: flex;
   flex-direction: column;
   .form-header-title {
-    font-size: 16px;
     font-weight: bold;
     gap: 12px;
     padding: 12px 0;
-    margin: 12px 0;
-    border-bottom: 1px solid var(--el-border-color);
+    color: #108c58;
+    div {
+      padding-left: 10px;
+      box-sizing: border-box;
+      position: relative;
+      font-size: 14px;
+      line-height: 24px;
+      &::before {
+        position: absolute;
+        content: '';
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 2px;
+        height: 10px;
+        background-color: #108c58;
+      }
+    }
   }
 }
 </style>
