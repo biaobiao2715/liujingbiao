@@ -164,12 +164,15 @@
           class="approval-form no-wrap-label"
         >
           <el-form-item label="审批意见" prop="opinion" class="required-field">
-            <el-select v-model="approvalForm.opinion" placeholder="请选择" :disabled="isApprovalReadonly" style="width: 100%">
-              <el-option label="同意" value="agree" />
-              <el-option label="驳回" value="reject" />
-            </el-select>
+            <el-input
+              v-model="approvalForm.opinion"
+              type="textarea"
+              placeholder="请输入..."
+              :disabled="isApprovalReadonly"
+              :autosize="{ minRows: 3, maxRows: 6 }"
+            />
           </el-form-item>
-          <el-row :gutter="20">
+          <el-row :gutter="20" style="margin-top: 25px">
             <el-col :span="12">
               <el-form-item label="放款日期" prop="loanDate" class="required-field date-picker-field">
                 <el-date-picker
@@ -231,7 +234,7 @@
                   :on-remove="handleRemoveFile"
                   :show-file-list="false"
                 >
-                  <el-button type="primary" icon="Upload"> 点击上传 </el-button>
+                  <el-button type="primary" icon="Upload"> 上传文件 </el-button>
                   <!-- <template #tip>
                     <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
                   </template> -->
@@ -407,7 +410,7 @@ const REPAYMENT_METHOD_MAP: Record<string, string> = {
 const PENDING_STATUS_CODES = new Set(['0', '1']);
 
 const approvalRules: FormRules = {
-  opinion: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
+  opinion: [{ required: true, message: '请输入审核意见', trigger: 'blur' }],
   loanDate: [
     {
       required: true,
@@ -876,12 +879,7 @@ const hydrateApprovalForm = (row: Record<string, any>) => {
   approvalForm.loanDate = row.loanDate || '';
   approvalForm.firstRepaymentDate = row.firstRepaymentDate || '';
   approvalForm.contractId = row.contractId || '';
-
-  if (row.applyStatus === '3') {
-    approvalForm.opinion = 'reject';
-  } else if (row.applyStatus === '2') {
-    approvalForm.opinion = 'agree';
-  }
+  approvalForm.opinion = row.reviewNotes || '';
 
   approvalForm.contractFiles = normalizeContractFiles(row);
 
@@ -1112,10 +1110,15 @@ const handleRemoveFile = async (file?: any) => {
 
 const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   currentApprovalAction.value = action;
-  approvalForm.opinion = action;
   await nextTick();
   try {
-    await approvalFormRef.value?.validate();
+    if (action === 'reject') {
+      // 驳回只校验审批意见
+      await approvalFormRef.value?.validateField('opinion');
+    } else {
+      // 通过校验所有字段
+      await approvalFormRef.value?.validate();
+    }
   } catch (error) {
     currentApprovalAction.value = null;
     return;
@@ -1130,7 +1133,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
       ...detailData.value,
       id: detailData.value?.id || props.data?.id,
       applyStatus: action === 'agree' ? '2' : '3',
-      rejectionReason: approvalForm.rejectionReason,
+      reviewNotes: approvalForm.opinion,
       loanDate: approvalForm.loanDate,
       firstRepaymentDate: approvalForm.firstRepaymentDate,
       contractId: approvalForm.contractId
@@ -1339,8 +1342,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 .approval-actions {
   margin-top: 32px;
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  justify-content: right;
 }
 
 .contract-files {
@@ -1398,6 +1400,7 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
 
 .contract-field {
   :deep(.el-form-item__content) {
+    margin-top: 10px;
     width: 100%;
   }
   .contract-upload-wrapper {
@@ -1545,6 +1548,10 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
       border: 1px solid #dcdfe6;
       border-radius: 4px;
     }
+  }
+
+  :deep(.el-form-item__error) {
+    padding-top: 10px;
   }
 }
 </style>

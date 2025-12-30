@@ -128,7 +128,7 @@
         </el-form>
       </div>
 
-      <div class="detail-section">
+      <div class="detail-section" style="padding-bottom: 24px">
         <div class="section-title">查看合同</div>
         <div class="contract-section">
           <el-button type="primary" @click="handleViewContract">查看合同详情</el-button>
