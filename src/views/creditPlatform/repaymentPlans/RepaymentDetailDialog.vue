@@ -7,9 +7,9 @@
 -->
 
 <template>
-  <el-drawer :model-value="visible" size="40%" direction="rtl" class="repayment-detail-drawer" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="50%" class="repayment-detail-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
-      <div class="drawer-title">贷后管理详情（企业）</div>
+      <div class="dialog-title">贷后管理详情（企业）</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -127,15 +127,13 @@
                 <span v-else>--</span>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="产品详情">
+                <el-button type="primary" style="margin-left: 11px" @click="handleViewProductDetail">查看</el-button>
+              </el-form-item>
+            </el-col>
           </el-row>
         </el-form>
-      </div>
-
-      <div class="detail-section">
-        <div class="section-title">产品信息</div>
-        <div class="product-link">
-          <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
-        </div>
       </div>
 
       <div class="detail-section">
@@ -157,7 +155,7 @@
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
     <RepaymentPlanDialog v-model:visible="repaymentPlanVisible" :data="props.data" />
-  </el-drawer>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -575,8 +573,8 @@ const handleViewRepaymentPlan = () => {
 </script>
 
 <style scoped lang="scss">
-.repayment-detail-drawer {
-  :deep(.el-drawer__body) {
+.repayment-detail-dialog {
+  :deep(.el-dialog__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
@@ -591,7 +589,12 @@ const handleViewRepaymentPlan = () => {
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
-  padding: 20px 24px;
+  padding: 10px 24px;
+  border-bottom: 1px dashed #e5e5e5;
+
+  &:last-child {
+    border-bottom: none;
+  }
 
   :deep(.el-input__wrapper) {
     box-shadow: none !important;
@@ -614,6 +617,10 @@ const handleViewRepaymentPlan = () => {
     font-weight: 400;
     font-size: 14px;
     color: rgba(61, 61, 61, 0.5);
+  }
+
+  :deep(.el-form-item__content) {
+    justify-content: flex-start;
   }
 }
 
@@ -640,6 +647,7 @@ const handleViewRepaymentPlan = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
+  margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
 }
@@ -695,10 +703,11 @@ const handleViewRepaymentPlan = () => {
 </style>
 
 <style lang="scss">
-.repayment-detail-drawer {
-  .el-drawer__header {
+.repayment-detail-dialog {
+  .el-dialog__header {
     margin-bottom: 0 !important;
-    padding-bottom: 0px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px dashed var(--brder-color) !important;
   }
 }
 </style>

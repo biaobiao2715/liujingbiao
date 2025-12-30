@@ -7,18 +7,17 @@
 -->
 
 <template>
-  <el-drawer
+  <el-dialog
     :model-value="visible"
-    size="40%"
-    direction="rtl"
-    class="buyer-detail-drawer"
+    width="50%"
+    class="buyer-detail-dialog"
     append-to-body
     destroy-on-close
     :close-on-click-modal="false"
     @close="handleClose"
   >
     <template #header>
-      <div class="drawer-title">{{ dialogTitle }}</div>
+      <div class="dialog-title">{{ dialogTitle }}</div>
     </template>
     <div v-loading="loading">
       <div class="detail-section">
@@ -120,16 +119,24 @@
                 <span v-else>--</span>
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="产品详情">
+                <template v-if="detail.loan.cardBackPhoto">
+                  <el-button type="primary" style="margin-left: 11px" @click="handleViewProductDetail">查看</el-button>
+                </template>
+                <span v-else>--</span>
+              </el-form-item>
+            </el-col>
           </el-row>
         </el-form>
       </div>
 
-      <div class="detail-section">
+      <!-- <div class="detail-section">
         <div class="section-title">产品信息</div>
         <div class="product-link">
           <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
         </div>
-      </div>
+      </div> -->
 
       <div class="detail-section approval-section">
         <div class="section-title">审批信息</div>
@@ -139,11 +146,14 @@
           ref="approvalFormRef"
           :model="approvalForm"
           :rules="isApprovalMode ? approvalRules : {}"
-          label-width="100px"
+          label-width="140px"
           class="approval-form no-wrap-label"
         >
           <el-form-item label="审批意见" prop="opinion" class="required-field">
-            <el-input v-model="approvalForm.opinion" type="textarea" :rows="4" placeholder="请输入..." :disabled="isApprovalReadonly" />
+            <el-select v-model="approvalForm.opinion" placeholder="请选择" :disabled="isApprovalReadonly" style="width: 100%">
+              <el-option label="同意" value="agree" />
+              <el-option label="驳回" value="reject" />
+            </el-select>
           </el-form-item>
           <el-row :gutter="20">
             <el-col :span="12">
@@ -257,7 +267,7 @@
       <el-button type="primary" @click="handleClose">返回</el-button>
     </template>
     <ProductDetailDialog v-model:visible="productDetailVisible" :product-id="currentDetail.productId" />
-  </el-drawer>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -1019,8 +1029,8 @@ const handleViewProductDetail = () => {
   }
 }
 
-.buyer-detail-drawer {
-  :deep(.el-drawer__body) {
+.buyer-detail-dialog {
+  :deep(.el-dialog__body) {
     background-color: #f7f8fa;
     padding: 24px;
   }
@@ -1060,9 +1070,14 @@ const handleViewProductDetail = () => {
   margin-bottom: 20px;
   background: #ffffff;
   // border-radius: 8px;
-  padding: 20px 24px;
+  padding: 10px 24px;
+  border-bottom: 1px dashed #e5e5e5;
   // box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.3);
   // border-radius: 8px 8px 8px 8px;
+
+  &:last-child {
+    border-bottom: none;
+  }
 
   // 去掉表单的默认样式
   :deep(.el-input__wrapper) {
@@ -1101,6 +1116,10 @@ const handleViewProductDetail = () => {
     font-size: 14px;
     color: rgba(61, 61, 61, 0.5);
   }
+
+  :deep(.el-form-item__content) {
+    justify-content: flex-start;
+  }
 }
 
 // 审批信息区域的输入框需要背景色
@@ -1138,6 +1157,7 @@ const handleViewProductDetail = () => {
   height: 64px;
   border-radius: 4px;
   margin-right: 8px;
+  margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
 }
@@ -1373,10 +1393,11 @@ const handleViewProductDetail = () => {
 </style>
 
 <style lang="scss">
-.buyer-detail-drawer {
-  .el-drawer__header {
+.buyer-detail-dialog {
+  .el-dialog__header {
     margin-bottom: 0 !important;
-    padding-bottom: 0px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px dashed var(--brder-color) !important;
   }
 }
 </style>
