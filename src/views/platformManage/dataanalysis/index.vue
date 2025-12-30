@@ -479,4 +479,9 @@ onActivated(() => {
     }
   }
 }
+:deep(.legalDept‌) {
+  background: rgba(0, 140, 255, 0.1);
+  border: 1px solid #008cff;
+  color: #008cff;
+}
 </style>

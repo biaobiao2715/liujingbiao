@@ -61,10 +61,10 @@
         <el-button v-throttle type="primary" icon="Plus" v-hasPermi="['skill:courseCultivate:add']" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle class="custom-btn-style" type="primary" icon="" @click="handleEnable" :disabled="multiple">启用</el-button>
+        <el-button v-throttle class="custom-btn-style" type="primary" @click="handleEnable" icon="Unlock" :disabled="multiple">启用</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button v-throttle class="custom-btn-style" type="primary" @click="handleDisable" :disabled="multiple">禁用</el-button>
+        <el-button v-throttle class="custom-btn-style" type="primary" @click="handleDisable" icon="Lock" :disabled="multiple">禁用</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -72,6 +72,7 @@
           class="custom-btn-style delete-btn"
           type="primary"
           v-hasPermi="['skill:courseCultivate:remove']"
+          icon="Delete"
           @click="handleDelete"
           :disabled="multiple"
           >删除</el-button
@@ -848,5 +849,10 @@ onMounted(() => {
 // 禁用
 .disable {
   background-color: #f23255;
+}
+:deep(.legal-knowledge) {
+  background: rgba(0, 140, 255, 0.1);
+  border: 1px solid #008cff;
+  color: #008cff;
 }
 </style>
