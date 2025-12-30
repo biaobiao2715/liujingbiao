@@ -41,6 +41,7 @@
                     :key="idx"
                     :src="img"
                     :preview-src-list="companyLicenseList"
+                    :initial-index="idx"
                     fit="cover"
                     class="license-image-large"
                   />
@@ -87,7 +88,7 @@
             <el-col :span="12">
               <el-form-item label="身份证正面">
                 <template v-if="applicantIdFrontPhoto">
-                  <el-image :src="applicantIdFrontPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
+                  <el-image :src="applicantIdFrontPhoto" :preview-src-list="applicantIdPhotos" :initial-index="0" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -95,7 +96,7 @@
             <el-col :span="12">
               <el-form-item label="身份证反面">
                 <template v-if="applicantIdBackPhoto">
-                  <el-image :src="applicantIdBackPhoto" :preview-src-list="applicantIdPhotos" class="license-image" />
+                  <el-image :src="applicantIdBackPhoto" :preview-src-list="applicantIdPhotos" :initial-index="1" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -133,7 +134,7 @@
             <el-col :span="12">
               <el-form-item label="银行卡正面">
                 <template v-if="bankCardFrontImage">
-                  <el-image :src="bankCardFrontImage" :preview-src-list="bankCardImages" class="license-image" />
+                  <el-image :src="bankCardFrontImage" :preview-src-list="bankCardImages" :initial-index="0" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -141,7 +142,7 @@
             <el-col :span="12">
               <el-form-item label="银行卡反面">
                 <template v-if="bankCardBackImage">
-                  <el-image :src="bankCardBackImage" :preview-src-list="bankCardImages" class="license-image" />
+                  <el-image :src="bankCardBackImage" :preview-src-list="bankCardImages" :initial-index="1" class="license-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
