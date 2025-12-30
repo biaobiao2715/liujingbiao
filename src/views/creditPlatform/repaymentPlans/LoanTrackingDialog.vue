@@ -7,7 +7,7 @@
 -->
 
 <template>
-  <el-dialog :model-value="visible" width="50%" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog :model-value="visible" width="60%" class="loan-tracking-dialog" append-to-body destroy-on-close @close="handleClose">
     <template #header>
       <div class="dialog-header">
         <span class="dialog-title">贷款追踪</span>
@@ -187,6 +187,44 @@ const fetchTrackingData = async () => {
 };
 
 /**
+ * 将日期时间字符串格式化为 YYYY-MM-DD HH:mm:ss 格式
+ */
+const formatDateTime = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+
+  const str = String(dateStr).trim();
+  if (!str || str === '--' || str === 'null') return '';
+
+  // 如果已经是 YYYY-MM-DD HH:mm:ss 格式，直接返回
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str)) {
+    return str;
+  }
+
+  // 如果是 YYYY-MM-DD 格式，补充时分秒
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return `${str} 00:00:00`;
+  }
+
+  // 尝试解析日期对象
+  try {
+    const date = new Date(str);
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+  } catch (e) {
+    // 解析失败，返回原字符串
+  }
+
+  return str;
+};
+
+/**
  * 将日期时间字符串格式化为 YYYY-MM-DD 格式
  */
 const formatDateOnly = (dateStr: string | null | undefined): string => {
@@ -231,7 +269,7 @@ const parseRepaymentPeriodAndDates = (periodAndDates: Array<Record<string, any>>
   const items: RepaymentDateItem[] = periodAndDates
     .map((item, index) => {
       const periodNum = Number(item?.planStatusList ?? index + 1);
-      const dateStr = formatDateOnly(item?.repaymentDateList);
+      const dateStr = formatDateTime(item?.repaymentDateList);
       if (!dateStr) return null;
       return {
         period: `第${periodNum}期`,
@@ -279,8 +317,8 @@ const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefin
           const periodMatch = periodPart.match(/(\d+)/);
           const periodNum = periodMatch ? parseInt(periodMatch[1]) : 0;
 
-          // 格式化日期，只显示年月日
-          const formattedDate = formatDateOnly(datePart);
+          // 格式化日期，显示年月日时分秒
+          const formattedDate = formatDateTime(datePart);
 
           items.push({
             period: `第${periodNum}期`,
@@ -313,7 +351,7 @@ const parseLegacyRepaymentDateList = (repaymentDateList: string | null | undefin
     // 转换为带期数的格式，并格式化日期
     return dates.map((date, index) => ({
       period: `第${index + 1}期`,
-      date: formatDateOnly(date)
+      date: formatDateTime(date)
     }));
   }
 };
@@ -327,28 +365,28 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
   // 1. 申请提交
   steps.push({
     title: '申请',
-    time: formatDateOnly(data.createTime),
+    time: formatDateTime(data.createTime),
     status: data.createTime ? 'finish' : 'wait'
   });
 
   // 2. 审核中
   steps.push({
     title: '审批',
-    time: formatDateOnly(data.reviewedAt),
+    time: formatDateTime(data.reviewedAt),
     status: data.reviewedAt ? 'finish' : 'wait'
   });
 
   // 3. 合同签署
   steps.push({
     title: '合同签订',
-    time: formatDateOnly(data.contractSigningDate),
+    time: formatDateTime(data.contractSigningDate),
     status: data.contractSigningDate ? 'finish' : 'wait'
   });
 
   // 4. 放款
   steps.push({
     title: '放贷',
-    time: formatDateOnly(data.loanDate),
+    time: formatDateTime(data.loanDate),
     status: data.loanDate ? 'finish' : 'wait'
   });
 
@@ -367,7 +405,7 @@ const convertToTrackingSteps = (data: any): TrackingStep[] => {
   // 6. 结清
   steps.push({
     title: '完结',
-    time: formatDateOnly(data.completionDate),
+    time: formatDateTime(data.completionDate),
     status: data.completionDate ? 'finish' : 'wait'
   });
 
@@ -431,17 +469,19 @@ const handleClose = () => {
 .dialog-content {
   padding: 40px 24px;
   background: #fff;
+  overflow-x: auto;
 }
 
 // 创建统一的网格系统
 .steps-container,
 .time-details {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.5fr 1fr;
   gap: 5px;
   padding: 0 15px;
   align-items: start;
   overflow: visible;
+  min-width: 800px;
 
   // 确保还款列有足够宽度
   > :nth-child(5) {
