@@ -52,7 +52,7 @@
             <el-col :span="12">
               <el-form-item label="身份证正面">
                 <template v-if="detail.user.idFrontPhoto">
-                  <el-image :src="detail.user.idFrontPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
+                  <el-image :src="detail.user.idFrontPhoto" :preview-src-list="detail.user.idPhotos" :initial-index="0" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -60,7 +60,7 @@
             <el-col :span="12">
               <el-form-item label="身份证反面">
                 <template v-if="detail.user.idBackPhoto">
-                  <el-image :src="detail.user.idBackPhoto" :preview-src-list="detail.user.idPhotos" class="identity-image" />
+                  <el-image :src="detail.user.idBackPhoto" :preview-src-list="detail.user.idPhotos" :initial-index="1" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -106,7 +106,7 @@
             <el-col :span="12">
               <el-form-item label="银行卡正面">
                 <template v-if="detail.loan.cardFrontPhoto">
-                  <el-image :src="detail.loan.cardFrontPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
+                  <el-image :src="detail.loan.cardFrontPhoto" :preview-src-list="detail.loan.cardPhotos" :initial-index="0" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -114,7 +114,7 @@
             <el-col :span="12">
               <el-form-item label="银行卡反面">
                 <template v-if="detail.loan.cardBackPhoto">
-                  <el-image :src="detail.loan.cardBackPhoto" :preview-src-list="detail.loan.cardPhotos" class="identity-image" />
+                  <el-image :src="detail.loan.cardBackPhoto" :preview-src-list="detail.loan.cardPhotos" :initial-index="1" class="identity-image" />
                 </template>
                 <span v-else>--</span>
               </el-form-item>
@@ -790,14 +790,18 @@ watch(
   }
 );
 
-// 监听放款日期变化，重新验证第一期还款日期
+// 监听放款日期变化，如果第一期还款日在放款日期之前或同一天则清空
 watch(
   () => approvalForm.loanDate,
-  () => {
-    if (approvalForm.firstRepaymentDate && approvalFormRef.value) {
-      nextTick(() => {
-        approvalFormRef.value?.validateField?.('firstRepaymentDate');
-      });
+  (newLoanDate) => {
+    if (newLoanDate && approvalForm.firstRepaymentDate) {
+      const loanDate = new Date(newLoanDate);
+      loanDate.setHours(0, 0, 0, 0);
+      const firstRepaymentDate = new Date(approvalForm.firstRepaymentDate);
+      firstRepaymentDate.setHours(0, 0, 0, 0);
+      if (firstRepaymentDate.getTime() <= loanDate.getTime()) {
+        approvalForm.firstRepaymentDate = '';
+      }
     }
   }
 );
