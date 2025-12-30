@@ -56,6 +56,7 @@
         class="custom-btn-style delete-btn"
         v-hasPermi="['skill:HnMeetingCultivate:remove']"
         :disabled="selectedRows.length == 0"
+        icon="Delete"
         @click="handleBatchDelete(selectedRows)"
         >删除</el-button
       >
@@ -131,9 +132,9 @@
             ></div>
             <!-- <span v-if="scope.row.meetingStatus == 0" style="color: #dcdfe6">草稿箱</span> -->
             <span v-if="scope.row.meetingStatus == 1" style="color: #ff7b00">待开始</span>
-            <span v-if="scope.row.meetingStatus == 2" style="color: #008cff">已开始</span>
-            <span v-if="scope.row.meetingStatus == 3" style="color: #108c58">已结束</span>
-            <span v-if="scope.row.meetingStatus == 99" style="color: #f23255">已取消</span>
+            <span v-if="scope.row.meetingStatus == 2" style="color: #0b79ef">已开始</span>
+            <span v-if="scope.row.meetingStatus == 3" style="color: #ef4d0b">已结束</span>
+            <span v-if="scope.row.meetingStatus == 99" style="color: #a8a8a8">已取消</span>
           </div>
         </template>
       </el-table-column>
@@ -636,12 +637,17 @@ const handleSave = (data: any) => {
   background-color: #ff7b00;
 }
 .inProgress {
-  background-color: #008cff;
+  background-color: #0b79ef;
 }
 .ended {
-  background-color: #108c58;
+  background-color: #ef4d0b;
 }
 .canceled {
-  background-color: #f23255;
+  background-color: #a8a8a8;
+}
+:deep(.legal-knowledge) {
+  background: rgba(0, 140, 255, 0.1);
+  border: 1px solid #008cff;
+  color: #008cff;
 }
 </style>

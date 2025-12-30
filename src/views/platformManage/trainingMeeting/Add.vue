@@ -23,31 +23,42 @@
         <el-row :gutter="20">
           <el-col :span="12" v-if="isView">
             <el-form-item label="培训会议状态" prop="meetingStatus">
-              <el-select v-model="form.meetingStatus" filterable clearable placeholder="请选择所属状态" :disabled="isView">
+              <div v-if="isView">
+                <el-tag v-if="form.meetingStatus == '1'" class="type1">待开始</el-tag>
+                <el-tag v-if="form.meetingStatus == '2'" class="type2">已开始</el-tag>
+                <el-tag v-if="form.meetingStatus == '3'" class="type3">已结束</el-tag>
+                <el-tag v-if="form.meetingStatus == '99'" class="type99">已取消</el-tag>
+              </div>
+              <el-select v-model="form.meetingStatus" filterable clearable placeholder="请选择所属状态" :disabled="isView" v-else>
                 <el-option v-for="dict in meeting_status" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议标题" prop="meetingName">
-              <el-input v-model.trim="form.meetingName" maxlength="30" placeholder="请输入培训会议标题" :disabled="isView" />
+              <div v-if="isView">{{ form.meetingName }}</div>
+              <el-input v-model.trim="form.meetingName" maxlength="30" placeholder="请输入培训会议标题" :disabled="isView" v-else />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="培训会议类型" prop="meetingType">
-              <el-select v-model="form.meetingType" placeholder="请选择培训会议类型" :disabled="isView">
+              <div v-if="isView">{{ getMeetingTypeLabel(form.meetingType) }}</div>
+              <el-select v-model="form.meetingType" placeholder="请选择培训会议类型" :disabled="isView" v-else>
                 <el-option v-for="dict in meeting_type" :key="dict.value" :label="dict.label" :value="dict.value" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="培训会议地址" prop="meetingAddress">
-              <el-input v-model.trim="form.meetingAddress" maxlength="30" placeholder="请输入培训会议地址" :disabled="isView" />
+            <el-form-item label="会议联系人" prop="meetingContact">
+              <div v-if="isView">{{ form.meetingContact }}</div>
+              <el-input v-model.trim="form.meetingContact" placeholder="请输入会议联系人" :disabled="isView" v-else />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="会议时间" prop="meetingStartTime" :required="true">
+              <div v-if="isView">{{ form.meetingStartTime }} - {{ form.meetingEndTime }}</div>
               <el-date-picker
+                v-else
                 v-model="dateRange"
                 type="datetimerange"
                 value-format="YYYY-MM-DD HH:mm"
@@ -61,25 +72,29 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="会议联系人" prop="meetingContact">
-              <el-input v-model.trim="form.meetingContact" placeholder="请输入会议联系人" :disabled="isView" />
-            </el-form-item>
-          </el-col>
+
           <el-col :span="12">
             <el-form-item label="联系人电话" prop="meetingPhone">
-              <el-input v-model.trim="form.meetingPhone" placeholder="请输入联系人电话" :disabled="isView" />
+              <div v-if="isView">{{ form.meetingPhone }}</div>
+              <el-input v-model.trim="form.meetingPhone" placeholder="请输入联系人电话" :disabled="isView" v-else />
             </el-form-item>
           </el-col>
-          <el-col :span="12" v-if="props.data.data && props.data.data.meetingStatus == '99'">
+          <el-col :span="24">
+            <el-form-item label="培训会议地址" prop="meetingAddress">
+              <div v-if="isView">{{ form.meetingAddress }}</div>
+              <el-input v-model.trim="form.meetingAddress" maxlength="30" placeholder="请输入培训会议地址" :disabled="isView" v-else />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" v-if="props.data.data && props.data.data.meetingStatus == '99'">
             <el-form-item label="取消原因" prop="cancelReason">
-              <el-input v-model.trim="form.cancelReason" placeholder="请输入取消原因" :disabled="isView" />
+              <div v-if="isView">{{ form.cancelReason }}</div>
+              <el-input v-model.trim="form.cancelReason" placeholder="请输入取消原因" :disabled="isView" v-else />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="邀请专家" :required="true" prop="experts">
-              <span v-if="isView">专家总人数：{{ selectedCount }} 人</span>
-              <el-button v-else type="primary" @click="invitation" :disabled="isView">添加</el-button>
+              <span v-if="isView" class="text-[#108C58]">专家总人数：{{ selectedCount }} 人</span>
+              <el-button v-else type="primary" @click="invitation" icon="Plus" :disabled="isView">添加</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -89,7 +104,9 @@
         <el-table-column type="index" label="序号" width="55" align="center" />
         <el-table-column label="专家类型" prop="expertType" width="90">
           <template #default="scope">
-            {{ scope.row.expertType === '1' ? '技术专家' : '法务专家' }}
+            <div :class="scope.row.expertType === '1' ? 'text-[#108C58]' : 'text-[#008CFF]'">
+              {{ scope.row.expertType === '1' ? '技术专家' : '法务专家' }}
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="专家姓名" prop="expertName" width="100" :show-overflow-tooltip="true">
@@ -132,7 +149,7 @@
       <!-- 报名的专家 -->
       <div v-if="isView" style="margin-top: 50px; font-size: 16px; font-weight: 700; margin-bottom: 10px">
         报名参加会议人员信息
-        <span style="color: #666; font-size: 14px">(报名人数：{{ registrantsNumber }}人)</span>
+        <span style="color: #108c58; font-size: 14px">(报名人数：{{ registrantsNumber }}人)</span>
       </div>
       <el-table v-if="isView" ref="tableRef" :data="registration" v-loading="registrationloading" style="table-layout: fixed">
         <el-table-column type="index" label="序号" width="55" align="center" />
@@ -180,8 +197,8 @@
         <el-input v-model.trim="queryParams.expertName" placeholder="请输入专家姓名" clearable />
       </el-form-item>
       <el-form-item>
-        <el-button v-throttle type="primary" @click="handleQuery">查询</el-button>
-        <el-button v-throttle @click="handleReset">重置</el-button>
+        <el-button v-throttle type="primary" icon="Search" @click="handleQuery">查询</el-button>
+        <el-button v-throttle icon="Refresh" @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -228,7 +245,7 @@
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <div class="w-full text-center">
+        <div class="w-full text-right">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="confirmExperts">确 定</el-button>
         </div>
@@ -722,6 +739,11 @@ const handleSave = async () => {
     saveloading.value = false;
   }
 };
+
+const getMeetingTypeLabel = (value: string) => {
+  const type = meeting_type.value.find((item: any) => item.value === value);
+  return type ? type.label : '';
+};
 </script>
 
 <style scoped>
@@ -758,5 +780,28 @@ const handleSave = async () => {
   color: #666;
   border-bottom: 2px solid #ccc;
   padding-bottom: 10px;
+}
+:deep(.type1) {
+  background: rgba(255, 123, 0, 0.1);
+  border: 1px solid #ff7b00;
+  color: #ff7b00;
+}
+:deep(.type2) {
+  background: rgba(11, 121, 239, 0.1);
+  border: 1px solid #0b79ef;
+  color: #0b79ef;
+}
+:deep(.type3) {
+  background: rgba(239, 77, 11, 0.1);
+  border: 1px solid #ef4d0b;
+  color: #ef4d0b;
+}
+:deep(.type99) {
+  background: rgba(168, 168, 168, 0.1);
+  border: 1px solid #a8a8a8;
+  color: #a8a8a8;
+}
+:deep(.el-form-item--label-left .el-form-item__label) {
+  align-items: center;
 }
 </style>
