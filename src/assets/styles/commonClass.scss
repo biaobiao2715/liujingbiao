@@ -209,3 +209,24 @@
 .prohibit-color {
   color: #bbbdbf !important;
 }
+
+// 自定义标题样式（绿色带竖线）
+.special-custom-label {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 500;
+  font-size: 14px;
+  color: #108c58;
+  padding-bottom: 10px;
+  display: inline-block;
+  position: relative;
+  display: flex;
+  align-items: center;
+  &::before {
+    content: '';
+    width: 2px;
+    height: 10px;
+    background: #108c58;
+    border-radius: 4px 4px 4px 4px;
+    margin-right: 4px;
+  }
+}
