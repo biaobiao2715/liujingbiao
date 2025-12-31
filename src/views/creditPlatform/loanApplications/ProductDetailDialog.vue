@@ -14,7 +14,7 @@
     </template>
 
     <div v-loading="loading" class="product-detail-content">
-      <div class="section-title">基本信息</div>
+      <FormHeader title="基本信息" />
 
       <div class="info-grid">
         <!-- 产品名称 -->
@@ -126,7 +126,7 @@
       </div>
 
       <div class="footer-actions">
-        <el-button @click="handleClose">返回</el-button>
+        <el-button type="primary" @click="handleClose">返回</el-button>
       </div>
     </div>
   </el-dialog>
@@ -137,6 +137,7 @@ import { ref, computed, watch, getCurrentInstance, toRefs } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import type { UploadFile } from 'element-plus';
 import { getProduct } from '@/api/creditPlatform/loanApplications';
+import FormHeader from '@/components/FormHeader/index.vue';
 
 /**
  *Props 定义
@@ -325,25 +326,8 @@ const handleClose = () => {
 </script>
 
 <style scoped lang="scss">
-.product-detail-dialog {
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #303133;
-  }
-}
-
 .product-detail-content {
-  padding: 20px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 16px;
-  padding-left: 12px;
-  border-left: 4px solid #409eff;
+  padding: 0 20px;
 }
 
 .info-grid {
