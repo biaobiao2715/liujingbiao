@@ -19,6 +19,7 @@
         <div v-for="(step, index) in trackingData" :key="index" class="timeline-item">
           <!-- 左侧时间线 -->
           <div class="timeline-left">
+            <div v-if="index > 0" class="timeline-line-top" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
             <div class="timeline-icon" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
             <div v-if="index < trackingData.length - 1" class="timeline-line" :class="{ active: step.status === 'finish' }"></div>
           </div>
@@ -237,15 +238,24 @@ const handleClose = () => {
     width: 40px;
     position: relative;
 
+    .timeline-line-top {
+      width: 0;
+      height: 34px;
+      border-left: 1px solid #e8e8e8;
+
+      &.active {
+        border-color: #108c58;
+      }
+    }
+
     .timeline-icon {
-      width: 12px;
-      height: 12px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: #fff;
-      border: 2px solid #e8e8e8;
+      border: 1px solid #e8e8e8;
       flex-shrink: 0;
       z-index: 1;
-      margin-top: 34px;
 
       &.active {
         border-color: #108c58;
@@ -253,15 +263,18 @@ const handleClose = () => {
     }
 
     .timeline-line {
-      width: 2px;
+      width: 0;
       flex: 1;
-      background: #e8e8e8;
-      margin-bottom: -34px;
+      border-left: 1px solid #e8e8e8;
 
       &.active {
-        background: #108c58;
+        border-color: #108c58;
       }
     }
+  }
+
+  &:first-child .timeline-icon {
+    margin-top: 34px;
   }
 
   .timeline-right {
