@@ -13,7 +13,7 @@
     </template>
     <div v-loading="loading">
       <div class="detail-section">
-        <div class="section-title">企业基础信息</div>
+        <FormHeader title="企业基础信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="12">
@@ -61,7 +61,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">法人信息</div>
+        <FormHeader title="法人信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in legalInfoList" :key="item.label" :span="item.span || 12">
@@ -74,7 +74,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">申请人信息</div>
+        <FormHeader title="申请人信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in applicantInfoList" :key="item.label" :span="item.span || 12">
@@ -120,7 +120,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">贷款信息</div>
+        <FormHeader title="贷款信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in loanInfoList" :key="item.label" :span="item.span || 12">
@@ -154,7 +154,7 @@
       </div>
 
       <div class="detail-section approval-section">
-        <div class="section-title">审批信息</div>
+        <FormHeader title="审批信息" />
         <el-alert v-if="showApprovalTip" :title="approvalTipMessage" type="warning" show-icon :closable="false" class="tips" />
         <el-form
           v-if="showApprovalForm"
@@ -303,6 +303,7 @@ import {
 } from '@/api/creditPlatform/loanApplications';
 import { uploadByChunks } from '@/utils/chunkUpload';
 import ProductDetailDialog from './ProductDetailDialog.vue';
+import FormHeader from '@/components/FormHeader/index.vue';
 
 const props = withDefaults(
   defineProps<{
