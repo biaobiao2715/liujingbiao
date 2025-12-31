@@ -8,36 +8,51 @@
 <template>
   <el-card class="chart-card bottom-card" shadow="hover">
     <div class="card-header">
-      <div class="axis-wrapper">
-        <div class="axis-title">履约率(%)</div>
-        <div class="category-switch" v-loading="categoryLoading">
-          <div
-            v-for="item in categoryOptions"
-            :key="item.value"
-            class="category-item"
-            :class="{ active: category === item.value }"
-            @click="changeCategory(item.value)"
-          >
-            {{ item.label }}
-          </div>
-          <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      <div class="axis-title">履约率(%)</div>
+      <el-button type="primary" plain size="small" @click="handleExport" class="export-btn">
+        <template #icon>
+          <img :src="exportIcon" alt="导出" class="btn-icon" />
+        </template>
+        导出
+      </el-button>
+    </div>
+    <div class="chart-controls">
+      <div class="category-switch" v-loading="categoryLoading">
+        <div
+          v-for="item in categoryOptions"
+          :key="item.value"
+          class="category-item"
+          :class="{ active: category === item.value }"
+          @click="changeCategory(item.value)"
+        >
+          {{ item.label }}
+        </div>
+        <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      </div>
+      <div class="chart-legend-center">
+        <div class="legend-item">
+          <span class="legend-icon-bar" style="background-color: #108C58;"></span>
+          <span class="legend-text">已履约率</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon-bar" style="background-color: #FF7B00;"></span>
+          <span class="legend-text">待履约率</span>
         </div>
       </div>
-      <el-button type="primary" plain size="small" @click="handleExport">导出</el-button>
+      <div class="time-tabs">
+        <div
+          v-for="item in timeRanges"
+          :key="item.value"
+          class="time-tab"
+          :class="{ active: timeRange === item.value }"
+          @click="changeRange(item.value)"
+        >
+          {{ item.label }}
+        </div>
+      </div>
     </div>
     <div class="chart-body" v-loading="loading">
       <div ref="chartRef" class="chart-container"></div>
-    </div>
-    <div class="time-tabs">
-      <div
-        v-for="item in timeRanges"
-        :key="item.value"
-        class="time-tab"
-        :class="{ active: timeRange === item.value }"
-        @click="changeRange(item.value)"
-      >
-        {{ item.label }}
-      </div>
     </div>
   </el-card>
 </template>
@@ -48,6 +63,9 @@ import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 import { getOrdersComplianceRateInfo, exportOrdersComplianceRate } from '@/api/platformManage/home';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import exportIconImg from '@/assets/images/切图 91.png';
+
+const exportIcon = exportIconImg;
 
 type TimeRange = '1' | '2' | '3' | '4';
 
@@ -121,7 +139,7 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
         }
       },
       legend: {
-        data: ['待履约率', '已履约率'],
+        data: ['已履约率', '待履约率'],
         top: 10,
         right: 20,
         textStyle: {
@@ -150,39 +168,25 @@ const updateChart = (data: { label: string; complianceRate: number; unCompliance
       },
       series: [
         {
-          name: '待履约率',
-          type: 'bar',
-          stack: 'total',
-          barWidth: '60%',
-          itemStyle: { color: '#5470c6' },
-          label: {
-            show: true,
-            position: 'inside',
-            formatter: (params: any) => {
-              return params.value > 0 ? `${params.value}%` : '';
-            },
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 'bold'
-          },
-          data: chartData.map((item) => item.unComplianceRate)
-        },
-        {
           name: '已履约率',
           type: 'bar',
           stack: 'total',
-          itemStyle: { color: '#ff9800' },
+          barWidth: '30%',
+          itemStyle: { color: '#108C58' },
           label: {
-            show: true,
-            position: 'inside',
-            formatter: (params: any) => {
-              return params.value > 0 ? `${params.value}%` : '';
-            },
-            color: '#fff',
-            fontSize: 11,
-            fontWeight: 'bold'
+            show: false
           },
           data: chartData.map((item) => item.complianceRate)
+        },
+        {
+          name: '待履约率',
+          type: 'bar',
+          stack: 'total',
+          itemStyle: { color: '#FF7B00' },
+          label: {
+            show: false
+          },
+          data: chartData.map((item) => item.unComplianceRate)
         }
       ]
     },
@@ -384,19 +388,50 @@ watch([category, timeRange], () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-
-.axis-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .axis-title {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.chart-legend-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-icon-bar {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border-radius: 2px;
+}
+
+.legend-text {
+  font-size: 14px;
+  color: #303133;
 }
 
 .category-switch {
@@ -429,7 +464,7 @@ watch([category, timeRange], () => {
 }
 
 .chart-body {
-  height: 280px;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -437,14 +472,12 @@ watch([category, timeRange], () => {
 
 .chart-container {
   width: 100%;
-  height: 100%;
+  height: 280px;
 }
 
 .time-tabs {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
 }
 
 .time-tab {
@@ -464,5 +497,25 @@ watch([category, timeRange], () => {
   border-color: #108c58;
   color: #fff;
   font-weight: 600;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.export-btn {
+  color: #333333 !important;
+  background-color: #F2F3F5 !important;
+  border: none !important;
+  
+  &:hover,
+  &:focus,
+  &:active {
+    color: #333333 !important;
+    background-color: #F2F3F5 !important;
+    border: none !important;
+  }
 }
 </style>

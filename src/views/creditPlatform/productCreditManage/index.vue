@@ -11,7 +11,7 @@
       <el-form-item label="产品名称" prop="productName" label-width="auto">
         <el-input
           v-model="queryParams.productName"
-          placeholder="请输入产品名称"
+          placeholder="请输入"
           clearable
           maxlength="50"
           show-word-limit

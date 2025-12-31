@@ -8,16 +8,15 @@
 <template>
   <div class="message-detail-dialog" v-loading="loading">
     <div class="question-section">
-      <div class="section-header">
-        <h3 class="section-title">我的问题</h3>
-      </div>
       <div class="question-content">
         <div class="question-item">
-          <el-tag class="question-tag">问</el-tag>
+          <div class="question-tag">
+            <img :src="questionIcon" alt="问" class="question-icon-img" />
+          </div>
           <span class="question-text">{{ detailData.questionContent || detailData.messageContent }}</span>
-        </div>
-        <div class="question-time" v-if="detailData.publishTime || detailData.messageTime">
-          {{ detailData.publishTime || detailData.messageTime }}
+          <div class="question-time" v-if="detailData.publishTime || detailData.messageTime">
+            {{ detailData.publishTime || detailData.messageTime }}
+          </div>
         </div>
         <div v-if="detailData.attachments && detailData.attachments.length > 0" class="attachments">
           <template v-for="(attachment, index) in detailData.attachments">
@@ -40,14 +39,15 @@
       </div>
     </div>
 
-    <el-divider />
+    <el-divider content-position="center">回复历史</el-divider>
 
     <div class="reply-section">
-      <h3 class="section-title">回复历史</h3>
       <div v-if="replyList.length > 0" class="reply-list">
         <div v-for="(reply, index) in replyList" :key="index" class="reply-item">
           <div class="reply-header">
-            <el-tag class="reply-tag">答</el-tag>
+            <div class="reply-tag">
+              <img :src="answerIcon" alt="答" class="answer-icon-img" />
+            </div>
             <span class="reply-content">{{ reply.content }}</span>
           </div>
           <div class="reply-time">
@@ -67,6 +67,11 @@ import { ref, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Folder } from '@element-plus/icons-vue';
 import { getMessageDetail } from '@/api/expertServicePlatform/messageManage/index';
+import questionIconImg from '@/assets/images/问图标.png';
+import answerIconImg from '@/assets/images/答图标.png';
+
+const questionIcon = questionIconImg;
+const answerIcon = answerIconImg;
 
 const props = defineProps<{
   id: string | number | null;
@@ -153,7 +158,7 @@ const fetchDetail = async () => {
       if (data.hnAnswerVoList && Array.isArray(data.hnAnswerVoList) && data.hnAnswerVoList.length > 0) {
         replyList.value = data.hnAnswerVoList.map((item: any) => ({
           content: item.answerContent || item.content || '',
-          time: item.answerTime || item.time || '',
+          time: item.replyTime || item.time || '',
           replyBy: item.answerUserId || item.replyBy || ''
         }));
       } else {
@@ -223,12 +228,15 @@ onMounted(() => {
       margin-bottom: 12px;
       .question-tag {
         flex-shrink: 0;
-        background-color: #67c23a;
-        color: #fff;
-        border: none;
-        padding: 3px 10px;
-        font-size: 13px;
-        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .question-icon-img {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
       }
       .question-text {
         flex: 1;
@@ -237,11 +245,13 @@ onMounted(() => {
         line-height: 1.8;
         word-break: break-all;
       }
-    }
-    .question-time {
-      font-size: 13px;
-      color: #909399;
-      margin-bottom: 12px;
+      .question-time {
+        flex-shrink: 0;
+        font-size: 13px;
+        color: #909399;
+        white-space: nowrap;
+        margin-left: auto;
+      }
     }
     .attachments {
       display: flex;
@@ -297,12 +307,11 @@ onMounted(() => {
   .reply-list {
     .reply-item {
       margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e4e7ed;
+      padding: 12px;
+      background-color: #F7F8FA;
+      border-radius: 4px;
       &:last-child {
-        border-bottom: none;
         margin-bottom: 0;
-        padding-bottom: 0;
       }
       .reply-header {
         display: flex;
@@ -311,12 +320,15 @@ onMounted(() => {
         margin-bottom: 8px;
         .reply-tag {
           flex-shrink: 0;
-          background-color: #ff9800;
-          color: #fff;
-          border: none;
-          padding: 3px 10px;
-          font-size: 13px;
-          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          .answer-icon-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+          }
         }
         .reply-content {
           flex: 1;
@@ -329,6 +341,8 @@ onMounted(() => {
       .reply-time {
         font-size: 13px;
         color: #909399;
+        text-align: right;
+        margin-top: 4px;
       }
     }
   }

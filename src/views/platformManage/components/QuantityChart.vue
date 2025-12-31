@@ -8,36 +8,45 @@
 <template>
   <el-card class="chart-card" shadow="hover" v-loading="loading">
     <div class="card-header">
-      <div class="axis-wrapper">
-        <div class="axis-title">销售量(单)</div>
-        <div class="category-switch" v-loading="categoryLoading">
-          <div
-            v-for="item in categoryOptions"
-            :key="item.value"
-            class="category-item"
-            :class="{ active: category === item.value }"
-            @click="changeCategory(item.value)"
-          >
-            {{ item.label }}
-          </div>
-          <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      <div class="axis-title">订单量</div>
+      <el-button type="primary" plain size="small" @click="handleExport" class="export-btn">
+        <template #icon>
+          <img :src="exportIcon" alt="导出" class="btn-icon" />
+        </template>
+        导出
+      </el-button>
+    </div>
+    <div class="chart-controls">
+      <div class="category-switch" v-loading="categoryLoading">
+        <div
+          v-for="item in categoryOptions"
+          :key="item.value"
+          class="category-item"
+          :class="{ active: category === item.value }"
+          @click="changeCategory(item.value)"
+        >
+          {{ item.label }}
+        </div>
+        <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      </div>
+      <div class="chart-legend-center">
+        <span class="legend-icon"></span>
+        <span class="legend-text">订单量</span>
+      </div>
+      <div class="time-tabs">
+        <div
+          v-for="item in timeRanges"
+          :key="item.value"
+          class="time-tab"
+          :class="{ active: timeRange === item.value }"
+          @click="changeRange(item.value)"
+        >
+          {{ item.label }}
         </div>
       </div>
-      <el-button type="primary" plain size="small" @click="handleExport">导出</el-button>
     </div>
     <div class="chart-body">
       <div ref="chartRef" class="chart-container"></div>
-    </div>
-    <div class="time-tabs">
-      <div
-        v-for="item in timeRanges"
-        :key="item.value"
-        class="time-tab"
-        :class="{ active: timeRange === item.value }"
-        @click="changeRange(item.value)"
-      >
-        {{ item.label }}
-      </div>
     </div>
   </el-card>
 </template>
@@ -48,6 +57,9 @@ import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 import { getFirstLevelCategorySales, exportFirstLevelCategorySales } from '@/api/platformManage/home';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import exportIconImg from '@/assets/images/切图 91.png';
+
+const exportIcon = exportIconImg;
 
 type TimeRange = '1' | '2' | '3' | '4';
 
@@ -103,7 +115,32 @@ const updateChart = (data: { label: string; value: number }[]) => {
   chart.setOption(
     {
       grid: { top: 40, left: 40, right: 40, bottom: 60 },
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: '#e5e5e5',
+        borderWidth: 1,
+        padding: [10, 15],
+        textStyle: {
+          color: '#333'
+        },
+        formatter: (params: any) => {
+          if (!params || params.length === 0) return '';
+          const param = params[0];
+          return `
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #333;">
+              ${param.name}
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; border: 2px solid #108C58; border-radius: 50%; background-color: #fff; box-sizing: content-box;"></span>
+                <span style="color: #666; font-size: 13px;">订单量</span>
+              </div>
+              <span style="font-weight: 600; font-size: 14px; color: #333;">${param.value}</span>
+            </div>
+          `;
+        }
+      },
       xAxis: {
         type: 'category',
         boundaryGap: false,
@@ -127,11 +164,16 @@ const updateChart = (data: { label: string; value: number }[]) => {
           type: 'line',
           smooth: true,
           symbolSize: 6,
-          lineStyle: { color: '#f7b733', width: 3 },
+          itemStyle: {
+            color: '#108C58',
+            borderColor: '#108C58',
+            borderWidth: 2
+          },
+          lineStyle: { color: '#108C58', width: 3 },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(247, 183, 51, 0.6)' },
-              { offset: 1, color: 'rgba(247, 183, 51, 0.05)' }
+              { offset: 0, color: 'rgba(16, 140, 88, 0.6)' },
+              { offset: 1, color: 'rgba(16, 140, 88, 0.05)' }
             ])
           },
           data: data.map((item) => item.value)
@@ -275,18 +317,61 @@ watch([category, timeRange], () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-}
-
-.axis-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .axis-title {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.chart-legend-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.legend-icon {
+  width: 30px;
+  height: 2px;
+  background-color: #108C58;
+  display: inline-block;
+  position: relative;
+}
+
+.legend-icon::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #108C58;
+}
+
+.legend-text {
+  font-size: 14px;
+  color: #303133;
+}
+
+.chart-body {
+  min-height: 280px;
 }
 
 .category-switch {
@@ -318,23 +403,14 @@ watch([category, timeRange], () => {
   background: #f7f7f7;
 }
 
-.chart-body {
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .chart-container {
   width: 100%;
-  height: 100%;
+  height: 280px;
 }
 
 .time-tabs {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
 }
 
 .time-tab {
@@ -354,5 +430,25 @@ watch([category, timeRange], () => {
   border-color: #108c58;
   color: #fff;
   font-weight: 600;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.export-btn {
+  color: #333333 !important;
+  background-color: #F2F3F5 !important;
+  border: none !important;
+  
+  &:hover,
+  &:focus,
+  &:active {
+    color: #333333 !important;
+    background-color: #F2F3F5 !important;
+    border: none !important;
+  }
 }
 </style>

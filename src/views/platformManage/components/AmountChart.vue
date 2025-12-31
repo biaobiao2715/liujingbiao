@@ -8,36 +8,45 @@
 <template>
   <el-card class="chart-card" shadow="hover" v-loading="loading">
     <div class="card-header">
-      <div class="axis-wrapper">
-        <div class="axis-title">销售额(万元)</div>
-        <div class="category-switch" v-loading="categoryLoading">
-          <div
-            v-for="item in categoryOptions"
-            :key="item.value"
-            class="category-item"
-            :class="{ active: category === item.value }"
-            @click="changeCategory(item.value)"
-          >
-            {{ item.label }}
-          </div>
-          <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      <div class="axis-title">销售额(万元)</div>
+      <el-button type="primary" plain size="small" @click="handleExport" class="export-btn">
+        <template #icon>
+          <img :src="exportIcon" alt="导出" class="btn-icon" />
+        </template>
+        导出
+      </el-button>
+    </div>
+    <div class="chart-controls">
+      <div class="category-switch" v-loading="categoryLoading">
+        <div
+          v-for="item in categoryOptions"
+          :key="item.value"
+          class="category-item"
+          :class="{ active: category === item.value }"
+          @click="changeCategory(item.value)"
+        >
+          {{ item.label }}
+        </div>
+        <div v-if="!categoryLoading && categoryOptions.length === 0" class="category-empty">暂无类目数据</div>
+      </div>
+      <div class="chart-legend-center">
+        <span class="legend-icon-bar"></span>
+        <span class="legend-text">销售额(万元)</span>
+      </div>
+      <div class="time-tabs">
+        <div
+          v-for="item in timeRanges"
+          :key="item.value"
+          class="time-tab"
+          :class="{ active: timeRange === item.value }"
+          @click="changeRange(item.value)"
+        >
+          {{ item.label }}
         </div>
       </div>
-      <el-button type="primary" plain size="small" @click="handleExport">导出</el-button>
     </div>
     <div class="chart-body">
       <div ref="chartRef" class="chart-container"></div>
-    </div>
-    <div class="time-tabs">
-      <div
-        v-for="item in timeRanges"
-        :key="item.value"
-        class="time-tab"
-        :class="{ active: timeRange === item.value }"
-        @click="changeRange(item.value)"
-      >
-        {{ item.label }}
-      </div>
     </div>
   </el-card>
 </template>
@@ -48,6 +57,9 @@ import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 import { getFirstLevelCategorySalesAmountTotal, exportSalesAmountTotal } from '@/api/platformManage/home';
 import { getProductCategoryList } from '@/api/platform/mallConfiguration/productCategory';
+import exportIconImg from '@/assets/images/切图 91.png';
+
+const exportIcon = exportIconImg;
 
 type TimeRange = '1' | '2' | '3' | '4';
 
@@ -117,13 +129,16 @@ const updateChart = (data: { label: string; value: number }[]) => {
         splitLine: { lineStyle: { color: '#eee' } },
         axisLabel: { color: '#666' }
       },
-      color: ['#4a90e2'],
+      color: ['#108C58'],
       series: [
         {
           name: '销售额(万元)',
           type: 'bar',
           barWidth: 24,
-          itemStyle: { borderRadius: [6, 6, 0, 0] },
+          itemStyle: { 
+            color: '#108C58',
+            borderRadius: [6, 6, 0, 0] 
+          },
           data: data.map((item) => item.value)
         }
       ]
@@ -267,16 +282,53 @@ watch([category, timeRange], () => {
   margin-bottom: 12px;
 }
 
-.axis-wrapper {
+.card-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .axis-title {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.chart-legend-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.legend-icon-bar {
+  width: 12px;
+  height: 12px;
+  background-color: #108C58;
+  display: inline-block;
+  border-radius: 2px;
+}
+
+.legend-text {
+  font-size: 14px;
+  color: #303133;
+}
+
+.chart-body {
+  min-height: 280px;
 }
 
 .category-switch {
@@ -308,23 +360,14 @@ watch([category, timeRange], () => {
   background: #f7f7f7;
 }
 
-.chart-body {
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .chart-container {
   width: 100%;
-  height: 100%;
+  height: 280px;
 }
 
 .time-tabs {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
 }
 
 .time-tab {
@@ -344,5 +387,25 @@ watch([category, timeRange], () => {
   border-color: #108c58;
   color: #fff;
   font-weight: 600;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.export-btn {
+  color: #333333 !important;
+  background-color: #F2F3F5 !important;
+  border: none !important;
+  
+  &:hover,
+  &:focus,
+  &:active {
+    color: #333333 !important;
+    background-color: #F2F3F5 !important;
+    border: none !important;
+  }
 }
 </style>
