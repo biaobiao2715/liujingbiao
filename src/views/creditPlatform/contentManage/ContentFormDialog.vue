@@ -56,10 +56,10 @@
       </el-form-item>
 
       <div class="form-actions">
+        <el-button @click="emitCancel">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="saving">
           {{ props.type === 'add' ? '保存' : '确认修改' }}
         </el-button>
-        <el-button @click="emitCancel">取消</el-button>
       </div>
     </el-form>
   </div>
@@ -263,8 +263,8 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
+  padding-top: 0;
+  border-top: none;
   gap: 12px;
 
   .el-button {

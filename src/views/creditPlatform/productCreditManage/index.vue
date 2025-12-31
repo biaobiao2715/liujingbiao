@@ -51,6 +51,11 @@
       <el-table-column type="index" label="序号" width="55" align="center" />
       <el-table-column label="产品名称" prop="productName" min-width="150" :show-overflow-tooltip="true" />
       <el-table-column label="产品简介" prop="productIntro" min-width="150" :show-overflow-tooltip="true" />
+      <el-table-column label="产品类型" prop="productType" width="120">
+        <template #default="scope">
+          <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
+        </template>
+      </el-table-column>
       <el-table-column label="适用对象" prop="applicableObject" min-width="180" :show-overflow-tooltip="true">
         <template #default="scope">
           <dict-tag
@@ -59,12 +64,12 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="产品类型" prop="productType" width="120">
+      <el-table-column label="创建时间" prop="createTime" min-width="160">
         <template #default="scope">
-          <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
+          <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" prop="productStatus" width="100">
+      <el-table-column label="状态" prop="productStatus" width="100" align="center">
         <template #default="scope">
           <div class="status-with-dot">
             <span class="status-dot" :class="`status-dot-${getStatusType(scope.row.productStatus)}`"></span>
@@ -72,11 +77,6 @@
               {{ getStatusLabel(scope.row.productStatus) }}
             </span>
           </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" prop="createTime" min-width="160">
-        <template #default="scope">
-          <span>{{ proxy?.parseTime(scope.row.createTime) || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
@@ -151,8 +151,8 @@
 
     <el-dialog
       v-model="dialog.visible"
-      :title="dialog.type === 'add' ? '新增信贷产品' : dialog.type === 'edit' ? '编辑信贷产品' : '信贷产品详情'"
-      width="75%"
+      :title="dialog.type === 'add' ? '新增' : dialog.type === 'edit' ? '编辑' : '详情'"
+      width="60%"
       destroy-on-close
       :close-on-click-modal="false"
     >

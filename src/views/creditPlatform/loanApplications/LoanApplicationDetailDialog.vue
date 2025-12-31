@@ -173,7 +173,7 @@
               :autosize="{ minRows: 3, maxRows: 6 }"
             />
           </el-form-item>
-          <el-row :gutter="20" style="margin-top: 25px">
+          <el-row :gutter="20" style="margin-top: 18px">
             <el-col :span="12">
               <el-form-item label="放款日期" prop="loanDate" class="required-field date-picker-field">
                 <el-date-picker

@@ -10,109 +10,107 @@
     <div class="dashboard-content">
       <div class="top-stats-row">
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card pending-card">
-            <div class="top-stat-content">
-              <div class="top-stat-label">贷款待审批</div>
-              <div class="top-stat-value">{{ dashboardData.pendingApprovals }}件</div>
+          <div class="top-stat-card card-blue">
+            <div class="top-stat-icon">
+              <img :src="icon110" alt="贷款待审批" />
             </div>
-          </el-card>
+            <div class="top-stat-info">
+              <div class="top-stat-label">贷款待审批 (件)</div>
+              <div class="top-stat-value value-blue">{{ dashboardData.pendingApprovals }}</div>
+            </div>
+            <div class="top-stat-decoration">
+              <img :src="icon115" alt="" />
+            </div>
+          </div>
         </div>
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
-            <div class="top-stat-content">
-              <div class="top-stat-label">总申请贷款</div>
-              <div class="top-stat-value">{{ dashboardData.totalLoanApprovals }}件</div>
+          <div class="top-stat-card card-purple">
+            <div class="top-stat-icon">
+              <img :src="icon111" alt="总申请贷款" />
             </div>
-          </el-card>
+            <div class="top-stat-info">
+              <div class="top-stat-label">总申请贷款 (件)</div>
+              <div class="top-stat-value value-purple">{{ dashboardData.totalLoanApprovals }}</div>
+            </div>
+            <div class="top-stat-decoration">
+              <img :src="icon116" alt="" />
+            </div>
+          </div>
         </div>
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
-            <div class="top-stat-content">
-              <div class="top-stat-label">贷款审批通过</div>
-              <div class="top-stat-value">{{ dashboardData.approvedLoans }}件</div>
+          <div class="top-stat-card card-cyan">
+            <div class="top-stat-icon">
+              <img :src="icon112" alt="贷款审批通过" />
             </div>
-          </el-card>
+            <div class="top-stat-info">
+              <div class="top-stat-label">贷款审批通过 (件)</div>
+              <div class="top-stat-value value-cyan">{{ dashboardData.approvedLoans }}</div>
+            </div>
+            <div class="top-stat-decoration">
+              <img :src="icon117" alt="" />
+            </div>
+          </div>
         </div>
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
-            <div class="top-stat-content">
-              <div class="top-stat-label">贷款审批驳回</div>
-              <div class="top-stat-value">{{ dashboardData.rejectedLoans }}件</div>
+          <div class="top-stat-card card-red">
+            <div class="top-stat-icon">
+              <img :src="icon113" alt="贷款审批驳回" />
             </div>
-          </el-card>
+            <div class="top-stat-info">
+              <div class="top-stat-label">贷款审批驳回 (件)</div>
+              <div class="top-stat-value value-red">{{ dashboardData.rejectedLoans }}</div>
+            </div>
+            <div class="top-stat-decoration">
+              <img :src="icon118" alt="" />
+            </div>
+          </div>
         </div>
         <div class="top-stat-card-wrapper">
-          <el-card shadow="never" class="top-stat-card">
-            <div class="top-stat-content">
-              <div class="top-stat-label">贷款申请取消</div>
-              <div class="top-stat-value">{{ dashboardData.cancelledApplications }}件</div>
+          <div class="top-stat-card card-orange">
+            <div class="top-stat-icon">
+              <img :src="icon114" alt="贷款申请取消" />
             </div>
-          </el-card>
+            <div class="top-stat-info">
+              <div class="top-stat-label">贷款申请取消 (件)</div>
+              <div class="top-stat-value value-orange">{{ dashboardData.cancelledApplications }}</div>
+            </div>
+            <div class="top-stat-decoration">
+              <img :src="icon119" alt="" />
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="main-content">
-        <div class="middle-section">
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">总贷款金额</span>
-                  <div class="data-card-icon">
-                    <el-icon :size="20"><Money /></el-icon>
-                  </div>
-                </div>
-                <div class="data-card-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
-              </div>
-
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">本月应收金额</span>
-                </div>
-                <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
-              </div>
-            </el-col>
-            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">当前逾期金额</span>
-                  <div class="data-card-icon warning-icon">
-                    <el-icon :size="20"><Warning /></el-icon>
-                  </div>
-                </div>
-                <div class="data-card-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
-              </div>
-
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">本月已收金额</span>
-                </div>
-                <div class="data-card-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
-              </div>
-            </el-col>
-            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">总违约率</span>
-                  <div class="data-card-icon">
-                    <el-icon :size="20"><TrendCharts /></el-icon>
-                  </div>
-                </div>
-                <div class="data-card-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
-              </div>
-
-              <div class="data-card">
-                <div class="data-card-header">
-                  <span class="data-card-title">本月逾期金额</span>
-                </div>
-                <div class="data-card-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
-              </div>
-            </el-col>
-          </el-row>
-        </div>
-
         <div class="bottom-chart-section">
-          <div class="chart-header">
+          <div class="chart-stats-row">
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatWanInteger(dashboardData.totalApprovedAmount) }}</div>
+              <div class="chart-stat-label">总贷款金额</div>
+            </div>
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatWan(dashboardData.currentOverdueAmount) }}</div>
+              <div class="chart-stat-label">当前逾期金额</div>
+            </div>
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatRate(dashboardData.totalDefaultRate) }}%</div>
+              <div class="chart-stat-label">总违约率</div>
+            </div>
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatWan(dashboardData.monthlyReceivableAmount) }}</div>
+              <div class="chart-stat-label">本月应收金额</div>
+            </div>
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatWan(dashboardData.monthlyReceivedAmount) }}</div>
+              <div class="chart-stat-label">本月已收金额</div>
+            </div>
+            <div class="chart-stat-item">
+              <div class="chart-stat-value">{{ formatWan(dashboardData.monthlyOverdueAmount) }}</div>
+              <div class="chart-stat-label">本月逾期金额</div>
+            </div>
+          </div>
+
+          <div class="chart-title-row">
             <div class="chart-title">近6个月违约率趋势</div>
             <div class="chart-tabs">
               <el-button v-for="tab in chartTabs" :key="tab.value" size="small" disabled plain>
@@ -120,6 +118,7 @@
               </el-button>
             </div>
           </div>
+          
           <div ref="defaultRateChart" class="chart-container"></div>
         </div>
       </div>
@@ -132,6 +131,18 @@ import { ref, onMounted, nextTick, getCurrentInstance, toRefs, type ComponentInt
 import * as echarts from 'echarts';
 import { Money, Warning, TrendCharts } from '@element-plus/icons-vue';
 import { getDashboardStats, getDashboardLineChart } from '@/api/creditPlatform/dashboard';
+
+// 导入图片
+import icon110 from '@/assets/images/finance/切图 110.png';
+import icon111 from '@/assets/images/finance/切图 111.png';
+import icon112 from '@/assets/images/finance/切图 112.png';
+import icon113 from '@/assets/images/finance/切图 113.png';
+import icon114 from '@/assets/images/finance/切图 114.png';
+import icon115 from '@/assets/images/finance/切图 115.png';
+import icon116 from '@/assets/images/finance/切图 116.png';
+import icon117 from '@/assets/images/finance/切图 117.png';
+import icon118 from '@/assets/images/finance/切图 118.png';
+import icon119 from '@/assets/images/finance/切图 119.png';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { sys_year_month } = toRefs<any>(proxy?.useDict('sys_year_month'));
@@ -279,47 +290,47 @@ const updateChart = () => {
 
   const legendData = [
     {
-      name: '总违约率',
-      icon: 'rect',
-      itemStyle: { color: 'transparent', borderColor: '#f56c6c', borderWidth: 2 }
-    },
-    {
       name: '月度',
       icon: 'rect',
-      itemStyle: { color: 'transparent', borderColor: '#409eff', borderWidth: 2 }
+      itemStyle: { color: '#108C58' }
+    },
+    {
+      name: '总违约率',
+      icon: 'rect',
+      itemStyle: { color: '#FF7F00' }
     }
   ];
   const series = [
     {
-      name: '总违约率',
-      type: 'line',
-      smooth: true,
-      data: yearSeries,
-      symbol: 'circle',
-      symbolSize: 8,
-      itemStyle: { color: '#f56c6c' },
-      lineStyle: { color: '#f56c6c' },
-      areaStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(245, 108, 108, 0.6)' },
-          { offset: 1, color: 'rgba(245, 108, 108, 0.05)' }
-        ])
+      name: '月度',
+      type: 'bar',
+      stack: 'total',
+      data: monthSeries,
+      barWidth: '40%',
+      itemStyle: { 
+        color: '#108C58',
+        borderRadius: [0, 0, 4, 4]
+      },
+      emphasis: {
+        itemStyle: {
+          color: '#0d7a4d'
+        }
       }
     },
     {
-      name: '月度',
-      type: 'line',
-      smooth: true,
-      data: monthSeries,
-      symbol: 'circle',
-      symbolSize: 8,
-      itemStyle: { color: '#409eff' },
-      lineStyle: { color: '#409eff' },
-      areaStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(64, 158, 255, 0.45)' },
-          { offset: 1, color: 'rgba(64, 158, 255, 0.05)' }
-        ])
+      name: '总违约率',
+      type: 'bar',
+      stack: 'total',
+      data: yearSeries,
+      barWidth: '40%',
+      itemStyle: { 
+        color: '#FF7F00',
+        borderRadius: [4, 4, 0, 0]
+      },
+      emphasis: {
+        itemStyle: {
+          color: '#e67200'
+        }
       }
     }
   ];
@@ -369,17 +380,18 @@ const updateChart = () => {
     grid: {
       left: 40,
       right: 30,
-      bottom: 40,
+      bottom: 60,
       top: 40,
       containLabel: true
     },
     xAxis: {
       type: 'category',
-      boundaryGap: false,
+      boundaryGap: true,
       data: xAxisData,
       axisLabel: {
         color: '#606266',
         show: true,
+        interval: 0,
         showMinLabel: true,
         showMaxLabel: true
       },
@@ -387,6 +399,10 @@ const updateChart = () => {
         lineStyle: {
           color: '#dcdfe6'
         }
+      },
+      axisTick: {
+        show: true,
+        alignWithLabel: true
       }
     },
     yAxis: {
@@ -540,119 +556,165 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: space-between;
 }
 
 .top-stat-card-wrapper {
   flex: 1;
-  min-width: 180px;
+  min-width: 0;
+  height: 156px;
+
+  @media (max-width: 1200px) {
+    height: 140px;
+  }
+
+  @media (max-width: 768px) {
+    height: 120px;
+  }
+
+  @media (max-width: 480px) {
+    height: 100px;
+  }
 }
 
 .top-stat-card {
-  border-radius: 12px;
-  border: none;
-  height: 100%;
-  transition: all 0.3s;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
-  }
-
-  :deep(.el-card__body) {
-    padding: 24px 20px;
+    transform: translateY(-2px);
   }
 }
 
-.top-stat-content {
-  text-align: center;
+.top-stat-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+
+  @media (max-width: 1200px) {
+    width: 40px;
+    height: 40px;
+  }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.top-stat-info {
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
 
   .top-stat-label {
-    font-size: 14px;
-    color: #606266;
-    margin-bottom: 12px;
+    font-size: 16px;
+    color: #3D1D3D;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+    @media (max-width: 1200px) {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
   }
 
   .top-stat-value {
     font-size: 28px;
     font-weight: 600;
+    font-family: 'Bungee-Regular', 'Arial', sans-serif;
     color: #303133;
-  }
-}
 
-.pending-card .top-stat-value {
-  color: #f56c6c; // 待审批标红
-}
+    @media (max-width: 1200px) {
+      font-size: 24px;
+    }
 
-.main-content {
-  width: 100%;
-}
-
-.middle-section {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.data-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid #e4e7ed;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-  &:hover {
-    background: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.data-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-
-  .data-card-title {
-    font-size: 14px;
-    color: #606266;
-    font-weight: 500;
-  }
-
-  .data-card-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    background: #f5f7fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #409eff;
-    flex-shrink: 0;
-
-    &.warning-icon {
-      background: rgba(245, 108, 108, 0.1);
-      color: #f56c6c;
+    @media (max-width: 768px) {
+      font-size: 20px;
     }
   }
 }
 
-.data-card-value {
-  font-size: 32px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 8px;
-  word-break: break-word;
+.top-stat-card .top-stat-value.value-blue {
+  color: #7392F4;
+}
+
+.top-stat-card .top-stat-value.value-purple {
+  color: #E07BFD;
+}
+
+.top-stat-card .top-stat-value.value-cyan {
+  color: #48BFF8;
+}
+
+.top-stat-card .top-stat-value.value-red {
+  color: #FF4E4E;
+}
+
+.top-stat-card .top-stat-value.value-orange {
+  color: #FDA878;
+}
+
+.top-stat-decoration {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 260px;
+  height: auto;
+  pointer-events: none;
+  z-index: 0;
+
+  @media (max-width: 1200px) {
+    width: 200px;
+  }
+
+  @media (max-width: 768px) {
+    width: 150px;
+  }
+
+  @media (max-width: 480px) {
+    width: 120px;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.main-content {
+  width: 100%;
 }
 
 .bottom-chart-section {
@@ -660,6 +722,46 @@ onMounted(() => {
   border-radius: 16px;
   padding: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.chart-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.chart-stats-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  background: rgba(16, 140, 88, 0.05);
+  border-radius: 8px;
+  padding: 24px 32px;
+  margin-bottom: 24px;
+}
+
+.chart-stat-item {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+}
+
+.chart-stat-label {
+  font-size: 14px;
+  color: #202020;
+  margin-top: 8px;
+  font-weight: 400;
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.chart-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #108C58;
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 .chart-header {

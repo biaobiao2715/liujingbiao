@@ -144,7 +144,7 @@
       </Suspense>
     </el-dialog>
 
-    <el-dialog v-model="replyDialog.visible" title="回复留言" width="50%" destroy-on-close :close-on-click-modal="false">
+    <el-dialog v-model="replyDialog.visible" title="回复" width="50%" destroy-on-close :close-on-click-modal="false">
       <Suspense>
         <template #default>
           <MessageReplyDialog
@@ -456,13 +456,13 @@ onMounted(() => {
 }
 
 .link-type {
-  color: #409eff;
+  color: #108C58;
   cursor: pointer;
   font-weight: 500;
 
   &:hover {
     text-decoration: underline;
-    color: #66b1ff;
+    color: #0D7347;
   }
 }
 

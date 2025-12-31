@@ -7,49 +7,43 @@
 -->
 <template>
   <div class="content-detail-dialog" v-loading="loading">
-    <div class="article-header">
-      <h2 class="article-title">{{ detailData.articleTitle || '--' }}</h2>
-    </div>
+    <div class="detail-form">
+      <div class="form-row">
+        <div class="form-label">文章标题</div>
+        <div class="form-value">{{ detailData.articleTitle || '--' }}</div>
+      </div>
 
-    <el-divider />
+      <div class="form-row">
+        <div class="form-label">文章来源</div>
+        <div class="form-value">{{ detailData.articleSource || '--' }}</div>
+      </div>
 
-    <div class="article-meta">
-      <div class="meta-row">
-        <div class="meta-item">
-          <span class="meta-label">文章来源：</span>
-          <span class="meta-value">{{ detailData.articleSource || '--' }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">文章类型：</span>
-          <span class="meta-value">
-            <dict-tag :options="art_article_type" :value="detailData.articleType" />
-          </span>
+      <div class="form-row">
+        <div class="form-label">文章类型</div>
+        <div class="form-value">
+          <dict-tag :options="art_article_type" :value="detailData.articleType" />
         </div>
       </div>
-      <div class="meta-row">
-        <div class="meta-item">
-          <span class="meta-label">创建时间：</span>
-          <span class="meta-value">{{ parseTime(detailData.createTime) || '--' }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-label">修改时间：</span>
-          <span class="meta-value">
-            {{ parseTime(detailData.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') || '--' }}
-          </span>
-        </div>
+
+      <div class="form-row">
+        <div class="form-label">创建时间</div>
+        <div class="form-value">{{ parseTime(detailData.createTime) || '--' }}</div>
       </div>
-    </div>
 
-    <div class="article-content">
-      <div class="section-title">文章简介</div>
-      <div class="intro-text">{{ detailData.articleSummary || '--' }}</div>
+      <div class="form-row">
+        <div class="form-label">修改时间</div>
+        <div class="form-value">{{ parseTime(detailData.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') || '--' }}</div>
+      </div>
 
-      <div class="section-title">文章内容</div>
-      <div class="content-text" v-html="detailData.articleContent || '--'"></div>
-    </div>
+      <div class="form-row">
+        <div class="form-label">文章简介</div>
+        <div class="form-value">{{ detailData.articleSummary || '--' }}</div>
+      </div>
 
-    <div class="footer-actions">
-      <el-button @click="handleBack">返回</el-button>
+      <div class="form-row">
+        <div class="form-label">文章内容</div>
+        <div class="form-value" v-html="detailData.articleContent || '--'"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -110,92 +104,36 @@ onMounted(() => {
   padding: 20px;
 }
 
-.article-header {
-  text-align: center;
-  margin-bottom: 20px;
-
-  .article-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #303133;
-    margin: 0;
-  }
-}
-
-.article-meta {
-  margin-bottom: 24px;
-
-  .meta-row {
+.detail-form {
+  .form-row {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
+    margin-bottom: 20px;
+    line-height: 1.6;
 
-  .meta-item {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    color: #606266;
-
-    &:first-child {
-      margin-right: 40px;
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 
-  .meta-label {
+  .form-label {
+    width: 120px;
+    flex-shrink: 0;
     color: #909399;
-    margin-right: 4px;
-    white-space: nowrap;
+    font-size: 14px;
+    text-align: left;
+    padding-right: 12px;
   }
 
-  .meta-value {
+  .form-value {
+    flex: 1;
     color: #303133;
-    word-break: break-all;
-  }
-}
-
-.article-content {
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #303133;
-    margin: 24px 0 12px;
-    padding-left: 12px;
-    border-left: 4px solid #409eff;
-  }
-
-  .intro-text {
-    padding: 16px;
-    background: #ffffff;
-    border-radius: 4px;
-    border: 1px solid #dcdfe6;
-    color: #606266;
-    line-height: 1.8;
-    margin-bottom: 16px;
-  }
-
-  .content-text {
-    padding: 16px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    line-height: 1.8;
-    color: #303133;
+    font-size: 14px;
     word-break: break-word;
-    min-height: 200px;
 
     :deep(img) {
       max-width: 100%;
       height: auto;
     }
   }
-}
-
-.footer-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #e4e7ed;
 }
 </style>
