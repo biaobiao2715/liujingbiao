@@ -58,7 +58,10 @@
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoListAfter" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
-                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
+                <template v-if="item.color">
+                  <span :style="{ color: item.color }" style="margin-top: 4px; margin-left: 10px">{{ item.value }}</span>
+                </template>
+                <el-input v-else-if="!item.isTextarea" :model-value="item.value" disabled />
                 <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
               </el-form-item>
             </el-col>
@@ -452,8 +455,15 @@ const officeAddress = computed(() => {
 // 注册地址、办公地址之后的字段
 const companyInfoListAfter = computed<DetailField[]>(() => {
   const row = detailRow.value;
+  const credentialLevel = row.credentialLevel || row.qualification;
+  const getCredentialLevelColor = (level: string | undefined) => {
+    if (level === '0') return '#108C58';
+    if (level === '1') return '#008CFF';
+    if (level === '2') return '#FF7B00';
+    return undefined;
+  };
   return [
-    { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
+    { label: '资质等级', value: mapValue(credentialLevelMap, credentialLevel), color: getCredentialLevelColor(credentialLevel) },
     { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
     { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
   ];
