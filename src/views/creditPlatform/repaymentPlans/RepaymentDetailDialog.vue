@@ -19,7 +19,7 @@
             <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
                 <template v-if="item.color">
-                  <span :style="{ color: item.color }" style="margin-top: 4px; margin-left: 10px">{{ item.value }}</span>
+                  <span :style="{ color: item.color }" style="margin-left: 10px">{{ item.value }}</span>
                 </template>
                 <template v-else>
                   <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
@@ -59,7 +59,7 @@
             <el-col v-for="item in companyInfoListAfter" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
                 <template v-if="item.color">
-                  <span :style="{ color: item.color }" style="margin-top: 4px; margin-left: 10px">{{ item.value }}</span>
+                  <span :style="{ color: item.color }" style="margin-left: 10px">{{ item.value }}</span>
                 </template>
                 <el-input v-else-if="!item.isTextarea" :model-value="item.value" disabled />
                 <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
