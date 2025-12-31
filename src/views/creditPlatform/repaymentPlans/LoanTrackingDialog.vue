@@ -19,8 +19,11 @@
         <div v-for="(step, index) in trackingData" :key="index" class="timeline-item">
           <!-- 左侧时间线 -->
           <div class="timeline-left">
-            <div v-if="index > 0" class="timeline-line-top" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
-            <div class="timeline-icon" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
+            <div class="timeline-line-top" :class="{ active: step.status === 'finish' || step.status === 'process', hidden: index === 0 }"></div>
+            <div class="timeline-dot-row">
+              <div class="timeline-icon" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
+              <div class="timeline-line-horizontal" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
+            </div>
             <div v-if="index < trackingData.length - 1" class="timeline-line" :class="{ active: step.status === 'finish' }"></div>
           </div>
           <!-- 右侧卡片 -->
@@ -224,28 +227,37 @@ const handleClose = () => {
 .timeline-container {
   display: flex;
   flex-direction: column;
+  padding-left: 20px;
 }
 
 .timeline-item {
   display: flex;
   position: relative;
+  min-height: 106px;
 
   .timeline-left {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 16px;
-    width: 40px;
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
 
-    .timeline-line-top {
-      width: 0;
-      height: 34px;
-      border-left: 1px solid #e8e8e8;
+    // 垂直线贯穿整个高度
+    &::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 0;
+      bottom: 0;
+      border-left: 1px solid #108c58;
+    }
 
-      &.active {
-        border-color: #108c58;
-      }
+    .timeline-dot-row {
+      position: absolute;
+      top: 45px; // 卡片中心位置
+      left: 0;
+      display: flex;
+      align-items: center;
     }
 
     .timeline-icon {
@@ -262,37 +274,44 @@ const handleClose = () => {
       }
     }
 
-    .timeline-line {
-      width: 0;
-      flex: 1;
-      border-left: 1px solid #e8e8e8;
+    .timeline-line-horizontal {
+      width: 20px;
+      height: 0;
+      border-top: 1px solid #e8e8e8;
 
       &.active {
         border-color: #108c58;
       }
     }
+
+    // 隐藏不需要的元素
+    .timeline-line-top,
+    .timeline-line {
+      display: none;
+    }
   }
 
-  &:first-child .timeline-icon {
-    margin-top: 34px;
+  // 第一个节点：隐藏上半部分的线
+  &:first-child .timeline-left::before {
+    top: 45px;
   }
 
-  .timeline-right {
-    flex: 1;
-    margin-bottom: 16px;
+  // 最后一个节点：隐藏下半部分的线
+  &:last-child .timeline-left::before {
+    bottom: calc(100% - 50px);
   }
 
   .timeline-card {
     flex: 1;
     position: relative;
-    border-radius: 8px;
+    border-radius: 4px;
     min-height: 90px;
     padding: 16px;
+    margin-left: 30px;
     margin-bottom: 16px;
     background: linear-gradient(180deg, #f3fff9 0%, rgba(189, 228, 210, 0.44) 100%);
     border: 2px solid;
     border-image: linear-gradient(180deg, #f3fff9, rgba(189, 228, 210, 0.44)) 1;
-    border-radius: 4px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 
     .card-left-icon {
