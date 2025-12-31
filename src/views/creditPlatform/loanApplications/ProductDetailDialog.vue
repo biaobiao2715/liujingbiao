@@ -15,7 +15,6 @@
 
     <div v-loading="loading" class="product-detail-content">
       <FormHeader title="基本信息" />
-
       <div class="info-grid">
         <!-- 产品名称 -->
         <div class="info-item">
