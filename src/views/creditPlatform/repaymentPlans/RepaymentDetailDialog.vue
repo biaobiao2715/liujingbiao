@@ -631,12 +631,6 @@ const handleViewRepaymentPlan = () => {
   }
 }
 
-.drawer-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-}
-
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
@@ -701,19 +695,6 @@ const handleViewRepaymentPlan = () => {
   }
 }
 
-.image-placeholder,
-.card-placeholder {
-  width: 92px;
-  height: 64px;
-  border: 1px dashed #dcdfe6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #909399;
-  font-size: 12px;
-  background: #fff;
-}
-
 .file-item {
   margin-bottom: 8px;
 }
@@ -737,11 +718,6 @@ const handleViewRepaymentPlan = () => {
 .file-placeholder {
   color: #909399;
   font-size: 14px;
-}
-
-.product-link {
-  display: flex;
-  justify-content: center;
 }
 
 .contract-section,

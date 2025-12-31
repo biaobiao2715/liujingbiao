@@ -344,7 +344,6 @@ const productDetailVisible = ref(false);
 const approvalFormRef = ref<FormInstance>();
 const approvalForm = reactive({
   opinion: '',
-  rejectionReason: '',
   loanDate: '',
   firstRepaymentDate: '',
   contractId: '',
@@ -732,7 +731,6 @@ const normalizeContractFiles = (row: Record<string, any>) => {
  * 审批表单
  */
 const hydrateApprovalForm = (row: Record<string, any>) => {
-  approvalForm.rejectionReason = row.rejectionReason || '';
   approvalForm.loanDate = row.loanDate || '';
   approvalForm.firstRepaymentDate = row.firstRepaymentDate || '';
   approvalForm.contractId = row.contractId || '';
@@ -751,7 +749,6 @@ const hydrateApprovalForm = (row: Record<string, any>) => {
  */
 const resetApprovalForm = () => {
   approvalForm.opinion = '';
-  approvalForm.rejectionReason = '';
   approvalForm.loanDate = '';
   approvalForm.firstRepaymentDate = '';
   approvalForm.contractId = '';
@@ -1068,12 +1065,6 @@ const handleViewProductDetail = () => {
   }
 }
 
-.drawer-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-}
-
 .detail-section {
   margin-bottom: 20px;
   background: #ffffff;
@@ -1139,6 +1130,10 @@ const handleViewProductDetail = () => {
   :deep(.el-textarea.is-disabled .el-textarea__inner) {
     background-color: #f5f7fa !important;
   }
+
+  .tips {
+    margin-bottom: 16px;
+  }
 }
 
 .identity-image {
@@ -1149,29 +1144,6 @@ const handleViewProductDetail = () => {
   margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
-}
-
-.image-placeholder {
-  width: 92px;
-  height: 64px;
-  border: 1px dashed #dcdfe6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #909399;
-  font-size: 12px;
-  background: #fff;
-}
-
-.product-link {
-  display: flex;
-  justify-content: center;
-}
-
-.approval-section {
-  .tips {
-    margin-bottom: 16px;
-  }
 }
 
 .approval-actions {
