@@ -237,10 +237,9 @@ const handleClose = () => {
 
   .timeline-left {
     position: absolute;
-    left: 0;
+    left: -10px;
     top: 0;
     bottom: 0;
-    width: 30px;
 
     // 垂直线贯穿整个高度
     &::before {
@@ -275,7 +274,7 @@ const handleClose = () => {
     }
 
     .timeline-line-horizontal {
-      width: 20px;
+      width: 10px;
       height: 0;
       border-top: 1px solid #e8e8e8;
 
