@@ -7,40 +7,48 @@
 -->
 <template>
   <div class="report-data-analysis-page" v-loading="loading">
-    <!-- 顶部筛选区域 -->
-    <div class="filter-section">
-      <div class="filter-left">
-        <span class="filter-label">举报类别:</span>
-        <el-select v-model="queryParams.reportTypeId" placeholder="请选择" clearable style="width: 200px" @change="handleReportTypeChange">
-          <el-option v-for="item in reportTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
+    <!-- 地图卡片 -->
+    <el-card class="map-card" shadow="never">
+      <!-- 顶部筛选区域 -->
+      <div class="filter-section">
+        <div class="filter-left">
+          <span class="filter-label">举报类别:</span>
+          <el-select v-model="queryParams.reportTypeId" placeholder="请选择" clearable style="width: 200px">
+            <el-option v-for="item in reportTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+          <span class="filter-label" style="margin-left: 20px;">时间范围:</span>
+          <div style="position: relative; display: inline-block;" class="custom-date-picker">
+            <el-date-picker
+              v-model="mapTimeRange"
+              type="datetimerange"
+              range-separator="-"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              format="YYYY-MM-DD HH:mm:ss"
+              :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+              style="width: 420px"
+            />
+            <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none; z-index: 10;" />
+          </div>
+          <el-button type="primary" icon="Search" style="margin-left: 12px" @click="handleMapQuery">查询</el-button>
+          <el-button icon="Refresh" style="margin-left: 12px" @click="handleMapReset">重置</el-button>
+        </div>
       </div>
-      <div class="filter-right">
-        <el-date-picker
-          v-model="mapTimeRange"
-          type="datetimerange"
-          range-separator="至"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          format="YYYY-MM-DD HH:mm:ss"
-          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-          style="width: 380px"
-          @change="handleMapTimeChange"
-        />
-        <el-button @click="handleMapReset">重置</el-button>
-      </div>
-    </div>
 
-    <!-- 地图区域 -->
-    <div class="map-section">
-      <ChinaMapHeatmap :data="mapData" :title="mapTitle" :min="mapMin" :max="mapMax" />
-    </div>
+      <!-- 分割线 -->
+      <el-divider style="margin: 16px 0; border-color: #F2F3F5;" />
+
+      <!-- 地图区域 -->
+      <div class="map-section">
+        <ChinaMapHeatmap :data="mapData" :title="mapTitle" :min="mapMin" :max="mapMax" />
+      </div>
+    </el-card>
 
     <!-- 底部数据分析区域 -->
     <div class="analysis-section">
       <div class="analysis-header">
-        <div class="header-left">
+        <div class="header-row-1">
           <h3 class="section-title">数据分析 (个)</h3>
           <div class="category-buttons">
             <el-button
@@ -53,54 +61,59 @@
             </el-button>
           </div>
         </div>
-        <div class="header-right">
-          <el-button-group>
-            <el-button :type="timeFilter === 'yesterday' ? 'primary' : ''" @click="handleTimeFilter('yesterday')"> 昨日 </el-button>
-            <el-button :type="timeFilter === 'today' ? 'primary' : ''" @click="handleTimeFilter('today')"> 今日 </el-button>
-            <el-button :type="timeFilter === 'week' ? 'primary' : ''" @click="handleTimeFilter('week')"> 本周 </el-button>
-          </el-button-group>
-          <el-date-picker
-            v-model="chartTimeRange"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-            style="width: 380px; margin-left: 12px"
-            @change="handleChartTimeChange"
-          />
-          <el-button style="margin-left: 12px" @click="handleChartReset">重置</el-button>
+        <div class="header-row-2">
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color" style="background: #FF7B00"></span>
+              <span>待处理</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #00BF33"></span>
+              <span>处理中</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #FF0000"></span>
+              <span>已驳回</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #BBBDBF"></span>
+              <span>已撤回</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: #0B79EF"></span>
+              <span>已结案</span>
+            </div>
+          </div>
+          <div class="chart-title">举报数据分布图</div>
+          <div class="time-filters">
+            <el-button-group>
+              <el-button :type="timeFilter === 'yesterday' ? 'primary' : ''" @click="handleTimeFilter('yesterday')"> 昨日 </el-button>
+              <el-button :type="timeFilter === 'today' ? 'primary' : ''" @click="handleTimeFilter('today')"> 今日 </el-button>
+              <el-button :type="timeFilter === 'week' ? 'primary' : ''" @click="handleTimeFilter('week')"> 本周 </el-button>
+            </el-button-group>
+            <div style="position: relative; display: inline-block; margin-left: 12px;" class="custom-date-picker">
+              <el-date-picker
+                v-model="chartTimeRange"
+                type="datetimerange"
+                range-separator="-"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                format="YYYY-MM-DD HH:mm:ss"
+                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+                style="width: 440px;"
+                @change="handleChartTimeChange"
+              />
+              <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none; z-index: 10;" />
+            </div>
+            <el-button style="margin-left: 12px" @click="handleChartReset">重置</el-button>
+          </div>
         </div>
       </div>
 
       <div class="analysis-content">
         <!-- 左侧柱状图 -->
         <div class="chart-section">
-          <div class="chart-title">举报数据分布图</div>
-          <div class="chart-legend">
-            <div class="legend-item">
-              <span class="legend-color" style="background: #409eff"></span>
-              <span>待处理</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #e6a23c"></span>
-              <span>处理中</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #f56c6c"></span>
-              <span>已驳回</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #909399"></span>
-              <span>已撤回</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #67c23a"></span>
-              <span>已结案</span>
-            </div>
-          </div>
           <div ref="chartContainer" class="chart-container"></div>
         </div>
 
@@ -527,7 +540,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status0Data,
         itemStyle: {
-          color: '#409eff' // 蓝色
+          color: '#FF7B00'
         }
       },
       {
@@ -536,7 +549,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status1Data,
         itemStyle: {
-          color: '#e6a23c' // 橙色
+          color: '#00BF33'
         }
       },
       {
@@ -545,7 +558,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status2Data,
         itemStyle: {
-          color: '#f56c6c' // 红色
+          color: '#FF0000'
         }
       },
       {
@@ -554,7 +567,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status4Data,
         itemStyle: {
-          color: '#909399' // 灰色
+          color: '#BBBDBF'
         }
       },
       {
@@ -563,7 +576,7 @@ const updateBarChart = (data: any[] = []) => {
         stack: 'total',
         data: status3Data,
         itemStyle: {
-          color: '#67c23a' // 绿色
+          color: '#0B79EF'
         }
       }
     ]
@@ -670,6 +683,20 @@ const formatDateTime = (date: Date): string => {
 };
 
 // 事件处理
+const handleMapQuery = () => {
+  // 点击查询按钮时，传递参数格式：
+  // beginCreateTime: 开始时间
+  // endCreateTime: 结束时间  
+  // reportTypeId: 举报类别ID
+  console.log('查询参数:', {
+    beginCreateTime: mapTimeRange.value?.[0] || '',
+    endCreateTime: mapTimeRange.value?.[1] || '',
+    reportTypeId: queryParams.reportTypeId || ''
+  });
+  fetchMapData();
+  fetchChartData();
+};
+
 const handleReportTypeChange = () => {
   fetchMapData();
   fetchChartData();
@@ -745,11 +772,29 @@ const handleChartReset = () => {
   }
 }
 
-.map-section {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
+.map-card {
+  border-radius: 0;
   margin-bottom: 16px;
+  border: none !important;
+  box-shadow: none !important;
+  
+  :deep(.el-card__body) {
+    padding: 20px;
+  }
+  
+  &:hover {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
+.map-section {
+  padding: 0;
 }
 
 .analysis-section {
@@ -758,15 +803,13 @@ const handleChartReset = () => {
   padding: 20px;
 
   .analysis-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
 
-    .header-left {
+    .header-row-1 {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 20px;
+      margin-bottom: 16px;
 
       .section-title {
         margin: 0;
@@ -777,13 +820,99 @@ const handleChartReset = () => {
 
       .category-buttons {
         display: flex;
-        gap: 8px;
+        gap: 0;
+        border: 1px solid #108C58;
+        border-radius: 4px;
+        overflow: hidden;
+
+        :deep(.el-button) {
+          border-radius: 0;
+          border: none;
+          border-right: 1px solid #108C58;
+          background-color: #fff;
+          color: #108C58;
+          padding: 8px 20px;
+          margin: 0;
+          
+          &:last-child {
+            border-right: none;
+          }
+          
+          &.el-button--primary {
+            background-color: #108C58;
+            color: #FFFFFF;
+          }
+          
+          &:hover:not(.el-button--primary) {
+            background-color: #f5f7fa;
+            color: #108C58;
+          }
+        }
       }
     }
 
-    .header-right {
+    .header-row-2 {
       display: flex;
+      justify-content: space-between;
       align-items: center;
+
+      .chart-legend {
+        display: flex;
+        gap: 16px;
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          color: #606266;
+
+          .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+          }
+        }
+      }
+
+      .chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #108C58;
+        margin: 0 auto;
+      }
+
+      .time-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        :deep(.el-button-group) {
+          display: flex;
+          gap: 8px;
+
+          .el-button {
+            border-radius: 4px;
+            background-color: #fff;
+            color: #108C58;
+            border-color: #108C58;
+            padding: 8px 20px;
+            margin: 0;
+
+            &.el-button--primary {
+              background-color: #108C58;
+              color: #fff;
+              border-color: #108C58;
+            }
+
+            &:hover:not(.el-button--primary) {
+              background-color: #fff;
+              color: #108C58;
+              border-color: #108C58;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -793,33 +922,6 @@ const handleChartReset = () => {
 
     .chart-section {
       flex: 1;
-
-      .chart-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #303133;
-        margin-bottom: 12px;
-      }
-
-      .chart-legend {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 16px;
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          color: #606266;
-
-          .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 2px;
-          }
-        }
-      }
 
       .chart-container {
         width: 100%;
@@ -879,6 +981,31 @@ const handleChartReset = () => {
           }
         }
       }
+    }
+  }
+}
+
+.custom-date-picker {
+  :deep(.el-range-editor) {
+    .el-range__icon,
+    .el-range__close-icon {
+      display: none !important;
+    }
+  }
+  
+  :deep(.el-date-editor) {
+    .el-input__prefix,
+    .el-input__suffix {
+      display: none !important;
+    }
+    
+    .el-input__prefix-inner,
+    .el-input__suffix-inner {
+      display: none !important;
+    }
+    
+    .el-icon {
+      display: none !important;
     }
   }
 }

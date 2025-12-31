@@ -14,7 +14,10 @@
         </div>
         <span class="question-text">{{ questionDetail?.questionContent || props.messageContent }}</span>
         <div class="question-actions">
-          <el-button v-throttle type="primary" size="small" plain @click="handlePinToTop">
+          <el-button v-throttle type="primary" size="small" plain @click="handlePinToTop" class="action-btn">
+            <template #icon>
+              <img :src="pinIcon" alt="置顶" class="btn-icon" />
+            </template>
             {{ props.isPinned ? '取消置顶' : '置顶' }}
           </el-button>
           <el-button
@@ -25,7 +28,11 @@
             plain
             @click="handleCloseQuestion"
             :loading="closing"
+            class="action-btn"
           >
+            <template #icon v-if="!closing">
+              <img :src="closeIcon" alt="关闭" class="btn-icon" />
+            </template>
             关闭
           </el-button>
         </div>
@@ -57,7 +64,9 @@
       <div v-if="replyList.length > 0" class="reply-list">
         <div v-for="(reply, index) in replyList" :key="index" class="reply-item">
           <div class="reply-header">
-            <el-tag class="reply-tag">答</el-tag>
+            <div class="reply-tag">
+              <img :src="answerIcon" alt="答" class="answer-icon-img" />
+            </div>
             <span class="reply-content">{{ reply.content }}</span>
           </div>
           <div class="reply-time">
@@ -90,7 +99,6 @@
           </div>
         </el-form-item>
       </el-form>
-      <div class="input-hint">还可以输入{{ remainingChars }}字，按下Shift+Enter键换行</div>
     </div>
 
     <div class="footer-buttons">
@@ -106,8 +114,14 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Folder } from '@element-plus/icons-vue';
 import { replyMessage, getMessageDetail, stopQuestion, type ReplyAnswerParams } from '@/api/expertServicePlatform/messageManage/index';
 import questionIconImg from '@/assets/images/问图标.png';
+import pinIconImg from '@/assets/images/切图 137.png';
+import closeIconImg from '@/assets/images/切图 148.png';
+import answerIconImg from '@/assets/images/答图标.png';
 
 const questionIcon = questionIconImg;
+const pinIcon = pinIconImg;
+const closeIcon = closeIconImg;
+const answerIcon = answerIconImg;
 
 const props = defineProps<{
   id: string | number | null;
@@ -192,7 +206,7 @@ const fetchMessageDetail = async () => {
       if (data.hnAnswerVoList && Array.isArray(data.hnAnswerVoList) && data.hnAnswerVoList.length > 0) {
         replyList.value = data.hnAnswerVoList.map((item: any) => ({
           content: item.answerContent || item.content || '',
-          time: item.answerTime || item.time || '',
+          time: item.replyTime || item.time || '',
           replyBy: item.answerUserId || item.replyBy || ''
         }));
       } else {
@@ -408,10 +422,41 @@ watch(
       flex-shrink: 0;
       margin-left: 12px;
       white-space: nowrap;
-      .el-button {
+      
+      :deep(.el-button) {
         padding: 5px 12px;
         font-size: 12px;
         white-space: nowrap;
+        
+        .btn-icon {
+          width: 16px;
+          height: 16px;
+          object-fit: contain;
+          margin-right: 4px;
+        }
+        
+        &:hover,
+        &:focus,
+        &:active {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        
+        &:focus-visible {
+          outline: none !important;
+        }
+        
+        &.el-button--primary.is-plain:hover {
+          background-color: #fff !important;
+          border-color: #108C58 !important;
+          color: #108C58 !important;
+        }
+        
+        &.el-button--danger.is-plain:hover {
+          background-color: #fff !important;
+          border-color: #f56c6c !important;
+          color: #f56c6c !important;
+        }
       }
     }
   }
@@ -476,12 +521,11 @@ watch(
   .reply-list {
     .reply-item {
       margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e4e7ed;
+      padding: 12px;
+      background-color: #F7F8FA;
+      border-radius: 4px;
       &:last-child {
-        border-bottom: none;
         margin-bottom: 0;
-        padding-bottom: 0;
       }
       .reply-header {
         display: flex;
@@ -490,12 +534,15 @@ watch(
         margin-bottom: 8px;
         .reply-tag {
           flex-shrink: 0;
-          background-color: #ff9800;
-          color: #fff;
-          border: none;
-          padding: 3px 10px;
-          font-size: 13px;
-          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          .answer-icon-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+          }
         }
         .reply-content {
           flex: 1;
@@ -508,6 +555,8 @@ watch(
       .reply-time {
         font-size: 13px;
         color: #909399;
+        text-align: right;
+        margin-top: 4px;
       }
     }
   }

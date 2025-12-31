@@ -9,35 +9,41 @@
   <div class="message-management">
     <!-- 搜索条件 -->
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
-      <el-form-item label="留言时间" label-width="auto">
-        <el-date-picker
-          v-model="messageDateRange"
-          type="datetimerange"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          range-separator=" - "
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-        />
+      <el-form-item label="留言时间" label-width="auto" class="hide-date-icon">
+        <div style="position: relative; display: inline-block;">
+          <el-date-picker
+            v-model="messageDateRange"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            range-separator=" - "
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
+        </div>
       </el-form-item>
 
       <el-form-item label="留言内容" prop="messageContent" label-width="auto">
         <el-input
           v-model="queryParams.messageContent"
-          :placeholder="queryParams.messageContent ? '' : '请输入内容'"
+          placeholder="请输入"
           clearable
           @keyup.enter="handleSearch"
         />
       </el-form-item>
 
-      <el-form-item label="回复时间" label-width="auto">
-        <el-date-picker
-          v-model="replyDateRange"
-          type="datetimerange"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          range-separator=" - "
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-        />
+      <el-form-item label="回复时间" label-width="auto" class="hide-date-icon">
+        <div style="position: relative; display: inline-block;">
+          <el-date-picker
+            v-model="replyDateRange"
+            type="datetimerange"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            range-separator=" - "
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
+        </div>
       </el-form-item>
 
       <el-form-item label="回复状态" prop="questionStatus" label-width="auto">
@@ -133,7 +139,7 @@
       />
     </div>
 
-    <el-dialog v-model="detailDialog.visible" title="留言详情" width="50%" destroy-on-close :close-on-click-modal="false">
+    <el-dialog v-model="detailDialog.visible" title="详情" width="50%" destroy-on-close :close-on-click-modal="false">
       <Suspense>
         <template #default>
           <MessageDetailDialog :id="detailDialog.id" @close="detailDialog.visible = false" />
@@ -529,5 +535,30 @@ onMounted(() => {
 
 .status-text-info {
   color: #909399;
+}
+
+.hide-date-icon {
+  :deep(.el-range-editor) {
+    .el-range__icon,
+    .el-range__close-icon {
+      display: none !important;
+    }
+  }
+  
+  :deep(.el-date-editor) {
+    .el-input__prefix,
+    .el-input__suffix {
+      display: none !important;
+    }
+    
+    .el-input__prefix-inner,
+    .el-input__suffix-inner {
+      display: none !important;
+    }
+    
+    .el-icon {
+      display: none !important;
+    }
+  }
 }
 </style>

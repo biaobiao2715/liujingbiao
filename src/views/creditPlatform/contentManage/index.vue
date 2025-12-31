@@ -12,7 +12,7 @@
       <el-form-item label="文章名称" prop="articleTitle" label-width="auto">
         <el-input
           v-model="queryParams.articleTitle"
-          placeholder="请输入文章名称"
+          placeholder="请输入"
           clearable
           maxlength="50"
           show-word-limit
@@ -29,6 +29,7 @@
           range-separator=" - "
           start-placeholder="开始时间"
           end-placeholder="结束时间"
+          :prefix-icon="dateIcon"
           @change="handleDateRangeChange"
         />
       </el-form-item>
@@ -185,11 +186,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense, computed } from 'vue';
+import { ref, getCurrentInstance, onMounted, toRefs, defineAsyncComponent, Suspense, computed, h } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getCreditArticleList, updateCreditArticle, deleteCreditArticle, getCreditArticleDetail } from '@/api/creditPlatform/contentManage';
 import { useUserStore } from '@/store/modules/user';
+import dateIconImg from '@/assets/images/finance/切图 43.png';
 
 const ContentFormDialog = defineAsyncComponent(() => import('./ContentFormDialog.vue'));
 const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDialog.vue'));
@@ -197,6 +199,16 @@ const ContentDetailDialog = defineAsyncComponent(() => import('./ContentDetailDi
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 // 使用字典数据
 const { art_article_status, art_article_type } = toRefs<any>(proxy?.useDict('art_article_status', 'art_article_type'));
+
+// 自定义日期图标组件
+const dateIcon = h('img', {
+  src: dateIconImg,
+  style: {
+    width: '16px',
+    height: '16px',
+    objectFit: 'contain'
+  }
+});
 
 const userStore = useUserStore();
 const isAdmin = computed(() => {
