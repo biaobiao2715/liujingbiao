@@ -47,13 +47,21 @@
     </el-form>
     <!-- 状态 Tabs -->
     <div class="order-tabs mb-[10px]">
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+      <!-- <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="全部" name="all"></el-tab-pane>
         <el-tab-pane label="待发货" name="pending"></el-tab-pane>
         <el-tab-pane label="已发货" name="shipped"></el-tab-pane>
         <el-tab-pane label="已完成" name="finished"></el-tab-pane>
         <el-tab-pane label="已取消" name="cancelled"></el-tab-pane>
-      </el-tabs>
+      </el-tabs> -->
+      <el-button
+        v-for="btn in stateBtns"
+        :key="btn.value"
+        :class="['custom-btn', { active: activeTab === btn.value }]"
+        @click="handleTabChange(btn.value)"
+      >
+        {{ btn.label }}
+      </el-button>
     </div>
     <!-- <div class="mb-12">
       <el-button v-throttle type="primary" @click="handleExport" :disabled="selectedRows.length === 0">导出</el-button>
@@ -116,14 +124,15 @@
               class="normal"
               :class="{
                 reviewRejected: scope.row.orderStatus === '99',
-                green: ['2', '3'].includes(scope.row.orderStatus),
+                green: scope.row.orderStatus === '2',
+                success: scope.row.orderStatus === '3',
                 pendingReview: scope.row.orderStatus === '1'
               }"
             ></div>
-            <span v-if="scope.row.orderStatus === '1'" style="color: #ff7b00">待发货</span>
-            <span v-if="scope.row.orderStatus === '2'" style="color: #108c58">已发货</span>
-            <span v-if="scope.row.orderStatus === '3'" style="color: #108c58">已完成</span>
-            <span v-if="scope.row.orderStatus === '99'" style="color: #f23255">已取消</span>
+            <span v-if="scope.row.orderStatus === '1'" style="color: #ff0000">待发货</span>
+            <span v-if="scope.row.orderStatus === '2'" style="color: #00bf33">已发货</span>
+            <span v-if="scope.row.orderStatus === '3'" style="color: #333333">已完成</span>
+            <span v-if="scope.row.orderStatus === '99'" style="color: #bbbdbf">已取消</span>
           </div>
         </template>
       </el-table-column>
@@ -171,7 +180,7 @@
 
     <!-- 发货 -->
     <el-dialog v-model="shipmentVisible" title="订单发货" width="600px">
-      <span style="display: inline-block; padding-bottom: 10px; color: #abaeb5; font-weight: 700">商品信息</span>
+      <span class="special-custom-label">商品信息</span>
       <el-table :data="[rowdata]" style="width: 100%">
         <el-table-column prop="goodsName" label="商品名称" width="200" :show-overflow-tooltip="true">
           <template #default="{ row }">
@@ -181,7 +190,9 @@
 
         <el-table-column prop="goodsPrice" label="单价" width="220">
           <template #default="{ row }">
-            {{ row.goodsPrice ? Number(row.goodsPrice).toFixed(2) : '0.00' }}
+            <div style="color: #108c58">
+              {{ row.goodsPrice ? '¥' + Number(row.goodsPrice).toFixed(2) : '0.00' }}
+            </div>
           </template>
         </el-table-column>
 
@@ -194,53 +205,59 @@
         <!--  小计：数量 × 单价 -->
         <el-table-column label="小计">
           <template #default="{ row }">
-            {{ ((Number(row.goodsPrice) || 0) * (Number(row.goodsQuantity) || 0)).toFixed(2) }}
+            <div style="color: #108c58">
+              {{ '¥' + ((Number(row.goodsPrice) || 0) * (Number(row.goodsQuantity) || 0)).toFixed(2) }}
+            </div>
           </template>
         </el-table-column>
       </el-table>
-      <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 800">配送信息</span>
-      <el-form :model="shipmentForm" ref="shipmentFormFormRef" :rules="shipmentRules" label-width="100px">
-        <el-form-item label="配送方式：" prop="deliveryOptions">
-          <el-select v-model="shipmentForm.deliveryOptions" placeholder="请选择配送方式" @change="handleDeliveryOptionChange">
-            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option>
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="收货人姓名：" prop="receiverName">
-          <el-input v-model.trim="rowdata.receiverName" maxlength="11" disabled></el-input>
-        </el-form-item>
-
-        <el-form-item label="收货人电话：" prop="receiverPhone">
-          <el-input v-model.trim="rowdata.receiverPhone" maxlength="11" disabled></el-input>
-        </el-form-item>
-
-        <el-form-item label="收货地址：" prop="areaCodes">
-          <span style="color: #abaeb5">{{ getFullAddress(rowdata) }}</span>
-        </el-form-item>
-      </el-form>
-      <template v-if="logisticsVisible">
-        <span style="display: inline-block; padding-bottom: 10px; padding-top: 5px; color: #abaeb5; font-weight: 700">物流信息</span>
-        <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
-          <!-- <el-form-item label="快递公司：" prop="deliveryCompany">
-            <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
-          </el-form-item> -->
-          <!-- 下拉框 -->
-          <el-form-item label="快递公司：" prop="deliveryCompany">
-            <el-select v-model="logisticsForm.deliveryCompany" placeholder="请选择快递公司" clearable>
-              <el-option v-for="item in deliveryCompanyList" :key="item.value" :label="item.label" :value="item.label"> </el-option>
+      <div style="border: 1px solid #108c58; padding: 12px 16px; margin-top: 18px">
+        <span class="custom-label">配送信息</span>
+        <el-form :model="shipmentForm" ref="shipmentFormFormRef" :rules="shipmentRules" label-width="100px">
+          <el-form-item label="配送方式：" prop="deliveryOptions">
+            <el-select v-model="shipmentForm.deliveryOptions" placeholder="请选择配送方式" @change="handleDeliveryOptionChange">
+              <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option>
             </el-select>
           </el-form-item>
 
-          <el-form-item label="物流单号：" prop="deliverySn">
-            <el-input
-              v-model.trim="logisticsForm.deliverySn"
-              @input="filterChinese"
-              placeholder="请输物流单号"
-              maxlength="20"
-              ref="logisticsDeliverySn"
-            ></el-input>
+          <el-form-item label="收货人姓名：" prop="receiverName">
+            <el-input v-model.trim="rowdata.receiverName" maxlength="11" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="收货人电话：" prop="receiverPhone">
+            <el-input v-model.trim="rowdata.receiverPhone" maxlength="11" disabled></el-input>
+          </el-form-item>
+
+          <el-form-item label="收货地址：" prop="areaCodes">
+            <span style="color: #abaeb5">{{ getFullAddress(rowdata) }}</span>
           </el-form-item>
         </el-form>
+      </div>
+      <template v-if="logisticsVisible">
+        <div style="border: 1px solid #108c58; padding: 12px 16px; margin-top: 18px">
+          <span class="custom-label">物流信息</span>
+          <el-form :model="logisticsForm" :rules="logisticsRules" ref="logisticsFormFormRef" label-width="100px">
+            <!-- <el-form-item label="快递公司：" prop="deliveryCompany">
+              <el-input v-model.trim="logisticsForm.deliveryCompany" placeholder="请输入快递公司" maxlength="20"></el-input>
+            </el-form-item> -->
+            <!-- 下拉框 -->
+            <el-form-item label="快递公司：" prop="deliveryCompany">
+              <el-select v-model="logisticsForm.deliveryCompany" placeholder="请选择快递公司" clearable>
+                <el-option v-for="item in deliveryCompanyList" :key="item.value" :label="item.label" :value="item.label"> </el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="物流单号：" prop="deliverySn">
+              <el-input
+                v-model.trim="logisticsForm.deliverySn"
+                @input="filterChinese"
+                placeholder="请输物流单号"
+                maxlength="20"
+                ref="logisticsDeliverySn"
+              ></el-input>
+            </el-form-item>
+          </el-form>
+        </div>
       </template>
       <template #footer>
         <el-button @click="cancelBtnFun">取消</el-button>
@@ -442,6 +459,13 @@ const handleReset = () => {
   dateRange.value = ['', ''];
   getTableData();
 };
+const stateBtns = [
+  { label: '全部', value: 'all' },
+  { label: '待发货', value: 'pending' },
+  { label: '已发货', value: 'shipped' },
+  { label: '已完成', value: 'finished' },
+  { label: '已取消', value: 'cancelled' }
+];
 const handleTabChange = (tabName: string) => {
   activeTab.value = tabName;
 
@@ -695,13 +719,42 @@ onActivated(() => {
   border-radius: 4px;
 }
 .green {
-  background: #108c58;
+  background: #00bf33;
+}
+.success {
+  background: #333;
 }
 // 异常
 .reviewRejected {
-  background: #f23255 !important;
+  background: #bbbdbf !important;
 }
 .pendingReview {
-  background: #ff7b00 !important;
+  background: #ff0000 !important;
+}
+
+.custom-btn {
+  background-color: #f2f2f2;
+  border: none;
+  color: #333;
+  padding: 6px 16px;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+
+  &.active {
+    // background-color: #409eff;
+    background-color: var(--el-color-primary);
+    color: #fff;
+  }
+}
+
+.custom-label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #108c58;
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
 }
 </style>
