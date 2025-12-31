@@ -179,7 +179,6 @@ const handleClose = () => {
   background: url('@/assets/images/huankuanPlanBg.png') no-repeat right center;
   background-size: cover;
   width: calc(33.333% - 11px);
-  min-width: 280px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 
   .card-content {
