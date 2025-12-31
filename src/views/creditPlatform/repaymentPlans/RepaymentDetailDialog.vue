@@ -13,7 +13,7 @@
     </template>
     <div v-loading="loading">
       <div class="detail-section">
-        <div class="section-title">企业基础信息</div>
+        <FormHeader title="企业基础信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="item.span || 12">
@@ -62,7 +62,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">法人信息</div>
+        <FormHeader title="法人信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in legalInfoList" :key="item.label" :span="item.span || 12">
@@ -75,7 +75,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">申请人信息</div>
+        <FormHeader title="申请人信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in applicantInfoList" :key="item.label" :span="item.span || 12">
@@ -121,7 +121,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">贷款信息</div>
+        <FormHeader title="贷款信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in loanInfoList" :key="item.label" :span="item.span || 12">
@@ -157,14 +157,14 @@
       </div>
 
       <div class="detail-section" style="padding-bottom: 24px">
-        <div class="section-title">查看合同</div>
+        <FormHeader title="查看合同" />
         <div class="contract-section">
           <el-button type="primary" @click="handleViewContract">查看合同详情</el-button>
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="section-title">还款计划</div>
+        <FormHeader title="还款计划" />
         <div class="repayment-section">
           <el-button type="success" @click="handleViewRepaymentPlan">查看还款计划</el-button>
         </div>
@@ -186,6 +186,7 @@ import { Document } from '@element-plus/icons-vue';
 import { getRemainingDetail, getEnterprise } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
+import FormHeader from '@/components/FormHeader/index.vue';
 
 const props = defineProps<{
   visible: boolean;

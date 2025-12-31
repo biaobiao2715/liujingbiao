@@ -21,7 +21,7 @@
     </template>
     <div v-loading="loading">
       <div class="detail-section">
-        <div class="section-title">用户信息</div>
+        <FormHeader title="用户信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
@@ -70,7 +70,7 @@
       </div>
 
       <div class="detail-section">
-        <div class="section-title">贷款信息</div>
+        <FormHeader title="贷款信息" />
         <el-form label-width="140px">
           <el-row :gutter="20" class="detail-form">
             <el-col :span="12">
@@ -129,14 +129,14 @@
       </div>
 
       <div class="detail-section" style="padding-bottom: 24px">
-        <div class="section-title">查看合同</div>
+        <FormHeader title="查看合同" />
         <div class="contract-section">
           <el-button type="primary" @click="handleViewContract">查看合同详情</el-button>
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="section-title">还款计划</div>
+        <FormHeader title="还款计划" />
         <div class="repayment-section">
           <el-button type="success" @click="handleViewRepaymentPlan">查看还款计划</el-button>
         </div>
@@ -157,6 +157,7 @@ import { ElMessage } from 'element-plus';
 import { getRemainingDetail } from '@/api/creditPlatform/loanApplications';
 import ProductDetailDialog from '../loanApplications/ProductDetailDialog.vue';
 import RepaymentPlanDialog from './RepaymentPlanDialog.vue';
+import FormHeader from '@/components/FormHeader/index.vue';
 
 const props = defineProps<{
   visible: boolean;
