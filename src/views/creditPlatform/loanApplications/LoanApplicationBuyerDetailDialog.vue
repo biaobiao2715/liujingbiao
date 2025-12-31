@@ -131,13 +131,6 @@
         </el-form>
       </div>
 
-      <!-- <div class="detail-section">
-        <div class="section-title">产品信息</div>
-        <div class="product-link">
-          <el-button type="primary" plain @click="handleViewProductDetail">查看产品信息</el-button>
-        </div>
-      </div> -->
-
       <div class="detail-section approval-section">
         <FormHeader title="审批信息" />
         <el-alert v-if="showApprovalTip" :title="approvalTipMessage" type="warning" show-icon :closable="false" class="tips" />
@@ -221,9 +214,6 @@
                   :show-file-list="false"
                 >
                   <el-button type="primary" icon="Upload"> 上传文件 </el-button>
-                  <!-- <template #tip>
-                    <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
-                  </template> -->
                 </el-upload>
               </div>
             </template>

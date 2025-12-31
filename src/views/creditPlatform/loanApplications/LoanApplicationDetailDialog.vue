@@ -239,9 +239,6 @@
                   :show-file-list="false"
                 >
                   <el-button type="primary" icon="Upload"> 上传文件 </el-button>
-                  <!-- <template #tip>
-                    <div class="upload-tip">支持 Word/PDF 格式，单文件上传</div>
-                  </template> -->
                 </el-upload>
               </div>
             </template>
