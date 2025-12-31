@@ -227,7 +227,6 @@ const handleClose = () => {
 
 .timeline-item {
   display: flex;
-  align-items: center;
   position: relative;
 
   .timeline-left {
@@ -236,21 +235,20 @@ const handleClose = () => {
     align-items: center;
     margin-right: 16px;
     width: 40px;
-    align-self: stretch;
+    position: relative;
 
     .timeline-icon {
-      width: 20px;
-      height: 20px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      background: #e8e8e8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #fff;
+      border: 2px solid #e8e8e8;
       flex-shrink: 0;
       z-index: 1;
+      margin-top: 34px;
 
       &.active {
-        background: #108c58;
+        border-color: #108c58;
       }
     }
 
@@ -258,6 +256,7 @@ const handleClose = () => {
       width: 2px;
       flex: 1;
       background: #e8e8e8;
+      margin-bottom: -34px;
 
       &.active {
         background: #108c58;
