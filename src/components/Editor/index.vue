@@ -269,6 +269,7 @@ const handleUploadError = (err: any) => {
 }
 .editor,
 .ql-toolbar {
+  width: 100%;
   white-space: pre-wrap !important;
   line-height: normal !important;
 }

@@ -10,17 +10,42 @@
     <el-form :model="formData" label-width="140px">
       <FormHeader title="商品详情" />
       <el-row :gutter="20" class="detail-form">
-        <el-col :span="8">
+        <el-col :span="12">
           <el-form-item label="商品名称">
             <el-input v-model="formData.goodsName" disabled />
           </el-form-item>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="12">
           <el-form-item label="商品编码">
             <el-input v-model="formData.goodsCode" disabled />
           </el-form-item>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="12">
+          <el-form-item label="商品品牌">
+            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" disabled clearable>
+              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="创建时间">
+            <el-input v-model="formData.createTime" disabled />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="商品状态">
+            <!-- <el-select v-model="formData.status" placeholder="请选择商品状态" filterable clearable disabled>
+              <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select> -->
+            <dict-tag :options="goods_status" :value="formData.status ?? ''" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="上架时间">
+            <el-input v-model="formData.launchTime" disabled />
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
           <el-form-item label="产品保障">
             <!-- <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
@@ -28,33 +53,9 @@
             <el-tag type="info" v-for="item in formData.goodssEnsureName" :key="item" :closeable="false" style="margin-right: 5px">{{ item }}</el-tag>
           </el-form-item>
         </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品品牌">
-            <el-select v-model="formData.goodsBrandId" placeholder="请选择品牌" style="width: 100%" disabled clearable>
-              <el-option v-for="item in brandOptions" :key="item.id" :label="item.attributeName" :value="item.id" :disabled="!item.status" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="创建时间">
-            <el-input v-model="formData.createTime" disabled />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品主图" class="main-image-container">
+        <el-col :span="12">
+          <el-form-item label="商品主图">
             <img v-if="mainImage" :src="mainImage" class="main-image" alt="商品主图" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="商品状态">
-            <el-select v-model="formData.status" placeholder="请选择商品状态" filterable clearable disabled>
-              <el-option v-for="dict in goods_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="上架时间">
-            <el-input v-model="formData.launchTime" disabled />
           </el-form-item>
         </el-col>
       </el-row>
@@ -74,7 +75,7 @@
         <el-table-column prop="goodsWeight" label="KG(计重)" width="120"> </el-table-column>
         <el-table-column prop="goodsPrice" label="销售价" width="200">
           <template #default="scope">
-            <span v-if="operateMode === 'view'">{{ formatPrice(scope.row.goodsPrice) }}¥</span>
+            <span v-if="operateMode === 'view'" style="color: #108c58">{{ formatPrice(scope.row.goodsPrice) }}¥</span>
             <div v-if="operateMode === 'edit'" style="display: flex; align-items: center; gap: 8px">
               <el-input
                 v-model="scope.row.goodsPrice"
@@ -252,18 +253,13 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.supplier-edit-details {
-  padding: 0 24px;
-}
-.main-image-container {
-  position: relative;
-}
+// .supplier-edit-details {
+//   padding: 0 24px;
+// }
+
 .main-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 106px;
-  height: 106px;
+  width: 64px;
+  height: 64px;
 }
 
 .price-input {

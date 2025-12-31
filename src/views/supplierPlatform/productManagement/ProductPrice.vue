@@ -29,7 +29,7 @@
     </el-form>
 
     <div class="mb-12">
-      <el-button v-throttle style="color: #1d2129" @click="handleExport" color="#F2F3F5">导出</el-button>
+      <el-button v-throttle style="color: #333333" @click="handleExport" color="#F2F3F5">导出</el-button>
     </div>
     <!-- 表格展示 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">

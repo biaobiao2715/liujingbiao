@@ -7,14 +7,13 @@
 -->
 <template>
   <div class="kb-edit">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" class="form-wrap">
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto">
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="文章标题" prop="articleTitle">
             <el-input v-model="form.articleTitle" maxlength="30" show-word-limit placeholder="请输入标题，最多30个字" clearable />
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
         <el-col :span="12">
           <el-form-item label="文章类别" prop="articleType">
             <el-select v-model="form.articleType" placeholder="请选择" clearable filterable style="width: 100%">
@@ -22,18 +21,17 @@
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
-        <el-col :span="12">
+        <el-col :span="24">
           <el-form-item label="文章摘要" prop="articleSummary">
             <el-input v-model="form.articleSummary" type="textarea" :rows="5" placeholder="请输入文章摘要" maxlength="200" show-word-limit />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item label="正文编辑" prop="articleContent">
-            <div style="display: flex">
+          <el-form-item label="正文编辑" label-position="top" prop="articleContent">
+            <div style="display: flex; width: 100%">
               <!-- 编辑器区 -->
               <div style="flex: 1">
-                <Editor v-model="form.articleContent" :height="500" :minHeight="500" />
+                <Editor v-model="form.articleContent" :height="300" :minHeight="300" />
               </div>
               <!-- 文章目录 -->
               <div class="toc-sidebar">
@@ -54,62 +52,60 @@
             </div>
           </el-form-item>
         </el-col>
-      </el-row>
 
-      <div class="title-text">附件上传</div>
-      <el-upload action="#" :auto-upload="false" :accept="acceptTypes" :show-file-list="false" :on-change="handleChange">
-        <div class="upload-btn">
-          <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
-            <img src="@/assets/images/register5.svg" class="el-icon-view" />添加附件
-          </el-button>
-        </div>
-      </el-upload>
-
-      <!-- 隐藏的重新上传文件选择器 -->
-      <input ref="reuploadInputRef" type="file" style="display: none" :accept="acceptTypes" @change="handleReuploadChange" />
-
-      <div class="h20"></div>
-
-      <el-table :data="fileListtable" stripe>
-        <el-table-column type="index" label="序号" width="55" />
-        <el-table-column prop="fileName" label="附件名" />
-        <el-table-column label="操作" width="250">
-          <template #default="scope">
-            <el-button type="primary" v-throttle link @click="reuploadFile(scope.row)"> 重新上传 </el-button>
-            <el-button type="primary" v-throttle link @click="removeFile(scope.row)"> 删除 </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="h20"></div>
-
-      <el-col :span="12">
-        <el-form-item label="上传主图" prop="articleCover" class="uploadcss">
-          <el-upload
-            action="#"
-            :class="coverFileList.length >= 1 ? 'hidden-upload' : ''"
-            :auto-upload="false"
-            :accept="'.jpg,.jpeg,.png'"
-            list-type="picture-card"
-            :file-list="coverFileList"
-            :on-change="handleCoverChange"
-            :on-remove="handleCoverRemove"
-            :on-preview="previewCover"
-            :show-file-list="true"
-          >
-            <el-icon><Plus /></el-icon>
+        <el-col :span="24">
+          <div class="title-text">附件上传</div>
+          <el-upload action="#" :auto-upload="false" :accept="acceptTypes" :show-file-list="false" :on-change="handleChange">
+            <div class="upload-btn">
+              <el-button v-throttle plain style="color: #108c58; border-color: #108c58">
+                <img src="@/assets/images/register5.svg" class="el-icon-view" />添加附件
+              </el-button>
+            </div>
           </el-upload>
-          <div>注：支持jpg、png两种格式，大小不超过10MB。</div>
-        </el-form-item>
-      </el-col>
-      <el-col :span="12"></el-col>
 
-      <el-row :gutter="20">
-        <el-col :span="12">
+          <div class="h20"></div>
+
+          <!-- 隐藏的重新上传文件选择器 -->
+          <input ref="reuploadInputRef" type="file" style="display: none" :accept="acceptTypes" @change="handleReuploadChange" />
+          <el-table :data="fileListtable" stripe>
+            <el-table-column type="index" label="序号" width="55" />
+            <el-table-column prop="fileName" label="附件名" />
+            <el-table-column label="操作" width="250">
+              <template #default="scope">
+                <el-button type="primary" v-throttle link @click="reuploadFile(scope.row)"> 重新上传 </el-button>
+                <el-button type="primary" v-throttle link @click="removeFile(scope.row)"> 删除 </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+
+        <el-col :span="24">
+          <div class="h20"></div>
+
+          <el-form-item label="上传主图" label-position="top" prop="articleCover" class="uploadcss">
+            <el-upload
+              action="#"
+              :class="coverFileList.length >= 1 ? 'hidden-upload' : ''"
+              :auto-upload="false"
+              :accept="'.jpg,.jpeg,.png'"
+              list-type="picture-card"
+              :file-list="coverFileList"
+              :on-change="handleCoverChange"
+              :on-remove="handleCoverRemove"
+              :on-preview="previewCover"
+              :show-file-list="true"
+            >
+              <el-icon><Plus /></el-icon>
+            </el-upload>
+            <div>注：支持jpg、png两种格式，大小不超过10MB。</div>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
           <el-form-item label="启用状态" prop="articleStatus">
-            <el-select v-model="form.articleStatus" placeholder="请选择" clearable filterable style="width: 100%">
-              <el-option v-for="d in article_status" :key="d.value" :label="d.label" :value="String(d.value)" />
-            </el-select>
+            <el-radio-group v-model="form.articleStatus">
+              <el-radio v-for="d in article_status" :key="d.value" :value="String(d.value)">{{ d.label }}</el-radio>
+            </el-radio-group>
           </el-form-item>
         </el-col>
       </el-row>
@@ -479,12 +475,8 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .kb-edit {
-  padding: 20px;
+  // padding: 10px;
   background: #fff;
-
-  .form-wrap {
-    margin-top: 16px;
-  }
 
   .side-card {
     height: 100%;

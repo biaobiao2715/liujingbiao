@@ -39,49 +39,41 @@
     </el-form>
 
     <!-- 操作按钮 -->
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+    <el-row :gutter="10" class="mb8" justify="space-between">
+      <el-col :span="20">
         <el-button v-throttle v-hasPermi="['system:goods:add']" icon="Plus" type="primary" @click="handleAdd">新增商品</el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#F23255'"
           @click="handleDelete"
         >
           删除
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
           v-throttle
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
         >
           上架
         </el-button>
-      </el-col>
-
-      <el-col :span="1.5">
         <el-button
           v-throttle
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
           :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
         >
           下架
         </el-button>
+        <el-button v-throttle color="#F2F3F5" style="color: #333333" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
       </el-col>
+
       <el-col :span="1.5">
-        <el-button v-throttle color="#F2F3F5" style="color: #1d2129" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button v-throttle color="#F2F3F5" style="color: #1d2129" v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory"
+        <el-button v-throttle icon="Search" type="primary" v-hasPermi="['system:goods:editPrice']" @click="onPriceHistory"
           >查询价格调整历史</el-button
         >
       </el-col>
@@ -95,12 +87,16 @@
       <el-table-column label="商品编码" prop="goodsCode" width="220"> </el-table-column>
       <el-table-column label="销售价" prop="salesPrice" width="130" :show-overflow-tooltip="true">
         <template #default="scope">
-          <span>{{ getSalesPrice(scope.row) }}</span>
+          <span style="color: #108c58">{{ getSalesPrice(scope.row) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="商品类目" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="预警下限" prop="goodsAlert" />
-      <el-table-column label="提醒" prop="remind" width="100" />
+      <el-table-column label="预警下限" prop="goodsAlert"> </el-table-column>
+      <el-table-column label="提醒" prop="remind" width="100">
+        <template #default="scope">
+          <span :style="{ color: scope.row.remind == '无' ? '' : '#FF0000' }">{{ scope.row.remind }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="商品状态" prop="status" align="center">
         <!-- <template #default="scope">
           <dict-text :options="goods_status" :value="scope.row.status ?? ''" />

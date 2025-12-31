@@ -49,7 +49,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || noSelection ? 'color: #333333;' : 'color: #fff;'"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleEnableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -59,7 +59,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || noSelection ? 'color: #333333;' : 'color: #fff;'"
           v-hasPermi="['system:article:enableAndDisabled']"
           @click="handleDisableBatch"
           :color="loading || noSelection ? '#F2F3F5' : '#108C58'"
@@ -69,7 +69,7 @@
       <el-col :span="1.5">
         <el-button
           v-throttle
-          :style="loading || noSelection ? 'color: #1d2129;' : 'color: #fff;'"
+          :style="loading || noSelection ? 'color: #333333;' : 'color: #fff;'"
           v-hasPermi="['system:article:remove']"
           :color="loading || noSelection ? '#F2F3F5' : '#F23255'"
           @click="handleDeleteBatch"
@@ -88,9 +88,9 @@
         </template>
       </el-table-column>
       <el-table-column label="文章标题" prop="articleTitle" :show-overflow-tooltip="true" />
-      <el-table-column label="文章类别" prop="articleType" align="center">
+      <el-table-column label="文章类别" prop="articleType">
         <template #default="scope">
-          <dict-tag :options="article_type" :value="scope.row.articleType ?? ''" />
+          <dict-text :options="article_type" :value="scope.row.articleType ?? ''" />
         </template>
       </el-table-column>
       <el-table-column label="启用状态" prop="articleStatus" align="center">

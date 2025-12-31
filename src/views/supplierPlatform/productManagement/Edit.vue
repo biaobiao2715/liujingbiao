@@ -10,21 +10,19 @@
   <div class="supplier-edit-details">
     <!-- 基本信息 -->
     <el-form ref="refForm" :model="formData" :rules="FormRulesarr" label-width="120px">
-      <div class="content-form-title">基本信息</div>
+      <FormHeader title="基本信息" />
       <el-row>
         <el-col :span="12">
           <el-form-item label="商品名称" prop="goodsName">
             <el-input v-model="formData.goodsName" placeholder="请输入商品名称" maxlength="30" show-word-limit />
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
 
         <el-col :span="12">
           <el-form-item label="商品编码" prop="goodsCode">
             <el-input :disabled="true" v-model="formData.goodsCode" placeholder="自动生成" />
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
 
         <el-col :span="12">
           <el-form-item label="商品类目" prop="goodsCategoryId">
@@ -43,7 +41,6 @@
             />
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
 
         <el-col :span="12">
           <el-form-item label="商品品牌" prop="goodsBrandId">
@@ -52,18 +49,16 @@
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
 
-        <el-col :span="12">
+        <el-col :span="24">
           <el-form-item label="产品保障" prop="goodsEnsureIds">
             <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" filterable clearable multiple>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span="12"></el-col>
 
-        <el-col :span="12">
+        <el-col :span="24">
           <el-form-item label="产品功能" prop="goodsAbilityIds">
             <el-select v-model="formData.goodsAbilityIds" placeholder="请选择产品功能" style="width: 100%" filterable clearable multiple>
               <el-option v-for="item in functionOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
@@ -92,7 +87,7 @@
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="24">
           <el-form-item label="商品介绍" prop="goodsInfo">
             <el-input v-model="formData.goodsInfo" type="textarea" :rows="5" placeholder="请输入商品介绍" maxlength="300" show-word-limit />
           </el-form-item>
@@ -100,15 +95,13 @@
 
         <el-col :span="24">
           <el-form-item label="商品详情" prop="goodsDetail">
-            <editor v-model="formData.goodsDetail" :min-height="192" />
+            <editor v-model="formData.goodsDetail" :height="135" :minHeight="135" />
           </el-form-item>
         </el-col>
       </el-row>
 
-      <div class="line" style="margin-top: 18px"></div>
-
       <!-- 价格与库存 -->
-      <div class="content-form-title">价格与库存</div>
+      <FormHeader title="价格与库存" />
       <el-row>
         <el-col :span="12">
           <el-form-item label="库存预警下限" prop="goodsAlert">
@@ -234,13 +227,13 @@
               </template>
             </el-table-column>
           </el-table>
+
+          <div style="margin-top: 18px"></div>
         </el-col>
       </el-row>
 
-      <div class="line" style="margin-top: 18px"></div>
-
       <!-- 服务信息 -->
-      <div class="content-form-title">服务信息</div>
+      <FormHeader title="服务信息" />
       <div>
         <el-form-item label="上架状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -268,11 +261,9 @@
         </el-form-item>
       </div>
 
-      <div class="line" style="margin-top: 18px"></div>
-
       <div class="flex-center-end">
         <el-button v-throttle @click="submitClose">返回</el-button>
-        <el-button v-throttle type="primary" @click="submitForm">提交商品</el-button>
+        <el-button v-throttle type="primary" @click="submitForm">{{ operateMode == 'edit' ? '保存' : '提交' }}</el-button>
       </div>
     </el-form>
 
@@ -296,8 +287,6 @@
 </template>
 
 <script setup lang="ts">
-// ==========================
-// 导入（分组、补全缺失 API）
 // ==========================
 import { ref, onMounted, getCurrentInstance, toRefs, type ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox, ElForm, type FormRules } from 'element-plus';
@@ -776,33 +765,15 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 /* 布局与样式（未更改，仅保留原样式） */
-.supplier-edit-details {
-  padding: 24px;
-}
+// .supplier-edit-details {
+//   // padding: 24px;
+// }
 .line {
   height: 1px;
   background-color: #dcdfe6;
   margin: 40px 0px 30px 0px;
 }
-.content-form-title {
-  position: relative;
-  height: 14px;
-  line-height: 14px;
-  font-weight: bold;
-  font-size: 14px;
-  color: #333333;
-  margin-left: 15px;
-  margin-bottom: 20px;
-}
-.content-form-title::before {
-  position: absolute;
-  left: -15px;
-  top: 0;
-  bottom: 0;
-  content: '';
-  width: 5px;
-  background: #2d6cf5;
-}
+
 .required::before {
   content: '*';
   color: #f56c6c;
