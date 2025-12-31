@@ -47,27 +47,44 @@
     font-family: AlibabaPuHuiTi-Regular;
     font-weight: 400;
     font-size: 14px;
-    color: #3d3d3d;
-    line-height: 40px !important;
+    color: #4e5969;
   }
+
+  // 商城、金融 表单label样式优化
+  .mall-container .el-form-item__label,
+  .finance-container .el-form-item__label {
+    height: 40px;
+    line-height: 40px !important;
+    color: #3d3d3d;
+  }
+
   .el-form-item__label:before {
     color: #ff0000 !important;
     margin-right: 0 !important;
     font-size: 18px !important;
     margin-top: -2px !important;
   }
-  .el-form-item__content {
-    color: #333;
-  }
+
+  // .el-form-item__content {
+  //   color: #333;
+  // }
 
   .el-input__wrapper,
   .el-select__wrapper {
-    height: 40px;
     background: #f7f8fa;
     border-radius: 2px;
     .el-input__count-inner {
       background: #f7f8fa !important;
     }
+  }
+
+  // 商城、金融 表单input、select样式优化
+  .mall-container .el-input__wrapper,
+  .mall-container .el-select__wrapper,
+  .finance-container .el-input__wrapper,
+  .finance-container .el-select__wrapper {
+    height: 40px;
+    border-radius: 4px;
   }
 
   // 覆盖placeholder文字样式
@@ -81,11 +98,49 @@
     color: #86909c;
   }
 
+  .el-input__inner {
+    color: #333;
+  }
+  .el-input__count {
+    background: #f7f8fa !important;
+  }
+
   .el-textarea__inner {
     background: #f7f8fa;
     border-radius: 2px;
   }
-  .el-input__count {
-    background: #f7f8fa !important;
+
+  // 商城、金融 表单textarea样式优化
+  .mall-container .el-textarea__inner,
+  .finance-container .el-textarea__inner {
+    border-radius: 4px;
+  }
+
+  // 全局覆盖所有 Element Plus 禁用状态下的字体颜色
+  .el-input.is-disabled,
+  .el-textarea.is-disabled,
+  .el-select.is-disabled,
+  .el-button.is-disabled,
+  .el-date-editor.is-disabled,
+  .el-cascader.is-disabled,
+  .el-radio.is-disabled,
+  .el-checkbox.is-disabled,
+  .el-switch.is-disabled,
+  .el-slider.is-disabled,
+  .el-rate.is-disabled,
+  .el-upload.is-disabled,
+  .el-pagination.is-disabled,
+  .el-tree.is-disabled,
+  .el-table.is-disabled,
+  .el-form-item.is-disabled,
+  .el-input__wrapper input:disabled,
+  .el-textarea__inner:disabled,
+  .el-select__wrapper.is-disabled,
+  .el-button.is-disabled,
+  .el-date-editor.is-disabled,
+  .el-cascader__wrapper.is-disabled {
+    color: #3d3d3d !important;
+    -webkit-text-fill-color: #3d3d3d !important;
+    opacity: 1 !important;
   }
 }

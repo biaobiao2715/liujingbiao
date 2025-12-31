@@ -119,6 +119,11 @@
     cursor: default !important;
     resize: none !important;
   }
+
+  .el-form-item__label {
+    color: rgba(61, 61, 61, 0.5) !important;
+  }
+
   .el-select__suffix {
     display: none !important;
   }
@@ -158,9 +163,13 @@
 
 .region-select {
   .el-cascader__tags {
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
   }
+
+  // .el-input__wrapper {
+  //   height: auto !important;
+  // }
 }
 
 // 正常

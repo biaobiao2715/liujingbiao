@@ -59,7 +59,7 @@
     <!-- 发布/编辑/详情弹窗 -->
     <el-dialog
       v-model="quoteDialogVisible"
-      width="50%"
+      width="800px"
       :title="dialogMode === 'detail' ? '供给需求详情' : dialogMode === 'edit' ? '编辑供给需求' : '发布供给需求'"
       :close-on-click-modal="false"
     >

@@ -153,7 +153,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .kb-detail {
-  padding: 20px 24px;
+  // padding: 20px 24px;
   background: #fff;
 }
 .header .title {

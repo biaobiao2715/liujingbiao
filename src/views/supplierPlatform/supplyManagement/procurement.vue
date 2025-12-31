@@ -68,9 +68,9 @@
     </div>
 
     <!-- 立即报价弹窗 -->
-    <el-dialog v-model="quoteDialogVisible" width="50%" title="立即报价" :close-on-click-modal="false">
+    <el-dialog v-model="quoteDialogVisible" width="800px" title="立即报价" :close-on-click-modal="false">
       <el-form :model="quoteForm" :rules="quoteFormRules" ref="quoteFormRef" label-width="120px">
-        <el-divider content-position="left"> <span class="detail-title">采购信息</span> </el-divider>
+        <FormHeader title="采购信息" />
         <el-row :gutter="20" class="detail-form">
           <el-col :span="12">
             <el-form-item label="客户名称：" prop="name">
@@ -108,8 +108,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-divider content-position="left"> <span class="detail-title">供给信息</span></el-divider>
-
+        <FormHeader title="供给信息" />
         <el-row :gutter="20">
           <el-col :span="24">
             <el-form-item label="报价说明" prop="quoteRemarks">
@@ -391,10 +390,5 @@ watch(
   ::deep .el-input__suffix {
     display: none;
   }
-}
-
-.detail-title {
-  font-size: 18px;
-  font-weight: bold;
 }
 </style>

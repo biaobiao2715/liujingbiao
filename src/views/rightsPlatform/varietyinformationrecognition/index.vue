@@ -108,7 +108,7 @@
       :close-on-click-modal="isReadonly"
       :destroy-on-close="true"
       append-to-body
-      width="80%"
+      width="800px"
     >
       <varietyIdentificationForm :id="selectID" :type="selectType" @refresh="refreshData" @cancel="cancelDlg" />
     </el-dialog>

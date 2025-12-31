@@ -26,7 +26,7 @@
 
         <div class="hot-search">
           热门搜索：
-          <span v-for="(item, index) in hotSearch" :key="item.value" class="hot-item" @click="handleSearch(item.label)">{{ item.label }}</span>
+          <span v-for="item in hotSearch" :key="item.value" class="hot-item" @click="handleSearch(item.label)">{{ item.label }}</span>
         </div>
       </div>
     </div>
@@ -129,6 +129,7 @@ const handleSearch = (hotKey?: string) => {
   //   box-shadow: 0 0 10px rgba(16, 140, 88, 0.5);
   ::v-deep .el-input__wrapper {
     height: 40px;
+    border-radius: 0 4px 4px 0;
   }
 
   ::v-deep .el-select__wrapper {
