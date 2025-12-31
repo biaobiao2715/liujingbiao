@@ -449,24 +449,6 @@ const handleViewRepaymentPlan = () => {
   }
 }
 
-.section-title {
-  font-weight: 500;
-  font-size: 14px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  color: #108c58;
-
-  &::before {
-    content: '';
-    width: 2px;
-    height: 13px;
-    background-color: #108c58;
-    border-radius: 4px;
-    margin-right: 5px;
-  }
-}
-
 .identity-image {
   width: 92px;
   height: 64px;

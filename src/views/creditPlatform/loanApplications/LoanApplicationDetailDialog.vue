@@ -667,20 +667,6 @@ type DetailField = {
   isImage?: boolean;
 };
 
-const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
-  return [
-    { label: '供应商编号', value: formatValue(getFieldValue(row, ['enterpriseNumber', 'supplierNo'])) },
-    { label: '审核状态', value: mapValue(REVIEW_STATUS_MAP, row.reviewStatus) },
-    { label: '供应商名称', value: formatValue(row.companyName) },
-    { label: '社会统一信用代码', value: formatValue(getFieldValue(row, ['licenseNumber', 'creditCode'])) },
-    { label: '注册资本', value: formatValue(getFieldValue(row, ['signUpCapital', 'registeredCapital'])) },
-    { label: '注册日期', value: formatValue(getFieldValue(row, ['enterpriseCreateTime', 'registerDate'])) },
-    { label: '资质等级', value: mapValue(CREDENTIAL_LEVEL_MAP, getFieldValue(row, ['credentialLevel', 'qualification'])) },
-    { label: '信用等级', value: mapValue(CREDIT_LEVEL_MAP, row.creditLevel) },
-    { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
-  ];
-};
-
 // 注册地址、办公地址之前的字段
 const companyInfoListBefore = computed(() => {
   const row = detailData.value || {};
@@ -775,8 +761,6 @@ const mapLoanInfo = (row: Record<string, any>): DetailField[] => {
 
 // ==================== 计算属性 ====================
 const currentDetail = computed(() => detailData.value || {});
-
-const companyInfoList = computed(() => mapCompanyInfo(detailData.value || {}));
 
 const companyLicenseList = computed(() => {
   const row = detailData.value || {};
@@ -1317,24 +1301,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
   }
 }
 
-.section-title {
-  font-weight: 500;
-  font-size: 14px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  color: #108c58;
-
-  &::before {
-    content: '';
-    width: 2px;
-    height: 13px;
-    background-color: #108c58;
-    border-radius: 4px;
-    margin-right: 5px;
-  }
-}
-
 .license-image {
   width: 92px;
   height: 64px;
@@ -1609,13 +1575,6 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     border-bottom: 1px dashed var(--brder-color) !important;
     margin-bottom: 0 !important;
     padding-bottom: 10px !important;
-  }
-
-  .status-input {
-    .el-input__inner {
-      color: #108c58 !important;
-      -webkit-text-fill-color: #108c58 !important;
-    }
   }
 }
 </style>

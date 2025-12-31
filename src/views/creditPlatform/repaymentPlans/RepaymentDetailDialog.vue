@@ -415,25 +415,6 @@ watch([() => props.visible, () => props.data?.id], ([visible, id], [prevVisible,
   }
 });
 
-/**
- * 企业基础信息列表
- */
-const companyInfoList = computed<DetailField[]>(() => {
-  const row = detailRow.value;
-  const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
-  return [
-    { label: '供应商编号', value: formatValue(row.enterpriseNumber || row.supplierNo) },
-    { label: '审核状态', value: mapValue(reviewStatusMap, row.reviewStatus) },
-    { label: '供应商名称', value: formatValue(row.companyName) },
-    { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
-    { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
-    { label: '注册日期', value: formatValue(row.createTime || row.registerDate) },
-    { label: '资质等级', value: mapValue(credentialLevelMap, row.credentialLevel || row.qualification) },
-    { label: '信用等级', value: mapValue(creditLevelMap, row.creditLevel) },
-    { label: '经营范围', value: formatValue(row.businessScope), span: 24, isTextarea: true }
-  ];
-});
-
 // 注册地址、办公地址之前的字段
 const companyInfoListBefore = computed<DetailField[]>(() => {
   const row = detailRow.value;
@@ -682,15 +663,6 @@ const handleViewRepaymentPlan = () => {
     -webkit-text-fill-color: #3d3d3d !important;
   }
 
-  .status-input {
-    :deep(.el-input__inner),
-    :deep(.el-input.is-disabled .el-input__inner),
-    :deep(.el-input.is-disabled .el-input__wrapper .el-input__inner) {
-      color: #108c58 !important;
-      -webkit-text-fill-color: #108c58 !important;
-    }
-  }
-
   :deep(.el-form-item__label) {
     font-weight: 400;
     font-size: 14px;
@@ -699,23 +671,6 @@ const handleViewRepaymentPlan = () => {
 
   :deep(.el-form-item__content) {
     justify-content: flex-start;
-  }
-}
-
-.section-title {
-  font-size: 14px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  color: #108c58;
-
-  &::before {
-    content: '';
-    width: 2px;
-    height: 13px;
-    background-color: #108c58;
-    border-radius: 4px;
-    margin-right: 5px;
   }
 }
 
@@ -802,13 +757,6 @@ const handleViewRepaymentPlan = () => {
     margin-bottom: 0 !important;
     padding-bottom: 10px !important;
     border-bottom: 1px dashed var(--brder-color) !important;
-  }
-
-  .status-input {
-    .el-input__inner {
-      color: #108c58 !important;
-      -webkit-text-fill-color: #108c58 !important;
-    }
   }
 }
 </style>
