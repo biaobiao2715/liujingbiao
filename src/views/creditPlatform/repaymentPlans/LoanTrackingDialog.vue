@@ -18,7 +18,14 @@
       <div class="timeline-container">
         <div v-for="(step, index) in trackingData" :key="index" class="timeline-item">
           <!-- 左侧时间线 -->
-          <div class="timeline-left">
+          <div
+            class="timeline-left"
+            :class="{
+              'line-active': step.status === 'finish' || step.status === 'process',
+              'is-first': index === 0,
+              'is-last': index === trackingData.length - 1
+            }"
+          >
             <div class="timeline-line-top" :class="{ active: step.status === 'finish' || step.status === 'process', hidden: index === 0 }"></div>
             <div class="timeline-dot-row">
               <div class="timeline-icon" :class="{ active: step.status === 'finish' || step.status === 'process' }"></div>
@@ -241,14 +248,29 @@ const handleClose = () => {
     top: 0;
     bottom: 0;
 
-    // 垂直线贯穿整个高度
+    // 垂直线贯穿整个高度（默认灰色）
     &::before {
       content: '';
       position: absolute;
       left: 4px;
       top: 0;
       bottom: 0;
-      border-left: 1px solid #108c58;
+      border-left: 1px solid #e8e8e8;
+    }
+
+    // 当前步骤已完成或进行中时，线变绿色
+    &.line-active::before {
+      border-left-color: #108c58;
+    }
+
+    // 第一个节点：隐藏上半部分的线
+    &.is-first::before {
+      top: 45px;
+    }
+
+    // 最后一个节点：隐藏下半部分的线
+    &.is-last::before {
+      bottom: calc(100% - 50px);
     }
 
     .timeline-dot-row {
@@ -288,16 +310,6 @@ const handleClose = () => {
     .timeline-line {
       display: none;
     }
-  }
-
-  // 第一个节点：隐藏上半部分的线
-  &:first-child .timeline-left::before {
-    top: 45px;
-  }
-
-  // 最后一个节点：隐藏下半部分的线
-  &:last-child .timeline-left::before {
-    bottom: calc(100% - 50px);
   }
 
   .timeline-card {

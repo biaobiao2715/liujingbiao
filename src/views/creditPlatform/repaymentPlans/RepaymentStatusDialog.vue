@@ -7,40 +7,44 @@
 -->
 
 <template>
-  <el-dialog :model-value="visible" width="50%" class="repayment-status-dialog" append-to-body destroy-on-close @close="handleClose">
+  <el-dialog
+    :model-value="visible"
+    width="50%"
+    class="repayment-status-dialog"
+    append-to-body
+    destroy-on-close
+    :close-on-click-modal="false"
+    @close="handleClose"
+  >
     <template #header>
-      <div class="dialog-header">
-        <span class="dialog-title">还款情况</span>
-      </div>
+      <div class="dialog-title">还款情况</div>
     </template>
 
     <div v-loading="loading" class="dialog-content">
       <!-- 顶部操作按钮 -->
       <div class="top-actions">
-        <el-button type="primary" @click="handleSubmit">提交修改信息</el-button>
+        <el-button type="primary" class="primary-btn" @click="handleSubmit">提交修改信息</el-button>
         <el-button @click="handleClose">返回</el-button>
       </div>
 
       <!-- 还款卡片列表 -->
-      <div class="repayment-cards">
-        <div v-for="(item, index) in repaymentList" :key="index" class="repayment-card" :class="getCardClass(item.planStatus)">
-          <div class="card-header">
-            <span class="period-label">期数：{{ item.loanPeriod }}</span>
-          </div>
-
-          <div class="card-body">
-            <div class="info-row">
-              <span class="label">还款日期：</span>
+      <div class="plan-grid">
+        <div v-for="item in repaymentList" :key="item.loanPeriod" class="plan-card">
+          <div class="card-content">
+            <div class="form-row">
+              <span class="label">还款期数</span>
+              <span class="value">{{ item.loanPeriod }}期</span>
+            </div>
+            <div class="form-row">
+              <span class="label">还款日期</span>
               <span class="value">{{ formatDateOnly(item.repaymentDate) }}</span>
             </div>
-
-            <div class="info-row">
-              <span class="label">还款金额：</span>
-              <span class="value amount">{{ item.totalAmount }} 元</span>
+            <div class="form-row">
+              <span class="label">还款金额</span>
+              <span class="value">{{ item.totalAmount }} 元</span>
             </div>
-
-            <div class="info-row">
-              <span class="label">还款卡号：</span>
+            <div class="form-row">
+              <span class="label">还款卡号</span>
               <div v-if="canEditCardNumber(item)" class="card-number-wrapper">
                 <el-input
                   v-model="item.repaymentCardNo"
@@ -51,23 +55,21 @@
                   show-word-limit
                   @input="validateCardNumber(item)"
                 />
-                <!-- @input="validateCardNumber(item)" -->
-                <el-button type="primary" size="small" @click="handleReadCardNumber(item)" class="read-card-btn"> 读取收款卡号 </el-button>
+                <el-button type="primary" size="small" @click="handleReadCardNumber(item)" class="read-card-btn">读取收款卡号</el-button>
               </div>
               <span v-else class="value">{{ item.repaymentCardNo || '--' }}</span>
             </div>
             <div v-if="canEditCardNumber(item) && item.cardNumberError" class="error-tip">
               {{ item.cardNumberError }}
             </div>
-
-            <div class="info-row">
-              <span class="label">还款状态：</span>
+            <div class="form-row">
+              <span class="label">还款状态</span>
               <el-select v-if="canEditStatus(item)" v-model="item.planStatus" placeholder="请选择" size="small" class="status-select">
                 <el-option label="待还款" :value="0" />
                 <el-option label="已还款" :value="1" />
                 <el-option label="已逾期" :value="2" />
               </el-select>
-              <span v-else class="value" :style="{ color: getStatusColor(item.planStatus), fontWeight: 600 }">
+              <span v-else class="status-text" :style="{ color: getStatusColor(item.planStatus) }">
                 {{ getStatusText(item.planStatus) }}
               </span>
             </div>
@@ -189,15 +191,6 @@ const getStatusColor = (status: number | undefined) => {
     2: '#FF0000'
   };
   return status !== undefined ? colorMap[status] || '#606266' : '#606266';
-};
-
-// 获取卡片样式类
-const getCardClass = (status: number) => {
-  return {
-    'card-paid': status === 1, // 已还款
-    'card-pending': status === 0, // 待还款
-    'card-unpaid': status === 2 // 已逾期
-  };
 };
 
 /**
@@ -346,114 +339,129 @@ const handleClose = () => {
 
 <style scoped lang="scss">
 .dialog-content {
-  padding: 20px;
-  min-height: 400px;
+  padding: 0;
 }
 
 .top-actions {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding: 0 4px;
 
   .el-button {
     min-width: 120px;
   }
-}
 
-// 还款卡片
-.repayment-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
+  .primary-btn {
+    background-color: #108c58;
+    border-color: #108c58;
 
-.repayment-card {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 20px;
-  background: #fff;
-}
-
-.card-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
-
-  .period-label {
-    font-size: 15px;
-    font-weight: 600;
-    color: #303133;
+    &:hover,
+    &:focus {
+      background-color: #0d7348;
+      border-color: #0d7348;
+    }
   }
 }
 
-.card-body {
-  .info-row {
+.plan-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.plan-card {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: url('@/assets/images/huankuanPlanBg.png') no-repeat right center;
+  background-size: cover;
+  width: calc(33.333% - 11px);
+  min-width: 280px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  .card-content {
+    padding: 20px 16px;
+  }
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .label {
+    font-size: 14px;
+    color: #606266;
+    min-width: 85px;
+    font-weight: 500;
+  }
+
+  .value {
+    flex: 1;
+    font-size: 14px;
+    color: #303133;
+    text-align: right;
+  }
+
+  .card-number-wrapper {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-    line-height: 32px;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
+  }
 
-    &:last-child {
-      margin-bottom: 0;
+  .card-number-input {
+    width: 140px;
+  }
+
+  .read-card-btn {
+    white-space: nowrap;
+    background-color: #108c58;
+    border-color: #108c58;
+
+    &:hover,
+    &:focus {
+      background-color: #0d7348;
+      border-color: #0d7348;
     }
+  }
 
-    .label {
-      font-size: 14px;
-      color: #606266;
-      min-width: 85px;
-      font-weight: 500;
-    }
-
-    .value {
-      font-size: 14px;
-      color: #303133;
-      flex: 1;
-
-      &.amount {
-        color: #f56c6c;
-        font-weight: 600;
-      }
-
-      // 还款状态样式
-    }
-
-    .status-select {
-      width: 110px;
-    }
-
-    .card-number-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-    }
-
-    .card-number-input {
-      flex: 1;
-      max-width: 180px;
-    }
-
-    .read-card-btn {
-      white-space: nowrap;
-    }
+  .status-select {
+    width: 110px;
   }
 }
 
 .error-tip {
   font-size: 12px;
   color: #f56c6c;
-  margin-top: -8px;
-  margin-bottom: 8px;
-  padding-left: 85px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  text-align: right;
 }
 
-.card-footer {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #ebeef5;
-  text-align: center;
+.status-text {
+  font-weight: 600;
+  flex: 1;
+  text-align: right;
+}
 
-  .el-button {
+// 响应式设计
+@media (max-width: 1200px) {
+  .plan-card {
+    width: calc(50% - 8px);
+  }
+}
+
+@media (max-width: 768px) {
+  .plan-card {
     width: 100%;
   }
 }
