@@ -18,8 +18,13 @@
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="item.span || 12">
               <el-form-item :label="item.label">
-                <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
-                <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
+                <template v-if="item.color">
+                  <span :style="{ color: item.color }" style="margin-top: 4px; margin-left: 10px">{{ item.value }}</span>
+                </template>
+                <template v-else>
+                  <el-input v-if="!item.isTextarea" :model-value="item.value" disabled />
+                  <el-input v-else type="textarea" :model-value="item.value" :autosize="{ minRows: 2, maxRows: 4 }" disabled />
+                </template>
               </el-form-item>
             </el-col>
           </el-row>
@@ -214,6 +219,7 @@ type DetailField = {
   span?: number;
   isTextarea?: boolean;
   isImage?: boolean;
+  color?: string;
 };
 
 const reviewStatusMap: Record<string, string> = {
@@ -431,9 +437,17 @@ const companyInfoList = computed<DetailField[]>(() => {
 // 注册地址、办公地址之前的字段
 const companyInfoListBefore = computed<DetailField[]>(() => {
   const row = detailRow.value;
+  const reviewStatusValue = mapValue(reviewStatusMap, row.reviewStatus);
+  const getReviewStatusColor = (status: string | undefined) => {
+    if (status === '0') return '#FF7B00'; // 待审核
+    if (status === '1') return '#108C58'; // 审核通过
+    if (status === '99') return '#F23255'; // 审核退回
+    return undefined;
+  };
+  const reviewStatusColor = getReviewStatusColor(row.reviewStatus);
   return [
     { label: '供应商编号', value: formatValue(row.enterpriseNumber || row.supplierNo) },
-    { label: '审核状态', value: mapValue(reviewStatusMap, row.reviewStatus) },
+    { label: '审核状态', value: reviewStatusValue, color: reviewStatusColor },
     { label: '供应商名称', value: formatValue(row.companyName) },
     { label: '社会统一信用代码', value: formatValue(row.licenseNumber || row.creditCode) },
     { label: '注册资本', value: formatValue(row.signUpCapital || row.registeredCapital) },
@@ -668,6 +682,15 @@ const handleViewRepaymentPlan = () => {
     -webkit-text-fill-color: #3d3d3d !important;
   }
 
+  .status-input {
+    :deep(.el-input__inner),
+    :deep(.el-input.is-disabled .el-input__inner),
+    :deep(.el-input.is-disabled .el-input__wrapper .el-input__inner) {
+      color: #108c58 !important;
+      -webkit-text-fill-color: #108c58 !important;
+    }
+  }
+
   :deep(.el-form-item__label) {
     font-weight: 400;
     font-size: 14px;
@@ -680,7 +703,6 @@ const handleViewRepaymentPlan = () => {
 }
 
 .section-title {
-  font-weight: 500;
   font-size: 14px;
   margin-bottom: 16px;
   display: flex;
@@ -780,6 +802,13 @@ const handleViewRepaymentPlan = () => {
     margin-bottom: 0 !important;
     padding-bottom: 10px !important;
     border-bottom: 1px dashed var(--brder-color) !important;
+  }
+
+  .status-input {
+    .el-input__inner {
+      color: #108c58 !important;
+      -webkit-text-fill-color: #108c58 !important;
+    }
   }
 }
 </style>

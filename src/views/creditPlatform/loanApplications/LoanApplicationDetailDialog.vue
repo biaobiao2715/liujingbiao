@@ -18,7 +18,10 @@
           <el-row :gutter="20" class="detail-form">
             <el-col v-for="item in companyInfoListBefore" :key="item.label" :span="12">
               <el-form-item :label="item.label">
-                <el-input :model-value="item.value" disabled />
+                <template v-if="item.color">
+                  <span :style="{ color: item.color }" style="margin-top: 4px; margin-left: 10px">{{ item.value }}</span>
+                </template>
+                <el-input v-else :model-value="item.value" disabled />
               </el-form-item>
             </el-col>
           </el-row>
@@ -665,8 +668,6 @@ type DetailField = {
 };
 
 const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
-  const registerRegion = [row.province, row.city, row.district].filter(Boolean).join('');
-
   return [
     { label: '供应商编号', value: formatValue(getFieldValue(row, ['enterpriseNumber', 'supplierNo'])) },
     { label: '审核状态', value: mapValue(REVIEW_STATUS_MAP, row.reviewStatus) },
@@ -683,9 +684,17 @@ const mapCompanyInfo = (row: Record<string, any>): DetailField[] => {
 // 注册地址、办公地址之前的字段
 const companyInfoListBefore = computed(() => {
   const row = detailData.value || {};
+  const reviewStatusValue = mapValue(REVIEW_STATUS_MAP, row.reviewStatus);
+  const getReviewStatusColor = (status: string | undefined) => {
+    if (status === '0') return '#FF7B00'; // 待审核
+    if (status === '1') return '#108C58'; // 审核通过
+    if (status === '99') return '#F23255'; // 审核退回
+    return undefined;
+  };
+  const reviewStatusColor = getReviewStatusColor(row.reviewStatus);
   return [
     { label: '供应商编号', value: formatValue(getFieldValue(row, ['enterpriseNumber', 'supplierNo'])) },
-    { label: '审核状态', value: mapValue(REVIEW_STATUS_MAP, row.reviewStatus) },
+    { label: '审核状态', value: reviewStatusValue, color: reviewStatusColor },
     { label: '供应商名称', value: formatValue(row.companyName) },
     { label: '社会统一信用代码', value: formatValue(getFieldValue(row, ['licenseNumber', 'creditCode'])) },
     { label: '注册资本', value: formatValue(getFieldValue(row, ['signUpCapital', 'registeredCapital'])) },
@@ -1600,6 +1609,13 @@ const handleSubmitApproval = async (action: 'agree' | 'reject') => {
     border-bottom: 1px dashed var(--brder-color) !important;
     margin-bottom: 0 !important;
     padding-bottom: 10px !important;
+  }
+
+  .status-input {
+    .el-input__inner {
+      color: #108c58 !important;
+      -webkit-text-fill-color: #108c58 !important;
+    }
   }
 }
 </style>
