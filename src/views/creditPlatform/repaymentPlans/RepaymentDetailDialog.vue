@@ -164,18 +164,23 @@
         </el-form>
       </div>
 
-      <div class="detail-section" style="padding-bottom: 24px">
-        <FormHeader title="查看合同" />
-        <div class="contract-section">
-          <el-button type="primary" @click="handleViewContract">查看合同详情</el-button>
-        </div>
-      </div>
-
       <div class="detail-section">
-        <FormHeader title="还款计划" />
-        <div class="repayment-section">
-          <el-button type="success" @click="handleViewRepaymentPlan">查看还款计划</el-button>
-        </div>
+        <el-form label-width="140px">
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="12">
+              <el-form-item label="合同信息">
+                <el-button type="primary" style="margin-left: 11px" @click="handleViewContract">查看</el-button>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="12">
+              <el-form-item label="还款计划">
+                <el-button type="primary" style="margin-left: 11px" @click="handleViewRepaymentPlan">查看</el-button>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
     </div>
     <template #footer>
@@ -728,12 +733,6 @@ const handleViewRepaymentPlan = () => {
 .file-placeholder {
   color: #909399;
   font-size: 14px;
-}
-
-.contract-section,
-.repayment-section {
-  display: flex;
-  justify-content: center;
 }
 </style>
 

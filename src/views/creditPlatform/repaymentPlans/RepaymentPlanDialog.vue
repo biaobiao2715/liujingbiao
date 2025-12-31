@@ -24,23 +24,23 @@
         <div v-for="(plan, index) in repaymentPlans" :key="index" class="plan-card">
           <div class="card-content">
             <div class="form-row">
-              <span class="label">还款期数：</span>
+              <span class="label">还款期数</span>
               <span class="value">{{ plan.period }}期</span>
             </div>
             <div class="form-row">
-              <span class="label">还款日期：</span>
+              <span class="label">还款日期</span>
               <span class="value">{{ plan.repaymentDate }}</span>
             </div>
             <div class="form-row">
-              <span class="label">还款金额：</span>
-              <span class="value amount">{{ plan.repaymentAmount }} 元</span>
+              <span class="label">还款金额</span>
+              <span class="value">{{ plan.repaymentAmount }} 元</span>
             </div>
             <div class="form-row">
-              <span class="label">还款卡号：</span>
+              <span class="label">还款卡号</span>
               <span class="value">{{ plan.cardNumber || '--' }}</span>
             </div>
             <div class="form-row">
-              <span class="label">还款状态：</span>
+              <span class="label">还款状态</span>
               <span class="status-text" :style="{ color: getStatusColor(plan.status) }">
                 {{ plan.statusText }}
               </span>
@@ -113,7 +113,7 @@ const getStatusText = (planStatus: number | string) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'paid':
-      return '#0B79EF'; // 已还款
+      return '#108C58'; // 已还款
     case 'overdue':
       return '#FF0000'; // 已逾期
     case 'pending':
@@ -176,7 +176,8 @@ const handleClose = () => {
 .plan-card {
   border: 1px solid #ebeef5;
   border-radius: 4px;
-  background: #fff;
+  background: url('@/assets/images/huankuanPlanBg.png') no-repeat right center;
+  background-size: cover;
   width: calc(33.333% - 11px);
   min-width: 280px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
@@ -206,11 +207,7 @@ const handleClose = () => {
     flex: 1;
     font-size: 14px;
     color: #303133;
-
-    &.amount {
-      color: #e6a23c;
-      font-weight: 600;
-    }
+    text-align: right;
   }
 }
 
@@ -220,6 +217,8 @@ const handleClose = () => {
 
 .status-text {
   font-weight: 600;
+  flex: 1;
+  text-align: right;
 }
 
 .primary-close-btn {
