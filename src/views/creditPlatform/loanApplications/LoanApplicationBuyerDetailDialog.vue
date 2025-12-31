@@ -1134,6 +1134,10 @@ const handleViewProductDetail = () => {
   margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
+
+  :deep(img) {
+    object-fit: cover;
+  }
 }
 
 .approval-actions {

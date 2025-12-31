@@ -691,6 +691,10 @@ const handleViewRepaymentPlan = () => {
   margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
+
+  :deep(img) {
+    object-fit: cover;
+  }
 }
 
 .license-image-large {
@@ -700,6 +704,10 @@ const handleViewRepaymentPlan = () => {
   margin-left: 11px;
   border: 1px solid #e5e5e5;
   background-color: #ffffff;
+
+  :deep(img) {
+    object-fit: cover;
+  }
 }
 
 .address-license-row {
