@@ -25,7 +25,7 @@
       <el-row :gutter="12" v-if="activeTab === 'course'">
         <el-col :span="6" v-for="(course, index) in courseList" :key="index">
           <div class="course-item" @click="handleDetail('courseDetail', course.id)">
-            <div class="course-image" :style="{ backgroundImage: 'url(' + course.imageFile.url + ')' }">
+            <div class="course-image" :style="{ backgroundImage: 'url(' + course.imageFile?.url + ')' }">
               <div class="hot-info flex-center-between">
                 <div class="views flex-center gap-4">
                   <el-icon size="15"><View /></el-icon>
