@@ -8,7 +8,9 @@
 
 <template>
   <div class="platform-home">
-    <h2 class="page-title">农资/农具销售分析</h2>
+    <div class="title-card">
+      <h2 class="page-title">农资/农具销售分析</h2>
+    </div>
     <div class="chart-grid">
       <QuantityChart />
       <AmountChart />
@@ -33,11 +35,31 @@ import FulfillmentChart from '@/views/platformManage/components/FulfillmentChart
   padding-top: 0;
 }
 
+.title-card {
+  background: #ffffff;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+}
+
 .page-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
+  color: #108C58;
+  margin: 0;
+  padding-left: 12px;
+  position: relative;
+  line-height: 1.4;
+}
+
+.page-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background-color: #108C58;
 }
 
 .chart-grid {

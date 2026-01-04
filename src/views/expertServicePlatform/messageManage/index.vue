@@ -19,7 +19,7 @@
             start-placeholder="开始时间"
             end-placeholder="结束时间"
           />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
+          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
         </div>
       </el-form-item>
 
@@ -42,7 +42,7 @@
             start-placeholder="开始时间"
             end-placeholder="结束时间"
           />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
+          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
         </div>
       </el-form-item>
 
@@ -437,6 +437,8 @@ onMounted(() => {
 }
 
 :deep(.el-table) {
+  font-size: 15px;
+
   .el-table__header {
     background-color: #fafafa;
 
@@ -444,10 +446,17 @@ onMounted(() => {
       background-color: #fafafa !important;
       color: #606266;
       font-weight: 600;
+      font-size: 15px;
+      padding: 14px 0;
     }
   }
 
   .el-table__body {
+    td {
+      font-size: 15px;
+      padding: 14px 0;
+    }
+
     tr {
       &:hover {
         background-color: #f5f7fa;
