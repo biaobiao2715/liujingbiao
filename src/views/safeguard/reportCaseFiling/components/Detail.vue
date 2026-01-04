@@ -53,7 +53,8 @@
         <!-- 被举报人用户类型 -> 被举报人联系电话 -->
         <el-col :span="12">
           <el-form-item label="被举报人联系电话">
-            <el-input v-model="formData.contactPhone" readonly />
+            <!-- <el-input v-model="formData.contactPhone" readonly /> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.contactPhone }}</text>
           </el-form-item>
         </el-col>
 
@@ -91,30 +92,19 @@
             <el-form-item label="举报视频">
               <div class="evidence">
                 <template v-if="reportVideoList.length">
-                  <div v-for="(v, idx) in reportVideoList" :key="v.url + idx" class="video-card">
+                  <div v-for="(v, idx) in reportVideoList" :key="v.url + idx" class="video-card" @click="playBtnFun(idx)">
                     <div class="size">{{ v.sizeText }}</div>
-                    <!-- <el-image :key="v.url + idx" :src="v.url" :initial-index="idx" fit="cover" class="evidence-image-item-vide" /> -->
-                    <!-- <div class="ops"> -->
-                    <video
-                      class=""
-                      :src="v.url"
-                      initial-time="0"
-                      loop="false"
-                      muted="false"
-                      direction="0"
-                      bindplay=""
-                      bindpause=""
-                      bindended=""
-                      bindtimeupdate=""
-                      bindwaiting=""
-                      binderror=""
-                      controls
-                    ></video>
-                    <!-- <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button> -->
-                    <!-- </div> -->
+                    <video :id="'video' + idx" class="" :src="v.url" initial-time="0" loop="false" muted="false" direction="0"></video>
+                    <div class="download-class" @click.stop="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">
+                      <el-icon size="16"><Download /></el-icon>
+                      下载
+                    </div>
+                    <div class="video-play" v-show="!pausedFlag">
+                      <el-icon size="24"><VideoPlay /></el-icon>
+                    </div>
                   </div>
                 </template>
-                <span v-else class="evidence-empty">暂无视频</span>
+                <text v-else class="evidence-empty report-description" selectable="false" space="false" decode="false">暂无视频</text>
               </div>
             </el-form-item>
           </el-col>
@@ -214,30 +204,20 @@
               <el-form-item label="申诉视频">
                 <div class="evidence">
                   <template v-if="appealVideoList.length">
-                    <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card">
+                    <div v-for="(v, idx) in appealVideoList" :key="v.url + idx" class="video-card" @click="playBtnFun(idx)">
                       <div class="size">{{ v.sizeText }}</div>
                       <!-- <div class="icon">视频</div> -->
-                      <video
-                        class=""
-                        :src="v.url"
-                        initial-time="0"
-                        loop="false"
-                        muted="false"
-                        direction="0"
-                        bindplay=""
-                        bindpause=""
-                        bindended=""
-                        bindtimeupdate=""
-                        bindwaiting=""
-                        binderror=""
-                        controls
-                      ></video>
-                      <!-- <div class="ops">
-                        <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
-                      </div> -->
+                      <video :id="'video' + idx" :src="v.url" initial-time="0" loop="false" muted="false" direction="0"></video>
+                      <div class="download-class" @click.stop="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">
+                        <el-icon size="16"><Download /></el-icon>
+                        下载
+                      </div>
+                      <div class="video-play" v-show="!pausedFlag">
+                        <el-icon size="24"><VideoPlay /></el-icon>
+                      </div>
                     </div>
                   </template>
-                  <span v-else class="evidence-empty">暂无视频</span>
+                  <text v-else class="evidence-empty report-description" selectable="false" space="false" decode="false">暂无视频</text>
                 </div>
               </el-form-item>
             </el-col>
@@ -279,7 +259,6 @@
                 maxlength="200"
                 show-word-limit
               />
-              <!-- <div v-if="!processFeedback.rejectReason" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写驳回原因</div> -->
             </el-form-item>
           </el-col>
 
@@ -354,7 +333,7 @@
         <el-row :gutter="20" class="detail-form" v-if="!!formData.caseCode">
           <el-col :span="24">
             <el-form-item label="驳回原因">
-              <el-input v-model="formData.backAppealReason" type="textarea" :rows="4" disabled autosize />
+              <text class="report-description" selectable="false" space="false" decode="false">{{ formData.backAppealReason }}</text>
             </el-form-item>
           </el-col>
         </el-row>
@@ -362,7 +341,7 @@
         <el-row :gutter="20" class="detail-form" v-if="!formData.caseCode">
           <el-col :span="24">
             <el-form-item label="驳回原因">
-              <el-input v-model="formData.rejectReason" type="textarea" :rows="4" disabled autosize />
+              <text class="report-description" selectable="false" space="false" decode="false">{{ formData.rejectReason }}</text>
             </el-form-item>
           </el-col>
         </el-row>
@@ -372,7 +351,7 @@
         <el-row :gutter="20" class="detail-form">
           <el-col :span="24">
             <el-form-item label="撤回原因">
-              <el-input :model-value="withdrawReasonText || '暂无撤回原因'" type="textarea" :rows="4" disabled autosize />
+              <text class="report-description" selectable="false" space="false" decode="false">{{ withdrawReasonText || '暂无撤回原因' }}</text>
             </el-form-item>
           </el-col>
         </el-row>
@@ -380,69 +359,97 @@
       <!-- 处理中状态：显示新的处理反馈 -->
       <div v-show="isProcessing && !hideProcessingViewSection">
         <FormHeader title="处理反馈" />
-        <el-row :gutter="20">
-          <el-col :span="24">
-            <el-form-item label="处理反馈" required>
-              <el-cascader
-                v-model="processingFeedback.feedbackCascader"
-                :options="processingFeedbackCascaderOptions || []"
-                placeholder="请选择"
-                filterable
-                clearable
-                style="width: 100%"
-                @change="handleProcessingFeedbackChange"
-              />
-              <div v-if="feedBackValueStatus" class="rules-class">请选择处理反馈</div>
-            </el-form-item>
-          </el-col>
-          <!-- 选择驳回申诉：显示驳回申诉原因 -->
-          <el-col v-if="processingFeedback.rejectBack === '0'" :span="24">
-            <el-form-item label="驳回申诉原因" required>
-              <el-input
-                v-model="processingFeedback.appealReason"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入驳回申诉原因,最多输入200个汉字"
-                maxlength="200"
-                show-word-limit
-              />
-              <div v-if="!processingFeedback.appealReason" class="rules-class">请填写驳回申诉原因</div>
-            </el-form-item>
-          </el-col>
+        <el-form label-width="160">
+          <el-row>
+            <el-col :span="24">
+              <el-form-item label="处理反馈" required>
+                <el-cascader
+                  v-model="processingFeedback.feedbackCascader"
+                  :options="processingFeedbackCascaderOptions || []"
+                  placeholder="请选择"
+                  filterable
+                  clearable
+                  style="width: 100%"
+                  @change="handleProcessingFeedbackChange"
+                />
+                <div v-if="feedBackValueStatus" class="rules-class">请选择处理反馈</div>
+              </el-form-item>
+            </el-col>
+            <!-- 选择驳回申诉：显示驳回申诉原因 -->
+            <el-col v-if="processingFeedback.rejectBack === '0'" :span="24">
+              <el-form-item label="驳回申诉原因" required>
+                <el-input
+                  v-model="processingFeedback.appealReason"
+                  type="textarea"
+                  :rows="4"
+                  placeholder="请输入驳回申诉原因,最多输入200个汉字"
+                  maxlength="200"
+                  show-word-limit
+                />
+                <div v-if="!processingFeedback.appealReason" class="rules-class">请填写驳回申诉原因</div>
+              </el-form-item>
+            </el-col>
 
-          <!-- 选择平台结案：显示案件扣分信息和平台反馈处理结果 -->
-          <template v-if="processingFeedback.rejectBack === '1'">
-            <el-col :span="24">
-              <FormHeader title="案件扣分" />
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="供应商名称/企业名称：">
-                <span>
-                  {{ formData.reporterName }}
-                </span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="案件类型">
-                <dict-text :options="case_type" :value="formData.hnCase.caseTypeId ?? ''" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="扣分：">
-                <span>{{ formData.caseScore !== undefined && formData.caseScore !== null ? String(formData.caseScore) : formData.caseScore }}</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="信用等级">
-                <dict-text :options="plat_credit_rating" :value="formData.creditLevel ?? ''" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="剩余信用积分">
-                <span>{{ formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore }}</span>
-              </el-form-item>
-            </el-col>
-            <el-col :span="24">
+            <!-- 选择平台结案：显示案件扣分信息和平台反馈处理结果 -->
+            <template v-if="processingFeedback.rejectBack === '1'">
+              <el-col :span="24">
+                <FormHeader title="案件扣分" />
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="供应商名称/企业名称">
+                  <!-- <span>{{ formData.reporterName }}</span> -->
+                  <text class="report-description" selectable="false" space="false" decode="false">{{ formData.reporterName }}</text>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="案件类型">
+                  <!-- <dict-text :options="case_type" :value="formData.hnCase.caseTypeId ?? ''" /> -->
+                  <text class="report-description" selectable="false" space="false" decode="false">{{
+                    caseTypeText(formData.hnCase.caseTypeId)
+                  }}</text>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="扣分">
+                  <!-- <span>{{ formData.caseScore !== undefined && formData.caseScore !== null ? String(formData.caseScore) : formData.caseScore }}</span> -->
+                  <text class="report-description" selectable="false" space="false" decode="false">{{
+                    formData.caseScore !== undefined && formData.caseScore !== null ? String(formData.caseScore) : formData.caseScore
+                  }}</text>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="信用等级">
+                  <!-- <dict-text :options="plat_credit_rating" :value="formData.creditLevel ?? ''" /> -->
+                  <div class="comm-line">
+                    <el-tag :type="platCreadit(formData.creditLevel).type">{{ platCreadit(formData.creditLevel).text }}</el-tag>
+                  </div>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="剩余信用积分">
+                  <!-- <span>{{ formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore }}</span> -->
+                  <text class="report-description" selectable="false" space="false" decode="false">{{
+                    formData.sore !== undefined && formData.sore !== null ? String(formData.sore) + '分' : formData.sore
+                  }}</text>
+                </el-form-item>
+              </el-col>
+              <el-col :span="24">
+                <el-form-item label="平台反馈处理结果" required>
+                  <el-input
+                    v-model="processingFeedback.dealResult"
+                    type="textarea"
+                    :rows="4"
+                    placeholder="请输入平台反馈处理结果,最多输入200个汉字"
+                    maxlength="200"
+                    show-word-limit
+                  />
+                  <div v-if="!processingFeedback.dealResult" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写平台反馈处理原因</div>
+                </el-form-item>
+              </el-col>
+            </template>
+
+            <!-- 选择申诉成功：显示平台反馈处理结果 -->
+            <el-col v-if="processingFeedback.rejectBack === '2'" :span="24">
               <el-form-item label="平台反馈处理结果" required>
                 <el-input
                   v-model="processingFeedback.dealResult"
@@ -455,23 +462,8 @@
                 <div v-if="!processingFeedback.dealResult" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写平台反馈处理原因</div>
               </el-form-item>
             </el-col>
-          </template>
-
-          <!-- 选择申诉成功：显示平台反馈处理结果 -->
-          <el-col v-if="processingFeedback.rejectBack === '2'" :span="24">
-            <el-form-item label="平台反馈处理结果" required>
-              <el-input
-                v-model="processingFeedback.dealResult"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入平台反馈处理结果,最多输入200个汉字"
-                maxlength="200"
-                show-word-limit
-              />
-              <div v-if="!processingFeedback.dealResult" style="color: #f56c6c; font-size: 12px; margin-top: 4px">请填写平台反馈处理原因</div>
-            </el-form-item>
-          </el-col>
-        </el-row>
+          </el-row>
+        </el-form>
       </div>
 
       <!-- 非已驳回且非待处理且非处理中状态：显示处理反馈（只读） -->
@@ -489,7 +481,8 @@
               <template v-if="formData.rejectBack === '1'">
                 <el-col :span="24">
                   <el-form-item label="供应商名称/企业名称">
-                    <el-input v-model="formData.reporterName" readonly />
+                    <!-- <el-input v-model="formData.reporterName" readonly /> -->
+                    <text class="report-description" selectable="false" space="false" decode="false">{{ formData.reporterName }}</text>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
@@ -537,6 +530,7 @@
               </el-col>
             </el-row>
           </el-form>
+          <div class="result-class"></div>
         </div>
       </template>
 
@@ -568,77 +562,71 @@
     <!-- 历史申诉材料弹窗 -->
     <el-dialog v-model="appealDialogVisible" title="历史申诉材料" width="50%" destroy-on-close append-to-body @close="closeAppealDialog">
       <div v-loading="appealDialogLoading">
-        <el-row :gutter="20" class="detail-form">
-          <el-col :span="24">
-            <el-form-item label="申诉理由">
-              <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" readonly autosize />
-            </el-form-item>
-          </el-col>
+        <el-form label-width="140">
+          <el-row :gutter="20" class="detail-form">
+            <el-col :span="24">
+              <el-form-item label="申诉理由">
+                <!-- <el-input v-model="appealDetail.appealReason" type="textarea" :rows="4" readonly autosize /> -->
+                <text class="report-description" selectable="false" space="false" decode="false">{{ appealDetail.appealReason }}</text>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉时间">
-              <el-input v-model="appealDetail.appealTime" type="textarea" :rows="4" readonly autosize />
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="申诉时间">
+                <!-- <el-input v-model="appealDetail.appealTime" type="textarea" :rows="4" readonly autosize /> -->
+                <text class="report-description" selectable="false" space="false" decode="false">{{ appealDetail.appealTime }}</text>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉图片">
-              <div class="evidence">
-                <template v-if="histAppealImageList.length">
-                  <el-image
-                    v-for="(img, idx) in histAppealImageList"
-                    :key="img.url + idx"
-                    :src="img.url"
-                    :preview-src-list="histAppealImagePreviewUrls"
-                    :initial-index="idx"
-                    fit="cover"
-                    class="evidence-image-item"
-                  />
-                </template>
-                <span v-else class="evidence-empty">暂无图片</span>
-              </div>
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="申诉图片">
+                <div class="evidence">
+                  <template v-if="histAppealImageList.length">
+                    <el-image
+                      v-for="(img, idx) in histAppealImageList"
+                      :key="img.url + idx"
+                      :src="img.url"
+                      :preview-src-list="histAppealImagePreviewUrls"
+                      :initial-index="idx"
+                      fit="cover"
+                      class="evidence-image-item"
+                    />
+                  </template>
+                  <span v-else class="evidence-empty">暂无图片</span>
+                </div>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="申诉视频">
-              <div class="evidence">
-                <template v-if="histAppealVideoList.length">
-                  <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card">
-                    <div class="size">{{ v.sizeText }}</div>
-                    <!-- <div class="icon">视频</div> -->
-                    <video
-                      class=""
-                      :src="v.url"
-                      initial-time="0"
-                      loop="false"
-                      muted="false"
-                      direction="0"
-                      bindplay=""
-                      bindpause=""
-                      bindended=""
-                      bindtimeupdate=""
-                      bindwaiting=""
-                      binderror=""
-                      controls
-                    ></video>
-                    <!-- <div class="ops">
-                      <el-button type="primary" link @click="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">下载视频</el-button>
-                    </div> -->
-                  </div>
-                </template>
-                <span v-else class="evidence-empty">暂无视频</span>
-              </div>
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="申诉视频">
+                <div class="evidence">
+                  <template v-if="histAppealVideoList.length">
+                    <div v-for="(v, idx) in histAppealVideoList" :key="v.url + idx" class="video-card" @click="playBtnFun(idx)">
+                      <div class="size">{{ v.sizeText }}</div>
+                      <!-- <div class="icon">视频</div> -->
+                      <video :id="'video' + idx" :src="v.url" initial-time="0" loop="false" muted="false" direction="0"></video>
+                      <div class="download-class" @click.stop="downloadAttachment(v.name || 'video_' + (idx + 1), v.url)">
+                        <el-icon size="16"><Download /></el-icon>
+                        下载
+                      </div>
+                      <div class="video-play" v-show="!pausedFlag">
+                        <el-icon size="24"><VideoPlay /></el-icon>
+                      </div>
+                    </div>
+                  </template>
+                  <text v-else class="evidence-empty report-description" selectable="false" space="false" decode="false">暂无视频</text>
+                </div>
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="平台驳回申诉理由">
-              <!-- <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" readonly autosize /> -->
-              <text class="report-description" selectable="false" space="false" decode="false">{{ appealDetail.backReason }}</text>
-            </el-form-item>
-          </el-col>
-        </el-row>
+            <el-col :span="24">
+              <el-form-item label="平台驳回申诉理由">
+                <!-- <el-input v-model="appealDetail.backReason" type="textarea" :rows="4" readonly autosize /> -->
+                <text class="report-description" selectable="false" space="false" decode="false">{{ appealDetail.backReason }}</text>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
       </div>
     </el-dialog>
 
@@ -650,7 +638,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, reactive, getCurrentInstance, toRefs, ComponentInternalInstance } from 'vue';
+import { ref, computed, onMounted, watch, reactive, getCurrentInstance, toRefs, ComponentInternalInstance, useTemplateRef } from 'vue';
 // 仅保留使用到的 API 与类型
 import { getReportCaseFilingDetail, getlookDetail, FormData, FileViewItem } from '@/api/rightsPlatform/achiveManagement/credit/violationRecords';
 import {
@@ -664,11 +652,10 @@ import { fetchCaseTypeOptions, getCaseTypeDetail } from '@/api/safeguard/case';
 import { ElMessage } from 'element-plus';
 import FormHeader from '@/components/FormHeader/index.vue';
 import supplierDetail from './supplierDetail.vue';
-import { text } from 'stream/consumers';
 const loading = ref(true);
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const { case_type, plat_credit_rating, report_type_id } = toRefs<any>(proxy?.useDict('case_type', 'plat_credit_rating', 'report_type_id'));
-console.log(report_type_id);
+
 const dictTextReturn = (id) => {
   return report_type_id.value.find((item) => item.value == id)?.label;
 };
@@ -678,7 +665,9 @@ const platCreadit = (level) => {
     type: plat_credit_rating.value.find((item) => item.value == level)?.elTagType
   };
 };
-console.log(platCreadit(99));
+const caseTypeText = (type: string | number | '') => {
+  return case_type.value.find((item) => item.value == type)?.label;
+};
 
 // 通过 props 接收父组件传参
 const props = defineProps<{
@@ -1460,7 +1449,23 @@ const resetProcessFeedback = () => {
   processingFeedback.appealReason = '';
   processingFeedback.dealResult = '';
 };
+const pausedFlag = ref(false); // 视频播放状态
+const playBtnFun = (idx) => {
+  const video = document.getElementById('video' + idx) as HTMLVideoElement;
+  console.log(video);
 
+  if (video) {
+    if (video.paused) {
+      pausedFlag.value = true;
+      video.play(); // 播放视频
+      console.log('播放');
+    } else {
+      pausedFlag.value = false;
+      video.pause(); // 暂停视频
+      console.log('暂停');
+    }
+  }
+};
 onMounted(() => {
   resetProcessFeedback();
   fetchDetail();
@@ -1469,7 +1474,6 @@ onMounted(() => {
     loadCaseTypeOptions();
   }
 });
-
 // 监听状态变化，如果是待处理状态则加载案件类型选项
 watch(
   () => formData.value?.status,
@@ -1513,12 +1517,12 @@ watch(
 //   resize: none !important;
 // }
 
-::v-deep .el-input__inner {
+:deep(.el-input__inner) {
   cursor: default !important;
 }
 
 // 去除 el-date-picker 的样式
-::v-deep .el-date-editor {
+:deep(.el-date-editor) {
   border: none;
   background-color: transparent;
   pointer-events: none;
@@ -1526,7 +1530,7 @@ watch(
 }
 
 .textarea-item {
-  ::v-deep .el-textarea__inner {
+  :deep(.el-textarea__inner) {
     box-shadow: none !important;
     background-color: transparent !important;
     cursor: default !important;
@@ -1540,6 +1544,8 @@ watch(
   flex-wrap: wrap;
   gap: 16px;
   width: 100%;
+  padding-left: 11px;
+  box-sizing: border-box;
 }
 /* 图片项：等分 6 列，保持 4:3 比例 */
 .evidence-image-item {
@@ -1572,18 +1578,47 @@ watch(
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   video {
     width: 147px;
     height: 90px;
     border-radius: 4px 4px 4px 4px;
   }
+  .download-class {
+    position: absolute;
+    width: 100%;
+    height: 24px;
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+    bottom: 0;
+    z-index: 10;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .video-play {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #acacac;
+    z-index: 10;
+    cursor: pointer;
+  }
 }
 .video-card .size {
   position: absolute;
-  top: 6px;
+  top: 2px;
   right: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #ffffff;
+  z-index: 9;
 }
 .video-card .icon {
   font-size: 18px;
@@ -1701,6 +1736,7 @@ watch(
   color: #108c58;
   cursor: pointer;
   line-height: 40px;
+  padding-left: 11px;
 }
 .rules-class {
   color: #f56c6c;
@@ -1721,17 +1757,26 @@ watch(
   overflow: hidden;
 }
 .report-description {
+  width: 100%;
   min-height: 42px;
-  line-height: 42px;
+  line-height: 18px;
   padding-right: 20px;
+  padding-left: 11px;
+  padding-top: 12px;
   box-sizing: border-box;
+  text-wrap: wrap;
 }
 ::v-deep .el-textarea__inner {
   min-height: 40px !important;
   line-height: 40px;
 }
 .handle-feedback {
-  border: 1px solid #108c58;
+  background-image: url('@/assets/images/case_closed.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center center;
+  position: relative;
+  // border: 1px solid #108c58;
   .handle-feedback-header {
     padding: 14px 16px 0;
     box-sizing: border-box;
@@ -1740,9 +1785,22 @@ watch(
     font-size: 16px;
     color: #3d3d3d;
   }
+  .result-class {
+    width: 108px;
+    height: 60px;
+    position: absolute;
+    right: 11px;
+    top: 14px;
+    background-image: url('@/assets/images/result_image.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center center;
+  }
 }
 .comm-line {
   line-height: 40px;
+  padding-left: 11px;
+  box-sizing: border-box;
 }
 .case-type-color {
   color: #ff7b00;
@@ -1753,7 +1811,7 @@ watch(
 .points-color {
   color: #108c58;
 }
-::v-deep .el-radio-group {
+:deep(.el-radio-group) {
   line-height: 42px;
   .el-radio {
     line-height: 42px;

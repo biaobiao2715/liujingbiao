@@ -13,27 +13,33 @@
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
           <el-form-item :label="`${entityLabel}编码`">
-            <el-input v-model="formData.enterpriseNumber" readonly></el-input>
+            <!-- <el-input v-model="formData.enterpriseNumber" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.enterpriseNumber }}</text>
           </el-form-item>
 
           <el-form-item :label="`${entityLabel}名称`">
-            <el-input v-model="formData.companyName" readonly></el-input>
+            <!-- <el-input v-model="formData.companyName" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.companyName }}</text>
           </el-form-item>
 
           <el-form-item label="注册资本">
-            <el-input v-model="formData.signUpCapital" readonly></el-input>
+            <!-- <el-input v-model="formData.signUpCapital" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.signUpCapital }}</text>
           </el-form-item>
 
           <el-form-item label="注册地址">
-            <el-input v-model="areaCodes" readonly></el-input>
+            <!-- <el-input v-model="areaCodes" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ areaCodes }}</text>
           </el-form-item>
 
           <el-form-item label="办公地址">
-            <el-input v-model="formData.officeAddress" readonly></el-input>
+            <!-- <el-input v-model="formData.officeAddress" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.officeAddress }}</text>
           </el-form-item>
 
           <el-form-item label="企业经营范围">
-            <el-input v-model="formData.businessScope" autosize type="textarea" readonly></el-input>
+            <!-- <el-input v-model="formData.businessScope" autosize type="textarea" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.businessScope }}</text>
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -44,15 +50,19 @@
           </el-form-item>
 
           <el-form-item label="社会统一信用代码">
-            <el-input v-model="formData.licenseNumber" readonly></el-input>
+            <!-- <el-input v-model="formData.licenseNumber" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.licenseNumber }}</text>
           </el-form-item>
 
           <el-form-item label="注册日期">
-            <el-input v-model="formData.signUpTime" readonly></el-input>
+            <!-- <el-input v-model="formData.signUpTime" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.signUpTime }}</text>
           </el-form-item>
 
           <el-form-item label="营业执照">
-            <img :src="urlImage" height="200px" width="200px" alt="营业执照" />
+            <div class="business-license">
+              <el-image :src="urlImage" :preview-src-list="[urlImage]" show-progress alt="营业执照"> </el-image>
+            </div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -61,23 +71,27 @@
       <FormHeader title="法人信息" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
-          <el-form-item label="法人姓名">
-            <el-input v-model="contactF.contactUserName" readonly></el-input>
+          <el-form-item label="法人姓名" required>
+            <!-- <el-input v-model="contactF.contactUserName" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ contactF.contactUserName }}</text>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="证件类型">
-            <el-input v-model="idType" readonly></el-input>
+          <el-form-item label="证件类型" required>
+            <!-- <el-input v-model="idType" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ idType }}</text>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="证件号码">
-            <el-input v-model="contactF.contactIdCard" readonly></el-input>
+          <el-form-item label="证件号码" required>
+            <!-- <el-input v-model="contactF.contactIdCard" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ contactF.contactIdCard }}</text>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="联系电话">
-            <el-input v-model="contactF.contactPhone" readonly></el-input>
+          <el-form-item label="联系电话" required>
+            <!-- <el-input v-model="contactF.contactPhone" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ contactF.contactPhone }}</text>
           </el-form-item>
         </el-col>
       </el-row>
@@ -87,13 +101,15 @@
         <FormHeader title="联系人" />
         <el-row :gutter="20" v-for="(contact, index) in formData.contacts" :key="index">
           <el-col :span="12">
-            <el-form-item :label="'联系人' + (index + 1)">
-              <el-input v-model="contact.contactUserName" readonly></el-input>
+            <el-form-item :label="'联系人' + (index + 1)" required>
+              <!-- <el-input v-model="contact.contactUserName" readonly></el-input> -->
+              <text class="report-description" selectable="false" space="false" decode="false">{{ contact.contactUserName }}</text>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="联系电话">
-              <el-input v-model="contact.contactPhone" readonly></el-input>
+            <el-form-item label="联系电话" required>
+              <!-- <el-input v-model="contact.contactPhone" readonly></el-input> -->
+              <text class="report-description" selectable="false" space="false" decode="false">{{ contact.contactPhone }}</text>
             </el-form-item>
           </el-col>
         </el-row>
@@ -103,13 +119,15 @@
       <FormHeader title="账户信息" />
       <el-row :gutter="20" class="detail-form">
         <el-col :span="12">
-          <el-form-item label="账户名">
-            <el-input v-model="formData.loginUserName" readonly></el-input>
+          <el-form-item label="账户名" required>
+            <!-- <el-input v-model="formData.loginUserName" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.loginUserName }}</text>
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="注册手机号">
-            <el-input v-model="formData.phoneNumber" readonly></el-input>
+          <el-form-item label="注册手机号" required>
+            <!-- <el-input v-model="formData.phoneNumber" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.phoneNumber }}</text>
           </el-form-item>
         </el-col>
       </el-row>
@@ -125,7 +143,8 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="信用积分">
-            <el-input v-model="formData.sore" readonly></el-input>
+            <!-- <el-input v-model="formData.sore" readonly></el-input> -->
+            <text class="report-description" selectable="false" space="false" decode="false">{{ formData.sore }}</text>
           </el-form-item>
         </el-col>
       </el-row>
@@ -141,7 +160,9 @@
         <el-table-column prop="remark" label="备注" align="center"></el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="scope">
-            <el-button v-throttle type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)">下载</el-button>
+            <el-button v-throttle text type="primary" @click="downloadAttachment(scope.row.ossInfo?.originalName, scope.row.ossInfo?.url)"
+              >下载</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -224,6 +245,8 @@ const contactF = ref({
   contactIdCard: '',
   contactPhone: ''
 });
+const showPreview = ref(false);
+
 const urlImage = ref(); // 营业执照
 
 // id获取详情信息（使用 props.id）
@@ -276,19 +299,19 @@ const downloadAttachment = async (fileName: string, url: string) => {
 }
 
 // 去掉表单的默认样式
-::v-deep .el-input__wrapper {
+:deep(.el-input__wrapper) {
   box-shadow: none !important;
   background-color: transparent !important;
   cursor: default !important;
   resize: none !important;
 }
 
-::v-deep .el-input__inner {
+:deep(.el-input__inner) {
   cursor: default !important;
 }
 
 // 去除 el-date-picker 的样式
-::v-deep .el-date-editor {
+:deep(.el-date-editor) {
   border: none;
   background-color: transparent;
   pointer-events: none;
@@ -296,11 +319,31 @@ const downloadAttachment = async (fileName: string, url: string) => {
 }
 
 .textarea-item {
-  ::v-deep .el-textarea__inner {
+  :deep(.el-textarea__inner) {
     box-shadow: none !important;
     background-color: transparent !important;
     cursor: default !important;
     resize: none !important;
   }
+}
+.report-description {
+  width: 100%;
+  min-height: 42px;
+  line-height: 18px;
+  padding-right: 20px;
+  padding-left: 11px;
+  padding-top: 12px;
+  box-sizing: border-box;
+  text-wrap: wrap;
+}
+.business-license {
+  width: 120px;
+  height: 68px;
+  box-shadow: 0 0 0 1px #dcdfe6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  margin-left: 11px;
 }
 </style>
