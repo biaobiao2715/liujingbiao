@@ -2,15 +2,16 @@
   --color-main: #108c58;
   --el-menu-hover-bg-color: red !important;
   --el-disabled-bg-color: #f2f1f1 !important;
+  --el-disabled-text-color: #3d3d3d !important;
+  --tableHeaderTextColor: #1d2129 !important;
+  --tableHeaderBg: #f2f3f5 !important;
 
-  //   --el-color-primary: var(--color-main) !important;
-  //   .el-button--primary:hover {
-  //     background-color: #0f7a4f !important;
-  //     border-color: var(--color-main) !important;
-  //   }
-  //   .el-button--primary {
-  //     --el-button-disabled-bg-color: #25b67c !important;
-  //   }
+  // 商城、金融 表单textarea样式优化
+  .mall-container,
+  .finance-container {
+    --tableHeaderTextColor: #3d3d3d !important;
+    --tableHeaderBg: #f6f7fb !important;
+  }
 
   // 覆盖左侧菜单hover样式
   .el-menu-item:hover {
@@ -116,31 +117,31 @@
     border-radius: 4px;
   }
 
-  // 全局覆盖所有 Element Plus 禁用状态下的字体颜色
-  .el-input.is-disabled,
-  .el-textarea.is-disabled,
-  .el-select.is-disabled,
-  .el-button.is-disabled,
-  .el-date-editor.is-disabled,
-  .el-cascader.is-disabled,
-  .el-radio.is-disabled,
-  .el-checkbox.is-disabled,
-  .el-switch.is-disabled,
-  .el-slider.is-disabled,
-  .el-rate.is-disabled,
-  .el-upload.is-disabled,
-  .el-pagination.is-disabled,
-  .el-tree.is-disabled,
-  .el-table.is-disabled,
-  .el-form-item.is-disabled,
-  .el-input__wrapper input:disabled,
-  .el-textarea__inner:disabled,
-  .el-select__wrapper.is-disabled,
-  .el-button.is-disabled,
-  .el-date-editor.is-disabled,
-  .el-cascader__wrapper.is-disabled {
-    color: #3d3d3d !important;
-    -webkit-text-fill-color: #3d3d3d !important;
-    opacity: 1 !important;
+  // 全局表格数据字体颜色
+  .el-table .el-table__header .el-table__cell {
+    font-family:
+      PingFang SC,
+      PingFang SC;
+    font-weight: 600;
+  }
+
+  .mall-container .el-table .el-table__header .el-table__cell,
+  .finance-container .el-table .el-table__header .el-table__cell {
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 400;
+  }
+
+  .el-table .el-table__body .el-table__cell {
+    font-family:
+      PingFang SC,
+      PingFang SC;
+    font-weight: 400;
+    color: var(--tableHeaderTextColor);
+  }
+  // 商城、金融 表单textarea样式优化
+  .mall-container .el-table .el-table__body .el-table__cell,
+  .finance-container .el-table .el-table__body .el-table__cell {
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    color: #333333;
   }
 }

@@ -84,7 +84,7 @@
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="商品名称" prop="goodsName" width="150" :show-overflow-tooltip="true" />
-      <el-table-column label="商品编码" prop="goodsCode" width="220"> </el-table-column>
+      <el-table-column label="商品编码" prop="goodsCode" width="240" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="销售价" prop="salesPrice" width="130" :show-overflow-tooltip="true">
         <template #default="scope">
           <span style="color: #108c58">{{ getSalesPrice(scope.row) }}</span>
@@ -116,7 +116,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="发布时间" prop="launchTime" min-width="160">
+      <el-table-column label="发布时间" prop="launchTime" min-width="180">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.launchTime) }}</span>
         </template>
@@ -572,24 +572,5 @@ onMounted(async () => {
   .el-button {
     margin: 0 8px;
   }
-}
-
-/* 操作列样式优化：垂直居中 + 14px 字号 */
-.supplier-management :deep(.op-col .cell) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-}
-.el-dropdown-link {
-  margin-left: 12px;
-}
-
-.op-more-item {
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  color: #108c58;
 }
 </style>

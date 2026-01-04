@@ -30,7 +30,7 @@
     <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="客户名称" prop="customerName" min-width="100" :show-overflow-tooltip="true" />
-      <el-table-column label="客户编码" prop="customerNo" :show-overflow-tooltip="true" />
+      <el-table-column label="客户编码" prop="customerNo" width="200" :show-overflow-tooltip="true" />
       <el-table-column label="客户类型" prop="customerType" align="center">
         <template v-slot="scope">
           <dict-tag :options="purchaser_type" :value="scope.row.customerType" />
