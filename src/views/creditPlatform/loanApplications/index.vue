@@ -36,10 +36,10 @@
     </el-form>
 
     <el-table :data="tableData" v-loading="loading" style="width: 100%">
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column label="申请人" prop="realName" align="center" width="120" class-name="nowrap-column" :show-overflow-tooltip="true" />
-      <el-table-column label="产品名称" prop="productName" min-width="180" align="center" :show-overflow-tooltip="true" />
-      <el-table-column label="产品类型" prop="productType" align="center" width="120" class-name="tag-column-nowrap" :show-overflow-tooltip="true">
+      <el-table-column type="index" label="序号" width="60" />
+      <el-table-column label="申请人" prop="realName" width="120" class-name="nowrap-column" :show-overflow-tooltip="true" />
+      <el-table-column label="产品名称" prop="productName" min-width="180" :show-overflow-tooltip="true" />
+      <el-table-column label="产品类型" prop="productType" width="120" class-name="tag-column-nowrap" :show-overflow-tooltip="true">
         <template #default="scope">
           <div class="tag-wrapper">
             <dict-tag :options="prod_credit_type" :value="formatDictValue(scope.row.productType)" />
@@ -58,8 +58,8 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="申请时间" prop="createTime" min-width="180" align="center" />
-      <el-table-column label="申请状态" prop="applyStatus" align="center" width="140">
+      <el-table-column label="申请时间" prop="createTime" min-width="180" />
+      <el-table-column label="申请状态" prop="applyStatus" width="140">
         <template #default="scope">
           <span :style="{ color: getStatusColor(scope.row.applyStatus) }" class="status-text">
             <span class="status-dot" :style="{ backgroundColor: getStatusColor(scope.row.applyStatus) }"></span>
@@ -67,7 +67,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="left" width="260" fixed="right">
+      <el-table-column label="操作" width="260" fixed="right">
         <template #default="scope">
           <div class="operation-buttons">
             <el-button
@@ -398,17 +398,20 @@ onMounted(() => {
 
 .operation-buttons {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: nowrap;
   white-space: nowrap;
 
   .el-button {
     margin: 0;
     flex-shrink: 0;
-    padding: 5px 10px;
+    padding: 5px 8px;
     font-size: 14px;
+
+    &:first-child {
+      padding-left: 0;
+    }
 
     &:disabled {
       color: #c0c4cc !important;
@@ -441,44 +444,6 @@ onMounted(() => {
 
 :deep(.nowrap-column .cell) {
   white-space: nowrap;
-}
-
-:deep(.tag-column-nowrap .cell) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  .tag-wrapper {
-    display: inline-block;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    cursor: pointer;
-
-    > div {
-      display: inline-flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      max-width: 100%;
-
-      :deep(.el-tag) {
-        flex-shrink: 0;
-        margin: 0;
-        white-space: nowrap;
-      }
-
-      :deep(.el-tag + .el-tag) {
-        margin-left: 4px;
-      }
-
-      :deep(span) {
-        white-space: nowrap;
-      }
-    }
-  }
 }
 
 :deep(.el-table) {

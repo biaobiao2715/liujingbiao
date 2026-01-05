@@ -31,9 +31,9 @@
 
     <el-table :data="tableData" v-loading="loading">
       <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column label="申请人" prop="realName" align="center" width="120" />
-      <el-table-column label="产品名称" prop="productName" min-width="160" align="center" :show-overflow-tooltip="true" />
-      <el-table-column label="产品类型" prop="productType" align="center" width="120">
+      <el-table-column label="申请人" prop="realName" width="120" />
+      <el-table-column label="产品名称" prop="productName" min-width="160" :show-overflow-tooltip="true" />
+      <el-table-column label="产品类型" prop="productType" width="120">
         <template #default="scope">
           <dict-tag :options="prod_credit_type" :value="scope.row.productType" />
         </template>
@@ -46,10 +46,10 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="贷款金额(万元)" prop="loanAmount" align="center" width="140" />
-      <el-table-column label="贷款期限" prop="loanTerm" align="center" width="100" />
-      <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" align="center" />
-      <el-table-column label="还款状态" prop="planStatus" align="center" width="140">
+      <el-table-column label="贷款金额(万元)" prop="loanAmount" width="140" />
+      <el-table-column label="贷款期限" prop="loanTerm" width="100" />
+      <el-table-column label="贷款审批通过时间" prop="reviewedAt" min-width="180" />
+      <el-table-column label="还款状态" prop="planStatus" width="140">
         <template #default="scope">
           <span class="status-text" :style="{ color: getPlanStatusColor(scope.row.planStatus) }">
             <span class="status-dot" :style="{ backgroundColor: getPlanStatusColor(scope.row.planStatus) }"></span>
@@ -57,7 +57,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="left" width="340" fixed="right" class-name="op-col">
+      <el-table-column label="操作" width="340" fixed="right" class-name="op-col">
         <template #default="scope">
           <div class="operation-buttons">
             <!-- 根据当前期次状态显示不同的提示按钮 -->
@@ -426,17 +426,18 @@ onMounted(() => {
 
 .operation-buttons {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
 
   .el-button {
     margin: 0;
+    padding-left: 8px;
+    padding-right: 8px;
     flex-shrink: 0;
-    padding: 5px 10px;
     font-size: 14px;
+
+    &:first-child {
+      padding-left: 0;
+    }
 
     &:disabled {
       color: #c0c4cc !important;
@@ -444,10 +445,8 @@ onMounted(() => {
   }
 }
 
-/* 去掉操作列左右内边距，防止内容被压缩 */
 :deep(.op-col .cell) {
-  padding-left: 0 !important;
-  padding-right: 8px !important;
+  padding-left: 10px !important;
 }
 
 .pagination {
@@ -491,7 +490,4 @@ onMounted(() => {
     }
   }
 }
-// ::v-deep .el-form-item__label {
-//   text-align: left !important;
-// }
 </style>
