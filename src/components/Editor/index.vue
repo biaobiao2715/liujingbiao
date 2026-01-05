@@ -6,7 +6,7 @@
     </div>
 
     <!-- 文章目录 -->
-    <div class="toc-sidebar">
+    <div class="toc-sidebar" v-if="showCatalogue">
       <div class="toc-header">文章目录</div>
       <div class="toc-content">
         <div v-if="tocList.length > 0" class="toc-list">
@@ -48,7 +48,8 @@ const props = defineProps({
   minHeight: propTypes.number.def(400),
   readOnly: propTypes.bool.def(false),
   fileSize: propTypes.number.def(5),
-  showToolbar: propTypes.bool.def(true)
+  showToolbar: propTypes.bool.def(true),
+  showCatalogue: propTypes.bool.def(false)
 });
 
 /* refs */
@@ -95,7 +96,7 @@ onMounted(() => {
       },
       onChange(editor) {
         const html = editor.getHtml();
-        tocList.value = buildTocFromEditor();
+        tocList.value = props.showCatalogue ? buildTocFromEditor() : [];
         emit('update:modelValue', html);
       }
     }
