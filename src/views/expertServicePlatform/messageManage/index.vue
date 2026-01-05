@@ -430,34 +430,6 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-:deep(.el-table) {
-  font-size: 15px;
-
-  .el-table__header {
-    background-color: #fafafa;
-
-    th {
-      background-color: #fafafa !important;
-      color: #606266;
-      font-weight: 600;
-      font-size: 15px;
-      padding: 14px 0;
-    }
-  }
-
-  .el-table__body {
-    td {
-      font-size: 15px;
-      padding: 14px 0;
-    }
-
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
-    }
-  }
-}
 
 .pagination {
   margin-top: 24px;
