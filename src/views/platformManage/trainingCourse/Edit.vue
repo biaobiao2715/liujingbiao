@@ -38,23 +38,25 @@
 
       <!-- 正文编辑区域 -->
       <el-form-item label="正文编辑" prop="cultivateContent" required>
-        <div class="editor-container">
-          <!-- 富文本编辑器 -->
-          <div class="editor-wrapper">
+        <!-- <div class="editor-container"> -->
+        <!-- 富文本编辑器 -->
+        <!-- <div class="editor-wrapper">
             <Editor v-model="formData.cultivateContent" :height="500" :minHeight="500" />
-          </div>
+          </div> -->
 
-          <!-- 文章目录 -->
-          <TocSidebar
-            :content="formData.cultivateContent"
+        <!-- 文章目录 -->
+        <!-- <TocSidebar
+            :content=""
             editor-container=".w-e-text-container"
             :auto-scroll="true"
             @toc-click="handleTocClick"
             @active-change="handleActiveChange"
             @content-update="handleContentUpdate"
             ref="tocSidebarRef"
-          />
-          <!-- <div class="toc-sidebar">
+          /> -->
+        <Editor v-model="formData.cultivateContent" :showCatalogue="true" :height="400" :minHeight="400" />
+
+        <!-- <div class="toc-sidebar">
                         <div class="toc-header">文章目录</div>
                         <div class="toc-content">
                             <div v-if="tocList.length > 0" class="toc-list">
@@ -72,7 +74,7 @@
                             </div>
                         </div>
                     </div> -->
-        </div>
+        <!-- </div> -->
       </el-form-item>
 
       <!-- 附件上传区域 -->

@@ -19,7 +19,7 @@
         />
       </el-form-item>
       <el-form-item label="正文编辑" prop="knowledgeCaseContent" required>
-        <div class="editor-container">
+        <!-- <div class="editor-container">
           <div class="editor-wrapper">
             <Editor v-model="formData.knowledgeCaseContent" :height="500" :minHeight="500" :fileSize="10" :key="editorKey" />
           </div>
@@ -32,7 +32,8 @@
             @content-update="handleContentUpdate"
             ref="tocSidebarRef"
           />
-        </div>
+        </div> -->
+        <Editor v-model="formData.knowledgeCaseContent" :showCatalogue="true" :height="400" :minHeight="400" />
       </el-form-item>
 
       <el-form-item label="附件上传" v-if="mode !== 'view'">

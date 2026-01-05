@@ -85,7 +85,7 @@
       <el-table-column type="index" label="序号" width="55" />
       <el-table-column label="商品名称" prop="goodsName" width="150" :show-overflow-tooltip="true" />
       <el-table-column label="商品编码" prop="goodsCode" width="240" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="销售价" prop="salesPrice" width="130" :show-overflow-tooltip="true">
+      <el-table-column label="销售价" prop="salesPrice" width="140" :show-overflow-tooltip="true">
         <template #default="scope">
           <span style="color: #108c58">{{ getSalesPrice(scope.row) }}</span>
         </template>

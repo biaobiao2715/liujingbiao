@@ -82,7 +82,7 @@
     <el-table :data="tableData" v-loading="loading" style="table-layout: fixed; width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" />
-      <el-table-column label="发布时间" prop="publishTime" width="160">
+      <el-table-column label="发布时间" prop="publishTime" width="180">
         <template #default="scope">
           <span>{{ proxy.parseTime(scope.row.publishTime) }}</span>
         </template>
@@ -107,7 +107,7 @@
                 reviewRejected: scope.row.articleStatus == 3
               }"
             ></div>
-            <span v-if="scope.row.articleStatus == 3" class="reviewRejected-color">禁用</span>
+            <span v-if="scope.row.articleStatus == 3" class="reviewRejected-color">已禁用</span>
             <span v-if="scope.row.articleStatus == 2" class="green-color">启用</span>
           </div>
         </template>

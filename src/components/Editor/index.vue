@@ -1,8 +1,8 @@
 <template>
-  <div class="editor-container flex">
+  <div class="editor-container flex" :style="containerStyle">
     <div class="editor-wrapper">
-      <div ref="toolbarRef" style="border: 1px solid rgb(220, 223, 230);"></div>
-      <div ref="editorRef" :style="styles"></div>
+      <div ref="toolbarRef" style="border: 1px solid rgb(220, 223, 230)"></div>
+      <div ref="editorRef" class="editor-body"></div>
     </div>
 
     <!-- 文章目录 -->
@@ -58,13 +58,12 @@ const toolbarRef = ref<HTMLDivElement | null>(null);
 let editor: IDomEditor | null = null;
 
 const tocList = ref<any[]>([]);
-let isUpdatingHtml = false;
+const isUpdatingHtml = false;
 
 /* style */
-const styles = computed(() => ({
+const containerStyle = computed(() => ({
   height: `${props.height}px`,
-  minHeight: `${props.minHeight}px`,
-  border: '1px solid #dcdfe6'
+  minHeight: `${props.minHeight}px`
 }));
 
 /* mount */
@@ -91,6 +90,20 @@ onMounted(() => {
             }
             // ✅ 插入图片（原生支持选中 & 缩放）
             insertFn(res.data.url);
+          }
+        },
+        uploadVideo: {
+          fieldName: 'file',
+          maxFileSize: props.fileSize * 1024 * 1024, // 单位：字节
+          allowedFileTypes: ['video/mp4', 'video/webm', 'video/ogg'],
+          headers: globalHeaders(),
+          server: import.meta.env.VITE_APP_BASE_API + '/resource/oss/upload', // 你的上传接口
+          customInsert(res: any, insertFn: (url: string) => void) {
+            if (res?.code !== 200) {
+              ElMessage.error('视频上传失败');
+              return;
+            }
+            insertFn(res.data.url); // 插入视频
           }
         }
       },
@@ -157,7 +170,7 @@ const scrollTo = (id: string) => {
 
   target.scrollIntoView({
     behavior: 'smooth',
-    block: 'start'
+    block: 'center'
   });
 
   // 2️⃣ 闪烁高亮
@@ -183,8 +196,22 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
+.editor-container {
+  height: 100%;
+  display: flex; // 保证左右并排时自身有高度参考
+}
 .editor-wrapper {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+// 编辑区域填满剩余空间
+.editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  border: 1px solid #dcdfe6;
 }
 
 // 文章目录侧边栏 - 右侧
@@ -194,20 +221,28 @@ onBeforeUnmount(() => {
   background: #f5f5f5;
   display: flex;
   flex-direction: column;
+  height: 100%; // 与编辑区等高
 
   .toc-header {
-    padding: 16px 20px;
+    // 固定高度头部，下面内容自适应剩余空间
+    height: 48px;
+    padding: 0 20px;
     font-size: 14px;
     font-weight: 500;
     color: #303133;
     background: #ebebeb;
     border-bottom: 1px solid #dcdfe6;
     text-align: center;
+    line-height: 48px; // 垂直居中文本
   }
 
   .toc-content {
-    flex: 1;
+    // 填满剩余空间并允许滚动，min-height: 0 以避免 flex 子项溢出导致无法滚动
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     padding: 16px;
 
     &::-webkit-scrollbar {
@@ -288,8 +323,14 @@ onBeforeUnmount(() => {
   }
 
   .toc-empty {
+    // 空态时在容器内水平垂直居中
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 60px 20px;
+    padding: 0 20px;
     color: #909399;
 
     .empty-icon {
@@ -313,13 +354,10 @@ onBeforeUnmount(() => {
     }
   }
 }
-
-
 </style>
 
-
 <style lang="scss">
-  /* 建议放到全局样式 */
+/* 建议放到全局样式 */
 .toc-flash {
   animation: tocFlashBg 1s ease-out;
 }

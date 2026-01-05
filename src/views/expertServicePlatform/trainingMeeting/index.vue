@@ -45,12 +45,12 @@
     <!-- 表格展示 -->
     <el-table :data="tableData" v-loading="loading" style="width: 100%">
       <el-table-column type="index" label="序号" width="55" />
-      <el-table-column label="会议开始时间" prop="meetingStartTime" min-width="160">
+      <el-table-column label="会议开始时间" prop="meetingStartTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.meetingStartTime }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="会议结束时间" prop="meetingEndTime" min-width="160">
+      <el-table-column label="会议结束时间" prop="meetingEndTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.meetingEndTime }}</span>
         </template>
@@ -63,8 +63,8 @@
         </template>
       </el-table-column>
       <el-table-column label="联系方式" prop="meetingPhone" min-width="120" />
-      <el-table-column label="发布人" prop="publishUser" min-width="120" />
-      <el-table-column label="发布时间" prop="publishTime" min-width="160">
+      <el-table-column label="发布人" prop="publishUser" min-width="140" :show-overflow-tooltip="true" />
+      <el-table-column label="发布时间" prop="publishTime" min-width="180">
         <template #default="scope">
           <span>{{ scope.row.publishTime }}</span>
         </template>

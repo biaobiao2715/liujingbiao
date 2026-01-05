@@ -28,28 +28,7 @@
         </el-col>
         <el-col :span="24">
           <el-form-item label="正文编辑" label-position="top" prop="articleContent">
-            <div style="display: flex; width: 100%">
-              <!-- 编辑器区 -->
-              <div style="flex: 1">
-                <Editor v-model="form.articleContent" :height="300" :minHeight="300" />
-              </div>
-              <!-- 文章目录 -->
-              <div class="toc-sidebar">
-                <div class="toc-header">文章目录</div>
-                <div class="toc-content">
-                  <div v-if="tocList.length > 0" class="toc-list">
-                    <div v-for="item in tocList" :key="item.id" :class="['toc-item', `toc-level-${item.level}`]" @click="scrollTo(item.id)">
-                      <span class="toc-text">{{ item.text }}</span>
-                    </div>
-                  </div>
-                  <div v-else class="toc-empty">
-                    <el-icon class="empty-icon"><Document /></el-icon>
-                    <p class="empty-text">暂无目录</p>
-                    <p class="empty-tip">使用标题格式编辑内容后将自动生成目录</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Editor v-model="form.articleContent" :showCatalogue="true" :height="400" :minHeight="400" />
           </el-form-item>
         </el-col>
 
@@ -210,58 +189,6 @@ const submit = async () => {
   }
 };
 
-// 防止 watch 内部再次赋值造成递归
-const internalUpdating = ref(false);
-// 监听内容变化，自动生成目录（只在需要时回写）
-watch(
-  () => form.value.articleContent,
-  (val) => {
-    if (internalUpdating.value) return; // 跳过内部更新触发
-    if (!val) {
-      tocList.value = [];
-      return;
-    }
-    const div = document.createElement('div');
-    div.innerHTML = val;
-    const headings = div.querySelectorAll('h1, h2, h3');
-    const newToc: Array<any> = [];
-    let changed = false;
-    headings.forEach((el, idx) => {
-      // 保留已有 id，若无则生成（减少不必要的整体 HTML 重写）
-      if (!el.id) {
-        el.id = `toc-${idx}`;
-        changed = true;
-      }
-      newToc.push({
-        text: (el.textContent || '').trim(),
-        tag: el.tagName.toLowerCase(),
-        id: el.id,
-        level: Number(el.tagName.substring(1))
-      });
-    });
-    tocList.value = newToc;
-    if (changed) {
-      const newHtml = div.innerHTML;
-      if (newHtml !== val) {
-        internalUpdating.value = true;
-        form.value.articleContent = newHtml;
-        queueMicrotask(() => (internalUpdating.value = false));
-      }
-    }
-  },
-  { flush: 'post' }
-);
-// 滚动到对应目录位置
-function scrollTo(id: string) {
-  const editor = document.querySelector('.ql-editor');
-  if (editor) {
-    const el = editor.querySelector(`#${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-}
-
 // 验证文件是否合法
 const validateFile = (file: File) => {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
@@ -311,7 +238,7 @@ const buildUploadPayload = async (file: File, progressPrefix: string) => {
     url: res.url
   };
 };
-
+// 附件上传：支持图片、视频、文档，大小限制不同，首次上传成功后锁定类别
 const handleChange = async (file: any) => {
   const raw: File | undefined = file?.raw;
   if (!raw) return;

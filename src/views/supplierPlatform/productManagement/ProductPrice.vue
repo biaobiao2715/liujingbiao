@@ -35,14 +35,14 @@
     <el-table :data="tableData" v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="55" />
-      <el-table-column label="商品编码" prop="goodsCode" width="220"> </el-table-column>
+      <el-table-column label="商品编码" prop="goodsCode" width="240"> </el-table-column>
       <el-table-column label="商品名称" prop="goodsName" :show-overflow-tooltip="true" />
       <el-table-column label="商品品牌" prop="goodsBrandName"> </el-table-column>
       <el-table-column label="商品类目" prop="goodsCategoryName" :show-overflow-tooltip="true"> </el-table-column>
       <!-- <el-table-column label="调整前销售价格"  prop="goodsOldPrice"> </el-table-column> -->
       <!-- <el-table-column label="调整后销售价格"  prop="goodsNewPrice"> </el-table-column> -->
       <el-table-column label="调整人" prop="createBy" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column label="价格调整日期" prop="changeTime" width="160">
+      <el-table-column label="价格调整日期" prop="changeTime" width="180">
         <template #default="scope">
           {{ scope.row.changeTime }}
           <!-- {{ formatDate(scope.row.changeTime) }} -->

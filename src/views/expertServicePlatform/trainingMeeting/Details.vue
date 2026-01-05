@@ -35,24 +35,26 @@
       <div v-if="meetingData.cancelReason">取消原因：{{ meetingData.cancelReason }}</div>
     </div>
 
+    <div class="table-border"></div>
+
     <!-- 参会专家人员信息 -->
     <div class="table-section">
-      <h3>参会专家人员信息</h3>
+      <div class="table-title">参会专家人员信息</div>
       <el-table :data="expertList">
         <el-table-column type="index" label="序号" width="55" />
-        <el-table-column prop="expertCode" label="专家编码" />
+        <el-table-column prop="expertCode" label="专家编码" :show-overflow-tooltip="true" />
         <el-table-column prop="expertType" label="专家类型" align="center">
           <template #default="scope">
             <dict-tag :options="meet_expert_type" :value="scope.row.expertType" />
           </template>
         </el-table-column>
-        <el-table-column prop="expertName" label="专家姓名" />
+        <el-table-column prop="expertName" label="专家姓名" :show-overflow-tooltip="true" />
         <el-table-column prop="expertSex" label="专家性别">
           <template #default="scope">
             <dict-tag :options="sys_user_sex" :value="scope.row.expertSex" />
           </template>
         </el-table-column>
-        <el-table-column prop="contactPhone" label="专家联系电话" />
+        <el-table-column prop="contactPhone" label="专家联系电话" :show-overflow-tooltip="true" />
       </el-table>
       <div class="pagination">
         <pagination
@@ -67,11 +69,12 @@
 
     <!-- 报名参加人员信息 -->
     <div class="table-section">
-      <h3>报名参加人员信息</h3>
+      <div class="table-title">报名参加人员信息</div>
+
       <el-table :data="signUpList">
         <el-table-column type="index" label="序号" width="55" />
-        <el-table-column prop="enrollUserNickName" label="报名人姓名" />
-        <el-table-column prop="enrollUserPhone" label="报名人联系电话" />
+        <el-table-column prop="enrollUserNickName" label="报名人姓名" :show-overflow-tooltip="true" />
+        <el-table-column prop="enrollUserPhone" label="报名人联系电话" :show-overflow-tooltip="true" />
       </el-table>
       <div class="pagination">
         <pagination
@@ -179,5 +182,24 @@ onMounted(async () => {
   display: flex;
   margin: 12px 0 0 0;
   justify-content: end;
+}
+
+.table-title {
+  height: 22px;
+  font-family:
+    PingFang SC,
+    PingFang SC;
+  font-weight: 400;
+  font-size: 14px;
+  color: #4e5969;
+  line-height: 22px;
+  margin: 14px 0px;
+}
+
+.table-border {
+  width: 100%;
+  height: 1px;
+  background: #e6e6e6;
+  border-radius: 0px 0px 0px 0px;
 }
 </style>
