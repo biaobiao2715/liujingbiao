@@ -887,8 +887,9 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   background: #fff;
   padding: 16px 30px;
-  flex: 1 1 calc((100% - 32px) / 3);
-  min-width: 320px;
+  flex: 0 0 calc((100% - 16px) / 2);
+  max-width: calc((100% - 16px) / 2);
+  box-sizing: border-box;
 
   .plan-form {
     :deep(.el-form-item) {
