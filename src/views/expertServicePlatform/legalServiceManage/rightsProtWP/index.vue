@@ -1082,26 +1082,6 @@ onMounted(() => {
   }
 }
 
-:deep(.el-table) {
-  .el-table__header {
-    background-color: #fafafa;
-
-    th {
-      background-color: #fafafa !important;
-      color: #606266;
-      font-weight: 600;
-    }
-  }
-
-  .el-table__body {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
-    }
-  }
-}
-
 .pagination {
   margin-top: 24px;
   justify-content: end;

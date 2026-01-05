@@ -710,67 +710,6 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-:deep(.el-table) {
-  .el-table__header {
-    background-color: #fafafa;
-
-    th {
-      background-color: #fafafa !important;
-      color: #606266;
-      font-weight: 600;
-    }
-  }
-
-  .el-table__body {
-    tr {
-      &:hover {
-        background-color: #f5f7fa;
-      }
-    }
-
-    td {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-
-  .el-table__cell {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .el-table__column--selection {
-    .el-checkbox__inner {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
-      border: 1px solid #c0c4cc;
-      background-color: #ffffff;
-      transition: all 0.2s ease;
-
-      &::after {
-        left: 5px;
-        top: 1px;
-        width: 4px;
-        height: 9px;
-        border: 2px solid #ffffff;
-        border-left: 0;
-        border-top: 0;
-      }
-    }
-
-    .el-checkbox__input.is-checked,
-    .el-checkbox__input.is-indeterminate {
-      .el-checkbox__inner {
-        background-color: #108c58;
-        border-color: #108c58;
-      }
-    }
-  }
-}
-
 .status-with-dot {
   display: flex;
   align-items: center;

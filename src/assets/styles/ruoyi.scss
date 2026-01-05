@@ -96,12 +96,22 @@ h6 {
       color: $table-header-text-color;
       height: 40px !important;
       font-size: 13px;
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      box-sizing: border-box !important;
     }
   }
   .el-table__body-wrapper {
     .el-button [class*='el-icon-'] + span {
       margin-left: 1px;
     }
+  }
+  // 强制设置单元格内所有元素的行高
+  td .cell {
+    line-height: 23px !important;
+    height: 23px !important;
+    display: flex !important;
+    align-items: center !important;
   }
 }
 
