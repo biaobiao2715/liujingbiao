@@ -6,36 +6,38 @@
       开发信息: Created by 李春雷 2025-10-14
     -->
 <template>
-  <div class="forgot-password">
-    <el-form @submit.prevent="handleSubmit" label-width="70px">
-      <!-- 手机号输入框 -->
-      <el-form-item label="手机号" :error="phoneError">
-        <el-input v-model="phone" placeholder="请输入手机号" size="large" />
-      </el-form-item>
-      <!-- 短信验证码输入框 -->
-      <el-form-item label="短信验证" :error="codeError">
-        <el-input v-model="code" placeholder="六位短信验证码" maxlength="6" size="large">
-          <template #append>
-            <!-- 发送验证码按钮 -->
-            <el-button v-throttle type="primary" :disabled="countdown > 0" @click="sendCode">
-              {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-            </el-button>
-          </template>
-        </el-input>
-      </el-form-item>
-      <!-- 设置密码输入框 -->
-      <el-form-item label="设置密码" :error="passwordError">
-        <el-input v-model="password" type="password" placeholder="输入密码" size="large" />
-      </el-form-item>
-      <!-- 确认密码输入框 -->
-      <el-form-item label="确认密码" :error="confirmPasswordError">
-        <el-input v-model="confirmPassword" type="password" placeholder="请再次输入密码" size="large" />
-      </el-form-item>
-      <!-- 提交按钮 -->
-      <el-form-item>
-        <el-button v-throttle type="primary" @click="handleSubmit" class="w-100">提交</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="forgot-password-container">
+    <div class="forgot-password">
+      <el-form @submit.prevent="handleSubmit" label-width="70px">
+        <!-- 手机号输入框 -->
+        <el-form-item label="手机号" :error="phoneError">
+          <el-input v-model="phone" placeholder="请输入手机号" size="large" />
+        </el-form-item>
+        <!-- 短信验证码输入框 -->
+        <el-form-item label="短信验证" :error="codeError">
+          <el-input v-model="code" placeholder="六位短信验证码" maxlength="6" size="large">
+            <template #append>
+              <!-- 发送验证码按钮 -->
+              <el-button v-throttle type="primary" :disabled="countdown > 0" @click="sendCode">
+                {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
+              </el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+        <!-- 设置密码输入框 -->
+        <el-form-item label="设置密码" :error="passwordError">
+          <el-input v-model="password" type="password" placeholder="输入密码" size="large" />
+        </el-form-item>
+        <!-- 确认密码输入框 -->
+        <el-form-item label="确认密码" :error="confirmPasswordError">
+          <el-input v-model="confirmPassword" type="password" placeholder="请再次输入密码" size="large" />
+        </el-form-item>
+        <!-- 提交按钮 -->
+        <el-form-item>
+          <el-button v-throttle type="primary" @click="handleSubmit" class="w-100">提交</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
   </div>
 </template>
 
@@ -156,10 +158,17 @@ const validateConfirmPassword = (password: string, confirmPassword: string): str
 </script>
 
 <style scoped lang="scss">
+// 容器全屏flex居中
+.forgot-password-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .forgot-password {
   max-width: 460px;
-  margin: 0 auto;
-  margin-top: 20%;
+  width: 100%;
   background-color: #f0f8ff;
   padding: 20px;
   border-radius: 8px;
