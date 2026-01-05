@@ -5,6 +5,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css';
 import '@/assets/styles/index.scss';
 import '@/assets/styles/commonClass.scss';
 import '@/assets/styles/commonCss.scss';
+import '@wangeditor/editor/dist/css/style.css';
 
 // App、router、store
 import App from './App.vue';
