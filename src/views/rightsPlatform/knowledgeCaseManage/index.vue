@@ -15,11 +15,8 @@
           <el-option v-for="item in caseNameOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="创建时间" prop="createTime" label-width="auto" class="custom-date-icon">
-        <div style="position: relative; display: inline-block;">
-          <el-date-picker v-model="queryParams.createTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择" clearable />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
-        </div>
+      <el-form-item label="创建时间" prop="createTime" label-width="auto">
+        <el-date-picker v-model="queryParams.createTime" type="date" value-format="YYYY-MM-DD" placeholder="请选择" clearable />
       </el-form-item>
       <el-form-item label="创建人" prop="createByName" label-width="auto">
         <el-input v-model="queryParams.createByName" placeholder="请输入" clearable @keyup.enter="handleSearch" />
@@ -450,15 +447,6 @@ onMounted(() => {
 
   :deep(.el-button) {
     font-size: 14px;
-  }
-}
-
-.custom-date-icon {
-  :deep(.el-date-editor) {
-    .el-input__prefix,
-    .el-input__suffix {
-      display: none !important;
-    }
   }
 }
 </style>

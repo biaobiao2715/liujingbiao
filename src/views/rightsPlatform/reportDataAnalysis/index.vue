@@ -17,20 +17,17 @@
             <el-option v-for="item in reportTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <span class="filter-label" style="margin-left: 20px;">时间范围:</span>
-          <div style="position: relative; display: inline-block;" class="custom-date-picker">
-            <el-date-picker
-              v-model="mapTimeRange"
-              type="datetimerange"
-              range-separator="-"
-              start-placeholder="开始时间"
-              end-placeholder="结束时间"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              format="YYYY-MM-DD HH:mm:ss"
-              :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-              style="width: 420px"
-            />
-            <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none; z-index: 10;" />
-          </div>
+          <el-date-picker
+            v-model="mapTimeRange"
+            type="datetimerange"
+            range-separator="-"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+            style="width: 420px"
+          />
           <el-button type="primary" icon="Search" style="margin-left: 12px" @click="handleMapQuery">查询</el-button>
           <el-button icon="Refresh" style="margin-left: 12px" @click="handleMapReset">重置</el-button>
         </div>
@@ -91,21 +88,18 @@
               <el-button :type="timeFilter === 'today' ? 'primary' : ''" @click="handleTimeFilter('today')"> 今日 </el-button>
               <el-button :type="timeFilter === 'week' ? 'primary' : ''" @click="handleTimeFilter('week')"> 本周 </el-button>
             </el-button-group>
-            <div style="position: relative; display: inline-block; margin-left: 12px;" class="custom-date-picker">
-              <el-date-picker
-                v-model="chartTimeRange"
-                type="datetimerange"
-                range-separator="-"
-                start-placeholder="开始时间"
-                end-placeholder="结束时间"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                format="YYYY-MM-DD HH:mm:ss"
-                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-                style="width: 440px;"
-                @change="handleChartTimeChange"
-              />
-              <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none; z-index: 10;" />
-            </div>
+            <el-date-picker
+              v-model="chartTimeRange"
+              type="datetimerange"
+              range-separator="-"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              format="YYYY-MM-DD HH:mm:ss"
+              :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+              style="width: 440px; margin-left: 12px;"
+              @change="handleChartTimeChange"
+            />
             <el-button style="margin-left: 12px" @click="handleChartReset">重置</el-button>
           </div>
         </div>
@@ -981,31 +975,6 @@ const handleChartReset = () => {
           }
         }
       }
-    }
-  }
-}
-
-.custom-date-picker {
-  :deep(.el-range-editor) {
-    .el-range__icon,
-    .el-range__close-icon {
-      display: none !important;
-    }
-  }
-  
-  :deep(.el-date-editor) {
-    .el-input__prefix,
-    .el-input__suffix {
-      display: none !important;
-    }
-    
-    .el-input__prefix-inner,
-    .el-input__suffix-inner {
-      display: none !important;
-    }
-    
-    .el-icon {
-      display: none !important;
     }
   }
 }

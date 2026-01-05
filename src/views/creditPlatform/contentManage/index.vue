@@ -19,21 +19,18 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="发布时间" prop="publishTime" label-width="auto" class="hide-date-icon">
-        <div style="position: relative; display: inline-block;">
-          <el-date-picker
-            v-model="dateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss"
-            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            @change="handleDateRangeChange"
-          />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
-        </div>
+      <el-form-item label="发布时间" prop="publishTime" label-width="auto">
+        <el-date-picker
+          v-model="dateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          @change="handleDateRangeChange"
+        />
       </el-form-item>
       <el-form-item label="文章类型" prop="articleType" label-width="auto">
         <el-select v-model="queryParams.articleType" placeholder="请选择" filterable clearable>
@@ -676,30 +673,5 @@ onMounted(() => {
 
 .status-text-info {
   color: #909399;
-}
-
-.hide-date-icon {
-  :deep(.el-range-editor) {
-    .el-range__icon,
-    .el-range__close-icon {
-      display: none !important;
-    }
-  }
-  
-  :deep(.el-date-editor) {
-    .el-input__prefix,
-    .el-input__suffix {
-      display: none !important;
-    }
-    
-    .el-input__prefix-inner,
-    .el-input__suffix-inner {
-      display: none !important;
-    }
-    
-    .el-icon {
-      display: none !important;
-    }
-  }
 }
 </style>

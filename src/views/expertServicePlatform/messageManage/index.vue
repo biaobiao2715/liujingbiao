@@ -9,18 +9,15 @@
   <div class="message-management">
     <!-- 搜索条件 -->
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
-      <el-form-item label="留言时间" label-width="auto" class="hide-date-icon">
-        <div style="position: relative; display: inline-block;">
-          <el-date-picker
-            v-model="messageDateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-          />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
-        </div>
+      <el-form-item label="留言时间" label-width="auto">
+        <el-date-picker
+          v-model="messageDateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
       </el-form-item>
 
       <el-form-item label="留言内容" prop="messageContent" label-width="auto">
@@ -32,18 +29,15 @@
         />
       </el-form-item>
 
-      <el-form-item label="回复时间" label-width="auto" class="hide-date-icon">
-        <div style="position: relative; display: inline-block;">
-          <el-date-picker
-            v-model="replyDateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            range-separator=" - "
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-          />
-          <img src="@/assets/images/finance/切图 43.png" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; pointer-events: none;" />
-        </div>
+      <el-form-item label="回复时间" label-width="auto">
+        <el-date-picker
+          v-model="replyDateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          range-separator=" - "
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
       </el-form-item>
 
       <el-form-item label="回复状态" prop="questionStatus" label-width="auto">
@@ -544,30 +538,5 @@ onMounted(() => {
 
 .status-text-info {
   color: #909399;
-}
-
-.hide-date-icon {
-  :deep(.el-range-editor) {
-    .el-range__icon,
-    .el-range__close-icon {
-      display: none !important;
-    }
-  }
-  
-  :deep(.el-date-editor) {
-    .el-input__prefix,
-    .el-input__suffix {
-      display: none !important;
-    }
-    
-    .el-input__prefix-inner,
-    .el-input__suffix-inner {
-      display: none !important;
-    }
-    
-    .el-icon {
-      display: none !important;
-    }
-  }
 }
 </style>
