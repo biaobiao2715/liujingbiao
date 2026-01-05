@@ -30,8 +30,10 @@
           range-separator=" - "
           start-placeholder="开始时间"
           end-placeholder="结束时间"
+          :prefix-icon="Search"
         />
       </el-form-item>
+
       <el-form-item>
         <el-button v-throttle v-hasPermi="['system:goods:list']" icon="Search" type="primary" @click="handleSearch">查询</el-button>
         <el-button v-throttle v-hasPermi="['system:goods:list']" icon="Refresh" @click="handleReset">重置</el-button>
@@ -45,16 +47,18 @@
         <el-button
           v-throttle
           v-hasPermi="['system:goods:remove']"
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
-          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#F23255'"
+          icon="Delete"
+          :style="{ color: actionTextColor }"
+          :color="delBgColor"
           @click="handleDelete"
         >
           删除
         </el-button>
         <el-button
           v-throttle
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
-          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
+          icon="Upload"
+          :style="{ color: actionTextColor }"
+          :color="shelfBgColor"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleShelf"
         >
@@ -62,14 +66,17 @@
         </el-button>
         <el-button
           v-throttle
-          :style="loading || actionLoading !== null || selectedIds.length === 0 ? 'color: #333333;' : 'color: #fff;'"
-          :color="loading || actionLoading !== null || selectedIds.length === 0 ? '#F2F3F5' : '#108C58'"
+          icon="Download"
+          :style="{ color: actionTextColor }"
+          :color="unshelfBgColor"
           v-hasPermi="['system:goods:onAndShelves']"
           @click="handleUnshelf"
         >
           下架
         </el-button>
-        <el-button v-throttle color="#F2F3F5" style="color: #333333" v-hasPermi="['system:goods:export']" @click="handleExport">导出</el-button>
+        <el-button v-throttle icon="Upload" color="#F2F3F5" style="color: #333333" v-hasPermi="['system:goods:export']" @click="handleExport"
+          >导出</el-button
+        >
       </el-col>
 
       <el-col :span="1.5">
@@ -186,12 +193,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, getCurrentInstance, toRefs, onMounted, onActivated, defineAsyncComponent, reactive, nextTick } from 'vue';
+import { ref, getCurrentInstance, toRefs, onMounted, onActivated, defineAsyncComponent, reactive, nextTick, computed } from 'vue';
 import type { ComponentInternalInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { goodsList, goodsDelete, updateGoodsStatus, setGoodsWarnings, goodsExport } from '@/api/supplier/productManagement/product';
-
+import { Search } from '@element-plus/icons-vue';
 // 异步引入弹窗组件
 const EditDialog = defineAsyncComponent(() => import('./Edit.vue'));
 const DetailsDialog = defineAsyncComponent(() => import('./Details.vue'));
@@ -220,6 +227,14 @@ const actionLoading = ref<'shelf' | 'unshelf' | 'delete' | null>(null);
 // 选择集
 const selectedIds = ref<(string | number)[]>([]);
 const selectedRows = ref<any[]>([]);
+
+// 统一控制按钮文本/图标颜色与背景色
+// 需求：未选中时图标为黑色，选中后为白色（仅根据是否选中切换）
+const isActionGray = computed(() => selectedIds.value.length === 0);
+const actionTextColor = computed(() => (isActionGray.value ? '#333333' : '#fff'));
+const delBgColor = computed(() => (isActionGray.value ? '#F2F3F5' : '#F23255'));
+const shelfBgColor = computed(() => (isActionGray.value ? '#F2F3F5' : '#108C58'));
+const unshelfBgColor = computed(() => (isActionGray.value ? '#F2F3F5' : '#108C58'));
 
 // 统一弹窗状态
 const dialog = reactive({
