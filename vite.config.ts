@@ -24,16 +24,16 @@ export default defineConfig(({ mode, command }) => {
       open: true,
       proxy: {
         [env.VITE_APP_BASE_API]: {
-          // target: 'http://192.168.2.12:8080', // 洞穴
+          target: 'http://192.168.2.12:8080', // 洞穴
           // target: 'http://192.168.2.9:8080', // 马春洋
-          // target: 'http://192.168.2.221:8000', // 周全
-          target: 'http://192.168.2.253:8080', // 照相机
+          // target: 'http://192.168.2.221:8080', // 周全
+          // target: 'http://192.168.2.253:8080', // 照相机
           //   target: 'http://192.168.2.111:8080', // 爽
           // target: 'http://192.168.2.132:8080', // shun
           // target: 'http://8.153.15.72:8080', // 开发
           // target: 'http://192.168.2.149:8080', // falu
           //  target: 'http://192.168.2.9:8080/', // 赵
-
+          //  target: 'http://192.168.2.189:8080/', // jun
           changeOrigin: true,
           ws: true,
           rewrite: (path) => path.replace(new RegExp('^' + env.VITE_APP_BASE_API), '')
@@ -86,6 +86,7 @@ export default defineConfig(({ mode, command }) => {
         'echarts',
         'vue-i18n',
         '@vueup/vue-quill',
+        '@wangeditor/editor',
         'image-conversion',
         'element-plus/es/components/**/css'
       ]

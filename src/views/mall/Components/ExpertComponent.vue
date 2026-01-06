@@ -24,6 +24,8 @@
       </div>
       <!-- 直播 -->
       <LivingComponent @detailChange="showDetail" />
+       <!-- 问答 -->
+       <AiChatComponent/>
     </div>
     <div v-else>
       <!-- 专家详情 -->
@@ -78,6 +80,9 @@ import CouMetListComponent from './AboutExpertComponents/CouMetListComponent.vue
 import EssayListComponent from './AboutExpertComponents/EssayListComponent.vue'; // 文章专栏列表组件
 import LawListComponent from './AboutExpertComponents/LawListComponent.vue'; // 普法专栏列表组件
 import LivingListComponent from './AboutExpertComponents/LivingListComponent.vue'; // 直播列表组件
+import AiChatComponent from './AiChatComponent/index.vue'; // 问答组件
+
+
 
 import { eventBus } from '@/utils/eventBus';
 type showAreaType =
