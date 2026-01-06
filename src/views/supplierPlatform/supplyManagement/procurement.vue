@@ -37,7 +37,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="demandDescription" label="采购说明" :show-overflow-tooltip="true" />
-      <el-table-column prop="publishTime" label="发布时间" width="160">
+      <el-table-column prop="publishTime" label="发布时间" width="180">
         <template #default="{ row }">
           {{ proxy.parseTime(row.publishTime) }}
         </template>

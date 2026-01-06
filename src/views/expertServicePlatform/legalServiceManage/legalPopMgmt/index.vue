@@ -96,27 +96,17 @@
       <el-table-column label="操作" fixed="right" align="left" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
-            <el-button
-              v-throttle
-              v-hasPermi="['skill:lawContent:query']"
-              type="text"
-              style="font-size: 14px; color: #108c58"
-              @click="handleView(scope.row)"
+            <el-button v-throttle v-hasPermi="['skill:lawContent:query']" link style="font-size: 14px; color: #108c58" @click="handleView(scope.row)"
               >详情</el-button
             >
-            <el-button
-              v-throttle
-              v-hasPermi="['skill:lawContent:edit']"
-              type="text"
-              style="font-size: 14px; color: #108c58"
-              @click="handleEdit(scope.row)"
+            <el-button v-throttle v-hasPermi="['skill:lawContent:edit']" link style="font-size: 14px; color: #108c58" @click="handleEdit(scope.row)"
               >编辑</el-button
             >
             <el-button
               v-throttle
               v-hasPermi="['skill:lawContent:edit']"
               v-if="scope.row.status === '启用'"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '3')"
             >
@@ -126,7 +116,7 @@
               v-throttle
               v-hasPermi="['skill:lawContent:edit']"
               v-if="scope.row.status === '禁用'"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '2')"
             >
@@ -136,7 +126,7 @@
               v-throttle
               v-hasPermi="['skill:lawContent:remove']"
               v-if="scope.row.status === '禁用'"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
@@ -212,7 +202,7 @@ const queryParams = ref({
   title: ''
 });
 
-const tableData = ref([]); 
+const tableData = ref([]);
 const total = ref(0);
 const loading = ref(false);
 const queryFormRef = ref();

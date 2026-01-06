@@ -95,7 +95,7 @@
           <span>{{ getDeliveryMethodText(scope.row.deliveryOptions) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="下单时间" prop="createTime" width="160">
+      <el-table-column label="下单时间" prop="createTime" width="180">
         <template #default="scope">
           <span>{{ scope.row.createTime }}</span>
         </template>
@@ -163,7 +163,7 @@
       </el-table-column>
     </el-table>
     <el-dialog title="提示" v-model="dialogVisible" width="30%">
-      <template #header="{ close, titleId, titleClass }">
+      <template #header>
         <div class="flex items-center">
           <el-icon color="#e6a23c" size="24"><WarningFilled /></el-icon>
           <span class="ml-2">提示</span>
@@ -305,7 +305,7 @@ const loading = ref(false); // 加载中
 
 const queryFormRef = ref(); // 查询表单ref
 
-const dateRange = ref<[DateModelType, DateModelType]>(['', '']); // 价格调整日期范围
+const dateRange = ref(['', '']); // 价格调整日期范围
 
 const detailRef = ref(null); //订单详情弹窗
 
@@ -433,7 +433,7 @@ const filterChinese = () => {
     if (logisticsForm.deliverySn.match(/[\u4E00-\u9FA5]/)) {
       logisticsForm.deliverySn = logisticsForm.deliverySn.replace(/[\u4E00-\u9FA5]/g, '');
       logisticsDeliverySn.value.blur();
-      let t = setTimeout(() => {
+      const t = setTimeout(() => {
         clearTimeout(t);
         logisticsDeliverySn.value.focus();
       }, 100);
@@ -588,7 +588,7 @@ const handleCancel = (row: any) => {
 const cancelorder = async () => {
   console.log('cancelobj.value', cancelobj.value);
   cancelloading.value = true;
-  let params = {
+  const params = {
     goodsSpecificationId: cancelobj.value.goodsSpecificationId,
     goodsQuantity: cancelobj.value.goodsQuantity,
     id: cancelobj.value.id,
@@ -620,7 +620,7 @@ const shipmentInfo = async () => {
       if (!valid) return; // 校验不通过，终止操作
     }
     shipmentloading.value = true;
-    let params = {
+    const params = {
       id: rowdata.value.id,
       orderStatus: '2',
       deliveryOptions: shipmentForm.value.deliveryOptions
@@ -681,22 +681,22 @@ onActivated(() => {
   font-size: 14px;
 }
 
-// 表格样式优化
-:deep(.el-table) {
-  .el-table__header {
-    th {
-      background-color: #f5f7fa;
-      color: #606266;
-      font-weight: 600;
-    }
-  }
+// // 表格样式优化
+// :deep(.el-table) {
+//   .el-table__header {
+//     th {
+//       background-color: #f5f7fa;
+//       color: #606266;
+//       font-weight: 600;
+//     }
+//   }
 
-  .el-table__row {
-    &:hover {
-      background-color: #f5f7fa;
-    }
-  }
-}
+//   .el-table__row {
+//     &:hover {
+//       background-color: #f5f7fa;
+//     }
+//   }
+// }
 
 // 状态标签样式
 :deep(.el-tag) {

@@ -60,7 +60,7 @@
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
             <el-button
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
               v-hasPermi="['safeguard:knowledgeCaseContent:edit']"
@@ -68,7 +68,7 @@
               编辑
             </el-button>
             <el-button
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
               v-hasPermi="['safeguard:knowledgeCaseContent:query']"
@@ -76,7 +76,7 @@
               查看
             </el-button>
             <el-button
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleSingleDelete(scope.row)"
               v-hasPermi="['safeguard:knowledgeCaseContent:remove']"

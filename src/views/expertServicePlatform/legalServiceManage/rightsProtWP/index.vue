@@ -126,28 +126,16 @@
       <el-table-column label="操作" align="left" width="450" class-name="small-padding fixed-width">
         <template #default="scope">
           <div style="display: flex; justify-content: flex-start; align-items: center">
-            <el-button
-              v-throttle
-              v-hasPermi="['skill:whitePaper:edit']"
-              type="text"
-              style="font-size: 14px; color: #108c58"
-              @click="handleEdit(scope.row)"
-            >
+            <el-button v-throttle v-hasPermi="['skill:whitePaper:edit']" link style="font-size: 14px; color: #108c58" @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button
-              v-throttle
-              v-hasPermi="['skill:whitePaper:query']"
-              type="text"
-              style="font-size: 14px; color: #108c58"
-              @click="handleView(scope.row)"
-            >
+            <el-button v-throttle v-hasPermi="['skill:whitePaper:query']" link style="font-size: 14px; color: #108c58" @click="handleView(scope.row)">
               查看
             </el-button>
             <el-button
               v-throttle
               v-hasPermi="['skill:whitePaper:edit']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleUpdateVersion(scope.row)"
             >
@@ -157,7 +145,7 @@
               v-if="isEnabled(scope.row.paperStatus)"
               v-throttle
               v-hasPermi="['skill:whitePaper:edit']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '禁用')"
             >
@@ -167,7 +155,7 @@
               v-if="isDisabled(scope.row.paperStatus)"
               v-throttle
               v-hasPermi="['skill:whitePaper:edit']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleStatusChange(scope.row, '启用')"
             >
@@ -177,7 +165,7 @@
               v-if="isDisabled(scope.row.paperStatus)"
               v-throttle
               v-hasPermi="['skill:whitePaper:remove']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >
@@ -186,7 +174,7 @@
             <el-button
               v-throttle
               v-hasPermi="['system:oss:download']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDownload(scope.row)"
             >

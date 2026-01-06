@@ -48,17 +48,17 @@
       <!-- 表格展示 -->
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column type="index" label="序号" width="55" align="center" />
-        <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="160">
+        <el-table-column label="识别开始时间" align="center" prop="identifyBeginTime" min-width="180">
           <template #default="scope">
             <span>{{ proxy.parseTime(scope.row.identifyBeginTime) || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="160">
+        <el-table-column label="识别结束时间" align="center" prop="identifyEndTime" min-width="180">
           <template #default="scope">
             <span>{{ proxy.parseTime(scope.row.identifyEndTime) || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160">
+        <el-table-column label="图片文件名" align="center" prop="fileName" min-width="160" :show-overflow-tooltip="true">
           <template #default="scope">
             <span style="color: #108c58" v-on:click="handlePictureCardPreview(scope.row)">{{ scope.row.fileName || '-' }}</span>
           </template>

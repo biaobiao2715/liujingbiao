@@ -152,7 +152,7 @@
               v-if="canEditActivity(scope.row)"
               v-throttle
               v-hasPermi="['skill:lawActivity:edit']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
@@ -161,7 +161,7 @@
             <el-button
               v-throttle
               v-hasPermi="['skill:lawActivity:query']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
             >
@@ -171,7 +171,7 @@
               v-if="canCancelActivity(scope.row)"
               v-hasPermi="['skill:lawActivity:cancel']"
               v-throttle
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleCancelActivity(scope.row)"
             >
@@ -181,7 +181,7 @@
               v-if="canDeleteActivity(scope.row)"
               v-throttle
               v-hasPermi="['skill:lawActivity:remove']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDeleteSingle(scope.row)"
             >

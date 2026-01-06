@@ -9,14 +9,7 @@
   <div class="product-credit-manage">
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="产品名称" prop="productName" label-width="auto">
-        <el-input
-          v-model="queryParams.productName"
-          placeholder="请输入"
-          clearable
-          maxlength="50"
-          show-word-limit
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.productName" placeholder="请输入" clearable maxlength="50" show-word-limit @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="产品类型" prop="productType" label-width="auto">
         <el-select v-model="queryParams.productType" placeholder="请选择" clearable>
@@ -85,7 +78,7 @@
             <el-button
               v-throttle
               v-hasPermi="['system:creditProductsVersion:query']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleView(scope.row)"
             >
@@ -95,7 +88,7 @@
               v-throttle
               v-hasPermi="['system:creditProductsVersion:edit']"
               v-if="canEdit(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
@@ -105,7 +98,7 @@
               v-throttle
               v-hasPermi="['system:creditProductsVersion:edit']"
               v-if="canPublish(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handlePublish(scope.row)"
             >
@@ -115,7 +108,7 @@
               v-throttle
               v-hasPermi="['system:creditProductsVersion:edit']"
               v-if="canOffline(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleOffline(scope.row)"
             >
@@ -125,7 +118,7 @@
               v-throttle
               v-hasPermi="['system:creditProductsVersion:remove']"
               v-if="canDelete(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDelete(scope.row)"
             >
@@ -261,7 +254,6 @@ const handleQuery = () => {
   queryParams.pageNum = 1;
   getList();
 };
-
 
 const resetQuery = () => {
   queryFormRef.value?.resetFields?.();

@@ -10,14 +10,7 @@
     <!-- 搜索条件 -->
     <el-form v-show="showSearch" ref="queryFormRef" :model="queryParams" inline label-position="left">
       <el-form-item label="文章名称" prop="articleTitle" label-width="auto">
-        <el-input
-          v-model="queryParams.articleTitle"
-          placeholder="请输入"
-          clearable
-          maxlength="50"
-          show-word-limit
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.articleTitle" placeholder="请输入" clearable maxlength="50" show-word-limit @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="发布时间" prop="publishTime" label-width="auto">
         <el-date-picker
@@ -93,7 +86,7 @@
             <el-button
               v-throttle
               v-hasPermi="['credit:creditArticle:query']"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDetails(scope.row)"
             >
@@ -103,7 +96,7 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
               v-if="canEdit(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleEdit(scope.row)"
             >
@@ -113,7 +106,7 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
               v-if="canPublish(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handlePublish(scope.row)"
             >
@@ -123,7 +116,7 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:edit']"
               v-if="canOffline(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleOffline(scope.row)"
             >
@@ -133,7 +126,7 @@
               v-throttle
               v-hasPermi="['credit:creditArticle:remove']"
               v-if="canDelete(scope.row)"
-              type="text"
+              link
               style="font-size: 14px; color: #108c58"
               @click="handleDelete(scope.row)"
             >

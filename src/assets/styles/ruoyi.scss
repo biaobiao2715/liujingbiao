@@ -109,9 +109,10 @@ h6 {
   // 强制设置单元格内所有元素的行高
   td .cell {
     line-height: 23px !important;
-    height: 23px !important;
-    display: flex !important;
-    align-items: center !important;
+    // 导致多个页面布局发生变化  table表格单元格内所有元素 无法水平布局
+    // height: 23px !important;
+    // display: flex !important;
+    // align-items: center !important;
   }
 }
 
