@@ -60,22 +60,24 @@
           </template>
         </el-input>
       </el-form-item>
-      <!-- 下一步按钮 -->
-      <el-form-item>
-        <el-button v-throttle class="next-button" type="primary" @click="submitForm">下一步</el-button>
-      </el-form-item>
+
+      <div class="next-step-container">
+        <el-button v-throttle type="primary" class="next-step-button" @click="prevStep">上一步</el-button>
+
+        <el-button v-throttle type="primary" class="next-step-button" @click="submitForm">下一步</el-button>
+      </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { View, Hide } from '@element-plus/icons-vue';
 import { getPurchaserTypeDict, registerPurchaser, checkPhoneUnique } from '@/api/register/purchaser';
 import { sendSmsCode } from '@/api/register/accountRegiser';
 
-const emit = defineEmits(['nextStep']); // 定义事件
+const emit = defineEmits(['nextStep', 'prevStep']); // 定义事件
 
 let timer: NodeJS.Timeout | null = null; // 验证码倒计时定时器
 
@@ -218,6 +220,18 @@ const submitForm = () => {
     }
   });
 };
+// 上一步，增加确认弹窗
+const prevStep = () => {
+  ElMessageBox.confirm('确定要返回上一步吗？已填写的信息将不会被保存。', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      emit('prevStep');
+    })
+    .catch(() => {});
+};
 </script>
 
 <style scoped lang="scss">
@@ -231,10 +245,6 @@ const submitForm = () => {
   margin-bottom: 20px;
 }
 
-.next-button {
-  width: 100%;
-}
-
 .no-spinner::-webkit-outer-spin-button,
 .no-spinner::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -242,5 +252,16 @@ const submitForm = () => {
 }
 .no-spinner {
   -moz-appearance: textfield;
+}
+
+.next-step-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+  .next-step-button {
+    width: 242px;
+    height: 40px;
+    border-radius: 4px 4px 4px 4px;
+  }
 }
 </style>

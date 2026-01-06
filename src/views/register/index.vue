@@ -32,17 +32,18 @@
         <Identity @update-identity="handleIdentityUpdate" v-if="activeStep === 1" />
         <div v-else-if="activeStep === 2" class="form-content">
           <!-- 根据选择的身份展示对应的表单组件 -->
-          <PurchaserFrom v-if="selectedIdentity === 'buyer'" @nextStep="nextStep" />
+          <PurchaserFrom v-if="selectedIdentity === 'buyer'" @prevStep="prevStep" @nextStep="nextStep" />
           <!-- 供应商注册流程 -->
           <SupplierForm
             v-if="selectedIdentity === 'supplier' || selectedIdentity === 'enterprise'"
+            @prevStep="prevStep"
             @nextStep="nextStep"
             :selectedIdentity="selectedIdentity"
           />
           <!-- 技术专家注册流程 -->
-          <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @nextStep="nextStep" />
+          <TechnicalExpertForm v-if="selectedIdentity === 'expert'" @prevStep="prevStep" @nextStep="nextStep" />
           <!-- 法务专家注册流程 -->
-          <LegalExpertForm v-if="selectedIdentity === 'legal'" @nextStep="nextStep" />
+          <LegalExpertForm v-if="selectedIdentity === 'legal'" @prevStep="prevStep" @nextStep="nextStep" />
         </div>
         <!-- 注册成功组件 -->
         <Success :username="username" :account="account" :isBuyer="selectedIdentity === 'buyer'" v-if="activeStep === 3" />
@@ -168,6 +169,14 @@ const nextStep = (info?: { username: string; account: string }) => {
     activeStep.value++;
   }
 };
+
+// 上一步
+const prevStep = () => {
+  if (activeStep.value > 1) {
+    activeStep.value--;
+  }
+};
+
 // const setSuccessInfo = (userName: string, accountName: string) => {
 //   username.value = userName;
 //   account.value = accountName;

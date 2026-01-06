@@ -273,8 +273,11 @@
           </el-row>
         </div>
       </div>
+
       <div class="next-step-container">
-        <el-button v-throttle type="primary" class="next-step-button" @click="handleNextStep">提交</el-button>
+        <el-button v-throttle type="primary" class="next-step-button" @click="prevStep">上一步</el-button>
+
+        <el-button v-throttle type="primary" class="next-step-button" @click="handleNextStep">下一步</el-button>
       </div>
     </el-form>
   </div>
@@ -292,7 +295,7 @@ import { checkPhoneUnique } from '@/api/register/purchaser'; //手机号唯一�
 import { sendSmsCode as sendSmsCodeApi } from '@/api/register/accountRegiser'; //验证码接口
 import { technicalExpertInfoRegister } from '@/api/register/technicalExpert'; //注册接口
 import { isAccountExist } from '@/api/login'; //账号获取详情信息
-const emit = defineEmits(['nextStep']); // 定义事件
+const emit = defineEmits(['nextStep', 'prevStep']); // 定义事件
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目前直接传null】,qyId【企业或者供应商id】,jszjId【技术专家id】,fwzjId【法务专家id】  如果响应的二次入驻的页面有对应的id存在，就传对应的id就行
 enum idTypeEnum {
@@ -851,6 +854,19 @@ const handleNextStep = () => {
   });
 };
 
+// 上一步，增加确认弹窗
+const prevStep = () => {
+  ElMessageBox.confirm('确定要返回上一步吗？已填写的信息将不会被保存。', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      emit('prevStep');
+    })
+    .catch(() => {});
+};
+
 // 生命周期钩子
 onMounted(async () => {
   // 获取router路由参数
@@ -998,13 +1014,12 @@ const previewQualification = async (file: any) => {
   .next-step-container {
     display: flex;
     justify-content: center;
-    margin-top: 24px;
-    padding-bottom: 100px;
+    background: #f7f8fb;
+    padding: 24px 0;
     .next-step-button {
-      width: 180px;
+      width: 242px;
       height: 40px;
-      font-size: 16px;
-      border-radius: 10px;
+      border-radius: 4px 4px 4px 4px;
     }
   }
 }

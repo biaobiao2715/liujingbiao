@@ -10,7 +10,7 @@
     <el-form ref="dataFormRef" :model="form" :rules="rules" label-position="left" label-width="140px">
       <div class="title-text">基础信息</div>
       <div class="pading16">
-        <el-row :gutter="50">
+        <el-row :gutter="32">
           <el-col :span="12">
             <el-form-item label="营业执照" prop="businessLicense">
               <div class="upload-businessLicense">
@@ -272,7 +272,9 @@
       </div>
 
       <div class="next-step-container">
-        <el-button v-throttle type="primary" class="next-step-button" @click="submitForm">提交</el-button>
+        <el-button v-throttle type="primary" class="next-step-button" @click="prevStep">上一步</el-button>
+
+        <el-button v-throttle type="primary" class="next-step-button" @click="submitForm">下一步</el-button>
       </div>
     </el-form>
   </div>
@@ -280,7 +282,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch, computed } from 'vue';
-import { ElMessage, FormRules } from 'element-plus';
+import { ElMessage, ElMessageBox, FormRules } from 'element-plus';
 import { FormData, Contact } from '@/api/register/supplier/types'; //ts类型
 import { uploadImage, ocrUploadImage } from '@/api/register'; //图片上传接口
 import { parseAddressToRegionCodes } from '@/utils/addressRegion';
@@ -298,13 +300,13 @@ const props = defineProps({
 });
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const emit = defineEmits(['nextStep']); // 定义事件
+const emit = defineEmits(['nextStep', 'prevStep']); // 定义事件
 
 const idType = ref(null); // 这四个参数  系统用户id：sysUserId【目前直接传null】,qyId【企业或者供应商id】,jszjId【技术专家id】,fwzjId【法务专家id】  如果响应的二次入驻的页面有对应的id存在，就传对应的id就行
 enum idTypeEnum {
   sysUserId = null,
   supplier = 'qyId',
-  enterprise = 'qyId',
+  // enterprise = 'qyId',
   expert = 'jszjId',
   legal = 'fwzjId'
 }
@@ -871,6 +873,20 @@ const submitForm = () => {
     }
   });
 };
+
+// 上一步，增加确认弹窗
+const prevStep = () => {
+  ElMessageBox.confirm('确定要返回上一步吗？已填写的信息将不会被保存。', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      emit('prevStep');
+    })
+    .catch(() => {});
+};
+
 /** 文件上传成功处理 */
 const handleDiplomaChange = (file: UploadFile) => {
   proxy?.$modal.loading('正在上传营业执照，请稍候...');
@@ -1105,7 +1121,10 @@ onMounted(async () => {
 <style scoped lang="scss">
 .pading16 {
   height: 100%;
+  // 与 el-row 的 :gutter="50" 对齐（row 会有左右 -25px 的负边距）
   padding: 16px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .h20 {
@@ -1215,12 +1234,11 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   background: #f7f8fb;
-  padding: 20px 0 100px 0;
+  padding: 24px 0;
   .next-step-button {
-    width: 180px;
+    width: 242px;
     height: 40px;
-    font-size: 16px;
-    border-radius: 10px;
+    border-radius: 4px 4px 4px 4px;
   }
 }
 
