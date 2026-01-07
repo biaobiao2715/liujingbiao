@@ -87,6 +87,7 @@
 import { ref } from 'vue';
 import MarkdownIt from 'markdown-it';
 // import MarkdownItMultimdTable from 'markdown-it-multimd-table'
+// import markdownItAnchor from 'markdown-it-anchor';
 import Welcome from './Welcome.vue';
 import { getToken } from '@/utils/auth';
 
@@ -143,6 +144,11 @@ const md = new MarkdownIt({
 //   headerless: true
 // })
 
+// md.use(markdownItAnchor, {
+//   level: [1, 2, 3, 4, 5, 6], // 哪些标题生成锚点
+//   permalink: false
+// });
+
 // 禁用分割线
 // md.disable('hr');
 
@@ -152,7 +158,12 @@ const md = new MarkdownIt({
 onMounted(() => {});
 
 const renderMarkdown = (text: string) => {
-  return md.render(text);
+  if (!text) return '';
+
+  // 1️⃣ 修复标题
+  const fixed = text.replace(/^(#{1,6})([^\s#])/gm, '$1 $2');
+
+  return md.render(fixed);
 };
 
 const openDialog = async () => {
@@ -173,7 +184,7 @@ const readySession = () => {
 
 // 创建新会话
 const createSession = async () => {
-  const id = crypto.randomUUID() + 'false';
+  const id = new Date().getTime().toString() + '-false';
   await getNewChatId('');
   sessionList.value.unshift({
     id,
@@ -252,7 +263,7 @@ const startChat = async () => {
   }
 
   messages.value.push({
-    id: crypto.randomUUID(),
+    id: new Date().getTime().toString(),
     chatId: chatId.value,
     questionContent: userText,
     answerContent: ''
@@ -534,6 +545,7 @@ const handleCommand = async (command: string, session: ChatSession) => {
   border: 1px solid #108c58;
   padding: 12px;
   position: relative;
+  margin-top: 12px;
   ::v-deep .el-textarea__inner {
     border: none !important;
     box-shadow: none !important;
