@@ -42,6 +42,7 @@
     "jsencrypt": "3.3.2",
     "lodash": "^4.17.21",
     "markdown-it": "^14.1.0",
+    "markdown-it-multimd-table": "^4.2.3",
     "mitt": "^3.0.0",
     "nprogress": "0.2.0",
     "pinia": "3.0.2",

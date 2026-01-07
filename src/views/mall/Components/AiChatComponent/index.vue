@@ -1,8 +1,9 @@
 <template>
   <div>
     <!-- 问答按钮 -->
-    <div class="ai-btn">
-      <button class="ai-chat-btn" @click="openDialog">智能问答</button>
+    <div class="ai-btn flex-center-center">
+      <img src="@/assets/images/mall/ai-logo-left.png" width="32" />
+      <div class="btn-text flex-center-center" @click="openDialog">智能问答</div>
     </div>
     <el-dialog
       v-model="visible"
@@ -20,32 +21,51 @@
       </div>
       <div class="ai-chat">
         <!-- 左侧 -->
-        <div class="sidebar flex-center">
+        <div class="sidebar flex-center" v-loading="loading">
           <img src="@/assets/images/mall/ai-logo.png" width="48" />
           <div class="title">农合智创智能问答AI助理</div>
-          <el-button type="success" plain class="new-chat" @click="createSession"> 新对话 </el-button>
+          <el-button type="success" plain class="new-chat" @click="readySession"> 新对话 </el-button>
 
           <div class="history">
             <div class="history-title">历史会话</div>
             <div
               v-for="s in sessionList"
               :key="s.id"
-              class="history-item"
-              :class="{ active: s.id === activeSessionId }"
-              @click="activeSessionId = s.id"
+              class="history-item flex-center-between"
+              :class="{ active: s.chatId === activeSessionId }"
+              @click="initSession(s.chatId)"
             >
-              {{ s.title }}
+              <div class="session-title">
+                {{ s.title }}
+              </div>
+              <el-dropdown class="history-dropdown" placement="bottom-start" @command="handleCommand($event, s)">
+                <div @click.stop>
+                  <el-icon><More /></el-icon>
+                </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="delete"
+                      ><el-icon size="18" color="#ff4d4f"><DeleteFilled /></el-icon
+                    ></el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </div>
         </div>
 
         <!-- 右侧 -->
         <div class="chat-main flex-center-center">
-          <Welcome v-if="messages.length === 0 && !chatting" />
+          <Welcome v-if="!activeSessionId" />
 
           <div class="chat-body" v-else>
-            <div v-for="m in messages" :key="m.id" class="chat-item" :class="m.role">
-              <div class="bubble" v-html="renderMarkdown(m.content)" />
+            <div v-for="m in messages" :key="m.id" class="chat-item">
+              <div class="question">
+                <div class="user" v-html="renderMarkdown(m.questionContent)" />
+              </div>
+              <div class="answer">
+                <div class="assistant" v-html="renderMarkdown(m.answerContent)" />
+              </div>
             </div>
           </div>
 
@@ -64,26 +84,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import MarkdownIt from 'markdown-it';
-import { askFastGPTStream } from './useApi';
+// import MarkdownItMultimdTable from 'markdown-it-multimd-table'
 import Welcome from './Welcome.vue';
+import { getToken } from '@/utils/auth';
+
+import { getChatQuestionsList, initChatQuestions, getChatQuestionDetail, deleteChatRecord } from '@/api/chatting';
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
-  content: string;
+  chatId: string;
+  questionContent: string;
+  answerContent: string;
 }
 
 interface ChatSession {
   id: string;
   title: string;
-  messages: ChatMessage[];
+  appId: string;
+  chatId: string;
+  messages?: ChatMessage[];
 }
+
+let abortController: AbortController | null = null;
+let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+let stoppedByUser = false;
 
 const visible = ref(false); // 控制对话框显示/隐藏
 
 const input = ref(''); // 输入框内容
+
+const chatId = ref('');
+
+const appId = ref('');
+
+const loading = ref(false);
 
 const placeholder = '请将您遇到的问题告诉我，使用shift+Enter换行...';
 
@@ -93,26 +129,60 @@ const sessionList = ref<ChatSession[]>([]);
 
 const activeSessionId = ref<string>('');
 
-const activeSession = computed(() => sessionList.value.find((s) => s.id === activeSessionId.value));
+const messages = ref([]);
 
-const messages = computed(() => activeSession.value?.messages || []);
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true
+});
 
-const md = new MarkdownIt(); // 初始化 Markdown 解析器
+// md.use(MarkdownItMultimdTable, {
+//   multiline: true,
+//   rowspan: true,
+//   headerless: true
+// })
+
+// 禁用分割线
+// md.disable('hr');
+
+// （可选）禁用标题
+// md.disable('heading');
+
+onMounted(() => {});
 
 const renderMarkdown = (text: string) => {
   return md.render(text);
 };
 
+const openDialog = async () => {
+  visible.value = true;
+  await nextTick();
+  getChatRecordsList();
+  const node = document.getElementsByClassName('el-dialog__body');
+  if (node.length > 0) {
+    node[0].setAttribute('style', 'padding: 0 !important');
+  }
+};
+
+//  准备新会话
+const readySession = () => {
+  activeSessionId.value = '';
+  messages.value = [];
+};
+
 // 创建新会话
-const createSession = () => {
-  const id = crypto.randomUUID();
-  chatting.value = false;
+const createSession = async () => {
+  const id = crypto.randomUUID() + 'false';
+  await getNewChatId('');
   sessionList.value.unshift({
     id,
-    title: '新对话',
+    title: input.value?.trim().substring(0, 8) || '新对话',
+    appId: appId.value,
+    chatId: chatId.value,
     messages: []
   });
-  activeSessionId.value = id;
+  activeSessionId.value = chatId.value;
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
@@ -128,59 +198,175 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
+// 每次发起新的会话时，都需要初始化问答
+const getNewChatId = async (id?: string) => {
+  const res: any = await initChatQuestions(id);
+  if (res.code === 200) {
+    chatId.value = res.data.chatId;
+    appId.value = res.data.appId;
+  }
+};
+
+// 获取问答记录
+const getChatRecordsList = async () => {
+  loading.value = true;
+  const res = await getChatQuestionsList({
+    pageNum: 1,
+    pageSize: 9999,
+    orderByColumn: 'updateTime',
+    isAsc: 'desc'
+  });
+
+  if (res.code === 200) {
+    sessionList.value = res.rows;
+    loading.value = false;
+  }
+};
+
+// 初始化会话详情
+const initSession = async (id: string) => {
+  activeSessionId.value = id;
+  const res: any = await getChatQuestionDetail({
+    chatId: id
+  });
+  if (res.code === 200) {
+    messages.value = res.data;
+  }
+  console.log(messages.value);
+};
+
 // 开始对话
 const startChat = async () => {
-  if (!input.value.trim() || !activeSession.value || chatting.value) return;
+  if (!input.value.trim() || chatting.value) return;
   chatting.value = true;
-  const session = activeSession.value;
+
+  // ⭐⭐⭐ 关键位置（每次新请求都要重新创建）
+  abortController = new AbortController();
+  stoppedByUser = false;
+
   const userText = input.value;
+
+  // 如果当前没有会话，先创建一个
+  if (!activeSessionId.value) {
+    await createSession();
+  }
+
+  messages.value.push({
+    id: crypto.randomUUID(),
+    chatId: chatId.value,
+    questionContent: userText,
+    answerContent: ''
+  });
 
   input.value = '';
 
-  session.messages.push({
-    id: crypto.randomUUID(),
-    role: 'user',
-    content: userText
-  });
-
-  const assistantMsg: ChatMessage = {
-    id: crypto.randomUUID(),
-    role: 'assistant',
-    content: ''
-  };
-
-  session.messages.push(assistantMsg);
-  let answer = '';
-  console.log(userText);
-
-  await askFastGPTStream(userText, {
-    appId: '695b578e83bf4cab9740ad9f',
-    chatId: session.id,
-    onMessage(chunk) {
-      console.log(chunk);
-      answer += chunk;
+  const res = await fetch(import.meta.env.VITE_APP_STREAM_URL, {
+    method: 'POST',
+    signal: abortController.signal, // ⭐⭐⭐ 关键
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`, // 👈 必须
+      clientid: import.meta.env.VITE_APP_CLIENT_ID
     },
-    onDone() {
-      console.log('回答完成');
-    }
+    body: JSON.stringify({
+      chatId: chatId.value || activeSessionId.value,
+      content: userText
+    })
   });
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder('utf-8');
+  console.log(reader);
+
+  let buffer = '';
+
+  while (true) {
+    if (stoppedByUser) break;
+
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // 按 SSE 事件切割（\n\n）
+    const events = buffer.split('\n\n');
+    buffer = events.pop()!; // 剩下半截留着
+    for (const event of events) {
+      // 一个 event 里可能有多行
+      const lines = event.split('\n');
+
+      const lastMsg = messages.value[messages.value.length - 1];
+
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+
+        const data = line.slice(5); // 去掉 data:
+
+        // [DONE] 只会单独一行
+        if (data.trim() === '[DONE]') {
+          chatting.value = false;
+          reader.cancel();
+          console.log('done-=--=-=-=-==-');
+          getChatRecordsList();
+          return;
+        }
+
+        // ⚠️ 空 data: 表示换行
+        if (data === '') {
+          lastMsg.answerContent += '\n';
+        } else {
+          lastMsg.answerContent += data;
+        }
+      }
+    }
+  }
 };
 
 // 停止回答
 const stopChat = () => {
+  stoppedByUser = true;
   chatting.value = false;
-};
 
-const openDialog = async () => {
-  visible.value = true;
-  await nextTick();
-  const node = document.getElementsByClassName('el-dialog__body');
-  console.log(node);
-  if (node.length > 0) {
-    node[0].setAttribute('style', 'padding: 0 !important');
+  // 1️⃣ 中断 fetch
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+
+  // 2️⃣ 停止流读取
+  if (reader) {
+    reader.cancel();
+    reader = null;
   }
 };
 
+const handleCommand = async (command: string, session: ChatSession) => {
+  if (command === 'delete') {
+    ElMessageBox.confirm('确定删除该对话吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(async () => {
+      if (session.id.includes('false')) {
+        ElMessage({
+          message: '正在进行中的会话不能删除',
+          type: 'warning'
+        });
+        return;
+      }
+      loading.value = true;
+      const res = await deleteChatRecord(session.id);
+      if (res.code === 200) {
+        if (session.chatId === activeSessionId.value) {
+          readySession();
+        }
+        getChatRecordsList();
+      }
+    });
+  }
+};
 </script>
 
 <style scoped lang="scss">
@@ -188,11 +374,26 @@ const openDialog = async () => {
   position: fixed;
   top: 50%;
   right: 12px;
-  background-color: #108c58;
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 4px;
   cursor: pointer;
+  flex-direction: column;
+  img {
+    position: relative;
+    top: 8px;
+  }
+  .btn-text {
+    width: 32px;
+    height: 88px;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 400;
+    font-size: 14px;
+    color: #ffffff;
+    background: #108c58;
+    border-radius: 4px;
+    // 文字竖着展示 文字间隔 12px
+    letter-spacing: 4px;
+    writing-mode: vertical-rl;
+    padding-top: 8px;
+  }
 }
 
 .ai-chat {
@@ -230,6 +431,8 @@ const openDialog = async () => {
 
 .history {
   width: 100%;
+  height: calc(100% - 150px);
+  overflow: auto;
   border-top: 1px solid #eee;
   .history-title {
     font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
@@ -250,6 +453,21 @@ const openDialog = async () => {
   font-weight: 400;
   font-size: 12px;
   color: #333333;
+
+  .session-title {
+    width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .history-dropdown {
+    display: none;
+  }
+  &:hover {
+    .history-dropdown {
+      display: block;
+    }
+  }
 }
 
 .history-item.active {
@@ -272,27 +490,31 @@ const openDialog = async () => {
 }
 
 .chat-item {
-  display: flex;
   margin-bottom: 12px;
-}
 
-.chat-item.user {
-  justify-content: flex-end;
-}
+  .question {
+    display: flex;
+    justify-content: end;
+  }
 
-.chat-item .bubble {
-  max-width: 70%;
-  padding: 0 6px;
-  border-radius: 8px;
-}
+  .user,
+  .assistant {
+    padding: 0 12px;
+    border-radius: 8px;
+  }
 
-.chat-item.user .bubble {
-  background: #e6f4ea;
-}
-
-.chat-item.assistant .bubble {
-  background: #fff;
-  border: 1px solid #eee;
+  .user {
+    max-width: 50%;
+    text-align: right;
+    background: #108c58;
+    margin-bottom: 16px;
+    color: #fff;
+  }
+  .assistant {
+    padding: 12px;
+    background: #f7faf8;
+    color: #333;
+  }
 }
 
 /* 输入区 */
