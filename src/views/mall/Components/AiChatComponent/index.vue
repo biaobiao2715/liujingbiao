@@ -86,8 +86,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import MarkdownIt from 'markdown-it';
-// import MarkdownItMultimdTable from 'markdown-it-multimd-table'
-// import markdownItAnchor from 'markdown-it-anchor';
 import Welcome from './Welcome.vue';
 import { getToken } from '@/utils/auth';
 
@@ -137,17 +135,6 @@ const md = new MarkdownIt({
   linkify: true,
   breaks: true
 });
-
-// md.use(MarkdownItMultimdTable, {
-//   multiline: true,
-//   rowspan: true,
-//   headerless: true
-// })
-
-// md.use(markdownItAnchor, {
-//   level: [1, 2, 3, 4, 5, 6], // 哪些标题生成锚点
-//   permalink: false
-// });
 
 // 禁用分割线
 // md.disable('hr');
@@ -589,5 +576,15 @@ const handleCommand = async (command: string, session: ChatSession) => {
 
 .el-textarea__inner {
   resize: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #d0d7de;
+  padding: 6px 10px;
 }
 </style>
