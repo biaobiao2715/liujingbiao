@@ -7,7 +7,8 @@
     </div>
     <el-dialog
       v-model="visible"
-      width="1200px"
+      width="80%"
+      style="height: 86vh"
       :show-close="false"
       :show-header="false"
       :destroy-on-close="true"
@@ -55,21 +56,28 @@
         </div>
 
         <!-- 右侧 -->
-        <div class="chat-main flex-center-center">
+        <div :class="['chat-main flex-center', { 'flex-center-center': !activeSessionId }]">
           <Welcome v-if="!activeSessionId" />
 
           <div class="chat-body" v-else>
-            <div v-for="m in messages" :key="m.id" class="chat-item">
-              <div class="question">
-                <div class="user" v-html="renderMarkdown(m.questionContent)" />
+            <el-scrollbar ref="scrollbarRef" @scroll="handleScroll">
+              <div v-for="m in messages" :key="m.id" class="chat-item">
+                <div class="question">
+                  <div class="user" v-html="renderMarkdown(m.questionContent)" />
+                </div>
+                <div class="answer">
+                  <div class="assistant" v-html="renderMarkdown(m.answerContent)" v-if="m.answerContent" />
+                  <el-icon v-else><Loading /></el-icon>
+                  <div class="copy" @click="copyToClipboard(m.answerContent)">
+                    <el-icon><CopyDocument /></el-icon>
+                    <div>复制</div>
+                  </div>
+                </div>
               </div>
-              <div class="answer">
-                <div class="assistant" v-html="renderMarkdown(m.answerContent)" />
-              </div>
-            </div>
+            </el-scrollbar>
           </div>
 
-          <div class="input-container">
+          <div :class="['input-container', { 'is-init': !activeSessionId }]">
             <el-input v-model="input" type="textarea" :rows="3" :placeholder="placeholder" @keydown="handleKeydown" />
             <div class="send-btn">
               <img src="@/assets/images/mall/send-btn.png" width="28" v-if="input.trim() === '' && !chatting" />
@@ -77,6 +85,8 @@
               <img src="@/assets/images/mall/send-btn-active.png" width="28" v-else @click="startChat" />
             </div>
           </div>
+          <!-- 提示 -->
+          <div class="tip">以上内容均由AI生成，仅供参考，请仔细甄别</div>
         </div>
       </div>
     </el-dialog>
@@ -88,6 +98,7 @@ import { ref } from 'vue';
 import MarkdownIt from 'markdown-it';
 import Welcome from './Welcome.vue';
 import { getToken } from '@/utils/auth';
+import { ElMessage, type ScrollbarInstance } from 'element-plus';
 
 import { getChatQuestionsList, initChatQuestions, getChatQuestionDetail, deleteChatRecord } from '@/api/chatting';
 
@@ -130,6 +141,10 @@ const activeSessionId = ref<string>('');
 
 const messages = ref([]);
 
+const scrollbarRef = ref<ScrollbarInstance>();
+
+const isAtBottom = ref(true);
+
 const md = new MarkdownIt({
   html: false,
   linkify: true,
@@ -141,8 +156,6 @@ const md = new MarkdownIt({
 
 // （可选）禁用标题
 // md.disable('heading');
-
-onMounted(() => {});
 
 const renderMarkdown = (text: string) => {
   if (!text) return '';
@@ -183,6 +196,7 @@ const createSession = async () => {
   activeSessionId.value = chatId.value;
 };
 
+// 处理回车键
 const handleKeydown = (e: KeyboardEvent) => {
   // Shift + Enter → 换行（什么都不做，走浏览器默认）
   if (e.key === 'Enter' && e.shiftKey) {
@@ -194,6 +208,24 @@ const handleKeydown = (e: KeyboardEvent) => {
     e.preventDefault(); // 阻止换行
     startChat();
   }
+};
+
+// 复制到剪贴板
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text).then(
+    () => {
+      ElMessage({
+        message: '已复制到剪贴板',
+        type: 'success'
+      });
+    },
+    () => {
+      ElMessage({
+        message: '复制失败，请手动复制',
+        type: 'error'
+      });
+    }
+  );
 };
 
 // 每次发起新的会话时，都需要初始化问答
@@ -230,7 +262,6 @@ const initSession = async (id: string) => {
   if (res.code === 200) {
     messages.value = res.data;
   }
-  console.log(messages.value);
 };
 
 // 开始对话
@@ -306,20 +337,36 @@ const startChat = async () => {
         if (data.trim() === '[DONE]') {
           chatting.value = false;
           reader.cancel();
-          console.log('done-=--=-=-=-==-');
           getChatRecordsList();
           return;
         }
 
         // ⚠️ 空 data: 表示换行
-        if (data === '') {
+        if (data === '' || isMetaMessage(data)) {
           lastMsg.answerContent += '\n';
         } else {
           lastMsg.answerContent += data;
         }
+        if (isAtBottom.value) {
+          nextTick(() => {
+            scrollbarRef.value?.setScrollTop(scrollbarRef.value.wrapRef!.scrollHeight);
+          });
+        }
       }
     }
   }
+};
+
+const isMetaMessage = (text: string) => {
+  const t = text.trim();
+  return t.includes('耗时：') && /耗时：\d+(\.\d+)?s/.test(t);
+};
+
+const handleScroll = ({ scrollTop }: { scrollTop: number }) => {
+  const wrap = scrollbarRef.value!.wrapRef!;
+  const scrollHeight = wrap.scrollHeight;
+  const clientHeight = wrap.clientHeight;
+  isAtBottom.value = Math.abs(scrollHeight - (scrollTop + clientHeight)) < 5;
 };
 
 // 停止回答
@@ -396,7 +443,7 @@ const handleCommand = async (command: string, session: ChatSession) => {
 
 .ai-chat {
   display: flex;
-  height: 70vh;
+  height: 100%;
 }
 
 /* 左侧 */
@@ -478,13 +525,14 @@ const handleCommand = async (command: string, session: ChatSession) => {
 .chat-main {
   flex: 1;
   flex-direction: column;
+  position: relative;
 }
 
 .chat-body {
-  width: 100%;
-  height: calc(100% - 130px);
-  padding: 24px;
-  overflow-y: auto;
+  width: 80%;
+  height: calc(100% - 170px);
+  padding: 24px 0;
+  // overflow-y: auto;
 }
 
 .chat-item {
@@ -493,6 +541,17 @@ const handleCommand = async (command: string, session: ChatSession) => {
   .question {
     display: flex;
     justify-content: end;
+  }
+  .copy {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 4px;
+    font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+    font-weight: 400;
+    font-size: 12px;
+    color: #909090;
+    margin-top: 12px;
   }
 
   .user,
@@ -509,6 +568,7 @@ const handleCommand = async (command: string, session: ChatSession) => {
     color: #fff;
   }
   .assistant {
+    width: 80%;
     padding: 12px;
     background: #f7faf8;
     color: #333;
@@ -526,13 +586,18 @@ const handleCommand = async (command: string, session: ChatSession) => {
   margin-left: 8px;
 }
 
+.is-init {
+  position: static !important;
+}
+
 .input-container {
-  width: 70%;
+  width: 80%;
   border-radius: 12px;
   border: 1px solid #108c58;
+  position: absolute;
+  bottom: 56px;
   padding: 12px;
-  position: relative;
-  margin-top: 12px;
+
   ::v-deep .el-textarea__inner {
     border: none !important;
     box-shadow: none !important;
@@ -544,6 +609,14 @@ const handleCommand = async (command: string, session: ChatSession) => {
     bottom: 8px;
     cursor: pointer;
   }
+}
+.tip {
+  font-family: AlibabaPuHuiTi, AlibabaPuHuiTi;
+  font-weight: 400;
+  font-size: 14px;
+  color: #909090;
+  position: absolute;
+  bottom: 16px;
 }
 .close-btn {
   position: absolute;
@@ -561,6 +634,8 @@ const handleCommand = async (command: string, session: ChatSession) => {
 }
 
 .el-dialog__body {
+  height: 100%;
+  max-height: 100% !important;
   padding: 0 !important;
   position: relative;
 }
