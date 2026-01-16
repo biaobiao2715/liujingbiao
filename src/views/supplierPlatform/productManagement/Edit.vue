@@ -95,7 +95,7 @@
 
         <el-col :span="24">
           <el-form-item label="商品详情" prop="goodsDetail">
-            <editor v-model="formData.goodsDetail" :height="135" :minHeight="135" />
+            <editor v-model="formData.goodsDetail" :height="200" :minHeight="200" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -721,8 +721,8 @@ onMounted(async () => {
         const now = new Date();
         const pad = (n: number) => (n < 10 ? '0' + n : n);
         formData.value.launchTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-        formData.value.goodsEnsureIds = data.goodsEnsureIds || [];
-        formData.value.goodsAbilityIds = data.goodsAbilityIds || [];
+        formData.value.goodsEnsureIds = data.goodsEnsureIds.split(',') || [];
+        formData.value.goodsAbilityIds = data.goodsAbilityIds.split(',') || [];
         formData.value.goodsSpecification = data.goodsSpecification || '';
         formData.value.imageList = [];
         hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList.map((item: any) => ({
@@ -735,15 +735,15 @@ onMounted(async () => {
         }));
       } else {
         // 编辑/查看时直接赋值
-        formData.value = { ...data };
+        formData.value = { ...data, goodsEnsureIds: data.goodsEnsureIds.split(',') || [], goodsAbilityIds: data.goodsAbilityIds.split(',') || [] };
         delete formData.value.createTime; // 删除 createTime 字段，防止修改时重复传递
-        if (data.sysOssLists && data.sysOssLists.length > 0) {
+        if (data.remoteFileList && data.remoteFileList.length > 0) {
           hnGoodsSpecificationDataList.value = data.hnGoodsSpecificationDataList;
         }
       }
 
       // 主图和规格数据不带入
-      hnGoodsFilesList.value = data.sysOssLists.map((file: any) => ({
+      hnGoodsFilesList.value = data.remoteFileList.map((file: any) => ({
         name: file.originalName || '商品主图',
         url: file.url,
         fileType: '0',

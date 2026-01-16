@@ -94,7 +94,9 @@
       <el-table-column label="商品编码" prop="goodsCode" width="240" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column label="销售价" prop="salesPrice" width="140" :show-overflow-tooltip="true">
         <template #default="scope">
-          <span style="color: #108c58">{{ getSalesPrice(scope.row) }}</span>
+          <span style="color: #108c58"
+            >¥{{ scope.row.minGoodsPrice }}{{ scope.row.maxGoodsPrice == scope.row.minGoodsPrice ? '' : ` - ¥${scope.row.maxGoodsPrice}` }}</span
+          >
         </template>
       </el-table-column>
       <el-table-column label="商品类目" prop="goodsCategoryName" width="150" :show-overflow-tooltip="true"> </el-table-column>
@@ -497,37 +499,6 @@ const handleExport = () => {
 
   // 调用下载方法
   proxy.download('/grain-sales/goods/export', params, fileName);
-};
-
-// 金额格式化：¥ 前缀 + 千分位 + 两位小数
-const formatCNY = (n: number) => `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-/**
- * 销售价回显优化
- * 规则：
- * - 优先取启用规格（status === 1），若无启用则回退到全部规格
- * - 取有效非负价格，min==max 显示单价；否则显示范围价
- * - 若规格无有效价，回退到 row.salesPrice 或 row.price
- * - 最终仍无则显示 "--"
- */
-const getSalesPrice = (row: any) => {
-  const specs = Array.isArray(row?.hnGoodsSpecificationDataList) ? row.hnGoodsSpecificationDataList : [];
-
-  // 仅统计启用规格，若没有启用规格则退回到全部规格
-  const enabled = specs.filter((s: any) => s?.status === 1 || s?.status === '1');
-  const source = enabled.length > 0 ? enabled : specs;
-
-  const prices = source.map((s: any) => Number(s?.goodsPrice)).filter((p: number) => Number.isFinite(p) && p >= 0);
-
-  if (prices.length > 0) {
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    return min === max ? formatCNY(min) : `${formatCNY(min)} - ${formatCNY(max)}`;
-  }
-
-  // 规格里没取到有效价，回退到行级销售价/价格字段
-  const fallback = Number(row?.salesPrice ?? row?.price);
-  return Number.isFinite(fallback) ? formatCNY(fallback) : '--';
 };
 
 // 仅允许数字输入的通用方法

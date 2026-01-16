@@ -50,12 +50,14 @@
             <!-- <el-select v-model="formData.goodsEnsureIds" placeholder="请选择产品保障" style="width: 100%" disabled clearable multiple>
               <el-option v-for="item in guaranteeOptions" :key="item.id" :label="item.attributeName" :value="item.id" />
             </el-select> -->
-            <el-tag type="info" v-for="item in formData.goodssEnsureName" :key="item" :closeable="false" style="margin-right: 5px">{{ item }}</el-tag>
+            <el-tag type="info" v-for="item in formData.goodsAbilityNames" :key="item" :closeable="false" style="margin-right: 5px">{{
+              item
+            }}</el-tag>
           </el-form-item>
         </el-col>
         <el-col :span="12">
           <el-form-item label="商品主图">
-            <img v-if="mainImage" :src="mainImage" class="main-image" alt="商品主图" />
+            <img v-if="formData.ossUrl" :src="formData.ossUrl" class="main-image" alt="商品主图" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -67,7 +69,7 @@
             <div class="spec-name">{{ formData.goodsName }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="goodsCode" label="商品编码" width="220">
+        <el-table-column prop="goodsCode" label="商品编码" width="240">
           <template #default>
             <div class="spec-code">{{ formData.goodsCode }}</div>
           </template>
@@ -94,7 +96,7 @@
         </el-table-column>
         <el-table-column prop="goodsSpecificationValue" label="商品规格值">
           <template #default="scope">
-            <span>{{ scope.row.goodsSpecificationValue }}{{ formData.goodsSpecificationName }}</span>
+            <span>{{ scope.row.goodsSpecificationValue }}{{ selectedSpecification(scope.row.goodsSpecification) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="goodsStock" label="可用库存" />
@@ -129,7 +131,7 @@ const emit = defineEmits<{
 }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
-const { goods_status } = toRefs<any>(proxy?.useDict('goods_status'));
+const { goods_status, goods_specification } = toRefs<any>(proxy?.useDict('goods_status', 'goods_specification') || {});
 
 const formData = ref<HnGoodsVo>({
   id: undefined,
@@ -159,12 +161,11 @@ const brandOptions = ref<any[]>([]);
 const guaranteeOptions = ref<any[]>([]);
 const operateMode = ref<'view' | 'edit'>(props.type);
 
-// 主图
-const mainImage = computed(() => {
-  if (!formData.value.sysOssLists || formData.value.sysOssLists.length === 0) return '';
-  const mainFile = formData.value.sysOssLists[0];
-  return mainFile?.url || '';
-});
+// 规格显示/更新/启用禁用
+const selectedSpecification = (value: string) => {
+  const dict = goods_specification.value.find((item: any) => item.value === value);
+  return dict ? dict.label : '';
+};
 
 // 价格格式化
 const formatPrice = (price?: number) => {
@@ -241,6 +242,7 @@ onMounted(async () => {
     const res = await goodsId(String(props.id));
     formData.value = res.data;
     tableList.value = res.data.hnGoodsSpecificationDataList || [];
+    formData.value.goodsAbilityNames = res.data.goodsAbilityNames ? res.data.goodsAbilityNames.split(',') : [];
     // 深拷贝原始数据用于对比
     originalTableList.value = JSON.parse(JSON.stringify(res.data.hnGoodsSpecificationDataList || []));
     // console.log('加载的原始数据:', originalTableList.value);

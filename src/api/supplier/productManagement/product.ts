@@ -7,7 +7,7 @@ import request from '@/utils/request';
 export function goodsList(query?: any) {
   console.log(query);
   return request({
-    url: '/grain-sales/goods/list',
+    url: '/grain-sales/goods/pageList',
     method: 'get',
     params: query
   });
@@ -25,7 +25,7 @@ export function updateGoodsPrice(data?: any) {
 // 获取商品信息详细信息
 export function goodsId(id?: string) {
   return request({
-    url: `/grain-sales/goods/${id}`,
+    url: `/grain-sales/goods/pageListQuery/${id}`,
     method: 'get'
   });
 }
