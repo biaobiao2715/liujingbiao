@@ -8,12 +8,12 @@
 
 <template>
   <div class="goods-item" :style="style" @click="handleClick">
-    <img :src="goods?.sysOssLists?.[0]?.url" class="goods-image" />
+    <img :src="goods?.ossUrl" class="goods-image" />
     <div class="goods-info">
       <div class="flex-center-between mt-12">
         <div class="goods-price flex-center">
           <div class="unit">¥</div>
-          <div>{{ +goods?.hnGoodsSpecificationDataList?.[0]?.goodsPrice }}元起</div>
+          <div>{{ +goods?.minGoodsPrice }}元起</div>
         </div>
         <div class="goods-volume">{{ goods?.goodsSales }}件已售</div>
       </div>

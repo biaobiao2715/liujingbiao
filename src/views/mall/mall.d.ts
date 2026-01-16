@@ -118,6 +118,15 @@ export interface HnBaseEnterpriseInfo {
   districtCode?: string; // 区编码
 }
 
+export interface remoteFileList {
+  ext1?: string; // 扩展字段
+  fileSuffix?: string; // 文件后缀名
+  name?: string; // 文件名称
+  originalName?: string; // 原名
+  ossId?: string; // OSS对象存储主键
+  url?: string; // 文件地址
+}
+
 export interface Goods {
   id?: number; // integer <int64>
   tenantId?: string; // 租户编号
@@ -148,4 +157,5 @@ export interface Goods {
   hnGoodsFilesList?: HnGoodsFiles[]; // 图片
   priceHistories?: HnGoodsPriceHistory[]; // 价格调整历史
   sysOssLists?: SysOssLists[]; // 图片详情
+  remoteFileList?: remoteFileList[]; // 图片详情
 }

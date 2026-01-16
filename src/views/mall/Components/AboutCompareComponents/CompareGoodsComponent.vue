@@ -82,12 +82,11 @@
 </template>
 
 <script setup lang="ts">
-import { goodsCompareList, goodsDetail, comparePrices } from '@/api/mall/goods/index';
+import { goodsList } from '@/api/mall/goods/index';
 
 import { Search, CircleCloseFilled } from '@element-plus/icons-vue';
 
 import GoodsItemComponent from '../GoodsItemComponent.vue';
-import { eventBus } from '@/utils/eventBus';
 
 const props = defineProps<{
   goods: any;
@@ -185,7 +184,7 @@ const handleSearch = () => {
 const fetchGoodsList = async () => {
   loading.value = true;
   try {
-    const response = await goodsCompareList({ ...queryParams,id: props.goods.id,goodsCategoryId: props.goods.goodsCategoryId });
+    const response = await goodsList({ ...queryParams, id: props.goods.id, goodsCategoryId: props.goods.goodsCategoryId });
     if (response.code === 200) {
       const records = response.rows || [];
       goodsData.value = records;

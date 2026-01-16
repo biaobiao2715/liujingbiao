@@ -39,28 +39,28 @@
 
             <div v-else-if="row.title === '商品价格'">
               <el-tag v-for="(p, i) in item.hnGoodsSpecificationDataList" :key="i" type="success" class="tag-item">
-                {{ p.goodsPrice + '元' + ' / ' + p.goodsSpecificationValue + item.goodsSpecificationName }}
+                {{ p.goodsPrice + '元' + ' / ' + p.goodsSpecificationValue + getGoodsSpecificationName(p.goodsSpecification) }}
               </el-tag>
 
               <div v-for="el in item.hnGoodsSpecificationDataList"></div>
             </div>
 
             <div v-else-if="row.title === '历史价格'">
-              <div v-for="(p, i) in item.priceHistories" :key="i" class="history-line flex-center-center gap-4">
-                <div class="old-price">{{ p.goodsOldPrice + '元' + ' / ' + p.goodsSpecificationValue + item.goodsSpecificationName }}</div>
+              <div v-for="(p, i) in item.hnGoodsPriceHistoryList" :key="i" class="history-line flex-center-center gap-4">
+                <div class="old-price">{{ p.goodsOldPrice + '元' + ' / ' + p.goodsSpecificationValue + p.goodsSpecification }}</div>
                 <div>--- 调整至 ---</div>
-                <div class="new-price">{{ p.goodsNewPrice + '元' + ' / ' + p.goodsSpecificationValue + item.goodsSpecificationName }}</div>
+                <div class="new-price">{{ p.goodsNewPrice + '元' + ' / ' + p.goodsSpecificationValue + p.goodsSpecification }}</div>
               </div>
             </div>
 
             <div v-else-if="row.title === '产品保障'" class="flex-center-center gap-8 wrap">
-              <el-tag v-for="value in item.goodssEnsureName" :key="value">{{ value }}</el-tag>
-              <div v-if="!item.goodssEnsureName.length">-</div>
+              <el-tag v-for="value in item.goodsEnsureNames.split(',')" :key="value">{{ value }}</el-tag>
+              <div v-if="!item.goodsEnsureNames.split(',').length">-</div>
             </div>
 
             <div v-else-if="row.title === '产品功能'" class="flex-center-center gap-8 wrap">
-              <el-tag v-for="value in item.goodsAbilityName" :key="value">{{ value }}</el-tag>
-              <div v-if="!item.goodssEnsureName.length">-</div>
+              <el-tag v-for="value in item.goodsAbilityNames.split(',')" :key="value">{{ value }}</el-tag>
+              <div v-if="!item.goodsAbilityNames.split(',').length">-</div>
             </div>
           </template>
         </el-table-column>
@@ -98,12 +98,15 @@
 </template>
 
 <script setup lang="ts">
-import { goodsCompareList, goodsDetail, comparePrices } from '@/api/mall/goods/index';
+import { comparePrices } from '@/api/mall/goods/index';
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
-const { plat_qualification_grade, plat_credit_rating } = toRefs<any>(
-  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating')
+const { plat_qualification_grade, plat_credit_rating, goods_specification } = toRefs<any>(
+  proxy?.useDict('review_status', 'plat_qualification_grade', 'plat_credit_rating', 'goods_specification')
 );
+
+// goodsSpecification
+console.log(goods_specification,goods_specification.value);
 
 import GoodsItemComponent from '../GoodsItemComponent.vue';
 
@@ -133,8 +136,13 @@ const fetchData = async () => {
     .join(',');
 
   const res = await comparePrices({ id: props.compareGoodsList[0]?.id, comparePricesGoodsIds });
-  newCompareGoodsList.value = [res.data.hnMallVo, ...res.data.comparePrices];
+  newCompareGoodsList.value = [res.data.hnMallGoodsListPageVo, ...res.data.comparePrices];
+  console.log(newCompareGoodsList.value);
 };
+
+const getGoodsSpecificationName = (id: string) => {
+  return goods_specification.value.find((item) => item.value === id)?.label;
+}
 </script>
 
 <style scoped lang="scss">

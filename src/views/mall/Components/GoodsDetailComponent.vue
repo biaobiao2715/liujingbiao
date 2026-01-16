@@ -1,4 +1,3 @@
-
 <!--
   标题: GoodsDetailComponent.vue
   功能: 商品详情组件，包含商品图片、商品信息、商品评论等功能
@@ -14,7 +13,7 @@
         <div class="goods-image">
           <!-- 轮播图主图 -->
           <el-carousel
-            v-if="goods?.sysOssLists && goods.sysOssLists.length > 0"
+            v-if="goods?.remoteFileList && goods.remoteFileList.length > 0"
             ref="carouselRef"
             height="400px"
             :initial-index="currentImageIndex"
@@ -22,10 +21,10 @@
             indicator-position="none"
             arrow="hover"
             :interval="3000"
-            :autoplay="(goods?.sysOssLists?.length ?? 0) > 4"
+            :autoplay="(goods?.remoteFileList?.length ?? 0) > 4"
             class="main-carousel"
           >
-            <el-carousel-item v-for="(img, index) in goods?.sysOssLists" :key="index">
+            <el-carousel-item v-for="(img, index) in goods?.remoteFileList" :key="index">
               <el-image :src="img.url" fit="contain" class="carousel-image" />
             </el-carousel-item>
           </el-carousel>
@@ -35,14 +34,14 @@
             <button
               class="thumbnails-btn thumbnails-btn-left"
               @click="scrollThumbnails('left')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+              :disabled="!goods?.remoteFileList || goods.remoteFileList.length <= 1"
             >
               ‹
             </button>
             <div class="thumbnails-container">
               <div class="thumbnails">
                 <div
-                  v-for="(img, index) in goods?.sysOssLists"
+                  v-for="(img, index) in goods?.remoteFileList"
                   :key="index"
                   class="thumbnail"
                   :class="{ active: currentImageIndex === index }"
@@ -55,7 +54,7 @@
             <button
               class="thumbnails-btn thumbnails-btn-right"
               @click="scrollThumbnails('right')"
-              :disabled="!goods?.sysOssLists || goods.sysOssLists.length <= 1"
+              :disabled="!goods?.remoteFileList || goods.remoteFileList.length <= 1"
             >
               ›
             </button>
@@ -392,7 +391,7 @@ const handleCarouselChange = (index: number) => {
 
 // 缩略图滚动并切换主图
 const scrollThumbnails = (direction: 'left' | 'right') => {
-  const images = goods.value?.sysOssLists;
+  const images = goods.value?.remoteFileList || [];
   if (!images?.length) return;
 
   const newIndex =
@@ -409,7 +408,7 @@ const scrollThumbnails = (direction: 'left' | 'right') => {
 
 // 处理缩略图点击，切换主图
 const handleThumbnailClick = (index: number) => {
-  if (goods.value?.sysOssLists?.[index]) {
+  if (goods.value?.remoteFileList?.[index]) {
     carouselRef.value?.setActiveItem(index);
   }
 };
@@ -448,7 +447,7 @@ const getGoodsDetail = async (nowHomeHotId?: number | string) => {
       goods.value = res.data;
 
       // 处理商品详情数据
-      if (goods.value.sysOssLists?.length) {
+      if (goods.value.remoteFileList?.length) {
         currentImageIndex.value = 0;
       }
 

@@ -91,15 +91,15 @@ const sortList = ref([
   },
   {
     label: '按销量',
-    value: '0'
-  },
-  {
-    label: '按最新',
     value: '1'
   },
   {
+    label: '按最新',
+    value: '2'
+  },
+  {
     label: '按价格升序',
-    value: '3'
+    value: '4'
   }
 ]);
 

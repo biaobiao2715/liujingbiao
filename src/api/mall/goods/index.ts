@@ -4,7 +4,8 @@ import request from '@/utils/request';
 // 商城首页商品列表
 export function goodsList(data: any) {
   return request({
-    url: 'grain-sales/mall/list',
+    // url: 'grain-sales/mall/list',
+    url: 'grain-sales/mall/listPage',
     method: 'get',
     params: data
   });
@@ -13,7 +14,8 @@ export function goodsList(data: any) {
 // 商品详情
 export function goodsDetail(id: number | string) {
   return request({
-    url: `grain-sales/mall/${id}`,
+    // url: `grain-sales/mall/${id}`,
+    url: `grain-sales//mall/listPageQuery/${id}`,
     method: 'get'
   });
 }
@@ -84,19 +86,12 @@ export function report(data: any) {
     data: data
   });
 }
-//获取对比商品列表
-export function goodsCompareList(data: any) {
-  return request({
-    url: 'grain-sales/mall/list',
-    method: 'get',
-    params: data
-  });
-}
 
 // 商品价格对比
 export function comparePrices(data: any) {
   return request({
-    url: `grain-sales/mall/comparePrices`,
+    // url: `grain-sales/mall/comparePrices`,
+    url: `grain-sales/mall/mallComparePrices`,
     method: 'get',
     params: data
   });
