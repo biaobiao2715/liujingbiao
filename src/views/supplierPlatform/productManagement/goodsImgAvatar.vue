@@ -44,7 +44,6 @@
 <script setup lang="ts">
 import 'vue-cropper/dist/index.css';
 import { VueCropper } from 'vue-cropper';
-import { UploadRawFile } from 'element-plus';
 import { ossUploadImage } from '@/api/supplier/productManagement/product';
 
 interface Options {
@@ -59,7 +58,7 @@ interface Options {
   visible: boolean;
 }
 
-const props = defineProps<{ urlData?: UploadRawFile | string | null }>();
+const props = defineProps<{ urlData?: File | string | null }>();
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const emit = defineEmits<{ (e: 'success', payload: { blob: Blob; fileName: string }): void }>();
@@ -144,7 +143,7 @@ watch(
       return;
     }
     // console.log('00000000', val);
-    const file = val as UploadRawFile;
+    const file = val as File;
     if (file && file.type.indexOf('image/') > -1) {
       const reader = new FileReader();
       reader.onload = () => {
