@@ -24,3 +24,4 @@ export const chineseLengthRule = (max: number, message: string): FormItemRule =>
   },
   trigger: 'blur'
 });
+// 的实际到货时间不能早于计划到货时间
